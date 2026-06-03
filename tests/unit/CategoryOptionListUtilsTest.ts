@@ -851,6 +851,66 @@ describe('CategoryOptionListUtils', () => {
         expect(getCategoryOptionTree(categories)).toStrictEqual(result);
     });
 
+    it('handles colon‑only category names', () => {
+        const categories = {
+            ':': {
+                enabled: true,
+                name: ':',
+            },
+            '::': {
+                enabled: true,
+                name: '::',
+            },
+            '  :  ': {
+                enabled: true,
+                name: '  :  ',
+            },
+            'Normal:Category': {
+                enabled: true,
+                name: 'Normal:Category',
+            },
+        };
+
+        const result = getCategoryOptionTree(categories);
+
+        // The colon-only categories should appear as top‑level leaf items (no indentation)
+        // They should have the exact name as both text and searchText.
+        expect(result).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    text: ':',
+                    keyForList: ':',
+                    searchText: ':',
+                    isDisabled: false,
+                }),
+                expect.objectContaining({
+                    text: '::',
+                    keyForList: '::',
+                    searchText: '::',
+                    isDisabled: false,
+                }),
+                expect.objectContaining({
+                    text: ':',
+                    keyForList: '  :  ',
+                    searchText: '  :  ',
+                    isDisabled: false,
+                }),
+                expect.objectContaining({
+                    text: 'Normal',
+                    keyForList: 'Normal',
+                    searchText: 'Normal',
+                    isDisabled: true,
+                }),
+                expect.objectContaining({
+                    text: '    Category',
+                    keyForList: 'Normal:Category',
+                    searchText: 'Normal:Category',
+                    isDisabled: false,
+                }),
+            ]),
+        );
+    });
+
     it('sortCategories', () => {
         const categoriesIncorrectOrdering = {
             Taxi: {
@@ -1202,5 +1262,19 @@ describe('CategoryOptionListUtils', () => {
         expect(sortCategories(categoriesIncorrectOrdering, localeCompare)).toStrictEqual(result);
         expect(sortCategories(categoriesIncorrectOrdering2, localeCompare)).toStrictEqual(result2);
         expect(sortCategories(categoriesIncorrectOrdering3, localeCompare)).toStrictEqual(result3);
+    });
+
+    it('sortCategories keeps colon‑only categories', () => {
+        const categories = {
+            ':': {enabled: true, name: ':'},
+            '::': {enabled: true, name: '::'},
+            'Normal:Category': {enabled: true, name: 'Normal:Category'},
+        };
+        const sorted = sortCategories(categories, localeCompare);
+        expect(sorted).toEqual([
+            {name: ':', enabled: true, pendingAction: undefined},
+            {name: '::', enabled: true, pendingAction: undefined},
+            {name: 'Normal:Category', enabled: true, pendingAction: undefined},
+        ]);
     });
 });

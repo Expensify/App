@@ -28,12 +28,12 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
+import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
-import IdologyQuestions from './IdologyQuestions';
 
 const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
     errorFields: {},
