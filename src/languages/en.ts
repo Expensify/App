@@ -4087,7 +4087,7 @@ const translations = {
         selectCountry: 'Select country',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> so you can invite a director to sign in a later step.`,
+                `This bank account must be linked to a workspace. Go to <a href="${workspaceRoute}">Workspaces</a>, select your workspace, then navigate to Workflows > Payments > Add bank account.`,
         },
     },
     bankInfoStep: {
@@ -4136,7 +4136,6 @@ const translations = {
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
-            connectToWorkspace: (workspaceRoute: string) => `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> to invite a director to sign.`,
         },
     },
     agreementsStep: {

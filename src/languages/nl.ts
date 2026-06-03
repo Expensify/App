@@ -3996,7 +3996,7 @@ ${amount} voor ${merchant} - ${date}`,
         selectCountry: 'Selecteer land',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Verbind deze bankrekening met een <a href="${workspaceRoute}">werkruimte</a> zodat je in een latere stap een directeur kunt uitnodigen om te ondertekenen.`,
+                `Deze bankrekening moet worden gekoppeld aan een werkruimte. Ga naar <a href="${workspaceRoute}">Werkruimtes</a>, selecteer je werkruimte en navigeer vervolgens naar Workflows > Betalingen > Bankrekening toevoegen.`,
         },
     },
     bankInfoStep: {
@@ -4045,8 +4045,6 @@ ${amount} voor ${merchant} - ${date}`,
             `verbindt een zakelijke ${currency}-bankrekening die eindigt op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarsgegevens van een directeur.`,
         error: {
             emailsMustBeDifferent: 'E-mails moeten verschillend zijn',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Koppel deze bankrekening alstublieft aan een <a href="${workspaceRoute}">werkruimte</a> om een directeur uit te nodigen te ondertekenen.`,
         },
     },
     agreementsStep: {
