@@ -45,10 +45,7 @@ type HRCardDescriptor = {
     /** Whether this provider's first-ever (initial) sync is currently running (Merge HR only). */
     isInitialSyncInProgress?: boolean;
 
-    /** Whether the connection is connected but post-connect setup (group selection) hasn't been completed. */
-    isSetupIncomplete?: boolean;
-
-    /** Navigation route to the post-connect setup RHP (group selection). */
+    /** Navigation route to the post-connect setup RHP (group selection). Set only while the admin still needs to finish setup. */
     completeSetupRoute?: Route;
 
     /** ISO date string of the last successful sync, used for "last synced" display. */
@@ -273,7 +270,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
         for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
             const config = state.isConnected ? getCardConfig(policy, mergeConnectionName) : undefined;
-            const isSetupIncomplete = state.isConnected && !isMergeHRSetupComplete(policy);
+            const needsSetup = state.isConnected && !isMergeHRSetupComplete(policy);
 
             cards.push({
                 key: `merge_${slug}`,
@@ -282,8 +279,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                 icon: providerEntry.iconUrl,
                 setupLink: getMergeHRSetupLink(policyID, slug),
                 ...(state.isConnected ? state : disconnectedState),
-                isSetupIncomplete,
-                completeSetupRoute: ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID),
+                completeSetupRoute: needsSetup ? ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID) : undefined,
                 approvalModeRoute: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
                 finalApproverRoute: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                 config,

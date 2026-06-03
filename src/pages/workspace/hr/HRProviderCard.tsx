@@ -59,16 +59,12 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
         lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
     }
 
-    const completeSetupRoute = card.completeSetupRoute;
-    const isAwaitingSetup = !!card.isSetupIncomplete && !!completeSetupRoute;
-    const setupIncompleteHtml = isAwaitingSetup && completeSetupRoute ? translate('workspace.hr.mergeHR.setupIncomplete', `${environmentURL}/${completeSetupRoute}`) : undefined;
-
-    const primaryMenuItem: ThreeDotsMenuProps['menuItems'][number] =
-        isAwaitingSetup && completeSetupRoute
+    const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
+        card.completeSetupRoute
             ? {
                   icon: icons.CheckCircle,
                   text: translate('workspace.hr.mergeHR.completeSetup'),
-                  onSelected: () => Navigation.navigate(completeSetupRoute),
+                  onSelected: () => card.completeSetupRoute && Navigation.navigate(card.completeSetupRoute),
                   disabled: isOffline,
               }
             : {
@@ -76,10 +72,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                   text: translate('workspace.hr.syncNow'),
                   onSelected: () => syncConnection(policy, card.connectionName),
                   disabled: isOffline,
-              };
-
-    const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
-        primaryMenuItem,
+              },
         {
             icon: icons.Trashcan,
             text: translate('workspace.hr.disconnect'),
@@ -142,17 +135,19 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 iconType={CONST.ICON_TYPE_AVATAR}
                 wrapperStyle={[styles.ph0, styles.pv2, !!lastSyncErrorMessage && styles.pb0]}
                 interactive={false}
-                description={setupIncompleteHtml ? undefined : connectionDescription}
-                descriptionAddon={setupIncompleteHtml ? <RenderHTML html={setupIncompleteHtml} /> : undefined}
+                description={card.completeSetupRoute ? undefined : connectionDescription}
+                descriptionAddon={
+                    card.completeSetupRoute ? <RenderHTML html={translate('workspace.hr.mergeHR.setupIncomplete', `${environmentURL}/${card.completeSetupRoute}`)} /> : undefined
+                }
                 errorText={lastSyncErrorMessage}
                 errorTextStyle={styles.mt5}
                 shouldShowRedDotIndicator
                 shouldShowRightComponent
-                brickRoadIndicator={card.isSetupIncomplete ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined}
+                brickRoadIndicator={card.completeSetupRoute ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined}
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !card.isInitialSyncInProgress && !card.isSetupIncomplete && !!approvalModeRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !card.completeSetupRoute && !!approvalModeRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.approvalMode}
                     errors={card.config?.errorFields?.approvalMode}
@@ -168,7 +163,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                     />
                 </OfflineWithFeedback>
             )}
-            {card.isConnected && !card.isInitialSyncInProgress && !card.isSetupIncomplete && !!finalApproverRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !card.completeSetupRoute && !!finalApproverRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.finalApprover}
                     errors={card.config?.errorFields?.finalApprover}
