@@ -1,3 +1,4 @@
+import {areInvoicesEnabledSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -9,6 +10,7 @@ import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
     getBankAccountRoute,
+    getInvoiceReceiverPolicyID,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
@@ -70,6 +72,8 @@ function usePaymentOptions({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+    const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -196,7 +200,7 @@ function usePaymentOptions({
                 text: translate('bankAccount.addBankAccount'),
                 icon: icons.Bank,
                 onSelected: () => {
-                    const bankAccountRoute = getBankAccountRoute(chatReport);
+                    const bankAccountRoute = getBankAccountRoute(chatReport, areInvoicesEnabled);
                     Navigation.navigate(bankAccountRoute);
                 },
             };
@@ -263,6 +267,7 @@ function usePaymentOptions({
         shouldShowPayWithExpensifyOption,
         shouldShowPayElsewhereOption,
         chatReport,
+        areInvoicesEnabled,
         onPress,
         onlyShowPayElsewhere,
         icons,
