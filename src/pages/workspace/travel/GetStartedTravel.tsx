@@ -9,10 +9,9 @@ import CONST from '@src/CONST';
 
 type GetStartedTravelProps = {
     policyID: string;
-    canWriteMoreFeatures: boolean;
 };
 
-function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProps) {
+function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const handleCtaPress = () => {};
 
     const {translate} = useLocalize();
@@ -31,15 +30,13 @@ function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProp
             illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
             titleStyles={styles.textHeadlineH1}
             footer={
-                canWriteMoreFeatures ? (
-                    <BookTravelButton
-                        text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
-                        activePolicyID={policyID}
-                        shouldShowVerifyAccountModal={false}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
-                        large
-                    />
-                ) : undefined
+                <BookTravelButton
+                    text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
+                    activePolicyID={policyID}
+                    shouldShowVerifyAccountModal={false}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
+                    large
+                />
             }
         />
     );
