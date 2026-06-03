@@ -1,5 +1,8 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 /** Backend progress state for bulk copy settings. */
-type CopyPolicySettingsNVPState = 'in-progress' | 'complete' | 'failed' | null;
+type CopyPolicySettingsNVPState = ValueOf<typeof CONST.POLICY.COPY_SETTINGS_NVP_STATE> | null;
 
 /** NVP payload for bulk copy settings progress. */
 type CopyPolicySettingsNVP = {

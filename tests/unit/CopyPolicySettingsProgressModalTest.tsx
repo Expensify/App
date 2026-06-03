@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import {clearCopyPolicySettings, requestCopyPolicySettingsNotification, setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import CopyPolicySettingsProgressModal from '@pages/workspace/copyPolicySettings/CopyPolicySettingsProgressModal';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -86,7 +87,7 @@ describe('CopyPolicySettingsProgressModal', () => {
         });
 
         it('should be visible when currentStep is loading', async () => {
-            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'loading'});
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING});
             await waitForBatchedUpdates();
 
             renderModal();
@@ -95,7 +96,7 @@ describe('CopyPolicySettingsProgressModal', () => {
         });
 
         it('should be visible when currentStep is complete', async () => {
-            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'complete'});
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE});
             await waitForBatchedUpdates();
 
             renderModal();
@@ -106,7 +107,7 @@ describe('CopyPolicySettingsProgressModal', () => {
 
     describe('loading state (initial)', () => {
         beforeEach(async () => {
-            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'loading'});
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING});
             await waitForBatchedUpdates();
         });
 
@@ -142,7 +143,7 @@ describe('CopyPolicySettingsProgressModal', () => {
 
     describe('loading state (after notification requested)', () => {
         beforeEach(async () => {
-            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'loading'});
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING});
             await waitForBatchedUpdates();
         });
 
@@ -154,13 +155,13 @@ describe('CopyPolicySettingsProgressModal', () => {
             });
 
             expect(mockRequestNotification).toHaveBeenCalledTimes(1);
-            expect(mockSetCopyPolicySettingsData).toHaveBeenCalledWith({currentStep: 'complete'});
+            expect(mockSetCopyPolicySettingsData).toHaveBeenCalledWith({currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE});
         });
     });
 
     describe('concierge notification state', () => {
         beforeEach(async () => {
-            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'complete'});
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE});
             await waitForBatchedUpdates();
         });
 
@@ -204,8 +205,8 @@ describe('CopyPolicySettingsProgressModal', () => {
 
     describe('complete state', () => {
         beforeEach(async () => {
-            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'loading'});
-            await Onyx.merge(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS, {state: 'complete'});
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING});
+            await Onyx.merge(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS, {state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.COMPLETE});
             await waitForBatchedUpdates();
         });
 

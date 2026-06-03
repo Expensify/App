@@ -385,7 +385,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const failLifecycle = failureData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS);
                 const successLifecycle = successData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS);
 
-                expect((optLifecycle?.value as {currentStep?: string | null})?.currentStep).toBe('loading');
+                expect((optLifecycle?.value as {currentStep?: string | null})?.currentStep).toBe(CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING);
                 expect((failLifecycle?.value as {currentStep?: string | null})?.currentStep).toBeNull();
                 // Success leaves currentStep alone — the backend transitions it to 'complete' via NVP.
                 expect(successLifecycle).toBeUndefined();

@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {Errors} from './OnyxCommon';
 
 /** Onyx state of the Copy Policy Settings (bulk workspace edits) flow */
@@ -20,7 +22,7 @@ type CopyPolicySettings = {
      * Note: This is distinct from `NVP_BULK_POLICY_COPY_SETTINGS.state` which tracks
      * the actual backend copy progress ('in-progress' | 'complete').
      */
-    currentStep?: 'loading' | 'complete' | null;
+    currentStep?: ValueOf<typeof CONST.POLICY.COPY_SETTINGS_MODAL_STEP> | null;
 
     /** Error state */
     errors?: Errors;

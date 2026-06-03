@@ -294,7 +294,7 @@ function buildCopyPolicySettingsData(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: 'loading'},
+        value: {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING},
     });
 
     // Optimistically set NVP state to 'in-progress' to avoid stale state flash
@@ -302,7 +302,7 @@ function buildCopyPolicySettingsData(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS,
-        value: {state: 'in-progress'},
+        value: {state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.IN_PROGRESS},
     });
 
     failureData.push({

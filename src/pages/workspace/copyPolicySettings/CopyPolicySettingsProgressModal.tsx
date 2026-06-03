@@ -1,29 +1,28 @@
 import React from 'react';
-import type {OnyxKey} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearCopyPolicySettings, requestCopyPolicySettingsNotification, setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type CopyPolicySettingsNVP from '@src/types/onyx/CopyPolicySettingsNVP';
 
 function useCopyPolicySettingsProgressModal() {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
-    const [bulkPolicyCopySettings] = useOnyx<OnyxKey, CopyPolicySettingsNVP | null>(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);
+    const [bulkPolicyCopySettings] = useOnyx(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const copyInProgressStep = copyPolicySettings?.currentStep === 'loading';
-    const requestNotificationStep = copyPolicySettings?.currentStep === 'complete';
+    const copyInProgressStep = copyPolicySettings?.currentStep === CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING;
+    const requestNotificationStep = copyPolicySettings?.currentStep === CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE;
     const isVisible = copyInProgressStep || requestNotificationStep;
-    const isCopySettingsComplete = bulkPolicyCopySettings?.state === 'complete';
+    const isCopySettingsComplete = bulkPolicyCopySettings?.state === CONST.POLICY.COPY_SETTINGS_NVP_STATE.COMPLETE;
 
     // Show "All Set" when backend NVP reports complete AND user is still viewing the modal
     const shouldShowAllSet = isVisible && isCopySettingsComplete;
@@ -53,7 +52,7 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: false,
             onConfirm: () => {
                 requestCopyPolicySettingsNotification();
-                setCopyPolicySettingsData({currentStep: 'complete'});
+                setCopyPolicySettingsData({currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE});
             },
             onCancel: () => {},
         };
