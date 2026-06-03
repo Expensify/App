@@ -43,14 +43,7 @@ function getAvailableMergeHRGroups(policy?: OnyxEntry<Policy>): MergeHRGroup[] {
 
 /** True once the admin has chosen which groups to import employees from. */
 function isMergeHRSetupComplete(policy?: OnyxEntry<Policy>): boolean {
-    if (!isMergeHRConnected(policy)) {
-        return false;
-    }
-    const groups = policy?.connections?.merge_hris?.config?.groups;
-    if (groups === CONST.MERGE_HR.GROUPS_ALL) {
-        return true;
-    }
-    return Array.isArray(groups) && groups.length > 0;
+    return !!policy?.connections?.merge_hris?.config?.groups;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
