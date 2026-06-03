@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/no-deep-equal-in-memo */
 import {useNavigation} from '@react-navigation/native';
+import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, useContext, useEffect, useRef, useState} from 'react';
@@ -38,7 +39,6 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     extractLinksFromMessageHtml,
     getOriginalMessage,
@@ -85,7 +85,7 @@ type PureReportActionItemProps = {
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
-    transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -101,9 +101,6 @@ type PureReportActionItemProps = {
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
-
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
@@ -138,9 +135,6 @@ type PureReportActionItemProps = {
     /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
-    /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
-
     /** ID of the original report from which the given reportAction is first created */
     originalReportID?: string;
 
@@ -158,9 +152,6 @@ type PureReportActionItemProps = {
 
     /** Whether the action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport?: boolean;
-
-    /** Whether the user is a track intent user */
-    isTrackIntentUser?: boolean;
 };
 
 function PureReportActionItem({
@@ -169,7 +160,6 @@ function PureReportActionItem({
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
-    index,
     parentReportAction,
     shouldDisplayNewMarker,
     shouldHideThreadDividerLine = false,
@@ -182,17 +172,16 @@ function PureReportActionItem({
     draftMessage,
     iouReport,
     linkedTransactionRouteError,
-    personalDetails,
     originalReportID = '-1',
     originalReport,
     isClosedExpenseReportWithNoExpenses,
     shouldShowBorder,
     shouldHighlight = false,
     isHarvestCreatedExpenseReport = false,
-    isTrackIntentUser,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
+    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID)});
 
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -242,7 +231,7 @@ function PureReportActionItem({
     const dismissError = () => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionID && reportID) {
-            cleanUpMoneyRequest(transactionID, action, reportID, report, chatReport, undefined, originalReportID, true);
+            cleanUpMoneyRequest(transactionID, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true);
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
@@ -482,11 +471,9 @@ function PureReportActionItem({
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
-    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
-    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
     const plainMessage = getReportActionText(action);
-    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
+    const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (
         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
@@ -609,12 +596,9 @@ function PureReportActionItem({
                                                                 updateHiddenState={updateHiddenState}
                                                                 isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                                 isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
-                                                                personalDetails={personalDetails}
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
-                                                                index={index}
                                                                 setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
-                                                                isTrackIntentUser={isTrackIntentUser ?? false}
                                                             />
                                                             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                                                                 <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
@@ -684,19 +668,18 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.report?.description === nextProps.report?.description &&
         isCompletedTaskReport(prevProps.report) === isCompletedTaskReport(nextProps.report) &&
         prevProps.report?.managerID === nextProps.report?.managerID &&
-        prevProps.index === nextProps.index &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
         prevProps.report?.total === nextProps.report?.total &&
         prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
         prevProps.report?.policyAvatar === nextProps.report?.policyAvatar &&
         prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
+        prevProps.shouldDisplayContextMenu === nextProps.shouldDisplayContextMenu &&
         deepEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
         deepEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
         deepEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
         deepEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-        deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&

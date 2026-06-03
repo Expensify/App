@@ -1,9 +1,9 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import {updateMergeHRFinalApprover} from '@libs/actions/connections/MergeHR';
+import {getConnectedHRProvider, isMergeHRConnected} from '@libs/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getConnectedHRProvider, isMergeHRConnected} from '@libs/PolicyUtils';
 import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
 import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
 import CONST from '@src/CONST';
