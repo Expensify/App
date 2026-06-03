@@ -6829,6 +6829,68 @@ describe('SearchUIUtils', () => {
             expect(todoSectionMenuItems.length).toBe(0);
         });
 
+        it('should show drafts and insights for a Submit workspace', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Submit Workspace',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.USER,
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    approver: adminEmail,
+                    areCategoriesEnabled: true,
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: approverEmail,
+                        },
+                        [approverEmail]: {
+                            email: approverEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+            // Drafts (Submit) should appear for a Submit workspace
+            expect(allMenuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+            // The Insights section and its items should appear for a Submit workspace
+            const insightsSection = sections.find((section) => section.translationPath === 'search.tabs.insights');
+            expect(insightsSection).toBeDefined();
+            const insightsKeys = insightsSection?.menuItems.map((item) => item.key) ?? [];
+            expect(insightsKeys).toContain(CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS);
+            expect(insightsKeys).toContain(CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES);
+            expect(insightsKeys).toContain(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
+            expect(insightsKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME);
+
+            // Submit workspaces don't have pay/approve/export/statements features
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
+        });
+
         it('should not show monthly accrual or reconciliation sections when user has no admin permissions or card feeds', () => {
             const mockPolicies = {
                 policy1: {

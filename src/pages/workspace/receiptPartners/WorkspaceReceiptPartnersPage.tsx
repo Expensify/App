@@ -18,7 +18,6 @@ import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLaz
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
-import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -61,7 +60,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {asset: ReceiptPartners} = useMemoizedLazyAsset(() => loadIllustration('ReceiptPartners' as IllustrationName));
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
-    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
@@ -91,11 +89,11 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
 
     // When Uber connection status flips from false -> true, navigate to the invite flow once
     useEffect(() => {
-        if (!isUberConnected || prevIsUberConnected || !canWriteMoreFeatures) {
+        if (!isUberConnected || prevIsUberConnected) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
-    }, [prevIsUberConnected, isUberConnected, policyID, canWriteMoreFeatures]);
+    }, [prevIsUberConnected, isUberConnected, policyID]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
@@ -176,7 +174,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     if (!integrationData) {
                         return undefined;
                     }
-                    const overflowMenu = canWriteMoreFeatures ? getOverflowMenu(integration) : [];
+                    const overflowMenu = getOverflowMenu(integration);
 
                     const iconProps = integrationData?.icon
                         ? {
@@ -186,32 +184,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         : {};
 
                     const isUber = integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
-                    let rightComponent: React.ReactNode;
-                    if (canWriteMoreFeatures && (isUberConnected || shouldShowEnterCredentialsError)) {
-                        rightComponent = (
-                            <View ref={threeDotsMenuContainerRef}>
-                                <ThreeDotsMenu
-                                    getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
-                                    menuItems={overflowMenu}
-                                    anchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                    }}
-                                />
-                            </View>
-                        );
-                    } else if (canWriteMoreFeatures) {
-                        rightComponent = (
-                            <Button
-                                onPress={() => startIntegrationFlow({name: integration})}
-                                text={translate('workspace.accounting.setup')}
-                                style={styles.justifyContentCenter}
-                                small
-                                isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
-                                isDisabled={isOffline}
-                            />
-                        );
-                    }
 
                     return {
                         ...iconProps,
@@ -219,15 +191,14 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         interactive: false,
                         errorText: shouldShowEnterCredentialsError ? getSynchronizationErrorMessage(integrationData.title, translate, styles) : undefined,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        shouldShowRightComponent: !!rightComponent,
+                        shouldShowRightComponent: true,
                         title: integrationData?.title,
                         badgeText: isUber ? translate('workspace.accounting.claimOffer.badgeText') : undefined,
-                        onBadgePress:
-                            isUber && canWriteMoreFeatures
-                                ? () => {
-                                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
-                                  }
-                                : undefined,
+                        onBadgePress: isUber
+                            ? () => {
+                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
+                              }
+                            : undefined,
                         badgeStyle: styles.mr3,
                         isBadgeSuccess: isUber,
                         shouldShowBadgeInSeparateRow: shouldUseNarrowLayout,
@@ -235,7 +206,28 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
                         brickRoadIndicator: !!integrationData?.errorFields || shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                        rightComponent,
+                        rightComponent:
+                            isUberConnected || shouldShowEnterCredentialsError ? (
+                                <View ref={threeDotsMenuContainerRef}>
+                                    <ThreeDotsMenu
+                                        getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
+                                        menuItems={overflowMenu}
+                                        anchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                        }}
+                                    />
+                                </View>
+                            ) : (
+                                <Button
+                                    onPress={() => startIntegrationFlow({name: integration})}
+                                    text={translate('workspace.accounting.setup')}
+                                    style={styles.justifyContentCenter}
+                                    small
+                                    isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
+                                    isDisabled={isOffline}
+                                />
+                            ),
                     };
                 })
                 .filter(Boolean) as MenuItemData[];
@@ -247,7 +239,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         receiptPartnerIntegrations,
         getReceiptPartnersIntegrationData,
         getOverflowMenu,
-        canWriteMoreFeatures,
         shouldShowEnterCredentialsError,
         translate,
         styles,
@@ -265,7 +256,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             {isLoading ? (
                 <FullScreenLoadingIndicator
@@ -322,9 +312,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoInvite')}
                                                     onToggle={toggleWorkspaceUberAutoInvite}
                                                     isActive={isAutoInvite}
-                                                    disabled={!canWriteMoreFeatures}
-                                                    disabledAction={showReadOnlyModal}
-                                                    showLockIcon={!canWriteMoreFeatures}
                                                 />
                                             </View>
                                         </OfflineWithFeedback>
@@ -336,9 +323,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
                                                     onToggle={toggleWorkspaceUberAutoRemove}
                                                     isActive={isAutoRemove}
-                                                    disabled={!canWriteMoreFeatures}
-                                                    disabledAction={showReadOnlyModal}
-                                                    showLockIcon={!canWriteMoreFeatures}
                                                 />
                                             </View>
                                         </OfflineWithFeedback>
@@ -347,28 +331,23 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                 <MenuItemWithTopDescription
                                                     description={translate('workspace.receiptPartners.uber.centralBillingAccount')}
                                                     title={integrations?.uber?.centralBillingAccountEmail}
-                                                    shouldShowRightIcon={canWriteMoreFeatures}
+                                                    shouldShowRightIcon
                                                     style={[styles.sectionMenuItemTopDescription, styles.mt5]}
-                                                    onPress={
-                                                        canWriteMoreFeatures
-                                                            ? () =>
-                                                                  Navigation.navigate(
-                                                                      ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER),
-                                                                  )
-                                                            : undefined
+                                                    onPress={() =>
+                                                        Navigation.navigate(
+                                                            ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER),
+                                                        )
                                                     }
                                                 />
                                             </OfflineWithFeedback>
                                         )}
-                                        {canWriteMoreFeatures && (
-                                            <MenuItem
-                                                title={translate('workspace.receiptPartners.uber.manageInvites')}
-                                                shouldShowRightIcon
-                                                icon={icons.Mail}
-                                                style={[styles.sectionMenuItemTopDescription, styles.mbn3, !centralBillingAccountEmail && styles.mt6]}
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER))}
-                                            />
-                                        )}
+                                        <MenuItem
+                                            title={translate('workspace.receiptPartners.uber.manageInvites')}
+                                            shouldShowRightIcon
+                                            icon={icons.Mail}
+                                            style={[styles.sectionMenuItemTopDescription, styles.mbn3, !centralBillingAccountEmail && styles.mt6]}
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER))}
+                                        />
                                     </>
                                 )}
                             </Section>
