@@ -1,4 +1,10 @@
-import {multiPersonalDetailsSelector, personalDetailsDisplayNameSelector, personalDetailsListSelector, personalDetailsLoginSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {
+    multiPersonalDetailsSelector,
+    personalDetailsDisplayNameSelector,
+    personalDetailsListSelector,
+    personalDetailsLoginSelector,
+    personalDetailsSelector,
+} from '@selectors/PersonalDetails';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
