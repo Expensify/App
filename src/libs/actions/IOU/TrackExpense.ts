@@ -155,6 +155,7 @@ type GetTrackExpenseInformationTransactionParams = {
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -2354,6 +2355,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         odometerEnd,
         isFromGlobalCreate = false,
         gpsCoordinates,
+        distanceRequestType,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -2674,6 +2676,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 ...(policy && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID && {policyID: policy?.id}),
                 description: parsedComment,
                 gpsCoordinates,
+                distanceRequestType,
                 isDistance:
                     isGPSDistanceRequest ||
                     isMapDistanceRequest(transaction) ||
@@ -2730,7 +2733,9 @@ function getNavigationUrlAfterTrackExpenseDelete(
 
     // If not a self DM, handle it as a regular money request
     if (!isSelfDM(chatReport)) {
-        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatIOUReport, isChatReportArchived, isSingleTransactionView);
+        const allReports = getAllReports();
+        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, transactionThreadReport, iouReport, chatIOUReport, isChatReportArchived, isSingleTransactionView);
     }
 
     // Only navigate if in single transaction view and the thread will be deleted

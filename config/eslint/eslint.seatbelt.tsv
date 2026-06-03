@@ -101,7 +101,7 @@
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/LocationPermissionModal/index.android.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/LocationPermissionModal/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/components/Lottie/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/components/Lottie/index.tsx"	"no-restricted-imports"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MagicCodeInput.tsx"	"react-hooks/refs"	1
 "../../src/components/MagicCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
@@ -448,9 +448,7 @@
 "../../src/pages/EnablePayments/FeesAndTerms/substeps/TermsStep.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/EnablePayments/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"react-hooks/refs"	4
-"../../src/pages/MultifactorAuthentication/BiometricsTestPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/MultifactorAuthentication/RevokePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/ReimbursementAccount/EnterSignerInfo/index.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/refs"	3
@@ -466,7 +464,6 @@
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/Travel/TravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ValidateLoginPage/index.web.tsx"	"react-hooks/set-state-in-effect"	1
@@ -561,8 +558,8 @@
 "../../src/pages/signin/LoginForm/BaseLoginForm.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/signin/SignInPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/signin/SignInPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.native.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.native.tsx"	"no-restricted-imports"	1
+"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"react-hooks/set-state-in-effect"	4
 "../../src/pages/tasks/NewTaskPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/tasks/TaskAssigneeSelectorModal.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2

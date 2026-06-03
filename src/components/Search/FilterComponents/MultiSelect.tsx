@@ -21,6 +21,7 @@ type MultiSelectItem<T> = {
     value: T;
     icons?: Icon[];
     leftElement?: ReactNode;
+    searchableText?: string;
 };
 
 type MultiSelectProps<T> = SearchFilterCommonProps & {
@@ -70,7 +71,8 @@ function MultiSelect<T extends string>({
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items;
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)) : items;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
         keyForList: item.value,

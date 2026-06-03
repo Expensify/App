@@ -1335,6 +1335,7 @@ const CONST = {
     ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
+    TRAVEL_INVOICING_HELP_URL: 'https://help.expensify.com/articles/travel/travel-invoicing/Enable-Travel-Invoicing-in-a-Workspace',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
@@ -2348,9 +2349,6 @@ const CONST = {
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
     },
-    HTTP_HEADER_NAMES: {
-        AUTH_TOKEN: 'authToken',
-    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
         THROTTLED: 'throttled',
@@ -2797,6 +2795,7 @@ const CONST = {
         NON_REIMBURSABLE: 'nonReimbursable',
         SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
         NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         AUTO_SYNC: 'autoSync',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         MAPPINGS: {
@@ -6667,6 +6666,7 @@ const CONST = {
 
     NAVIGATION: {
         CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
+        CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR: 'CUSTOM_HISTORY-MFA_MODAL_NAVIGATOR',
         // Fake history entry used to keep browser Back behavior correct after revealing a route under an RHP.
         // addRootHistoryRouterExtension owns when this is added, carried forward, and removed.
         CUSTOM_HISTORY_ENTRY_REVEAL_PADDING: 'CUSTOM_HISTORY-REVEAL_PADDING',
@@ -6690,6 +6690,7 @@ const CONST = {
             PUSH_PARAMS: 'PUSH_PARAMS',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
+            TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY: 'TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY',
         },
     },
     TIME_PERIOD: {
@@ -8329,6 +8330,7 @@ const CONST = {
             BEFORE_PREFIX: 'reportFieldBefore-',
             RANGE_PREFIX: 'reportFieldRange-',
         },
+        NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
         TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
@@ -10080,6 +10082,9 @@ const CONST = {
         SAFE_AREA: {
             DISMISS_KEYBOARD_LANDSCAPE_MODE: 'SafeArea-DismissKeyboardLandscapeMode',
         },
+        MFA_OVERLAY: {
+            BACKDROP: 'MfaOverlay-Backdrop',
+        },
         DOMAIN: {
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
@@ -10164,6 +10169,7 @@ const CONST = {
         IPHONE: 14,
         ANDROID: 16,
         NEWDOT: 83,
+        OAUTH: 86,
     },
 } as const;
 
