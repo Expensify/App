@@ -68,6 +68,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
+import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
@@ -118,6 +119,12 @@ let credentials: Credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (value) => (credentials = value ?? {}),
+});
+
+let marketingAttribution: MarketingAttribution = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.MARKETING_ATTRIBUTION,
+    callback: (value) => (marketingAttribution = value ?? {}),
 });
 
 let stashedCredentials: Credentials = {};
@@ -645,7 +652,7 @@ function signUpUser(preferredLocale: Locale | undefined) {
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null, deviceInfo};
+        const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null, deviceInfo, ...marketingAttribution};
         API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
     });
 }

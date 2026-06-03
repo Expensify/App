@@ -98,6 +98,7 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MarketingAttribution from './MarketingAttribution';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -261,6 +262,7 @@ export type {
     PasskeyTransport,
     PendingContactAction,
     MapboxAccessToken,
+    MarketingAttribution,
     Modal,
     Network,
     OnyxInputOrEntry,
