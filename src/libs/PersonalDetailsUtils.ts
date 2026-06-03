@@ -135,7 +135,7 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: (number | undefined)[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function newGetPersonalDetailsByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
         const detail = accountID ? personalDetails?.[accountID] : undefined;
@@ -148,7 +148,7 @@ function newGetPersonalDetailsByIDs(accountIDs: (number | undefined)[], personal
     return result;
 }
 
-function getPersonalDetailsListByIDs(accountIDs: (number | undefined)[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
     return accountIDs.reduce((acc, accountID) => {
         if (!accountID) {
             return acc;

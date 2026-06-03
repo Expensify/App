@@ -6,9 +6,10 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetailsList?.[accountID] : undefined);
 
-const multiPersonalDetailsSelector = (accountIDs: (number | undefined)[]) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
+const multiPersonalDetailsSelector = (accountIDs: Array<number | undefined>) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
 
-const personalDetailsListSelector = (accountIDs: (number | undefined)[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
+const personalDetailsListSelector = (accountIDs: Array<number | undefined>) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+    getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
