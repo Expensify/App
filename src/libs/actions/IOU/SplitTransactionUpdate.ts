@@ -63,6 +63,7 @@ import {getAllReports, getMoneyRequestPolicyTags, getPolicyTagsData} from './ind
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './MoneyRequestBuilder';
+import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
@@ -78,7 +79,11 @@ type UpdateSplitTransactionsParams = {
         splitExpenses: SplitExpense[];
         splitExpensesTotal: number | undefined;
     };
-    searchContext?: (Partial<SearchStateContextValue & SearchActionsContextValue> & {activeGroupSearchHashes?: number[]}) | undefined;
+    searchContext?:
+        | (Partial<SearchStateContextValue & SearchActionsContextValue> & {
+              activeGroupSearchHashes?: number[];
+          })
+        | undefined;
     policyCategories: OnyxTypes.PolicyCategories | undefined;
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
@@ -660,7 +665,11 @@ function updateSplitTransactions({
             parentChatReport,
             policyParams: {
                 ...policyParams,
-                policyTagList: getMoneyRequestPolicyTags({moneyRequestReportID: splitExpense?.reportID, parentChatReport, participant: participantParams.participant}),
+                policyTagList: getMoneyRequestPolicyTags({
+                    moneyRequestReportID: splitExpense?.reportID,
+                    parentChatReport,
+                    participant: participantParams.participant,
+                }),
             },
             transactionParams,
             moneyRequestReportID: moneyRequestReportIDForSplit,
@@ -871,9 +880,18 @@ function updateSplitTransactions({
             successDataComments.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {[newReportActionID]: {pendingAction: null, isOptimisticAction: null}},
+                value: {
+                    [newReportActionID]: {
+                        pendingAction: null,
+                        isOptimisticAction: null,
+                    },
+                },
             });
-            failureDataComments.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, value: {[newReportActionID]: null}});
+            failureDataComments.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[newReportActionID]: null},
+            });
 
             if (currentSplit) {
                 currentSplit.copiedComments ??= {};
@@ -893,7 +911,11 @@ function updateSplitTransactions({
             const baseViolations = latestViolationUpdate && 'value' in latestViolationUpdate && Array.isArray(latestViolationUpdate.value) ? latestViolationUpdate.value : fallbackViolations;
             const nextViolations = [
                 ...baseViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD),
-                {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                {
+                    name: CONST.VIOLATIONS.HOLD,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
             ];
 
             if (latestViolationUpdate && 'value' in latestViolationUpdate) {
@@ -1061,13 +1083,25 @@ function updateSplitTransactions({
                     continue;
                 }
                 remainingCommentActions.push(action);
-                optimisticActionsData[action.reportActionID] = {...action, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-                successActionsData[action.reportActionID] = {pendingAction: null, isOptimisticAction: null};
+                optimisticActionsData[action.reportActionID] = {
+                    ...action,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                };
+                successActionsData[action.reportActionID] = {
+                    pendingAction: null,
+                    isOptimisticAction: null,
+                };
                 failureActionsData[action.reportActionID] = null;
             }
             if (isRemainingTransactionOnHold && remainingHoldReportAction) {
-                optimisticActionsData[remainingHoldReportAction.reportActionID] = {...remainingHoldReportAction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-                successActionsData[remainingHoldReportAction.reportActionID] = {pendingAction: null, isOptimisticAction: null};
+                optimisticActionsData[remainingHoldReportAction.reportActionID] = {
+                    ...remainingHoldReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                };
+                successActionsData[remainingHoldReportAction.reportActionID] = {
+                    pendingAction: null,
+                    isOptimisticAction: null,
+                };
                 failureActionsData[remainingHoldReportAction.reportActionID] = null;
 
                 optimisticDataComments.push({
@@ -1173,7 +1207,9 @@ function updateSplitTransactions({
                 ...optimisticTransactionFromGetMoneyRequest,
                 transactionID: snapshotTransactionID,
                 // For edits, show a pending indicator in the snapshot while the request is in-flight.
-                ...(!isCreationOfSplits && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                ...(!isCreationOfSplits && {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                }),
             });
 
             const reportActionsTargetReportID = selfDMReportID ?? originalSelfDMReportID;
@@ -1297,7 +1333,9 @@ function updateSplitTransactions({
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
-                value: {[currentReportAction.reportActionID]: restoredActionWithoutChildMetadata},
+                value: {
+                    [currentReportAction.reportActionID]: restoredActionWithoutChildMetadata,
+                },
             });
         }
     }
@@ -1491,7 +1529,9 @@ function updateSplitTransactions({
                 },
                 ...(whisperActionID && {
                     [whisperActionID]: {
-                        originalMessage: {resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING},
+                        originalMessage: {
+                            resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+                        },
                     },
                 }),
             };
@@ -1607,12 +1647,16 @@ function updateSplitTransactions({
                 onyxData.optimisticData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: {data: {...optimisticSnapshotData, ...reportActionsMergePatch}},
+                    value: {
+                        data: {...optimisticSnapshotData, ...reportActionsMergePatch},
+                    },
                 });
                 onyxData.failureData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: {data: {...failureSnapshotData, ...reportActionsFailurePatch}},
+                    value: {
+                        data: {...failureSnapshotData, ...reportActionsFailurePatch},
+                    },
                 });
             }
         }
@@ -1781,7 +1825,9 @@ function updateSplitTransactions({
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
+                    value: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+                    },
                 },
             );
         }
@@ -1930,6 +1976,15 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     }
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+
+    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport && !isSearchPageTopmostFullScreenRoute) {
+        for (const splitExpense of splitExpenses) {
+            if (!splitExpense.transactionID) {
+                continue;
+            }
+            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
+        }
+    }
 
     if (isTracking()) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
