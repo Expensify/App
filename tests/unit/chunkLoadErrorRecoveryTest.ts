@@ -5,9 +5,11 @@
  * button is only shown after the automatic lazyRetry cycle has already run, so we are
  * already on the second failure by the time the user taps it).
  *
- * lazyRetry uses a two-phase approach:
- *   - First failure  → plain reload (cheap; handles transient network blips).
- *   - Second failure → clear SW caches then reload (handles stale post-deploy shell).
+ * lazyRetry uses a three-state strategy:
+ *   - First failure             → plain reload (cheap; handles transient network blips).
+ *   - Second failure (chunk)    → clear SW caches then reload (handles stale post-deploy shell).
+ *   - Second failure (non-chunk)→ reject to error boundary (avoids nuking the offline precache).
+ *   - Third failure             → reject to error boundary (loop prevention).
  */
 import {renderHook} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
@@ -53,6 +55,8 @@ describe('ChunkLoadError recovery', () => {
     let reloadMock: jest.Mock;
     // Records the order in which clear and reload are called within each test.
     const callOrder: string[] = [];
+    // Preserve the original location so the override does not leak between test files.
+    const originalLocation = window.location;
 
     beforeAll(() => {
         reloadMock = jest.fn().mockImplementation(() => {
@@ -61,6 +65,13 @@ describe('ChunkLoadError recovery', () => {
         Object.defineProperty(window, 'location', {
             configurable: true,
             value: {reload: reloadMock},
+        });
+    });
+
+    afterAll(() => {
+        Object.defineProperty(window, 'location', {
+            configurable: true,
+            value: originalLocation,
         });
     });
 
@@ -99,9 +110,11 @@ describe('ChunkLoadError recovery', () => {
     });
 
     describe('lazyRetry', () => {
-        it('plain-reloads on the first chunk load failure without clearing caches', async () => {
+        const chunkError = Object.assign(new Error('Loading chunk 3851 failed.'), {name: 'ChunkLoadError'});
+
+        it('plain-reloads on the first failure without clearing caches', async () => {
             sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED);
-            const failingImport = jest.fn().mockRejectedValue(new Error('chunk failed')) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
 
             lazyRetry(failingImport);
             await flushMicrotasks();
@@ -111,9 +124,9 @@ describe('ChunkLoadError recovery', () => {
             expect(callOrder).toEqual(['reload']);
         });
 
-        it('clears SW caches before reloading on the second chunk load failure', async () => {
+        it('clears SW caches before reloading on the second ChunkLoadError failure', async () => {
             sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, 'true');
-            const failingImport = jest.fn().mockRejectedValue(new Error('chunk failed')) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
 
             lazyRetry(failingImport);
             await flushMicrotasks();
@@ -121,6 +134,29 @@ describe('ChunkLoadError recovery', () => {
             expect(mockClearWorkboxRecoveryCaches).toHaveBeenCalledTimes(1);
             expect(reloadMock).toHaveBeenCalledTimes(1);
             expect(callOrder).toEqual(['clear', 'reload']);
+        });
+
+        it('rejects to the error boundary on second failure when the error is not a ChunkLoadError', async () => {
+            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, 'true');
+            const networkError = new Error('Failed to fetch');
+            const failingImport = jest.fn().mockRejectedValue(networkError) as unknown as ComponentImport<ComponentType>;
+
+            await expect(lazyRetry(failingImport)).rejects.toThrow('Failed to fetch');
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(reloadMock).not.toHaveBeenCalled();
+        });
+
+        it('rejects to the error boundary on the third failure to prevent an infinite reload loop', async () => {
+            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, 'cache-cleared');
+            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+
+            await expect(lazyRetry(failingImport)).rejects.toBeDefined();
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(reloadMock).not.toHaveBeenCalled();
         });
 
         it('does not reload on successful import', async () => {
