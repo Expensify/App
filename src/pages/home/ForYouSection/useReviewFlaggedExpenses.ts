@@ -49,4 +49,3 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
 }
 
 export default useReviewFlaggedExpenses;
-export type {ReviewFlaggedExpenses};

@@ -85,4 +85,3 @@ function useNavigateToTransactionThread() {
 }
 
 export default useNavigateToTransactionThread;
-export type {NavigateToTransactionThreadParams};

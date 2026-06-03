@@ -125,4 +125,3 @@ const flaggedExpensesReviewSelector = (flaggedExpensesValue: OnyxEntry<FlaggedEx
 
 export default todosReportCountsSelector;
 export {EMPTY_FLAGGED_EXPENSES_REVIEW, EMPTY_TODOS_SINGLE_REPORT_IDS, flaggedExpensesReviewSelector, todosSingleReportIDsSelector};
-export type {FlaggedExpensesReview};
