@@ -1,4 +1,3 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +33,7 @@ function WorkspaceExpensifyCardVerifyWorkAccountPage({route}: WorkspaceExpensify
         if (!workEmail) {
             return;
         }
-        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}, workEmail);
+        resendValidateCode({reasonCode: null}, workEmail);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {
