@@ -856,8 +856,6 @@ type BuildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdatesParams = {
 
 /**
  * Builds optimistic Onyx updates to remove frozen Expensify cards for a workspace being deleted.
- * Matches Auth's removeCardFromOnyxForAdminsAndCardAssignee (MERGE null per cardID) for cards that
- * remain visible in the client via filterInactiveCards while suspended and frozen.
  */
 function buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates({
     workspaceAccountID,
