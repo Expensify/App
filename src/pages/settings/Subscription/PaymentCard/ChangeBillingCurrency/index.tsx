@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import PaymentCardCurrencyHeader from '@components/AddPaymentCard/PaymentCardCurrencyHeader';
@@ -38,6 +38,12 @@ function ChangeBillingCurrency() {
     const initialCurrency = defaultCard?.accountData?.currency;
     const currency = (formDraft?.[INPUT_IDS.CURRENCY] ?? initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD) as Currency;
 
+    // Keep the latest card currency available to the unmount cleanup below without re-running it on every change.
+    const initialCurrencyRef = useRef(initialCurrency);
+    useEffect(() => {
+        initialCurrencyRef.current = initialCurrency;
+    }, [initialCurrency]);
+
     const formDataComplete = formData?.isLoading === false && !formData.errors;
     const prevIsLoading = usePrevious(formData?.isLoading);
     const prevFormDataComplete = usePrevious(formDataComplete);
@@ -53,7 +59,12 @@ function ChangeBillingCurrency() {
         // Clear any stale submission error (e.g. an incorrect security code from a previous attempt) so reopening the page starts clean,
         // and drop the currency draft when leaving the flow.
         clearErrors(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
-        return () => clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+            // The currency selector mirrors the picked currency into ADD_PAYMENT_CARD_FORM; reset it on exit so reopening
+            // the flow doesn't show a stale selection that no longer matches the card's actual currency.
+            PaymentMethods.setPaymentMethodCurrency((initialCurrencyRef.current ?? CONST.PAYMENT_CARD_CURRENCY.USD) as Currency);
+        };
     }, []);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
