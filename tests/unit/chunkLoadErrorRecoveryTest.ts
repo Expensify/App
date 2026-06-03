@@ -6,10 +6,11 @@
  * already on the second failure by the time the user taps it).
  *
  * lazyRetry uses a three-state strategy:
- *   - First failure             → plain reload (cheap; handles transient network blips).
- *   - Second failure (chunk)    → clear SW caches then reload (handles stale post-deploy shell).
- *   - Second failure (non-chunk)→ reject to error boundary (avoids nuking the offline precache).
- *   - Third failure             → reject to error boundary (loop prevention).
+ *   - First failure                        → plain reload.
+ *   - Second failure, ChunkLoadError, online→ clear SW caches then reload.
+ *   - Second failure, ChunkLoadError, offline→ reject to error boundary (preserve offline precache).
+ *   - Second failure, non-ChunkLoadError    → reject to error boundary.
+ *   - Third failure                         → reject to error boundary (loop prevention).
  */
 import {renderHook} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
@@ -124,8 +125,9 @@ describe('ChunkLoadError recovery', () => {
             expect(callOrder).toEqual(['reload']);
         });
 
-        it('clears SW caches before reloading on the second ChunkLoadError failure', async () => {
+        it('clears SW caches before reloading on the second ChunkLoadError failure when online', async () => {
             sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, 'true');
+            jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
             const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
 
             lazyRetry(failingImport);
@@ -134,6 +136,18 @@ describe('ChunkLoadError recovery', () => {
             expect(mockClearWorkboxRecoveryCaches).toHaveBeenCalledTimes(1);
             expect(reloadMock).toHaveBeenCalledTimes(1);
             expect(callOrder).toEqual(['clear', 'reload']);
+        });
+
+        it('rejects to the error boundary on second ChunkLoadError failure when offline to preserve the offline precache', async () => {
+            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, 'true');
+            jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+
+            await expect(lazyRetry(failingImport)).rejects.toBeDefined();
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(reloadMock).not.toHaveBeenCalled();
         });
 
         it('rejects to the error boundary on second failure when the error is not a ChunkLoadError', async () => {

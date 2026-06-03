@@ -26,12 +26,14 @@ function isChunkLoadError(error: unknown): boolean {
  * Attempts to lazily import a React component with a graduated retry strategy.
  *
  * - First failure: plain reload — handles transient network blips without touching caches.
- * - Second failure that is a ChunkLoadError: clear the SW precache and reload — handles the
- *   post-deploy stale-shell scenario where the SW pinned an old index.html that references
- *   chunk hashes no longer on the CDN. Caches are left intact for non-ChunkLoadErrors (e.g.
- *   offline) so the offline-capable precache is not destroyed for a recoverable situation.
- * - Any subsequent failure (or a second failure that is not a ChunkLoadError): propagate the
- *   error to the React error boundary so the user sees the error page instead of looping.
+ * - Second failure that is a ChunkLoadError AND the device is online: clear the SW precache
+ *   and reload — handles the post-deploy stale-shell scenario where the SW pinned an old
+ *   index.html that references chunk hashes no longer on the CDN.
+ *   The online guard is critical: a chunk fetch that fails while offline also produces a
+ *   ChunkLoadError, and clearing the Workbox precaches in that case would destroy the offline
+ *   app shell that is the only thing keeping the PWA usable until connectivity returns.
+ * - Any subsequent failure, a second failure that is not a ChunkLoadError, or a second failure
+ *   while offline: propagate to the React error boundary so the user sees the error page.
  *
  * @param componentImport - A function that returns a promise resolving to a lazily imported React component.
  * @returns A promise that resolves to the imported component or rejects after all recovery attempts.
@@ -52,18 +54,18 @@ const lazyRetry = function <T extends ComponentType<any>>(componentImport: Compo
                     console.error('Failed to lazily import a React component, refreshing the page in order to retry the operation.', error);
                     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, RETRY_STATE.RELOADED);
                     window.location.reload();
-                } else if (retryState === RETRY_STATE.RELOADED && isChunkLoadError(error)) {
-                    // Second failure and it is a ChunkLoadError: the plain reload did not help —
-                    // likely a stale SW precache. Clear caches and reload. Keep the flag at
-                    // CACHE_CLEARED so that a third failure will surface the error boundary
-                    // rather than starting the cycle over.
+                } else if (retryState === RETRY_STATE.RELOADED && isChunkLoadError(error) && navigator.onLine) {
+                    // Second failure, it is a ChunkLoadError, and the device is online: the plain
+                    // reload did not help — likely a stale SW precache after a deploy. Clear caches
+                    // and reload. Keep the flag at CACHE_CLEARED so a third failure surfaces the
+                    // error boundary rather than starting the cycle over.
                     console.error('Failed to lazily import a React component after reload, clearing SW caches and reloading.', error);
                     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, RETRY_STATE.CACHE_CLEARED);
                     clearWorkboxRecoveryCaches().then(() => window.location.reload());
                 } else {
-                    // All recovery options exhausted, or second failure is not a ChunkLoadError
-                    // (e.g. offline): propagate to the error boundary and reset the flag so the
-                    // retry cycle is available again next time the user navigates.
+                    // All recovery options exhausted, or the device is offline, or the second
+                    // failure is not a ChunkLoadError: propagate to the error boundary and reset
+                    // the flag so the retry cycle is available again next time the user navigates.
                     console.error('Failed to lazily import a React component after all recovery attempts.', error);
                     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, RETRY_STATE.INITIAL);
                     reject(error instanceof Error ? error : new Error(String(error)));
