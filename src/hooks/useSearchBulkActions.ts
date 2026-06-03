@@ -409,7 +409,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         .filter((reportID) => reportID !== undefined);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
 
-
     const doSelectedItemsBelongToSubmitPolicy = useMemo(() => {
         const selectedItems = selectedReports.length > 0 ? selectedReports : Object.values(selectedTransactions);
         if (selectedItems.length === 0) {

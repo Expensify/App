@@ -1490,18 +1490,6 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
 }
 
-/**
- * True when an expense report is on a Submit workspace but has no valid routed approver.
- * Bulk submit skips the Submit-To picker, so bulk Submit must be hidden for these reports.
- */
-function isSubmitWorkspaceReportMissingApprover(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): boolean {
-    if (!isSubmitPolicy(policy) || !expenseReport) {
-        return false;
-    }
-    const managerAccountID = getSubmitReportManagerAccountID(policy, expenseReport);
-    return managerAccountID === undefined || !isValidAccountRoute(managerAccountID);
-}
-
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
     const managerAccountID = getManagerAccountID(policy, expenseReport);
     return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
@@ -2509,7 +2497,6 @@ export {
     getForwardsToAccount,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,
-    isSubmitWorkspaceReportMissingApprover,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,
