@@ -322,6 +322,9 @@ function NumberWithSymbolForm({
 
         const strippedNumber = stripCommaFromAmount(withLeadingZero);
         const isForwardDelete = currentNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+
+        willSelectionBeUpdatedManually.current = true;
+        numberRef.current = strippedNumber;
         setCurrentNumber(strippedNumber);
         setSelection(getNewSelection(selection, isForwardDelete ? strippedNumber.length : currentNumber.length, strippedNumber.length));
         onInputChange?.(strippedNumber);
@@ -421,6 +424,22 @@ function NumberWithSymbolForm({
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
 
+    const handleSelectionChange = (selectionStart: number, selectionEnd: number) => {
+        if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
+            willSelectionBeUpdatedManually.current = false;
+            return;
+        }
+        if (!shouldUpdateSelection) {
+            return;
+        }
+        // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
+        const maxSelection = numberRef.current?.length ?? formattedNumber.length;
+        numberRef.current = undefined;
+        const start = Math.min(selectionStart, maxSelection);
+        const end = Math.min(selectionEnd, maxSelection);
+        setSelection({start, end});
+    };
+
     // Calculate dynamic font size based on the total length of the amount display
     const dynamicAmountStyle = useMemo(() => {
         const totalLength = formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0);
@@ -492,6 +511,8 @@ function NumberWithSymbolForm({
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}
+                selection={selection}
+                onSelectionChange={(e) => handleSelectionChange(e.nativeEvent.selection.start, e.nativeEvent.selection.end)}
                 ref={(newRef: BaseTextInputRef | null) => {
                     if (typeof ref === 'function') {
                         ref(newRef);
@@ -542,21 +563,7 @@ function NumberWithSymbolForm({
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}
             selection={selection}
-            onSelectionChange={(selectionStart, selectionEnd) => {
-                if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
-                    willSelectionBeUpdatedManually.current = false;
-                    return;
-                }
-                if (!shouldUpdateSelection) {
-                    return;
-                }
-                // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
-                const maxSelection = numberRef.current?.length ?? formattedNumber.length;
-                numberRef.current = undefined;
-                const start = Math.min(selectionStart, maxSelection);
-                const end = Math.min(selectionEnd, maxSelection);
-                setSelection({start, end});
-            }}
+            onSelectionChange={handleSelectionChange}
             onKeyPress={textInputKeyPress}
             isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
             symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
