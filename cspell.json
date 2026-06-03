@@ -973,7 +973,13 @@
         "zxcv",
         "zxldvw",
         "águero",
-        "مثال"
+        "مثال",
+        "claudedesktop",
+        "claudecodeex",
+        "NitroFetch",
+        "Prefetch",
+        "Prefetcher",
+        "knip"
     ],
     "ignorePaths": [
         ".gitignore",
@@ -1035,7 +1041,8 @@
         "src/libs/SearchParser/*",
         "modules/group-ib-fp",
         "web/snippets/gib.js",
-        "tests/unit/hooks/useLetterAvatars.test.tsx"
+        "tests/unit/hooks/useLetterAvatars.test.tsx",
+        "tests/unit/usePersonalDetailSearchSelectorTest.tsx"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
