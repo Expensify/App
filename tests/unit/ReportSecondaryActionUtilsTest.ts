@@ -81,6 +81,7 @@ describe('getSecondaryAction', () => {
             getSecondaryReportActions({
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                submitterLogin: '',
                 report,
                 chatReport,
                 reportTransactions: [],
@@ -88,6 +89,7 @@ describe('getSecondaryAction', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
+                isProduction: false,
             }),
         ).toEqual(result);
     });
@@ -117,6 +119,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -124,6 +127,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
@@ -149,6 +153,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -156,6 +161,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -184,6 +190,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -191,6 +198,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -219,6 +227,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -226,6 +235,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -251,6 +261,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -258,6 +269,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -290,6 +302,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -297,6 +310,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -336,6 +350,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction1, transaction2],
@@ -343,6 +358,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -367,6 +383,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -374,6 +391,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -415,6 +433,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -422,6 +441,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -449,6 +469,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -456,6 +477,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -488,6 +510,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -495,6 +518,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -533,6 +557,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -540,6 +565,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -573,6 +599,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -580,6 +607,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -612,6 +640,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -619,6 +648,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -650,6 +680,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -657,6 +688,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -692,6 +724,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -699,6 +732,7 @@ describe('getSecondaryAction', () => {
             violations,
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
 
         // Then APPROVE should be included because DEW approval is not in progress
@@ -736,6 +770,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -744,6 +779,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
+            isProduction: false,
         });
 
         // Then APPROVE should not be included because DEW is already processing an approval
@@ -779,6 +815,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -786,6 +823,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -819,6 +857,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -826,6 +865,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -856,6 +896,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -863,6 +904,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -893,6 +935,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -900,6 +943,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -927,6 +971,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -934,6 +979,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -952,6 +998,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -959,6 +1006,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -980,6 +1028,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -987,6 +1036,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1007,6 +1057,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1014,6 +1065,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1034,6 +1086,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1041,6 +1094,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1062,6 +1116,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1069,6 +1124,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1090,6 +1146,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1097,6 +1154,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1119,6 +1177,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1126,6 +1185,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1149,6 +1209,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1156,6 +1217,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
 
         // Then UNAPPROVE should not be included because DEW policies restrict unapprove to admins only
@@ -1182,6 +1244,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1189,6 +1252,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
 
         // Then UNAPPROVE should be included because admins can unapprove on DEW policies
@@ -1213,6 +1277,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1220,6 +1285,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -1260,6 +1326,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [
@@ -1271,6 +1338,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -1311,6 +1379,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [
@@ -1322,6 +1391,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -1362,6 +1432,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [
@@ -1373,6 +1444,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -1413,6 +1485,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [
@@ -1424,6 +1497,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -1445,6 +1519,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [],
@@ -1453,6 +1528,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -1474,6 +1550,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [],
@@ -1482,6 +1559,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -1503,6 +1581,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [],
@@ -1511,6 +1590,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -1533,6 +1613,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [],
@@ -1541,6 +1622,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -1569,6 +1651,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [],
@@ -1577,6 +1660,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [reportAction],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -1603,6 +1687,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [heldTransaction],
@@ -1611,6 +1696,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -1639,6 +1725,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [],
@@ -1647,6 +1734,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [reportAction],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -1672,6 +1760,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1680,6 +1769,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -1705,6 +1795,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1713,6 +1804,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -1740,6 +1832,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1748,6 +1841,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -1784,6 +1878,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -1792,6 +1887,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -1829,6 +1925,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
             reportTransactions: [],
@@ -1837,6 +1934,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -1889,6 +1987,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
             reportTransactions: [],
@@ -1897,6 +1996,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: oldPolicy,
             policies,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -1949,6 +2050,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
             reportTransactions: [],
@@ -1957,6 +2059,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -2009,6 +2112,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
             reportTransactions: [],
@@ -2017,6 +2121,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -2035,6 +2140,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [{} as Transaction],
@@ -2042,6 +2148,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -2073,6 +2180,7 @@ describe('getSecondaryAction', () => {
             amount: 20,
             merchant: 'Merchant',
             date: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -2095,6 +2203,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: undefined,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2102,6 +2211,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -2132,6 +2242,7 @@ describe('getSecondaryAction', () => {
             reportAction: undefined,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -2169,6 +2280,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2177,6 +2289,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -2214,6 +2328,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2222,6 +2337,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -2274,6 +2391,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction1, transaction2],
@@ -2282,6 +2400,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -2319,6 +2439,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2326,6 +2447,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -2369,6 +2491,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction1, transaction2],
@@ -2376,6 +2499,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -2410,6 +2534,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2417,6 +2542,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -2447,6 +2573,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2454,6 +2581,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -2499,6 +2627,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2507,6 +2636,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -2542,6 +2673,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2549,6 +2681,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -2572,6 +2705,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions,
@@ -2579,6 +2713,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -2606,6 +2741,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions,
@@ -2613,6 +2749,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -2650,6 +2787,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction1],
@@ -2658,6 +2796,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(true);
     });
@@ -2681,6 +2821,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -2688,6 +2829,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -2740,6 +2882,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction1, transaction2],
@@ -2748,6 +2891,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -2781,6 +2926,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2788,6 +2934,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -2825,6 +2972,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction1],
@@ -2833,6 +2981,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -2858,6 +3008,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2866,6 +3017,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -2889,6 +3042,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -2897,6 +3051,8 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+
+            isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -3155,6 +3311,7 @@ describe('getSecondaryExportReportActions', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions,
@@ -3162,6 +3319,7 @@ describe('getSecondaryExportReportActions', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -3195,6 +3353,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportAction: undefined,
                 originalTransaction: {} as Transaction,
                 policy,
+                isProduction: false,
             }),
         ).toEqual(result);
     });
@@ -3224,6 +3383,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -3250,6 +3410,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
+
+            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
@@ -3264,6 +3426,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
+
+            isProduction: false,
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -3289,6 +3453,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: undefined,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3320,6 +3485,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             amount: 20,
             merchant: 'Merchant',
             date: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -3347,6 +3513,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: undefined,
             originalTransaction,
             policy,
+            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -3391,6 +3558,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
             report,
             chatReport,
             reportTransactions: [],
@@ -3400,6 +3568,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             policies,
             reportActions,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -3445,6 +3615,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -3506,6 +3677,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction,
             policy,
+            isProduction: false,
         });
 
         // Then the SPLIT option is available
@@ -3552,6 +3724,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -3597,6 +3770,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -3646,6 +3820,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -3674,6 +3849,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -3709,6 +3885,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             grandParentReport: selfDMReport,
+
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -3737,6 +3915,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -3765,6 +3944,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
+
+            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -3793,6 +3974,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
+
+            isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -3844,6 +4027,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const result = getSecondaryReportActions({
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                submitterLogin: '',
                 report,
                 chatReport: undefined,
                 reportTransactions: [transaction],
@@ -3851,6 +4035,8 @@ describe('getSecondaryTransactionThreadActions', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
+
+                isProduction: false,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
@@ -3898,6 +4084,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const result = getSecondaryReportActions({
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                submitterLogin: '',
                 report,
                 chatReport: undefined,
                 reportTransactions: [transaction],
@@ -3905,6 +4092,8 @@ describe('getSecondaryTransactionThreadActions', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
+
+                isProduction: false,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
@@ -4313,7 +4502,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({type: CONST.REPORT.TYPE.IOU});
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(false);
         });
 
         it('should return false when IOU report and user is neither submitter nor manager', () => {
@@ -4321,7 +4510,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({type: CONST.REPORT.TYPE.IOU});
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(false);
         });
 
         it('should return false when there are no available policies', () => {
@@ -4329,7 +4518,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport();
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(false);
         });
 
         it('should return false when only one available policy and it is the same as current report policy', () => {
@@ -4337,7 +4526,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: POLICY_ID});
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(false);
         });
 
         it('should return true when only one available policy but report has no policy', () => {
@@ -4345,7 +4534,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: undefined});
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(true);
         });
 
         it('should return true when only one available policy and it is different from current report policy', () => {
@@ -4353,7 +4542,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(true);
         });
 
         it('should return false when cannot edit report policy', () => {
@@ -4361,7 +4550,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(false);
         });
 
         it('should return false when report is exported', () => {
@@ -4369,7 +4558,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, [])).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '', [])).toBe(false);
         });
 
         it('should return true when multiple available policies exist', () => {
@@ -4377,7 +4566,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID, 'another_policy');
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(true);
         });
 
         it('should return true when IOU report with single user and user is submitter', () => {
@@ -4385,7 +4574,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({type: CONST.REPORT.TYPE.IOU, policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(true);
         });
 
         it('should return true when IOU report with single user and user is manager', () => {
@@ -4393,7 +4582,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({type: CONST.REPORT.TYPE.IOU, policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(true);
         });
 
         it('should return true when report is settled and currentUserLogin is admin of available policies', () => {
@@ -4404,7 +4593,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, ADMIN_EMAIL)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, ADMIN_EMAIL, '')).toBe(true);
         });
 
         it('should return false when report is settled and currentUserLogin is not admin of any policy', () => {
@@ -4415,7 +4604,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(false);
         });
 
         it('should filter policies by admin role using currentUserLogin when report is settled', () => {
@@ -4429,9 +4618,9 @@ describe('getSecondaryTransactionThreadActions', () => {
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
             // Admin user sees the one eligible policy (POLICY_ID) which differs from report's OLD_POLICY_ID
-            expect(isChangeWorkspaceAction(report, policies, ADMIN_EMAIL)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, ADMIN_EMAIL, '')).toBe(true);
             // Non-admin user has all policies filtered out
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(false);
         });
 
         it('should not filter policies by admin role when report is not settled', () => {
@@ -4443,7 +4632,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
             // Even though isPolicyAdmin returns false, non-settled reports skip the admin check
-            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, '')).toBe(true);
         });
 
         it('should pass currentUserLogin to isPolicyAdmin for each candidate policy when settled', () => {
@@ -4455,7 +4644,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
             const testLogin = 'specific-user@mail.com';
 
-            isChangeWorkspaceAction(report, policies, testLogin);
+            isChangeWorkspaceAction(report, policies, testLogin, '');
 
             const callsWithLogin = mockedIsPolicyAdmin.mock.calls.filter((call: unknown[]) => call.at(1) === testLogin);
             expect(callsWithLogin.length).toBeGreaterThan(0);

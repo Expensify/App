@@ -41,6 +41,7 @@ const lightTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
     overlay: colors.productLight400,

@@ -1,3 +1,4 @@
+import {hasPendingFollowupListSkeletonSelector} from '@selectors/AgentZeroChat';
 import React from 'react';
 import {View} from 'react-native';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -5,6 +6,7 @@ import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
@@ -19,6 +21,7 @@ import {
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import ChatActionableButtons from './ChatActionableButtons';
 
@@ -46,13 +49,18 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
 
     const {hasBeenFlagged} = getModerationFlagState(action);
 
+    const [hasPendingFollowupListSkeleton = false] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {
+        selector: hasPendingFollowupListSkeletonSelector(action.reportActionID),
+    });
+
     const messageHtml = getReportActionMessage(action)?.html;
     const mayHaveActionableButtons =
         isActionableAddPaymentCard(action) ||
         isConciergeCategoryOptions(action) ||
         isConciergeDescriptionOptions(action) ||
         isActionableTrackExpense(action) ||
-        !!(messageHtml && parseFollowupsFromHtml(messageHtml)?.length);
+        !!(messageHtml && parseFollowupsFromHtml(messageHtml)?.length) ||
+        hasPendingFollowupListSkeleton;
 
     return (
         <MentionReportContext.Provider value={mentionReportContextValue}>
@@ -92,6 +100,7 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                                 action={action}
                                 originalReportID={originalReportID}
                                 reportID={reportID}
+                                hasPendingFollowupListSkeleton={hasPendingFollowupListSkeleton}
                             />
                         )}
                     </View>

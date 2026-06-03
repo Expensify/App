@@ -45,6 +45,8 @@ function detachReceipt(
         return;
     }
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
@@ -101,15 +103,15 @@ function detachReceipt(
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            newTransaction,
-            currentTransactionViolations,
-            transactionPolicy,
-            transactionPolicyTagList ?? {},
-            transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceReportReportUtils(expenseReport),
-        );
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: newTransaction,
+            transactionViolations: currentTransactionViolations,
+            policy: transactionPolicy,
+            policyTagList: transactionPolicyTagList ?? {},
+            policyCategories: transactionPolicyCategories ?? {},
+            hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
+            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+        });
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -179,6 +181,8 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
     }
 
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
@@ -237,15 +241,15 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            newTransaction,
-            currentTransactionViolations,
-            transactionPolicy,
-            transactionPolicyTagList ?? {},
-            transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceReportReportUtils(expenseReport),
-        );
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: newTransaction,
+            transactionViolations: currentTransactionViolations,
+            policy: transactionPolicy,
+            policyTagList: transactionPolicyTagList ?? {},
+            policyCategories: transactionPolicyCategories ?? {},
+            hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
+            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+        });
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
