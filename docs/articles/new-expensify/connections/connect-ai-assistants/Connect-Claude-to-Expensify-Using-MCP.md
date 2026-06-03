@@ -26,7 +26,7 @@ Claude Free plans support one custom connector.
 
 Claude supports connecting to remote MCP servers through custom connectors.
 
-For instructions on how to add a custom connector, see Claude's documentation: [How to add a custom conector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp#h_3d1a65aded).
+For instructions on how to add a custom connector, see Claude's documentation: [How to add a custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp#h_3d1a65aded).
 
 1. Open Claude and add a custom connector.
 2. Enter `https://www.expensify.com/mcp/` as the server URL.
