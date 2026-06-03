@@ -2259,9 +2259,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Codes de récupération',
         keepCodesSafe: 'Conservez ces codes en lieu sûr !',
         codesLoseAccess: dedent(`
-            Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous perdrez l’accès à votre compte.
-
-            <strong>Remarque</strong> : La configuration de l’authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.
+            Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous serez bloqué hors de votre compte.<br><br>
+            <strong>Remarque</strong> : L’activation de la 2FA vous déconnecte de toutes les autres sessions.
         `),
         errorStepCodes: 'Veuillez copier ou télécharger les codes avant de continuer',
         stepVerify: 'Vérifier',
@@ -2291,7 +2290,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
-        screenshotTip: 'Astuce : faites une capture d’écran pour l’enregistrer dans votre photothèque',
         copyCodes: 'Copier les codes',
     },
     recoveryCodeForm: {
