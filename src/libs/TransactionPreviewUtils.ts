@@ -526,10 +526,7 @@ function transactionHasRBR(
     }
 
     // Check for report action errors associated with this transaction
-    const hasActionError = actionErrors
-        ? (!!iouReport?.reportID && actionErrors.hasGlobalActionError) || (!!transaction?.transactionID && actionErrors.transactionIDsWithActionError.has(transaction.transactionID))
-        : hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
-    if (hasActionError) {
+    if (hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions, actionErrors)) {
         return true;
     }
 

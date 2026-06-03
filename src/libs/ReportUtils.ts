@@ -11220,11 +11220,16 @@ function getActionErrorsByTransaction(
 /**
  * Checks if report contains actions with errors
  */
-function hasActionWithErrorsForTransaction(reportID: string | undefined, transaction: Transaction | undefined, reportActions: OnyxEntry<ReportActions> | undefined): boolean {
+function hasActionWithErrorsForTransaction(
+    reportID: string | undefined,
+    transaction: Transaction | undefined,
+    reportActions: OnyxEntry<ReportActions> | undefined,
+    actionErrors?: {hasGlobalActionError: boolean; transactionIDsWithActionError: Set<string>},
+): boolean {
     if (!reportID) {
         return false;
     }
-    const {hasGlobalActionError, transactionIDsWithActionError} = getActionErrorsByTransaction(reportID, reportActions);
+    const {hasGlobalActionError, transactionIDsWithActionError} = actionErrors ?? getActionErrorsByTransaction(reportID, reportActions);
     return hasGlobalActionError || (!!transaction?.transactionID && transactionIDsWithActionError.has(transaction.transactionID));
 }
 
