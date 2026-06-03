@@ -34,8 +34,8 @@ type OptionRowProps = {
     /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused?: boolean;
 
-    /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (option: OptionDataWithOptionalReportID, refElement: View | HTMLDivElement | null) => void | Promise<void>;
+    /** A function that is called when an option is selected */
+    onSelectRow?: () => void;
 
     /** Whether this item is selected */
     isSelected?: boolean;
@@ -170,17 +170,8 @@ function OptionRow({
                             }
 
                             setIsDisabled(true);
-                            if (e) {
-                                e.preventDefault();
-                            }
-                            let result = onSelectRow(option, pressableRef.current);
-                            if (!(result instanceof Promise)) {
-                                result = Promise.resolve();
-                            }
-
-                            requestAnimationFrame(() => {
-                                result?.finally(() => setIsDisabled(isOptionDisabled));
-                            });
+                            e?.preventDefault();
+                            onSelectRow();
                         }}
                         disabled={isDisabled}
                         style={[
