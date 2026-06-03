@@ -1,7 +1,6 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -51,175 +50,11 @@ type SelectionToolbarProps = {
     reportActions: OnyxTypes.ReportAction[];
 };
 
-type SelectionToolbarMobileSelectionModeProps = {
-    report: OnyxEntry<OnyxTypes.Report>;
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    reportActions: OnyxTypes.ReportAction[];
-    reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
-    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-    transactionsWithoutPendingDelete: OnyxTypes.Transaction[];
-    transactions: OnyxTypes.Transaction[];
-    selectedTransactionIDs: string[];
-    originalSelectedTransactionsOptions: ReturnType<typeof useSelectedTransactionsActions>['options'];
-    isDelegateAccessRestricted: boolean;
-    showDelegateNoAccessModal: () => void;
-    dismissedRejectUseExplanation: boolean | undefined;
-    clearSelectedTransactions: ReturnType<typeof useSearchSelectionActions>['clearSelectedTransactions'];
-    setSelectedTransactions: ReturnType<typeof useSearchSelectionActions>['setSelectedTransactions'];
-};
-
-function SelectionToolbarMobileSelectionMode({
-    report,
-    chatReport,
-    policy,
-    reportActions,
-    reportNameValuePairs,
-    reportMetadata,
-    transactionsWithoutPendingDelete,
-    transactions,
-    selectedTransactionIDs,
-    originalSelectedTransactionsOptions,
-    isDelegateAccessRestricted,
-    showDelegateNoAccessModal,
-    dismissedRejectUseExplanation,
-    clearSelectedTransactions,
-    setSelectedTransactions,
-}: SelectionToolbarMobileSelectionModeProps) {
-    const styles = useThemeStyles();
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
-
-    const {
-        selectionModeReportLevelActions,
-        allExpensesSelected,
-        hasPayInSelectionMode,
-        onSelectionModePaymentSelect,
-        selectionModeKYCSuccess,
-        primaryAction,
-        kycWallRef,
-        isHoldMenuVisible,
-        requestType,
-        paymentType,
-        selectedVBBAToPayFromHoldMenu,
-        handleHoldMenuClose,
-        handleHoldMenuConfirm,
-        hasOnlyHeldExpenses,
-        nonHeldAmount,
-        fullAmount,
-        hasValidNonHeldAmount,
-    } = useSelectionModeReportActions({
-        report,
-        chatReport,
-        policy,
-        reportActions,
-        reportNameValuePairs,
-        reportMetadata,
-        transactions: transactionsWithoutPendingDelete,
-        selectedTransactionIDs,
-    });
-
-    const selectedTransactionsOptions = (() => {
-        const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
-            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
-                return {
-                    ...option,
-                    onSelected: () => {
-                        if (isDelegateAccessRestricted) {
-                            showDelegateNoAccessModal();
-                            return;
-                        }
-
-                        if (dismissedRejectUseExplanation) {
-                            option.onSelected?.();
-                        } else {
-                            setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
-                        }
-                    },
-                };
-            }
-            return option;
-        });
-
-        if (allExpensesSelected && selectionModeReportLevelActions.length) {
-            return [...selectionModeReportLevelActions, ...mappedOptions];
-        }
-        return mappedOptions;
-    })();
-
-    const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
-
-    const dismissRejectModalBasedOnAction = () => {
-        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
-            dismissRejectUseExplanation();
-            if (report?.reportID) {
-                Navigation.navigate(
-                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
-                        reportID: report.reportID,
-                    }),
-                );
-            }
-        }
-        setRejectModalAction(null);
-    };
-
-    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
-    const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
-
-    return (
-        <>
-            <OfflineWithFeedback pendingAction={reportPendingAction}>
-                <View style={styles.flexColumn}>
-                    <SelectionDropdown
-                        hasPayInSelectionMode={hasPayInSelectionMode}
-                        chatReport={chatReport}
-                        report={report}
-                        onSelectionModePaymentSelect={onSelectionModePaymentSelect}
-                        selectionModeKYCSuccess={selectionModeKYCSuccess}
-                        primaryAction={primaryAction}
-                        selectedTransactionsOptions={selectedTransactionsOptions}
-                        selectedTransactionIDs={selectedTransactionIDs}
-                        kycWallRef={kycWallRef}
-                        shouldPopoverUseScrollView={popoverUseScrollView}
-                    />
-                    <SelectAllCheckbox
-                        isSelectAllChecked={isSelectAllChecked}
-                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                        hasAnySelected={selectedTransactionIDs.length > 0}
-                        onSelectAll={() => setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID))}
-                        onClearAll={() => clearSelectedTransactions(true)}
-                    />
-                </View>
-            </OfflineWithFeedback>
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
-                    fullAmount={fullAmount}
-                    onClose={handleHoldMenuClose}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={report}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    onConfirm={handleHoldMenuConfirm}
-                    transactionCount={transactions.length}
-                />
-            )}
-        </>
-    );
-}
-
 function SelectionToolbar({reportID, transactions, reportActions}: SelectionToolbarProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayoutOnWideRHP();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -243,6 +78,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
 
@@ -322,6 +158,82 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         onDeleteSelected,
     });
 
+    const {
+        selectionModeReportLevelActions,
+        allExpensesSelected,
+        hasPayInSelectionMode,
+        onSelectionModePaymentSelect,
+        selectionModeKYCSuccess,
+        primaryAction,
+        kycWallRef,
+        isHoldMenuVisible,
+        requestType,
+        paymentType,
+        selectedVBBAToPayFromHoldMenu,
+        handleHoldMenuClose,
+        handleHoldMenuConfirm,
+        hasOnlyHeldExpenses,
+        nonHeldAmount,
+        fullAmount,
+        hasValidNonHeldAmount,
+    } = useSelectionModeReportActions({
+        report,
+        chatReport,
+        policy,
+        reportActions,
+        reportNameValuePairs,
+        reportMetadata,
+        transactions: transactionsWithoutPendingDelete,
+        selectedTransactionIDs,
+    });
+
+    const selectedTransactionsOptions = (() => {
+        const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
+            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
+                return {
+                    ...option,
+                    onSelected: () => {
+                        if (isDelegateAccessRestricted) {
+                            showDelegateNoAccessModal();
+                            return;
+                        }
+
+                        if (dismissedRejectUseExplanation) {
+                            option.onSelected?.();
+                        } else {
+                            setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
+                        }
+                    },
+                };
+            }
+            return option;
+        });
+
+        if (allExpensesSelected && selectionModeReportLevelActions.length) {
+            return [...selectionModeReportLevelActions, ...mappedOptions];
+        }
+        return mappedOptions;
+    })();
+
+    const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
+
+    const dismissRejectModalBasedOnAction = () => {
+        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
+            dismissRejectUseExplanation();
+            if (report?.reportID) {
+                Navigation.navigate(
+                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                        reportID: report.reportID,
+                    }),
+                );
+            }
+        }
+        setRejectModalAction(null);
+    };
+
+    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
+    const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
+
     return (
         <>
             {isDuplicateOptionVisible && (
@@ -335,25 +247,34 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                 />
             )}
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
-                <ReportSubmitToPopoverAnchor reportID={report?.reportID ?? reportID}>
-                    <SelectionToolbarMobileSelectionMode
-                        report={report}
-                        chatReport={chatReport}
-                        policy={policy}
-                        reportActions={reportActions}
-                        reportNameValuePairs={reportNameValuePairs}
-                        reportMetadata={reportMetadata}
-                        transactionsWithoutPendingDelete={transactionsWithoutPendingDelete}
-                        transactions={transactions}
-                        selectedTransactionIDs={selectedTransactionIDs}
-                        originalSelectedTransactionsOptions={originalSelectedTransactionsOptions}
-                        isDelegateAccessRestricted={isDelegateAccessRestricted}
-                        showDelegateNoAccessModal={showDelegateNoAccessModal}
-                        dismissedRejectUseExplanation={dismissedRejectUseExplanation}
-                        clearSelectedTransactions={clearSelectedTransactions}
-                        setSelectedTransactions={setSelectedTransactions}
-                    />
-                </ReportSubmitToPopoverAnchor>
+                <OfflineWithFeedback pendingAction={reportPendingAction}>
+                    <View
+                        style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
+                    >
+                        <ReportSubmitToPopoverAnchor reportID={reportID}>
+                            <SelectionDropdown
+                                hasPayInSelectionMode={hasPayInSelectionMode}
+                                chatReport={chatReport}
+                                report={report}
+                                onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                                selectionModeKYCSuccess={selectionModeKYCSuccess}
+                                primaryAction={primaryAction}
+                                selectedTransactionsOptions={selectedTransactionsOptions}
+                                selectedTransactionIDs={selectedTransactionIDs}
+                                kycWallRef={kycWallRef}
+                                shouldPopoverUseScrollView={popoverUseScrollView}
+                            />
+                        </ReportSubmitToPopoverAnchor>
+
+                        <SelectAllCheckbox
+                            isSelectAllChecked={isSelectAllChecked}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                            hasAnySelected={selectedTransactionIDs.length > 0}
+                            onSelectAll={() => setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID))}
+                            onClearAll={() => clearSelectedTransactions(true)}
+                        />
+                    </View>
+                </OfflineWithFeedback>
             )}
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
@@ -373,6 +294,28 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
             />
+            {!!rejectModalAction && (
+                <HoldOrRejectEducationalModal
+                    onClose={dismissRejectModalBasedOnAction}
+                    onConfirm={dismissRejectModalBasedOnAction}
+                />
+            )}
+            {isHoldMenuVisible && requestType !== undefined && (
+                <ProcessMoneyReportHoldMenu
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                    requestType={requestType}
+                    fullAmount={fullAmount}
+                    onClose={handleHoldMenuClose}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
+                    chatReport={chatReport}
+                    moneyRequestReport={report}
+                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                    onConfirm={handleHoldMenuConfirm}
+                    transactionCount={transactions.length}
+                />
+            )}
         </>
     );
 }

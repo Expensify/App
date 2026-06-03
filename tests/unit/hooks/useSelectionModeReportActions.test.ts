@@ -2,6 +2,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
+import type * as PolicyUtilsModule from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -212,7 +213,7 @@ jest.mock('@libs/actions/Search', () => ({
 }));
 
 jest.mock('@libs/PolicyUtils', () => {
-    const actual = jest.requireActual<typeof import('@libs/PolicyUtils')>('@libs/PolicyUtils');
+    const actual = jest.requireActual<typeof PolicyUtilsModule>('@libs/PolicyUtils');
     return {
         ...actual,
         isSubmitPolicy: jest.fn(() => false),
@@ -273,6 +274,10 @@ const IOUActions = require('@libs/actions/IOU/ReportWorkflow') as Record<string,
 const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as Record<string, jest.Mock>;
 
 const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
+
+function isSubmitPolicyType(policy: Policy | undefined): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
 
 function resetMocksToDefaults() {
     PolicyUtils.isSubmitPolicy.mockReturnValue(false);
@@ -556,7 +561,7 @@ describe('useSelectionModeReportActions', () => {
 
         it('opens submit-to popover when a single selected transaction belongs to a submit policy', async () => {
             mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-            PolicyUtils.isSubmitPolicy.mockImplementation((policy) => policy?.type === CONST.POLICY.TYPE.SUBMIT);
+            PolicyUtils.isSubmitPolicy.mockImplementation(isSubmitPolicyType);
 
             const submitPolicy = buildPolicy({type: CONST.POLICY.TYPE.SUBMIT});
             const transactions = [buildTransaction(1), buildTransaction(2)];
@@ -581,7 +586,7 @@ describe('useSelectionModeReportActions', () => {
 
         it('does not submit when multiple selected transactions belong to a submit policy', () => {
             mockPrimaryAction = CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-            PolicyUtils.isSubmitPolicy.mockImplementation((policy) => policy?.type === CONST.POLICY.TYPE.SUBMIT);
+            PolicyUtils.isSubmitPolicy.mockImplementation(isSubmitPolicyType);
 
             const submitPolicy = buildPolicy({type: CONST.POLICY.TYPE.SUBMIT});
             const {result} = renderSelectionModeHook({policy: submitPolicy});
@@ -837,7 +842,7 @@ describe('useSelectionModeReportActions', () => {
         });
 
         it('returns true when multiple selected transactions belong to a submit policy', () => {
-            PolicyUtils.isSubmitPolicy.mockImplementation((policy) => policy?.type === CONST.POLICY.TYPE.SUBMIT);
+            PolicyUtils.isSubmitPolicy.mockImplementation(isSubmitPolicyType);
 
             const {result} = renderSelectionModeHook({
                 policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
@@ -850,7 +855,7 @@ describe('useSelectionModeReportActions', () => {
         });
 
         it('returns false when only one selected transaction belongs to a submit policy', () => {
-            PolicyUtils.isSubmitPolicy.mockImplementation((policy) => policy?.type === CONST.POLICY.TYPE.SUBMIT);
+            PolicyUtils.isSubmitPolicy.mockImplementation(isSubmitPolicyType);
 
             const {result} = renderSelectionModeHook({
                 policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
@@ -878,7 +883,7 @@ describe('useSelectionModeReportActions', () => {
 
     describe('hasSelectedTransactionsOnSubmitPolicy', () => {
         it('returns true when any selected transaction is on a submit policy', () => {
-            PolicyUtils.isSubmitPolicy.mockImplementation((policy) => policy?.type === CONST.POLICY.TYPE.SUBMIT);
+            PolicyUtils.isSubmitPolicy.mockImplementation(isSubmitPolicyType);
 
             const {result} = renderSelectionModeHook({
                 policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),
@@ -889,7 +894,7 @@ describe('useSelectionModeReportActions', () => {
         });
 
         it('returns false when no transactions are selected', () => {
-            PolicyUtils.isSubmitPolicy.mockImplementation((policy) => policy?.type === CONST.POLICY.TYPE.SUBMIT);
+            PolicyUtils.isSubmitPolicy.mockImplementation(isSubmitPolicyType);
 
             const {result} = renderSelectionModeHook({
                 policy: buildPolicy({type: CONST.POLICY.TYPE.SUBMIT}),

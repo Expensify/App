@@ -171,6 +171,7 @@ function useSelectionModeReportActions({
         currentUserEmail ?? '',
         transactions,
     );
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- this is a valid use case, we want to check if any of the conditions are true
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
 
     const canAllowSettlement = hasUpdatedTotal(report, policy);
