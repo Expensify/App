@@ -4,8 +4,8 @@ import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import Footer from '@components/SelectionList/components/Footer';
+import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
 import TextInput from '@components/SelectionList/components/TextInput';
 import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@components/SelectionList/hooks/useFlattenedSections';
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
@@ -23,7 +23,6 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
@@ -243,19 +242,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         );
     };
 
-    const renderListEmptyContent = () => {
-        if (shouldShowLoadingPlaceholder) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'BaseSelectionListWithSections',
-                shouldShowLoadingPlaceholder,
-            };
-            return <OptionsListSkeletonView reasonAttributes={reasonAttributes} />;
-        }
-        if (shouldShowListEmptyContent) {
-            return listEmptyContent;
-        }
-    };
-
     const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<TItem>>) => {
         if (!item) {
             return null;
@@ -321,7 +307,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             {textInputComponent()}
             {customHeaderContent}
             {itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
-                renderListEmptyContent()
+                <SelectionListEmptyState
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                    shouldShowListEmptyContent={shouldShowListEmptyContent}
+                    listEmptyContent={listEmptyContent}
+                    context="BaseSelectionListWithSections"
+                />
             ) : (
                 <FlashList
                     role={getListboxRole(canSelectMultiple)}

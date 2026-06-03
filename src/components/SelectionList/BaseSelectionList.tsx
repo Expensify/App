@@ -4,17 +4,16 @@ import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/fl
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
+import SelectionListEmptyState from './components/SelectionListEmptyState';
 import TextInput from './components/TextInput';
 import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
@@ -320,27 +319,6 @@ function BaseSelectionList<TItem extends ListItem>({
         );
     };
 
-    const renderListEmptyContent = () => {
-        if (shouldShowLoadingPlaceholder) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'BaseSelectionList',
-                shouldShowLoadingPlaceholder,
-                shouldUseUserSkeletonView,
-            };
-            return (
-                customLoadingPlaceholder ?? (
-                    <OptionsListSkeletonView
-                        shouldStyleAsTable={shouldUseUserSkeletonView}
-                        reasonAttributes={reasonAttributes}
-                    />
-                )
-            );
-        }
-        if (shouldShowListEmptyContent) {
-            return listEmptyContent;
-        }
-    };
-
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -504,7 +482,14 @@ function BaseSelectionList<TItem extends ListItem>({
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
             {data.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
-                renderListEmptyContent()
+                <SelectionListEmptyState
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                    customLoadingPlaceholder={customLoadingPlaceholder}
+                    shouldUseUserSkeletonView={shouldUseUserSkeletonView}
+                    shouldShowListEmptyContent={shouldShowListEmptyContent}
+                    listEmptyContent={listEmptyContent}
+                    context="BaseSelectionList"
+                />
             ) : (
                 <>
                     {!shouldHeaderBeInsideList && header}
