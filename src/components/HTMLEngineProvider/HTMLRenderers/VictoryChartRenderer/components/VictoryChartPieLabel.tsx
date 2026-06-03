@@ -2,6 +2,7 @@ import type {Color} from '@shopify/react-native-skia';
 import React from 'react';
 import type {PieSliceData} from 'victory-native';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import convertDegreeToRadian from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertDegreeToRadian';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartPieLabelIndicator from './VictoryChartPieLabelIndicator';
 
@@ -18,8 +19,6 @@ type VictoryChartPieLabelProps = {
     labelIndicatorOuterOffset: number | undefined;
 };
 
-const RADIAN = Math.PI / 180;
-
 function VictoryChartPieLabel({
     slice,
     baseLabelItem,
@@ -33,9 +32,9 @@ function VictoryChartPieLabel({
     labelIndicatorOuterOffset,
 }: VictoryChartPieLabelProps) {
     const text = label ?? slice.label;
-    const midAngle = (slice.startAngle + slice.endAngle) / 2;
-    const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle * RADIAN);
-    const y = slice.center.y + (labelRadius ?? slice.radius) * Math.sin(midAngle * RADIAN);
+    const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
+    const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle);
+    const y = slice.center.y + (labelRadius ?? slice.radius) * Math.sin(midAngle);
 
     const labelItem: LabelItem = {
         ...baseLabelItem,

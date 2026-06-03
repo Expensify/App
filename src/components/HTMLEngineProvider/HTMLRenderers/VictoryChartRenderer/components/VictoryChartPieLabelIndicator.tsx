@@ -2,6 +2,7 @@ import {Path, Skia} from '@shopify/react-native-skia';
 import type {Color} from '@shopify/react-native-skia';
 import React from 'react';
 import type {PieSliceData} from 'victory-native';
+import convertDegreeToRadian from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertDegreeToRadian';
 
 type VictoryChartPieLabelIndicatorProps = {
     slice: PieSliceData;
@@ -13,7 +14,6 @@ type VictoryChartPieLabelIndicatorProps = {
     labelIndicatorInnerOffset: number | undefined;
     labelIndicatorOuterOffset: number | undefined;
 };
-const RADIAN = Math.PI / 180;
 
 function VictoryChartPieLabelIndicator({
     slice,
@@ -25,16 +25,16 @@ function VictoryChartPieLabelIndicator({
     labelIndicatorInnerOffset,
     labelIndicatorOuterOffset,
 }: VictoryChartPieLabelIndicatorProps) {
-    const midAngle = (slice.startAngle + slice.endAngle) / 2;
+    const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
     const midRadius = (slice.radius + slice.innerRadius) / 2;
     const labelIndicatorInnerRadius = midRadius + (labelIndicatorInnerOffset ?? 0);
     const labelIndicatorOuterRadius = labelRadius - (labelIndicatorOuterOffset ?? 0);
 
-    const x1 = slice.center.x + labelIndicatorInnerRadius * Math.cos(midAngle * RADIAN) + (labelIndicatorXShift ?? 0);
-    const y1 = slice.center.y + labelIndicatorInnerRadius * Math.sin(midAngle * RADIAN) + (labelIndicatorYShift ?? 0);
+    const x1 = slice.center.x + labelIndicatorInnerRadius * Math.cos(midAngle) + (labelIndicatorXShift ?? 0);
+    const y1 = slice.center.y + labelIndicatorInnerRadius * Math.sin(midAngle) + (labelIndicatorYShift ?? 0);
 
-    const x2 = slice.center.x + labelIndicatorOuterRadius * Math.cos(midAngle * RADIAN) + (labelIndicatorXShift ?? 0);
-    const y2 = slice.center.y + labelIndicatorOuterRadius * Math.sin(midAngle * RADIAN) + (labelIndicatorYShift ?? 0);
+    const x2 = slice.center.x + labelIndicatorOuterRadius * Math.cos(midAngle) + (labelIndicatorXShift ?? 0);
+    const y2 = slice.center.y + labelIndicatorOuterRadius * Math.sin(midAngle) + (labelIndicatorYShift ?? 0);
 
     const path = Skia.Path.Make();
     path.moveTo(x1, y1);
