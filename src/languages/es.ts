@@ -2139,9 +2139,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Códigos de recuperación',
         keepCodesSafe: '¡Guarda estos códigos en un lugar seguro!',
         codesLoseAccess: dedent(`
-            Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta.
-
-            <strong>Nota</strong>: Configurar la autenticación de dos factores cerrará la sesión en todas las demás sesiones activas.
+            Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, quedarás bloqueado fuera de tu cuenta.<br><br>
+            <strong>Nota</strong>: Al habilitar la autenticación de dos factores, se cerrará tu sesión en todas las demás sesiones.
         `),
         errorStepCodes: 'Copia o descarga los códigos antes de continuar',
         stepVerify: 'Verificar',
@@ -2171,7 +2170,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
         downloadCodes: 'Descargar códigos',
-        screenshotTip: 'Consejo: haz una captura de pantalla para guardarla en tu galería de fotos',
         copyCodes: 'Copiar códigos',
     },
     recoveryCodeForm: {
@@ -2864,9 +2862,10 @@ ${amount} para ${merchant} - ${date}`,
         },
         getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
-        peopleYouMayKnow: 'Las personas que tal vez conozcas ya están aquí. Verifica tu correo electrónico para unirte a ellos.',
+        peopleYouMayKnow: 'Comprueba si tu equipo está en Expensify',
         workspaceMemberList: (employeeCount, policyOwner) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
-        workspaceYouMayJoin: (domain, email) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
+        workspaceYouMayJoin: (domain: string, email: string) =>
+            `Introduce el código enviado a ${email} para comprobar si alguien de ${domain} tiene un espacio de trabajo al que puedas unirte.`,
         joinAWorkspace: 'Unirse a un espacio de trabajo',
         listOfWorkspaces: 'Aquí tienes la lista de espacios de trabajo a los que puedes unirte.',
         skipForNow: 'Omitir por ahora',
@@ -3897,7 +3896,7 @@ ${amount} para ${merchant} - ${date}`,
         selectCountry: 'Seleccione su país',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Por favor, conecta esta cuenta bancaria a un <a href="${workspaceRoute}">espacio de trabajo</a> para que puedas invitar a un director a firmar en un paso posterior.`,
+                `Esta cuenta bancaria debe vincularse a un espacio de trabajo. Ve a <a href="${workspaceRoute}">Espacios de trabajo</a>, selecciona tu espacio de trabajo y luego navega a Flujos de trabajo > Pagos > Añadir cuenta bancaria.`,
         },
     },
     bankInfoStep: {
@@ -3943,8 +3942,6 @@ ${amount} para ${merchant} - ${date}`,
             `está conectando una cuenta bancaria comercial en ${currency} que termina en ${bankAccountLastFour} a Expensify para pagar a los empleados en ${currency}. El siguiente paso requiere la información del firmante de un director.`,
         error: {
             emailsMustBeDifferent: 'Los correos electrónicos deben ser diferentes',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Por favor, conecta esta cuenta bancaria a un <a href="${workspaceRoute}">espacio de trabajo</a> para invitar a un director a firmar.`,
         },
     },
     agreementsStep: {
@@ -4299,6 +4296,7 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicing: 'Exportar gastos de facturación de viajes como',
             travelInvoicingVendor: 'Proveedor de viajes',
             travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
+            findDomain: 'Buscar dominio',
             cardAdminAlternateText: 'Gestiona tarjetas del espacio de trabajo.',
             peopleAdminAlternateText: 'Gestiona miembros y flujos de aprobación.',
             paymentsAdminAlternateText: 'Gestiona los pagos del flujo de trabajo.',
@@ -4525,7 +4523,7 @@ ${amount} para ${merchant} - ${date}`,
             creditCardAccount: 'Cuenta de la tarjeta de crédito',
             travelInvoicingDescription: 'Los gastos de viaje se exportarán como cargos de tarjeta de crédito a la cuenta de QuickBooks Online especificada a continuación.',
             companyCardsLocationEnabledDescription:
-                'QuickBooks Online no permite lugares en las exportaciones de facturas de proveedores. Como tienes activadas los lugares en tu espacio de trabajo, esta opción de exportación no está disponible.',
+                'QuickBooks Online no admite ubicaciones en las exportaciones de facturas de proveedor cuando las ubicaciones se importan como etiquetas. Como tienes ubicaciones importadas como etiquetas en tu espacio de trabajo, esta opción de exportación no está disponible.',
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
             exportCheckDescription: 'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.',
             exportJournalEntryDescription: 'Crearemos una entrada contable desglosada para cada informe de Expensify y lo contabilizaremos en la cuenta a continuación.',
@@ -5903,17 +5901,28 @@ ${amount} para ${merchant} - ${date}`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
         },
         copyPolicySettings: {
-            error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Por favor, inténtalo de nuevo.',
             title: 'Copiar configuración',
-            selectWorkspaces: 'Selecciona espacios de trabajo',
-            description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que quieras copiar.',
-            searchPlaceholder: 'Buscar espacios de trabajo',
-            selectFeatures: 'Selecciona las funciones que quieres copiar',
-            whichFeatures: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
-            workflowsWithoutMembersConfirm: 'Continuar sin miembros',
-            workflowsWithoutMembersPrompt: 'Copiar flujos de trabajo sin miembros no copiará los flujos de trabajo de aprobación. La configuración de envío y pago sí se copiará.',
-            accountingMismatch: ({part}: {part: string}) =>
-                `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
+            error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Por favor, inténtalo de nuevo.',
+            selectWorkspaces: {
+                title: 'Selecciona espacios de trabajo',
+                description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que quieras copiar.',
+                searchPlaceholder: 'Buscar espacios de trabajo',
+            },
+            selectSettings: {
+                title: 'Selecciona las funciones que quieres copiar',
+                description: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
+                accountingMismatch: ({part}: {part: string}) =>
+                    `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
+            },
+            confirmSettings: {
+                title: 'Vamos a asegurarnos de que todo se vea bien.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `Copiaríamos los siguientes ajustes de <strong>${workspaceName}</strong> a los espacios de trabajo que has especificado`,
+            },
+            confirmWorkflows: {
+                continue: 'Continuar sin miembros',
+                description: 'Copiar flujos de trabajo sin miembros no copiará los flujos de aprobación. La configuración de envío y pago sí se copiará.',
+            },
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
@@ -7096,6 +7105,10 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
         },
+        emptyDomain: {
+            title: 'Mejora tu seguridad con dominios',
+            subtitle: 'Exige que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restrinjan la creación de espacios de trabajo y más.',
+        },
     },
     getAssistancePage: {
         title: 'Obtener ayuda',
@@ -7578,6 +7591,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `cambió la categoría de gasto predeterminada para "${mccGroupName}" a "${newCategory}" (previamente "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `cambió el aprobador predeterminado a ${newApprover} (anteriormente ${previousApprover})` : `cambió el aprobador predeterminado a ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -9521,7 +9536,6 @@ ${amount} para ${merchant} - ${date}`,
     },
     export: {
         basicExport: 'Exportar básico',
-        currentView: 'Exportar vista actual',
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
