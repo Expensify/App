@@ -474,6 +474,9 @@ function transactionHasRBR(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     reportActions?: OnyxTypes.ReportActions,
+    // Optional precomputed action-error state. When provided, the per-transaction action-error check is an O(1)
+    // lookup instead of re-scanning every report action — build it once with getActionErrorsByTransaction.
+    actionErrors?: {hasGlobalActionError: boolean; transactionIDsWithActionError: Set<string>},
 ): boolean {
     if (!transaction) {
         return false;
@@ -523,7 +526,10 @@ function transactionHasRBR(
     }
 
     // Check for report action errors associated with this transaction
-    if (hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions)) {
+    const hasActionError = actionErrors
+        ? (!!iouReport?.reportID && actionErrors.hasGlobalActionError) || (!!transaction?.transactionID && actionErrors.transactionIDsWithActionError.has(transaction.transactionID))
+        : hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
+    if (hasActionError) {
         return true;
     }
 
