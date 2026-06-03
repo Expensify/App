@@ -168,4 +168,4 @@ function MoneyRequestReportUnifiedList({
 }
 
 export default memo(MoneyRequestReportUnifiedList);
-export type {UnifiedListItem, MoneyRequestReportUnifiedListProps};
+export type {UnifiedListItem};
