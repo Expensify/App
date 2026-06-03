@@ -963,6 +963,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portefeuille',
             },
+            enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
         },
         announcements: 'Annonces',
         discoverSection: {
@@ -1530,6 +1531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
+        keepSelected: 'Garder la sélection',
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprove: 'Confirmer le montant approuvé',
@@ -1985,11 +1987,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: 'Enregistré',
         },
     },
-    securityPage: {
-        title: 'Options de sécurité',
-        subtitle: 'Activez l’authentification à deux facteurs pour sécuriser votre compte.',
-        goToSecurity: 'Revenir à la page de sécurité',
-    },
+    securityPage: {title: 'Sécurité', subtitle: 'Protégez votre compte.', goToSecurity: 'Revenir à la page de sécurité'},
     shareCodePage: {
         title: 'Votre code',
         subtitle: 'Invitez des membres sur Expensify en partageant votre code QR personnel ou votre lien de parrainage.',
@@ -2259,9 +2257,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Codes de récupération',
         keepCodesSafe: 'Conservez ces codes en lieu sûr !',
         codesLoseAccess: dedent(`
-            Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous perdrez l’accès à votre compte.
-
-            <strong>Remarque</strong> : La configuration de l’authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.
+            Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous serez bloqué hors de votre compte.<br><br>
+            <strong>Remarque</strong> : L’activation de la 2FA vous déconnecte de toutes les autres sessions.
         `),
         errorStepCodes: 'Veuillez copier ou télécharger les codes avant de continuer',
         stepVerify: 'Vérifier',
@@ -2291,7 +2288,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
-        screenshotTip: 'Astuce : faites une capture d’écran pour l’enregistrer dans votre photothèque',
         copyCodes: 'Copier les codes',
     },
     recoveryCodeForm: {
@@ -4029,7 +4025,7 @@ ${amount} pour ${merchant} - ${date}`,
         selectCountry: 'Sélectionner un pays',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> afin de pouvoir inviter un directeur à signer lors d'une étape ultérieure.`,
+                `Ce compte bancaire doit être lié à un espace de travail. Allez dans <a href="${workspaceRoute}">Espaces de travail</a>, sélectionnez votre espace de travail, puis accédez à Flux de travail > Paiements > Ajouter un compte bancaire.`,
         },
     },
     bankInfoStep: {
@@ -4078,8 +4074,6 @@ ${amount} pour ${merchant} - ${date}`,
             `est en train de connecter un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer des employés en ${currency}. L’étape suivante nécessite les informations de signature d’un directeur.`,
         error: {
             emailsMustBeDifferent: 'Les e-mails doivent être différents',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> pour inviter un directeur à signer.`,
         },
     },
     agreementsStep: {
@@ -7875,6 +7869,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `a modifié la catégorie de dépense par défaut pour « ${mccGroupName} » en « ${newCategory} » (auparavant « ${oldCategory} »)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
         expensifyCardRule: {
             actionVerb: {block: 'bloqué', allow: 'autorisé'},
