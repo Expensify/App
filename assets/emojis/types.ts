@@ -5,6 +5,12 @@ type Emoji = {
     name: string;
     hexcode: string;
     types?: readonly string[];
+
+    /**
+     * Additional searchable names for this emoji that should rank as name matches in the suggestions.
+     * Useful for emojis whose canonical `name` is not human-readable (e.g. `+1` / `-1`),
+     */
+    aliases?: readonly string[];
 };
 
 type HeaderEmoji = {

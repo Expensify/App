@@ -69,5 +69,3 @@ export default function useOutstandingReports(selectedReportID: string | undefin
 
     return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs, isEditing);
 }
-
-export {createOutstandingReportsNVPsSelector};

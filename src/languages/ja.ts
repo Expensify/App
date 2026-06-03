@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        restrictions: '制限',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -507,10 +508,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '推論を折りたたむ',
         expandReasoning: '推論を展開',
-        enableNotifications: {
-            prompt: 'Conciergeから返信があったときに通知を受け取りますか？',
-            cta: '通知',
-        },
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -933,7 +930,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会社カード`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`,
                 defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
@@ -1243,7 +1240,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: 'レポートを提出',
         pendingMatchSubmitDescription: '一部の経費がクレジットカード取引との照合待ちです。現金としてマークしますか？',
         routePending: 'ルート保留中…',
-        automaticallyEnterExpenseDetails: 'コンシェルジュが自動的に経費の詳細を入力するか、手動で追加することができます。',
+        automaticallyEnterExpenseDetails: 'Concierge が詳細を入力します。',
         receiptScanning: () => ({
             one: 'レシートをスキャンしています…',
             other: 'レシートをスキャンしています…',
@@ -2232,9 +2229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'リカバリーコード',
         keepCodesSafe: 'これらのコードを安全に保管してください。',
         codesLoseAccess: dedent(`
-            認証アプリへのアクセスを失い、これらのコードも持っていない場合は、お客さまのアカウントへのアクセスもできなくなります。
-
-            <strong>注意</strong>：二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
+            認証アプリへのアクセスを失い、これらのコードもお持ちでない場合は、アカウントにログインできなくなります。<br><br>
+            <strong>注意</strong>：2FA を有効にすると、他のすべてのセッションからログアウトされます。
         `),
         errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください',
         stepVerify: '確認',
@@ -2264,7 +2260,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
-        screenshotTip: 'ヒント：スクリーンショットを撮ってフォトライブラリに保存しましょう',
         copyCodes: 'コードをコピー',
     },
     recoveryCodeForm: {
@@ -2559,6 +2554,8 @@ ${date} の ${merchant} への ${amount}`,
         addApprovalsTitle: '承認',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `${members} の経費で、承認者は ${approvers} です`,
         addApprovalButton: '承認ワークフローを追加',
+        editWorkflowAction: '編集',
+        addAgentAction: 'エージェントを追加',
         findWorkflow: 'ワークフローを検索',
         addApprovalTip: 'より詳細なワークフローが存在する場合を除き、このデフォルトのワークフローがすべてのメンバーに適用されます。',
         approver: '承認者',
@@ -2958,8 +2955,8 @@ ${date} の ${merchant} への ${amount}`,
         },
         getStarted: 'はじめる',
         whatsYourName: 'あなたの名前は何ですか？',
-        peopleYouMayKnow: '知り合いがすでにここに参加しています！一緒に参加するには、メールアドレスを確認してください。',
-        workspaceYouMayJoin: (domain: string, email: string) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
+        peopleYouMayKnow: 'あなたのチームが Expensify を利用しているか確認する',
+        workspaceYouMayJoin: (domain: string, email: string) => `${email} に送信されたコードを入力して、${domain} の誰かが参加できるワークスペースを持っているか確認します。`,
         joinAWorkspace: 'ワークスペースに参加',
         listOfWorkspaces: '参加できるワークスペースの一覧です。',
         skipForNow: '今はスキップ',
@@ -4365,6 +4362,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             rooms: 'ルーム',
+            findDomain: 'ドメインを検索',
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
@@ -4594,7 +4592,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             creditCardAccount: 'クレジットカード口座',
             travelInvoicingDescription: '旅費は、以下で指定した QuickBooks Online アカウントにクレジットカード請求としてエクスポートされます。',
             companyCardsLocationEnabledDescription:
-                'QuickBooks Online は仕入先請求書のエクスポートでロケーションをサポートしていません。ワークスペースでロケーションが有効になっているため、このエクスポートオプションは使用できません。',
+                'QuickBooks Online では、ロケーションをタグとして取り込んでいる場合、ベンダー請求書のエクスポートでロケーションをサポートしていません。現在このワークスペースではロケーションがタグとして取り込まれているため、このエクスポートオプションは利用できません。',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online は仕訳のエクスポートで税金に対応していません。ワークスペースで税金が有効になっているため、このエクスポートオプションは利用できません。',
             outOfPocketTaxEnabledError: '税金が有効になっている場合、仕訳は利用できません。別のエクスポートオプションを選択してください。',
@@ -5988,16 +5986,26 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
         },
         copyPolicySettings: {
-            error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。',
             title: '設定をコピー',
-            selectWorkspaces: 'ワークスペースを選択',
-            description: '設定をコピーしたいワークスペースを選択し、その後、コピーしたい設定を選びます。',
-            searchPlaceholder: 'ワークスペースを検索',
-            selectFeatures: 'コピーする機能を選択します',
-            whichFeatures: '既存のワークスペースで上書きする設定を選択します。',
-            workflowsWithoutMembersConfirm: 'メンバーなしで続行',
-            workflowsWithoutMembersPrompt: 'メンバーのいないワークフローをコピーしても、承認ワークフローはコピーされません。申請および支払い設定は引き続きコピーされます。',
-            accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
+            error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。',
+            selectWorkspaces: {
+                title: 'ワークスペースを選択',
+                description: '設定をコピーしたいワークスペースを選択し、その後、コピーしたい設定を選びます。',
+                searchPlaceholder: 'ワークスペースを検索',
+            },
+            selectSettings: {
+                title: 'コピーする機能を選択します',
+                description: '既存のワークスペースで上書きする設定を選択します。',
+                accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
+            },
+            confirmSettings: {
+                title: 'すべて正しく表示されているか確認しましょう。',
+                description: ({workspaceName}: {workspaceName: string}) => `次の設定を<strong>${workspaceName}</strong>から指定したワークスペースにコピーします`,
+            },
+            confirmWorkflows: {
+                continue: 'メンバーなしで続行',
+                description: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
+            },
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
@@ -7207,6 +7215,10 @@ ${reportName}
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             syncing: '従業員を同期しています',
         },
+        emptyDomain: {
+            title: 'ドメインでセキュリティを強化しましょう',
+            subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須にし、ワークスペースの作成を制限するなどの管理ができます。',
+        },
     },
     getAssistancePage: {
         title: 'サポートを受ける',
@@ -7889,7 +7901,7 @@ ${reportName}
         resetColumns: '列をリセット',
         groupColumns: '列をグループ化',
         expenseColumns: '経費列',
-        saveSearch: '検索を保存',
+        saveView: 'ビューを保存',
         deleteSavedSearch: '保存した検索を削除',
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
@@ -8285,6 +8297,7 @@ ${reportName}
         workspaceName: 'ワークスペース名',
         chatUserDisplayNames: 'チャットメンバー表示名',
         scrollToNewestMessages: '最新のメッセージまでスクロール',
+        scrollToActionBadgeTarget: '注意が必要なアクションまでスクロール',
         preStyledText: '事前にスタイル設定されたテキスト',
         viewAttachment: '添付ファイルを表示',
         contextMenuAvailable: 'コンテキストメニューが利用可能です。Shift+F10 を押して開きます。',
