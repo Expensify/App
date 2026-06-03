@@ -960,6 +960,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Geldbörse',
             },
+            enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
         },
         announcements: 'Ankündigungen',
         discoverSection: {
@@ -4012,7 +4013,7 @@ ${amount} für ${merchant} – ${date}`,
         selectCountry: 'Land auswählen',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Bitte verbinden Sie dieses Bankkonto mit einem <a href="${workspaceRoute}">Arbeitsbereich</a>, damit Sie in einem späteren Schritt einen Direktor zur Unterzeichnung einladen können.`,
+                `Dieses Bankkonto muss mit einem Arbeitsbereich verknüpft werden. Gehen Sie zu <a href="${workspaceRoute}">Arbeitsbereiche</a>, wählen Sie Ihren Arbeitsbereich und navigieren Sie dann zu Workflows > Zahlungen > Bankkonto hinzufügen.`,
         },
     },
     bankInfoStep: {
@@ -4061,8 +4062,6 @@ ${amount} für ${merchant} – ${date}`,
             `verknüpft ein ${currency}-Geschäftskonto mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Unterzeichnungsinformationen von einer Führungsperson.`,
         error: {
             emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Bitte verbinden Sie dieses Bankkonto mit einem <a href="${workspaceRoute}">Arbeitsbereich</a> um eine Führungsperson zum Unterzeichnen einzuladen.`,
         },
     },
     agreementsStep: {
@@ -7837,6 +7836,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `Kartenfeed-Tag für das Abrechnungsperiodenende von „${feedName}“ geändert${newValue ? ` in „${newValue}“` : ''}${previousValue ? ` (zuvor „${previousValue}“)` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}-Berichtsfeld „${fieldName}“${defaultValue ? ` mit Standardwert „${defaultValue}“` : ''} hinzugefügt`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `hat die Standardausgabenkategorie für „${mccGroupName}“ in „${newCategory}“ geändert (zuvor „${oldCategory}“)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung für Firmenkartenkäufe`,
         expensifyCardRule: {
             actionVerb: {block: 'blockiert', allow: 'erlaubt'},

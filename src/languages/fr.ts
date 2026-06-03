@@ -963,6 +963,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portefeuille',
             },
+            enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
         },
         announcements: 'Annonces',
         discoverSection: {
@@ -4025,7 +4026,7 @@ ${amount} pour ${merchant} - ${date}`,
         selectCountry: 'Sélectionner un pays',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> afin de pouvoir inviter un directeur à signer lors d'une étape ultérieure.`,
+                `Ce compte bancaire doit être lié à un espace de travail. Allez dans <a href="${workspaceRoute}">Espaces de travail</a>, sélectionnez votre espace de travail, puis accédez à Flux de travail > Paiements > Ajouter un compte bancaire.`,
         },
     },
     bankInfoStep: {
@@ -4074,8 +4075,6 @@ ${amount} pour ${merchant} - ${date}`,
             `est en train de connecter un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer des employés en ${currency}. L’étape suivante nécessite les informations de signature d’un directeur.`,
         error: {
             emailsMustBeDifferent: 'Les e-mails doivent être différents',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> pour inviter un directeur à signer.`,
         },
     },
     agreementsStep: {
@@ -7871,6 +7870,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `a modifié la catégorie de dépense par défaut pour « ${mccGroupName} » en « ${newCategory} » (auparavant « ${oldCategory} »)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
         expensifyCardRule: {
             actionVerb: {block: 'bloqué', allow: 'autorisé'},

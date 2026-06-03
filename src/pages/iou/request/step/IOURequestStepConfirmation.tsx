@@ -39,6 +39,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
+    getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
@@ -919,6 +920,7 @@ function IOURequestStepConfirmation({
                             action={action}
                             isPerDiemRequest={isPerDiemRequest}
                             isTimeRequest={isTimeRequest}
+                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
                             onParticipantsAdded={handleParticipantsAdded}
                             onFinish={closeParticipantPicker}
                             isVisible={isParticipantPickerVisible}
