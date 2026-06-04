@@ -1894,7 +1894,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         return;
     }
 
-    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
@@ -1909,6 +1908,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     }
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
         }
@@ -1930,6 +1931,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
     // stale screens from the stack instead of leaving them behind.
     if (isLastTransactionInReport && fallbackReportID) {
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
         navigateBackOnDeleteTransaction(backRoute);
 
@@ -1949,11 +1952,11 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     if (isTracking()) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
-    Navigation.dismissModalWithReport({reportID: targetReportID});
 
-    // After the modal is dismissed, remove the transaction thread report screen
-    // to avoid navigating back to a report removed by the split transaction.
+    popReportsSplitNavigatorToReport(targetReportID);
+    Navigation.dismissModalWithReport({reportID: targetReportID});
     requestAnimationFrame(() => {
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
         if (!transactionThreadReportScreen?.key) {
             return;
         }
