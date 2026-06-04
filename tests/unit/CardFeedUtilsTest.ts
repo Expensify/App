@@ -10,7 +10,7 @@ import {
 } from '@libs/CardFeedUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {CardFeeds, CardList, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, CompanyCardFeed, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -156,7 +156,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns card feeds grouped per policy', () => {
-        const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock, translateLocal);
+        const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock, translateLocal, undefined, undefined);
         expect(cardFeedsForDisplayPerPolicy).toEqual({
             '': [
                 {id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express', linkedPolicyIDs: undefined, country: ''},
@@ -180,7 +180,7 @@ describe('Card Feed Utils', () => {
                 },
             },
         };
-        const result = getCardFeedsForDisplayPerPolicy(cardFeedsWithCountry, translateLocal);
+        const result = getCardFeedsForDisplayPerPolicy(cardFeedsWithCountry, translateLocal, undefined, undefined);
         expect(result.POL1).toHaveLength(1);
         expect(result.POL1?.at(0)?.country).toBe('US');
         expect(result.POL1?.at(0)?.id).toBe('1234_vcf');
@@ -198,7 +198,7 @@ describe('Card Feed Utils', () => {
                 },
             },
         };
-        const result = getCardFeedsForDisplayPerPolicy(cardFeedsWithLinkedPolicies, translateLocal);
+        const result = getCardFeedsForDisplayPerPolicy(cardFeedsWithLinkedPolicies, translateLocal, undefined, undefined);
         expect(result.POLICY_A).toHaveLength(1);
         expect(result.POLICY_A?.at(0)?.linkedPolicyIDs).toEqual(linkedPolicyIDs);
         expect(result.POLICY_A?.at(0)?.id).toBe('1234_stripe');
@@ -206,10 +206,50 @@ describe('Card Feed Utils', () => {
         expect(result.POLICY_B?.at(0)?.linkedPolicyIDs).toEqual(linkedPolicyIDs);
         expect(result.POLICY_B?.at(0)?.id).toBe('1234_stripe');
     });
+
+    it('groups an orphan feed (no linkedPolicyIDs and no preferredPolicy) under a policy whose policyAccountID matches the fundID', () => {
+        const orphanCardFeeds: OnyxCollection<CardFeeds> = {
+            sharedNVP_private_domain_member_1234: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards: {
+                        [cardFeedAmericaExpressMock]: {},
+                    },
+                },
+            },
+        };
+        const policies = {
+            policy_ORPHAN: {id: 'ORPHAN_WORKSPACE', policyAccountID: 1234},
+        } as unknown as OnyxCollection<Policy>;
+        const result = getCardFeedsForDisplayPerPolicy(orphanCardFeeds, translateLocal, undefined, policies);
+        expect(result.ORPHAN_WORKSPACE).toHaveLength(1);
+        expect(result.ORPHAN_WORKSPACE?.at(0)?.id).toBe('1234_oauth.americanexpressfdx.com 1001');
+        expect(result['']).toBeUndefined();
+    });
+
+    it('stores an orphan feed under the empty-string key when no policy matches the fundID', () => {
+        const orphanCardFeeds: OnyxCollection<CardFeeds> = {
+            sharedNVP_private_domain_member_1234: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards: {
+                        [cardFeedAmericaExpressMock]: {},
+                    },
+                },
+            },
+        };
+        const policies = {
+            policy_OTHER: {id: 'OTHER_WORKSPACE', policyAccountID: 9999},
+        } as unknown as OnyxCollection<Policy>;
+        const result = getCardFeedsForDisplayPerPolicy(orphanCardFeeds, translateLocal, undefined, policies);
+        expect(result['']).toHaveLength(1);
+        expect(result['']?.at(0)?.id).toBe('1234_oauth.americanexpressfdx.com 1001');
+        expect(result.OTHER_WORKSPACE).toBeUndefined();
+    });
 });
 
 describe('getFeedInfo', () => {
-    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock, translateLocal);
+    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock, translateLocal, undefined, undefined);
 
     it('returns undefined when feedId is empty', () => {
         expect(getFeedInfo('', cardFeedsByPolicy)).toBeUndefined();

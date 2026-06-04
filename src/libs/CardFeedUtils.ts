@@ -571,8 +571,8 @@ function getCardFeedsForDisplay(
 function getCardFeedsForDisplayPerPolicy(
     allCardFeeds: OnyxCollection<CardFeeds>,
     translate: LocalizedTranslate,
-    feedKeysWithCards?: FeedKeysWithAssignedCards,
-    policies?: OnyxCollection<Policy>,
+    feedKeysWithCards: FeedKeysWithAssignedCards | undefined,
+    policies: OnyxCollection<Policy>,
 ): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 

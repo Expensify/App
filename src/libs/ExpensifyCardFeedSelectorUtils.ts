@@ -38,10 +38,10 @@ function hasLoadedExpensifyCardSettings(settings: ExpensifyCardSettings | undefi
  */
 function isExpensifyCardFeedVisibleToAdmin(
     settings: ExpensifyCardSettings,
-    policies: OnyxCollection<Policy> | undefined,
+    policies: OnyxCollection<Policy>,
     fundID: number,
-    domains: OnyxCollection<Domain> | undefined,
-    currentUserAccountID: number | undefined,
+    domains: OnyxCollection<Domain>,
+    currentUserAccountID: number,
 ): boolean {
     if (!hasLoadedExpensifyCardSettings(settings)) {
         return false;
@@ -59,8 +59,8 @@ function isExpensifyCardFeedVisibleToAdmin(
         return isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     }
 
-    const domain = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`];
-    if (isAdminSelector(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID)(domain)) {
+    const domain = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
+    if (isAdminSelector(currentUserAccountID)(domain)) {
         return true;
     }
 
@@ -88,10 +88,10 @@ function isFeedPrimaryForPolicy(entry: ExpensifyCardFeedEntry, policyID: string)
 }
 
 function getAdminExpensifyCardFeedEntries(
-    cardSettingsCollection: OnyxCollection<ExpensifyCardSettings> | undefined,
-    policies: OnyxCollection<Policy> | undefined,
-    domains: OnyxCollection<Domain> | undefined,
-    currentUserAccountID: number | undefined,
+    cardSettingsCollection: OnyxCollection<ExpensifyCardSettings>,
+    policies: OnyxCollection<Policy>,
+    domains: OnyxCollection<Domain>,
+    currentUserAccountID: number,
 ): ExpensifyCardFeedEntry[] {
     return Object.entries(cardSettingsCollection ?? {}).flatMap(([settingsKey, settings]) => {
         if (!settings) {
