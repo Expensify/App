@@ -74,7 +74,7 @@ function PolicyDistanceRatesPage({
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.distanceRates');
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const {canWrite: canWriteDistanceRates, showReadOnlyModal, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
+    const {canWrite: canWriteDistanceRates, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
     const canSelectMultiple = canWriteDistanceRates && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const {asset: CarIce} = useMemoizedLazyAsset(() => loadIllustration('CarIce' as IllustrationName));
@@ -261,7 +261,7 @@ function PolicyDistanceRatesPage({
                             onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
                             showLockIcon={!canWriteDistanceRates || !canDisableOrDeleteRate(value.customUnitRateID)}
                             disabled={!canWriteDistanceRates || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            disabledAction={getReadOnlyDisabledAction()}
+                            disabledAction={withReadOnlyFallback()}
                         />
                     ),
                 };
@@ -273,7 +273,7 @@ function PolicyDistanceRatesPage({
             unitTranslation,
             customUnit?.pendingFields?.attributes,
             policy?.pendingAction,
-            getReadOnlyDisabledAction,
+            withReadOnlyFallback,
             updateDistanceRateEnabled,
         ],
     );

@@ -78,7 +78,7 @@ function ReportFieldsListValuesPage({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
     const {showConfirmModal} = useConfirmModal();
-    const {canWrite: canWriteReportFields, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
+    const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -140,12 +140,12 @@ function ReportFieldsListValuesPage({
                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                         onToggle={(newValue: boolean) => updateReportFieldListValueEnabled(newValue, index)}
                         disabled={!canWriteReportFields}
-                        disabledAction={getReadOnlyDisabledAction()}
+                        disabledAction={withReadOnlyFallback()}
                         showLockIcon={!canWriteReportFields}
                     />
                 ),
             })),
-        [canSelectMultiple, canWriteReportFields, disabledListValues, getReadOnlyDisabledAction, listValues, selectedValues, translate, updateReportFieldListValueEnabled],
+        [canSelectMultiple, canWriteReportFields, disabledListValues, withReadOnlyFallback, listValues, selectedValues, translate, updateReportFieldListValueEnabled],
     );
 
     const filterListValue = useCallback((item: ValueListItem, searchInput: string) => {

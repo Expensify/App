@@ -61,7 +61,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {asset: ReceiptPartners} = useMemoizedLazyAsset(() => loadIllustration('ReceiptPartners' as IllustrationName));
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
-    const {canWrite: canWriteMoreFeatures, showReadOnlyModal, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
@@ -332,7 +332,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     onToggle={toggleWorkspaceUberAutoInvite}
                                                     isActive={isAutoInvite}
                                                     disabled={!canWriteMoreFeatures}
-                                                    disabledAction={getReadOnlyDisabledAction()}
+                                                    disabledAction={withReadOnlyFallback()}
                                                     showLockIcon={!canWriteMoreFeatures}
                                                 />
                                             </View>
@@ -346,7 +346,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     onToggle={toggleWorkspaceUberAutoRemove}
                                                     isActive={isAutoRemove}
                                                     disabled={!canWriteMoreFeatures}
-                                                    disabledAction={getReadOnlyDisabledAction()}
+                                                    disabledAction={withReadOnlyFallback()}
                                                     showLockIcon={!canWriteMoreFeatures}
                                                 />
                                             </View>

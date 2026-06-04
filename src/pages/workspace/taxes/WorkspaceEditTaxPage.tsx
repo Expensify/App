@@ -41,7 +41,7 @@ function WorkspaceEditTaxPage({
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
-    const {canWrite: canWriteTaxes, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
+    const {canWrite: canWriteTaxes, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
     const canEditTaxRate = canWriteTaxes && policy && canEditTaxRateUtil(policy, currentTaxID ?? taxID);
 
     const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections(policy);
@@ -115,7 +115,7 @@ function WorkspaceEditTaxPage({
                                     accessibilityLabel={translate('workspace.taxes.actions.enable')}
                                     onToggle={toggleTaxRate}
                                     disabled={!canEditTaxRate}
-                                    disabledAction={getReadOnlyDisabledAction()}
+                                    disabledAction={withReadOnlyFallback()}
                                     showLockIcon={!canEditTaxRate}
                                 />
                             </View>

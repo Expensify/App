@@ -41,7 +41,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const customUnit = getDistanceRateCustomUnit(policy);
-    const {canWrite: canWriteDistanceRates, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
+    const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
@@ -140,7 +140,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                             onToggle={onToggleTrackTax}
                                             disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
-                                            disabledAction={getReadOnlyDisabledAction()}
+                                            disabledAction={withReadOnlyFallback()}
                                             showLockIcon={!canWriteDistanceRates}
                                         />
                                     </View>

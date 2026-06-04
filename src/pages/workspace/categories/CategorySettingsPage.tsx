@@ -60,7 +60,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
-    const {canWrite: canWriteCategories, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {canWrite: canWriteCategories, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -285,7 +285,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
                                     onToggle={updateWorkspaceCategoryEnabled}
                                     disabled={!canWriteCategories}
-                                    disabledAction={getReadOnlyDisabledAction()}
+                                    disabledAction={withReadOnlyFallback()}
                                     showLockIcon={!canWriteCategories || shouldPreventDisableOrDelete}
                                 />
                             </View>

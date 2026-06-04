@@ -45,7 +45,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
-    const {canWrite: canWriteDistanceRates, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
+    const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const rateID = route.params.rateID;
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const rate = customUnit?.rates[rateID];
@@ -200,7 +200,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 onToggle={toggleRate}
                                 accessibilityLabel={translate('workspace.distanceRates.enableRate')}
                                 disabled={!canWriteDistanceRates}
-                                disabledAction={getReadOnlyDisabledAction()}
+                                disabledAction={withReadOnlyFallback()}
                                 showLockIcon={!canWriteDistanceRates || !canDisableOrDeleteRate}
                             />
                         </View>

@@ -39,7 +39,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const policy = usePolicy(policyID);
-    const {getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const {withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
     const otherFeeds = useOtherFeedsForFeedSelector(policyID);
@@ -119,7 +119,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
                 subtitle={translate('workspace.moreFeatures.companyCards.feed.subtitle')}
                 ctaText={translate('workspace.companyCards.addCards')}
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
-                onCtaPress={getReadOnlyDisabledAction(handleCtaPress)}
+                onCtaPress={withReadOnlyFallback(handleCtaPress)}
                 buttonInnerStyles={!canWriteCompanyCards ? styles.buttonOpacityDisabled : undefined}
                 buttonHoverStyles={!canWriteCompanyCards ? styles.buttonOpacityDisabled : undefined}
                 illustrationBackgroundColor={colors.blue800}
