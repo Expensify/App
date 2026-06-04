@@ -17,11 +17,9 @@ import {
 import type {CustomStatusBarAndBackgroundActionsContextType, CustomStatusBarAndBackgroundStateContextType} from '@components/CustomStatusBarAndBackground/types';
 import {DragAndDropActionsContext, DragAndDropStateContext, useDragAndDropActions, useDragAndDropState} from '@components/DragAndDrop/Provider/DragAndDropContext';
 import type {DragAndDropActionsContextType, DragAndDropStateContextType} from '@components/DragAndDrop/Provider/types';
-import MultifactorAuthenticationStateProvider, {
-    DEFAULT_STATE,
-    useMultifactorAuthenticationActions,
-    useMultifactorAuthenticationState,
-} from '@components/MultifactorAuthentication/Context/State';
+import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
+import {DEFAULT_STATE, MultifactorAuthenticationStateProvider} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationComposedContextProviders';
+import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
 
 /**
  * Creates a mock SharedValue that satisfies the SharedValue<T> interface used in reanimated.

@@ -23,8 +23,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
-    canWriteRules: boolean;
-    showReadOnlyModal: () => void;
 };
 
 type IndividualExpenseRulesSectionSubtitleProps = {
@@ -62,7 +60,7 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, environmentUR
     return <SectionSubtitleHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />;
 }
 
-function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyModal}: IndividualExpenseRulesSectionProps) {
+function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -225,12 +223,11 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyMod
                         key={translate(item.descriptionTranslationKey)}
                     >
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={canWriteRules}
+                            shouldShowRightIcon
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                             title={item.title}
                             description={translate(item.descriptionTranslationKey)}
                             onPress={item.action}
-                            interactive={canWriteRules}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             numberOfLinesTitle={2}
                         />
@@ -240,16 +237,15 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyMod
                     title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
-                    disabled={!canWriteRules || disableRequireCompanyCardToggle}
-                    disabledAction={!canWriteRules ? showReadOnlyModal : undefined}
-                    showLockIcon={!canWriteRules || disableRequireCompanyCardToggle}
+                    disabled={disableRequireCompanyCardToggle}
+                    showLockIcon={disableRequireCompanyCardToggle}
                     disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
                     wrapperStyle={[styles.mt3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={requireCompanyCardsEnabled}
                     pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
-                    onToggle={() => (canWriteRules && policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
+                    onToggle={() => (policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
                 />
 
                 <ToggleSettingOptionRow
@@ -262,10 +258,8 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyMod
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={areEReceiptsEnabled}
-                    disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
-                    disabledAction={!canWriteRules ? showReadOnlyModal : undefined}
-                    showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
-                    onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
+                    disabled={policyCurrency !== CONST.CURRENCY.USD}
+                    onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts)}
                     pendingAction={policy?.pendingFields?.eReceipts}
                 />
                 <ToggleSettingOptionRow
@@ -277,10 +271,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyMod
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={isAttendeeTrackingEnabledForPolicy}
-                    disabled={!canWriteRules}
-                    disabledAction={!canWriteRules ? showReadOnlyModal : undefined}
-                    showLockIcon={!canWriteRules}
-                    onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
+                    onToggle={() => handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                 />
             </View>
