@@ -9,68 +9,30 @@ import CONST from '@src/CONST';
 type ScrollToIndex = (index: number, animated?: boolean) => void;
 
 type UseSelectionListKeyboardFocusParams<TData> = {
-    /** Where to start the cursor in the list */
     initialFocusedIndex: number;
-
-    /** Highest valid index (typically list length - 1) */
     maxIndex: number;
-
-    /** Indexes the arrow keys should skip over */
     disabledIndexes: readonly number[];
-
-    /** Whether the arrow-key listeners should be active */
     isActive: boolean;
-
-    /** Whether the list's screen is focused (blocks navigation when false) */
     isFocused: boolean;
-
-    /** Whether moving the cursor should scroll to the focused row */
     shouldScrollToFocusedIndex: boolean;
-
-    /** Whether the scroll triggered by cursor movement should be debounced */
     shouldDebounceScrolling: boolean;
-
-    /** Immediate scroll-to-index (from useSelectionListScroll) */
     scrollToIndex: ScrollToIndex;
-
-    /** Debounced scroll-to-index (from useSelectionListScroll) */
     debouncedScrollToIndex: ScrollToIndex;
-
-    /** The FlashList ref, used to announce programmatic scrolls for accessibility */
     listRef: RefObject<FlashListRef<TData> | null>;
-
-    /** Disables hover styling while the user is navigating by keyboard */
     setShouldDisableHoverStyle: (shouldDisableHoverStyle: boolean) => void;
 };
 
 type UseSelectionListKeyboardFocusResult = {
-    /** The currently focused index */
     focusedIndex: number;
-
-    /** Imperative setter for the focused index (resets/jumps the cursor) */
     setFocusedIndex: (index: number) => void;
-
-    /** Row-focus handler: keeps the cursor on a row that received focus from the navigation focus-restore, without scrolling to it */
     setFocusedIndexFromRowFocus: (index: number) => void;
-
-    /** Moves the cursor and suppresses the scroll the move would otherwise trigger when the index changes */
     setFocusedIndexWithoutScrollOnChange: (index: number) => void;
-
-    /** Suppresses the next scroll that cursor movement would trigger (used by useSearchFocusSync) */
     suppressNextFocusScroll: () => void;
-
-    /** Whether the user is currently navigating with the keyboard (drives row highlight) */
     isKeyboardNavigating: boolean;
-
-    /** Marks that a navigation key has been pressed, switching the list into keyboard-navigation mode */
     setHasKeyBeenPressed: () => void;
 };
 
-/**
- * Owns the keyboard-navigable focused index of a SelectionList: wraps useArrowKeyFocusManager, tracks the
- * keyboard-navigation modality (including the Tab key), and provides the focus-restore-aware cursor setters
- * plus scroll suppression. Shared by BaseSelectionList (flat) and BaseSelectionListWithSections (sectioned).
- */
+/** Owns a SelectionList's keyboard-navigable focused index: wraps useArrowKeyFocusManager, tracks keyboard-nav modality (incl. Tab), and provides the focus-restore-aware cursor setters + scroll suppression. */
 function useSelectionListKeyboardFocus<TData>({
     initialFocusedIndex,
     maxIndex,
@@ -96,8 +58,7 @@ function useSelectionListKeyboardFocus<TData>({
         setIsKeyboardNavigating(true);
     };
 
-    // Arrow keys flip the modality flag inside useArrowKeyFocusManager; Tab needs to flip it too,
-    // so rows highlight when the user tabs into the list.
+    // Tab isn't an arrow key, so flip the keyboard-nav flag for it here too.
     useEffect(() => {
         const handleTabKeyDown = (event: KeyboardEvent) => {
             if (event.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
@@ -133,7 +94,7 @@ function useSelectionListKeyboardFocus<TData>({
         },
     });
 
-    // Move the cursor, and skip the scroll the move would otherwise trigger when the index actually changes.
+    // Move the cursor but skip the scroll the change would trigger.
     const setFocusedIndexWithoutScrollOnChange = (index: number) => {
         if (index !== focusedIndex) {
             suppressNextFocusScrollRef.current = true;
@@ -141,7 +102,7 @@ function useSelectionListKeyboardFocus<TData>({
         setFocusedIndex(index);
     };
 
-    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
+    // On a focus restore, keep the cursor on the restored row without scrolling to it.
     const setFocusedIndexFromRowFocus = (index: number) => {
         if (isFocusRestoreInProgress()) {
             setFocusedIndexWithoutScrollOnChange(index);

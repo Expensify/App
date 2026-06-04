@@ -6,24 +6,13 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import CONST from '@src/CONST';
 
 type UseSelectionListTextInputResult = {
-    /** Ref to attach to the search TextInput */
     innerTextInputRef: RefObject<BaseTextInputRef | null>;
-
-    /** Whether the search TextInput currently holds focus (used to gate row focus sync) */
     isTextInputFocusedRef: RefObject<boolean>;
-
-    /** Focuses the search TextInput */
     focusTextInput: () => void;
-
-    /** On Tab inside the search input, switches to keyboard-nav mode and moves focus to the focused row */
     textInputKeyPress: (event: TextInputKeyPressEvent) => void;
 };
 
-/**
- * Owns the SelectionList search TextInput's refs and key handlers, shared by BaseSelectionList and
- * BaseSelectionListWithSections. Consumers attach `innerTextInputRef` to the TextInput and call
- * `focusTextInput()` rather than poking the ref, so the refs stay out of their dependency arrays.
- */
+/** Consumers attach innerTextInputRef to the TextInput and call focusTextInput() rather than poking the ref, keeping it out of their dependency arrays. */
 function useSelectionListTextInput(setHasKeyBeenPressed: () => void): UseSelectionListTextInputResult {
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
