@@ -84,7 +84,7 @@ type WithValidateCode = {
 
 type WithFieldName = {
     // Constrain to known keys to avoid misspells at call sites
-    fieldName: 'addDelegate' | 'updateDelegateRole'; // but string could work as well
+    fieldName: 'addDelegate' | 'updateDelegateRole' | 'connect' | 'removeDelegator' | 'removeDelegate';
 };
 
 type WithOldDotFlag = {
@@ -625,7 +625,7 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
                 delegatedAccess: {
                     errorFields: {
                         removeDelegator: {
-                            [email]: null,
+                            [email]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
                         },
                     },
                     delegators: delegatedAccess.delegators?.map((delegator) =>
@@ -648,7 +648,7 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
 }
 
 function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
-    if (!delegatedAccess?.delegates) {
+    if (!delegatedAccess) {
         return;
     }
 

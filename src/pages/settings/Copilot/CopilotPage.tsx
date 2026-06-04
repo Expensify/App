@@ -27,7 +27,7 @@ import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDelegateErrorsByField, clearDelegatorErrors, openSecuritySettingsPage, removeDelegate, removeDelegator} from '@libs/actions/Delegate';
+import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate, removeDelegator} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -271,6 +271,8 @@ function CopilotPage() {
         const personalDetail = personalDetailsByLogin[email.toLowerCase()];
         const formattedEmail = formatPhoneNumber(email);
         const connectError = getLatestError(errorFields?.connect?.[email]);
+        const removeDelegatorError = getLatestError(errorFields?.removeDelegator?.[email]);
+        const error = getLatestError({...connectError, ...removeDelegatorError});
         const isCurrentUser = email === session?.email;
         const isPending = !!pendingAction;
         const titleText = personalDetail?.displayName ?? formattedEmail;
@@ -288,8 +290,13 @@ function CopilotPage() {
                 showDelegatorPopoverMenu(e, {email, role});
             },
             role: CONST.ROLE.LINK,
-            error: connectError,
-            onPendingActionDismiss: () => clearDelegatorErrors({delegatedAccess: account?.delegatedAccess}),
+            pendingAction,
+            shouldForceOpacity: !!pendingAction,
+            error,
+            onPendingActionDismiss: () => {
+                clearDelegateErrorsByField({email, fieldName: 'connect', delegatedAccess: account?.delegatedAccess});
+                clearDelegateErrorsByField({email, fieldName: 'removeDelegator', delegatedAccess: account?.delegatedAccess});
+            },
             iconRight: icons.ThreeDots,
             shouldShowRightIcon: !isCurrentUser,
             success: selectedEmail === email,
