@@ -123,9 +123,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const clearTableSelection = () => {
-        setSelectedCategoryKeys([]);
-    };
+    const clearTableSelection = useCallback(() => {
+        setSelectedCategoryKeys((prevSelectedCategoryKeys) => (prevSelectedCategoryKeys.length > 0 ? [] : prevSelectedCategoryKeys));
+    }, []);
 
     useCleanupSelectedOptions(clearTableSelection);
 

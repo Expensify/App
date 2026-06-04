@@ -50,6 +50,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
         <Table.Row
             rowIndex={rowIndex}
             interactive={!item.disabled}
+            disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'categoriesTableRow'}}
             onPress={item.action}
@@ -63,7 +64,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
             {({hovered}) => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                        <Text numberOfLines={1}> {item.name}</Text>
+                        <TextWithTooltip
+                            numberOfLines={1}
+                            text={item.name}
+                        />
                     </View>
 
                     {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
