@@ -7330,6 +7330,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
+            aiRules: {
+                title: 'Règles IA',
+                subtitle: 'Décrivez des exécutions flexibles qui s’exécutent quand vous en avez besoin',
+                addRule: 'Ajouter une règle IA',
+                findRule: 'Rechercher une règle d’IA',
+                addRuleTitle: 'Ajouter une règle',
+                editRuleTitle: 'Modifier la règle',
+                deleteRule: 'Supprimer la règle',
+                deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                describeRuleTitle: 'Décrivez votre règle',
+                describeRuleSubtitle: 'Décrivez votre règle et Concierge la créera',
+            },
         },
         planTypePage: {
             planTypes: {

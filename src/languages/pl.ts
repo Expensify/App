@@ -7255,6 +7255,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Zablokowane' : 'Dozwolone'} ${shownCount > 1 ? 'kategorie' : 'kategoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
             },
+            aiRules: {
+                title: 'Zasady AI',
+                subtitle: 'Opisz elastyczne uruchomienia, które działają wtedy, gdy ich potrzebujesz',
+                addRule: 'Dodaj regułę AI',
+                findRule: 'Znajdź regułę AI',
+                addRuleTitle: 'Dodaj regułę',
+                editRuleTitle: 'Edytuj regułę',
+                deleteRule: 'Usuń regułę',
+                deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
+                describeRuleTitle: 'Opisz swoją regułę',
+                describeRuleSubtitle: 'Opisz swoją regułę, a Concierge ją utworzy',
+            },
         },
         planTypePage: {
             planTypes: {

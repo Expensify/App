@@ -7203,6 +7203,18 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
             },
+            aiRules: {
+                title: 'AI ルール',
+                subtitle: '必要なときに実行できる柔軟な実行設定について説明します',
+                addRule: 'AI ルールを追加',
+                findRule: 'AI ルールを検索',
+                addRuleTitle: 'ルールを追加',
+                editRuleTitle: 'ルールを編集',
+                deleteRule: 'ルールを削除',
+                deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                describeRuleTitle: 'ルールの内容を記入してください',
+                describeRuleSubtitle: 'ルールの内容を入力すると、Concierge が自動作成します',
+            },
         },
         planTypePage: {
             planTypes: {

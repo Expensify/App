@@ -7069,6 +7069,18 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
             },
+            aiRules: {
+                title: 'AI 规则',
+                subtitle: '描述在你需要时运行的灵活执行方案',
+                addRule: '添加 AI 规则',
+                findRule: '查找 AI 规则',
+                addRuleTitle: '添加规则',
+                editRuleTitle: '编辑规则',
+                deleteRule: '删除规则',
+                deleteRuleConfirmation: '确定要删除此规则吗？',
+                describeRuleTitle: '描述你的规则',
+                describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
+            },
         },
         planTypePage: {
             planTypes: {
