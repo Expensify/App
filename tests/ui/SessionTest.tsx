@@ -1,7 +1,7 @@
 import {act, cleanup, render} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as AppActions from '@libs/actions/App';
 import {hasAuthToken} from '@libs/actions/Session';
@@ -60,6 +60,7 @@ describe('Deep linking', () => {
     });
 
     beforeEach(() => {
+        jest.restoreAllMocks();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
 
         lastVisitedPathConnectionID = Onyx.connect({
@@ -100,16 +101,17 @@ describe('Deep linking', () => {
         // request-queue round-trip with optimistic→network→finally Onyx data.
         // NVP_ONBOARDING suppresses the onboarding flow that would otherwise render
         // extra screens and inflate the React work queue drained by act().
-        // Single multiSet keeps this to one batched-update cycle.
-        jest.spyOn(AppActions, 'openApp').mockImplementation(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.multiSet({
+        // Single multiSet keeps this to one batched-update cycle. The report collection key
+        // is cast because multiSet's type only covers non-computed keys.
+        jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 [ONYXKEYS.IS_LOADING_APP]: false,
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                 [ONYXKEYS.HAS_LOADED_APP]: true,
                 [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
-            });
-        });
+            } as OnyxMultiSetInput),
+        );
     });
 
     afterEach(async () => {
@@ -131,85 +133,93 @@ describe('Deep linking', () => {
 
     // This test renders the full App and processes a deep-link sign-in flow, so it runs
     // significantly longer than the suite default on loaded CI runners.
-    it('should not remember the report path of the last deep link login after signing out and in again', async () => {
-        expect(hasAuthToken()).toBe(false);
+    it(
+        'should not remember the report path of the last deep link login after signing out and in again',
+        async () => {
+            expect(hasAuthToken()).toBe(false);
 
-        const url = getInitialURL();
-        // User signs in automatically when the app is rendered because of the deep link
-        Linking.setInitialURL(url);
-        const {unmount} = render(<App />);
+            const url = getInitialURL();
+            // User signs in automatically when the app is rendered because of the deep link
+            Linking.setInitialURL(url);
+            const {unmount} = render(<App />);
 
-        await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
-        const reportPath = `/${ROUTES.REPORT}/${report.reportID}`;
-        expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
+            const reportPath = `/${ROUTES.REPORT}/${report.reportID}`;
+            expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
 
-        expect(hasAuthToken()).toBe(true);
+            expect(hasAuthToken()).toBe(true);
 
-        await TestHelper.signOutTestUser();
-        await waitForBatchedUpdatesWithAct();
-        await waitForNetworkPromises();
+            await TestHelper.signOutTestUser();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
 
-        expect(hasAuthToken()).toBe(false);
+            expect(hasAuthToken()).toBe(false);
 
-        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
 
-        await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
-        expect(lastVisitedPath).toBeDefined();
-        expect(decodeURIComponent(lastVisitedPath ?? '')).not.toContain(reportPath);
+            expect(lastVisitedPath).toBeDefined();
+            expect(decodeURIComponent(lastVisitedPath ?? '')).not.toContain(reportPath);
 
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-        await waitForNetworkPromises();
-    }, 240000);
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        4 * 60 * 1000,
+    );
 
     // This test renders the full App three times, so it runs significantly longer than
     // the suite default on loaded CI runners.
-    it('should not reuse the last deep link and log in again when signing out', async () => {
-        expect(hasAuthToken()).toBe(false);
+    it(
+        'should not reuse the last deep link and log in again when signing out',
+        async () => {
+            expect(hasAuthToken()).toBe(false);
 
-        const {unmount: unmount1} = render(<App />);
-        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+            const {unmount: unmount1} = render(<App />);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
 
-        await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
-        expect(hasAuthToken()).toBe(true);
-        expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_2);
-        // Unmount so we can prepare the deep link login
-        unmount1();
+            expect(hasAuthToken()).toBe(true);
+            expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_2);
+            // Unmount so we can prepare the deep link login
+            unmount1();
 
-        await waitForBatchedUpdatesWithAct();
-        await waitForNetworkPromises();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
 
-        const url = getInitialURL();
-        // User signs in automatically when the app is remounted because of the deep link.
-        // This overrides the previous sign-in.
-        Linking.setInitialURL(url);
-        const {unmount: unmount2} = render(<App />);
+            const url = getInitialURL();
+            // User signs in automatically when the app is remounted because of the deep link.
+            // This overrides the previous sign-in.
+            Linking.setInitialURL(url);
+            const {unmount: unmount2} = render(<App />);
 
-        await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
-        expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
+            expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
 
-        await TestHelper.signOutTestUser();
-        await waitForBatchedUpdatesWithAct();
-        await waitForNetworkPromises();
+            await TestHelper.signOutTestUser();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
 
-        // In a failing scenario, remounting triggers the sign-in with the deep link again because it still remembers it.
-        // However, we've implemented a fix so that it does not reuse the last deep link.
-        unmount2();
-        await waitForBatchedUpdatesWithAct();
-        await waitForNetworkPromises();
+            // In a failing scenario, remounting triggers the sign-in with the deep link again because it still remembers it.
+            // However, we've implemented a fix so that it does not reuse the last deep link.
+            unmount2();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
 
-        const {unmount: unmount3} = render(<App />);
+            const {unmount: unmount3} = render(<App />);
 
-        await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
-        expect(hasAuthToken()).toBe(false);
+            expect(hasAuthToken()).toBe(false);
 
-        unmount3();
-        await waitForBatchedUpdatesWithAct();
-        await waitForNetworkPromises();
-    }, 240000);
+            unmount3();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        4 * 60 * 1000,
+    );
 });
