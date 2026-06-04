@@ -110,7 +110,7 @@ You can flag rule violations for:
 
 ---
 
-# 6. Secure Your Account
+# Secure Your Account
 
 Enable Two-Factor Authentication (2FA) to protect your account.
 
