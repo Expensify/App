@@ -281,7 +281,7 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
-                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias)) {
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute())) {
                                         return;
                                     }
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path));
