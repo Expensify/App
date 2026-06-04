@@ -57,6 +57,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
+    const [isUserInitiatedSave, setIsUserInitiatedSave] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
     const wasSavingRef = useRef(false);
     const savedConfirmationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -110,11 +111,15 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     }, []);
 
     useEffect(() => {
-        if (wasSavingRef.current && !isSaving && !hasPromptErrors) {
-            triggerSavedConfirmation();
+        if (wasSavingRef.current && !isSaving) {
+            if (isUserInitiatedSave && !hasPromptErrors) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                triggerSavedConfirmation();
+            }
+            setIsUserInitiatedSave(false);
         }
         wasSavingRef.current = isSaving;
-    }, [isSaving, hasPromptErrors, triggerSavedConfirmation]);
+    }, [isSaving, hasPromptErrors, isUserInitiatedSave, triggerSavedConfirmation]);
 
     useEffect(() => {
         return () => {
@@ -138,7 +143,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     }, [parentScrollViewRef]);
 
     const handleSave = () => {
-        if (isSaving && !isOffline) {
+        if (isSaving && isUserInitiatedSave) {
             return;
         }
 
@@ -156,9 +161,11 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         updateAgentPrompt(accountID, trimmed, agentPrompt?.prompt ?? '');
 
         // Offline: treat the optimistic write as the final state for UX purposes. The request will be
-        // replayed on reconnect, so showing "Saved" immediately matches the queued-but-done intent.
+        // replayed on reconnect without save-button feedback since the user already saw "Saved".
         if (isOffline) {
             triggerSavedConfirmation();
+        } else {
+            setIsUserInitiatedSave(true);
         }
     };
 
@@ -207,8 +214,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                 text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
                 icon={showSavedConfirmation ? icons.Checkmark : undefined}
                 onPress={handleSave}
-                isLoading={isSaving && !isOffline}
-                isDisabled={hasHtmlTag || (isSaving && !isOffline)}
+                isLoading={isSaving && isUserInitiatedSave}
+                isDisabled={hasHtmlTag || (isSaving && isUserInitiatedSave)}
                 style={[styles.alignSelfStart]}
                 testID="save-prompt-button"
             />

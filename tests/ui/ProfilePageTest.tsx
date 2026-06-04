@@ -324,7 +324,7 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
     });
 
-    it('shows loading state on save button while prompt update is pending', async () => {
+    it('does not show loading state on save button for a pending prompt update that was not user-initiated', async () => {
         const accountID = 123;
         await setupUser('agent_123@expensify.ai');
 
@@ -337,6 +337,36 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
+        expect(saveButtonProps.accessibilityState?.disabled).toBe(false);
+    });
+
+    it('shows loading state on save button while a user-initiated prompt update is pending', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Updated prompt text',
+                pendingAction: 'update',
+            });
+        });
         await waitForBatchedUpdatesWithAct();
 
         const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
