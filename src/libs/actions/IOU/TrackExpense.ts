@@ -1912,6 +1912,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction,
     personalDetails,
     betas,
+    policyTagList,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1924,6 +1925,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2042,11 +2044,7 @@ function convertBulkTrackedExpensesToIOU({
             personalDetails,
             betas,
             policyParams: {
-                policyTagList: getMoneyRequestPolicyTags({
-                    moneyRequestReportID: iouReportID,
-                    parentChatReport: chatReport,
-                    participant: participantParams.participant,
-                }),
+                policyTagList,
             },
         });
 
