@@ -25,7 +25,7 @@ function ZenefitsFinalApproverPage({
         getCurrentFinalApprover: (policy) => policy?.connections?.zenefits?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
         getHeaderTitle: () => translate('workspace.hr.finalApprover'),
-        handleSave: ({policyID: id, email, currentFinalApprover, connectionSyncProgress}) => updateZenefitsFinalApprover(id, email, currentFinalApprover, connectionSyncProgress),
+        handleSave: ({policyID: id, email, currentFinalApprover}) => updateZenefitsFinalApprover(id, email, currentFinalApprover),
     };
 
     return (
