@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/no-deep-equal-in-memo */
 import {useNavigation} from '@react-navigation/native';
+import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, useContext, useEffect, useRef, useState} from 'react';
@@ -38,7 +39,6 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     extractLinksFromMessageHtml,
     getOriginalMessage,
@@ -135,9 +135,6 @@ type PureReportActionItemProps = {
     /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
-    /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
-
     /** ID of the original report from which the given reportAction is first created */
     originalReportID?: string;
 
@@ -175,7 +172,6 @@ function PureReportActionItem({
     draftMessage,
     iouReport,
     linkedTransactionRouteError,
-    personalDetails,
     originalReportID = '-1',
     originalReport,
     isClosedExpenseReportWithNoExpenses,
@@ -185,6 +181,7 @@ function PureReportActionItem({
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
+    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID)});
 
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -474,11 +471,9 @@ function PureReportActionItem({
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
-    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
-    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
     const plainMessage = getReportActionText(action);
-    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
+    const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (
         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
@@ -601,7 +596,6 @@ function PureReportActionItem({
                                                                 updateHiddenState={updateHiddenState}
                                                                 isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                                 isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
-                                                                personalDetails={personalDetails}
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
                                                                 setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
@@ -679,13 +673,13 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
         prevProps.report?.policyAvatar === nextProps.report?.policyAvatar &&
         prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
+        prevProps.shouldDisplayContextMenu === nextProps.shouldDisplayContextMenu &&
         deepEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
         deepEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
         deepEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
         deepEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-        deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&

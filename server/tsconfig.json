@@ -1,7 +1,14 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
-        "types": ["@types/bun"]
+        "types": ["@types/bun"],
+        "paths": {
+            "@libs/*": ["./libs/*"],
+            "@plugins/*": ["./plugins/*"],
+            "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
+            "@src/*": ["../src/*"]
+        }
     },
-    "include": ["victory-chart-renderer/src", "victory-chart-renderer/tests"]
+    "include": ["libs", "plugins", "stubs", "victory-chart-renderer"],
+    "exclude": ["victory-chart-renderer/dist", "victory-chart-renderer/.dev"]
 }

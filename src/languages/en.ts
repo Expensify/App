@@ -509,6 +509,7 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        restrictions: 'Restrictions',
         concierge: {
             sidePanelGreeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
@@ -528,10 +529,6 @@ const translations = {
     concierge: {
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
-        enableNotifications: {
-            prompt: 'Want to be notified when Concierge responds?',
-            cta: 'Notify',
-        },
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -971,7 +968,7 @@ const translations = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Fix ${cardName} personal card connection` : 'Fix personal card connection'),
                 subtitle: 'Wallet',
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
                 defaultSubtitle: 'Workspace',
                 subtitle: ({policyName}: {policyName: string}) => policyName,
@@ -1012,12 +1009,16 @@ const translations = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Wallet',
             },
+            enterSignerInfo: {
+                title: 'Signer info needed',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,
+            },
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
             offer50Body: 'Get 50% off your first year',
             offer25Body: 'Get 25% off your first year',
-            addCardBody: "Don't wait! Add your payment card now.",
+            addCardBody: 'Add a payment card',
             ctaClaim: 'Claim',
             ctaAdd: 'Add card',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Time remaining: ${formattedTime}`,
@@ -1313,7 +1314,7 @@ const translations = {
         pendingMatchSubmitTitle: 'Submit report',
         pendingMatchSubmitDescription: 'Some expenses are awaiting a match with a credit card transaction. Do you want to mark them as cash?',
         routePending: 'Route pending...',
-        automaticallyEnterExpenseDetails: 'Concierge will automatically enter the expense details for you, or you can add them manually.',
+        automaticallyEnterExpenseDetails: 'Concierge will fill in the details for you.',
         receiptScanning: () => ({
             one: 'Receipt scanning...',
             other: 'Receipts scanning...',
@@ -1582,6 +1583,7 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
+        keepSelected: 'Keep selected',
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
@@ -2054,8 +2056,8 @@ const translations = {
         },
     },
     securityPage: {
-        title: 'Security options',
-        subtitle: 'Enable two-factor authentication to keep your account safe.',
+        title: 'Security',
+        subtitle: 'Keep your account safe.',
         goToSecurity: 'Go back to security page',
     },
     shareCodePage: {
@@ -2204,14 +2206,24 @@ const translations = {
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
         helpPage: {
-            title: 'Got questions?',
-            description: "We're here to help, around the clock.",
+            title: 'Help and support',
+            description: 'We are here to help you 24/7.',
             helpSite: 'Help site',
+            helpSiteDescription: 'Articles, tutorials, and more',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Your personal AI agent',
-            accountManagerDescription: 'Your account manager',
-            partnerManagerDescription: 'Your partner manager',
+            accountManager: 'Account Manager',
+            yourAccountManager: 'Your account manager',
+            accountManagerDescription: 'Ask questions and get client support',
+            partnerManager: 'Partner Manager',
+            yourPartnerManager: 'Your partner manager',
+            partnerManagerDescription: 'Maximize your partnership and drive referrals',
+            accountExecutive: 'Account Executive',
+            accountExecutiveDescription: 'Get clients setup successfully',
             guideDescription: 'Your setup specialist',
+            approvedPartnerTeamTitle: 'Meet your Approved! partner team',
+            approvedPartnerTeamDescription: 'A dedicated team focused on helping your firm grow, onboard clients faster, and get expert support whenever you need it.',
+            moreResources: 'More resources',
         },
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -2328,11 +2340,9 @@ const translations = {
         stepCodes: 'Recovery codes',
         keepCodesSafe: 'Keep these codes safe!',
         codesLoseAccess: dedent(`
-            If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
-
-            <strong>Note</strong>: Setting up two-factor authentication will log you out of all other active sessions.
+            If you lose access to your authenticator app and don't have these codes, you'll be locked out of your account.<br><br>
+            <strong>Note</strong>: Enabling 2FA logs you out of all other sessions.
         `),
-        screenshotTip: 'Tip: Screenshot this to save it to your photo library',
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
@@ -2644,6 +2654,8 @@ const translations = {
         addApprovalsTitle: 'Approvals',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
         addApprovalButton: 'Add approval workflow',
+        editWorkflowAction: 'Edit',
+        addAgentAction: 'Add agent',
         findWorkflow: 'Find workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
@@ -2891,7 +2903,7 @@ const translations = {
         subtitle: 'These rules will apply to your expenses.',
         findRule: 'Find rule',
         emptyRules: {
-            title: "You haven't created any rules",
+            title: 'No rules yet',
             subtitle: 'Add a rule to automate expense reporting.',
         },
         changes: {
@@ -3058,8 +3070,8 @@ const translations = {
         },
         getStarted: 'Get started',
         whatsYourName: "What's your name?",
-        peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
-        workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
+        peopleYouMayKnow: "See if your team's in Expensify",
+        workspaceYouMayJoin: (domain: string, email: string) => `Enter the code sent to ${email} to check if anyone from ${domain} has a workspace you can join.`,
         joinAWorkspace: 'Join a workspace',
         listOfWorkspaces: "Here's the list of workspaces you can join.",
         skipForNow: 'Skip for now',
@@ -3505,6 +3517,7 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
+        marketingSMSConsent: 'I agree to receive marketing texts from Expensify',
     },
     detailsPage: {
         localTime: 'Local time',
@@ -4090,7 +4103,7 @@ const translations = {
         selectCountry: 'Select country',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> so you can invite a director to sign in a later step.`,
+                `This bank account must be linked to a workspace. Go to <a href="${workspaceRoute}">Workspaces</a>, select your workspace, then navigate to Workflows > Payments > Add bank account.`,
         },
     },
     bankInfoStep: {
@@ -4139,7 +4152,6 @@ const translations = {
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
-            connectToWorkspace: (workspaceRoute: string) => `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> to invite a director to sign.`,
         },
     },
     agreementsStep: {
@@ -4348,6 +4360,7 @@ const translations = {
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
+            findDomain: 'Find domain',
             findRoom: 'Find room',
             edit: 'Edit workspace',
             enabled: 'Enabled',
@@ -4399,6 +4412,8 @@ const translations = {
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
+            readOnlyActionTitle: 'Not so fast...',
+            readOnlyActionPrompt: "Your workspace role can view these settings, but can't edit them.",
             goToWorkspace: 'Go to workspace',
             duplicateWorkspace: 'Duplicate workspace',
             duplicateWorkspacePrefix: 'Duplicate',
@@ -4730,7 +4745,7 @@ const translations = {
             creditCardAccount: 'Credit card account',
             travelInvoicingDescription: 'Travel expenses will export as credit card charges to the QuickBooks Online account specified below.',
             companyCardsLocationEnabledDescription:
-                "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
+                "QuickBooks Online doesn't support locations on vendor bill exports when locations are imported as tags. As you have locations imported as tags on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
                 "QuickBooks Online doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
@@ -5595,7 +5610,7 @@ const translations = {
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
-                title: "You haven't created any categories",
+                title: 'No categories yet',
                 subtitle: 'Add a category to organize your spend.',
                 subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>Your categories are currently importing from an accounting connection. Head over to <a href="${accountingPageURL}">accounting</a> to make any changes.</centered-text></muted-text>`,
@@ -5904,7 +5919,7 @@ const translations = {
             deleteConfirmation: 'Are you sure you want to delete this report field?',
             deleteFieldsConfirmation: 'Are you sure you want to delete these report fields?',
             emptyReportFields: {
-                title: "You haven't created any report fields",
+                title: 'No report fields yet',
                 subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
             },
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
@@ -5931,7 +5946,7 @@ const translations = {
             enableValue: 'Enable value',
             enableValues: 'Enable values',
             emptyReportFieldsValues: {
-                title: "You haven't created any list values",
+                title: 'No list values yet',
                 subtitle: 'Add custom values to appear on reports.',
             },
             deleteValuePrompt: 'Are you sure you want to delete this list value?',
@@ -5970,7 +5985,7 @@ const translations = {
             subtitleWithDependentTags: (importSpreadsheetLink: string) =>
                 `<muted-text>Tags add more detailed ways to classify costs. You are using <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">dependent tags</a>. You can <a href="${importSpreadsheetLink}">reimport a spreadsheet</a> to update your tags.</muted-text>`,
             emptyTags: {
-                title: "You haven't created any tags",
+                title: 'No tags yet',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
                 subtitleHTML: `<muted-text><centered-text>Add tags to track projects, locations, departments, and more. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Learn more</a> about formatting tag files for import.</centered-text></muted-text>`,
@@ -6098,17 +6113,31 @@ const translations = {
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
+        emptyDomain: {
+            title: 'Enhance your security with domains',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+        },
         copyPolicySettings: {
-            error: 'An error occurred while copying workspace settings. Please try again.',
             title: 'Copy settings',
-            selectWorkspaces: 'Select workspaces',
-            description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
-            searchPlaceholder: 'Search workspaces',
-            selectFeatures: 'Select features to copy',
-            whichFeatures: 'Select the settings to overwrite on your existing workspaces.',
-            workflowsWithoutMembersConfirm: 'Continue without members',
-            workflowsWithoutMembersPrompt: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
-            accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
+            error: 'An error occurred while copying workspace settings. Please try again.',
+            selectWorkspaces: {
+                title: 'Select workspaces',
+                description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
+                searchPlaceholder: 'Search workspaces',
+            },
+            selectSettings: {
+                title: 'Select settings',
+                description: 'Select the settings to overwrite on your existing workspaces.',
+                accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
+            },
+            confirmSettings: {
+                title: 'Let’s make sure everything looks right.',
+                description: ({workspaceName}: {workspaceName: string}) => `We’ll copy the following settings from <strong>${workspaceName}</strong> to the workspaces you’ve specified.`,
+            },
+            confirmWorkflows: {
+                continue: 'Continue without members',
+                description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
+            },
         },
         emptyWorkspace: {
             title: 'No workspaces yet',
@@ -6247,7 +6276,7 @@ const translations = {
                 copyExisting: 'Copy existing',
                 createNew: 'Create new',
                 spendRulesEmptyStateTitle: 'No rules to choose from',
-                spendRulesEmptyStateSubtitle: "You haven't created any rules yet. You can create one from the previous screen.",
+                spendRulesEmptyStateSubtitle: 'No rules yet. You can create one from the previous screen.',
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',
@@ -7535,6 +7564,65 @@ const translations = {
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
+        expensifyCardRule: {
+            actionVerb: {
+                block: 'blocked',
+                allow: 'allowed',
+            },
+            amountOperator: {
+                over: 'over',
+                under: 'under',
+            },
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
+            theCard: 'the card',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 card',
+                other: `${count} cards`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` on ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `removed spend rule from ${cards}`,
+            restrictionVerb: {
+                block: 'block',
+                allow: 'only allow',
+            },
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `changed spend rule from ${fromAction} to ${toAction} on ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'applied spend rule to 1 additional card',
+                    other: `applied spend rule to ${count} additional cards`,
+                }),
+                phraseVerb: {
+                    added: 'added',
+                    removed: 'removed',
+                    changed: 'changed',
+                    set: 'set',
+                    applied: 'applied',
+                },
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} merchant '${value}'` : `merchant '${value}'`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} merchant from '${oldValue}' to '${newValue}'` : `merchant from '${oldValue}' to '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} spend category '${value}'` : `spend category '${value}'`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} spend category from '${oldValue}' to '${newValue}'` : `spend category from '${oldValue}' to '${newValue}'`,
+                bodyMaxAmount: 'max amount',
+                bodyMaxAmountSet: ({value}: {value: string}) => `max amount to ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max amount from ${oldValue} to ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'spend rule to 1 additional card',
+                    other: `spend rule to ${count} additional cards`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `spend rule from ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} on ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} from ${cards}`,
+            },
+        },
         preventSelfApproval: (oldValue: string, newValue: string) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
@@ -7739,6 +7827,8 @@ const translations = {
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `changed the auto-pay approved reports threshold to "${newLimit}" (previously "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'removed the auto-pay approved reports threshold',
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `changed the default spend category for "${mccGroupName}" to "${newCategory}" (previously "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -7932,27 +8022,24 @@ const translations = {
                 subtitle: `Try adjusting your search criteria or creating something with the + button.`,
             },
             emptyExpenseResults: {
-                title: "You haven't created any expenses yet",
+                title: 'No expenses yet',
                 subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
             emptyReportResults: {
-                title: "You haven't created any reports yet",
+                title: 'No reports yet',
                 subtitle: 'Create a report or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create a report.',
             },
             emptyInvoiceResults: {
-                title: dedent(`
-                    You haven't created any
-                    invoices yet
-                `),
+                title: 'No invoices yet',
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
                 subtitleCannotSend: 'You need a workspace with Invoices enabled to send invoices.',
                 subtitleCannotSendWithTestDrive: 'You need a workspace with Invoices enabled to send invoices. Take a test drive of Expensify to learn more.',
             },
             emptyTripResults: {
-                title: 'No trips to display',
+                title: 'No trips yet',
                 subtitle: 'Get started by booking your first trip below.',
                 buttonText: 'Book a trip',
             },
@@ -7987,7 +8074,7 @@ const translations = {
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
-        saveSearch: 'Save search',
+        saveView: 'Save view',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -8147,6 +8234,7 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
+            selectAllOnThisPage: 'Select all on this page',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
@@ -8366,6 +8454,7 @@ const translations = {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat member display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+        scrollToActionBadgeTarget: 'Scroll to action requiring attention',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
         contextMenuAvailable: 'Context menu available. Press Shift+F10 to open.',
@@ -9510,6 +9599,12 @@ const translations = {
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Are you sure? This will lock <strong>${email}'s</strong> account. <br /><br /> Our team will then review the account and remove any unauthorized access. To regain access, they'll need to work with Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) => `<muted-text>Verify your domain for more control over <strong>${domainName}</strong> members in Expensify.</muted-text>`,
+                controlPolicyCreation: 'Restrict workspace creation',
+                enableSamlSso: 'Enable SAML SSO',
+                enforce2FA: 'Enforce 2FA',
+            },
         },
         common: {
             settings: 'Settings',
