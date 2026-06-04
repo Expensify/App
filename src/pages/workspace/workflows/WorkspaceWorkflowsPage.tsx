@@ -374,9 +374,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const approvalOptionSubtitle = isHRConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
 
         const getAddApprovalsToggleDisabledAction = () => {
-            if (canAccessSubmit2026Features) {
-                return navigateToSubmitWorkspaceApprovalsUpgrade;
-            }
             if (isHRConnected) {
                 return promptConfigureApprovalsInHR;
             }
@@ -428,6 +425,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     if (!canWriteApprovals) {
                         showReadOnlyModal();
+                        return;
+                    }
+                    if (isEnabled && canAccessSubmit2026Features) {
+                        navigateToSubmitWorkspaceApprovalsUpgrade();
                         return;
                     }
                     if (isHRConnected) {
@@ -538,13 +539,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                     </>
                 ),
-                disabled: !canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected || canAccessSubmit2026Features,
+                disabled: !canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected,
                 disabledAction: withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction()),
                 showLockIcon: !canWriteApprovals,
+                // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
                 isActive:
-                    isHRConnected ||
-                    isDEWEnabled ||
-                    (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false),
+                    !canAccessSubmit2026Features &&
+                    (isHRConnected ||
+                        isDEWEnabled ||
+                        (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ??
+                            false)),
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
