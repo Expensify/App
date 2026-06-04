@@ -94,15 +94,15 @@ describe('Deep linking', () => {
         // NVP_ONBOARDING suppresses the onboarding flow that would otherwise render
         // extra screens and inflate the React work queue drained by act().
         // Single multiSet keeps this to one batched-update cycle.
-        jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+        jest.spyOn(AppActions, 'openApp').mockImplementation(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.multiSet({
                 [ONYXKEYS.IS_LOADING_APP]: false,
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                 [ONYXKEYS.HAS_LOADED_APP]: true,
                 [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
-            }),
-        );
+            });
+        });
     });
 
     afterEach(async () => {
