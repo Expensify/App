@@ -179,6 +179,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.USER,
             formatPhoneNumber,
+            personalDetails,
             {
                 accountID: currentUserPersonalDetails.accountID,
                 displayName: currentUserPersonalDetails.displayName,

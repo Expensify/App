@@ -156,6 +156,7 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
+            allPersonalDetails,
             {
                 accountID: currentUserPersonalDetails?.accountID,
                 displayName: currentUserPersonalDetails?.displayName,

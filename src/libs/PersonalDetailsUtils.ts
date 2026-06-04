@@ -204,12 +204,12 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
 /**
  * Provided a set of invited logins and optimistic accountIDs. Returns the ones which are not known to the user i.e. they do not exist in the personalDetailsList.
  */
-function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
+function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[], personalDetailsList: OnyxEntry<PersonalDetailsList>) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
     for (const [index, login] of logins.entries()) {
         const accountID = accountIDs.at(index) ?? -1;
-        if (isEmptyObject(allPersonalDetails?.[accountID])) {
+        if (isEmptyObject(personalDetailsList?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
         }

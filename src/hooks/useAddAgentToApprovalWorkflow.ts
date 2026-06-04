@@ -70,7 +70,7 @@ function useAddAgentToApprovalWorkflow(policy: OnyxEntry<Policy>, policyID: stri
         const isAlreadyMember = !!policy?.employeeList?.[agentToSeed.email];
         if (!isAlreadyMember && policy) {
             const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false));
-            addMembersToWorkspace({[agentToSeed.email]: agentToSeed.accountID}, '', policy, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber, {
+            addMembersToWorkspace({[agentToSeed.email]: agentToSeed.accountID}, '', policy, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber, personalDetails, {
                 accountID: currentUserPersonalDetails.accountID,
                 displayName: currentUserPersonalDetails.displayName,
                 email: currentUserPersonalDetails.login,

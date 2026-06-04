@@ -67,6 +67,7 @@ type TrackedExpenseParams = {
     currentUser: CurrentUser;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
+    personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

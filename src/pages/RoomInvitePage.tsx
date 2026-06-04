@@ -63,6 +63,7 @@ function RoomInvitePage({
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -164,7 +165,7 @@ function RoomInvitePage({
                         delegateAccountID,
                     );
                 } else {
-                    inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+                    inviteToRoom(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
                 }
             };
             if (backTo) {
