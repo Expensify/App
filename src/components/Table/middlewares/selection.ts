@@ -63,9 +63,11 @@ export default function useSelection<DataType extends TableData>({data, selected
 
     // When there are no more items to be selected, turn off selection mode on mobile
     useEffect(() => {
-        if (!selectableKeys.length && isSelectionModeEnabled) {
-            turnOffMobileSelectionMode();
+        if (selectableKeys.length || !isSelectionModeEnabled) {
+            return;
         }
+
+        turnOffMobileSelectionMode();
     }, [selectableKeys.length, isSelectionModeEnabled]);
 
     /**

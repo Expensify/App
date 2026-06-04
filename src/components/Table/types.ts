@@ -78,7 +78,7 @@ type TableMethods<ColumnKey extends string = string, FilterKey extends string = 
 type TableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> &
     TableMethods<ColumnKey, FilterKey> & {
         /** Method to get all of the processed data after filtering, searching, and sorting have been applied. */
-        getProcessedData: () => TableRow<DataType>[];
+        getProcessedData: () => Array<TableRow<DataType>>;
     };
 
 /**
