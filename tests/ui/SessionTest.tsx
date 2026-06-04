@@ -1,10 +1,10 @@
 import {cleanup, render} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import redirectToSignIn from '@userActions/SignInRedirect';
-import {signInWithShortLivedAuthToken} from '@userActions/Session';
 import {setLastShortAuthToken} from '@libs/Network/NetworkStore';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
+import {signInWithShortLivedAuthToken} from '@userActions/Session';
+import redirectToSignIn from '@userActions/SignInRedirect';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {createRandomReport} from '../utils/collections/reports';
