@@ -1,10 +1,10 @@
-import {render} from '@testing-library/react-native';
+import {act, cleanup, render} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as AppActions from '@libs/actions/App';
-import {hasAuthToken, signOutAndRedirectToSignIn} from '@libs/actions/Session';
+import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
 import App from '@src/App';
@@ -12,9 +12,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {createRandomReport} from '../utils/collections/reports';
+import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
@@ -30,7 +32,8 @@ const TEST_USER_LOGIN_2 = 'test2@test.com';
 // cspell:disable-next-line
 const TEST_AUTH_TOKEN_2 = 'zxcvbnm';
 
-jest.setTimeout(240000);
+// We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
+jest.setTimeout(120000);
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
@@ -49,6 +52,7 @@ function getInitialURL() {
 
 describe('Deep linking', () => {
     let lastVisitedPath: string | undefined;
+    let lastVisitedPathConnectionID: ReturnType<typeof Onyx.connect> | undefined;
     let originalSignInWithShortLivedAuthToken: typeof Session.signInWithShortLivedAuthToken;
     let originalOpenApp: typeof AppActions.openApp;
 
@@ -58,7 +62,9 @@ describe('Deep linking', () => {
     });
 
     beforeEach(() => {
-        Onyx.connect({
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+
+        lastVisitedPathConnectionID = Onyx.connect({
             key: ONYXKEYS.LAST_VISITED_PATH,
             callback: (val: OnyxEntry<string>) => (lastVisitedPath = val),
         });
@@ -96,8 +102,16 @@ describe('Deep linking', () => {
     });
 
     afterEach(async () => {
-        await Onyx.clear();
-        await waitForNetworkPromises();
+        if (lastVisitedPathConnectionID) {
+            Onyx.disconnect(lastVisitedPathConnectionID);
+            lastVisitedPathConnectionID = undefined;
+        }
+        cleanup();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+        PusherHelper.teardown();
         jest.clearAllMocks();
         lastVisitedPath = undefined;
         Linking.setInitialURL('');
@@ -119,9 +133,9 @@ describe('Deep linking', () => {
 
         expect(hasAuthToken()).toBe(true);
 
-        signOutAndRedirectToSignIn();
-
+        await TestHelper.signOutTestUser();
         await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
 
         expect(hasAuthToken()).toBe(false);
 
@@ -134,6 +148,7 @@ describe('Deep linking', () => {
 
         unmount();
         await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
     });
 
     it('should not reuse the last deep link and log in again when signing out', async () => {
@@ -150,6 +165,7 @@ describe('Deep linking', () => {
         unmount1();
 
         await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
 
         const url = getInitialURL();
         // User signs in automatically when the app is remounted because of the deep link.
@@ -161,13 +177,16 @@ describe('Deep linking', () => {
 
         expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
 
-        signOutAndRedirectToSignIn();
-
+        await TestHelper.signOutTestUser();
         await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
 
         // In a failing scenario, remounting triggers the sign-in with the deep link again because it still remembers it.
         // However, we've implemented a fix so that it does not reuse the last deep link.
         unmount2();
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+
         const {unmount: unmount3} = render(<App />);
 
         await waitForBatchedUpdatesWithAct();
@@ -176,5 +195,6 @@ describe('Deep linking', () => {
 
         unmount3();
         await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
     });
 });

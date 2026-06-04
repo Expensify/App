@@ -4,6 +4,7 @@ type UpdatePersonalBankAccountInfoParams = {
     legalFirstName: string;
     legalLastName: string;
     addressStreet: string;
+    addressStreet2: string;
     addressCity: string;
     addressState: string;
     addressZip: string;
