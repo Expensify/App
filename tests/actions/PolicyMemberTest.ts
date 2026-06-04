@@ -362,7 +362,7 @@ describe('actions/PolicyMember', () => {
     });
 
     describe('addMembersToWorkspace', () => {
-        const currentUserAccountID = 1;
+        const currentUser = {accountID: 1, displayName: 'Current User', email: 'current@example.com'};
 
         it('Add a new member to a workspace', async () => {
             const policyID = '1';
@@ -376,7 +376,7 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUserAccountID);
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
 
             await waitForBatchedUpdates();
 
@@ -430,9 +430,9 @@ describe('actions/PolicyMember', () => {
 
             // When adding a new admin, auditor, and user members
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber, currentUserAccountID);
-            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber, currentUserAccountID);
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUserAccountID);
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber, currentUser);
+            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber, currentUser);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
 
             await waitForBatchedUpdates();
 
@@ -495,7 +495,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUserAccountID);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
 
             await waitForBatchedUpdates();
 
@@ -562,7 +562,7 @@ describe('actions/PolicyMember', () => {
                 [],
                 CONST.POLICY.ROLE.USER,
                 TestHelper.formatPhoneNumber,
-                currentUserAccountID,
+                currentUser,
                 undefined,
                 reportActionsList,
             );
@@ -579,6 +579,62 @@ describe('actions/PolicyMember', () => {
                 });
             });
             expect(isExpenseReportArchived).toBe(false);
+        });
+
+        describe('buildAddMembersToWorkspaceOnyxData currentUser dependency', () => {
+            const buildForCurrentUser = (currentUserInput: {accountID: number; displayName?: string; email?: string; avatar?: string}) =>
+                Member.buildAddMembersToWorkspaceOnyxData(
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    {'new-member@example.com': 9001},
+                    createRandomPolicy(101),
+                    [],
+                    CONST.POLICY.ROLE.USER,
+                    TestHelper.formatPhoneNumber,
+                    currentUserInput,
+                );
+
+            type BuildResult = ReturnType<typeof buildForCurrentUser>;
+
+            const findOptimisticCreatedAction = (optimisticData: BuildResult['optimisticData']) => {
+                for (const update of optimisticData) {
+                    if (!update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                        continue;
+                    }
+                    const value = update.value as Record<string, ReportAction> | null | undefined;
+                    if (!value) {
+                        continue;
+                    }
+                    const createdAction = Object.values(value).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+                    if (createdAction) {
+                        return createdAction;
+                    }
+                }
+                return undefined;
+            };
+
+            it('actorAccountID on the optimistic CREATED action equals currentUser.accountID', () => {
+                const {optimisticData: dataForA} = buildForCurrentUser({accountID: 42, displayName: 'A', email: 'a@example.com'});
+                const {optimisticData: dataForB} = buildForCurrentUser({accountID: 99, displayName: 'B', email: 'b@example.com'});
+
+                expect(findOptimisticCreatedAction(dataForA)?.actorAccountID).toBe(42);
+                expect(findOptimisticCreatedAction(dataForB)?.actorAccountID).toBe(99);
+            });
+
+            it('person text on the optimistic CREATED action equals currentUser.displayName when defined', () => {
+                const {optimisticData} = buildForCurrentUser({accountID: 1, displayName: 'Alice Smith', email: 'alice@example.com'});
+                expect(findOptimisticCreatedAction(optimisticData)?.person?.at(0)?.text).toBe('Alice Smith');
+            });
+
+            it('person text on the optimistic CREATED action falls back to currentUser.email when displayName is undefined', () => {
+                const {optimisticData} = buildForCurrentUser({accountID: 1, email: 'fallback@example.com'});
+                expect(findOptimisticCreatedAction(optimisticData)?.person?.at(0)?.text).toBe('fallback@example.com');
+            });
+
+            it('avatar on the optimistic CREATED action equals currentUser.avatar when defined', () => {
+                const avatar = 'https://avatar.example/me.png';
+                const {optimisticData} = buildForCurrentUser({accountID: 1, displayName: 'Alice', email: 'alice@example.com', avatar});
+                expect(findOptimisticCreatedAction(optimisticData)?.avatar).toBe(avatar);
+            });
         });
     });
 

@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {Alert, View} from 'react-native';
+import {Alert, Platform, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
 import type {PhotoFile} from 'react-native-vision-camera';
@@ -20,6 +20,7 @@ import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureRe
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
+import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
@@ -74,14 +75,19 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraLoadingReasonAttributes,
     } = useNativeCamera({context: 'Camera', onFocusStart, onFocusCleanup});
 
-    // Prioritize photoResolution over videoResolution so the format selector picks a 4032x3024
-    // format instead of the 5712x4284 (24.5MP) format that videoResolution:'max' would select.
-    // This cuts capture time roughly in half while maintaining the same output photo resolution.
-    // Use screen dimensions for video resolution since we only need enough for the preview.
+    // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
+    // format. videoResolution is platform-specific:
+    //  - iOS: match the photo target — `takeSnapshot` reads from the video pipeline, so a smaller
+    //    video resolution would degrade the snapshot capture quality.
+    //  - Android: keep screen dimensions — `takeSnapshot` is a GPU screenshot of the preview surface
+    //    and doesn't depend on video resolution; constraining to screen size avoids burning GPU on a
+    //    higher-than-needed preview.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
-        {videoResolution: {width: windowHeight, height: windowWidth}},
+        Platform.OS === 'ios'
+            ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
+            : {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
     const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
     const fps = format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30;
@@ -261,6 +267,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     isCapturingPhoto={didCapturePhoto}
                 />
             )}
+            <MultiScanEducationalModal />
         </View>
     );
 }
@@ -268,4 +275,3 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 Camera.displayName = 'Camera';
 
 export default Camera;
-export type {CameraProps};
