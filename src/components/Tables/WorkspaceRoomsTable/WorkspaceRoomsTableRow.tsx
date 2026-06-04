@@ -105,7 +105,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
 
                     {!shouldUseNarrowTableLayout && (
                         <>
-                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                                 <ReportActionAvatars
                                     noRightMarginOnSubscriptContainer
                                     singleAvatarContainerStyle={[styles.mr0]}
@@ -120,7 +120,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                                 />
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                                 {!!item.ownerDisplayName && (
                                     <>
                                         {!!item.ownerAccountID && (
