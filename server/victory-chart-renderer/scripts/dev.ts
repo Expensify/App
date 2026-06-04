@@ -19,17 +19,15 @@ import {join, resolve} from 'node:path';
 const packageRoot = resolve(import.meta.dir, '..');
 const repoRoot = resolve(packageRoot, '../..');
 const stubRoot = resolve(packageRoot, '../stubs');
-const tsconfigPath = join(packageRoot, 'tsconfig.json');
 const outFile = resolve(packageRoot, '.dev/cli.js');
 
 mkdirSync(join(packageRoot, '.dev'), {recursive: true});
 
 const buildResult = await Bun.build({
-    entrypoints: [resolve(packageRoot, 'src/bootstrap.tsx')],
+    entrypoints: [resolve(packageRoot, 'src/cli.tsx')],
     target: 'bun',
     packages: 'bundle',
     conditions: ['react-native'],
-    tsconfig: tsconfigPath,
     plugins: [createRnStubPlugin(stubRoot)],
 });
 

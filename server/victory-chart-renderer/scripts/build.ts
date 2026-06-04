@@ -16,7 +16,6 @@ import CLI from '@scripts/utils/CLI';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const stubRoot = resolve(packageRoot, '../stubs');
-const tsconfigPath = join(packageRoot, 'tsconfig.json');
 
 const cli = new CLI({
     namedArgs: {
@@ -33,14 +32,13 @@ const cli = new CLI({
 const {target, outfile} = cli.namedArgs;
 
 const buildResult = await Bun.build({
-    entrypoints: [join(packageRoot, 'src/bootstrap.tsx')],
+    entrypoints: [join(packageRoot, 'src/cli.tsx')],
     compile: {
         target,
         outfile,
     },
     packages: 'bundle',
     conditions: ['react-native'],
-    tsconfig: tsconfigPath,
     plugins: [createRnStubPlugin(stubRoot)],
 });
 
