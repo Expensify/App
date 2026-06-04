@@ -96,23 +96,34 @@ const renderPage = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREE
         </ComposeProviders>,
     );
 
+const TEST_USER_LOGIN = 'test@user.com';
+
 /** Build a minimal admin policy for use as Onyx fixture. Lock states are driven by mocked hooks/utils, not policy fields. */
-const buildPolicy = (overrides: Partial<ReturnType<typeof LHNTestUtils.getFakePolicy>> = {}) => ({
-    ...LHNTestUtils.getFakePolicy(),
-    role: CONST.POLICY.ROLE.ADMIN,
-    type: CONST.POLICY.TYPE.CORPORATE,
-    areWorkflowsEnabled: true,
-    areConnectionsEnabled: false,
-    areCategoriesEnabled: true,
-    areTagsEnabled: false,
-    areReportFieldsEnabled: false,
-    areExpensifyCardsEnabled: false,
-    areCompanyCardsEnabled: false,
-    areDistanceRatesEnabled: false,
-    areRulesEnabled: false,
-    isTravelEnabled: false,
-    ...overrides,
-});
+const buildPolicy = (overrides: Partial<ReturnType<typeof LHNTestUtils.getFakePolicy>> = {}) => {
+    const role = overrides.role ?? CONST.POLICY.ROLE.ADMIN;
+
+    return {
+        ...LHNTestUtils.getFakePolicy(),
+        role,
+        type: CONST.POLICY.TYPE.CORPORATE,
+        employeeList: {
+            [TEST_USER_LOGIN]: {
+                role,
+            },
+        },
+        areWorkflowsEnabled: true,
+        areConnectionsEnabled: false,
+        areCategoriesEnabled: true,
+        areTagsEnabled: false,
+        areReportFieldsEnabled: false,
+        areExpensifyCardsEnabled: false,
+        areCompanyCardsEnabled: false,
+        areDistanceRatesEnabled: false,
+        areRulesEnabled: false,
+        isTravelEnabled: false,
+        ...overrides,
+    };
+};
 
 const isSmartLimitEnabledMock = jest.mocked(CardUtils.isSmartLimitEnabled);
 const getCompanyFeedsMock = jest.mocked(CardUtils.getCompanyFeeds);

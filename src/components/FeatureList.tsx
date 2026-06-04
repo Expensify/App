@@ -63,6 +63,12 @@ type FeatureListProps = {
 
     /** Whether the button should be disabled */
     isButtonDisabled?: boolean;
+
+    /** Additional styles to apply to the CTA button inner container */
+    buttonInnerStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles to apply to the CTA button on hover */
+    buttonHoverStyles?: StyleProp<ViewStyle>;
 };
 
 function FeatureList({
@@ -80,6 +86,8 @@ function FeatureList({
     contentPaddingOnLargeScreens,
     footer,
     isButtonDisabled = false,
+    buttonInnerStyles,
+    buttonHoverStyles,
     renderSubtitle,
 }: FeatureListProps) {
     const styles = useThemeStyles();
@@ -126,6 +134,8 @@ function FeatureList({
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
+                        innerStyles={buttonInnerStyles}
+                        hoverStyles={buttonHoverStyles}
                         success
                         isDisabled={isButtonDisabled}
                         large
