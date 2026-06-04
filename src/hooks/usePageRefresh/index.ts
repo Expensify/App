@@ -18,7 +18,14 @@ const usePageRefresh: UsePageRefresh = () => {
         }
 
         sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP);
-        clearWorkboxRecoveryCaches().then(() => window.location.reload());
+        if (isChunkLoadError) {
+            // The error page is shown after lazyRetry has already done a plain reload
+            // and it did not fix the problem. Clear the service worker cache so the
+            // next load fetches a fresh app shell from the CDN.
+            clearWorkboxRecoveryCaches().then(() => window.location.reload());
+        } else {
+            window.location.reload();
+        }
     };
 };
 

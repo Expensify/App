@@ -108,6 +108,18 @@ describe('ChunkLoadError recovery', () => {
             expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
             expect(reloadMock).not.toHaveBeenCalled();
         });
+
+        it('plain-reloads without clearing caches when the error is not a chunk error', async () => {
+            // Simulate a second Refresh tap within the timeout window for a non-chunk error.
+            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP, (Date.now() - 1000).toString());
+            const {result} = renderHook(() => usePageRefresh());
+
+            result.current(false);
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(reloadMock).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('lazyRetry', () => {

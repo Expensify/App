@@ -1,5 +1,6 @@
 import type {ComponentType} from 'react';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
+import isChunkLoadError from '@libs/isChunkLoadError';
 import CONST from '@src/CONST';
 
 type Import<T> = Promise<{default: T}>;
@@ -14,13 +15,6 @@ const RETRY_STATE = {
     RELOADED: 'true',
     CACHE_CLEARED: 'cache-cleared',
 } as const;
-
-function isChunkLoadError(error: unknown): boolean {
-    if (!(error instanceof Error)) {
-        return false;
-    }
-    return error.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk \S+ failed/i.test(error.message);
-}
 
 /**
  * Attempts to lazily import a React component with a graduated retry strategy.

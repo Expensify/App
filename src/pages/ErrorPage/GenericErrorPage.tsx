@@ -13,6 +13,7 @@ import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isChunkLoadError from '@libs/isChunkLoadError';
 import variables from '@styles/variables';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -24,7 +25,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const StyleUtils = useStyleUtils();
     const isAuthenticated = useIsAuthenticated();
     const {translate} = useLocalize();
-    const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
+    const chunkLoadError = isChunkLoadError(error);
     const refreshPage = usePageRefresh();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Bug']);
 
@@ -63,7 +64,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                                         success
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
-                                        onPress={() => refreshPage(isChunkLoadError)}
+                                        onPress={() => refreshPage(chunkLoadError)}
                                     />
                                     {isAuthenticated && (
                                         <Button
