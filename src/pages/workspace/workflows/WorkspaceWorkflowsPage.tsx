@@ -132,6 +132,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
@@ -181,10 +182,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
+    const hasPendingDeferredAgentSave = useMemo(
+        () => Object.values(deferredAgentWorkflowSaves ?? {}).some((entry) => entry?.policyID === route.params.policyID),
+        [deferredAgentWorkflowSaves, route.params.policyID],
+    );
+
     const fetchData = useCallback(() => {
-        openPolicyWorkflowsPage(route.params.policyID, true);
+        // Skip the workflows refetch while a freshly-added offline agent's deferred workflow save is still
+        // pending reconciliation: the READ returns the pre-approval-update employeeList (workspace owner is
+        // still the approver), which would clobber the optimistic agent-as-approver overlay and briefly
+        // flicker the approver row when the connection is restored.
+        if (!hasPendingDeferredAgentSave) {
+            openPolicyWorkflowsPage(route.params.policyID, true);
+        }
         getPaymentMethods();
-    }, [route.params.policyID]);
+    }, [route.params.policyID, hasPendingDeferredAgentSave]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
