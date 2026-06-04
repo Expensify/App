@@ -219,6 +219,15 @@ function NumberWithSymbolForm({
         end: currentNumber.length,
     });
 
+    // When the prop resets to empty, mirror that in internal state so the field doesn't stay stuck at "0.00".
+    useEffect(() => {
+        if (number !== '') {
+            return;
+        }
+        setCurrentNumber('');
+        setSelection({start: 0, end: 0});
+    }, [number]);
+
     const forwardDeletePressedRef = useRef(false);
     // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewNumber
     const willSelectionBeUpdatedManually = useRef(false);
