@@ -349,8 +349,9 @@ function NumberWithSymbolForm({
 
     // Modifies the number to match changed decimals.
     useEffect(() => {
-        // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength, allowNegativeInput || allowFlippingAmount)) {
+        // If the field is intentionally empty (e.g. new manual expense flow before the user enters an amount)
+        // or the current number is already valid for the new decimal count, nothing to do.
+        if (number === '' || validateAmount(currentNumber, decimals, maxLength, allowNegativeInput || allowFlippingAmount)) {
             return;
         }
 
