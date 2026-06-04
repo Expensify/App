@@ -9,8 +9,9 @@ function useHasAnyAdminExpensifyCardFeed(): boolean {
     const [cardSettingsCollection] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    return getAdminExpensifyCardFeedEntries(cardSettingsCollection, policies, domains, currentUserAccountID).length > 0;
+    return getAdminExpensifyCardFeedEntries(cardSettingsCollection, policies, domains, currentUserAccountID, cardList).length > 0;
 }
 
 export default useHasAnyAdminExpensifyCardFeed;

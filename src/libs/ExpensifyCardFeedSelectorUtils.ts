@@ -32,6 +32,10 @@ function hasLoadedExpensifyCardSettings(settings: ExpensifyCardSettings | undefi
  *  2. Otherwise, if the feed has a `preferredPolicy`, show it when the user is an admin of
  *     that policy and the policy is not pending deletion.
  *  3. Otherwise (orphan feed with neither linkedPolicyIDs nor preferredPolicy):
+ *     Only surface it when the fund has an issued Expensify Card. Workspaces that merely have
+ *     the feature enabled (no card) would otherwise each produce a feed that resolves to the
+ *     same domain name, showing as duplicate entries in the selector. Among feeds that pass
+ *     that gate:
  *     a. Show it if the user is a domain admin for the domain whose ID matches the fundID.
  *     b. Show it if any non-deleted policy the user administers has a `policyAccountID`
  *        equal to the fundID (i.e. the fund backs that workspace).
@@ -42,6 +46,7 @@ function isExpensifyCardFeedVisibleToAdmin(
     fundID: number,
     domains: OnyxCollection<Domain>,
     currentUserAccountID: number,
+    cardList: CardList | undefined,
 ): boolean {
     if (!hasLoadedExpensifyCardSettings(settings)) {
         return false;
@@ -57,6 +62,11 @@ function isExpensifyCardFeedVisibleToAdmin(
     if (preferredPolicy) {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.toUpperCase()}`];
         return isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    }
+
+    const hasIssuedExpensifyCard = Object.values(cardList ?? {}).some((card) => card?.fundID === fundID.toString() && card?.bank === CONST.EXPENSIFY_CARD.BANK);
+    if (!hasIssuedExpensifyCard) {
+        return false;
     }
 
     const domain = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
@@ -92,13 +102,14 @@ function getAdminExpensifyCardFeedEntries(
     policies: OnyxCollection<Policy>,
     domains: OnyxCollection<Domain>,
     currentUserAccountID: number,
+    cardList: CardList | undefined,
 ): ExpensifyCardFeedEntry[] {
     return Object.entries(cardSettingsCollection ?? {}).flatMap(([settingsKey, settings]) => {
         if (!settings) {
             return [];
         }
         const fundID = getFundIdFromSettingsKey(settingsKey);
-        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID)) {
+        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID, cardList)) {
             return [];
         }
         return [{settingsKey, fundID, settings}];
