@@ -224,6 +224,7 @@ function NumberWithSymbolForm({
         if (number !== '') {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing internal state to an externally-driven prop reset (Onyx); mirrors the existing pattern in this file
         setCurrentNumber('');
         setSelection({start: 0, end: 0});
     }, [number]);
