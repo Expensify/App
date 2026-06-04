@@ -211,6 +211,11 @@ platforms:
     image: /assets/images/help-new.png
   
     hubs:
+      - href: Payments-Reimbursement-and-Banking
+        title: Payments, Reimbursement & Banking
+        icon: /assets/images/money-into-wallet.svg
+        description: Get reimbursed, pay employees, and manage bank accounts in Expensify.
+
       - href: getting-started
         title: Getting Started
         icon: /assets/images/accounting.svg
@@ -250,11 +255,6 @@ platforms:
         title: Wallet & Payments
         icon: /assets/images/money-into-wallet.svg
         description: Send and receive payments.
-
-      - href: Payments-Reimbursement-and-Banking
-        title: Payments, Reimbursement & Banking
-        icon: /assets/images/money-into-wallet.svg
-        description: Get reimbursed, pay employees, and manage bank accounts in Expensify.
 
       - href: connect-credit-cards
         title: Connect Credit Cards

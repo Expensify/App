@@ -11,8 +11,14 @@ type Article = {
 type Section = {
     href: string;
     title: string;
+    order?: number;
     articles?: Article[];
     sections?: Section[];
+};
+
+type SectionMetadata = {
+    title?: string;
+    order?: number;
 };
 
 type Hub = {
@@ -70,12 +76,13 @@ function toTitleCase(str: string): string {
 /**
  * @param filename - The name of the file
  * @param order - Optional order from front matter
+ * @param title - Optional title from front matter
  */
-function getArticleObj(filename: string, order?: number): Article {
+function getArticleObj(filename: string, order?: number, title?: string): Article {
     const href = filename.replace('.md', '');
     return {
         href,
-        title: toTitleCase(href.replaceAll('-', ' ')),
+        title: title ?? toTitleCase(href.replaceAll('-', ' ')),
         order,
     };
 }
@@ -102,17 +109,43 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
     }
 }
 
-function getOrderFromArticleFrontMatter(path: string): number | undefined {
+function getArticleFrontMatter(path: string): {order?: number; title?: string} {
     try {
         const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
         if (!frontmatter) {
-            return undefined;
+            return {};
         }
         const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
-        return frontmatterObject.order as number | undefined;
+        return {
+            order: frontmatterObject.order as number | undefined,
+            title: frontmatterObject.title as string | undefined,
+        };
     } catch {
-        return undefined;
+        return {};
     }
+}
+
+function getSectionMetadata(sectionPath: string): SectionMetadata {
+    const metaPath = `${sectionPath}/_section.yml`;
+    if (!fs.existsSync(metaPath)) {
+        return {};
+    }
+
+    try {
+        return yaml.load(fs.readFileSync(metaPath, 'utf8')) as SectionMetadata;
+    } catch {
+        return {};
+    }
+}
+
+function sortByOrderThenTitle<T extends {order?: number; title: string}>(items: T[]) {
+    items.sort((a, b) => {
+        const orderDiff = (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY);
+        if (orderDiff !== 0) {
+            return orderDiff;
+        }
+        return a.title.localeCompare(b.title);
+    });
 }
 
 /**
@@ -128,20 +161,21 @@ function buildSection(platformName: string, hub: string, sectionPath: string, pa
     for (const entry of fs.readdirSync(fullPath)) {
         const entryPath = `${fullPath}/${entry}`;
         if (entry.endsWith('.md')) {
-            const order = getOrderFromArticleFrontMatter(entryPath);
-            articles.push(getArticleObj(entry, order));
+            const {order, title} = getArticleFrontMatter(entryPath);
+            articles.push(getArticleObj(entry, order, title));
         } else if (fs.statSync(entryPath).isDirectory()) {
             childSections.push(buildSection(platformName, hub, `${sectionPath}/${entry}`, href));
         }
     }
 
-    // Articles are displayed in the order stored here, so sort by the optional `order` front matter.
-    // The sort is stable, so articles without an `order` keep their relative position and fall after ordered ones.
-    articles.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
+    sortByOrderThenTitle(articles);
+    sortByOrderThenTitle(childSections);
 
+    const sectionMetadata = getSectionMetadata(fullPath);
     const section: Section = {
         href,
-        title: toTitleCase(sectionName.replaceAll('-', ' ')),
+        title: sectionMetadata.title ?? toTitleCase(sectionName.replaceAll('-', ' ')),
+        ...(sectionMetadata.order !== undefined && {order: sectionMetadata.order}),
         ...(articles.length > 0 && {articles}),
         ...(childSections.length > 0 && {sections: childSections}),
     };
@@ -174,7 +208,8 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 
         for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
-                const articleObj = getArticleObj(fileOrFolder);
+                const {order, title} = getArticleFrontMatter(`${basePath}/${fileOrFolder}`);
+                const articleObj = getArticleObj(fileOrFolder, order, title);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }
@@ -186,8 +221,14 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 
         // Add flat section list for nested section page lookup
         const hubObj = routeHubs.find((obj) => obj.href === hub);
-        if (hubObj?.sections?.length) {
-            (hubObj as Hub & {flatSections?: Section[]}).flatSections = flattenSections(hubObj.sections);
+        if (hubObj) {
+            if (hubObj.articles?.length) {
+                sortByOrderThenTitle(hubObj.articles);
+            }
+            if (hubObj.sections?.length) {
+                sortByOrderThenTitle(hubObj.sections);
+                (hubObj as Hub & {flatSections?: Section[]}).flatSections = flattenSections(hubObj.sections);
+            }
         }
     }
 }

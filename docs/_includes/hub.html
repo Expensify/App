@@ -14,10 +14,11 @@
 {% assign hubArticles = hub.articles | default: emptyItems %}
 {% assign hubSections = hub.sections | default: emptyItems %}
 
+{% comment %} Order is defined in routes.yml (via article/section order and _section.yml). Show hub articles before sections. {% endcomment %}
 {% if hub.articles %}
-    {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hubArticles | concat: hubSections %}
 {% else %}
-    {% assign sortedSectionsAndArticles = hubSections | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hubSections %}
 {% endif%}
 
 <section>
