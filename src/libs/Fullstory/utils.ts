@@ -234,4 +234,3 @@ function buildPageViewedEvent(screenName: string, entryPoint: string): Fullstory
 }
 
 export {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep, trackFullstoryEvent};
-export type {BuildFullstoryUserVarsParams};
