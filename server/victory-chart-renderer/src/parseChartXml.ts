@@ -35,4 +35,4 @@ function parseChartXml(xmlString: string): TNode {
     return victoryChart;
 }
 
-export {parseChartXml, renderEngine};
+export default parseChartXml;

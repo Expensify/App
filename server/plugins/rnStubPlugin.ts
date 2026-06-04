@@ -5,8 +5,9 @@
  * imports into Flow sources, native bindings, and Metro platform files. The headless chart
  * path only needs modules to load and export no-op components; Skia draws off-screen.
  *
- * onResolve hooks map react-native, react-native/* subpaths, react-native-reanimated, and
- * react-native-gesture-handler to the file: stub packages under server/stubs/. Stub paths
+ * onResolve hooks map react-native, react-native/* subpaths, react-native-reanimated,
+ * react-native-gesture-handler, and react-native-nitro-fetch to the file: stub packages under
+ * server/stubs/. Stub paths
  * must be absolute because Bun resolves plugin targets from the bundler context.
  */
 import type {BunPlugin} from 'bun';
@@ -20,6 +21,7 @@ export default function createRnStubPlugin(stubRoot: string): BunPlugin {
     const blobUtilStub = resolve(stubRoot, 'react-native-blob-util/index.ts');
     const configStub = resolve(stubRoot, 'react-native-config/index.ts');
     const sentryStub = resolve(stubRoot, 'sentry-react-native/index.ts');
+    const nitroFetchStub = resolve(stubRoot, 'react-native-nitro-fetch/index.ts');
 
     return {
         name: 'victory-chart-renderer-rn-stubs',
@@ -52,6 +54,10 @@ export default function createRnStubPlugin(stubRoot: string): BunPlugin {
 
             build.onResolve({filter: /^react-native-gesture-handler$/}, () => ({
                 path: gestureHandlerStub,
+            }));
+
+            build.onResolve({filter: /^react-native-nitro-fetch$/}, () => ({
+                path: nitroFetchStub,
             }));
         },
     };

@@ -9,7 +9,7 @@ function makeChartNode(attributes: TNode['attributes'], children: TNode[] = []):
         tagName: 'victorychart',
         attributes,
         children,
-    } as TNode;
+    } as unknown as TNode;
 }
 
 afterEach(() => {
@@ -34,7 +34,7 @@ test('resolveCanvasSize exits when overlays exist without chart dimensions', () 
             tagName: 'victorylabel',
             attributes: {x: '10', y: '20', text: 'Title'},
             children: [],
-        } as TNode,
+        } as unknown as TNode,
     ]);
     let exitCode: number | undefined;
 

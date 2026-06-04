@@ -13,7 +13,8 @@
         "metro.config.js",
         "eslint.changed.config.mjs",
         "react-native.config.js",
-        "rock.config.mjs"
+        "rock.config.mjs",
+        "server/victory-chart-renderer/src/bootstrap.tsx"
     ],
     "project": [
         "src/**/*.{js,jsx,ts,tsx}",
@@ -24,9 +25,16 @@
         "scripts/**/*.{js,ts}",
         "jest/**/*.{js,ts}",
         ".storybook/**/*.{js,ts,tsx}",
-        ".github/actions/javascript/**/*.ts"
+        ".github/actions/javascript/**/*.ts",
+        "server/victory-chart-renderer/**/*.{ts,tsx}"
     ],
-    "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js"],
+    "ignore": [
+        ".github/actions/**/index.js",
+        "tests/perf-test/**",
+        "web/snippets/gib.js",
+        "server/victory-chart-renderer/src/bootstrap.tsx",
+        "server/victory-chart-renderer/src/initSkiaForCli.ts"
+    ],
     "ignoreDependencies": [
         "@expensify/react-native-hybrid-app",
         "group-ib-fp",
@@ -46,7 +54,9 @@
         "@vercel/ncc",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy"
+        "diff-so-fancy",
+        "victory-native",
+        "react-native-gesture-handler"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"],
     "eslint": {

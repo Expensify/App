@@ -1,6 +1,6 @@
 import CLI from '@scripts/utils/CLI';
 import loadChartFontsForCli from './loadChartFontsForCli';
-import {parseChartXml} from './parseChartXml';
+import parseChartXml from './parseChartXml';
 import renderChartToPng from './renderChartToPng';
 import resolveCanvasSize from './resolveCanvasSize';
 

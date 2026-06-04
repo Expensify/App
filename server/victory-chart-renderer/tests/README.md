@@ -14,7 +14,7 @@ From the App repo root:
 npm run server:vcr:test
 ```
 
-## Updating goldens
+## Updating golden PNGs
 
 Only when visuals change intentionally:
 

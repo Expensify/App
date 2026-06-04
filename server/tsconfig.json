@@ -9,6 +9,6 @@
             "@src/*": ["../src/*"]
         }
     },
-    "include": ["libs", "plugins", "stubs", "victory-chart-renderer"],
+    "include": ["libs", "plugins", "stubs"],
     "exclude": ["victory-chart-renderer/dist", "victory-chart-renderer/.dev"]
 }

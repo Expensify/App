@@ -20,7 +20,6 @@ const ALIAS_ENTRIES = [
 export default function createAppPathAliasPlugin(repoRoot: string, stubRoot: string): BunPlugin {
     const resolvedRepoRoot = resolve(repoRoot);
     const logStub = resolve(stubRoot, 'expensify-log/index.ts');
-    const nitroFetchStub = resolve(stubRoot, 'react-native-nitro-fetch/index.ts');
     const activeSpansStub = resolve(stubRoot, 'telemetry-activeSpans/index.ts');
 
     return {
@@ -32,10 +31,6 @@ export default function createAppPathAliasPlugin(repoRoot: string, stubRoot: str
 
             build.onResolve({filter: /^@libs\/Log$/}, () => ({
                 path: logStub,
-            }));
-
-            build.onResolve({filter: /^react-native-nitro-fetch$/}, () => ({
-                path: nitroFetchStub,
             }));
 
             build.onResolve({filter: /^@(components|assets|libs|styles|hooks|src|navigation|userActions|selectors)\//}, (args) => {
