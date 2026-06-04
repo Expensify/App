@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type Policy from '@src/types/onyx/Policy';
-import type {CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {AIRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
@@ -208,7 +208,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                         codingRules: {
                             [targetRuleID]: {
                                 ...failureRuleValue,
-                                pendingAction: null,
+                                pendingAction: isEditing ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
@@ -377,7 +377,8 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
                     rules: {
                         aiRules: {
                             [aiRuleID]: {
-                                pendingAction: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -446,6 +447,7 @@ function updatePolicyAIRule(policyID: string, aiRuleID: string, prompt: string, 
                             [aiRuleID]: {
                                 prompt: previousPrompt,
                                 pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -528,4 +530,72 @@ function deletePolicyAIRule(policy: Policy, aiRuleID: string) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_AI_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule, getTransactionsMatchingCodingRule, addPolicyAIRule, updatePolicyAIRule, deletePolicyAIRule};
+function clearPolicyCodingRuleErrors(policyID: string, ruleID: string, rule: CodingRule | undefined) {
+    if (!rule) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(policyKey, {
+            rules: {
+                codingRules: {
+                    [ruleID]: null,
+                },
+            },
+        });
+        return;
+    }
+
+    Onyx.merge(policyKey, {
+        rules: {
+            codingRules: {
+                [ruleID]: {
+                    errors: null,
+                },
+            },
+        },
+    });
+}
+
+function clearPolicyAIRuleErrors(policyID: string, aiRuleID: string, aiRule: AIRule | undefined) {
+    if (!aiRule) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    if (aiRule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(policyKey, {
+            rules: {
+                aiRules: {
+                    [aiRuleID]: null,
+                },
+            },
+        });
+        return;
+    }
+
+    Onyx.merge(policyKey, {
+        rules: {
+            aiRules: {
+                [aiRuleID]: {
+                    errors: null,
+                },
+            },
+        },
+    });
+}
+
+export {
+    openPolicyRulesPage,
+    setPolicyCodingRule,
+    deletePolicyCodingRule,
+    getTransactionsMatchingCodingRule,
+    addPolicyAIRule,
+    updatePolicyAIRule,
+    deletePolicyAIRule,
+    clearPolicyCodingRuleErrors,
+    clearPolicyAIRuleErrors,
+};

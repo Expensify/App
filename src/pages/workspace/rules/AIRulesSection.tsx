@@ -1,10 +1,9 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -12,14 +11,12 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import tokenizedSearch from '@libs/tokenizedSearch';
+import {clearPolicyAIRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AIRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AIRulesSectionProps = {
@@ -51,15 +48,6 @@ function AIRulesSection({policyID}: AIRulesSectionProps) {
     // Exclude pending-delete rules when online because OfflineWithFeedback hides them visually.
     // When offline, keep them so OfflineWithFeedback can show strikethrough styling.
     const visibleRules = sortedRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const filterRule = (rule: AIRule, searchInput: string) => tokenizedSearch([rule], searchInput, () => [rule.prompt]).length > 0;
-    const [ruleSearchInput, setRuleSearchInput, filteredRules] = useSearchResults(visibleRules, filterRule);
-
-    useEffect(() => {
-        if (visibleRules.length > CONST.SEARCH_BAR_THRESHOLD) {
-            return;
-        }
-        setRuleSearchInput('');
-    }, [visibleRules.length, setRuleSearchInput]);
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -86,22 +74,13 @@ function AIRulesSection({policyID}: AIRulesSectionProps) {
         >
             {hasRules && (
                 <View style={[styles.mt3, styles.gap2]}>
-                    {visibleRules.length > CONST.SEARCH_BAR_THRESHOLD && (
-                        <SearchBar
-                            label={translate('workspace.rules.aiRules.findRule')}
-                            inputValue={ruleSearchInput}
-                            onChangeText={setRuleSearchInput}
-                            style={[styles.mt3, styles.mh0]}
-                            shouldShowEmptyState={filteredRules.length === 0}
-                            emptyStateContainerStyle={styles.ph0}
-                        />
-                    )}
-                    {filteredRules.map((rule) => {
+                    {visibleRules.map((rule) => {
                         return (
                             <View key={rule.ruleID}>
                                 <OfflineWithFeedback
                                     pendingAction={rule.pendingAction}
                                     errors={rule.errors}
+                                    onClose={() => clearPolicyAIRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription
                                         title={rule.prompt}

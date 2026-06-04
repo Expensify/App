@@ -105,13 +105,13 @@ function EditAIRulePage({
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
+                    shouldRenderFooterAboveSubmit
                     footerContent={
                         <Button
                             text={translate('workspace.rules.aiRules.deleteRule')}
                             onPress={handleDelete}
                             style={[styles.mb4]}
                             large
-                            danger
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AI_RULE_DELETE}
                         />
                     }
