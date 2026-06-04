@@ -165,6 +165,7 @@ type PersonalBankAccountUpdateData = Pick<
 >;
 
 function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountUpdateData) {
+    // The BE concatenates addressStreet2 into addressStreet with a newline, so mirror that here to match the stored value.
     const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
 
     const bankAccountKey = String(bankAccountID);
@@ -188,7 +189,8 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
         companyPhone: accountData.phoneNumber,
         legalFirstName: accountData.legalFirstName,
         legalLastName: accountData.legalLastName,
-        addressStreet: formattedStreet,
+        addressStreet: accountData.addressStreet,
+        addressStreet2: accountData.addressStreet2 ?? '',
         addressCity: accountData.addressCity,
         addressState: accountData.addressState,
         addressZip: accountData.addressZipCode,
@@ -1577,8 +1579,11 @@ function clearShareBankAccount() {
     Onyx.set(ONYXKEYS.SHARE_BANK_ACCOUNT, null);
 }
 
-function clearShareBankAccountErrors() {
+function clearShareBankAccountErrors(bankAccountID?: number) {
     Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {errors: null});
+    if (bankAccountID) {
+        Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {errors: null}});
+    }
 }
 
 function setShareBankAccountAdmins(admins?: MemberForList[]) {

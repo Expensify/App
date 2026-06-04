@@ -1,8 +1,7 @@
-import type {Ref} from 'react';
 import React, {useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import {clearMoneyRequest} from '@libs/actions/IOU';
+import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -14,20 +13,14 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
-    ref?: Ref<InputFocusRef>;
 };
 
-type InputFocusRef = {
-    focus?: () => void;
-};
-
-function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: ShareTabParticipantsSelectorProps) {
+function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     return (
         <MoneyRequestParticipantsSelector
-            ref={ref}
             iouType={CONST.IOU.TYPE.SUBMIT}
             initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {

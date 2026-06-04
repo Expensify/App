@@ -1,19 +1,18 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
-import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {generateReportID, getChatByParticipants, isProcessingReport, isReportOutstanding, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
-import {getTagArrayFromName} from './TransactionUtils';
+import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction, backToReport?: string): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -315,7 +314,7 @@ function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy
     // - Hide for per diem requests
     // - Hide when submitting a track expense to a non-paid group policy (personal users)
     return (
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY) &&
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.CREATE) &&
         !isPerDiemRequest &&
         (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy))
     );
@@ -466,6 +465,27 @@ function resolveOptimisticChatReportID(participantAccountIDs: number[], existing
     return {optimisticChatReportID, chatReportID};
 }
 
+/**
+ * Whether the participant picker for this transaction should be restricted to workspaces only.
+ * A negative amount (or a distance request with zero quantity) implies money is owed *to* the
+ * current user, so only a workspace can be the counterparty — not an individual user.
+ * Scan requests are excluded because the amount isn't known until after SmartScan completes.
+ */
+function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, iouRequestType: IOURequestType): boolean {
+    if (isDistanceRequest(transaction)) {
+        if (!hasRoute(transaction, true)) {
+            return false;
+        }
+        return transaction?.comment?.customUnit?.quantity === 0;
+    }
+
+    if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+        return false;
+    }
+
+    return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
@@ -510,6 +530,7 @@ export {
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
+    getIsWorkspacesOnlyForTransaction,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
 };

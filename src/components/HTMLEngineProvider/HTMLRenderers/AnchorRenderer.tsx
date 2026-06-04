@@ -141,13 +141,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 styles.textUnderlinePositionUnder,
                 styles.textDecorationSkipInkNone,
                 isChildOfTaskTitle && styles.taskTitleMenuItem,
-                styles.dInlineFlex,
                 hoverStyle,
             ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={onLinkPress}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...bind}
             linkHasImage={linkHasImage}
         >
@@ -168,7 +166,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                                     textDecorationLineStyle,
                                     styles.textUnderlinePositionUnder,
                                     styles.textDecorationSkipInkNone,
-                                    styles.dInlineFlex,
                                     hoverStyle,
                                 ]}
                             >

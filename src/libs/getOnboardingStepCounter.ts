@@ -1,7 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getOnboardingRouteFromScreen from './Navigation/helpers/getOnboardingRouteFromScreen';
 
 type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;
 
@@ -38,10 +40,13 @@ const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
 };
 
 // Screens that follow PURPOSE. For private domain users, PERSONAL_DETAILS is filtered out.
+const TRACK_PURPOSE_SUFFIXES = [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL];
+
 const purposeSuffixes = {
     [ONBOARDING_CHOICES.MANAGE_TEAM]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
-    [ONBOARDING_CHOICES.PERSONAL_SPEND]: [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
-    [ONBOARDING_CHOICES.TRACK_WORKSPACE]: [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
+    [ONBOARDING_CHOICES.TRACK_BUSINESS]: TRACK_PURPOSE_SUFFIXES,
+    [ONBOARDING_CHOICES.TRACK_PERSONAL]: TRACK_PURPOSE_SUFFIXES,
+    [ONBOARDING_CHOICES.PERSONAL_SPEND]: TRACK_PURPOSE_SUFFIXES,
     [ONBOARDING_CHOICES.EMPLOYER]: [ONBOARDING.PERSONAL_DETAILS],
     [ONBOARDING_CHOICES.CHAT_SPLIT]: [ONBOARDING.PERSONAL_DETAILS],
     [ONBOARDING_CHOICES.LOOKING_AROUND]: [ONBOARDING.PERSONAL_DETAILS],
@@ -52,7 +57,7 @@ const purposeSuffixes = {
 
 // VSB/SMB have fixed suffixes; individual (null) is handled via purposeSuffixes.
 const qualifierSuffixes = {
-    [ONBOARDING_SIGNUP_QUALIFIERS.VSB]: [ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_SIGNUP_QUALIFIERS.VSB]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
     [ONBOARDING_SIGNUP_QUALIFIERS.SMB]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
     [ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL]: null,
 } satisfies Record<ValueOf<typeof ONBOARDING_SIGNUP_QUALIFIERS>, OnboardingScreen[] | null>;
@@ -132,5 +137,25 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     };
 }
 
-export {getOnboardingFlow, getOnboardingStepCounter};
+function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingFlowContext, backTo?: string): Route | undefined {
+    const flow = getOnboardingFlow(context);
+    if (!flow) {
+        return undefined;
+    }
+
+    const resolvedPage = getResolvedPage(page, context);
+    const index = flow.indexOf(resolvedPage);
+    if (index <= 0) {
+        return undefined;
+    }
+
+    const previousScreen = flow.at(index - 1);
+    if (!previousScreen) {
+        return undefined;
+    }
+
+    return getOnboardingRouteFromScreen(previousScreen, backTo);
+}
+
+export {getOnboardingFlow, getOnboardingStepCounter, getPreviousOnboardingRoute};
 export type {OnboardingFlowContext, OnboardingScreen, OnboardingStepResult};

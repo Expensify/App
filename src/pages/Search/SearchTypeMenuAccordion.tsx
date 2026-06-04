@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -17,8 +17,9 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SearchTypeMenuAccordionProps = ChildrenProps & {
     title: string;
-    defaultExpanded?: boolean;
+    isExpanded: boolean;
     badgeText?: string;
+    onSectionHeaderPress: () => void;
 };
 
 type AnimatedBadgeProps = {
@@ -58,10 +59,10 @@ function AnimatedBadge({text, isExpanded}: AnimatedBadgeProps) {
     }));
 
     return (
-        <Animated.View style={[badgeAnimatedStyle]}>
+        <Animated.View style={badgeAnimatedStyle}>
             <Badge
                 text={text}
-                badgeStyles={styles.searchSectionBadge}
+                badgeStyles={[styles.searchSectionBadge, styles.ml0]}
                 success
                 isCondensed
             />
@@ -69,18 +70,13 @@ function AnimatedBadge({text, isExpanded}: AnimatedBadgeProps) {
     );
 }
 
-function SearchTypeMenuAccordion({title, defaultExpanded = true, badgeText, children}: SearchTypeMenuAccordionProps) {
+function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSectionHeaderPress}: SearchTypeMenuAccordionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isExpanded);
 
-    const toggleSection = () => {
-        setIsExpanded((prevIsExpanded) => !prevIsExpanded);
-    };
-
-    const arrowRotation = useSharedValue(getArrowRotation(defaultExpanded));
+    const arrowRotation = useSharedValue(getArrowRotation(isExpanded));
 
     useAnimatedReaction(
         () => isAccordionExpanded.get(),
@@ -95,8 +91,8 @@ function SearchTypeMenuAccordion({title, defaultExpanded = true, badgeText, chil
     return (
         <View>
             <PressableWithoutFeedback
-                onPress={toggleSection}
-                style={[styles.flexRow, styles.p2, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                onPress={onSectionHeaderPress}
+                style={[styles.flexRow, styles.searchTypeMenuAccordionPadding, styles.gap2, styles.alignItemsCenter, styles.br2]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
                 sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}
@@ -108,20 +104,24 @@ function SearchTypeMenuAccordion({title, defaultExpanded = true, badgeText, chil
                 >
                     {title}
                 </Text>
-                {!!badgeText && (
-                    <AnimatedBadge
-                        text={badgeText}
-                        isExpanded={isAccordionExpanded}
-                    />
-                )}
-                <Animated.View style={[arrowAnimatedStyle]}>
-                    <Icon
-                        fill={theme.icon}
-                        src={icons.UpArrow}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                    />
-                </Animated.View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                    {!!badgeText && (
+                        <AnimatedBadge
+                            text={badgeText}
+                            isExpanded={isAccordionExpanded}
+                        />
+                    )}
+                    <View style={styles.searchTypeMenuAccessoryBox}>
+                        <Animated.View style={arrowAnimatedStyle}>
+                            <Icon
+                                fill={theme.icon}
+                                src={icons.UpArrow}
+                                width={variables.iconSizeSmall}
+                                height={variables.iconSizeSmall}
+                            />
+                        </Animated.View>
+                    </View>
+                </View>
             </PressableWithoutFeedback>
             <Accordion
                 isExpanded={isAccordionExpanded}
