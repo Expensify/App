@@ -16,7 +16,7 @@ import {getSections} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, CardFeeds, CardList, ReportMetadata, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {BankAccountList, CardFeeds, CardList, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import type {GroupChildrenContainerItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './types';
@@ -34,7 +34,6 @@ type GroupChildrenContentProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
     newTransactionID?: string;
-    allReportMetadata?: OnyxCollection<ReportMetadata>;
     bankAccountList?: OnyxEntry<BankAccountList>;
     cardFeeds?: OnyxCollection<CardFeeds>;
     conciergeReportID?: string;
@@ -53,7 +52,6 @@ function GroupChildrenContent({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     newTransactionID,
-    allReportMetadata,
     bankAccountList,
     cardFeeds,
     conciergeReportID,
@@ -91,7 +89,6 @@ function GroupChildrenContent({
             formatPhoneNumber,
             bankAccountList,
             isActionLoadingSet,
-            allReportMetadata,
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
@@ -110,7 +107,6 @@ function GroupChildrenContent({
         formatPhoneNumber,
         bankAccountList,
         isActionLoadingSet,
-        allReportMetadata,
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,

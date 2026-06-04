@@ -48,4 +48,3 @@ function useExpandCollapseAnimation(isExpanded: boolean) {
 }
 
 export default useExpandCollapseAnimation;
-export {EXPAND_COLLAPSE_DURATION};

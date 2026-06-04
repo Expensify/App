@@ -8,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {BankAccountList, CardFeeds, CardList, ReportMetadata, Transaction} from '@src/types/onyx';
+import type {BankAccountList, CardFeeds, CardList, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import GroupChildrenContent from './GroupChildrenContent';
 import type {GroupChildrenContainerItemType, SearchListItem, TransactionListItemType} from './types';
@@ -28,7 +28,6 @@ type GroupChildrenContainerProps = {
     isLastItem?: boolean;
     isSelected?: boolean;
     newTransactionID?: string;
-    allReportMetadata?: OnyxCollection<ReportMetadata>;
     bankAccountList?: OnyxEntry<BankAccountList>;
     cardFeeds?: OnyxCollection<CardFeeds>;
     conciergeReportID?: string;
@@ -49,7 +48,6 @@ function GroupChildrenContainer({
     isLastItem,
     isSelected,
     newTransactionID,
-    allReportMetadata,
     bankAccountList,
     cardFeeds,
     conciergeReportID,
@@ -83,7 +81,6 @@ function GroupChildrenContainer({
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             onUndelete={onUndelete}
                             newTransactionID={newTransactionID}
-                            allReportMetadata={allReportMetadata}
                             bankAccountList={bankAccountList}
                             cardFeeds={cardFeeds}
                             conciergeReportID={conciergeReportID}
