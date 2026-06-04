@@ -6,10 +6,10 @@ import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {getRequestType, isCorporateCardTransaction, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
 import CONST from '@src/CONST';
@@ -116,27 +116,8 @@ function IOURequestStepParticipants({
         navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
     };
 
-    const getIsWorkspacesOnly = () => {
-        if (isDistanceRequest(initialTransaction)) {
-            if (!hasRoute(initialTransaction, true)) {
-                return false;
-            }
-            return initialTransaction?.comment?.customUnit?.quantity === 0;
-        }
-
-        if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
-            return false;
-        }
-
-        // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
-        if (isNewManualExpenseFlowEnabled) {
-            return false;
-        }
-
-        return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
-    };
-
-    const isWorkspacesOnly = getIsWorkspacesOnly();
+    // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
+    const isWorkspacesOnly = isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType);
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly

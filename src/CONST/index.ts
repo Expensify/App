@@ -976,7 +976,6 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
@@ -9877,6 +9876,9 @@ const CONST = {
             FEATURE_LIST: {
                 CTA_BUTTON: 'WorkspaceFeatureList-CtaButton',
             },
+            ROOMS: {
+                CREATE_ROOM_BUTTON: 'WorkspaceRooms-CreateRoomButton',
+            },
         },
         ACCOUNT_SWITCHER: {
             SHOW_ACCOUNTS: 'AccountSwitcher-ShowAccounts',
@@ -10132,6 +10134,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'Policy upload, card freeze, and bulk editing',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
+                publishedDate: '2026-05-22',
+            },
+            {
                 title: 'Expensify and VAT IT Launch Integration Partnership to Simplify Global VAT Reclaim',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
@@ -10142,12 +10150,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
                 publishedDate: '2026-05-19',
-            },
-            {
-                title: 'Expensify named Expense Platform of the Year',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260506556347/en/Expensify-Named-Expense-Management-Platform-of-the-Year',
-                publishedDate: '2026-05-06',
             },
         ],
     },

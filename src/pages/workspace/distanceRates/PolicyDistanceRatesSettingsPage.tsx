@@ -13,6 +13,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,6 +41,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const customUnit = getDistanceRateCustomUnit(policy);
+    const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
@@ -70,6 +72,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -92,10 +95,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     onClose={() => clearErrorFields('attributes')}
                                 >
                                     <MenuItemWithTopDescription
-                                        shouldShowRightIcon
+                                        shouldShowRightIcon={canWriteDistanceRates}
                                         title={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
                                         description={translate('workspace.distanceRates.unit')}
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID))}
+                                        interactive={canWriteDistanceRates}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
                                     />
@@ -134,6 +138,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         customUnitID={customUnit.customUnitID}
+                                        interactive={canWriteDistanceRates}
                                     />
                                 </OfflineWithFeedback>
                             )}
@@ -155,7 +160,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                             accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                             onToggle={onToggleTrackTax}
-                                            disabled={!isPolicyTrackTaxEnabled}
+                                            disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
+                                            disabledAction={withReadOnlyFallback()}
+                                            showLockIcon={!canWriteDistanceRates}
                                         />
                                     </View>
                                 </View>
