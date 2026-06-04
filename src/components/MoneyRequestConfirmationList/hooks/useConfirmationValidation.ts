@@ -7,7 +7,7 @@ import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
-import {areRequiredFieldsEmpty, getTag, hasTaxRateWithMatchingValue, isMerchantMissing, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, getTag, hasTaxRateWithMatchingValue, isCreatedMissing, isMerchantMissing, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -178,6 +178,10 @@ function useConfirmationValidation({
             !isValidMoneyRequestAmount(iouAmount, iouType, true, isP2P)
         ) {
             return {errorKey: 'common.error.invalidAmount'};
+        }
+        // The date is an inline required field in the new manual flow; block confirmation when the user cleared it.
+        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && isCreatedMissing(transaction)) {
+            return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
         const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
