@@ -31,6 +31,7 @@ import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/ReportRejectForm';
 import type {PersonalDetailsList, ReportActions} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type RejectExpenseReportPageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.REPORT_REJECT>;
 
@@ -74,9 +75,12 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [lastForwardedActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: lastForwardedActorAccountIDSelector});
-    const [{submitterEmail, lastForwardedActorEmail} = {}] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID),
-    });
+    const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useOnyx(
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        {
+            selector: submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID),
+        },
+    );
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
