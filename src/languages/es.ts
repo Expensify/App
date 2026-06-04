@@ -7534,8 +7534,16 @@ ${amount} para ${merchant} - ${date}`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
         commuterExclusions: {
             changedToFixedDistance: 'cambió la exclusión de trayectos a una distancia fija por solicitud',
-            setFixedDistance: ({distance, unit}) =>
-                `estableció la exclusión de distancia fija en ${distance} ${unit === 'mi' ? (distance === 1 ? 'milla' : 'millas') : distance === 1 ? 'kilómetro' : 'kilómetros'} por solicitud`,
+            setFixedDistance: ({distance, unit}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'milla' : 'millas';
+                } else {
+                    unitLabel = isSingular ? 'kilómetro' : 'kilómetros';
+                }
+                return `estableció la exclusión de distancia fija en ${distance} ${unitLabel} por solicitud`;
+            },
             changedFixedDistance: ({newDistance, oldDistance, unit}) => `cambió la exclusión de distancia fija a ${newDistance} ${unit} por solicitud (anteriormente ${oldDistance} ${unit})`,
             disabled: 'desactivó la exclusión de trayectos para tarifas de distancia',
         },
