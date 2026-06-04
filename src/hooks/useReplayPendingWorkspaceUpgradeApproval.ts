@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import useLocalize from '@hooks/useLocalize';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {approveMoneyRequest, clearPendingWorkspaceUpgradeIntent} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
@@ -28,6 +29,7 @@ export default function useReplayPendingWorkspaceUpgradeApproval({
     delegateEmail,
     onApproved,
 }: Params) {
+    const {translate} = useLocalize();
     const [pendingWorkspaceUpgradeIntent] = useOnyx(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT);
     const approveIntentType = pendingWorkspaceUpgradeIntent?.type;
     const approveIntentReportID = pendingWorkspaceUpgradeIntent?.reportID;
@@ -71,6 +73,8 @@ export default function useReplayPendingWorkspaceUpgradeApproval({
             full: approveIntentFull ?? false,
             onApproved,
             delegateEmail,
+            shouldNotifyAdminsOfCollectUpgrade: true,
+            translate,
         });
     }, [
         activePolicy,
@@ -90,6 +94,7 @@ export default function useReplayPendingWorkspaceUpgradeApproval({
         isASAPSubmitBetaEnabled,
         onApproved,
         ownerBillingGracePeriodEnd,
+        translate,
         userBillingGracePeriodEnds,
     ]);
 }

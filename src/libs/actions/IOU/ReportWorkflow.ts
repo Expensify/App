@@ -1,3 +1,4 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -81,6 +82,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactionViolations} from '.';
+import getCollectUpgradeAdminsNotificationOnyxData from './getCollectUpgradeAdminsNotificationOnyxData';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 
 type ApproveMoneyRequestFunctionParams = {
@@ -99,6 +101,10 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    /** When true (e.g. replay after Submit→Collect upgrade), adds a Concierge #admins message tied to this approve request lifecycle. */
+    shouldNotifyAdminsOfCollectUpgrade?: boolean;
+    /** Required when `shouldNotifyAdminsOfCollectUpgrade` is true. */
+    translate?: LocalizedTranslate;
 };
 
 type SubmitReportFunctionParams = {
@@ -407,6 +413,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ownerBillingGracePeriodEnd,
         delegateEmail,
         expenseReportPolicy,
+        shouldNotifyAdminsOfCollectUpgrade,
+        translate,
     } = params;
     if (!expenseReport) {
         return;
@@ -774,6 +782,21 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                 value: transactionViolations,
             });
+        }
+    }
+
+    if (shouldNotifyAdminsOfCollectUpgrade && translate) {
+        const adminsNotificationOnyxData = getCollectUpgradeAdminsNotificationOnyxData({
+            translate,
+            policy,
+            upgraderAccountID: currentUserAccountIDParam,
+            currentUserEmail: currentUserEmailParam,
+            delegateAccountID: undefined,
+        });
+        if (adminsNotificationOnyxData) {
+            optimisticData.push(...adminsNotificationOnyxData.optimisticData);
+            successData.push(...adminsNotificationOnyxData.successData);
+            failureData.push(...adminsNotificationOnyxData.failureData);
         }
     }
 
