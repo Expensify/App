@@ -2,10 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import shouldShowDistanceMap from '@components/MoneyRequestConfirmationListFooter/shouldShowDistanceMap';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
 type DistanceMapSectionProps = {
@@ -20,16 +19,11 @@ type DistanceMapSectionProps = {
 
     /** Whether the active transaction is an odometer-driven distance request (suppresses the map) */
     isOdometerDistanceRequest: boolean;
-
-    /** Type of IOU being confirmed (splits never show the map) */
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** Whether the surface is read-only (read-only without errors/pending hides the map) */
-    isReadOnly: boolean;
 };
 
-function DistanceMapSection({transaction, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, iouType, isReadOnly}: DistanceMapSectionProps) {
+function DistanceMapSection({transaction, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest}: DistanceMapSectionProps) {
     const styles = useThemeStyles();
+    const {iouType, isReadOnly} = useConfirmationFields();
 
     const shouldShowMap = shouldShowDistanceMap({transaction, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, iouType, isReadOnly});
 

@@ -1,14 +1,15 @@
 import {Skia} from '@shopify/react-native-skia';
 import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
-import type {PartialProcessNodeResult, RawAxisStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {PartialProcessNodeResult, ProcessNodeResult, RawAxisStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 
 /**
  * Parse axis config from a `<victoryaxis>` node.
  * Dependent axes become yAxis entries; independent axes become the xAxis.
  */
-function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null): PartialProcessNodeResult {
+function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null): PartialProcessNodeResult {
+    const isHorizontal = rootProcessedResult?.isHorizontal;
     const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
     const orientation = parseAttribute<string>(tnode.attributes.orientation);
     const tickCount = parseAttribute<number>(tnode.attributes.tickcount) ?? 0;
@@ -22,38 +23,68 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null): Partia
     const labelColor = style?.tickLabels?.fill !== undefined ? String(style.tickLabels.fill) : undefined;
     const labelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
     const fontSize = style?.tickLabels?.fontSize !== undefined ? Number(style.tickLabels.fontSize) : undefined;
-    const font = typeface ? Skia.Font(typeface, fontSize) : null;
+    const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
 
     if (isDependentAxis) {
-        return {
-            yAxis: [
-                {
-                    tickCount,
-                    tickValues,
-                    formatYLabel: formatLabel,
-                    axisSide: orientation === 'right' ? 'right' : 'left',
-                    lineColor,
-                    lineWidth,
-                    labelColor,
-                    labelOffset,
-                    font,
-                },
-            ],
-        };
+        return isHorizontal
+            ? {
+                  xAxis: {
+                      tickCount,
+                      tickValues,
+                      formatXLabel: formatLabel,
+                      axisSide: orientation === 'right' ? 'top' : 'bottom',
+                      lineColor,
+                      lineWidth,
+                      labelColor,
+                      labelOffset,
+                      font,
+                  },
+              }
+            : {
+                  yAxis: [
+                      {
+                          tickCount,
+                          tickValues,
+                          formatYLabel: formatLabel,
+                          axisSide: orientation === 'right' ? 'right' : 'left',
+                          lineColor,
+                          lineWidth,
+                          labelColor,
+                          labelOffset,
+                          font,
+                      },
+                  ],
+              };
     }
-    return {
-        xAxis: {
-            tickCount,
-            tickValues,
-            formatXLabel: formatLabel,
-            axisSide: orientation === 'top' ? 'top' : 'bottom',
-            lineColor,
-            lineWidth,
-            labelColor,
-            labelOffset,
-            font,
-        },
-    };
+    return isHorizontal
+        ? {
+              yAxis: [
+                  {
+                      tickCount,
+                      tickValues,
+                      formatYLabel: formatLabel,
+                      axisSide: orientation === 'top' ? 'right' : 'left',
+                      lineColor,
+                      lineWidth,
+                      labelColor,
+                      labelOffset,
+                      font,
+                  },
+              ],
+          }
+        : {
+              xAxis: {
+                  tickCount,
+                  tickValues,
+                  formatXLabel: formatLabel,
+                  axisSide: orientation === 'top' ? 'top' : 'bottom',
+                  lineColor,
+                  lineWidth,
+                  labelColor,
+                  labelOffset,
+                  font,
+              },
+          };
 }
 
 export default parseVictoryAxisNode;

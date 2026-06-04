@@ -46,7 +46,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     }
 
     return (
-        <View style={styles.searchSidebar}>
+        <View style={styles.sidebarContainer}>
             <View style={styles.flex1}>
                 <TopBar
                     shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}

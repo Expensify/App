@@ -224,6 +224,14 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'victorylegend',
                 contentModel: HTMLContentModel.block,
             }),
+            victorygroup: HTMLElementModel.fromCustomModel({
+                tagName: 'victorygroup',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorypie: HTMLElementModel.fromCustomModel({
+                tagName: 'victorypie',
+                contentModel: HTMLContentModel.block,
+            }),
         }),
         [
             styles.taskTitleMenuItem,

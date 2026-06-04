@@ -47,6 +47,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             style={({hovered, pressed}) => [
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
+                styles.searchTypeMenuItemPadding,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
             ]}
@@ -72,11 +73,13 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                         </Text>
                     </View>
                     {!!badgeText && (
-                        <Badge
-                            text={badgeText}
-                            badgeStyles={styles.todoBadge}
-                            success
-                        />
+                        <View style={styles.searchTypeMenuAccessoryBox}>
+                            <Badge
+                                text={badgeText}
+                                badgeStyles={[styles.todoBadge, styles.ml0]}
+                                success
+                            />
+                        </View>
                     )}
                 </>
             )}

@@ -1,16 +1,15 @@
 import React, {useEffect} from 'react';
 import useFilterFeedData from '@components/Search/hooks/useFilterFeedData';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import useNetwork from '@hooks/useNetwork';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import MultiSelect from './MultiSelect';
 
-type FeedSelectorProps = SearchFilterSelectionListProps & {
+type FeedSelectorProps = {
     value: string[] | undefined;
     onChange: (item: string[]) => void;
 };
 
-function FeedSelector({value, selectionListStyle, footer, onChange}: FeedSelectorProps) {
+function FeedSelector({value, onChange}: FeedSelectorProps) {
     const {isOffline} = useNetwork();
     const {feedOptions, feedValue} = useFilterFeedData(value);
 
@@ -25,8 +24,6 @@ function FeedSelector({value, selectionListStyle, footer, onChange}: FeedSelecto
         <MultiSelect
             value={feedValue}
             items={feedOptions}
-            selectionListStyle={selectionListStyle}
-            footer={footer}
             onChange={(feeds) => onChange(feeds.map((feed) => feed.value))}
         />
     );
