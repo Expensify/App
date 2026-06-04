@@ -99,7 +99,6 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                     <View style={[styles.justifyContentCenter]}>
                         <Switch
                             isOn={item.enabled}
-                            disabled={item.disabled}
                             showLockIcon={item.isLocked}
                             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
                             onToggle={item.onToggleEnabled}
@@ -109,7 +108,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                     <Icon
                         src={icons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, !hovered && styles.opacitySemiTransparent]}
+                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

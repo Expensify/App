@@ -32,13 +32,22 @@ type WorkspaceCategoryTableRowData = TableData & {
 type WorkspaceCategoriesTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>> | undefined;
     categories: WorkspaceCategoryTableRowData[];
+    selectionEnabled: boolean;
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function WorkspaceCategoriesTable({ref, categories, selectedKeys, shouldShowGLCodeColumn, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
+export default function WorkspaceCategoriesTable({
+    ref,
+    categories,
+    selectedKeys,
+    selectionEnabled,
+    shouldShowGLCodeColumn,
+    shouldShowApproverColumn,
+    onRowSelectionChange,
+}: WorkspaceCategoriesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -123,8 +132,8 @@ export default function WorkspaceCategoriesTable({ref, categories, selectedKeys,
     return (
         <Table
             ref={ref}
-            selectionEnabled
             data={categories}
+            selectionEnabled={selectionEnabled}
             title={translate('workspace.common.categories')}
             columns={categoryTableColumns}
             compareItems={compareItems}

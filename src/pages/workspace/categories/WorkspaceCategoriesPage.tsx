@@ -227,6 +227,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const handleCategoryToggle = useCallback(
         (enabled: boolean, category: PolicyCategories[string]) => {
+            if (!canWriteCategories) {
+                showReadOnlyModal();
+                return;
+            }
+
             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [category])) {
                 showCannotDeleteOrDisableLastCategoryModal();
                 return;
@@ -662,6 +667,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
                         <WorkspaceCategoriesTable
                             categories={categoryRows}
+                            selectionEnabled={canSelectMultiple}
                             selectedKeys={selectedCategoryKeys}
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
