@@ -1,8 +1,19 @@
 import * as core from '@actions/core';
-import {RequestError} from '@octokit/request-error';
 import CONST from '@github/libs/CONST';
 import {getLastClosedDeployChecklist} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
+
+/**
+ * Duck-type check for an Octokit 404. We avoid `instanceof RequestError` because bundled
+ * actions can contain multiple copies of that class and `instanceof` compares identity.
+ */
+function isNotFoundError(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null || !('status' in error)) {
+        return false;
+    }
+    const status = (error as {status?: unknown}).status;
+    return typeof status === 'number' && status === 404;
+}
 
 const run = async function (): Promise<void> {
     // getLastClosedDeployChecklist returns null when no closed checklist has ever existed
@@ -46,7 +57,7 @@ const run = async function (): Promise<void> {
         // A 404 means the tag simply doesn't exist yet — no production release for this version.
         // Any other error (5xx, rate-limit, auth) is an infrastructure problem; rethrow so the
         // action fails visibly rather than silently masquerading as "no production release".
-        if (err instanceof RequestError && err.status === 404) {
+        if (isNotFoundError(err)) {
             console.log(`No release found for version ${version}, blocking deploy`);
             core.setOutput('HAS_PRODUCTION_RELEASE', false);
         } else {

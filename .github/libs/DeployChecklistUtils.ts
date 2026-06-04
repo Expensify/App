@@ -168,32 +168,47 @@ async function listForRepoWithRetry(params: Parameters<typeof GithubUtils.octoki
  * deploy) from "lookup failed" (should block the deploy to avoid bypassing the safety gate).
  */
 async function getLastClosedDeployChecklist(): Promise<DeployChecklistData | null> {
-    const data = await listForRepoWithRetry({
-        owner: CONST.GITHUB_OWNER,
-        repo: CONST.APP_REPO,
-        labels: CONST.LABELS.STAGING_DEPLOY,
-        state: 'closed',
-        sort: 'created',
-        direction: 'desc',
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        per_page: 10,
-    });
+    // GitHub does not support sorting issues by closed_at, so paginate through all closed
+    // StagingDeployCash issues and pick the one with the latest closed_at timestamp.
+    let mostRecentlyClosedIssue: OctokitIssueItem | null = null;
+    let page = 1;
 
-    if (!data.length) {
+    while (true) {
+        const data = await listForRepoWithRetry({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            labels: CONST.LABELS.STAGING_DEPLOY,
+            state: 'closed',
+            sort: 'created',
+            direction: 'desc',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            per_page: 100,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            page,
+        });
+
+        if (!data.length) {
+            break;
+        }
+
+        for (const issue of data) {
+            if (!mostRecentlyClosedIssue || (issue.closed_at ?? '').localeCompare(mostRecentlyClosedIssue.closed_at ?? '') > 0) {
+                mostRecentlyClosedIssue = issue;
+            }
+        }
+
+        if (data.length < 100) {
+            break;
+        }
+
+        page += 1;
+    }
+
+    if (!mostRecentlyClosedIssue) {
         return null;
     }
 
-    // Sort by closed_at descending to find the most recently closed checklist.
-    // We cannot rely on the API's sort=updated because a comment or edit on an older
-    // closed issue would cause it to appear first, returning a stale version.
-    const sorted = [...data].sort((a, b) => (b.closed_at ?? '').localeCompare(a.closed_at ?? ''));
-
-    const issue = sorted.at(0);
-    if (!issue) {
-        return null;
-    }
-
-    return getDeployChecklistData(issue);
+    return getDeployChecklistData(mostRecentlyClosedIssue);
 }
 
 async function getDeployChecklist(): Promise<DeployChecklistData> {

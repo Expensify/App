@@ -5,7 +5,7 @@
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
 import type {Writable} from 'type-fest';
-import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
+import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, getLastClosedDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
@@ -244,6 +244,73 @@ describe('DeployChecklistUtils', () => {
                 expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
                 expect((e as Error).message).toEqual(expect.stringContaining(`No StagingDeployCash issues found at all`));
             }
+        });
+    });
+
+    describe('getLastClosedDeployChecklist', () => {
+        const closedChecklistIssue: Issue & {number: number; closed_at: string} = {
+            url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/30',
+            title: 'Closed deploy checklist',
+            number: 30,
+            closed_at: '2026-05-01T12:00:00Z',
+            labels: [
+                {
+                    id: 2783847782,
+                    // cspell:disable-next-line
+                    node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
+                    url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
+                    name: 'StagingDeployCash',
+                    color: '6FC269',
+                    default: false,
+                    description: '',
+                },
+            ],
+            body: `**Release Version:** \`1.0.2-48\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
+        };
+
+        test('returns null when no closed issues exist', async () => {
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []}) as unknown as ListForRepoMethod;
+            await expect(getLastClosedDeployChecklist()).resolves.toBeNull();
+        });
+
+        test('returns the issue with the latest closed_at, not the latest created', async () => {
+            const olderClosedIssue = {
+                ...closedChecklistIssue,
+                number: 31,
+                closed_at: '2026-04-01T12:00:00Z',
+            };
+            const mostRecentlyClosedIssue = {
+                ...closedChecklistIssue,
+                number: 32,
+                closed_at: '2026-06-01T12:00:00Z',
+            };
+
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [mostRecentlyClosedIssue, olderClosedIssue]}) as unknown as ListForRepoMethod;
+
+            const data = await getLastClosedDeployChecklist();
+            expect(data?.number).toBe(32);
+            expect(data?.version).toBe('1.0.2-48');
+        });
+
+        test('paginates through closed issues when the first page is full', async () => {
+            const fullPage = Array.from({length: 100}, (_, index) => ({
+                ...closedChecklistIssue,
+                number: index + 1,
+                closed_at: '2020-01-01T00:00:00Z',
+            }));
+            const mostRecentlyClosedIssue = {
+                ...closedChecklistIssue,
+                number: 200,
+                closed_at: '2026-06-01T12:00:00Z',
+            };
+
+            GithubUtils.octokit.issues.listForRepo = jest
+                .fn()
+                .mockImplementation((params: {page?: number}) => Promise.resolve({data: params.page === 1 ? fullPage : [mostRecentlyClosedIssue]})) as unknown as ListForRepoMethod;
+
+            const data = await getLastClosedDeployChecklist();
+            expect(data?.number).toBe(200);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
     });
 
