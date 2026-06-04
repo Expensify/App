@@ -34,7 +34,7 @@ jobs:
     concurrency:
       group: codex-review-${{ github.event.pull_request.number || github.event.issue.number }}
       cancel-in-progress: true
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
@@ -45,7 +45,7 @@ jobs:
       ACTOR_ASSOCIATION: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.author_association, github.event.comment.author_association) }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Important: `pull_request_target` should never checkout the PR head.
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.sha || github.sha }}
@@ -59,6 +59,32 @@ jobs:
           ACTOR_ASSOCIATION: ${{ env.ACTOR_ASSOCIATION }}
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Add review in progress reaction
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        env:
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+
+            if (context.eventName === 'pull_request_target') {
+              await github.rest.reactions.createForIssue({
+                owner,
+                repo,
+                issue_number: Number(process.env.PR_NUMBER),
+                content: 'eyes',
+              });
+              return;
+            }
+
+            await github.rest.reactions.createForIssueComment({
+              owner,
+              repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes',
+            });
 
       - name: Build Codex prompt from PR diff
         if: steps.gate.outputs.IS_AUTHORIZED == 'true'
@@ -103,7 +129,7 @@ jobs:
           prompt-file: prompt.txt
 
       - name: Post Codex feedback
-        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.codex.outputs.final-message != ''
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.codex.outcome == 'success'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         env:
           PR_NUMBER: ${{ env.PR_NUMBER }}
@@ -111,13 +137,17 @@ jobs:
           WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
-            const body = [
-              '## Codex review',
-              '',
-              process.env.CODEX_FINAL_MESSAGE,
-              '',
-              `_[Workflow run](${process.env.WORKFLOW_RUN_URL})_`,
-            ].join('\n');
+            const codexMessage = process.env.CODEX_FINAL_MESSAGE?.trim() ?? '';
+            const body =
+              codexMessage === ''
+                ? 'LGTM :+1:'
+                : [
+                    '## Codex review',
+                    '',
+                    codexMessage,
+                    '',
+                    `_[Workflow run](${process.env.WORKFLOW_RUN_URL})_`,
+                  ].join('\n');
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -125,3 +155,56 @@ jobs:
               issue_number: Number(process.env.PR_NUMBER),
               body,
             });
+
+      - name: Remove review in progress reaction
+        if: always() && steps.gate.outputs.IS_AUTHORIZED == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        env:
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const botLogin = 'github-actions[bot]';
+
+            const deleteEyesReaction = async (reactions, deleteReaction) => {
+              const eyesReaction = reactions.find(
+                (reaction) => reaction.content === 'eyes' && reaction.user.login === botLogin,
+              );
+
+              if (eyesReaction) {
+                await deleteReaction(eyesReaction.id);
+              }
+            };
+
+            if (context.eventName === 'pull_request_target') {
+              const {data: reactions} = await github.rest.reactions.listForIssue({
+                owner,
+                repo,
+                issue_number: Number(process.env.PR_NUMBER),
+              });
+
+              await deleteEyesReaction(reactions, (reactionId) =>
+                github.rest.reactions.deleteForIssue({
+                  owner,
+                  repo,
+                  issue_number: Number(process.env.PR_NUMBER),
+                  reaction_id: reactionId,
+                }),
+              );
+              return;
+            }
+
+            const {data: reactions} = await github.rest.reactions.listForIssueComment({
+              owner,
+              repo,
+              comment_id: context.payload.comment.id,
+            });
+
+            await deleteEyesReaction(reactions, (reactionId) =>
+              github.rest.reactions.deleteForIssueComment({
+                owner,
+                repo,
+                comment_id: context.payload.comment.id,
+                reaction_id: reactionId,
+              }),
+            );

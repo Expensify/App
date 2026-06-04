@@ -38,6 +38,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
     const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const memberCount = selectedMemberAccountIDs?.length ?? 0;
 
@@ -75,7 +76,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
 
         for (const accountIDString of selectedMemberAccountIDs) {
             const accountID = Number(accountIDString);
-            const memberLogin = getLoginByAccountID(accountID);
+            const memberLogin = getLoginByAccountID(accountID, personalDetails);
             const currentGroup = securityGroups?.find((g) => !!g.details.shared?.[accountIDString]);
             const currentGroupData = currentGroup ? {key: `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${currentGroup.id}` as const, securityGroup: currentGroup.details} : undefined;
             const newSecurityGroupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${selectedGroupId}`;
