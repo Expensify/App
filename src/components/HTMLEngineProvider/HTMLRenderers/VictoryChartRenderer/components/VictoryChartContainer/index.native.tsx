@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -18,7 +19,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const hasExplicitDimensions = designWidth !== undefined && designHeight !== undefined;
 
     const availableWidth = windowWidth - NATIVE_HORIZONTAL_INSET;
-    const scale = hasExplicitDimensions && designWidth && availableWidth > 0 ? Math.min(availableWidth / designWidth, 1) : 1;
+    const scale = hasExplicitDimensions ? computeChartScale(designWidth, availableWidth) : 1;
 
     const {backgroundColor, borderRadius, width: containerWidth, maxWidth: containerMaxWidth, ...cleanContainerStyles} = chartContainerStyles;
 
