@@ -32,6 +32,7 @@ import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTran
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
@@ -77,6 +78,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.parentReportID)}`);
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
+    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
 
     const searchData = currentSearchResults?.data;
 
@@ -156,6 +158,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
+            submitterLogin,
             policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
@@ -199,6 +202,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotChatReport,
         snapshotPolicy,
+        submitterLogin,
         parentPolicy,
         parentReport,
         parentChatReport,

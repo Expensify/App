@@ -244,6 +244,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     if (expenseReport) {
                         const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                         submitReport({
+                            submitterLogin: undefined,
                             expenseReport,
                             policy: {} as Policy,
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -546,6 +547,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                             submitReport({
+                                submitterLogin: undefined,
                                 expenseReport,
                                 policy,
                                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -818,6 +820,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                             submitReport({
+                                submitterLogin: undefined,
                                 expenseReport,
                                 policy: {} as Policy,
                                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -989,6 +992,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (expenseReport) {
                         submitReport({
+                            submitterLogin: undefined,
                             expenseReport,
                             policy,
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -1061,6 +1065,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Submit with amountOwed > 0 should trigger restriction
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -1173,6 +1178,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                 const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 submitReport({
+                    submitterLogin: undefined,
                     expenseReport,
                     policy,
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -1233,6 +1239,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1295,6 +1302,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1362,6 +1370,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
@@ -1443,6 +1452,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
@@ -1511,6 +1521,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1577,6 +1588,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport: report,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1638,6 +1650,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport: report,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1674,6 +1687,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy: {
                     ...createRandomPolicy(Number(policyID)),
@@ -1739,7 +1753,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy]);
+            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail);
 
             const [, parameters] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}];
             expect(parameters.managerAccountID).toBe(correctManagerAccountID);
@@ -1757,7 +1771,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)]);
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -1774,7 +1788,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)]);
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -1808,6 +1822,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -1843,6 +1858,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,

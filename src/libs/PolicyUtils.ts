@@ -1455,7 +1455,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     return getManagerAccountID(policy, expenseReport);
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number | undefined {
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
     const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const existingManagerID = expenseReport?.managerID;
     const approvalRules = policy?.rules?.approvalRules;
@@ -1463,11 +1463,10 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     const submitToAccountID = ruleApprover ? (getAccountIDsByLogins([ruleApprover]).at(0) ?? -1) : getManagerAccountID(policy, expenseReport);
     const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
     const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
-    const employeeLogin = getLoginByAccountID(ownerAccountID) ?? '';
     const hasReliablePolicyRoute =
         ([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy)) ||
         !!ruleApprover ||
-        !!policy?.employeeList?.[employeeLogin];
+        !!policy?.employeeList?.[submitterLogin ?? ''];
 
     if (hasReliablePolicyRoute && isValidSubmitToAccountID) {
         return submitToAccountID;

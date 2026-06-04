@@ -309,6 +309,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                submitterLogin,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

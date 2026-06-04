@@ -91,6 +91,7 @@ type HandleActionButtonPressParams = {
     goToItem: () => void;
     snapshotReport: Report;
     snapshotPolicy: Policy;
+    submitterLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
@@ -112,6 +113,7 @@ function handleActionButtonPress({
     goToItem,
     snapshotReport,
     snapshotPolicy,
+    submitterLogin,
     policy,
     lastPaymentMethod,
     userBillingGracePeriodEnds,
@@ -177,7 +179,7 @@ function handleActionButtonPress({
                 onPendingCardTransactionsBlock?.();
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], submitterLogin, currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -611,7 +613,7 @@ function search({
     return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
 }
 
-function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
+function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], submitterLogin: string | undefined, currentSearchKey?: SearchKey) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
         {
@@ -657,7 +659,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: getSubmitReportManagerAccountID(policy.at(0), firstReport),
+        managerAccountID: getSubmitReportManagerAccountID(policy.at(0), firstReport, submitterLogin),
         reportActionID: rand64(),
     };
 

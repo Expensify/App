@@ -1,6 +1,9 @@
 import React, {useMemo} from 'react';
 import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
+// Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
@@ -22,6 +25,7 @@ import {showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ActionCell from './ActionCell';
@@ -226,6 +230,7 @@ function ReportListItemHeader<TItem extends ListItem>({
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
+    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -242,6 +247,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             goToItem: () => onSelectRow(reportItem as unknown as TItem, event),
             snapshotReport,
             snapshotPolicy,
+            submitterLogin,
             policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,

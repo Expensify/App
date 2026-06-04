@@ -1469,7 +1469,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy]);
+                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails));
                         }
                     }
                     clearSelectedTransactions();
@@ -1803,6 +1803,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        personalDetails,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
