@@ -1,12 +1,12 @@
 import {useEffect} from 'react';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useLocalize from './useLocalize';
 import {approveMoneyRequestOnSearch} from '@libs/actions/Search';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {clearPendingWorkspaceUpgradeIntent} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 function useReplayPendingWorkspaceUpgradeApprovalOnSearch() {

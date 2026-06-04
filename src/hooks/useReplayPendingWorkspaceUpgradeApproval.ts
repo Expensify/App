@@ -1,9 +1,9 @@
 import {useEffect} from 'react';
-import useLocalize from './useLocalize';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {approveMoneyRequest, clearPendingWorkspaceUpgradeIntent} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type ApproveParams = Parameters<typeof approveMoneyRequest>[0];
