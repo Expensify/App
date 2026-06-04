@@ -139,9 +139,10 @@ function WorkspacesListPage() {
     const {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(activeOwnedPaidPoliciesCount);
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
-    // Refs to avoid stale closures in continueDeleteWorkspace callback
-    const policyIDToDeleteRef = useRef<string | undefined>(undefined);
-    const policyNameToDeleteRef = useRef<string | undefined>(undefined);
+    // Set when a non-billing delete is initiated. The confirmation modal is opened from an effect (not synchronously) so that
+    // `policyIDToDelete` and all of its Onyx-derived data (card feeds, reports to archive, transaction violations, etc.) are
+    // up to date for the selected workspace before the modal and the deleteWorkspace call are built.
+    const [shouldShowDeleteConfirmModal, setShouldShowDeleteConfirmModal] = useState(false);
     const isErrorModalShowingRef = useRef(false);
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
 
@@ -169,18 +170,17 @@ function WorkspacesListPage() {
     const hasExpensifyCard = !!policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
     const personalDetails = usePersonalDetails();
     const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
-    const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
-    const policyToLeave = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`];
 
     const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
     const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
     const prevIsPendingDeleteRef = useRef(isPendingDelete);
+    // Always invoked after a re-render (from the effect below for normal deletes, or from usePayAndDowngrade for billed deletes),
+    // so the workspace being deleted and its derived data are read from the latest state.
     const continueDeleteWorkspace = () => {
-        // Read from refs to avoid stale closures when called from usePayAndDowngrade
-        const policyID = policyIDToDeleteRef.current;
-        const policyName = policyNameToDeleteRef.current;
+        const policyID = policyIDToDelete;
+        const policyName = policyToDelete?.name;
 
         showConfirmModal({
             title: translate('workspace.common.delete'),
@@ -217,26 +217,31 @@ function WorkspacesListPage() {
                 closeModal();
                 if (!hasDeleteWorkspaceExpensifyCardsError) {
                     setPolicyIDToDelete(undefined);
-                    policyIDToDeleteRef.current = undefined;
                 }
-                policyNameToDeleteRef.current = undefined;
             }
         });
     };
 
     const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(continueDeleteWorkspace);
 
+    // Open the delete confirmation modal on the render after `policyIDToDelete` (and its derived data) have updated.
+    useEffect(() => {
+        if (!shouldShowDeleteConfirmModal) {
+            return;
+        }
+        setShouldShowDeleteConfirmModal(false);
+        continueDeleteWorkspace();
+    }, [shouldShowDeleteConfirmModal, continueDeleteWorkspace]);
+
     const hideDeleteWorkspaceErrorModal = () => {
         setPolicyIDToDelete(undefined);
-        policyIDToDeleteRef.current = undefined;
-        policyNameToDeleteRef.current = undefined;
         if (!policyToDelete) {
             return;
         }
         dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
     };
 
-    const confirmLeaveAndHideModal = () => {
+    const confirmLeaveAndHideModal = (policyToLeave: PolicyType | undefined) => {
         if (!policyToLeave) {
             return;
         }
@@ -244,12 +249,12 @@ function WorkspacesListPage() {
         leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails?.email ?? '', policyToLeave);
     };
 
-    const confirmModalPrompt = () => {
+    const confirmModalPrompt = (policyToLeave: PolicyType | undefined) => {
         const exporters = getConnectionExporters(policyToLeave);
         const userEmail = currentUserPersonalDetails?.email ?? '';
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = policyToLeave?.technicalContact;
-        const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, userEmail);
+        const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyToLeave?.id, userEmail);
         const isApprover = isPolicyApprover(policyToLeave, userEmail);
 
         if (isCurrentUserReimburser) {
@@ -387,14 +392,13 @@ function WorkspacesListPage() {
                 text: translate('common.leave'),
                 onSelected: callFunctionIfActionIsAllowed(() => {
                     close(() => {
+                        const policyToLeave = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         const isReimburser = isUserReimburserForPolicy(policies, item.policyID, session?.email);
-
-                        setPolicyIDToLeave(item.policyID);
 
                         if (isReimburser) {
                             showConfirmModal({
                                 title: translate('common.leaveWorkspace'),
-                                prompt: confirmModalPrompt(),
+                                prompt: confirmModalPrompt(policyToLeave),
                                 confirmText: translate('common.buttonConfirm'),
                                 success: true,
                                 shouldShowCancelButton: false,
@@ -404,7 +408,7 @@ function WorkspacesListPage() {
 
                         showConfirmModal({
                             title: translate('common.leaveWorkspace'),
-                            prompt: confirmModalPrompt(),
+                            prompt: confirmModalPrompt(policyToLeave),
                             confirmText: translate('common.leaveWorkspace'),
                             cancelText: translate('common.cancel'),
                             danger: true,
@@ -412,7 +416,7 @@ function WorkspacesListPage() {
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;
                             }
-                            confirmLeaveAndHideModal();
+                            confirmLeaveAndHideModal(policyToLeave);
                         });
                     });
                 }),
@@ -479,8 +483,6 @@ function WorkspacesListPage() {
                     }
 
                     setPolicyIDToDelete(item.policyID);
-                    policyIDToDeleteRef.current = item.policyID;
-                    policyNameToDeleteRef.current = item.title;
 
                     if (shouldBlockDeletion()) {
                         return;
@@ -493,7 +495,7 @@ function WorkspacesListPage() {
                         return;
                     }
 
-                    continueDeleteWorkspace();
+                    setShouldShowDeleteConfirmModal(true);
                 },
                 shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
                 shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
