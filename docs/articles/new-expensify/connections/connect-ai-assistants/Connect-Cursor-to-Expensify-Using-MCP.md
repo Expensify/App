@@ -91,3 +91,4 @@ If Cursor still cannot access your data:
 ## Can Cursor edit expenses or approve reports?
 
 No. The Expensify MCP server provides read-only access to your data.
+

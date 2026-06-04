@@ -59,7 +59,7 @@ Yes. Owners in Claude can make the Expensify connector available to their organi
 
 ## How do I remove the Expensify connector from Claude?
 
-To remove the Expensify connector, see Claude's documentation: [Remove a custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp#h_8cf641ac98).
+To remove the Expensify connector, see Claude's documentation: [Remove a custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp#h_8cf641ac98). 
 
 ## Why can’t Claude access my Expensify data?
 

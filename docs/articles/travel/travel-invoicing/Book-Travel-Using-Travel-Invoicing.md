@@ -34,7 +34,7 @@ Workspace Admins can [learn how to enable Travel on a Workspace](/articles/trave
 1. Click the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Travel**.
 3. Click **Book travel**.
-4. Search for flights, hotels, rental cars or rail tickets.
+4. Search for flights, hotels, rental cars or rail tickets. 
 5. Select your preferred itinerary.
 6. Continue to checkout.
 7. In the **Payment method** section, select **Expensify Travel Card**.

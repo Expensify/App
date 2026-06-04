@@ -4,7 +4,7 @@ about: A template to follow when creating a new issue for accessibility failures
 labels: ["Accessibility", "Weekly"]
 ---
 
-If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding. To join our Slack channel, fill out [this form](https://forms.gle/Q7hnhUJPnQCK7Fe56).
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding. To join our Slack channel, fill out [this form](https://forms.gle/Q7hnhUJPnQCK7Fe56). 
 ___
 
 ## Action Performed:
@@ -32,7 +32,7 @@ How does this affect the user?
 What can we do to fix the issue?
 
 ## Platforms:
-<!---
+<!--- 
 Check off any platforms that are affected by this issue
 --->
 Which of our officially supported platforms is this issue occurring on? Please only tick the box if you have provided a screen-recording in the thread for each platform:

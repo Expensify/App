@@ -22,7 +22,7 @@ This helps simplify travel spend, improve visibility, and reduce reimbursement o
 
 - Workspace Admins can enable and manage Travel Invoicing.
 - The Workspace must have Travel enabled.
-- A verified business bank account (VBBA) is required for settlement.
+- A verified business bank account (VBBA) is required for settlement. 
 
 If a bank account is not set up, you’ll be prompted to add one during setup.
 
@@ -35,7 +35,7 @@ If a bank account is not set up, you’ll be prompted to add one during setup.
 3. Select your Workspace.
 4. In the Workspace settings, click **Travel**.
 5. In the **Travel Invoicing** section, switch the toggle to enabled.
-6. If prompted, select or add a bank account for settlement.
+6. If prompted, select or add a bank account for settlement. 
 7. Confirm your setup.
 
 If **Travel** does not appear in the workspace, a Workspace Admin will first need to enable it. [Learn how to enable Travel on a Workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
@@ -77,4 +77,4 @@ Yes, but only if your balance is fully paid. If there is an outstanding balance,
 
 ## Where can I see travel charges?
 
-All charges appear in your Travel Invoice statement, which includes trip details, travelers, and booking information. They will also be added to the individual traveler's Expensify account.
+All charges appear in your Travel Invoice statement, which includes trip details, travelers, and booking information. They will also be added to the individual traveler's Expensify account. 
