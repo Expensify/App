@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {read, write} from '@libs/API';
+import {write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -188,28 +188,60 @@ function clearFinancialForceErrorField(policyID: string | undefined, fieldName: 
     });
 }
 
-function syncPolicyToFinancialForce(policyID: string) {
-    read(READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, {policyID}, {});
+function updateFinancialForceDimension1Mapping(
+    policyID: string,
+    mappingType: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>,
+    previousValue: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE> | null,
+) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(
+        policyID,
+        CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
+        mappingType,
+        previousValue ?? undefined,
+    );
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING, {policyID, mappingType}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceDimension1Mapping(policyID: string, value: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>, previousValue: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE> | null) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(policyID, CONST.CERTINIA_CONFIG.CODING_DIMENSION1, value, previousValue ?? undefined);
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING, {policyID, value}, {optimisticData, failureData, successData});
+function updateFinancialForceDimension2Mapping(
+    policyID: string,
+    mappingType: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>,
+    previousValue: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE> | null,
+) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(
+        policyID,
+        CONST.CERTINIA_CONFIG.CODING_DIMENSION2,
+        mappingType,
+        previousValue ?? undefined,
+    );
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING, {policyID, mappingType}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceDimension2Mapping(policyID: string, value: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>, previousValue: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE> | null) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(policyID, CONST.CERTINIA_CONFIG.CODING_DIMENSION2, value, previousValue ?? undefined);
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING, {policyID, value}, {optimisticData, failureData, successData});
+function updateFinancialForceDimension3Mapping(
+    policyID: string,
+    mappingType: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>,
+    previousValue: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE> | null,
+) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(
+        policyID,
+        CONST.CERTINIA_CONFIG.CODING_DIMENSION3,
+        mappingType,
+        previousValue ?? undefined,
+    );
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING, {policyID, mappingType}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceDimension3Mapping(policyID: string, value: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>, previousValue: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE> | null) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(policyID, CONST.CERTINIA_CONFIG.CODING_DIMENSION3, value, previousValue ?? undefined);
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING, {policyID, value}, {optimisticData, failureData, successData});
-}
-
-function updateFinancialForceDimension4Mapping(policyID: string, value: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>, previousValue: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE> | null) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(policyID, CONST.CERTINIA_CONFIG.CODING_DIMENSION4, value, previousValue ?? undefined);
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING, {policyID, value}, {optimisticData, failureData, successData});
+function updateFinancialForceDimension4Mapping(
+    policyID: string,
+    mappingType: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>,
+    previousValue: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE> | null,
+) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(
+        policyID,
+        CONST.CERTINIA_CONFIG.CODING_DIMENSION4,
+        mappingType,
+        previousValue ?? undefined,
+    );
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING, {policyID, mappingType}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceSyncTax(policyID: string, enabled: boolean, previousValue?: boolean) {
@@ -391,7 +423,6 @@ function updateFinancialForceSyncReimbursedReports(policyID: string, enabled: bo
 export {
     clearFinancialForceErrorField,
     connectPolicyToFinancialForce,
-    syncPolicyToFinancialForce,
     updateFinancialForceAutoSync,
     updateFinancialForceDefaultVendor,
     updateFinancialForceDimension1Mapping,

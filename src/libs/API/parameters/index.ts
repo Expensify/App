@@ -30,6 +30,7 @@ export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPa
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
 export type {default as SyncPolicyToMergeParams} from './SyncPolicyToMergeParams';
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
+export type {default as SyncPolicyToFinancialForceParams} from './SyncPolicyToFinancialForceParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
@@ -551,3 +552,4 @@ export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
+export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';

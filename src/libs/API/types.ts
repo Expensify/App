@@ -622,6 +622,7 @@ const WRITE_COMMANDS = {
     DELETE_AGENT: 'DeleteAgent',
     SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
+    UPGRADE_SUBMIT: 'UpgradeSubmit',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1076,17 +1077,17 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'exportStatus', ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_DATE]: Parameters.UpdateFinancialForceGenericTypeParams<'exportDate', ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR]: Parameters.UpdateFinancialForceGenericTypeParams<'vendorAccount', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_TAX]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_AUTO_SYNC]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
-
+    [WRITE_COMMANDS.UPGRADE_SUBMIT]: Parameters.UpgradeSubmitParams;
     // Netsuite parameters
     [WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY]: Parameters.UpdateNetSuiteSubsidiaryParams;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE]: Parameters.ConnectPolicyToNetSuiteParams;
@@ -1386,7 +1387,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
     [READ_COMMANDS.SYNC_POLICY_TO_GUSTO]: Parameters.SyncPolicyToGustoParams;
     [READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS]: Parameters.SyncPolicyToZenefitsParams;
-    [READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE]: {policyID: string};
+    [READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE]: Parameters.SyncPolicyToFinancialForceParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;

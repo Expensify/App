@@ -961,6 +961,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portfel',
             },
+            enterSignerInfo: {title: 'Wymagane dane podpisującego', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Konto bankowe ${bankAccountLastFour}`},
         },
         announcements: 'Ogłoszenia',
         discoverSection: {
@@ -1519,6 +1520,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
+        keepSelected: 'Zachowaj wybrane',
         noDuplicatesTitle: 'Wszystko gotowe!',
         noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
@@ -1973,11 +1975,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: 'Zapisano',
         },
     },
-    securityPage: {
-        title: 'Opcje zabezpieczeń',
-        subtitle: 'Włącz uwierzytelnianie dwuskładnikowe, aby chronić swoje konto.',
-        goToSecurity: 'Wróć do strony zabezpieczeń',
-    },
+    securityPage: {title: 'Bezpieczeństwo', subtitle: 'Zadbaj o bezpieczeństwo swojego konta.', goToSecurity: 'Wróć do strony zabezpieczeń'},
     shareCodePage: {
         title: 'Twój kod',
         subtitle: 'Zaproś członków do Expensify, udostępniając swój osobisty kod QR lub link polecający.',
@@ -2126,14 +2124,25 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Konto',
         general: 'Ogólne',
         helpPage: {
-            title: 'Masz pytania?',
+            title: 'Pomoc i wsparcie',
             description: 'Jesteśmy tutaj, aby pomagać przez całą dobę.',
             helpSite: 'Centrum pomocy',
+            helpSiteDescription: 'Artykuły, poradniki i więcej',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Twój osobisty agent AI',
-            accountManagerDescription: 'Twój opiekun konta',
-            partnerManagerDescription: 'Twój opiekun partnerski',
+            accountManager: 'Opiekun konta',
+            yourAccountManager: 'Twój opiekun klienta',
+            accountManagerDescription: 'Zadawaj pytania i uzyskaj pomoc dla klientów',
+            partnerManager: 'Menedżer ds. partnerstw',
+            yourPartnerManager: 'Twój opiekun partnerski',
+            partnerManagerDescription: 'Wzmocnij swoją współpracę i zwiększ liczbę poleceń',
             guideDescription: 'Twój specjalista ds. konfiguracji',
+            approvedPartnerTeamTitle: 'Poznaj swój zespół partnerski Approved!',
+            approvedPartnerTeamDescription:
+                'Dedykowany zespół, który pomoże twojej firmie się rozwijać, szybciej wdrażać klientów i zapewni eksperckie wsparcie, kiedy tylko go potrzebujesz.',
+            accountExecutive: 'Opiekun klienta',
+            accountExecutiveDescription: 'Skutecznie skonfiguruj klientów',
+            moreResources: 'Więcej zasobów',
         },
     },
     closeAccountPage: {
@@ -3409,6 +3418,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Dołącz',
+        marketingSMSConsent: 'Wyrażam zgodę na otrzymywanie marketingowych wiadomości SMS od Expensify',
     },
     detailsPage: {
         localTime: 'Czas lokalny',
@@ -4384,6 +4394,8 @@ ${amount} dla ${merchant} - ${date}`,
             cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
             peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
             paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
+            readOnlyActionTitle: 'Nie tak szybko…',
+            readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -4834,6 +4846,9 @@ ${amount} dla ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z Certinia każdego dnia.',
+            syncReimbursedReportsDescription:
+                'Gdy ta opcja jest włączona, za każdym razem gdy Należna faktura zostanie opłacona w FFA, powiązany raport Expensify zostanie automatycznie oznaczony jako zwrócony.',
             exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Certinia.',
             payableInvoices: 'Należne faktury',
             exportStatus: {
@@ -4875,6 +4890,19 @@ ${amount} dla ${merchant} - ${date}`,
                 oauth: 'Zaloguj się przez Salesforce',
                 oauthDescription: 'Aby zakończyć konfigurację, musisz się zalogować przez Salesforce i Certinia.\n\nUżyj przycisku poniżej, żeby kontynuować.',
                 connectButton: 'Połącz z Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Plan kont',
+                chartOfAccountsDescription: 'Plan kont jest importowany do Expensify jako kategorie.',
+                dimensionMapping: ({n}: {n: number}) => `Wymiar ${n}`,
+                dimensions: {dimension1: 'Wymiar 1', dimension2: 'Wymiar 2', dimension3: 'Wymiar 3', dimension4: 'Wymiar 4'},
+                doNotMap: 'Nie mapuj',
+                doNotMapSubtitle: 'Domyślnie użyj zasobu pracownika',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Nie mapuj',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Zaimportowano jako tagi',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Zaimportowano jako pola raportu',
+                },
             },
         },
         netsuite: {
@@ -6445,6 +6473,26 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             return 'Importowanie wymiarów Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importowanie danych Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Synchronizowanie danych Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Synchronizowanie polaczenia Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importowanie kategorii';
+                        case 'financialForceSyncTags':
+                            return 'Importowanie tagow';
+                        case 'financialForceSyncVendors':
+                            return 'Importowanie dostawcow';
+                        case 'financialForceSyncContacts':
+                            return 'Importowanie kontaktow';
+                        case 'financialForceSyncCompanies':
+                            return 'Importowanie firm';
+                        case 'financialForceSyncUsers':
+                            return 'Importowanie uzytkownikow';
+                        case 'financialForceSyncDimensions':
+                            return 'Importowanie wymiarow';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Oznaczanie raportow jako zwrocone';
                         default: {
                             return `Brak tłumaczenia dla etapu: ${stage}`;
                         }

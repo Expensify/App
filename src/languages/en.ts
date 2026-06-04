@@ -1009,6 +1009,10 @@ const translations = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Wallet',
             },
+            enterSignerInfo: {
+                title: 'Signer info needed',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,
+            },
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
@@ -1579,6 +1583,7 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
+        keepSelected: 'Keep selected',
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
@@ -2051,8 +2056,8 @@ const translations = {
         },
     },
     securityPage: {
-        title: 'Security options',
-        subtitle: 'Enable two-factor authentication to keep your account safe.',
+        title: 'Security',
+        subtitle: 'Keep your account safe.',
         goToSecurity: 'Go back to security page',
     },
     shareCodePage: {
@@ -2201,14 +2206,24 @@ const translations = {
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
         helpPage: {
-            title: 'Got questions?',
-            description: "We're here to help, around the clock.",
+            title: 'Help and support',
+            description: 'We are here to help you 24/7.',
             helpSite: 'Help site',
+            helpSiteDescription: 'Articles, tutorials, and more',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Your personal AI agent',
-            accountManagerDescription: 'Your account manager',
-            partnerManagerDescription: 'Your partner manager',
+            accountManager: 'Account Manager',
+            yourAccountManager: 'Your account manager',
+            accountManagerDescription: 'Ask questions and get client support',
+            partnerManager: 'Partner Manager',
+            yourPartnerManager: 'Your partner manager',
+            partnerManagerDescription: 'Maximize your partnership and drive referrals',
+            accountExecutive: 'Account Executive',
+            accountExecutiveDescription: 'Get clients setup successfully',
             guideDescription: 'Your setup specialist',
+            approvedPartnerTeamTitle: 'Meet your Approved! partner team',
+            approvedPartnerTeamDescription: 'A dedicated team focused on helping your firm grow, onboard clients faster, and get expert support whenever you need it.',
+            moreResources: 'More resources',
         },
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -3502,6 +3517,7 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
+        marketingSMSConsent: 'I agree to receive marketing texts from Expensify',
     },
     detailsPage: {
         localTime: 'Local time',
@@ -4396,6 +4412,8 @@ const translations = {
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
+            readOnlyActionTitle: 'Not so fast...',
+            readOnlyActionPrompt: "Your workspace role can view these settings, but can't edit them.",
             goToWorkspace: 'Go to workspace',
             duplicateWorkspace: 'Duplicate workspace',
             duplicateWorkspacePrefix: 'Duplicate',
@@ -4948,6 +4966,8 @@ const translations = {
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
+            syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
             exportDescription: 'Configure how Expensify data exports to Certinia.',
             payableInvoices: 'Payable Invoices',
             exportStatus: {
@@ -4991,6 +5011,24 @@ const translations = {
                 oauth: 'Log in through Salesforce',
                 oauthDescription: "To finish setup, you'll have to sign in through Salesforce and Certinia.\n\nUse the button below to continue.",
                 connectButton: 'Connect to Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Chart of accounts',
+                chartOfAccountsDescription: 'The chart of accounts is imported into Expensify as categories.',
+                dimensionMapping: ({n}: {n: number}) => `Dimension ${n}`,
+                dimensions: {
+                    dimension1: 'Dimension 1',
+                    dimension2: 'Dimension 2',
+                    dimension3: 'Dimension 3',
+                    dimension4: 'Dimension 4',
+                },
+                doNotMap: 'Do not map',
+                doNotMapSubtitle: 'Use employee resource on default',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Do not map',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Imported as tags',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Imported as report fields',
+                },
             },
         },
         netsuite: {
@@ -6526,6 +6564,26 @@ const translations = {
                             return 'Importing Sage Intacct dimensions';
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
+                        case 'financialForceSyncTitle':
+                            return 'Syncing Certinia data';
+                        case 'financialForceSyncStep':
+                            return 'Syncing Certinia connection';
+                        case 'financialForceSyncCategories':
+                            return 'Importing categories';
+                        case 'financialForceSyncTags':
+                            return 'Importing tags';
+                        case 'financialForceSyncVendors':
+                            return 'Importing vendors';
+                        case 'financialForceSyncContacts':
+                            return 'Importing contacts';
+                        case 'financialForceSyncCompanies':
+                            return 'Importing companies';
+                        case 'financialForceSyncUsers':
+                            return 'Importing users';
+                        case 'financialForceSyncDimensions':
+                            return 'Importing dimensions';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marking reports as reimbursed';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
