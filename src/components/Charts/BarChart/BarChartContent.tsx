@@ -310,4 +310,3 @@ function BarChartContent(props: BarChartProps) {
 
 export default BarChartContent;
 export type {BarChartProps};
-export {default as BAR_INNER_PADDING} from '@components/Charts/barChartConstants';
