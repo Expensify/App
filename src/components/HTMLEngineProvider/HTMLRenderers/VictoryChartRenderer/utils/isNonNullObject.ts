@@ -3,7 +3,7 @@
  * Used to filter out non-object entries (e.g. raw strings/numbers) that
  * `parseArrayAttribute` can yield for malformed chart data.
  */
-function isNonNullObject<T extends object>(value: unknown): value is T {
+function isNonNullObject<T extends Record<string, unknown>>(value: unknown): value is T {
     return typeof value === 'object' && value !== null;
 }
 
