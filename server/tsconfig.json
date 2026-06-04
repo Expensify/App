@@ -12,12 +12,12 @@
             "@pages/*": ["../src/pages/*"],
             "@prompts/*": ["../prompts/*"],
             "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
-            "@styles/*": ["../src/styles/*"],
-            "@src/*": ["../src/*"],
-            "@userActions/*": ["../src/libs/actions/*"],
             "@selectors/*": ["../src/selectors/*"],
-            "tests/*": ["../tests/*"],
-            "@server/*": ["./*"]
+            "@server/*": ["./*"],
+            "@src/*": ["../src/*"],
+            "@styles/*": ["../src/styles/*"],
+            "@userActions/*": ["../src/libs/actions/*"],
+            "tests/*": ["../tests/*"]
         }
     },
     "include": ["libs", "plugins", "stubs"],
