@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -52,6 +53,7 @@ type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
 function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError, shouldUseNarrowLayout}: TransactionItemRowRBRInnerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`);
@@ -72,6 +74,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
         transaction,
         transactionViolations: isSettled(report) ? [] : (violations ?? []),
         translate,
+        convertToDisplayString,
         missingFieldError,
         transactionThreadActions: Object.values(transactionThreadActions ?? {}),
         tags: policyTags,

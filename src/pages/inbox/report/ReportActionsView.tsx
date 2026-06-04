@@ -67,6 +67,9 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
+
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
     const didLayout = useRef(false);
 
@@ -92,6 +95,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
+        newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
     });
 
     const {sortedReportActions, sortedVisibleReportActions, isConciergeSidePanel, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =

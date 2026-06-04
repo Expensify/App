@@ -7,7 +7,7 @@ import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyReques
 import {isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
@@ -15,12 +15,9 @@ import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 type ReportActionItemProps = PureReportActionItemProps & {
     /** Draft message for the report action */
     draftMessage?: string;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-function ReportActionItem({action, report, draftMessage: draftMessageProp, personalDetails, linkedTransactionRouteError: linkedTransactionRouteErrorProp, ...props}: ReportActionItemProps) {
+function ReportActionItem({action, report, draftMessage: draftMessageProp, linkedTransactionRouteError: linkedTransactionRouteErrorProp, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalReportID = useOriginalReportID(reportID, action);
     const [stableOriginalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
@@ -50,7 +47,6 @@ function ReportActionItem({action, report, draftMessage: draftMessageProp, perso
             draftMessage={draftMessage}
             iouReport={iouReport}
             linkedTransactionRouteError={linkedTransactionRouteError}
-            personalDetails={personalDetails}
             originalReportID={originalReportID}
             originalReport={stableOriginalReport}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}

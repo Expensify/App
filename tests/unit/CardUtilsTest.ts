@@ -1,5 +1,7 @@
 import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
+import * as fs from 'fs';
 import lodashSortBy from 'lodash/sortBy';
+import * as path from 'path';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
@@ -7,6 +9,7 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
+import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
     doesCardFeedExist,
     feedHasCards,
@@ -38,6 +41,7 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultExpensifyCardLimitType,
     getDisplayableExpensifyCards,
+    getDisplayableThirdPartyCards,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
     getFeedConnectionBrokenCard,
@@ -1577,6 +1581,16 @@ describe('CardUtils', () => {
             const lastFour = lastFourNumbersFromCardName('Business Card Cash - Business');
             expect(lastFour).toBe('');
         });
+
+        it('Should return last 4 numbers for an ellipsis name with a space (e.g. "CREDIT CARD...1234")', () => {
+            const lastFour = lastFourNumbersFromCardName('CREDIT CARD...1234');
+            expect(lastFour).toBe('1234');
+        });
+
+        it('Should return empty string for an ellipsis name without a space (e.g. "SomeCardName...1234")', () => {
+            const lastFour = lastFourNumbersFromCardName('SomeCardName...1234');
+            expect(lastFour).toBe('');
+        });
     });
 
     describe('maskCardNumber', () => {
@@ -2844,6 +2858,170 @@ describe('CardUtils', () => {
             };
             const result = getDisplayableExpensifyCards(cardList);
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('getDisplayableThirdPartyCards', () => {
+        const emptyCardFeedErrors = {
+            cardsWithBrokenFeedConnection: {},
+            personalCardsWithBrokenConnection: {},
+        };
+
+        function makeCompanyCard(overrides: Partial<Card> & {cardID: number}): Card {
+            return {
+                accountID: 1,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy123.exfy',
+                fraud: 'none',
+                fundID: '767578',
+                lastFourPAN: '2554',
+                lastScrape: '',
+                lastUpdated: '',
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                ...overrides,
+            };
+        }
+
+        function makePersonalPlaidCard(overrides: Partial<Card> & {cardID: number}): Card {
+            return {
+                accountID: 1,
+                bank: 'plaid.ins_109508' as CompanyCardFeed,
+                cardName: 'Chase Checking',
+                domainName: '',
+                fraud: 'none',
+                lastFourPAN: '4321',
+                lastScrape: '',
+                lastUpdated: '',
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                ...overrides,
+            };
+        }
+
+        it('returns [] when cardList is undefined', () => {
+            expect(getDisplayableThirdPartyCards(undefined, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('returns [] when cardList contains only Expensify Cards', () => {
+            const cardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify-policy1.exfy',
+                    fraud: 'none',
+                    fundID: '111',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                },
+            } as unknown as CardList;
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('includes an active company card (has domainName, fundID, not Expensify)', () => {
+            const cardList = {
+                10: makeCompanyCard({cardID: 10}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(10);
+        });
+
+        it('includes an active personal Plaid card (isPersonalCard returns true)', () => {
+            const cardList = {
+                20: makePersonalPlaidCard({cardID: 20}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(20);
+        });
+
+        it('excludes Expensify Cards', () => {
+            const cardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify-policy1.exfy',
+                    fraud: 'none',
+                    fundID: '111',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                },
+                2: makeCompanyCard({cardID: 2}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(2);
+        });
+
+        it('excludes the cash card (cardName === CASH)', () => {
+            const cardList = {
+                30: makeCompanyCard({cardID: 30, cardName: CONST.COMPANY_CARDS.CARD_NAME.CASH}),
+            } as unknown as CardList;
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('excludes cards not in ACTIVE_STATES', () => {
+            const cardList = {
+                40: makeCompanyCard({cardID: 40, state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+            } as unknown as CardList;
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('excludes a card for which isCardConnectionBroken(card) === true', () => {
+            const cardList = {
+                50: makeCompanyCard({cardID: 50, lastScrapeResult: 403}),
+            } as unknown as CardList;
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('excludes a company card listed in cardFeedErrors.cardsWithBrokenFeedConnection', () => {
+            const card = makeCompanyCard({cardID: 60});
+            const cardList = {60: card} as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, {
+                cardsWithBrokenFeedConnection: {60: card},
+                personalCardsWithBrokenConnection: {},
+            });
+            expect(result).toEqual([]);
+        });
+
+        it('excludes a personal card listed in cardFeedErrors.personalCardsWithBrokenConnection', () => {
+            const card = makePersonalPlaidCard({cardID: 70});
+            const cardList = {70: card} as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, {
+                cardsWithBrokenFeedConnection: {},
+                personalCardsWithBrokenConnection: {70: card},
+            });
+            expect(result).toEqual([]);
+        });
+
+        it('returns third-party cards in cardID-ascending order regardless of input ordering (Q3)', () => {
+            // CardList keyed by integer-indexed string keys is iterated in ascending numeric order
+            // by Object.values per ES2015. lodashSortBy with a constant sort key (2) preserves that order.
+            const cardList = {
+                300: makeCompanyCard({cardID: 300, lastFourPAN: '0001'}),
+                100: makeCompanyCard({cardID: 100, lastFourPAN: '0002', domainName: 'feed-a.exfy'}),
+                200: makeCompanyCard({cardID: 200, lastFourPAN: '0003', domainName: 'feed-b.exfy'}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result.map((c) => c.cardID)).toEqual([100, 200, 300]);
+        });
+
+        it('does not dedupe: two distinct third-party cards sharing the same domainName both appear (R-3 lock-in)', () => {
+            const cardList = {
+                400: makeCompanyCard({cardID: 400, lastFourPAN: '1111', domainName: 'same-domain.exfy'}),
+                401: makeCompanyCard({cardID: 401, lastFourPAN: '2222', domainName: 'same-domain.exfy', fundID: '767579'}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result).toHaveLength(2);
+            expect(result.map((c) => c.cardID).sort((a, b) => a - b)).toEqual([400, 401]);
         });
     });
 
@@ -4360,5 +4538,94 @@ describe('getConnectionBankAccountsForReconciliation', () => {
             quickbooksOnline: {},
         } as unknown as Connections;
         expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.QBO)).toEqual([]);
+    });
+});
+
+/**
+ * Drift-detection: verifies that the background colors in src/libs/CardArtworkColors.ts
+ * still match what the SVG artwork files actually contain. If a card SVG is updated without
+ * updating CardArtworkColors.ts, this test will fail with a clear message pointing to the
+ * affected entry.
+ */
+describe('CardArtworkColors drift detection', () => {
+    const ROOT = path.resolve(__dirname, '../..');
+
+    /** Inline copy of the parser from scripts/generateCardColors.ts */
+    function normalizeHex(color: string): string {
+        const h = color.trim().toLowerCase();
+        if (/^#[0-9a-f]{3}$/.test(h)) {
+            return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
+        }
+        return h;
+    }
+
+    function extractBackgroundFill(svgContent: string): string | null {
+        const styleMap: Record<string, string> = {};
+        const styleMatch = svgContent.match(/<style>([\s\S]*?)<\/style>/);
+        if (styleMatch) {
+            for (const m of styleMatch[1].matchAll(/\.([\w-]+)\s*\{([^}]+)\}/g)) {
+                const fillMatch = m[2].match(/\bfill:\s*([#\w(),.%]+)/);
+                if (fillMatch) {
+                    styleMap[m[1]] = fillMatch[1].trim();
+                }
+            }
+        }
+        const withoutDefs = svgContent.replaceAll(/<defs>[\s\S]*?<\/defs>/g, '');
+        const tagRegex = /<(?:rect|path)\s[^>]*?\/?>/g;
+        let match: RegExpExecArray | null;
+        // eslint-disable-next-line no-cond-assign
+        while ((match = tagRegex.exec(withoutDefs)) !== null) {
+            const tag = match[0];
+            const fillAttr = tag.match(/\bfill="([^"]+)"/)?.[1];
+            const classAttr = tag.match(/\bclass="([^"]+)"/)?.[1];
+            if (fillAttr && fillAttr !== 'none') {
+                return normalizeHex(fillAttr);
+            }
+            if (classAttr) {
+                for (const cn of classAttr.split(/\s+/)) {
+                    const resolved = styleMap[cn];
+                    if (resolved && resolved !== 'none') {
+                        return normalizeHex(resolved);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    const FEED_ARTWORK: Array<{keys: string[]; svgPath: string}> = [
+        {keys: ['Expensify Card'], svgPath: 'assets/images/expensify-card.svg'},
+        {keys: ['vcf'], svgPath: 'assets/images/companyCards/large/card-visa-large.svg'},
+        {keys: ['cdf'], svgPath: 'assets/images/companyCards/large/card-mastercard-large.svg'},
+        {
+            keys: ['gl1025', 'gl1205', 'oauth.americanexpressfdx.com', 'americanexpressfd.us'],
+            svgPath: 'assets/images/companyCards/large/card-amex-large.svg',
+        },
+        {keys: ['oauth.bankofamerica.com'], svgPath: 'assets/images/companyCards/large/card-bofa-large.svg'},
+        {keys: ['oauth.capitalone.com'], svgPath: 'assets/images/companyCards/large/card-capital_one-large.svg'},
+        {keys: ['oauth.chase.com'], svgPath: 'assets/images/companyCards/large/card-chase-large.svg'},
+        {keys: ['oauth.citibank.com'], svgPath: 'assets/images/companyCards/large/card-citi-large.svg'},
+        {keys: ['oauth.wellsfargo.com'], svgPath: 'assets/images/companyCards/large/card-wellsfargo-large.svg'},
+        {keys: ['oauth.brex.com'], svgPath: 'assets/images/companyCards/large/card-brex-large.svg'},
+        {keys: ['stripe'], svgPath: 'assets/images/companyCards/large/card-stripe-large.svg'},
+        {keys: ['plaid'], svgPath: 'assets/images/companyCards/large/card-plaid-large.svg'},
+    ];
+
+    const GENERIC_SVG_PATH = 'assets/images/companyCards/large/generic-light-large.svg';
+
+    it('GENERIC_CARD_COLORS.background matches generic-light-large.svg', () => {
+        const {GENERIC_CARD_COLORS} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
+        const svg = fs.readFileSync(path.join(ROOT, GENERIC_SVG_PATH), 'utf-8');
+        const actual = extractBackgroundFill(svg);
+        expect(actual).not.toBeNull();
+        expect(GENERIC_CARD_COLORS.background).toBe(actual);
+    });
+
+    it.each(FEED_ARTWORK.flatMap(({keys, svgPath}) => keys.map((key) => ({key, svgPath}))))('CARD_FEED_COLORS[$key].background matches $svgPath', ({key, svgPath}) => {
+        const {CARD_FEED_COLORS} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
+        const svg = fs.readFileSync(path.join(ROOT, svgPath), 'utf-8');
+        const actual = extractBackgroundFill(svg);
+        expect(actual).not.toBeNull();
+        expect(CARD_FEED_COLORS[key].background).toBe(actual);
     });
 });
