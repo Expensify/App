@@ -236,6 +236,13 @@ function useSelectionModePayment({
         return sortPoliciesByName(activeAdminPolicies, localeCompare);
     })();
 
+    const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
+        if (shouldBlockAction()) {
+            return;
+        }
+        kycWallRef.current?.continueAction?.({policy: wp});
+    };
+
     const paymentSubMenuItems: PopoverMenuItem[] = (() => {
         if (!workspacePolicyOptions.length) {
             return [...Object.values(paymentButtonOptions)];
@@ -249,6 +256,7 @@ function useSelectionModePayment({
                         text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
                         icon: expensifyIcons.Building,
                         workspacePolicy: wp,
+                        onSelected: () => handleWorkspaceSelected(wp),
                     };
                     result.push(workspacePolicyItem);
                 }
@@ -256,13 +264,6 @@ function useSelectionModePayment({
         }
         return result;
     })();
-
-    const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
-        if (shouldBlockAction()) {
-            return;
-        }
-        kycWallRef.current?.continueAction?.({policy: wp});
-    };
 
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (shouldBlockAction(iouPaymentType)) {
