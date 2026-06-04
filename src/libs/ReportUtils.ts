@@ -1744,7 +1744,7 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a paid group or Submit policy
  */
-// TODO: Remove the `?` from policy param after https://github.com/Expensify/App/issues/66415 is done
+// TODO: Remove this function and use isGroupPolicy directly after https://github.com/Expensify/App/issues/66415 is done
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
     return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
 }
