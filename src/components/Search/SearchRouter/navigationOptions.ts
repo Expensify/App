@@ -5,6 +5,7 @@ import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/Searc
 import {isAnyHRConnected} from '@libs/HRUtils';
 import {canEditWorkspaceSettings, canPolicyAccessFeature, hasAccountingFeatureConnection, isGroupPolicy, isTimeTrackingEnabled, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -48,6 +49,19 @@ type NavigationOption = {
     shouldShow?: () => boolean;
 };
 
+/**
+ * The top-level navigation tabs (the destinations the bottom/side tab bar links to). These are the
+ * roots of the navigation hierarchy, so unlike the Account sub-pages and Spend tabs they carry no
+ * parent-tab label on the right.
+ */
+const TOP_LEVEL_NAVIGATION_OPTIONS: NavigationOption[] = [
+    {titleKey: 'common.home', icon: 'Home', getRoute: () => ROUTES.HOME, keywords: ['dashboard']},
+    {titleKey: 'common.inbox', icon: 'Inbox', getRoute: () => ROUTES.INBOX, keywords: ['chat', 'chats', 'messages']},
+    {titleKey: 'common.spend', icon: 'ReceiptMultiple', getRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), keywords: ['expenses', 'search']},
+    {titleKey: 'common.workspaces', icon: 'Buildings', getRoute: () => ROUTES.WORKSPACES_LIST.getRoute()},
+    {titleKey: 'initialSettingsPage.account', icon: 'User', getRoute: () => ROUTES.SETTINGS, keywords: ['settings']},
+];
+
 const NAVIGATION_OPTIONS: NavigationOption[] = [
     // Account / Settings pages
     {titleKey: 'common.profile', icon: 'Profile', getRoute: () => ROUTES.SETTINGS_PROFILE.getRoute()},
@@ -58,7 +72,6 @@ const NAVIGATION_OPTIONS: NavigationOption[] = [
     {titleKey: 'initialSettingsPage.about', icon: 'Info', getRoute: () => ROUTES.SETTINGS_ABOUT},
     {titleKey: 'initialSettingsPage.help', icon: 'QuestionMark', getRoute: () => ROUTES.SETTINGS_HELP},
     {titleKey: 'initialSettingsPage.aboutPage.troubleshoot', icon: 'Lightbulb', getRoute: () => ROUTES.SETTINGS_TROUBLESHOOT},
-    {titleKey: 'common.workspaces', icon: 'Buildings', getRoute: () => ROUTES.WORKSPACES_LIST.getRoute()},
 ];
 
 /**
@@ -202,8 +215,14 @@ const WORKSPACE_PAGE_OPTIONS: WorkspacePageOption[] = [
 /** Distinct icon names referenced by the static config, used to pre-resolve icons via the lazy icon hook. */
 const NAVIGATION_OPTION_ICONS = Array.from(new Set(NAVIGATION_OPTIONS.map((option) => option.icon)));
 
+/** Distinct icon names referenced by the top-level tabs, used to pre-resolve icons via the lazy icon hook. */
+const TOP_LEVEL_NAVIGATION_ICONS = Array.from(new Set(TOP_LEVEL_NAVIGATION_OPTIONS.map((option) => option.icon)));
+
 /** Distinct icon names referenced by the per-workspace pages, used to pre-resolve icons via the lazy icon hook. */
 const WORKSPACE_NAVIGATION_ICONS = Array.from(new Set(WORKSPACE_PAGE_OPTIONS.map((option) => option.icon)));
+
+/** Top-level tab icons shown on the right side of Account ('User') and Spend ('ReceiptMultiple') rows, pre-resolved via the lazy icon hook. */
+const NAVIGATION_TAB_ICONS: ExpensifyIconName[] = ['User', 'ReceiptMultiple'];
 
 /** Maximum number of navigation rows to surface so they don't crowd out the rest of the list. */
 const MAX_NAVIGATION_RESULTS = 8;
@@ -239,24 +258,36 @@ function getPolicyFeatureStates(policy: Policy): Partial<Record<PolicyFeatureNam
     };
 }
 
+/** Optional parent-tab decoration shown on the right side of a navigation row. */
+type RightTabDecoration = {text: string; icon?: IconAsset};
+
 /**
- * Returns the navigation rows for static pages that match the typed query, ready to render in the
- * SearchRouter list. Matching is a case-insensitive substring test against the translated title
- * plus any keywords.
+ * Builds the SearchRouter rows for a list of static navigation options, keeping only those whose
+ * translated title or keywords match the typed query (case-insensitive substring). When `rightTab`
+ * is supplied, each row shows that parent-tab label and icon on the right.
  */
-function getNavigationSearchOptions(query: string, translate: LocaleContextProps['translate'], icons: Partial<Record<ExpensifyIconName, IconAsset>>): SearchQueryItem[] {
+function buildNavigationOptionRows(
+    options: NavigationOption[],
+    query: string,
+    translate: LocaleContextProps['translate'],
+    icons: Partial<Record<ExpensifyIconName, IconAsset>>,
+    rightTab?: RightTabDecoration,
+): SearchQueryItem[] {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) {
         return [];
     }
 
-    return NAVIGATION_OPTIONS.filter((option) => option.shouldShow?.() !== false)
+    return options
+        .filter((option) => option.shouldShow?.() !== false)
         .map((option) => ({option, title: translate(option.titleKey)}))
         .filter(({option, title}) => [title, ...(option.keywords ?? [])].join(' ').toLowerCase().includes(normalizedQuery))
         .map(
             ({option, title}): SearchQueryItem => ({
                 text: translate('search.goTo', {destination: title}),
                 singleIcon: icons[option.icon],
+                rightText: rightTab?.text,
+                rightIcon: rightTab?.icon,
                 keyForList: `${CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE}-${option.titleKey}`,
                 searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
                 route: option.getRoute(),
@@ -265,8 +296,27 @@ function getNavigationSearchOptions(query: string, translate: LocaleContextProps
 }
 
 /**
+ * Returns the navigation rows for the top-level tabs (Home, Inbox, Spend, Workspaces, Account) that
+ * match the typed query. These are the roots of the navigation hierarchy, so they carry no
+ * parent-tab label on the right.
+ */
+function getTopLevelNavigationSearchOptions(query: string, translate: LocaleContextProps['translate'], icons: Partial<Record<ExpensifyIconName, IconAsset>>): SearchQueryItem[] {
+    return buildNavigationOptionRows(TOP_LEVEL_NAVIGATION_OPTIONS, query, translate, icons);
+}
+
+/**
+ * Returns the navigation rows for Account sub-pages that match the typed query, ready to render in
+ * the SearchRouter list. Each row carries the Account tab label in `rightText` so the user can tell
+ * which top-level tab the page lives under.
+ */
+function getNavigationSearchOptions(query: string, translate: LocaleContextProps['translate'], icons: Partial<Record<ExpensifyIconName, IconAsset>>): SearchQueryItem[] {
+    return buildNavigationOptionRows(NAVIGATION_OPTIONS, query, translate, icons, {text: translate('initialSettingsPage.account'), icon: icons.User});
+}
+
+/**
  * Returns the navigation rows for the indexed Spend tabs that match the typed query. Each row opens
- * the Spend page with that tab's search query.
+ * the Spend page with that tab's search query and carries the Spend tab label in `rightText` so the
+ * user can tell which top-level tab the page lives under.
  */
 function getSpendNavigationSearchOptions(
     query: string,
@@ -286,6 +336,8 @@ function getSpendNavigationSearchOptions(
             ({item, title}): SearchQueryItem => ({
                 text: translate('search.goTo', {destination: title}),
                 singleIcon: icons[item.icon],
+                rightText: translate('common.spend'),
+                rightIcon: icons.ReceiptMultiple,
                 keyForList: `${CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE}-${item.key}`,
                 searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
                 route: ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}),
@@ -364,7 +416,10 @@ export default NAVIGATION_OPTIONS;
 export {
     NAVIGATION_OPTION_ICONS,
     WORKSPACE_NAVIGATION_ICONS,
+    NAVIGATION_TAB_ICONS,
+    TOP_LEVEL_NAVIGATION_ICONS,
     MAX_NAVIGATION_RESULTS,
+    getTopLevelNavigationSearchOptions,
     getNavigationSearchOptions,
     getSpendNavigationSearchOptions,
     getSpendNavigationIconNames,

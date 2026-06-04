@@ -55,9 +55,12 @@ import {
     getNavigationSearchOptions,
     getSpendNavigationIconNames,
     getSpendNavigationSearchOptions,
+    getTopLevelNavigationSearchOptions,
     getWorkspaceNavigationSearchOptions,
     MAX_NAVIGATION_RESULTS,
     NAVIGATION_OPTION_ICONS,
+    NAVIGATION_TAB_ICONS,
+    TOP_LEVEL_NAVIGATION_ICONS,
     WORKSPACE_NAVIGATION_ICONS,
 } from './navigationOptions';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
@@ -92,7 +95,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const {typeMenuSections} = useSearchTypeMenuSections();
     const iconNames = useMemo<ExpensifyIconName[]>(
-        () => ['MagnifyingGlass', 'ConciergeAvatar', ...NAVIGATION_OPTION_ICONS, ...WORKSPACE_NAVIGATION_ICONS, ...getSpendNavigationIconNames(typeMenuSections)],
+        () => [
+            'MagnifyingGlass',
+            'ConciergeAvatar',
+            ...NAVIGATION_OPTION_ICONS,
+            ...WORKSPACE_NAVIGATION_ICONS,
+            ...NAVIGATION_TAB_ICONS,
+            ...TOP_LEVEL_NAVIGATION_ICONS,
+            ...getSpendNavigationIconNames(typeMenuSections),
+        ],
         [typeMenuSections],
     );
     const expensifyIcons = useMemoizedLazyExpensifyIcons(iconNames);
@@ -135,6 +146,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             // Once the user has typed something, surface matching navigation targets ("Go to X") instead of the contextual suggestion.
             if (textInputValue) {
                 const navigationItems = [
+                    ...getTopLevelNavigationSearchOptions(textInputValue, translate, expensifyIcons),
                     ...getNavigationSearchOptions(textInputValue, translate, expensifyIcons),
                     ...getSpendNavigationSearchOptions(textInputValue, translate, typeMenuSections, expensifyIcons),
                     ...getWorkspaceNavigationSearchOptions(textInputValue, translate, {policies, currentUserEmail, isRoomsBetaEnabled}, expensifyIcons),

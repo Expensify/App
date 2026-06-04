@@ -34,6 +34,8 @@ type SearchQueryItem = ListItem & {
         name: string;
         id: string;
     };
+    /** Optional small icon shown just to the left of rightText (used instead of rightAvatar, e.g. the tab icon for an Account or Spend page) */
+    rightIcon?: IconAsset;
 };
 
 type SearchQueryListItemProps = {
@@ -103,7 +105,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         />
                     )}
                 </View>
-                {(!!item.rightAvatar || !!item.rightText) && (
+                {(!!item.rightAvatar || !!item.rightIcon || !!item.rightText) && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml2, styles.flexShrink0]}>
                         {!!item.rightAvatar && (
                             <Avatar
@@ -113,6 +115,14 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                                 avatarID={item.rightAvatar.id}
                                 size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                                 containerStyles={styles.mr1}
+                            />
+                        )}
+                        {!item.rightAvatar && !!item.rightIcon && (
+                            <Icon
+                                src={item.rightIcon}
+                                fill={theme.icon}
+                                small
+                                additionalStyles={styles.mr1}
                             />
                         )}
                         {!!item.rightText && (
