@@ -5,6 +5,7 @@ import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderer
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
+import Log from '@libs/Log';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -33,7 +34,17 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
     const typefaces = useChartTypefaces();
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
+
+    let processedResult: ProcessNodeResult;
+    try {
+        processedResult = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
+    } catch (error) {
+        // Malformed chart HTML can make a parser throw. Fail closed (render nothing) instead of crashing the whole report.
+        Log.warn('[VictoryChartProvider] Failed to process chart tree from malformed HTML', {error});
+        return null;
+    }
+
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
     const type = resolveVictoryChartType(tnode, typefaces.EXP_NEUE);
 
