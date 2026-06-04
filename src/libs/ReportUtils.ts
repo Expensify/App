@@ -199,13 +199,10 @@ import {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
-    isApprovedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isDynamicExternalWorkflowApproveFailedAction,
-    isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
     isForwardedAction,
     isIntegrationMessageAction,
@@ -12889,30 +12886,6 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
     return reportActionList.some((action) => isRetractedAction(action));
 }
 
-function selectFilteredReportActions(
-    reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
-): Record<string, ReportAction[]> | undefined {
-    if (!reportActions) {
-        return {};
-    }
-
-    return Object.fromEntries(
-        Object.entries(reportActions).map(([reportId, actionsGroup]) => {
-            const actions = Object.values(actionsGroup ?? {});
-            const filteredActions = actions.filter(
-                (action): action is ReportAction =>
-                    isExportIntegrationAction(action) ||
-                    isIntegrationMessageAction(action) ||
-                    isDynamicExternalWorkflowSubmitFailedAction(action) ||
-                    isDynamicExternalWorkflowApproveFailedAction(action) ||
-                    isSubmittedAction(action) ||
-                    isApprovedAction(action),
-            );
-            return [reportId, filteredActions];
-        }),
-    );
-}
-
 /**
  * Returns the necessary reportAction onyx data to indicate that the transaction has been rejected optimistically
  * @param [created] - Action created time
@@ -13548,7 +13521,6 @@ export {
     parseReportRouteParams,
     parseReportActionHtmlToText,
     requiresAttentionFromCurrentUser,
-    selectFilteredReportActions,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
     shouldDisableDetailPage,

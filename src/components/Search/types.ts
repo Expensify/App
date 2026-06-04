@@ -101,7 +101,10 @@ type SelectedReports = {
     reportID: string | undefined;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
-    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
+    canPay: boolean;
+    canApprove: boolean;
+    canSubmit: boolean;
+    canChangeApprover: boolean;
     total: number;
     currency?: string;
     chatReportID: string | undefined;
