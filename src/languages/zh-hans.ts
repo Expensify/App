@@ -7029,6 +7029,8 @@ ${reportName}
             alreadyConnectedPrompt: '在连接其他人力资源平台之前，您必须先断开当前的人力资源平台。',
             lastSync: (relativeDate: string) => `上次同步 ${relativeDate}`,
             syncError: (providerName: string) => `无法连接到 ${providerName}`,
+            authenticationError: (providerName: string) => `由于凭据不正确，无法连接到 ${providerName}。`,
+            reconnect: '重新连接',
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
             approvalMode: '审批模式',
             providerApprovalMode: (providerName: string) => `${providerName} 审批模式`,

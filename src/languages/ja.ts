@@ -7162,6 +7162,8 @@ ${reportName}
             alreadyConnectedPrompt: '別の人事プラットフォームに接続する前に、現在の人事プラットフォームとの接続を解除する必要があります。',
             lastSync: (relativeDate: string) => `最終同期: ${relativeDate}`,
             syncError: (providerName: string) => `${providerName}に接続できません`,
+            authenticationError: (providerName: string) => `認証情報が正しくないため、${providerName}に接続できませんでした。`,
+            reconnect: '再接続',
             connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
             approvalMode: '承認モード',
             providerApprovalMode: (providerName: string) => `${providerName} 承認モード`,

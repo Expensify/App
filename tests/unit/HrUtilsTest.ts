@@ -513,6 +513,60 @@ describe('getHRCardState', () => {
             expect(state.isSyncInProgress).toBe(false);
             expect(state.syncStageInProgress).toBeUndefined();
         });
+
+        it('detects authentication error and suppresses generic sync error', () => {
+            const policy = makePolicy({
+                connections: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    merge_hris: {
+                        config: {integration: 'bamboohr'},
+                        data: {},
+                        lastSync: {
+                            syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED,
+                            isAuthenticationError: true,
+                            errorMessage: 'Invalid credentials',
+                        },
+                    },
+                } as unknown as Policy['connections'],
+            });
+            const state = getHRCardState({
+                policy,
+                connectionName: MERGE_HR,
+                connectionSyncProgress: undefined,
+                getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
+                mergeSlug: 'bamboohr',
+            });
+            expect(state.hasAuthenticationError).toBe(true);
+            expect(state.hasError).toBe(false);
+            expect(state.lastSyncErrorMessage).toBeUndefined();
+        });
+
+        it('reports generic sync error when failed without authentication error', () => {
+            const policy = makePolicy({
+                connections: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    merge_hris: {
+                        config: {integration: 'bamboohr'},
+                        data: {},
+                        lastSync: {
+                            syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED,
+                            isAuthenticationError: false,
+                            errorMessage: 'Sync failed',
+                        },
+                    },
+                } as unknown as Policy['connections'],
+            });
+            const state = getHRCardState({
+                policy,
+                connectionName: MERGE_HR,
+                connectionSyncProgress: undefined,
+                getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
+                mergeSlug: 'bamboohr',
+            });
+            expect(state.hasAuthenticationError).toBe(false);
+            expect(state.hasError).toBe(true);
+            expect(state.lastSyncErrorMessage).toBe('Sync failed');
+        });
     });
 });
 
