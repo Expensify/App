@@ -80,6 +80,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         {
             selector: submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID),
         },
+        [report?.ownerAccountID, lastForwardedActorAccountID],
     );
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
