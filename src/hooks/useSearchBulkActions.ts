@@ -514,14 +514,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         // Also include actions from the search snapshot. SearchBulkActionsButton is rendered
         // outside SearchScopeProvider so useOnyx does not redirect to the snapshot automatically.
         // Without this, IOU actions for unreported expenses (stored in the selfDM report) are
-        // missing from fromOnyx, causing deleteTransactions to silently skip all deletions.
+        // absent from the Onyx collection, causing deleteTransactions to silently skip all deletions.
         const searchData = currentSearchResults?.data;
         if (!searchData) {
             return fromOnyx;
         }
         const fromSnapshot = Object.keys(searchData)
-            .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
-            .flatMap((key) => Object.values((searchData[key as keyof typeof searchData] as Record<string, ReportAction>) ?? {}));
+            .filter((key): key is `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` => key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+            .flatMap((key) => Object.values((searchData[key] as Record<string, ReportAction>) ?? {}));
         // Merge — real Onyx wins on conflict (real-time updates take precedence over snapshot)
         const merged = new Map<string, ReportAction>();
         for (const action of [...fromSnapshot, ...fromOnyx]) {
