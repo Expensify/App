@@ -59,11 +59,16 @@ type ConciergeDraftEvent = {
     actorAccountID?: number;
 };
 
+type ConciergeDraftEventsEvent = {
+    events: ConciergeDraftEvent[];
+};
+
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
     [TYPE.PONG]: PingPongEvent;
     [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
+    [TYPE.CONCIERGE_DRAFT_EVENTS]: ConciergeDraftEventsEvent;
     [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
     [TYPE.CONCIERGE_DRAFT_UPDATED]: ConciergeDraftEvent;
     [TYPE.CONCIERGE_DRAFT_COMPLETED]: ConciergeDraftEvent;
@@ -128,6 +133,7 @@ export type {
     UserIsLeavingRoomEvent,
     PingPongEvent,
     ConciergeDraftEvent,
+    ConciergeDraftEventsEvent,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,

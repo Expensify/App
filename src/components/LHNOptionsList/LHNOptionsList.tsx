@@ -57,21 +57,24 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item, index}: RenderItemProps): ReactElement => {
+        ({item, index}: RenderItemProps): ReactElement | null => {
+            if (!item) {
+                return null;
+            }
             const reportID = item.reportID;
             const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
 
             let invoiceReceiverPolicyID = '-1';
-            if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
+            if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
                 invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
             }
             if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
                 invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
             }
             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
 
             return (
                 <OptionRowLHNData
@@ -142,6 +145,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route]);
 
+    const savedScrollIndex = getScrollIndex(route);
+    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+
     return (
         <View style={style ?? styles.flex1}>
             <LHNTooltipContextProvider data={data}>
@@ -159,7 +165,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    initialScrollIndex={isWeb ? getScrollIndex(route) : undefined}
+                    initialScrollIndex={initialScrollIndex}
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={250}
                     removeClippedSubviews

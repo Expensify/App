@@ -1,4 +1,5 @@
 import type {TNode} from 'react-native-render-html';
+import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
 import type {LegendItem, LegendItemEntry, PartialProcessNodeResult, RawLegendData, RawLegendStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 
@@ -13,12 +14,14 @@ function parseVictoryLegendNode(tnode: TNode): PartialProcessNodeResult {
     const style = parseAttribute<RawLegendStyle>(tnode.attributes.style);
     const color = style?.labels?.fill;
     const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : undefined;
-    const fontWeight = Number(style?.labels?.fontWeight) === 700 ? 'bold' : undefined;
+    const fontWeight = style?.labels?.fontWeight !== undefined ? normalizeChartFontWeight(style.labels.fontWeight) : undefined;
+    const fontFamily = style?.labels?.fontFamily;
+    const fontStyle = style?.labels?.fontStyle;
     const entries: LegendItemEntry[] = (parseAttribute<RawLegendData[]>(tnode.attributes.data) ?? []).map((entry) => {
         const text = entry.name;
         const symbolColor = entry.symbol?.fill;
         const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : undefined;
-        return {text, color, fontSize, fontWeight, symbolColor, symbolSize};
+        return {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize};
     });
     const legendItem: LegendItem = {x, y, entries, gutter, symbolSpacer};
     return {legendItems: [legendItem]};
