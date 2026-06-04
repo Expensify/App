@@ -344,6 +344,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
+                    {!isProduction && spendRulesSummary.length > 0 && (
+                        <MenuItemWithTopDescription
+                            interactive={false}
+                            description={translate('cardPage.spendRules')}
+                            descriptionTextStyle={[styles.fontSizeLabel]}
+                            titleComponent={spendRulesTitleComponent}
+                            accessibilityLabel={spendRulesSummary.join('. ')}
+                        />
+                    )}
                     <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
@@ -370,16 +379,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path))}
                         />
                     </OfflineWithFeedback>
+
                     <View style={styles.mt6}>
-                        {!isProduction && spendRulesSummary.length > 0 && (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.spendRules')}
-                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                titleComponent={spendRulesTitleComponent}
-                                onPress={navigateToSpendRules}
-                                accessibilityLabel={spendRulesSummary.join('. ')}
-                            />
-                        )}
                         {!isProduction && isAdmin && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}
