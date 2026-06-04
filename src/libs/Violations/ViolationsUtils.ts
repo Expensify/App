@@ -4,10 +4,10 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -15,6 +15,7 @@ import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {
+    getCurrentTaxID,
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
     getQBOVendorByID,
@@ -29,10 +30,25 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {
+    Beta,
+    Card,
+    CardList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    PolicyTags,
+    Report,
+    ReportAction,
+    TaxRates,
+    Transaction,
+    TransactionViolation,
+    ViolationName,
+} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ViolationFixParams from './types';
 
 let allBetas: OnyxEntry<Beta[]>;
@@ -46,6 +62,7 @@ Onyx.connectWithoutView({
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canEdit?: boolean;
     tags?: PolicyTagLists;
     companyCardPageURL?: string;
@@ -76,6 +93,13 @@ function isMaxExpenseAmountRuleEnabled(maxAmount: number | undefined) {
 
 function hasEnabledTags(tags?: PolicyTags): boolean {
     return !!tags && Object.values(tags).some((tag) => !!tag.enabled);
+}
+
+function resolveCurrentTaxCodeFromTaxRates(policyTaxRates: TaxRates, taxCode: string): string | undefined {
+    if (policyTaxRates[taxCode]) {
+        return taxCode;
+    }
+    return Object.keys(policyTaxRates).find((taxIDKey) => policyTaxRates[taxIDKey].previousTaxCode === taxCode);
 }
 
 /**
@@ -328,7 +352,8 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const matchingTaxRate = policyTaxRates[taxCode];
+            const currentTaxCode = resolveCurrentTaxCodeFromTaxRates(policyTaxRates, taxCode) ?? taxCode;
+            const matchingTaxRate = policyTaxRates[currentTaxCode];
             if (!matchingTaxRate) {
                 return false;
             }
@@ -512,7 +537,7 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
+        const isTaxInPolicy = !!updatedTransaction.taxCode && !!getCurrentTaxID(policy, updatedTransaction.taxCode);
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -637,7 +662,8 @@ const ViolationsUtils = {
                     shouldShowCategoryItemizedReceiptRequiredViolation || !policy.maxExpenseAmountNoItemizedReceipt
                         ? undefined
                         : {
-                              formattedLimit: CurrencyUtils.convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy.outputCurrency, true),
+                              amount: policy.maxExpenseAmountNoItemizedReceipt,
+                              currency: policy.outputCurrency,
                           },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -659,7 +685,8 @@ const ViolationsUtils = {
                     shouldShowCategoryReceiptRequiredViolation || !policy.maxExpenseAmountNoReceipt
                         ? undefined
                         : {
-                              formattedLimit: CurrencyUtils.convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency, true),
+                              amount: policy.maxExpenseAmountNoReceipt,
+                              currency: policy.outputCurrency,
                           },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -678,7 +705,8 @@ const ViolationsUtils = {
             newTransactionViolations.push({
                 name: shouldCategoryShowOverLimitViolation ? CONST.VIOLATIONS.OVER_CATEGORY_LIMIT : CONST.VIOLATIONS.OVER_LIMIT,
                 data: {
-                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(shouldCategoryShowOverLimitViolation ? categoryOverLimit : policy.maxExpenseAmount, policy.outputCurrency),
+                    amount: shouldCategoryShowOverLimitViolation ? categoryOverLimit : policy.maxExpenseAmount,
+                    currency: policy.outputCurrency,
                 },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -689,7 +717,8 @@ const ViolationsUtils = {
             newTransactionViolations.push({
                 name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
                 data: {
-                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(-updatedTransaction.amount, updatedTransaction.currency),
+                    amount: -updatedTransaction.amount,
+                    currency: updatedTransaction.currency,
                 },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -749,14 +778,15 @@ const ViolationsUtils = {
      * functions.
      */
     getViolationTranslation(params: ViolationTranslationParams): string {
-        const {violation, translate, canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = params;
+        const {violation, translate, convertToDisplayString, canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = params;
         const {
             brokenBankConnection = false,
             isAdmin = false,
             isTransactionOlderThan7Days = false,
             member,
             category,
-            formattedLimit = '',
+            amount = 0,
+            currency = CONST.CURRENCY.USD,
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,
@@ -778,7 +808,7 @@ const ViolationsUtils = {
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
-                return translate('violations.cashExpenseWithNoReceipt', formattedLimit);
+                return translate('violations.cashExpenseWithNoReceipt', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
@@ -817,23 +847,23 @@ const ViolationsUtils = {
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
-                return translate('violations.overAutoApprovalLimit', formattedLimit);
+                return translate('violations.overAutoApprovalLimit', convertToDisplayString(amount, currency));
             case 'overCategoryLimit':
-                return translate('violations.overCategoryLimit', formattedLimit);
+                return translate('violations.overCategoryLimit', convertToDisplayString(amount, currency));
             case 'overLimit':
-                return translate('violations.overLimit', formattedLimit);
+                return translate('violations.overLimit', convertToDisplayString(amount, currency));
             case 'overTripLimit':
-                return translate('violations.overTripLimit', formattedLimit);
+                return translate('violations.overTripLimit', convertToDisplayString(amount, currency));
             case 'overLimitAttendee':
-                return translate('violations.overLimitAttendee', formattedLimit);
+                return translate('violations.overLimitAttendee', convertToDisplayString(amount, currency));
             case 'perDayLimit':
-                return translate('violations.perDayLimit', formattedLimit);
+                return translate('violations.perDayLimit', convertToDisplayString(amount, currency));
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', formattedLimit, getDecodedCategoryName(category ?? ''));
+                return translate('violations.receiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined, getDecodedCategoryName(category ?? ''));
             case 'itemizedReceiptRequired':
-                return translate('violations.itemizedReceiptRequired', formattedLimit);
+                return translate('violations.itemizedReceiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'customRules':
                 return translate('violations.customRules', message);
             case 'rter': {
@@ -888,15 +918,11 @@ const ViolationsUtils = {
         }
     },
 
-    // We have to use regex, because Violation limit is given in a inconvenient form: "$2,000.00"
-    getViolationAmountLimit(violation: TransactionViolation): number {
-        return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
-    },
-
     getRBRMessages({
         transaction,
         transactionViolations,
         translate,
+        convertToDisplayString,
         missingFieldError,
         transactionThreadActions,
         tags,
@@ -909,6 +935,7 @@ const ViolationsUtils = {
         transaction: Transaction;
         transactionViolations: TransactionViolation[];
         translate: LocaleContextProps['translate'];
+        convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         missingFieldError?: string;
         transactionThreadActions?: ReportAction[];
         tags?: PolicyTagLists;
@@ -932,6 +959,7 @@ const ViolationsUtils = {
                 const message = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
+                    convertToDisplayString,
                     canEdit,
                     tags,
                     companyCardPageURL,

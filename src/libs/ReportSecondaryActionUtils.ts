@@ -15,7 +15,6 @@ import type {
     TransactionViolation,
 } from '@src/types/onyx';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
-import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -609,7 +608,7 @@ function isHoldActionForTransaction(
     return true;
 }
 
-function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, currentUserLogin: string, reportActions?: ReportAction[]): boolean {
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, currentUserLogin: string, submitterLogin: string | undefined, reportActions?: ReportAction[]): boolean {
     // We can't move the iou report to the workspace if both users from the iou report create the expense
     if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report)) {
         return false;
@@ -622,14 +621,13 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
         return false;
     }
 
-    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const isReportSettled = isSettled(report);
 
     // Find available policies - stop early once we find 2 or after checking all
     let firstAvailablePolicy: Policy | undefined;
     let availablePoliciesCount = 0;
     for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isWorkspaceEligibleForReportChange(submitterEmail, policy, report)) {
+        if (!policy || !isWorkspaceEligibleForReportChange(submitterLogin, policy, report)) {
             continue;
         }
 
@@ -891,6 +889,7 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
 function getSecondaryReportActions({
     currentUserLogin,
     currentUserAccountID,
+    submitterLogin,
     report,
     chatReport,
     reportTransactions,
@@ -909,6 +908,7 @@ function getSecondaryReportActions({
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
+    submitterLogin: string | undefined;
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -1048,7 +1048,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
 
-    if (isChangeWorkspaceAction(report, policies, currentUserLogin, reportActions)) {
+    if (isChangeWorkspaceAction(report, policies, currentUserLogin, submitterLogin, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 

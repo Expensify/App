@@ -220,7 +220,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [fakeTransaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -319,13 +318,13 @@ describe('actions/IOU/TrackExpense', () => {
                     linkedTrackedExpenseReportID: transactionDraft?.linkedTrackedExpenseReportID,
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
+                optimisticTransactionID: 'optimistic-ignored-for-move-from-track',
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -343,6 +342,9 @@ describe('actions/IOU/TrackExpense', () => {
                         // Then the transaction must remain a distance request, ensuring that the optimistic data is correctly built and the transaction type remains accurate.
                         const isDistanceRequest = isDistanceRequestUtil(categorizedTransaction);
                         expect(isDistanceRequest).toBe(true);
+
+                        // Move-from-track must keep the tracked transaction id, not the UI-provided optimisticTransactionID.
+                        expect(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}optimistic-ignored-for-move-from-track`]).toBeUndefined();
 
                         // Then the transaction category must match the original category
                         expect(categorizedTransaction?.category).toBe(Object.keys(fakeCategories).at(0) ?? '');
@@ -412,7 +414,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -466,7 +467,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -548,7 +548,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -602,7 +601,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -1095,7 +1093,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             };
         }
@@ -1315,7 +1312,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
             });
@@ -1406,7 +1402,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -1521,6 +1516,49 @@ describe('actions/IOU/TrackExpense', () => {
 
             const selfDMReports = Object.values(reports ?? {}).filter((r) => r?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM);
             expect(selfDMReports.length).toBeGreaterThan(0);
+        });
+
+        it('should use optimisticChatReportID as the new self-DM reportID when no self-DM exists', async () => {
+            const optimisticSelfDMReportID = 'optimistic-self-dm-42';
+
+            trackExpense({
+                ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic SelfDM ID Test'}),
+                optimisticChatReportID: optimisticSelfDMReportID,
+            });
+            await waitForBatchedUpdates();
+            const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticSelfDMReportID}`]?.chatType).toBe(CONST.REPORT.CHAT_TYPE.SELF_DM);
+        });
+
+        it('should create the optimistic transaction under the UI-provided optimisticTransactionID when there is no existing transaction', async () => {
+            const optimisticTransactionID = 'optimistic-txn-99';
+
+            trackExpense({
+                ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic Txn ID Test'}),
+                optimisticTransactionID,
+            });
+            await waitForBatchedUpdates();
+
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            expect(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransactionID}`]?.merchant).toBe('Optimistic Txn ID Test');
         });
 
         it('should handle API failure gracefully with failure data', async () => {
@@ -2078,7 +2116,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -2382,7 +2419,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
