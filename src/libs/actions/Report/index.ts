@@ -7565,7 +7565,6 @@ function changeReportPolicyAndInviteSubmitter({
     hasViolationsParam,
     isChangePolicyTrainingModalDismissed,
     isASAPSubmitBetaEnabled,
-    canUseSubmit2026 = false,
     employeeList,
     formatPhoneNumber,
     isReportLastVisibleArchived,
@@ -7581,7 +7580,6 @@ function changeReportPolicyAndInviteSubmitter({
     hasViolationsParam: boolean;
     isChangePolicyTrainingModalDismissed: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    canUseSubmit2026?: boolean;
     employeeList: PolicyEmployeeList | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
@@ -7609,7 +7607,6 @@ function changeReportPolicyAndInviteSubmitter({
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportActionsList,
-        canUseSubmit2026,
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterLogin].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterLogin].reportActionID;

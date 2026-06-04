@@ -71,7 +71,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -125,7 +124,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 hasViolationsParam: hasViolations,
                 isChangePolicyTrainingModalDismissed,
                 isASAPSubmitBetaEnabled,
-                canUseSubmit2026,
                 employeeList,
                 formatPhoneNumber,
                 isReportLastVisibleArchived,

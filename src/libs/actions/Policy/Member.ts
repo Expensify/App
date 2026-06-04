@@ -804,7 +804,6 @@ function buildAddMembersToWorkspaceOnyxData(
     policyExpenseChatNotificationPreference?: NotificationPreference,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>,
-    canUseSubmit2026 = false,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -812,8 +811,9 @@ function buildAddMembersToWorkspaceOnyxData(
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    // Submit workspaces enforce the editor role — gate on the beta to keep behavior unchanged for non-beta users.
-    const effectiveRole = canUseSubmit2026 && isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
+    // Submit workspaces enforce the editor role for all invited members regardless of the requested role.
+    // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
+    const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
 
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
@@ -942,7 +942,6 @@ function addMembersToWorkspace(
     approverEmail?: string,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>,
-    canUseSubmit2026 = false,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -960,7 +959,6 @@ function addMembersToWorkspace(
         approverEmail,
         undefined,
         reportActionsList,
-        canUseSubmit2026,
     );
 
     const params: AddMembersToWorkspaceParams = {

@@ -465,7 +465,7 @@ describe('actions/PolicyMember', () => {
             expect(adminRoomSuccess?.participants?.[auditorAccountID]).toBeTruthy();
         });
 
-        it('overrides the invited role to Editor on Submit workspaces when SUBMIT_2026 beta is enabled, regardless of what the caller passes', async () => {
+        it('overrides the invited role to Editor on Submit workspaces, regardless of what the caller passes', async () => {
             // Given a Submit (submit2026) workspace
             const policyID = '1';
             const newUserEmail = 'editor@example.com';
@@ -477,8 +477,8 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            // When the caller passes ROLE.USER for a Submit workspace and the beta flag is enabled
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, undefined, undefined, true);
+            // When the caller passes ROLE.USER for a Submit workspace
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
 
             await waitForBatchedUpdates();
 
@@ -498,19 +498,19 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
         });
 
-        it('does NOT override the role on Submit workspaces when SUBMIT_2026 beta is disabled', async () => {
-            // Given a Submit (submit2026) workspace but the beta is off
+        it('does NOT override the role on non-Submit (paid) workspaces', async () => {
+            // Given a Collect (team) workspace
             const policyID = '1';
             const newUserEmail = 'user@example.com';
             const policy = {
-                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.SUBMIT),
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
                 approver: 'approver@example.com',
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            // When the caller passes ROLE.USER without enabling the beta flag (defaults to false)
+            // When the caller passes ROLE.USER on a non-Submit workspace
             Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
 
             await waitForBatchedUpdates();
@@ -531,7 +531,7 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
         });
 
-        it('adds new editors on Submit workspaces to the #admins room when SUBMIT_2026 beta is enabled', async () => {
+        it('adds new editors on Submit workspaces to the #admins room', async () => {
             // Given a Submit workspace with an #admins room
             const policyID = '1';
             const adminRoomID = '1';
@@ -552,20 +552,9 @@ describe('actions/PolicyMember', () => {
                 },
             });
 
-            // When inviting a new member on a Submit workspace with the beta enabled (role is forced to Editor)
+            // When inviting a new member on a Submit workspace (role is forced to Editor)
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace(
-                {[editorEmail]: editorAccountID},
-                'Welcome',
-                policy,
-                [],
-                CONST.POLICY.ROLE.USER,
-                TestHelper.formatPhoneNumber,
-                currentUser,
-                undefined,
-                undefined,
-                true,
-            );
+            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
 
             await waitForBatchedUpdates();
 

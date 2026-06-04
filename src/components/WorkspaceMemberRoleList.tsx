@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -36,8 +35,6 @@ type WorkspaceMemberRoleListProps = {
 function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}}: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const workspaceRoles: ListItemType[] = [
@@ -72,29 +69,21 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     ];
 
     const isPolicyControl = isControlPolicy(policy);
-    const isPolicySubmit2026 = canUseSubmit2026 && isSubmitPolicy(policy);
-    // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
-    // invite/manage members but must not be able to escalate anyone to admin.
+    // Only strict admins can assign the ADMIN role.
     const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
-    const availableRoleItems: ListItemType[] = workspaceRoles
-        .filter((item) => {
-            if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
-                return false;
-            }
-            // Admin doesn't exist on Submit workspaces (per design only Editor does), so hide it regardless of who
-            // the current user is — defense-in-depth against an unexpected admin row appearing after a server race.
-            if (item.value === CONST.POLICY.ROLE.ADMIN && (!canAssignAdminRole || isPolicySubmit2026)) {
-                return false;
-            }
-            // Editor and Member are mutually exclusive across plan types.
-            if ((item.value === CONST.POLICY.ROLE.EDITOR && !isPolicySubmit2026) || (item.value === CONST.POLICY.ROLE.USER && isPolicySubmit2026)) {
-                return false;
-            }
-            return true;
-        })
-        // On Submit workspaces the only valid role is Editor — there's nothing to choose, so render the row
-        // as read-only rather than letting the user tap a no-op selection.
-        .map((item) => (isPolicySubmit2026 ? {...item, isInteractive: false} : item));
+    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
+        if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
+            return false;
+        }
+        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
+            return false;
+        }
+        // Editor only exists on Submit workspaces.
+        if (item.value === CONST.POLICY.ROLE.EDITOR && !isSubmitPolicy(policy)) {
+            return false;
+        }
+        return true;
+    });
 
     return (
         <>

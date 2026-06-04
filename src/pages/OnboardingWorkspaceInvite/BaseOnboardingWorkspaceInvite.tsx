@@ -187,7 +187,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             },
             undefined,
             filteredReportActions,
-            isBetaEnabled(CONST.BETAS.SUBMIT_2026),
         );
         completeOnboarding(true);
     };
