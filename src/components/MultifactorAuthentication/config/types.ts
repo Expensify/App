@@ -14,7 +14,6 @@ import type {
 } from '@libs/MultifactorAuthentication/shared/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MultifactorAuthenticationScenarioPayload} from './index';
 
@@ -75,11 +74,6 @@ type MultifactorAuthenticationScenarioResponse = {
 };
 
 /**
- * Multifactor authentication screen identifiers.
- */
-type MultifactorAuthenticationScreen = ValueOf<typeof SCREENS.MULTIFACTOR_AUTHENTICATION>;
-
-/**
  * Pure function type for scenario actions that return HTTP response and reason.
  */
 type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknown>> = (
@@ -92,7 +86,6 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
 type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthenticationMethods: Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
-    screen?: MultifactorAuthenticationScreen;
 
     /**
      * Whether the scenario does not require any additional parameters except for the native biometrics data.

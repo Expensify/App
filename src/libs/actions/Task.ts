@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
@@ -384,11 +386,10 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        Navigation.dismissModalWithReport({reportID: parentReportID}, undefined, {
-            afterTransition: () => {
-                clearOutTaskInfo();
-            },
+        InteractionManager.runAfterInteractions(() => {
+            clearOutTaskInfo();
         });
+        Navigation.dismissModalWithReport({reportID: parentReportID});
     }
     notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
 }

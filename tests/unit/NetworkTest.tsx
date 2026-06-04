@@ -1,4 +1,3 @@
-import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
@@ -113,7 +112,7 @@ describe('NetworkTests', () => {
                 // Verify:
                 // 1. We attempted to authenticate twice (first failed, retry succeeded)
                 // 2. The session has the new auth token (user wasn't logged out)
-                const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToAuthenticate.length).toBe(2);
                 expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
             });
@@ -242,8 +241,8 @@ describe('NetworkTests', () => {
             })
             .then(() => {
                 // Verify: 3 calls to the API, 1 authenticate call, and reconnect was triggered
-                const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
-                const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectSpy).toHaveBeenCalled();
