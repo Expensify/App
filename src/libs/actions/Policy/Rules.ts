@@ -340,12 +340,14 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    aiRules: {
-                        [aiRuleID]: {
-                            ruleID: aiRuleID,
-                            created: new Date().toISOString(),
-                            prompt,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                ruleID: aiRuleID,
+                                created: new Date().toISOString(),
+                                prompt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
                         },
                     },
                 },
@@ -356,10 +358,12 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    aiRules: {
-                        [aiRuleID]: {
-                            pendingAction: null,
-                            errors: null,
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                pendingAction: null,
+                                errors: null,
+                            },
                         },
                     },
                 },
@@ -370,9 +374,11 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    aiRules: {
-                        [aiRuleID]: {
-                            pendingAction: null,
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                pendingAction: null,
+                            },
                         },
                     },
                 },
