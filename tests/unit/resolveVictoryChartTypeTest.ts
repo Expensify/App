@@ -15,6 +15,13 @@ function createProcessNodeResult(data: ProcessNodeResult['data']): ProcessNodeRe
         data,
         xKey: X_KEY,
         yKeys: [],
+        xAxis: undefined,
+        yAxis: undefined,
+        domain: undefined,
+        domainPadding: undefined,
+        padding: undefined,
+        isHorizontal: undefined,
+        categories: undefined,
         labelItems: [],
         legendItems: [],
     };
@@ -42,7 +49,7 @@ describe('resolveVictoryChartType', () => {
     });
 
     it('returns null when data has neither cartesian nor polar keys', () => {
-        mockProcessVictoryChartTree.mockReturnValue(createProcessNodeResult({empty: {}} as ProcessNodeResult['data']));
+        mockProcessVictoryChartTree.mockReturnValue(createProcessNodeResult({}));
 
         expect(resolveVictoryChartType(mockTnode, null)).toBeNull();
     });
