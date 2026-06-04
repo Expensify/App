@@ -1,6 +1,6 @@
 import React, {createContext, useContext} from 'react';
 import type {TNode} from 'react-native-render-html';
-import {useChartDefaultTypeface} from '@components/Charts/hooks';
+import {useChartTypefaces} from '@components/Charts/hooks';
 import {CHART_TYPE, LABEL_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
@@ -32,8 +32,8 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  * Returns null when the chart data is invalid (no data points, or mixed cartesian/polar content).
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
-    const {regular: regularTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface, null);
+    const typefaces = useChartTypefaces();
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
 
     const hasCartesianData = Object.values(data).some((entry) => X_KEY in entry);
@@ -74,8 +74,6 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
 
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
 }
-
-VictoryChartProvider.displayName = 'VictoryChartProvider';
 
 function useVictoryChartContext(): VictoryChartContextValue {
     const context = useContext(VictoryChartContext);

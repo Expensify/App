@@ -1722,6 +1722,13 @@ function isBusinessInvoiceRoom(reportOrID: OnyxEntry<Report> | string): boolean 
     return !isEmptyObject(report) && isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
 }
 
+/**
+ * Returns the policyID of the invoice receiver when the receiver is a business, otherwise undefined.
+ */
+function getInvoiceReceiverPolicyID(report: OnyxEntry<Report>): string | undefined {
+    return report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report.invoiceReceiver.policyID : undefined;
+}
+
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
         return deprecatedCurrentUserAccountID === report.invoiceReceiver.accountID;
@@ -1798,14 +1805,13 @@ function isPublicAnnounceRoom(report: OnyxEntry<Report>): boolean {
  * If the report is a policy expense, the route should be for adding bank account for that policy
  * else since the report is a personal IOU, the route should be for personal bank account.
  */
-function getBankAccountRoute(report: OnyxEntry<Report>): Route {
+function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: boolean | undefined): Route {
     if (isPolicyExpenseChat(report)) {
         return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: report?.policyID, backTo: Navigation.getActiveRoute()});
     }
 
     if (isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
-        const invoiceReceiverPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`];
-        if (invoiceReceiverPolicy?.areInvoicesEnabled) {
+        if (areInvoicesEnabled) {
             return ROUTES.WORKSPACE_INVOICES.getRoute(report?.invoiceReceiver?.policyID);
         }
     }
@@ -1968,7 +1974,7 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if the report is an expense report, a group policy, a self-DM, or the iouType is create, and the iouType is not split or invoice.
  */
-function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string, participants?: Participant[]) {
+function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string, participants?: Participant[], isNewManualExpenseFlow = false) {
     const isSelfDMReport = isSelfDMOrSelfDMThread(report);
 
     const isUserInRecipients = participants?.some((participant) => !participant.isSender && !participant.isPolicyExpenseChat && participant.accountID);
@@ -1976,7 +1982,7 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
 
     const isExpenseReportType = isExpenseReport(report);
     const isGroupPolicyType = isGroupPolicy(policy?.type ?? '');
-    const isCreatingNewIOU = iouType === CONST.IOU.TYPE.CREATE;
+    const isCreatingNewIOU = iouType === CONST.IOU.TYPE.CREATE && !(isNewManualExpenseFlow && isUserInRecipients);
     const supportsNegativeAmounts = isExpenseReportType || isGroupPolicyType || isSelfDMReport || isCreatingNewIOU || isFirstTimeCreatingReport;
 
     const isExcludedType = iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.INVOICE;
@@ -5925,7 +5931,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
     }
 
     if (isInvoiceRoom(report)) {
-        const invoiceReceiverPolicyID = report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report?.invoiceReceiver?.policyID : undefined;
+        const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
         formattedName = getInvoicesChatName({
             report,
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -6142,7 +6148,7 @@ function getParentNavigationSubtitle(
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         const senderWorkspaceName = getPolicyName({report: parentReport, policy});
-        const invoiceReceiverPolicyID = parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? parentReport.invoiceReceiver.policyID : undefined;
+        const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(parentReport);
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
         const invoicePayerName = getInvoicePayerName(parentReport, invoiceReceiverPolicy);
@@ -11180,24 +11186,57 @@ function getTripIDFromTransactionParentReportID(transactionParentReportID: strin
     return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
 }
 
+/** Precomputed report-action error state used to make per-transaction RBR checks O(1). */
+type ActionErrorsByTransaction = {
+    /** A non-money-request action (or money-request action without an IOUTransactionID) has errors, flagging every transaction. */
+    hasGlobalActionError: boolean;
+
+    /** Transaction IDs of money-request actions whose `IOUTransactionID` has errors. */
+    transactionIDsWithActionError: Set<string>;
+};
+
+/**
+ * Computes report-action error state in a single pass so that per-transaction RBR checks become O(1) lookups
+ * instead of re-scanning every report action for every transaction (O(transactions × actions)).
+ *
+ * - `hasGlobalActionError`: a non-money-request action (or money-request action without an IOUTransactionID) has
+ *   errors. This flags every transaction, matching the original `.some()` fall-through behavior.
+ * - `transactionIDsWithActionError`: money-request actions whose `IOUTransactionID` has errors, keyed by transaction.
+ */
+function getActionErrorsByTransaction(reportID: string | undefined, reportActions: OnyxEntry<ReportActions> | undefined): ActionErrorsByTransaction {
+    const transactionIDsWithActionError = new Set<string>();
+    if (!reportID) {
+        return {hasGlobalActionError: false, transactionIDsWithActionError};
+    }
+    let hasGlobalActionError = false;
+    for (const action of Object.values(reportActions ?? {})) {
+        if (!action || isEmptyValueObject(action.errors)) {
+            continue;
+        }
+        const iouTransactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+        if (iouTransactionID) {
+            transactionIDsWithActionError.add(iouTransactionID);
+        } else {
+            hasGlobalActionError = true;
+        }
+    }
+    return {hasGlobalActionError, transactionIDsWithActionError};
+}
+
 /**
  * Checks if report contains actions with errors
  */
-function hasActionWithErrorsForTransaction(reportID: string | undefined, transaction: Transaction | undefined, reportActions: OnyxEntry<ReportActions> | undefined): boolean {
+function hasActionWithErrorsForTransaction(
+    reportID: string | undefined,
+    transaction: Transaction | undefined,
+    reportActions: OnyxEntry<ReportActions> | undefined,
+    actionErrors?: ActionErrorsByTransaction,
+): boolean {
     if (!reportID) {
         return false;
     }
-    return Object.values(reportActions ?? {})
-        .filter(Boolean)
-        .some((action) => {
-            if (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) {
-                if (getOriginalMessage(action)?.IOUTransactionID === transaction?.transactionID) {
-                    return !isEmptyValueObject(action.errors);
-                }
-                return false;
-            }
-            return !isEmptyValueObject(action.errors);
-        });
+    const {hasGlobalActionError, transactionIDsWithActionError} = actionErrors ?? getActionErrorsByTransaction(reportID, reportActions);
+    return hasGlobalActionError || (!!transaction?.transactionID && transactionIDsWithActionError.has(transaction.transactionID));
 }
 
 function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
@@ -13334,6 +13373,7 @@ export {
     getAllWorkspaceReports,
     getAvailableReportFields,
     getBankAccountRoute,
+    getInvoiceReceiverPolicyID,
     getChatByParticipants,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
@@ -13406,6 +13446,7 @@ export {
     getHarvestOriginalReportID,
     getPayeeName,
     getPolicyIDsWithEmptyReportsForAccount,
+    getActionErrorsByTransaction,
     hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,
     hasEmptyReportsForPolicy,
@@ -13643,4 +13684,5 @@ export type {
     SelfDMParameters,
     OptimisticReportAction,
     CreateDraftTransactionParams,
+    ActionErrorsByTransaction,
 };
