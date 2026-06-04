@@ -6437,6 +6437,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             exportCompanyCard: 'Exportar despesas de cartão corporativo como',
             exportDate: 'Data de exportação',
             defaultVendor: 'Fornecedor padrão',
+            defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',
             autoSyncDescription: 'Sincronize NetSuite e Expensify automaticamente, todos os dias. Exporte relatórios finalizados em tempo real',
             reimbursedReports: 'Sincronizar relatórios reembolsados',

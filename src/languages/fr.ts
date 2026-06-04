@@ -6494,6 +6494,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             exportCompanyCard: 'Exporter les dépenses de carte d’entreprise en tant que',
             exportDate: 'Date d’exportation',
             defaultVendor: 'Fournisseur par défaut',
+            defaultAccount: 'Compte par défaut',
             autoSync: 'Synchronisation automatique',
             autoSyncDescription: 'Synchronisez automatiquement NetSuite et Expensify, chaque jour. Exportez les notes de frais finalisées en temps réel',
             reimbursedReports: 'Synchroniser les notes de frais remboursées',

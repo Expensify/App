@@ -6459,6 +6459,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             exportCompanyCard: 'Esporta le spese con carta aziendale come',
             exportDate: 'Data di esportazione',
             defaultVendor: 'Fornitore predefinito',
+            defaultAccount: 'Conto predefinito',
             autoSync: 'Sincronizzazione automatica',
             autoSyncDescription: 'Sincronizza automaticamente NetSuite ed Expensify ogni giorno. Esporta i report finalizzati in tempo reale',
             reimbursedReports: 'Sincronizza i report rimborsati',
