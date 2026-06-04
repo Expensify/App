@@ -12,7 +12,8 @@ import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Victory
 function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null): PartialProcessNodeResult {
     const isHorizontal = rootProcessedResult?.isHorizontal;
     const categories = rootProcessedResult?.categories;
-    const points = parseAttribute<RawChartData[]>(tnode.attributes.data) ?? [];
+    const rawPoints = parseAttribute<RawChartData[]>(tnode.attributes.data);
+    const points = (Array.isArray(rawPoints) ? rawPoints : []).filter((point): point is RawChartData => typeof point === 'object' && point !== null);
     const yKey = getYKey(tnode);
     const data: Record<string, CartesianChartData> = {};
     for (const point of points) {

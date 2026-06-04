@@ -17,12 +17,15 @@ function parseVictoryLegendNode(tnode: TNode): PartialProcessNodeResult {
     const fontWeight = style?.labels?.fontWeight !== undefined ? normalizeChartFontWeight(style.labels.fontWeight) : undefined;
     const fontFamily = style?.labels?.fontFamily;
     const fontStyle = style?.labels?.fontStyle;
-    const entries: LegendItemEntry[] = (parseAttribute<RawLegendData[]>(tnode.attributes.data) ?? []).map((entry) => {
-        const text = entry.name;
-        const symbolColor = entry.symbol?.fill;
-        const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : undefined;
-        return {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize};
-    });
+    const rawData = parseAttribute<RawLegendData[]>(tnode.attributes.data);
+    const entries: LegendItemEntry[] = (Array.isArray(rawData) ? rawData : [])
+        .filter((entry): entry is RawLegendData => typeof entry === 'object' && entry !== null)
+        .map((entry) => {
+            const text = entry.name;
+            const symbolColor = entry.symbol?.fill;
+            const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : undefined;
+            return {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize};
+        });
     const legendItem: LegendItem = {x, y, entries, gutter, symbolSpacer};
     return {legendItems: [legendItem]};
 }

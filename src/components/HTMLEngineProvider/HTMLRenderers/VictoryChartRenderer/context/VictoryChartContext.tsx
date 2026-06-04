@@ -33,7 +33,16 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
     const typefaces = useChartTypefaces();
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
+
+    let processedResult: ProcessNodeResult;
+    try {
+        processedResult = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
+    } catch {
+        // Malformed chart HTML can make a parser throw. Fail closed (render nothing) instead of crashing the whole report.
+        return null;
+    }
+
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
 
     const hasCartesianData = Object.values(data).some((entry) => X_KEY in entry);
