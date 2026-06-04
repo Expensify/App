@@ -9,7 +9,6 @@ import type Response from '@src/types/onyx/Response';
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
-import {AUTHENTICATION_COMMAND} from './API/types';
 import {getAuthenticateErrorMessage} from './ErrorUtils';
 import Log from './Log';
 import {post} from './Network';
@@ -65,7 +64,7 @@ Onyx.connectWithoutView({
 });
 
 function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Response<TKey> | void> {
-    const commandName = AUTHENTICATION_COMMAND;
+    const commandName = 'Authenticate';
 
     try {
         requireParameters(['partnerName', 'partnerPassword', 'partnerUserID', 'partnerUserSecret'], parameters, commandName);
@@ -73,7 +72,7 @@ function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Res
         const errorMessage = (error as Error).message;
         trackAuthenticationError(error as Error, {
             errorType: 'missing_params',
-            functionName: AUTHENTICATION_COMMAND,
+            functionName: 'Authenticate',
             commandName,
             providedParameters: Object.keys(parameters),
         });
