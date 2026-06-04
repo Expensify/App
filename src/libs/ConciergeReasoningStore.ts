@@ -3,6 +3,7 @@
  * agentAccountID)` so each agent in a room keeps its own reasoning history. This data is
  * transient UI feedback and is NOT persisted to Onyx.
  */
+import getAgentStoreKey from '@libs/AgentZeroStoreUtils';
 
 type ReasoningEntry = {
     reasoning: string;
@@ -32,11 +33,6 @@ const listeners = new Set<Listener>();
 // otherwise React will re-render infinitely.
 const EMPTY_ENTRIES: ReasoningEntry[] = [];
 
-/** Composite Map key. Agent accountIDs are numeric, so `:` never appears in either part. */
-function getKey(reportID: string, agentAccountID: number): string {
-    return `${reportID}:${agentAccountID}`;
-}
-
 /**
  * Notify all subscribers of state changes
  */
@@ -57,7 +53,7 @@ function addReasoning(reportID: string, agentAccountID: number, data: ReasoningD
         return;
     }
 
-    const key = getKey(reportID, agentAccountID);
+    const key = getAgentStoreKey(reportID, agentAccountID);
     const currentState = store.get(key);
 
     // If agentZeroRequestID differs, reset all entries (new request)
@@ -101,7 +97,7 @@ function addReasoning(reportID: string, agentAccountID: number, data: ReasoningD
  * Called when that agent's final message arrives.
  */
 function clearReasoning(reportID: string, agentAccountID: number) {
-    store.delete(getKey(reportID, agentAccountID));
+    store.delete(getAgentStoreKey(reportID, agentAccountID));
     notifyListeners(reportID, agentAccountID, []);
 }
 
@@ -124,7 +120,7 @@ function clearReportReasoning(reportID: string) {
  * Get the reasoning history for an agent in a report
  */
 function getReasoningHistory(reportID: string, agentAccountID: number): ReasoningEntry[] {
-    return store.get(getKey(reportID, agentAccountID))?.entries ?? EMPTY_ENTRIES;
+    return store.get(getAgentStoreKey(reportID, agentAccountID))?.entries ?? EMPTY_ENTRIES;
 }
 
 /**

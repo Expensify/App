@@ -9,6 +9,7 @@
  * Transient by nature: cleared on reply detection, safety timeout, reconnect, or by the
  * caller. Not persisted to Onyx.
  */
+import getAgentStoreKey from '@libs/AgentZeroStoreUtils';
 
 /** Upper bound on how long an optimistic entry stays valid without a server label or reply. */
 const MAX_AGE_MS = 120000;
@@ -38,11 +39,6 @@ type Listener = (reportID: string, agentAccountID: number) => void;
 const store = new Map<string, OptimisticEntry>();
 const listeners = new Set<Listener>();
 
-/** Composite Map key. Agent accountIDs are numeric, so `:` never appears in either part. */
-function getKey(reportID: string, agentAccountID: number): string {
-    return `${reportID}:${agentAccountID}`;
-}
-
 function notifyListeners(reportID: string, agentAccountID: number) {
     for (const listener of listeners) {
         listener(reportID, agentAccountID);
@@ -59,7 +55,7 @@ function isFresh(entry: OptimisticEntry): boolean {
  * will evict them. Callers that care about cleanup can call `clear` imperatively.
  */
 function getEntry(reportID: string, agentAccountID: number): OptimisticEntry | undefined {
-    const entry = store.get(getKey(reportID, agentAccountID));
+    const entry = store.get(getAgentStoreKey(reportID, agentAccountID));
     if (!entry) {
         return undefined;
     }
@@ -77,7 +73,7 @@ function getEntry(reportID: string, agentAccountID: number): OptimisticEntry | u
  * resets the 120s timer.
  */
 function increment(reportID: string, agentAccountID: number, baselineActionID: string | null) {
-    const key = getKey(reportID, agentAccountID);
+    const key = getAgentStoreKey(reportID, agentAccountID);
     const existing = store.get(key);
     const now = Date.now();
     if (existing && isFresh(existing)) {
@@ -98,7 +94,7 @@ function increment(reportID: string, agentAccountID: number, baselineActionID: s
 
 /** Drop optimistic state for an agent in a report. Safe to call when no entry exists. */
 function clear(reportID: string, agentAccountID: number) {
-    const key = getKey(reportID, agentAccountID);
+    const key = getAgentStoreKey(reportID, agentAccountID);
     if (!store.has(key)) {
         return;
     }
