@@ -46,7 +46,7 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    // TODO: Pass personalDetailsList once findLastAccessedReport callers are fully migrated (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to module-level Onyx value
+    // TODO: Pass guidesEmailsByReport map once callers are fully migrated (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails which uses module-level Onyx value
     const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, undefined, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, archivedReportsIdSet);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 

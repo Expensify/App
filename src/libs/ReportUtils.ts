@@ -2276,7 +2276,7 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    guidesEmailsByReport: Record<string, boolean> | undefined,
     openOnAdminRoom = false,
     excludeReportID?: string,
     archivedReportsIdSet?: ArchivedReportsIDSet,
@@ -2304,7 +2304,11 @@ function findLastAccessedReport(
             // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
             // Check where findLastAccessedReport is called in MainDrawerNavigator.js for more context.
             // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-            if (ignoreDomainRooms && isDomainRoom(report) && !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), personalDetailsList)) {
+            if (
+                ignoreDomainRooms &&
+                isDomainRoom(report) &&
+                !((report?.reportID && guidesEmailsByReport?.[report.reportID]) ?? hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined))
+            ) {
                 return false;
             }
 

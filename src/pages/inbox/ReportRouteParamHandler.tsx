@@ -35,7 +35,7 @@ function ReportRouteParamHandler() {
             return;
         }
 
-        // TODO: Pass personalDetailsList once findLastAccessedReport callers are fully migrated (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to module-level Onyx value
+        // TODO: Pass guidesEmailsByReport map once callers are fully migrated (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails which uses module-level Onyx value
         const lastAccessedReportID = findLastAccessedReport(
             !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             undefined,
