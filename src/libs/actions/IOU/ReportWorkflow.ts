@@ -1312,7 +1312,7 @@ function submitReport({
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
     const managerID = getSubmitReportManagerAccountID(policy, expenseReport);
-    const optimisticNextStepApproverID = !isSubmitAndClosePolicy && isValidAccountRoute(managerID ?? CONST.DEFAULT_NUMBER_ID) ? managerID : undefined;
+    const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
         expenseReport?.total ?? 0,
