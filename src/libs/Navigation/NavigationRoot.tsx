@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import FS from '@libs/Fullstory';
+import {buildPageViewedEvent, trackFullstoryEvent} from '@libs/Fullstory/utils';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
@@ -98,6 +99,7 @@ function parseAndLogRoute(state: NavigationState) {
     const focusedRouteName = focusedRoute?.name;
     if (focusedRouteName) {
         new FS.Page(focusedRouteName, {path: currentPath}).start();
+        trackFullstoryEvent('Page_viewed', buildPageViewedEvent(focusedRouteName, currentPath));
     }
 }
 
