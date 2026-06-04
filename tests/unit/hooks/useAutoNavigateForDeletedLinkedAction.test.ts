@@ -11,7 +11,7 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
     describe('initial render', () => {
         it('should not call navigateToEndOfReport when both conditions are false on initial render', () => {
             // Given both conditions are false
-            renderHook(() => useAutoNavigateForDeletedLinkedAction(false, false, navigateToEndOfReport));
+            renderHook(() => useAutoNavigateForDeletedLinkedAction(false, navigateToEndOfReport));
 
             // Then no navigation occurs
             expect(navigateToEndOfReport).not.toHaveBeenCalled();
@@ -19,7 +19,7 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
 
         it('should call navigateToEndOfReport when both conditions are true on initial render', () => {
             // Given a deleted linked action is detected immediately (e.g. deep link to deleted action)
-            renderHook(() => useAutoNavigateForDeletedLinkedAction(true, true, navigateToEndOfReport));
+            renderHook(() => useAutoNavigateForDeletedLinkedAction(true, navigateToEndOfReport));
 
             // Then auto-navigates to end of report
             expect(navigateToEndOfReport).toHaveBeenCalledTimes(1);
@@ -27,7 +27,7 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
 
         it('should not call navigateToEndOfReport when shouldShowNotFoundLinkedAction is true but shouldShowNotFoundPage is false', () => {
             // Given linked action is not found but not-found page should not be shown (e.g. still loading)
-            renderHook(() => useAutoNavigateForDeletedLinkedAction(false, true, navigateToEndOfReport));
+            renderHook(() => useAutoNavigateForDeletedLinkedAction(true, navigateToEndOfReport));
 
             // Then no navigation - page is still loading or in a transitional state
             expect(navigateToEndOfReport).not.toHaveBeenCalled();
@@ -35,7 +35,7 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
 
         it('should not call navigateToEndOfReport when shouldShowNotFoundPage is true but shouldShowNotFoundLinkedAction is false', () => {
             // Given not-found page should be shown but not because of a linked action
-            renderHook(() => useAutoNavigateForDeletedLinkedAction(true, false, navigateToEndOfReport));
+            renderHook(() => useAutoNavigateForDeletedLinkedAction(false, navigateToEndOfReport));
 
             // Then no navigation - the not-found page is shown for a different reason (e.g. invalid report path)
             expect(navigateToEndOfReport).not.toHaveBeenCalled();
@@ -45,11 +45,9 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
     describe('transitions', () => {
         it('should call navigateToEndOfReport when shouldShowNotFoundLinkedAction transitions from false to true', () => {
             // Given initially no deleted linked action
-            const {rerender} = renderHook(
-                ({shouldShowNotFoundPage, shouldShowNotFoundLinkedAction}) =>
-                    useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundPage, shouldShowNotFoundLinkedAction, navigateToEndOfReport),
-                {initialProps: {shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: false}},
-            );
+            const {rerender} = renderHook(({shouldShowNotFoundLinkedAction}) => useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction, navigateToEndOfReport), {
+                initialProps: {shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: false},
+            });
             expect(navigateToEndOfReport).not.toHaveBeenCalled();
 
             // When linked action becomes not found (and not-found page would show)
@@ -61,11 +59,9 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
 
         it('should not call navigateToEndOfReport when shouldShowNotFoundLinkedAction transitions from true to false', () => {
             // Given a deleted linked action was detected
-            const {rerender} = renderHook(
-                ({shouldShowNotFoundPage, shouldShowNotFoundLinkedAction}) =>
-                    useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundPage, shouldShowNotFoundLinkedAction, navigateToEndOfReport),
-                {initialProps: {shouldShowNotFoundPage: true, shouldShowNotFoundLinkedAction: true}},
-            );
+            const {rerender} = renderHook(({shouldShowNotFoundLinkedAction}) => useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction, navigateToEndOfReport), {
+                initialProps: {shouldShowNotFoundPage: true, shouldShowNotFoundLinkedAction: true},
+            });
             // Clear the initial call
             navigateToEndOfReport.mockClear();
 
@@ -78,11 +74,9 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
 
         it('should not call navigateToEndOfReport when shouldShowNotFoundLinkedAction transitions to true but shouldShowNotFoundPage stays false', () => {
             // Given initially no deleted linked action
-            const {rerender} = renderHook(
-                ({shouldShowNotFoundPage, shouldShowNotFoundLinkedAction}) =>
-                    useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundPage, shouldShowNotFoundLinkedAction, navigateToEndOfReport),
-                {initialProps: {shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: false}},
-            );
+            const {rerender} = renderHook(({shouldShowNotFoundLinkedAction}) => useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction, navigateToEndOfReport), {
+                initialProps: {shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: false},
+            });
 
             // When linked action is not found but not-found page should not show (e.g. loading)
             rerender({shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: true});
@@ -93,11 +87,9 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
 
         it('should call navigateToEndOfReport only once when shouldShowNotFoundLinkedAction stays true across rerenders', () => {
             // Given a deleted linked action detected
-            const {rerender} = renderHook(
-                ({shouldShowNotFoundPage, shouldShowNotFoundLinkedAction}) =>
-                    useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundPage, shouldShowNotFoundLinkedAction, navigateToEndOfReport),
-                {initialProps: {shouldShowNotFoundPage: true, shouldShowNotFoundLinkedAction: true}},
-            );
+            const {rerender} = renderHook(({shouldShowNotFoundLinkedAction}) => useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction, navigateToEndOfReport), {
+                initialProps: {shouldShowNotFoundPage: true, shouldShowNotFoundLinkedAction: true},
+            });
             expect(navigateToEndOfReport).toHaveBeenCalledTimes(1);
 
             // When component rerenders with same values (e.g. parent rerenders)
@@ -112,11 +104,9 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
     describe('dependency behavior', () => {
         it('should only react to shouldShowNotFoundLinkedAction changes, not shouldShowNotFoundPage changes', () => {
             // Given both conditions initially false
-            const {rerender} = renderHook(
-                ({shouldShowNotFoundPage, shouldShowNotFoundLinkedAction}) =>
-                    useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundPage, shouldShowNotFoundLinkedAction, navigateToEndOfReport),
-                {initialProps: {shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: false}},
-            );
+            const {rerender} = renderHook(({shouldShowNotFoundLinkedAction}) => useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction, navigateToEndOfReport), {
+                initialProps: {shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: false},
+            });
 
             // When only shouldShowNotFoundPage changes (e.g. report becomes not found for other reasons)
             rerender({shouldShowNotFoundPage: true, shouldShowNotFoundLinkedAction: false});
@@ -127,11 +117,9 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
 
         it('should call navigateToEndOfReport on each false-to-true transition of shouldShowNotFoundLinkedAction', () => {
             // Given initially no deleted linked action
-            const {rerender} = renderHook(
-                ({shouldShowNotFoundPage, shouldShowNotFoundLinkedAction}) =>
-                    useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundPage, shouldShowNotFoundLinkedAction, navigateToEndOfReport),
-                {initialProps: {shouldShowNotFoundPage: true, shouldShowNotFoundLinkedAction: false}},
-            );
+            const {rerender} = renderHook(({shouldShowNotFoundLinkedAction}) => useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction, navigateToEndOfReport), {
+                initialProps: {shouldShowNotFoundPage: true, shouldShowNotFoundLinkedAction: false},
+            });
             expect(navigateToEndOfReport).not.toHaveBeenCalled();
 
             // First transition: linked action not found
