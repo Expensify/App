@@ -7,20 +7,18 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import variables from '@styles/variables';
 
+type EnterAnimation = {kind: 'slide-and-fade'; distancePx: number} | {kind: 'slide-from-width'} | {kind: 'fade'} | {kind: 'none'};
+
 type ModalCardStyleInterpolatorProps = {
-    isOnboardingModal?: boolean;
-    isFullScreenModal?: boolean;
-    shouldFadeScreen?: boolean;
-    shouldAnimateSidePanel?: boolean;
     props: StackCardInterpolationProps;
-    outputRangeMultiplier?: Animated.AnimatedNode;
-    animationEnabled?: boolean;
+    enter: EnterAnimation;
+    applySidePanelOffset?: boolean;
 };
 
 type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => StackCardInterpolatedStyle;
 
 const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
-    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
 
@@ -30,50 +28,47 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
             inverted,
             layouts: {screen},
         },
-        isOnboardingModal = false,
-        isFullScreenModal = false,
-        shouldFadeScreen = false,
-        shouldAnimateSidePanel = false,
-        outputRangeMultiplier = 1,
-        animationEnabled = true,
+        enter,
+        applySidePanelOffset = false,
     }) => {
-        if (isOnboardingModal ? onboardingIsMediumOrLargerScreenWidth : shouldFadeScreen) {
-            return {
-                cardStyle: {opacity: progress},
-            };
-        }
-
-        const translateX = Animated.multiply(
-            Animated.multiply(
-                progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [shouldUseNarrowLayout ? screen.width : variables.sideBarWidth, 0],
-                    extrapolate: 'clamp',
-                }),
-                outputRangeMultiplier,
-            ),
-            inverted,
-        );
-
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
-        // Screen should animate if:
-        // 1. The animation is enabled
-        // 2. The modal is not a full screen on wide layout
-        // 3. The side panel transition is in progress on narrow layout
-        const shouldAnimate = animationEnabled && (!isFullScreenModal || shouldUseNarrowLayout) && (isSidePanelTransitionEnded || !!sidePanelNVP?.openNarrowScreen || !shouldUseNarrowLayout);
-        if (shouldAnimate) {
-            cardStyle.transform = [{translateX}];
-        }
-
-        if (shouldAnimateSidePanel) {
+        if (applySidePanelOffset) {
             cardStyle.paddingRight = sidePanelOffset.current;
         }
 
+        // Suppress card entry animation while the side panel is mid-transition on narrow layout — keeps the
+        // existing behavior that prevents a janky double-animation when the side panel slides in/out.
+        const sidePanelGateAllowsEntry = isSidePanelTransitionEnded || !!sidePanelNVP?.openNarrowScreen || !shouldUseNarrowLayout;
+
+        if (enter.kind === 'none' || !sidePanelGateAllowsEntry) {
+            return {containerStyle: {overflow: 'hidden'}, cardStyle};
+        }
+
+        if (enter.kind === 'fade') {
+            return {cardStyle: {...cardStyle, opacity: progress}};
+        }
+
+        const widthFallback = shouldUseNarrowLayout ? screen.width : variables.sideBarWidth;
+        const distancePx = enter.kind === 'slide-and-fade' ? enter.distancePx : widthFallback;
+
+        const translateX = Animated.multiply(
+            progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [distancePx, 0],
+                extrapolate: 'clamp',
+            }),
+            inverted,
+        );
+
+        cardStyle.transform = [{translateX}];
+
+        if (enter.kind === 'slide-and-fade') {
+            cardStyle.opacity = progress;
+        }
+
         return {
-            containerStyle: {
-                overflow: 'hidden',
-            },
+            containerStyle: {overflow: 'hidden'},
             cardStyle,
         };
     };
@@ -81,4 +76,5 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     return modalCardStyleInterpolator;
 };
 
+export type {EnterAnimation};
 export default useModalCardStyleInterpolator;

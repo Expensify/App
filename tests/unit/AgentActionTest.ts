@@ -8,10 +8,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 jest.mock('@libs/API');
-jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 
 const mockWrite = jest.mocked(write);
-const mockNavigate = jest.mocked(Navigation.navigate);
+const mockGoBack = jest.mocked(Navigation.goBack);
 
 function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; successData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]} {
     const options = mockWrite.mock.calls.at(0)?.at(2);
@@ -21,12 +21,12 @@ function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; successData: AnyOn
     return options as {optimisticData: AnyOnyxUpdate[]; successData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]};
 }
 
-function getOptimisticAccountID(optimisticData: AnyOnyxUpdate[]): string {
+function getOptimisticAccountID(optimisticData: AnyOnyxUpdate[]): number {
     const personalDetailUpdate = optimisticData.find((u) => u.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
     if (!personalDetailUpdate?.value || typeof personalDetailUpdate.value !== 'object') {
         throw new Error('No personal detail update in optimisticData');
     }
-    return Object.keys(personalDetailUpdate.value as Record<string, unknown>).at(0) ?? '';
+    return Number(Object.keys(personalDetailUpdate.value as Record<string, unknown>).at(0));
 }
 
 describe('createAgent', () => {
@@ -37,22 +37,22 @@ describe('createAgent', () => {
     it('calls write with CREATE_AGENT command and provided params', () => {
         createAgent('My Agent', 'Reject gambling expenses.');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, {firstName: 'My Agent', prompt: 'Reject gambling expenses.'}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'My Agent', prompt: 'Reject gambling expenses.'}), expect.any(Object));
     });
 
     it('passes undefined firstName through unchanged', () => {
         createAgent(undefined, 'Some prompt');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, {firstName: undefined, prompt: 'Some prompt'}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: undefined, prompt: 'Some prompt'}), expect.any(Object));
     });
 
-    it('optimistic personal detail entry has a negative account ID', () => {
+    it('optimistic personal detail entry has a positive account ID from generateReportID', () => {
         createAgent('Bot', 'My prompt');
 
         const {optimisticData} = getWriteOptions();
         const accountID = getOptimisticAccountID(optimisticData);
 
-        expect(Number(accountID)).toBeLessThan(0);
+        expect(Number(accountID)).toBeGreaterThan(0);
     });
 
     it('optimistic personal detail entry stores displayName and marks entry as optimistic', () => {
@@ -97,14 +97,18 @@ describe('createAgent', () => {
     it('passes customExpensifyAvatarID to write params when provided', () => {
         createAgent('Bot', 'My prompt', 'bot-avatar--blue');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, {firstName: 'Bot', prompt: 'My prompt', customExpensifyAvatarID: 'bot-avatar--blue'}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(
+            WRITE_COMMANDS.CREATE_AGENT,
+            expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', customExpensifyAvatarID: 'bot-avatar--blue'}),
+            expect.any(Object),
+        );
     });
 
     it('passes file to write params when provided', () => {
         const mockFile = {uri: 'file://photo.jpg', name: 'photo.jpg'} as unknown as File;
         createAgent('Bot', 'My prompt', undefined, mockFile, 'file://photo.jpg');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, {firstName: 'Bot', prompt: 'My prompt', file: mockFile}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', file: mockFile}), expect.any(Object));
     });
 
     it('uploads file in the CREATE_AGENT call itself — no separate UPDATE_AGENT_AVATAR write', () => {
@@ -157,6 +161,60 @@ describe('createAgent', () => {
         expect(entry.avatarThumbnail).toBeUndefined();
     });
 
+    it('forwards policyID in the write params when provided', () => {
+        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', policyID: 'POLICY_42'}), expect.any(Object));
+    });
+
+    it('returns the optimistic accountID and avatarURI so callers can chain follow-up navigation', () => {
+        const result = createAgent('Bot', 'My prompt', 'bot-avatar--blue');
+
+        expect(result.optimisticAccountID).toEqual(expect.any(Number));
+        expect(result.optimisticAccountID).toBeGreaterThan(0);
+        expect(result.avatarURI).toBeTruthy();
+    });
+
+    it('mirrors pending/error state onto the policy so the workspace shows a brick road indicator', () => {
+        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}POLICY_42`;
+        const addAgentKey = CONST.POLICY.COLLECTION_KEYS.ADD_AGENT;
+
+        const optimisticPolicy = optimisticData.find((u) => u.key === policyKey);
+        expect((optimisticPolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        expect((optimisticPolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeNull();
+
+        const successPolicy = successData.find((u) => u.key === policyKey);
+        expect((successPolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBeNull();
+        expect((successPolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeNull();
+
+        const failurePolicy = failureData.find((u) => u.key === policyKey);
+        expect((failurePolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBeNull();
+        expect((failurePolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeTruthy();
+    });
+
+    it('does not touch the policy when no policyID is provided', () => {
+        createAgent('Bot', 'My prompt');
+
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        const allKeys: string[] = [...optimisticData, ...successData, ...failureData].map((u) => String(u.key));
+
+        expect(allKeys.some((k) => k.startsWith(ONYXKEYS.COLLECTION.POLICY))).toBe(false);
+    });
+
+    it('omits login on the optimistic personal detail entry — the real email is server-assigned', () => {
+        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+
+        const {optimisticData} = getWriteOptions();
+        const personalDetailUpdate = optimisticData.find((u) => u.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+        const accountID = getOptimisticAccountID(optimisticData);
+        const entry = (personalDetailUpdate?.value as Record<string, unknown>)?.[accountID] as Record<string, unknown>;
+
+        expect(entry.login).toBeUndefined();
+    });
+
     it('does not merge ADD_AGENT_FORM (navigation handles UX after submit)', () => {
         createAgent('Bot', 'My prompt');
 
@@ -180,6 +238,24 @@ describe('createAgent', () => {
         expect(promptRollback?.value).toBeNull();
     });
 
+    it('passes the optimistic accountID through to the server so it can echo a real-ID mapping', () => {
+        const result = createAgent('Bot', 'My prompt');
+
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticAccountID: String(result.optimisticAccountID)}), expect.any(Object));
+    });
+
+    it('success and failure data clear the optimistic→real ID mapping entry', () => {
+        const result = createAgent('Bot', 'My prompt');
+        const {successData, failureData} = getWriteOptions();
+        const optID = String(result.optimisticAccountID);
+
+        const successMappingUpdate = successData.find((u) => u.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+        const failureMappingUpdate = failureData.find((u) => u.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+
+        expect((successMappingUpdate?.value as Record<string, unknown>)[optID]).toBeNull();
+        expect((failureMappingUpdate?.value as Record<string, unknown>)[optID]).toBeNull();
+    });
+
     it('failure data preserves optimistic personal detail and merges errors onto the prompt entry', () => {
         createAgent('Bot', 'My prompt');
 
@@ -190,7 +266,7 @@ describe('createAgent', () => {
         const promptRollback = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
         expect((personalDetailRollback?.value as Record<string, unknown>)[accountID]).toMatchObject({
-            accountID: Number(accountID),
+            accountID,
             displayName: 'Bot',
             isOptimisticPersonalDetail: true,
         });
@@ -386,10 +462,10 @@ describe('deleteAgent', () => {
         expect((promptUpdate?.value as Record<string, unknown>)?.errors).toBeTruthy();
     });
 
-    it('calls Navigation.navigate after issuing the write', () => {
+    it('calls Navigation.goBack after issuing the write', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 });
 

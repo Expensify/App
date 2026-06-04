@@ -236,4 +236,184 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
     });
+
+    describe('action badge above viewport tracking', () => {
+        const onTrackScrollingMockFn = jest.fn();
+
+        it('returns isActionBadgeAboveViewport as false initially', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: readActionRefFalse,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    hasOnceLoadedReportActions: true,
+                    isInverted: true,
+                    actionBadgeTargetIndex: -1,
+                }),
+            );
+
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
+
+        it('returns isActionBadgeAboveViewport as true when action badge target is above the viewport in inverted list', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: readActionRefFalse,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    hasOnceLoadedReportActions: true,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 5,
+                }),
+            );
+
+            // When viewable items are at indexes 0-3, the target at index 5 is above the viewport (higher index = above in inverted list)
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 0, key: 'reportActions_0', isViewable: true, item: {}},
+                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
+                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}},
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
+        });
+
+        it('returns isActionBadgeAboveViewport as false when action badge target is visible in viewport', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: readActionRefFalse,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    hasOnceLoadedReportActions: true,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 2,
+                }),
+            );
+
+            // When viewable items include index 2, the target is visible
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
+                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}},
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
+
+        it('returns isActionBadgeAboveViewport as false when there is no action badge target', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: readActionRefFalse,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    hasOnceLoadedReportActions: true,
+                    isInverted: true,
+                    actionBadgeTargetIndex: -1,
+                }),
+            );
+
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [{index: 0, key: 'reportActions_0', isViewable: true, item: {}}],
+                    changed: [],
+                });
+            });
+
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
+
+        it('preserves isActionBadgeAboveViewport when viewable items are briefly empty (FlashList scroll animation)', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: readActionRefFalse,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    hasOnceLoadedReportActions: true,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 5,
+                }),
+            );
+
+            // First, make the badge visible above viewport
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [{index: 0, key: 'reportActions_0', isViewable: true, item: {}}],
+                    changed: [],
+                });
+            });
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
+
+            // When viewable items are briefly empty (FlashList internal behavior during scroll), state should be preserved
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [], changed: []});
+            });
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
+        });
+
+        it('recalculates action badge visibility when actionBadgeTargetIndex changes', () => {
+            const offsetRef = {current: 0};
+            let actionBadgeTargetIndex = -1;
+            const {result, rerender} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: readActionRefFalse,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    hasOnceLoadedReportActions: true,
+                    isInverted: true,
+                    actionBadgeTargetIndex,
+                }),
+            );
+
+            // Set up viewable items first
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 0, key: 'reportActions_0', isViewable: true, item: {}},
+                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+
+            // Now set the target to an index above the viewport
+            actionBadgeTargetIndex = 5;
+            rerender({});
+
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
+        });
+    });
 });

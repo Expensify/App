@@ -68,7 +68,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
     };
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPath, {compareParams: false});
     }, [backPath]);
 
     const updateCardLimit = (newLimit: number) => {
@@ -105,7 +105,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
             const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
 
-            if (!Number(values.limit)) {
+            if (Number.isNaN(Number(values.limit))) {
                 errors.limit = translate('iou.error.invalidAmount');
             } else if (!Number.isInteger(Number(values.limit))) {
                 errors.limit = translate('iou.error.invalidIntegerAmount');

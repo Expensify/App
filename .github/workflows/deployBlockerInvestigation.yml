@@ -28,7 +28,7 @@ jobs:
       ISSUE_URL: ${{ github.event.issue.html_url || inputs.ISSUE_URL }}
     steps:
       - name: Checkout App repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           fetch-depth: 1
 

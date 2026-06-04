@@ -26,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1432,6 +1433,9 @@ function clearTaskErrors(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     isSelfTourViewed: boolean | undefined,
+    reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
+    currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
+    conciergePersonalDetail: OnyxEntry<PersonalDetails>,
 ) {
     const reportID = report?.reportID;
     if (!reportID) {
@@ -1442,7 +1446,19 @@ function clearTaskErrors(
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
+        navigateToConciergeChatAndDeleteReport(
+            reportID,
+            conciergeReportID,
+            currentUserAccountID,
+            introSelected,
+            isSelfTourViewed,
+            betas,
+            reportOwnerPersonalDetail,
+            currentUserPersonalDetail,
+            conciergePersonalDetail,
+            undefined,
+            undefined,
+        );
         return;
     }
 

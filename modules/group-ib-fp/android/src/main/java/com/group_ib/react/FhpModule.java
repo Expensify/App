@@ -3,6 +3,7 @@ package com.group_ib.react;
 import android.app.Activity;
 import android.os.Handler;
 import android.util.Log;
+import com.group_ib.react.BuildConfig;
 import androidx.annotation.NonNull;
 import main.java.com.group_ib.react.session.SessionEvents;
 import main.java.com.group_ib.react.session.SessionListenerImpl;
@@ -66,7 +67,9 @@ public class FhpModule extends ReactContextBaseJavaModule {
     super.initialize();
     final Activity activity = getCurrentActivity();
     try {
-      MobileSdk.enableDebugLogs();
+      if (BuildConfig.DEBUG) {
+        MobileSdk.enableDebugLogs();
+      }
       PackageCollectionModule.init();
       sdk = MobileSdk.init(activity != null ? activity : context);
       sdk.setSessionListener(sessionListener);

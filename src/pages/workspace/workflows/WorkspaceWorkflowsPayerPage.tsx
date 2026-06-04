@@ -360,7 +360,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                     return;
                                 }
                                 setShowErrorModal(false);
-                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas);
+                                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, personalDetails);
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',

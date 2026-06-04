@@ -23,7 +23,6 @@ jest.mock('@libs/actions/Search', () => ({
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
     approveMoneyRequestOnSearch: jest.fn(),
-    bulkDeleteReports: jest.fn(),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
@@ -132,13 +131,18 @@ let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
+    }),
+    useSearchResultsContext: () => ({
         currentSearchResults: undefined,
     }),
-    useSearchActionsContext: () => ({
+    useSearchQueryContext: () => ({
+        currentSearchKey: undefined,
+    }),
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         selectAllMatchingItems: mockSelectAllMatchingItems,
     }),
@@ -821,6 +825,46 @@ describe('useSearchBulkActions - duplicate option', () => {
                 }),
             }),
         );
+    });
+
+    it('should duplicate a grouped child transaction that only exists in selected transaction metadata', async () => {
+        const txnID = '1302';
+        const txn = {...createRandomTransaction(1), transactionID: txnID, reportID: 'report1', managedCard: false, category: 'Grouped child', amount: 9000};
+
+        mockSelectedTransactions = {
+            [txnID]: makeSelectedTransaction({reportID: 'report1', transaction: txn}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
+        });
+
+        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+
+        expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
+            expect.objectContaining({
+                transactionIDs: [txnID],
+                allTransactions: expect.objectContaining({
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`]: expect.objectContaining({transactionID: txnID, category: 'Grouped child', amount: 9000}),
+                }),
+            }),
+        );
+    });
+
+    it('should not show duplicate option for a grouped child managed-card transaction from selected transaction metadata', async () => {
+        const txnID = '1303';
+        const txn = {...createRandomTransaction(1), transactionID: txnID, reportID: 'report1', managedCard: true};
+
+        mockSelectedTransactions = {
+            [txnID]: makeSelectedTransaction({reportID: 'report1', transaction: txn}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
+
+        expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
     });
 
     it('should not show duplicate option for per-diem expense on non-default workspace', async () => {

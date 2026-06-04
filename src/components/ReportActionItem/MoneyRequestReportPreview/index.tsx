@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/core';
 import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -20,7 +21,7 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData';
+import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
@@ -30,15 +31,11 @@ function MoneyRequestReportPreview({
     policyID,
     chatReportID,
     action,
-    contextMenuAnchor,
     isHovered = false,
     isWhisper = false,
-    checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    shouldDisplayContextMenu = true,
     shouldShowBorder,
-    originalReportID,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -120,7 +117,11 @@ function MoneyRequestReportPreview({
     const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
         selector: hasOnceLoadedReportActionsSelector,
     });
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
+    const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
+        selector: pendingNewTransactionIDsSelector,
+    });
+    const isFocused = useIsFocused();
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
     const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
@@ -133,19 +134,16 @@ function MoneyRequestReportPreview({
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
-            contextMenuAnchor={contextMenuAnchor}
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
             containerStyles={transactionPreviewContainerStyles}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
             shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
-            originalReportID={originalReportID}
         />
     );
 
@@ -158,10 +156,8 @@ function MoneyRequestReportPreview({
             chatReport={chatReport}
             action={action}
             containerStyles={[reportPreviewStyles.componentStyle]}
-            contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
             isWhisper={isWhisper}
-            checkIfContextMenuActive={checkIfContextMenuActive}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
@@ -174,11 +170,9 @@ function MoneyRequestReportPreview({
             onWrapperLayout={onWrapperLayout}
             currentWidth={widths.currentWidth}
             reportPreviewStyles={reportPreviewStyles}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
             forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
-            originalReportID={originalReportID}
         />
     );
 }

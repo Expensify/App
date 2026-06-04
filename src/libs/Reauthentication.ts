@@ -9,6 +9,7 @@ import type Response from '@src/types/onyx/Response';
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
+import {AUTHENTICATION_COMMAND} from './API/types';
 import {getAuthenticateErrorMessage} from './ErrorUtils';
 import Log from './Log';
 import {post} from './Network';
@@ -36,13 +37,20 @@ let isSupportAuthTokenUsed = false;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
 
         Sentry.setUser({
             id: value?.accountID,
             email: value?.email,
         });
+    },
+});
+
+// Kept on a RAM-only key so an interrupted SignIn cannot persist a stuck `true` to IndexedDB and block all future reauth attempts.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+    callback: (value) => {
+        isAuthenticatingWithShortLivedToken = !!value;
     },
 });
 
@@ -57,7 +65,7 @@ Onyx.connectWithoutView({
 });
 
 function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Response<TKey> | void> {
-    const commandName = 'Authenticate';
+    const commandName = AUTHENTICATION_COMMAND;
 
     try {
         requireParameters(['partnerName', 'partnerPassword', 'partnerUserID', 'partnerUserSecret'], parameters, commandName);
@@ -65,7 +73,7 @@ function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Res
         const errorMessage = (error as Error).message;
         trackAuthenticationError(error as Error, {
             errorType: 'missing_params',
-            functionName: 'Authenticate',
+            functionName: AUTHENTICATION_COMMAND,
             commandName,
             providedParameters: Object.keys(parameters),
         });

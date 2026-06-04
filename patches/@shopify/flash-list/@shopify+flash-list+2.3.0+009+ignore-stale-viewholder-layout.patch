@@ -1,0 +1,29 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -316,7 +316,10 @@ function RecyclerView(props) {
+      */
+     const validateItemSize = useCallback((index, size) => {
+         var _a, _b, _c, _d;
+-        const layout = recyclerViewManager.getLayout(index);
++        const layout = recyclerViewManager.tryGetLayout(index);
++        if (layout === undefined) {
++            return;
++        }
+         const width = Math.max(Math.min(layout.width, (_a = layout.maxWidth) !== null && _a !== void 0 ? _a : Infinity), (_b = layout.minWidth) !== null && _b !== void 0 ? _b : 0);
+         const height = Math.max(Math.min(layout.height, (_c = layout.maxHeight) !== null && _c !== void 0 ? _c : Infinity), (_d = layout.minHeight) !== null && _d !== void 0 ? _d : 0);
+         if (areDimensionsNotEqual(width, size.width) ||
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+--- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+@@ -465,6 +465,9 @@ function RecyclerView<T>(props: RecyclerViewProps<T>) {
+   const validateItemSize = useCallback(
+     (index: number, size: RVDimension) => {
+-      const layout = recyclerViewManager.getLayout(index);
++      const layout = recyclerViewManager.tryGetLayout(index);
++      if (layout === undefined) {
++        return;
++      }
+       const width = Math.max(
+         Math.min(layout.width, layout.maxWidth ?? Infinity),
+         layout.minWidth ?? 0

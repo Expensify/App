@@ -8,7 +8,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
@@ -66,7 +66,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const {currentSearchResults: snapshot} = useSearchStateContext();
+    const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
@@ -162,11 +162,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         const snapshotData = snapshot.data as Record<string, unknown>;
         const transaction = snapshotData[transactionKey] as Transaction;
+        if (transaction.reportID !== reportIDFromRoute) {
+            return {snapshotTransaction: undefined, snapshotViolations: undefined};
+        }
+
         const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
         const violations = snapshotData[violationKey] as TransactionViolations | undefined;
 
         return {snapshotTransaction: transaction, snapshotViolations: violations};
-    }, [snapshot?.data, allReportTransactions]);
+    }, [snapshot?.data, allReportTransactions, reportIDFromRoute]);
 
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;

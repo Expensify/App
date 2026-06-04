@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFromGroupChat} from '@libs/actions/Report';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isGroupChatAdmin} from '@libs/ReportUtils';
@@ -25,7 +26,7 @@ import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -61,7 +62,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     };
 
     const navigateToProfile = () => {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
     };
 
     const openRoleSelectionModal = () => {

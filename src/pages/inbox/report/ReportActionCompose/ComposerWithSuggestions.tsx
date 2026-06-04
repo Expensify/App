@@ -11,8 +11,7 @@ import type {
     TextInputKeyPressEvent,
     TextInputScrollEvent,
 } from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -42,6 +41,7 @@ import type {Selection} from '@libs/focusComposerWithDelay/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
@@ -310,9 +310,9 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(initialText);
 
-    const {superWideRHPRouteKeys} = useWideRHPState();
-    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
-    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
+    // When SearchReport is stacked above another RHP (wide or super-wide), delay autofocus until after the transition completes to avoid animation jank
+    const shouldDelayAutoFocus = (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
@@ -750,12 +750,10 @@ function ComposerWithSuggestions({
         }
         delayedAutoFocusRouteKeyRef.current = route.key;
 
-        const task = InteractionManager.runAfterInteractions(() => {
-            focus(true);
-        });
+        const handle = TransitionTracker.runAfterTransitions({callback: () => focus(true)});
 
         return () => {
-            task?.cancel?.();
+            handle.cancel();
         };
     }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 

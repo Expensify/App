@@ -404,7 +404,7 @@ function WorkspaceTaxesPage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
                 )}
             </View>
-            {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {taxesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.taxes.findTaxRate')}
                     inputValue={inputValue}

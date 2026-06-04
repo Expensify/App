@@ -34,11 +34,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getPolicyTagsData} from './IOU';
-import type {UpdateMoneyRequestData} from './IOU';
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
+import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
-import type {UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 
 /**
  * Setup merge transaction data for merging flow
@@ -222,6 +221,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    delegateAccountID,
 }: {
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
@@ -235,6 +235,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    delegateAccountID: number | undefined;
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -261,6 +262,7 @@ function getOnyxTargetTransactionData({
             targetTransactionThreadReport?.reportID,
             filteredTransactionChanges,
             policy,
+            delegateAccountID,
             undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
         );
@@ -281,6 +283,7 @@ function getOnyxTargetTransactionData({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            delegateAccountID,
         });
     }
 
@@ -310,7 +313,7 @@ function getOnyxTargetTransactionData({
                     ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
                 },
                 routes: mergeTransaction.routes ?? null,
-                iouRequestType: mergeTransaction.iouRequestType ?? null,
+                iouRequestType: mergeTransaction.iouRequestType ?? targetTransaction.iouRequestType ?? null,
             },
         });
     }
@@ -333,6 +336,7 @@ type MergeTransactionRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    delegateAccountID: number | undefined;
     selfDMReport: OnyxEntry<Report>;
 };
 /**
@@ -359,6 +363,7 @@ function mergeTransactionRequest({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    delegateAccountID,
     selfDMReport,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
@@ -408,6 +413,7 @@ function mergeTransactionRequest({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
+        delegateAccountID,
     });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
@@ -621,6 +627,8 @@ function mergeTransactionRequest({
             participants: [],
             transactionID: mergeTransaction.targetTransactionID,
             iouReportID: mergeTransaction.reportID,
+            // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            delegateAccountIDParam: undefined,
         });
 
         // IOU action for the surviving expense on its original report (not on mergeTransaction.reportID yet).

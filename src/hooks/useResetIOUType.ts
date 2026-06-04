@@ -1,11 +1,12 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasOnlyPersonalPoliciesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useRef} from 'react';
+import {useMemo, useRef} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {IOURequestType} from '@userActions/IOU';
-import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
+import {getMoneyRequestParticipantsFromReport, initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -42,6 +43,10 @@ type UseResetIOUTypeParams = {
 
     /** Whether to skip keyboard dismiss for per diem tab */
     skipKeyboardDismissForPerDiem?: boolean;
+
+    /** Whether the new manual expense flow beta is enabled. When true, the fresh transaction is seeded with
+     * participants from the current report so the embedded confirmation's auto-assign useEffect short-circuits. */
+    isNewManualExpenseFlowEnabled?: boolean;
 };
 
 /**
@@ -58,6 +63,7 @@ function useResetIOUType({
     policy,
     isTrackDistanceExpense = false,
     skipKeyboardDismissForPerDiem = false,
+    isNewManualExpenseFlowEnabled = false,
 }: UseResetIOUTypeParams): (newIOUType: IOURequestType) => void {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [hasOnlyPersonalPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesSelector});
@@ -74,6 +80,17 @@ function useResetIOUType({
         isLoadingTransaction,
         isLoadingSelectedTab,
     });
+
+    // For the new manual flow, derive participants from the current report so the freshly-rebuilt transaction
+    // already includes them. This prevents the embedded confirmation's auto-assign useEffect from re-firing on
+    // every cleanup and dragging back unrelated draft state (receipt, billable, etc.) along with it.
+    const defaultParticipants = useMemo(() => {
+        if (!isNewManualExpenseFlowEnabled || !report) {
+            return undefined;
+        }
+        const participants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).filter((participant) => participant.selected);
+        return participants.length > 0 ? participants : undefined;
+    }, [isNewManualExpenseFlowEnabled, report, currentUserPersonalDetails.accountID]);
 
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
@@ -92,7 +109,7 @@ function useResetIOUType({
             personalPolicy,
             isFromGlobalCreate,
             isTrackDistanceExpense,
-            isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
+            isFromFloatingActionButton: getIsFromGlobalCreate(transaction) ?? isFromGlobalCreate,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
             report,
@@ -102,6 +119,7 @@ function useResetIOUType({
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies: hasOnlyPersonalPolicies ?? true,
             draftTransactionIDs,
+            defaultParticipants,
         });
 
         // Layer odometer draft fields onto the freshly-rebuilt transaction. The merge queues after

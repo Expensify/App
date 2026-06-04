@@ -46,10 +46,35 @@ import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
+
+/**
+ * Returns the artwork colors (background fill + WCAG-compliant overlay text) for a given feed.
+ * Uses prefix-matching to handle feed names that include a suffix (e.g. "vcf123").
+ */
+function getCardFeedColors(cardFeed: string | undefined): {background: string; text: string} {
+    if (!cardFeed) {
+        return GENERIC_CARD_COLORS;
+    }
+    const feedKey = Object.keys(CARD_FEED_COLORS)
+        .sort((a, b) => b.length - a.length)
+        .find((key) => cardFeed.startsWith(key));
+    return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
+}
+
+/** Returns the background hex color for the card image shown for a given feed. */
+function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).background;
+}
+
+/** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
+function getCardFeedTextColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).text;
+}
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
     'VisaCompanyCardDetailLarge',
@@ -150,13 +175,25 @@ function isExpensifyCard(card?: Card) {
 }
 
 /**
- * Checks if the card supports PIN management features.
+ * Checks if the card is on the UK/EU Expensify card program (feedCountry GB).
+ * The UK/EU program is the only one that supports PIN management features and
+ * requires Strong Customer Authentication (SCA) for revealing card details.
  * @param card - The card to check.
  * @returns boolean
  */
-function supportsPINManagementFeatures(card: Card | undefined): boolean {
-    //  Use of PINs is based on card program. UK/EU (feedCountry GB) are the only program currently that supports these features.
+function isUkEuExpensifyCard(card: Card | undefined): boolean {
     return isExpensifyCard(card) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
+}
+
+/**
+ * Checks whether the user's current location is an offline PIN market —
+ * a region where PINs must be changed at an ATM rather than via the in-app flow.
+ */
+function isOfflinePINMarket(countryByIp: string | undefined): boolean {
+    if (!countryByIp) {
+        return false;
+    }
+    return CONST.EXPENSIFY_CARD.OFFLINE_PIN_MARKETS.includes(countryByIp);
 }
 
 /**
@@ -1060,12 +1097,8 @@ function filterAllInactiveCards(cards: CardList | undefined, includeDeactivated 
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
     return filterObject(cards, (_key, card) => {
-        const isAdminZeroedExpensifyCard = isExpensifyCard(card) && isCardWithCustomZeroLimit(card);
         if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
-            return !!card.nameValuePairs?.frozen || (includeDeactivated && isAdminZeroedExpensifyCard);
-        }
-        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED) {
-            return includeDeactivated && isAdminZeroedExpensifyCard;
+            return !!card.nameValuePairs?.frozen || includeDeactivated;
         }
         return !closedStates.has(card.state);
     });
@@ -1083,7 +1116,7 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
 
 /**
  * Onyx selector for workspace Expensify Card management pages. Same as `filterInactiveCards`, but also
- * keeps issued deactivated cards and zero-limit suspended cards so admins can view and edit them.
+ * keeps all suspended cards so admins can view and edit them.
  */
 function filterInactiveCardsForWorkspace(cardsList: WorkspaceCardsList | undefined) {
     const {cardList, ...assignedCards} = cardsList ?? {};
@@ -1665,7 +1698,14 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
     const activeCards = filterAllInactiveCards(cardList);
     const activeExpensifyCards = Object.values(activeCards).filter(
-        (card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && !isTravelCard(card) && !isCardWithCustomZeroLimit(card),
+        (card) =>
+            isExpensifyCard(card) &&
+            !isExpiredCard(card) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            !isTravelCard(card) &&
+            !isCardWithCustomZeroLimit(card) &&
+            !isCardPendingIssue(card) &&
+            !isCardPendingActivate(card),
     );
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
@@ -1801,9 +1841,12 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
 
 export {
     getAssignedCardSortKey,
+    getCardFeedBackgroundColor,
+    getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
-    supportsPINManagementFeatures,
+    isUkEuExpensifyCard,
+    isOfflinePINMarket,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -1871,6 +1914,7 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
     isExpensifyCardPendingAction,

@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {validateAmount} from '@libs/MoneyRequestUtils';
+import {isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
@@ -157,14 +157,27 @@ function useConfirmationValidation({
         }
 
         const firstParticipant = transaction?.participants?.at(0);
-        const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
+        const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat && !firstParticipant?.isSelfDM);
 
         // P2P manual submit: $0 is invalid unless scan/time/distance (same guard as legacy inline confirm).
         if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        if (isNewManualExpenseFlowEnabled && !transaction?.isAmountSet) {
+        // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.
+        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
             return {errorKey: 'common.error.fieldRequired'};
+        }
+        if (
+            isNewManualExpenseFlowEnabled &&
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
+            transaction?.isAmountSet &&
+            !isScanRequestUtil(transaction) &&
+            !isTimeRequest &&
+            !isDistanceRequest &&
+            !isEditingSplitBill &&
+            !isValidMoneyRequestAmount(iouAmount, iouType, true, isP2P)
+        ) {
+            return {errorKey: 'common.error.invalidAmount'};
         }
         const merchantValue = iouMerchant ?? '';
         const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);

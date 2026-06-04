@@ -7,10 +7,10 @@ import {scheduleOnRN} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
-import {PIE_CHART_START_ANGLE} from '@components/Charts/constants';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -50,7 +50,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
     // originalIndex so the tooltip can display the original (possibly negative) value.
-    const processedSlices = processDataIntoSlices(data, PIE_CHART_START_ANGLE, pieGeometry);
+    const processedSlices = processDataIntoSlices(data, pieGeometry);
     const activeOriginalDataIndex = activeSliceIndex >= 0 ? (processedSlices.at(activeSliceIndex)?.originalIndex ?? -1) : -1;
 
     const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
@@ -172,7 +172,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                             valueKey="value"
                             colorKey="color"
                         >
-                            <Pie.Chart startAngle={PIE_CHART_START_ANGLE} />
+                            <Pie.Chart startAngle={VictoryTheme.pie.startAngle} />
                         </PolarChart>
                     )}
 

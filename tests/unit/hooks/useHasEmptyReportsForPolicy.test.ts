@@ -1,6 +1,6 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
+import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -25,7 +25,7 @@ function buildReport(reportID: string, overrides: Partial<Report> = {}): Report 
     };
 }
 
-describe('useHasEmptyReportsForPolicy', () => {
+describe('useShouldShowEmptyReportConfirmation', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -43,7 +43,7 @@ describe('useHasEmptyReportsForPolicy', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report-1`, buildReport('report-1'));
 
-        const {result} = renderHook(() => useHasEmptyReportsForPolicy(undefined));
+        const {result} = renderHook(() => useShouldShowEmptyReportConfirmation(undefined));
 
         await waitFor(() => {
             expect(result.current).toBe(false);
@@ -53,7 +53,7 @@ describe('useHasEmptyReportsForPolicy', () => {
     it('returns false when there are no reports', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
 
-        const {result} = renderHook(() => useHasEmptyReportsForPolicy(POLICY_ID));
+        const {result} = renderHook(() => useShouldShowEmptyReportConfirmation(POLICY_ID));
 
         await waitFor(() => {
             expect(result.current).toBe(false);
@@ -64,7 +64,7 @@ describe('useHasEmptyReportsForPolicy', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}empty-report`, buildReport('empty-report'));
 
-        const {result} = renderHook(() => useHasEmptyReportsForPolicy(POLICY_ID));
+        const {result} = renderHook(() => useShouldShowEmptyReportConfirmation(POLICY_ID));
 
         await waitFor(() => {
             expect(result.current).toBe(true);
@@ -75,7 +75,7 @@ describe('useHasEmptyReportsForPolicy', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report-1`, buildReport('report-1', {policyID: 'other-policy'}));
 
-        const {result} = renderHook(() => useHasEmptyReportsForPolicy(POLICY_ID));
+        const {result} = renderHook(() => useShouldShowEmptyReportConfirmation(POLICY_ID));
 
         await waitFor(() => {
             expect(result.current).toBe(false);
@@ -86,7 +86,19 @@ describe('useHasEmptyReportsForPolicy', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report-1`, buildReport('report-1', {ownerAccountID: 111111}));
 
-        const {result} = renderHook(() => useHasEmptyReportsForPolicy(POLICY_ID));
+        const {result} = renderHook(() => useShouldShowEmptyReportConfirmation(POLICY_ID));
+
+        await waitFor(() => {
+            expect(result.current).toBe(false);
+        });
+    });
+
+    it('returns false when confirmation has been dismissed', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}empty-report`, buildReport('empty-report'));
+        await Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
+
+        const {result} = renderHook(() => useShouldShowEmptyReportConfirmation(POLICY_ID));
 
         await waitFor(() => {
             expect(result.current).toBe(false);
@@ -96,7 +108,7 @@ describe('useHasEmptyReportsForPolicy', () => {
     it('updates when report data changes in Onyx', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
 
-        const {result} = renderHook(() => useHasEmptyReportsForPolicy(POLICY_ID));
+        const {result} = renderHook(() => useShouldShowEmptyReportConfirmation(POLICY_ID));
 
         await waitFor(() => {
             expect(result.current).toBe(false);

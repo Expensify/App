@@ -49,6 +49,7 @@ import {
 import {
     getDistanceInMeters,
     hasPendingRTERViolation,
+    hasSubmissionBlockingViolationInList,
     isDeletedTransaction,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -112,11 +113,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (val) => (allTransactionViolations = val ?? []),
 });
-
-// Helper to safely check for a string 'name' property
-function isViolationWithName(violation: unknown): violation is {name: string} {
-    return !!(violation && typeof violation === 'object' && typeof (violation as {name?: unknown}).name === 'string');
-}
 
 type SaveWaypointProps = {
     transactionID: string;
@@ -1274,31 +1270,23 @@ function changeTransactionsReport({
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
         if (isPaidGroupPolicy(policy) && policy?.id) {
-            const violationData = ViolationsUtils.getViolationsOnyxData(
-                transactionForViolations,
-                currentTransactionViolations[transaction.transactionID] ?? [],
+            const violationData = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transactionForViolations,
+                transactionViolations: currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
-                policyTagList ?? {},
-                policyCategories ?? {},
-                policyHasDependentTags,
-                false,
-            );
+                policyTagList: policyTagList ?? {},
+                policyCategories: policyCategories ?? {},
+                hasDependentTags: policyHasDependentTags,
+                isInvoiceTransaction: false,
+                shouldRemoveRejectedExpenseViolation: true,
+            });
             optimisticData.push(violationData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                 value: allTransactionViolation?.[transaction.transactionID] ?? null,
             });
-            const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
-            const hasOtherViolationsBesideDuplicates =
-                Array.isArray(violationData.value) &&
-                !violationData.value.every((violation) => {
-                    if (!isViolationWithName(violation)) {
-                        return false;
-                    }
-                    return violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION;
-                });
-            if (transactionHasViolations && hasOtherViolationsBesideDuplicates) {
+            if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
                 shouldFixViolations = true;
             }
             if (policy?.disabledFields?.reimbursable) {
@@ -1681,24 +1669,16 @@ function changeTransactionsReport({
         if (!isPaidGroupPolicy(policy) || !policy?.id) {
             continue;
         }
-        const violationData = ViolationsUtils.getViolationsOnyxData(
-            transaction,
-            currentTransactionViolations[transaction.transactionID] ?? [],
+        const violationData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: transaction,
+            transactionViolations: currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
-            policyTagList ?? {},
-            policyCategories ?? {},
-            policyHasDependentTags,
-            false,
-        );
-        const hasOtherViolationsBesideDuplicates =
-            Array.isArray(violationData.value) &&
-            !violationData.value.every((violation) => {
-                if (!isViolationWithName(violation)) {
-                    return false;
-                }
-                return violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION;
-            });
-        if (Array.isArray(violationData.value) && violationData.value.length > 0 && hasOtherViolationsBesideDuplicates) {
+            policyTagList: policyTagList ?? {},
+            policyCategories: policyCategories ?? {},
+            hasDependentTags: policyHasDependentTags,
+            isInvoiceTransaction: false,
+        });
+        if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
         }
     }

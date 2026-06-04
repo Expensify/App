@@ -5,7 +5,6 @@ import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
 import ReportListItemHeader from '@components/Search/SearchList/ListItem/ReportListItemHeader';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
@@ -13,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
+import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -25,29 +25,34 @@ const mockSearchStateContext = {
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
-    isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
     currentSelectedTransactionReportID: undefined,
-    shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
-} satisfies Partial<SearchStateContextValue>;
+    lastSearchType: undefined,
+    areAllMatchingItemsSelected: false,
+    shouldResetSearchQuery: false,
+    sortedReportIDs: [],
+    hasSelectedTransactions: false,
+} satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    setSelectedReports: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
-} satisfies Partial<SearchActionsContextValue>;
+    removeTransaction: jest.fn(),
+    setSortedReportIDs: jest.fn(),
+} satisfies SearchActionsContextValue;
 
 const mockPersonalDetails: Record<string, PersonalDetails> = {
     john: {
@@ -108,19 +113,18 @@ const createReportListItem = (
 const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
-            <SearchStateContext.Provider value={mockSearchStateContext}>
-                {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
-                <SearchActionsContext.Provider value={mockSearchActionsContext}>
-                    <ReportListItemHeader
-                        report={reportItem}
-                        onSelectRow={jest.fn()}
-                        onCheckboxPress={jest.fn()}
-                        isDisabled={false}
-                        canSelectMultiple={false}
-                    />
-                </SearchActionsContext.Provider>
-            </SearchStateContext.Provider>
+            <MockSearchContextProvider
+                state={mockSearchStateContext}
+                actions={mockSearchActionsContext}
+            >
+                <ReportListItemHeader
+                    report={reportItem}
+                    onSelectRow={jest.fn()}
+                    onCheckboxPress={jest.fn()}
+                    isDisabled={false}
+                    canSelectMultiple={false}
+                />
+            </MockSearchContextProvider>
         </ComposeProviders>,
     );
 };
