@@ -833,7 +833,7 @@ function MoneyRequestReportTransactionList({
                 {shouldShowGroupedTransactions && (
                     <DropdownButton
                         label={translate('search.display.groupBy')}
-                        value={selectedGroupByItem?.text ?? ''}
+                        value={isMatrixLayout(reportLayoutOption) ? '' : (selectedGroupByItem?.text ?? '')}
                         PopoverComponent={groupByPopoverComponent}
                     />
                 )}
