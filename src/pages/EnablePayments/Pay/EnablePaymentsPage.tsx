@@ -7,18 +7,18 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import FailedKYC from '@pages/EnablePayments/shared/FailedKYC';
+import useHasFreshWalletData from '@pages/EnablePayments/shared/useHasFreshWalletData';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ActivateStep from './ActivateStep';
-import AdditionalDetailsStep from './AdditionalDetailsStep';
-import FailedKYC from './FailedKYC';
+import ActivateStep from './Activate/ActivateStep';
+import AdditionalDetailsStep from './AdditionalDetails/AdditionalDetailsStep';
 // Steps
-import OnfidoStep from './OnfidoStep';
-import TermsStep from './TermsStep';
-import useHasFreshWalletData from './useHasFreshWalletData';
+import OnfidoStep from './Onfido/OnfidoStep';
+import TermsStep from './Terms/TermsStep';
 
 function EnablePaymentsPage() {
     const {translate} = useLocalize();
