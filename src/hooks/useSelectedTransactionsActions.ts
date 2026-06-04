@@ -124,6 +124,7 @@ function useSelectedTransactionsActions({
         }
         return acc;
     }, [] as Transaction[]);
+
     const knownOwnerIDs = new Set<number>();
     let hasUnknownOwner = false;
 
