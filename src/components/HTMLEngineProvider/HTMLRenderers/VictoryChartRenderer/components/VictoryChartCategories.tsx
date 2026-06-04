@@ -24,6 +24,4 @@ function VictoryChartCategories({tnode}: VictoryChartCategoriesProps) {
     return <CategoriesRenderer tnode={tnode} />;
 }
 
-VictoryChartCategories.displayName = 'VictoryChartCategories';
-
 export default VictoryChartCategories;
