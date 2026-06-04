@@ -55,7 +55,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const taxAmount = getTaxAmount(transactionForHelpers, false);
     const effectiveCurrency = iouCurrencyCode ?? CONST.CURRENCY.USD;
     const decimals = getCurrencyDecimals(effectiveCurrency);
-    const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
+    const formattedTaxAmount = convertToDisplayString(taxAmount, effectiveCurrency);
     const taxAmountInput = convertToFrontendAmountAsString(taxAmount, decimals);
     const taxRateTitle = getTaxRateTitle(policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
@@ -64,7 +64,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     // The tax amount is only validated on submit (see useConfirmationValidation), matching how the other fields behave.
     // Here we just surface the resulting form error; `formattedMaxTaxAmount` is the limit shown in that error message.
     const maxTaxAmount = getCalculatedTaxAmount(policy, transactionForHelpers, effectiveCurrency, decimals);
-    const formattedMaxTaxAmount = convertToDisplayString(maxTaxAmount, iouCurrencyCode);
+    const formattedMaxTaxAmount = convertToDisplayString(maxTaxAmount, effectiveCurrency);
     const shouldDisplayTaxAmountError = formError === 'iou.error.invalidTaxAmount';
 
     const handleTaxAmountChange = (newAmount: string) => {
