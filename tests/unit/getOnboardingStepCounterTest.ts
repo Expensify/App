@@ -1,6 +1,7 @@
 import CONST from '@src/CONST';
-import {getOnboardingFlow, getOnboardingStepCounter} from '@src/libs/getOnboardingStepCounter';
+import {getOnboardingFlow, getOnboardingStepCounter, getPreviousOnboardingRoute} from '@src/libs/getOnboardingStepCounter';
 import type {OnboardingFlowContext, OnboardingScreen} from '@src/libs/getOnboardingStepCounter';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 const O = SCREENS.ONBOARDING;
@@ -369,7 +370,7 @@ describe('getOnboardingStepCounter', () => {
             {label: 'private', ctx: {hasAccessibleDomainPolicies: true}},
         ];
 
-        it.each(domainVariants)('$label: PURPOSE indeterminate % ≤ min next-page % across all purposes', ({ctx}) => {
+        it.each(domainVariants)('$label: PURPOSE indeterminate percent is less than or equal to min next-page percent across all purposes', ({ctx}) => {
             const indeterminateCtx: OnboardingFlowContext = {signupQualifier: 'individual', ...ctx};
             const purposeResult = getOnboardingStepCounter(O.PURPOSE, indeterminateCtx);
             expect(purposeResult).toBeDefined();
@@ -424,5 +425,41 @@ describe('getOnboardingStepCounter', () => {
                 }
             }
         });
+    });
+});
+
+describe('getPreviousOnboardingRoute', () => {
+    it('returns undefined when interested features is the first onboarding step', () => {
+        expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb'})).toBeUndefined();
+    });
+
+    it('returns workspaces for VSB with accessible domain policies', () => {
+        expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb', hasAccessibleDomainPolicies: true})).toBe(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+    });
+
+    it('returns workspaces for public domain VSB with merge flow', () => {
+        expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: false})).toBe(
+            ROUTES.ONBOARDING_WORKSPACES.getRoute(),
+        );
+    });
+
+    it('returns work email validation for public domain VSB without merge skip', () => {
+        expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb', isFromPublicDomain: true})).toBe(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+    });
+
+    it('returns work email for public domain VSB when merge account step was skipped', () => {
+        expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: true})).toBe(
+            ROUTES.ONBOARDING_WORK_EMAIL.getRoute(),
+        );
+    });
+
+    it('returns purpose for individual manage team users', () => {
+        expect(getPreviousOnboardingRoute(O.EMPLOYEES, {signupQualifier: 'individual', purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM})).toBe(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    });
+
+    it('passes backTo when resolving the previous onboarding route', () => {
+        const backTo = ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+
+        expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb', hasAccessibleDomainPolicies: true}, backTo)).toBe(ROUTES.ONBOARDING_WORKSPACES.getRoute(backTo));
     });
 });
