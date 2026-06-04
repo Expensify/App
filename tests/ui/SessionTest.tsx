@@ -167,7 +167,7 @@ describe('Deep linking', () => {
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
-        4 * 60 * 1000,
+        3 * 60 * 1000,
     );
 
     // This test renders the full App three times, so it runs significantly longer than
@@ -220,6 +220,6 @@ describe('Deep linking', () => {
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
-        4 * 60 * 1000,
+        3 * 60 * 1000,
     );
 });
