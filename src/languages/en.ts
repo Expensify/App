@@ -7404,6 +7404,8 @@ const translations = {
                 findRule: 'Find AI rule',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
+                deleteRule: 'Delete rule',
+                deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 describeRuleTitle: 'Describe your rule',
                 describeRuleSubtitle: 'Describe your rule and Concierge will build it',
             },

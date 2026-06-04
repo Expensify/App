@@ -9079,6 +9079,7 @@ const CONST = {
                 AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
                 ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
                 AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
+                AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',

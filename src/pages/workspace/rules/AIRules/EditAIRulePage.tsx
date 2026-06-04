@@ -1,12 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -16,7 +19,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {updatePolicyAIRule} from '@userActions/Policy/Rules';
+import {deletePolicyAIRule, updatePolicyAIRule} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -32,6 +35,7 @@ function EditAIRulePage({
 }: EditAIRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const policy = usePolicy(policyID);
@@ -48,6 +52,27 @@ function EditAIRulePage({
     const saveRule = (values: FormOnyxValues<EditAIRuleFormID>): void => {
         updatePolicyAIRule(policyID, ruleID, values[INPUT_IDS.PROMPT], aiRule?.prompt ?? '');
         Navigation.goBack();
+    };
+
+    const handleDelete = () => {
+        if (!policy || !aiRule) {
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('workspace.rules.aiRules.deleteRule'),
+            prompt: translate('workspace.rules.aiRules.deleteRuleConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            deletePolicyAIRule(policy, ruleID);
+            Navigation.goBack();
+        });
     };
 
     if (!aiRule) {
@@ -80,6 +105,16 @@ function EditAIRulePage({
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
+                    footerContent={
+                        <Button
+                            text={translate('workspace.rules.aiRules.deleteRule')}
+                            onPress={handleDelete}
+                            style={[styles.mb4]}
+                            large
+                            danger
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AI_RULE_DELETE}
+                        />
+                    }
                 >
                     <View style={styles.flex1}>
                         <View style={[styles.gap2, styles.mv4]}>
