@@ -359,9 +359,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const approvalOptionSubtitle = isHRConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
 
         const getAddApprovalsToggleDisabledAction = () => {
-            if (canAccessSubmit2026Features) {
-                return navigateToSubmitWorkspaceApprovalsUpgrade;
-            }
             if (isHRConnected) {
                 return promptConfigureApprovalsInHR;
             }
@@ -398,6 +395,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: approvalOptionSubtitle,
                 switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    if (isEnabled && canAccessSubmit2026Features) {
+                        navigateToSubmitWorkspaceApprovalsUpgrade();
+                        return;
+                    }
                     if (isHRConnected) {
                         return;
                     }
@@ -498,7 +499,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                     </>
                 ),
-                disabled: isSmartLimitEnabled || isDEWEnabled || isHRConnected || canAccessSubmit2026Features,
+                disabled: isSmartLimitEnabled || isDEWEnabled || isHRConnected,
                 disabledAction: getAddApprovalsToggleDisabledAction(),
                 isActive:
                     !canAccessSubmit2026Features &&
