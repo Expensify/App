@@ -27,7 +27,7 @@ type GetOnboardingInitialPathParamsType = {
     onboardingValuesParam?: Onboarding;
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
-    onboardingInitialPath: OnyxEntry<string>;
+    onboardingInitialPath: OnyxEntry<string> | null;
     onboardingValues: OnyxEntry<Onboarding>;
     isAccountValidated?: boolean;
 };
