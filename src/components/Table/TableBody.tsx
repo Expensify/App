@@ -95,7 +95,7 @@ function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) 
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
+                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
                 {...restListProps}
             />
