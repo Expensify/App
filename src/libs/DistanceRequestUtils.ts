@@ -375,7 +375,7 @@ function isRateBounded(rate: MileageRate): boolean {
  * 4. Lowest index (creation order)
  */
 function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseDate: string): MileageRate | undefined {
-    const eligibleRates = Object.values(mileageRates).filter((rate) => rate.enabled && isRateEligibleForDate(rate, expenseDate));
+    const eligibleRates = Object.values(mileageRates).filter((rate) => rate.enabled !== false && isRateEligibleForDate(rate, expenseDate));
 
     if (eligibleRates.length === 0) {
         return undefined;
