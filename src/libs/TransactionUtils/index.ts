@@ -21,7 +21,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
@@ -32,6 +32,7 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
     isPolicyMember as isPolicyMemberPolicyUtils,
+    resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -42,6 +43,7 @@ import {
     isOpenExpenseReport,
     isProcessingReport,
     isReportIDApproved,
+    isSelfDM,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -55,6 +57,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
     OnyxInputOrEntry,
+    PersonalDetails,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -70,7 +73,6 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {
     Comment,
@@ -191,6 +193,7 @@ function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
 
 function isDistanceExpenseType(requestType: IOURequestType | undefined): requestType is DistanceExpenseType {
     return (
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
@@ -507,6 +510,22 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
         return false;
     }
     return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
+}
+
+/**
+ * Builds the optimistic transaction used when an IOU report is converted to an expense report.
+ *
+ * Expense reports store amounts with the opposite sign of IOU reports (see `getAmount`/`getConvertedAmount`),
+ * so `amount`, `modifiedAmount` and `convertedAmount` are negated to match the expense-report convention.
+ * Absent converted values are not added so they keep being derived from the amount.
+ */
+function getNegatedAmountTransaction(transaction: Transaction): Transaction {
+    return {
+        ...transaction,
+        amount: -transaction.amount,
+        modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+        ...(transaction.convertedAmount != null && {convertedAmount: -transaction.convertedAmount}),
+    };
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
@@ -1051,12 +1070,31 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
     return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
 }
 
+function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
+
+    if (!creatorLogin) {
+        return;
+    }
+
+    const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
+    return {
+        email: creatorLogin,
+        login: creatorLogin,
+        displayName: creatorDisplayName,
+        accountID: creatorDetails?.accountID,
+        text: creatorDisplayName,
+        searchText: creatorDisplayName,
+        avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
+        selected: true,
+    };
+}
+
 /**
  * Return report owner as default attendee
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user - needed for unreported expenses to return current user as default attendee
  */
-function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee | undefined {
+function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined) {
     if (transaction?.reportID === undefined) {
         return;
     }
@@ -1064,39 +1102,16 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
     // Get the creator of the transaction by looking at the owner of the report linked to the transaction
     const report = getReportOrDraftReport(transaction?.reportID);
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
-    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserPersonalDetails?.accountID : report?.ownerAccountID;
-
-    if (creatorAccountID) {
-        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
-
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
-        const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
-
-        if (creatorLogin) {
-            return {
-                email: creatorLogin,
-                login: creatorLogin,
-                displayName: creatorDisplayName,
-                accountID: creatorAccountID,
-                text: creatorDisplayName,
-                searchText: creatorDisplayName,
-                avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
-                selected: true,
-            };
-        }
-    }
+    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserAccountID : report?.ownerAccountID;
+    return creatorAccountID;
 }
 
 /**
  * Return the list of attendees present on the transaction, if it's empty return report owner as default attendee
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
  */
-function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
+function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsAttendee: Attendee | undefined): Attendee[] {
     const rawAttendees = transaction?.comment?.attendees;
     const attendees = normalizeAttendees(convertAttendeesToArray(rawAttendees));
-    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
     }
@@ -1105,13 +1120,10 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
 
 /**
  * Return the list of modified attendees if present otherwise list of attendees
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
  */
-function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsAttendee?: Attendee): Attendee[] {
     const rawAttendees = transaction?.modifiedAttendees ?? transaction?.comment?.attendees;
     const attendees = normalizeAttendees(convertAttendeesToArray(rawAttendees));
-    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
@@ -1616,6 +1628,28 @@ function mergeProhibitedViolations(transactionViolations: TransactionViolations)
 }
 
 /**
+ * Returns transaction violations visible to the current user after applying dismiss/show filters
+ * and merging prohibited-expense violations.
+ */
+function getVisibleTransactionViolations(
+    transaction: OnyxEntry<Transaction>,
+    transactionViolations: TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    shouldShowRterForSettledReport = true,
+): TransactionViolations {
+    return mergeProhibitedViolations(
+        transactionViolations.filter(
+            (violation) =>
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+        ),
+    );
+}
+
+/**
  * Check if the user should see the violation
  */
 function shouldShowViolation(
@@ -2091,7 +2125,8 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
  * Gets the tax value of a selected tax
  */
 function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+    const resolvedTaxCode = resolveCurrentTaxCode(policy, taxCode);
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === resolvedTaxCode)?.value;
 }
 
 /**
@@ -2112,8 +2147,9 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     // Without this check, getTaxName would fall back to defaultTaxCode and display the default tax rate instead of showing empty.
     // We use || instead of ?? because taxCode may be an empty string, which should also trigger the fallback.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveTaxCode = transaction?.taxCode || (policy?.tax?.trackingEnabled ? defaultTaxCode : undefined);
-    const taxRate = effectiveTaxCode ? Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === effectiveTaxCode) : undefined;
+    const taxCodeToMatch = transaction?.taxCode || (policy?.tax?.trackingEnabled ? defaultTaxCode : undefined);
+    const resolvedTaxCode = taxCodeToMatch ? resolveCurrentTaxCode(policy, taxCodeToMatch) : taxCodeToMatch;
+    const taxRate = taxCodeToMatch ? Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === resolvedTaxCode) : undefined;
 
     if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
         return transaction?.taxValue;
@@ -2131,8 +2167,9 @@ function hasTaxRateWithMatchingValue(policy: OnyxEntry<Policy>, transaction: Ony
     }
 
     const transactionTaxCode = getTaxCode(transaction);
+    const resolvedTaxCode = transactionTaxCode ? resolveCurrentTaxCode(policy, transactionTaxCode) : transactionTaxCode;
     const transformedRates = transformedTaxRates(policy, transaction);
-    const taxRate = Object.values(transformedRates).find((rate) => rate.code === transactionTaxCode);
+    const taxRate = Object.values(transformedRates).find((rate) => rate.code === resolvedTaxCode);
 
     if (!transaction?.taxValue) {
         return !!taxRate;
@@ -2633,17 +2670,24 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: isExpenseSplit(transaction, originalTransaction), originalTransaction: originalTransaction ?? transaction};
 };
 
-function shouldRedirectDeleteToSplitExpenseEdit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>, isSelfDMSplit?: boolean): boolean {
+function shouldRedirectDeleteToSplitExpenseEdit(
+    transaction: OnyxEntry<Transaction>,
+    originalTransaction: OnyxEntry<Transaction>,
+    isSelfDMSplit: boolean | undefined,
+    isProduction: boolean,
+): boolean {
     const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+    if (isProduction) {
+        return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
+    }
 
     if (!isExpenseSplitTransaction || !isPerDiemRequest(sourceTransaction)) {
         return false;
     }
-
     if (isSelfDMSplit) {
         return true;
     }
-
     return !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined);
 }
 
@@ -2665,10 +2709,13 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Retrieves all "child" transactions associated with a given original transaction.
  */
-function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined) {
+function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined, isProduction: boolean) {
     return Object.values(transactions ?? {}).filter((currentTransaction) => {
         const isSplitChild = currentTransaction?.comment?.originalTransactionID === originalTransactionID;
         if (!isSplitChild || currentTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return false;
+        }
+        if (isProduction && (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || isSelfDM(getReportOrDraftReport(currentTransaction?.reportID)))) {
             return false;
         }
         return currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
@@ -2820,6 +2867,15 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
+function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
+    const requestType = getRequestType(transaction);
+    return isDistanceExpenseType(requestType) ? requestType : undefined;
+}
+
+function getIsFromGlobalCreate(transaction: OnyxEntry<Transaction> | Partial<Transaction> | undefined): boolean | undefined {
+    return transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2856,6 +2912,7 @@ export {
     getFormattedCreated,
     getCategory,
     getBillable,
+    getIsFromGlobalCreate,
     getTag,
     getTagArrayFromName,
     getTagForDisplay,
@@ -2890,6 +2947,7 @@ export {
     hasPendingRTERViolation,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
+    getNegatedAmountTransaction,
     allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
@@ -2946,8 +3004,10 @@ export {
     isCorporateCardTransaction,
     isExpenseUnreported,
     mergeProhibitedViolations,
+    getVisibleTransactionViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
+    getReportOwnerAccountIDAsAttendee,
     isFromCreditCardImport,
     getExchangeRate,
     shouldReuseInitialTransaction,
@@ -2962,4 +3022,5 @@ export {
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
     isDeletedTransaction,
+    getDistanceRequestType,
 };

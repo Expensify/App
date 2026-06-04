@@ -236,8 +236,8 @@ jobs:
           echo "aabPath=$AAB_PATH" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        # v1.310.0
+        uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f
         with:
           bundler-cache: true
 
@@ -274,8 +274,8 @@ jobs:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        # v1.310.0
+        uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f
         with:
           bundler-cache: true
 
@@ -314,22 +314,19 @@ jobs:
 
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() }}
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android HybridApp production <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy run> failed. Please <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store> 💥`,
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "#DB4545",
+                "pretext": "<!subteam^S4TJJ3PSL>",
+                "text": "💥 Android HybridApp production <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy run> failed. Please <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store> 💥"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   androidUploadBrowserStack:
     name: Upload Android to BrowserStack
@@ -383,8 +380,8 @@ jobs:
 
       - name: Load Applause API key from 1Password
         id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -470,8 +467,8 @@ jobs:
           echo "dsymPath=$DSYM_PATH" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        # v1.310.0
+        uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f
         with:
           bundler-cache: true
 
@@ -513,8 +510,8 @@ jobs:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        # v1.310.0
+        uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f
         with:
           bundler-cache: true
 
@@ -545,22 +542,19 @@ jobs:
 
       - name: Warn deployers if iOS production deploy failed
         if: ${{ failure() }}
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 iOS HybridApp production deploy failed. Please <https://stackoverflowteams.com/c/expensify/questions/5740|manually submit> ${{ needs.prep.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "#DB4545",
+                "pretext": "<!subteam^S4TJJ3PSL>",
+                "text": "💥 iOS HybridApp production deploy failed. Please <https://stackoverflowteams.com/c/expensify/questions/5740|manually submit> ${{ needs.prep.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   iosUploadBrowserStack:
     name: Upload iOS to BrowserStack
@@ -614,8 +608,8 @@ jobs:
 
       - name: Load Applause API key from 1Password
         id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -647,6 +641,15 @@ jobs:
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       environment: ${{ needs.prep.outputs.DEPLOY_ENV }}
+    secrets: inherit
+
+  victoryChartRendererBuild:
+    name: Build victory-chart-renderer (Linux x64)
+    needs: [prep]
+    uses: ./.github/workflows/buildVictoryChartRenderer.yml
+    with:
+      ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+      release-tag: ${{ needs.prep.outputs.TAG }}
     secrets: inherit
 
   webDeploy:
@@ -775,20 +778,18 @@ jobs:
 
       - name: Post Slack message on manual cancellation
         if: ${{ steps.check.outputs.SKIP != 'true' }}
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: 'warning',
-                text: `⚠️ ${{ env.DEPLOY_ENV == 'production' && 'Production' || 'Staging' }} <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> cancelled manually`
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "warning",
+                "text": "⚠️ ${{ env.DEPLOY_ENV == 'production' && 'Production' || 'Staging' }} <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> cancelled manually"
               }]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   checkDeploymentSuccess:
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -868,13 +869,13 @@ jobs:
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
+    needs: [prep, checkDeploymentSuccess, victoryChartRendererBuild]
     permissions:
       contents: write
     steps:
-      # v4.2.1
+      # v7
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
 
       - name: Get last production release
         id: get_last_prod_version
@@ -958,24 +959,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Warn deployers if deploy failed
-        if: ${{ failure() }}
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 NewDot ${{ env.DEPLOY_ENV }} deploy failed. 💥`,
-              }]
-            }
+      - name: Upload victory-chart-renderer to GitHub Release
+        if: ${{ needs.victoryChartRendererBuild.result == 'success' }}
+        run: |
+          gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
+            "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Warn deployers if deploy failed
+        if: ${{ failure() }}
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "#DB4545",
+                "pretext": "<!subteam^S4TJJ3PSL>",
+                "text": "💥 NewDot ${{ env.DEPLOY_ENV }} deploy failed. 💥"
+              }]
+            }
 
   # Why is this necessary for CP-to-prod? Consider this scenario:
   #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
@@ -1001,56 +1007,47 @@ jobs:
     needs: [prep, androidUploadGooglePlay, androidSubmit, iosUploadTestflight, iosSubmit, webDeploy, checkDeploymentSuccess, createRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#announce',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ env.DEPLOY_ENV }} 🎉️`,
+              "channel": "#announce",
+              "attachments": [{
+                "color": "good",
+                "text": "🎉️ Successfully deployed ${{ github.repository }} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ env.DEPLOY_ENV }} 🎉️"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: 'Announces the deploy in the #deployer Slack room'
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ env.DEPLOY_ENV }} 🎉️`,
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "good",
+                "text": "🎉️ Successfully deployed ${{ github.repository }} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ env.DEPLOY_ENV }} 🎉️"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: 'Announces a production deploy in the #expensify-open-source Slack room'
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ env.DEPLOY_ENV == 'production' }}
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#expensify-open-source',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to production 🎉️`,
+              "channel": "#expensify-open-source",
+              "attachments": [{
+                "color": "good",
+                "text": "🎉️ Successfully deployed ${{ github.repository }} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to production 🎉️"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
