@@ -1139,7 +1139,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((bankAccountID) => isSearchEligibleBankAccount(bankAccountList?.[bankAccountID]));
+            // Presence check only. The filter looks backward at withdrawals that already paid expenses, so a saved
+            // search should survive an account changing state (BUSINESS -> LOCKED, etc). Eligibility is only enforced
+            // at option-generation sites (picker, autocomplete, chip) where forward-looking pickability matters.
+            filtersForm[key as typeof filterKey] = filterValues.filter((bankAccountID) => bankAccountList?.[bankAccountID]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
             filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
