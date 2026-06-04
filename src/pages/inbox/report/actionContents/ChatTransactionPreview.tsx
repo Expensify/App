@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUReportIDFromReportActionPreview, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -72,13 +73,13 @@ function ChatTransactionPreview({action, reportID, chatReportID, iouReport, shou
                             iouReportAction: action,
                         });
                         if (createdTransactionThreadReport?.reportID) {
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
+                            Navigation.navigate(getReportRouteForCurrentContext({reportID: createdTransactionThreadReport.reportID}));
                             return;
                         }
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
+                    Navigation.navigate(getReportRouteForCurrentContext({reportID: action.childReportID}));
                 }}
                 isTrackExpense={isTrackExpenseAction(action)}
             />
