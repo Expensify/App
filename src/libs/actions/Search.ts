@@ -64,9 +64,9 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import getCollectUpgradeAdminsNotificationOnyxData from './IOU/getCollectUpgradeAdminsNotificationOnyxData';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
-import getCollectUpgradeAdminsNotificationOnyxData from './IOU/getCollectUpgradeAdminsNotificationOnyxData';
 import {setPendingWorkspaceUpgradeIntent} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
@@ -699,7 +699,12 @@ type ApproveMoneyRequestOnSearchOptions = {
 
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey, options?: ApproveMoneyRequestOnSearchOptions) {
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -772,13 +777,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         },
     ];
 
-    if (
-        options?.shouldNotifyAdminsOfCollectUpgrade &&
-        options.translate &&
-        options.policy &&
-        options.currentUserAccountIDParam !== undefined &&
-        options.currentUserEmailParam
-    ) {
+    if (options?.shouldNotifyAdminsOfCollectUpgrade && options.translate && options.policy && options.currentUserAccountIDParam !== undefined && options.currentUserEmailParam) {
         const adminsNotificationOnyxData = getCollectUpgradeAdminsNotificationOnyxData({
             translate: options.translate,
             policy: options.policy,

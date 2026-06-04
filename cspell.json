@@ -982,7 +982,8 @@
         "NitroFetch",
         "Prefetch",
         "Prefetcher",
-        "knip"
+        "knip",
+        "upgrader"
     ],
     "ignorePaths": [
         ".gitignore",
