@@ -55,7 +55,9 @@ import {
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getJoinRequestMessage,
+    getLinkedTransactionID,
     getMarkedReimbursedMessage,
+    getMccGroupCategoryMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -175,6 +177,7 @@ type ComputeReportName = {
     currentUserLogin: string;
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     conciergeReportID?: string;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
 };
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -417,7 +420,7 @@ function computeReportNameBasedOnReportAction(
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -466,17 +469,18 @@ function computeReportNameBasedOnReportAction(
             personalDetails: personalDetailsList,
         });
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
         let iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
             iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
         }
-        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
+        const missingFields = getOriginalMessage(parentReportAction)?.missingFields;
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
-        return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport);
+        return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport?.ownerAccountID);
     }
     if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');
@@ -528,11 +532,11 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, conciergeReportID));
+        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportAttributes));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, conciergeReportID));
+        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, reportAttributes));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
@@ -578,6 +582,9 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
         return getAutoReimbursementMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
+        return getMccGroupCategoryMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER)) {
         return getDefaultApproverUpdateMessage(translate, parentReportAction);
@@ -798,6 +805,7 @@ function computeChatThreadReportName(
     parentReportAction?: ReportAction,
     policyTags?: OnyxEntry<PolicyTagLists>,
     policy?: OnyxEntry<Policy>,
+    transactions?: OnyxCollection<Transaction>,
 ): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
@@ -810,7 +818,17 @@ function computeChatThreadReportName(
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, isArchived);
 
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
-        let formattedName = getTransactionReportName({translate, reportAction: parentReportAction});
+        const linkedTransactionID = getLinkedTransactionID(parentReportAction);
+        const linkedTransaction = linkedTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`] : undefined;
+        let linkedTransactions: Transaction[] | undefined;
+        if (transactions) {
+            linkedTransactions = linkedTransaction ? [linkedTransaction] : [];
+        }
+        let formattedName = getTransactionReportName({
+            translate,
+            reportAction: parentReportAction,
+            transactions: linkedTransactions,
+        });
 
         if (isArchivedNonExpense) {
             formattedName = generateArchivedReportName(formattedName);
@@ -879,6 +897,7 @@ function computeReportName({
     currentUserLogin,
     allPolicyTags,
     conciergeReportID,
+    reportAttributes,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -896,7 +915,7 @@ function computeReportName({
         reportPolicy,
         parentReport,
         personalDetailsList,
-        conciergeReportID,
+        reportAttributes,
     );
 
     if (parentReportActionBasedName) {
@@ -921,6 +940,7 @@ function computeReportName({
             currentUserAccountID,
             currentUserLogin,
             conciergeReportID,
+            reportAttributes,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
@@ -943,6 +963,7 @@ function computeReportName({
         parentReportAction,
         policyTags,
         reportPolicy,
+        transactions,
     );
     if (chatThreadReportName) {
         return chatThreadReportName;
@@ -1002,7 +1023,7 @@ function computeReportName({
         });
     }
 
-    if (isConciergeChatReport(report)) {
+    if (isConciergeChatReport(report, conciergeReportID)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 

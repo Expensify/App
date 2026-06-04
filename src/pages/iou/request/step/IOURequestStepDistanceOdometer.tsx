@@ -14,6 +14,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -128,14 +129,19 @@ function IOURequestStepDistanceOdometer({
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const isFocused = useIsFocused();
 
     const shouldUseDefaultExpensePolicy = useMemo(
-        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd),
-        [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
+        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam),
+        [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam],
     );
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
+    const mileageRate = DistanceRequestUtils.getRate({
+        transaction: currentTransaction,
+        policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+    });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
 
@@ -193,6 +199,7 @@ function IOURequestStepDistanceOdometer({
 
     const navigateToNextStep = useOdometerNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -203,7 +210,6 @@ function IOURequestStepDistanceOdometer({
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
         backToReport,
-        backTo: undefined,
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,
@@ -340,10 +346,13 @@ function IOURequestStepDistanceOdometer({
     const navigateToNextPage = () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
-        setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
         const distance = end - start;
         const calculatedDistance = roundToTwoDecimalPlaces(distance);
-        setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
+
+        if (!isEditing) {
+            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
+            setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
+        }
         // Local state has just been persisted to the transaction thus the resync guard can be lowered
         userHasUnsavedTypingRef.current = false;
 
@@ -390,6 +399,7 @@ function IOURequestStepDistanceOdometer({
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep,
                     recentWaypoints,
+                    delegateAccountID,
                 });
             }
             Navigation.goBack();

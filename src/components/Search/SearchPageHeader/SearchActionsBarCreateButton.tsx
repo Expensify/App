@@ -8,18 +8,19 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
@@ -27,7 +28,7 @@ import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -65,9 +66,7 @@ function SearchActionsBarCreateButton() {
     );
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
-    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
+    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -168,7 +167,7 @@ function SearchActionsBarCreateButton() {
                             ) &&
                                 groupPoliciesWithChatEnabled.length > 1)
                         ) {
-                            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
                             return;
                         }
 
