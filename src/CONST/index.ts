@@ -1497,6 +1497,7 @@ const CONST = {
             DELETE: 'delete',
             REJECT: 'reject',
             REJECT_BULK: 'rejectBulk',
+            REJECT_REPORT: 'rejectReport',
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',

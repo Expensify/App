@@ -18,7 +18,10 @@ import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadContext';
 
 type RejectModalAction = ValueOf<
-    typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
+    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD
+    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
+    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
+    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_REPORT
 >;
 
 type MoneyReportHeaderEducationalModalsHandle = {
@@ -70,6 +73,11 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
                         reportID,
                     }),
                 );
+            }
+        } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_REPORT) {
+            dismissRejectUseExplanation();
+            if (reportID) {
+                Navigation.navigate(ROUTES.REJECT_EXPENSE_REPORT.getRoute(reportID));
             }
         } else {
             dismissRejectUseExplanation();
