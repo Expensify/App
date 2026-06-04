@@ -17,6 +17,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
     getSubmitReportManagerAccountID,
@@ -791,7 +792,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             policy,
             upgraderAccountID: currentUserAccountIDParam,
             currentUserEmail: currentUserEmailParam,
-            delegateAccountID: undefined,
+            delegateAccountID: delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined,
         });
         if (adminsNotificationOnyxData) {
             optimisticData.push(...adminsNotificationOnyxData.optimisticData);

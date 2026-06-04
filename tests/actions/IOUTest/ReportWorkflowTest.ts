@@ -1928,7 +1928,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             approveMoneyRequest({
                 expenseReport,
-                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID)),
+                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -1965,7 +1965,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             approveMoneyRequest({
                 expenseReport,
-                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID)),
+                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,

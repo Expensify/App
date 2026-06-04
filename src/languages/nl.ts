@@ -6866,6 +6866,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Facturatie is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
+            adminsCollectUpgradeMessage: (upgraderName: string) =>
+                `${upgraderName} heeft deze workspace geüpgraded naar het Collect-abonnement. Alle leden hebben nu de rol Lid. De workspacebeheerder kan nu rapporten goedkeuren en medewerkers direct terugbetalen.`,
         },
         downgrade: {
             commonFeatures: {

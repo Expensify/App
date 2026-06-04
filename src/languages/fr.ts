@@ -2985,7 +2985,7 @@ ${amount} pour ${merchant} - ${date}`,
         phoneOrEmail: 'Téléphone ou e-mail',
         error: {
             agentSignInBlocked:
-                'Les comptes d\u2019agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
+                'Les comptes d’agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
         cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
@@ -6933,6 +6933,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La facturation est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            adminsCollectUpgradeMessage: (upgraderName: string) =>
+                `${upgraderName} a mis à niveau cet espace de travail vers l’offre Collect. Tous les membres ont maintenant le rôle Membre. L’administrateur de l’espace de travail peut désormais approuver les notes de frais et rembourser directement les employé·es.`,
         },
         downgrade: {
             commonFeatures: {
