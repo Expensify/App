@@ -95,7 +95,7 @@ These settings control how Expensify exports reports and transactions to QuickBo
 
 **Travel Expenses:**
 
-* **Export travel invoicing expenses as**: This option appears only when Travel Invoicing is enabled. Click it, then select the **Travel payable account** where travel expenses will post in QuickBooks Desktop.
+* **Export travel invoicing expenses as**: This option appears only when [Travel Invoicing](https://help.expensify.com/travel/hubs/travel-invoicing/) is enabled. Click it, then select the **Travel payable account** where travel expenses will post in QuickBooks Desktop.
 
 ---
 
