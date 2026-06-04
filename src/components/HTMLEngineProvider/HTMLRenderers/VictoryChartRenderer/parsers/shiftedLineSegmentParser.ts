@@ -5,7 +5,7 @@ import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Victory
 /**
  * Parse label indicator config from a `<ShiftedLineSegment>` node.
  */
-function praseShiftedLineSegmentNode(tnode: TNode) {
+function parseShiftedLineSegmentNode(tnode: TNode) {
     const xShift = parseAttribute<number>(tnode.attributes.dx) ?? 0;
     const yShift = parseAttribute<number>(tnode.attributes.dy) ?? 0;
     const style = parseAttribute<RawShiftedLineSegmentStyle>(tnode.attributes.style);
@@ -14,4 +14,4 @@ function praseShiftedLineSegmentNode(tnode: TNode) {
     return {xShift, yShift, stroke, strokeWidth};
 }
 
-export default praseShiftedLineSegmentNode;
+export default parseShiftedLineSegmentNode;
