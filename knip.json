@@ -33,7 +33,10 @@
         "tests/perf-test/**",
         "web/snippets/gib.js",
         "server/victory-chart-renderer/src/bootstrap.tsx",
-        "server/victory-chart-renderer/src/initSkiaForCli.ts"
+        "server/victory-chart-renderer/src/initSkiaForCli.ts",
+        "server/victory-chart-renderer/src/canvaskit.ts",
+        "server/victory-chart-renderer/src/canvaskitWasmAsset.ts",
+        "server/victory-chart-renderer/src/canvaskit-wasm.d.ts"
     ],
     "ignoreDependencies": [
         "@expensify/react-native-hybrid-app",
@@ -56,7 +59,8 @@
         "patch-package",
         "diff-so-fancy",
         "victory-native",
-        "react-native-gesture-handler"
+        "react-native-gesture-handler",
+        "canvaskit-wasm"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"],
     "eslint": {
