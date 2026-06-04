@@ -2,7 +2,7 @@
 
 Standalone Bun CLI (`@expensify/victory-chart-renderer`) that renders Expensify chart XML to PNG using the same `victory-native` and Skia code paths as the App.
 
-This package is an [npm workspace](https://docs.npmjs.com/cli/using-npm/workspaces) child of the App root. React Native peer dependencies are declared as local `file:` stub packages under [`../stubs/`](../stubs/) (with `overrides` + `installConfig.hoistingLimits` so they stay in this workspace). App import aliases (`@components/*`, etc.) come from [`tsconfig.json`](./tsconfig.json) via [Bun path re-mapping](https://bun.com/docs/guides/runtime/tsconfig-paths). `scripts/dev.ts` and `scripts/build.ts` pass that tsconfig to `Bun.build` and use [`../plugins/rnStubPlugin.ts`](../plugins/rnStubPlugin.ts) to redirect native modules to stubs.
+This package is an [npm workspace](https://docs.npmjs.com/cli/using-npm/workspaces) child of the App root. React Native peer dependencies are declared as local `file:` stub packages under [`../stubs/`](../stubs/) (with `overrides` + `installConfig.hoistingLimits` so they stay in this workspace). App import aliases (`@components/*`, etc.) and `@server/*` come from [`../tsconfig.json`](../tsconfig.json) (duplicated from the repo root because `paths` does not merge on `extends`). This package’s [`tsconfig.json`](./tsconfig.json) extends that file for ESLint and [Bun path re-mapping](https://bun.com/docs/guides/runtime/tsconfig-paths). `scripts/dev.ts` and `scripts/build.ts` pass the package tsconfig to `Bun.build` and use `@server/plugins/rnStubPlugin` to redirect native modules to stubs.
 
 ## Usage
 

@@ -1,20 +1,4 @@
 {
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
-        "baseUrl": "../..",
-        "ignoreDeprecations": "6.0",
-        "paths": {
-            "@assets/*": ["assets/*"],
-            "@components/*": ["src/components/*"],
-            "@hooks/*": ["src/hooks/*"],
-            "@libs/*": ["src/libs/*"],
-            "@navigation/*": ["src/libs/Navigation/*"],
-            "@scripts/*": ["scripts/*", ".github/scripts/*"],
-            "@selectors/*": ["src/selectors/*"],
-            "@src/*": ["src/*"],
-            "@styles/*": ["src/styles/*"],
-            "@userActions/*": ["src/libs/actions/*"]
-        }
-    },
+    "extends": "../tsconfig.json",
     "include": ["src", "tests", "scripts"]
 }

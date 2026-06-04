@@ -11,11 +11,10 @@
  *
  * For a standalone executable instead of a Bun-run bundle, use build.ts.
  */
+import createRnStubPlugin from '@server/plugins/rnStubPlugin';
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
-// eslint-disable-next-line import/no-relative-packages
-import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const repoRoot = resolve(packageRoot, '../..');
