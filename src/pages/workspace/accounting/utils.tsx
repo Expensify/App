@@ -346,9 +346,9 @@ function getAccountingIntegrationData(
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [],
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.getRoute(policyID)),
-                subscribedAdvancedSettings: [],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA)),
+                onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                subscribedAdvancedSettings: [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS],
                 pendingFields: certiniaConfig?.pendingFields,
                 errorFields: certiniaConfig?.errorFields,
                 workspaceUpgradeNavigationDetails: {
