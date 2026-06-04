@@ -419,7 +419,6 @@ function GroupHeader({
                                             src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                             fill={theme.icon}
                                             additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
-                                            small
                                         />
                                     )}
                                 </PressableWithFeedback>
