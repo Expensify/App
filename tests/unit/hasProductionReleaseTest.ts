@@ -60,7 +60,7 @@ describe('hasProductionRelease', () => {
         mockGetLastClosedDeployChecklist.mockResolvedValue({
             version: '1.0.2-48',
         } as Awaited<ReturnType<typeof DeployChecklistUtils.getLastClosedDeployChecklist>>);
-        GithubUtils.octokit.repos.getReleaseByTag = jest.fn().mockResolvedValue({data: {prerelease: false}}) as typeof GithubUtils.octokit.repos.getReleaseByTag;
+        jest.spyOn(GithubUtils.octokit.repos, 'getReleaseByTag').mockResolvedValue({data: {prerelease: false}} as Awaited<ReturnType<typeof GithubUtils.octokit.repos.getReleaseByTag>>);
         const setOutputMock = jest.spyOn(core, 'setOutput');
 
         await run();
@@ -77,7 +77,7 @@ describe('hasProductionRelease', () => {
         mockGetLastClosedDeployChecklist.mockResolvedValue({
             version: '1.0.2-48',
         } as Awaited<ReturnType<typeof DeployChecklistUtils.getLastClosedDeployChecklist>>);
-        GithubUtils.octokit.repos.getReleaseByTag = jest.fn().mockResolvedValue({data: {prerelease: true}}) as typeof GithubUtils.octokit.repos.getReleaseByTag;
+        jest.spyOn(GithubUtils.octokit.repos, 'getReleaseByTag').mockResolvedValue({data: {prerelease: true}} as Awaited<ReturnType<typeof GithubUtils.octokit.repos.getReleaseByTag>>);
         const setOutputMock = jest.spyOn(core, 'setOutput');
 
         await run();
@@ -89,7 +89,7 @@ describe('hasProductionRelease', () => {
         mockGetLastClosedDeployChecklist.mockResolvedValue({
             version: '1.0.2-48',
         } as Awaited<ReturnType<typeof DeployChecklistUtils.getLastClosedDeployChecklist>>);
-        GithubUtils.octokit.repos.getReleaseByTag = jest.fn().mockRejectedValue({status: 404}) as typeof GithubUtils.octokit.repos.getReleaseByTag;
+        jest.spyOn(GithubUtils.octokit.repos, 'getReleaseByTag').mockRejectedValue({status: 404});
         const setOutputMock = jest.spyOn(core, 'setOutput');
 
         await run();
@@ -102,7 +102,7 @@ describe('hasProductionRelease', () => {
             version: '1.0.2-48',
         } as Awaited<ReturnType<typeof DeployChecklistUtils.getLastClosedDeployChecklist>>);
         const apiError = {status: 503};
-        GithubUtils.octokit.repos.getReleaseByTag = jest.fn().mockRejectedValue(apiError) as typeof GithubUtils.octokit.repos.getReleaseByTag;
+        jest.spyOn(GithubUtils.octokit.repos, 'getReleaseByTag').mockRejectedValue(apiError);
 
         await expect(run()).rejects.toEqual(apiError);
     });
