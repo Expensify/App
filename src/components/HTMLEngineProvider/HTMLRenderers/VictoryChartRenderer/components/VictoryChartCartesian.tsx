@@ -1,6 +1,6 @@
 import React from 'react';
 import {CartesianChart} from 'victory-native';
-import {ChartFontsProvider} from '@components/Charts/hooks';
+import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
@@ -27,7 +27,7 @@ function VictoryChartCartesian() {
             padding={padding}
             renderOutside={(renderArgs) => (
                 // Chart font context does not propagate across the Skia renderOutside boundary.
-                <ChartFontsProvider>
+                <ChartFontsLoaderProvider>
                     <VictoryChartRenderArgsProvider value={renderArgs}>
                         {labelItems.map((labelItem) => (
                             <VictoryChartLabel
@@ -42,7 +42,7 @@ function VictoryChartCartesian() {
                             />
                         ))}
                     </VictoryChartRenderArgsProvider>
-                </ChartFontsProvider>
+                </ChartFontsLoaderProvider>
             )}
         >
             {(renderArgs) => (

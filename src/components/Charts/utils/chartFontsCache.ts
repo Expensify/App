@@ -4,8 +4,8 @@ import {Image} from 'react-native';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import Log from '@libs/Log';
+import buildChartFontsValueFromTypefaces from './buildChartFontsValue';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
-import {CHART_FONT_MGR_FROM_TYPEFACES} from './chartFontConstants';
 
 const EMPTY_CHART_FONTS: ChartFontsValue = {
     typefaces: Object.fromEntries((Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[]).map((key) => [key, null])) as ChartDefaultTypeface,
@@ -54,27 +54,17 @@ function loadChartSkiaTypefaces(): Promise<ChartDefaultTypeface> {
 }
 
 function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<ChartFontsValue> {
-    const fontMgr = Skia.TypefaceFontProvider.Make();
-
-    for (const [familyName, typefaceKeys] of Object.entries(CHART_FONT_MGR_FROM_TYPEFACES)) {
-        for (const typefaceKey of typefaceKeys) {
-            const typeface = typefaces[typefaceKey];
-
-            if (typeface) {
-                fontMgr.registerFont(typeface, familyName);
-            }
-        }
-    }
+    const fonts = buildChartFontsValueFromTypefaces(typefaces);
 
     return Promise.all(
         Object.entries(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS).map(async ([familyName, asset]) => {
             const typeface = await loadTypefaceFromAsset(asset);
 
-            if (typeface) {
-                fontMgr.registerFont(typeface, familyName);
+            if (typeface && fonts.fontMgr) {
+                fonts.fontMgr.registerFont(typeface, familyName);
             }
         }),
-    ).then(() => ({typefaces, fontMgr}));
+    ).then(() => fonts);
 }
 
 function loadChartFonts(): Promise<ChartFontsValue> {
