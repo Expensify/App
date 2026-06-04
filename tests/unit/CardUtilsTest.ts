@@ -41,6 +41,7 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultExpensifyCardLimitType,
     getDisplayableExpensifyCards,
+    getDisplayableThirdPartyCards,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
     getFeedConnectionBrokenCard,
@@ -1580,6 +1581,16 @@ describe('CardUtils', () => {
             const lastFour = lastFourNumbersFromCardName('Business Card Cash - Business');
             expect(lastFour).toBe('');
         });
+
+        it('Should return last 4 numbers for an ellipsis name with a space (e.g. "CREDIT CARD...1234")', () => {
+            const lastFour = lastFourNumbersFromCardName('CREDIT CARD...1234');
+            expect(lastFour).toBe('1234');
+        });
+
+        it('Should return empty string for an ellipsis name without a space (e.g. "SomeCardName...1234")', () => {
+            const lastFour = lastFourNumbersFromCardName('SomeCardName...1234');
+            expect(lastFour).toBe('');
+        });
     });
 
     describe('maskCardNumber', () => {
@@ -2847,6 +2858,170 @@ describe('CardUtils', () => {
             };
             const result = getDisplayableExpensifyCards(cardList);
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('getDisplayableThirdPartyCards', () => {
+        const emptyCardFeedErrors = {
+            cardsWithBrokenFeedConnection: {},
+            personalCardsWithBrokenConnection: {},
+        };
+
+        function makeCompanyCard(overrides: Partial<Card> & {cardID: number}): Card {
+            return {
+                accountID: 1,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy123.exfy',
+                fraud: 'none',
+                fundID: '767578',
+                lastFourPAN: '2554',
+                lastScrape: '',
+                lastUpdated: '',
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                ...overrides,
+            };
+        }
+
+        function makePersonalPlaidCard(overrides: Partial<Card> & {cardID: number}): Card {
+            return {
+                accountID: 1,
+                bank: 'plaid.ins_109508' as CompanyCardFeed,
+                cardName: 'Chase Checking',
+                domainName: '',
+                fraud: 'none',
+                lastFourPAN: '4321',
+                lastScrape: '',
+                lastUpdated: '',
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                ...overrides,
+            };
+        }
+
+        it('returns [] when cardList is undefined', () => {
+            expect(getDisplayableThirdPartyCards(undefined, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('returns [] when cardList contains only Expensify Cards', () => {
+            const cardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify-policy1.exfy',
+                    fraud: 'none',
+                    fundID: '111',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                },
+            } as unknown as CardList;
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('includes an active company card (has domainName, fundID, not Expensify)', () => {
+            const cardList = {
+                10: makeCompanyCard({cardID: 10}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(10);
+        });
+
+        it('includes an active personal Plaid card (isPersonalCard returns true)', () => {
+            const cardList = {
+                20: makePersonalPlaidCard({cardID: 20}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(20);
+        });
+
+        it('excludes Expensify Cards', () => {
+            const cardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify-policy1.exfy',
+                    fraud: 'none',
+                    fundID: '111',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                },
+                2: makeCompanyCard({cardID: 2}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(2);
+        });
+
+        it('excludes the cash card (cardName === CASH)', () => {
+            const cardList = {
+                30: makeCompanyCard({cardID: 30, cardName: CONST.COMPANY_CARDS.CARD_NAME.CASH}),
+            } as unknown as CardList;
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('excludes cards not in ACTIVE_STATES', () => {
+            const cardList = {
+                40: makeCompanyCard({cardID: 40, state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+            } as unknown as CardList;
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('excludes a card for which isCardConnectionBroken(card) === true', () => {
+            const cardList = {
+                50: makeCompanyCard({cardID: 50, lastScrapeResult: 403}),
+            } as unknown as CardList;
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        it('excludes a company card listed in cardFeedErrors.cardsWithBrokenFeedConnection', () => {
+            const card = makeCompanyCard({cardID: 60});
+            const cardList = {60: card} as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, {
+                cardsWithBrokenFeedConnection: {60: card},
+                personalCardsWithBrokenConnection: {},
+            });
+            expect(result).toEqual([]);
+        });
+
+        it('excludes a personal card listed in cardFeedErrors.personalCardsWithBrokenConnection', () => {
+            const card = makePersonalPlaidCard({cardID: 70});
+            const cardList = {70: card} as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, {
+                cardsWithBrokenFeedConnection: {},
+                personalCardsWithBrokenConnection: {70: card},
+            });
+            expect(result).toEqual([]);
+        });
+
+        it('returns third-party cards in cardID-ascending order regardless of input ordering (Q3)', () => {
+            // CardList keyed by integer-indexed string keys is iterated in ascending numeric order
+            // by Object.values per ES2015. lodashSortBy with a constant sort key (2) preserves that order.
+            const cardList = {
+                300: makeCompanyCard({cardID: 300, lastFourPAN: '0001'}),
+                100: makeCompanyCard({cardID: 100, lastFourPAN: '0002', domainName: 'feed-a.exfy'}),
+                200: makeCompanyCard({cardID: 200, lastFourPAN: '0003', domainName: 'feed-b.exfy'}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result.map((c) => c.cardID)).toEqual([100, 200, 300]);
+        });
+
+        it('does not dedupe: two distinct third-party cards sharing the same domainName both appear (R-3 lock-in)', () => {
+            const cardList = {
+                400: makeCompanyCard({cardID: 400, lastFourPAN: '1111', domainName: 'same-domain.exfy'}),
+                401: makeCompanyCard({cardID: 401, lastFourPAN: '2222', domainName: 'same-domain.exfy', fundID: '767579'}),
+            } as unknown as CardList;
+            const result = getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors);
+            expect(result).toHaveLength(2);
+            expect(result.map((c) => c.cardID).sort((a, b) => a - b)).toEqual([400, 401]);
         });
     });
 
