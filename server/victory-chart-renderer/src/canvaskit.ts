@@ -1,9 +1,8 @@
-/// <reference path="../canvaskit-wasm.d.ts" />
 import type {CanvasKitInitOptions} from 'canvaskit-wasm';
-import canvaskitWasmPath from 'canvaskit-wasm/bin/full/canvaskit.wasm' with {type: 'file'};
 import {accessSync, constants} from 'node:fs';
 import {createRequire} from 'node:module';
 import {dirname, join} from 'node:path';
+import canvaskitWasmPath from './canvaskitWasmAsset';
 
 const require = createRequire(import.meta.url);
 
@@ -27,8 +26,10 @@ function resolveCanvaskitWasmPath(fileName: string): string {
     }
 }
 
-export function getCanvaskitInitOptions(): CanvasKitInitOptions {
+function getCanvaskitInitOptions(): CanvasKitInitOptions {
     return {
         locateFile: (file) => resolveCanvaskitWasmPath(file),
     };
 }
+
+export default getCanvaskitInitOptions;

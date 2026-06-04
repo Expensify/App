@@ -2,7 +2,7 @@ import {drawOffscreen, makeOffscreenSurface} from '@shopify/react-native-skia/li
 import {JsiSkApi} from '@shopify/react-native-skia/lib/module/skia/web';
 import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web/LoadSkiaWeb';
 import CLI from '@scripts/utils/CLI';
-import {getCanvaskitInitOptions} from './canvaskit';
+import getCanvaskitInitOptions from './canvaskit';
 
 const cli = new CLI({
     namedArgs: {
