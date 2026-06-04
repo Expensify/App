@@ -3456,6 +3456,16 @@ function getAutoReimbursementMessage(translate: LocalizedTranslate, action: Repo
     return getReportActionText(action);
 }
 
+function getMccGroupCategoryMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {mccGroupName, oldCategory, newCategory} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY>) ?? {};
+
+    if (!mccGroupName || !oldCategory || !newCategory) {
+        return getReportActionText(action);
+    }
+
+    return translate('workspaceActions.updatedMccGroupCategory', {mccGroupName, oldCategory, newCategory});
+}
+
 type DefaultApproverOriginalMessage = {
     approver: {email: string; name: string; accountID: number};
     previousApprover?: {email: string; name: string; accountID: number};
@@ -4682,7 +4692,6 @@ export {
     isSubmittedAction,
     isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
-    isApprovedAction,
     isForwardedAction,
     isDynamicExternalWorkflowForwardedAction,
     isUnapprovedAction,
@@ -4732,6 +4741,7 @@ export {
     getRequireCompanyCardsEnabledMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getMccGroupCategoryMessage,
     formatAddressToString,
     getCompanyAddressUpdateMessage,
     getDefaultApproverUpdateMessage,

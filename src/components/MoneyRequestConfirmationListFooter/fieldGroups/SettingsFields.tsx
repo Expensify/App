@@ -1,17 +1,12 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import ReportField from '@components/MoneyRequestConfirmationList/sections/ReportField';
 import ToggleFields from '@components/MoneyRequestConfirmationList/sections/ToggleFields';
 import type {ToggleHandlers} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {FieldVisibility} from './fieldVisibility';
 
 type SettingsFieldsProps = {
-    /** Active transaction (still needed by ReportField until it reads its own slice) */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
 
@@ -39,16 +34,7 @@ type SettingsFieldsProps = {
  * Gating ReportField behind `isPolicyExpenseChat` keeps its 5 Onyx subscriptions
  * (including `COLLECTION.REPORT_NVP`) from instantiating on non-policy-expense flows.
  */
-function SettingsFields({
-    transaction,
-    selectedParticipants,
-    shouldShowBillable,
-    shouldShowReimbursable,
-    isPerDiemRequest,
-    toggleHandlers,
-    isCompactMode,
-    fieldVisibility,
-}: SettingsFieldsProps) {
+function SettingsFields({selectedParticipants, shouldShowBillable, shouldShowReimbursable, isPerDiemRequest, toggleHandlers, isCompactMode, fieldVisibility}: SettingsFieldsProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
 
     if (isCompactMode) {
@@ -75,7 +61,6 @@ function SettingsFields({
                     reportActionID={reportActionID}
                     action={action}
                     transactionID={transactionID}
-                    transaction={transaction}
                     isPerDiemRequest={isPerDiemRequest}
                 />
             )}
