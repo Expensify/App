@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import type CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type SelectionDropdownProps = {
@@ -30,6 +30,9 @@ type SelectionDropdownProps = {
     /** Callback for the end of the onContinue trigger on option selection */
     selectionModeKYCSuccess: (type?: PaymentMethodType) => void;
 
+    /** Callback when a workspace policy payment option is selected */
+    onWorkspacePolicySelect: (policy: Policy, triggerKYCFlow: TriggerKYCFlow) => void;
+
     /** Reference to the KYC wall */
     kycWallRef: React.RefObject<KYCWallRef | null>;
 
@@ -43,6 +46,7 @@ function SelectionDropdown({
     report,
     onSelectionModePaymentSelect,
     selectionModeKYCSuccess,
+    onWorkspacePolicySelect,
     primaryAction,
     selectedTransactionsOptions,
     selectedTransactionIDs,
@@ -60,6 +64,7 @@ function SelectionDropdown({
                     chatReportID={chatReport?.reportID}
                     iouReport={report}
                     onPaymentSelect={onSelectionModePaymentSelect}
+                    onWorkspacePolicySelect={onWorkspacePolicySelect}
                     onSuccessfulKYC={selectionModeKYCSuccess}
                     primaryAction={primaryAction}
                     applicableSecondaryActions={selectedTransactionsOptions}

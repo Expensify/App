@@ -163,6 +163,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         hasPayInSelectionMode,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
+        shouldBlockAction,
         primaryAction,
         kycWallRef,
         isHoldMenuVisible,
@@ -256,6 +257,12 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                             report={report}
                             onSelectionModePaymentSelect={onSelectionModePaymentSelect}
                             selectionModeKYCSuccess={selectionModeKYCSuccess}
+                            onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
+                                if (shouldBlockAction()) {
+                                    return;
+                                }
+                                triggerKYCFlow({policy: selectedPolicy});
+                            }}
                             primaryAction={primaryAction}
                             selectedTransactionsOptions={selectedTransactionsOptions}
                             selectedTransactionIDs={selectedTransactionIDs}

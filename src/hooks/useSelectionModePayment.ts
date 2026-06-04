@@ -256,7 +256,6 @@ function useSelectionModePayment({
                         text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
                         icon: expensifyIcons.Building,
                         workspacePolicy: wp,
-                        onSelected: () => handleWorkspaceSelected(wp),
                     };
                     result.push(workspacePolicyItem);
                 }
