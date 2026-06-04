@@ -1,7 +1,13 @@
-// On mobile platforms, concierge is displayed as a separate page and the tab bar
-// is rendered by the TabNavigator, so there is no extra content to show here.
-function RootNavigatorExtraContent() {
-    return null;
+import React from 'react';
+import SidePanel from '@components/SidePanel';
+import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
+function RootNavigatorExtraContent({navigation}: ExtraContentProps) {
+    return (
+        <>
+            <SidePanel navigation={navigation} />
+        </>
+    );
 }
 
 export default RootNavigatorExtraContent;
