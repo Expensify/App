@@ -175,6 +175,7 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={errorState.formError}
+                    clearFormErrors={errorState.clearFormErrors}
                 />
             )}
 

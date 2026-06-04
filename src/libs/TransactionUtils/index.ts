@@ -2130,6 +2130,18 @@ function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transacti
 }
 
 /**
+ * Returns the maximum allowed tax amount (in the smallest currency units) for a transaction,
+ * i.e. the tax computed from the selected tax rate (or the policy default) and the expense amount.
+ * Used to validate manually entered tax amounts so they can't exceed the calculated tax.
+ */
+function getCalculatedTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency: string, decimals: number): number {
+    const taxableAmount = Math.abs(getAmount(transaction));
+    const taxCode = transaction?.taxCode ?? getDefaultTaxCode(policy, transaction, currency) ?? '';
+    const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+    return convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, decimals));
+}
+
+/**
  * Gets the tax name for Workspace Taxes Settings
  */
 function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: string) {
@@ -2883,6 +2895,7 @@ export {
     getDefaultTaxCode,
     transformedTaxRates,
     getTaxValue,
+    getCalculatedTaxAmount,
     getTaxName,
     getTaxRateTitle,
     hasTaxRateWithMatchingValue,
