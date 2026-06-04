@@ -19,7 +19,7 @@ As part of our high-vetting process, all shortlisted candidates will complete a 
 
 - Expert-level proficiency in both C++ and PHP  
 - Clear commitment to C++ and PHP as long-term backend technologies (not stepping stones)  
-- Demonstrated problem-solving ability, validated through a paid C++ and PHP technical challenge  
+- Demonstrated problem-solving ability, validated through a C++ and PHP technical challenge  
 - Strong backend systems thinking (performance, reliability, maintainability)  
 - SQL experience is a plus, but not required
 
