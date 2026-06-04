@@ -75,6 +75,7 @@ import {
     isExpensifyTeam,
     isPaidGroupPolicy,
     isPolicyApprover,
+    isPolicyAdmin as isStrictPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -410,6 +411,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
+    const canAssignElevatedRoles = isStrictPolicyAdmin(policy, currentUserLogin);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
@@ -456,10 +458,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             let roleBadgeText = '';
             if (policy?.owner === details.login) {
                 roleBadgeText = translate('common.owner');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN) {
-                roleBadgeText = translate('common.admin');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
-                roleBadgeText = translate('common.auditor');
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN || policyEmployee.role === CONST.POLICY.ROLE.AUDITOR || policyEmployee.role === CONST.POLICY.ROLE.CARD_ADMIN) {
+                roleBadgeText = translate('workspace.common.roleName', policyEmployee.role);
             }
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
             const memberEmail = formatPhoneNumber(details?.login ?? '');
@@ -823,8 +823,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             icon: icons.UserEye,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
+        const cardAdminOption = {
+            text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
+            icon: icons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.CARD_ADMIN),
+        };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
+        const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
         const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -834,12 +841,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(memberOption);
         }
 
-        if (hasAtLeastOneNonAdminRole) {
+        if (hasAtLeastOneNonAdminRole && canAssignElevatedRoles) {
             options.push(adminOption);
         }
 
-        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer) {
+        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
             options.push(auditorOption);
+        }
+
+        if (hasAtLeastOneNonCardAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+            options.push(cardAdminOption);
         }
 
         return options;

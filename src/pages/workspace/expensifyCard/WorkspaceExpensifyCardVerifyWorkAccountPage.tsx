@@ -8,6 +8,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
@@ -19,7 +20,9 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceExpensifyCardVerifyWorkAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL>;
 
-function WorkspaceExpensifyCardVerifyWorkAccountPage({route}: WorkspaceExpensifyCardVerifyWorkAccountPageProps) {
+type WorkspaceExpensifyCardVerifyWorkAccountPageContentProps = Pick<WorkspaceExpensifyCardVerifyWorkAccountPageProps, 'route'>;
+
+function WorkspaceExpensifyCardVerifyWorkAccountPageContent({route}: WorkspaceExpensifyCardVerifyWorkAccountPageContentProps) {
     const {policyID, fundID} = route.params;
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -74,6 +77,21 @@ function WorkspaceExpensifyCardVerifyWorkAccountPage({route}: WorkspaceExpensify
                 Navigation.goBack();
             }}
         />
+    );
+}
+
+function WorkspaceExpensifyCardVerifyWorkAccountPage({route}: WorkspaceExpensifyCardVerifyWorkAccountPageProps) {
+    const {policyID} = route.params;
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <WorkspaceExpensifyCardVerifyWorkAccountPageContent route={route} />
+        </AccessOrNotFoundWrapper>
     );
 }
 

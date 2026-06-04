@@ -4385,7 +4385,7 @@ ${amount} pour ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrateur';
+                        return 'Administrateur de l’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -6214,6 +6214,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             makeAuditor: () => ({
                 one: 'Nommer auditeur',
                 other: 'Créer des auditeurs',
+            }),
+            makeCardAdmin: () => ({
+                one: 'Nommer administrateur de carte',
+                other: 'Nommer des administrateurs de carte',
             }),
             selectAll: 'Tout sélectionner',
             error: {
@@ -8424,7 +8428,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${role === 'member' ? 'a' : 'un'} ${role}`,
+                    didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} avec le rôle ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `a mis à jour le rôle de ${email} en ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

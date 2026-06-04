@@ -45,6 +45,10 @@ type WorkspaceMembersRoleData = {
     role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
+function isPolicyAdminsRoomRole(role: string | undefined): boolean {
+    return role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.CARD_ADMIN;
+}
+
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -349,7 +353,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         selectedMemberEmails
             .filter((login) => {
                 const role = login ? policy?.employeeList?.[login]?.role : '';
-                return role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR;
+                return isPolicyAdminsRoomRole(role);
             })
             .map((login) => policyMemberEmailsToAccountIDs[login]),
     );
@@ -643,7 +647,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
     if (adminRoom) {
         const failureDataParticipants: Record<number, Participant | null> = {...adminRoom.participants};
         const optimisticParticipants: Record<number, Participant | null> = {};
-        if (newRole === CONST.POLICY.ROLE.ADMIN || newRole === CONST.POLICY.ROLE.AUDITOR) {
+        if (isPolicyAdminsRoomRole(newRole)) {
             for (const accountID of selectedMemberAccountIDs) {
                 if (adminRoom?.participants?.[accountID]) {
                     continue;
@@ -810,11 +814,7 @@ function buildAddMembersToWorkspaceOnyxData(
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
-    const adminRoomMembers = buildRoomMembersOnyxData(
-        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        policyID,
-        role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR ? accountIDs : [],
-    );
+    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, isPolicyAdminsRoomRole(role) ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 

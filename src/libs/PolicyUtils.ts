@@ -203,6 +203,10 @@ function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature
     return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 }
 
+function isPolicyCardAdmin(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
+    return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+}
+
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
@@ -2562,6 +2566,7 @@ export {
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
+    isPolicyCardAdmin,
 };
 
-export type {MemberEmailsToAccountIDs, PolicyFeature};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

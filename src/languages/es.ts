@@ -4262,7 +4262,7 @@ ${amount} para ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrador';
+                        return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -6026,6 +6026,10 @@ ${amount} para ${merchant} - ${date}`,
             makeAuditor: () => ({
                 one: 'Convertir en auditor',
                 other: 'Convertir en auditores',
+            }),
+            makeCardAdmin: () => ({
+                one: 'Convertir en administrador de tarjeta',
+                other: 'Convertir en administradores de tarjeta',
             }),
             selectAll: 'Seleccionar todo',
             error: {
@@ -8182,7 +8186,7 @@ ${amount} para ${merchant} - ${date}`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} se unió mediante el enlace de invitación del espacio de trabajo` : `se añadió ${email} como ${role === 'member' ? 'a' : 'a un'} ${role}`,
+                    didJoinPolicy ? `${email} se unió mediante el enlace de invitación del espacio de trabajo` : `se añadió ${email} con el rol ${role}`,
                 updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: (email, newValue, previousValue) => {
                     if (!newValue) {

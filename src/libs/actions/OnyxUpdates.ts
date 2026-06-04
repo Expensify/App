@@ -28,6 +28,52 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
+// The microsecond-keyed Errors shape produced by getMicroSecondOnyxErrorWithTranslationKey
+// and getMicroSecondOnyxErrorWithMessage: Record<string, string | null>. We deliberately
+// skip other "errors" shapes (arrays, {translationKey: ...} objects, etc.).
+function isMicroSecondErrorsShape(value: unknown): value is Record<string, string | null> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return false;
+    }
+    const entries = Object.values(value as Record<string, unknown>);
+    if (entries.length === 0) {
+        return false;
+    }
+    return entries.every((v) => v === null || typeof v === 'string');
+}
+
+function substituteBackendMessage(node: unknown, message: string): unknown {
+    if (!node || typeof node !== 'object') {
+        return node;
+    }
+    if (Array.isArray(node)) {
+        return node.map((item) => substituteBackendMessage(item, message));
+    }
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+        if (key === 'errors' && isMicroSecondErrorsShape(value)) {
+            const replaced: Record<string, string | null> = {};
+            for (const [microKey, microValue] of Object.entries(value)) {
+                // Preserve null entries (which clear a previous error); only substitute string values.
+                replaced[microKey] = microValue === null ? null : message;
+            }
+            result[key] = replaced;
+        } else {
+            result[key] = substituteBackendMessage(value, message);
+        }
+    }
+    return result;
+}
+
+function applyBackendMessageToFailureData<TKey extends OnyxKey>(failureData: Array<OnyxUpdate<TKey>>, message: string): Array<OnyxUpdate<TKey>> {
+    return failureData.map((entry) => {
+        if (!entry || typeof entry !== 'object' || !('value' in entry) || !entry.value || typeof entry.value !== 'object') {
+            return entry;
+        }
+        return {...entry, value: substituteBackendMessage(entry.value, message) as typeof entry.value};
+    });
+}
+
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
@@ -62,7 +108,17 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                     requestData: request.data,
                 });
 
-                return updateHandler(request.failureData);
+                // jsonCode 666 (EXP_ERROR) is the backend's "ExpError with a user-facing message" contract.
+                // Substitute the hardcoded translation-key string baked into request.failureData with the
+                // backend's response.message so the actual reason renders in the existing RedBrickRoad UI
+                // for every command routed through API.write — not just the handful that bypass the
+                // sequential queue via makeRequestWithSideEffects.
+                const failureDataToApply =
+                    response.jsonCode === CONST.JSON_CODE.EXP_ERROR && typeof response.message === 'string' && response.message.length > 0
+                        ? applyBackendMessageToFailureData(request.failureData, response.message)
+                        : request.failureData;
+
+                return updateHandler(failureDataToApply);
             }
             return Promise.resolve();
         })
