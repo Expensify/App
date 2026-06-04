@@ -53,13 +53,6 @@ function getInitialURL() {
 describe('Deep linking', () => {
     let lastVisitedPath: string | undefined;
     let lastVisitedPathConnectionID: ReturnType<typeof Onyx.connect> | undefined;
-    let originalSignInWithShortLivedAuthToken: typeof Session.signInWithShortLivedAuthToken;
-    let originalOpenApp: typeof AppActions.openApp;
-
-    beforeAll(() => {
-        originalSignInWithShortLivedAuthToken = Session.signInWithShortLivedAuthToken;
-        originalOpenApp = AppActions.openApp;
-    });
 
     beforeEach(() => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -69,6 +62,8 @@ describe('Deep linking', () => {
             callback: (val: OnyxEntry<string>) => (lastVisitedPath = val),
         });
 
+        // Set session state directly rather than going through API.read(SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN),
+        // which adds an optimistic→network→finally Onyx cycle that slows the test down significantly.
         jest.spyOn(Session, 'signInWithShortLivedAuthToken').mockImplementation(() => {
             Onyx.merge(ONYXKEYS.CREDENTIALS, {
                 login: TEST_USER_LOGIN_1,
@@ -89,15 +84,20 @@ describe('Deep linking', () => {
                 encryptedAuthToken: TEST_AUTH_TOKEN_1,
             });
             Onyx.merge(ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID, 'randomID');
-
-            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1);
+            setLastShortAuthToken(TEST_AUTH_TOKEN_1);
         });
 
+        // Set the keys the app needs to finish loading rather than going through
+        // getPolicyParamsForOpenOrReconnect + writeWithNoDuplicatesConflictAction(OPEN_APP),
+        // which adds a policy-collection read, an isReadyToOpenApp gate, and a full
+        // request-queue round-trip with optimistic→network→finally Onyx data.
         jest.spyOn(AppActions, 'openApp').mockImplementation(async () => {
-            const originalResult = await originalOpenApp();
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
-            return originalResult;
+            await Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                [ONYXKEYS.HAS_LOADED_APP]: true,
+            });
         });
     });
 
