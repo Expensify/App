@@ -5,15 +5,15 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import Button from './Button';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -32,7 +32,6 @@ type FrozenCardHeaderProps = {
 
 function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FreezeCard']);
@@ -64,7 +63,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                 <>
                     {adminFrozenTextPrefix}
                     <TextLink
-                        onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
                         style={[styles.textLabel, styles.link]}
                     >
                         {frozenByName}
@@ -79,7 +78,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
             <>
                 {frozenNeedsUnfreezePrefix}
                 <TextLink
-                    onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
                     style={[styles.textLabel, styles.link]}
                 >
                     {frozenByName}
@@ -101,7 +100,6 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                         medium
                         text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
                         icon={icons.FreezeCard}
-                        iconFill={theme.icon}
                         onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                         isDisabled={canUnfreezeCard && isOffline}
                         innerStyles={equalButtonInnerStyles}

@@ -1,6 +1,6 @@
 type CopyPolicySettingsParams = {
     /** Source policy ID we're copying settings from */
-    sourcePolicyID: string;
+    policyID: string;
 
     /** CSV list of target policy IDs to copy settings into */
     policyIDList: string;

@@ -5,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -38,22 +39,6 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
-    shouldDisableHoverStyle,
-    onPressRow,
-    onMouseDownRow,
-    onHoverInRow,
-    onEditDate,
-    onEditMerchant,
-    onEditDescription,
-    onEditCategory,
-    onEditAmount,
-    onEditTag,
-    canEditDate,
-    canEditMerchant,
-    canEditDescription,
-    canEditCategory,
-    canEditAmount,
-    canEditTag,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -62,20 +47,22 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
+    const {isSelected} = useRowSelection(item.keyForList);
 
-    const pressableStyle = [
-        styles.transactionListItemStyle,
-        styles.p4,
-        styles.noBorderRadius,
-        item.isSelected && styles.activeComponentBG,
-        {...styles.flexColumn, ...styles.alignItemsStretch},
-    ];
+    const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
+        if (isDeletedTransaction && !canSelectMultiple) {
+            return;
+        }
+        onSelectRow(item, transactionPreviewData, event);
+    };
+
+    const pressableStyle = [styles.transactionListItemStyle, styles.p4, styles.noBorderRadius, isSelected && styles.activeComponentBG, {...styles.flexColumn, ...styles.alignItemsStretch}];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: true,
     });
 
@@ -84,20 +71,18 @@ function TransactionListItemNarrow<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={onPressRow}
-                disabled={isDisabled && !item.isSelected}
+                onPress={handleOnPress}
+                disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
-                onMouseDown={onMouseDownRow}
-                onHoverIn={onHoverInRow}
-                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
@@ -108,7 +93,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
-                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
+                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
                 ]}
             >
                 {() => (
@@ -118,7 +103,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
-                            isSelected={!!transactionItem.isSelected}
+                            isSelected={isSelected}
                         />
                         <TransactionItemRow
                             transactionItem={transactionItem}
@@ -131,7 +116,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             isLargeScreenWidth={false}
                             columns={columns}
                             isActionLoading={isLoading ?? isActionLoading}
-                            isSelected={!!transactionItem.isSelected}
+                            isSelected={isSelected}
                             isDisabled={!!isDisabled}
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
@@ -145,18 +130,6 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                            onEditDate={onEditDate}
-                            onEditMerchant={onEditMerchant}
-                            onEditDescription={onEditDescription}
-                            onEditCategory={onEditCategory}
-                            onEditAmount={onEditAmount}
-                            onEditTag={onEditTag}
-                            canEditDate={canEditDate}
-                            canEditMerchant={canEditMerchant}
-                            canEditDescription={canEditDescription}
-                            canEditCategory={canEditCategory}
-                            canEditAmount={canEditAmount}
-                            canEditTag={canEditTag}
                         />
                     </>
                 )}
