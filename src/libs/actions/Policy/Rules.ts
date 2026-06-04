@@ -326,9 +326,9 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-function addPolicyAIRule(policyID: string, ruleID: string, prompt: string) {
-    if (!policyID || !ruleID || !prompt) {
-        Log.warn('Invalid params for addPolicyAIRule', {policyID, ruleID, prompt});
+function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
+    if (!policyID || !aiRuleID || !prompt) {
+        Log.warn('Invalid params for addPolicyAIRule', {policyID, aiRuleID, prompt});
         return;
     }
 
@@ -342,8 +342,8 @@ function addPolicyAIRule(policyID: string, ruleID: string, prompt: string) {
                 value: {
                     aiRules: {
                         rules: {
-                            [ruleID]: {
-                                ruleID,
+                            [aiRuleID]: {
+                                ruleID: aiRuleID,
                                 created: new Date().toISOString(),
                                 prompt,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -360,7 +360,7 @@ function addPolicyAIRule(policyID: string, ruleID: string, prompt: string) {
                 value: {
                     aiRules: {
                         rules: {
-                            [ruleID]: {
+                            [aiRuleID]: {
                                 pendingAction: null,
                                 errors: null,
                             },
@@ -376,7 +376,7 @@ function addPolicyAIRule(policyID: string, ruleID: string, prompt: string) {
                 value: {
                     aiRules: {
                         rules: {
-                            [ruleID]: {
+                            [aiRuleID]: {
                                 pendingAction: null,
                             },
                         },
@@ -388,7 +388,7 @@ function addPolicyAIRule(policyID: string, ruleID: string, prompt: string) {
 
     const parameters: AddPolicyAIRuleParams = {
         policyID,
-        ruleID,
+        aiRuleID,
         prompt,
     };
 
