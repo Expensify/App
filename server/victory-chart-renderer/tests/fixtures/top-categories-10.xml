@@ -1,0 +1,8 @@
+<victorychart width="680" height="610" padding="{top: 0, bottom: 0, left: 0, right: 0}" style="{parent: {backgroundColor: '#F7F2EF', borderRadius: 16}}">
+    <victoryaxis style="{axis: {stroke: 'transparent'}, ticks: {stroke: 'transparent'}, grid: {stroke: 'transparent'}, tickLabels: {fill: 'transparent'}}" />
+    <victoryaxis dependentaxis style="{axis: {stroke: 'transparent'}, ticks: {stroke: 'transparent'}, grid: {stroke: 'transparent'}, tickLabels: {fill: 'transparent'}}" />
+    <victorylabel x="32" y="40" text="Top categories" style="{fill: '#002E22', fontSize: 17, fontWeight: 700, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="32" y="62" text="As of: May 6, 12:49 PM PT" style="{fill: '#76847E', fontSize: 11, fontWeight: 400, fontFamily: 'Expensify Neue'}" />
+    <victorypie innerradius="125" radius="145" colorscale="['#FED607','#FF7101','#F68DFE','#03D47C','#50EEF6','#0185FF','#9B59B6','#E74C3C','#3498DB','#2ECC71']" data="[{x: 'Other', y: 5200000},{x: 'Travel', y: 2400000},{x: 'Meals and Entertainment', y: 2100000},{x: 'Office Expenses', y: 1900000},{x: 'Advertising', y: 1600000},{x: 'Utilities', y: 1400000},{x: 'Insurance', y: 1200000},{x: 'Rent or Lease', y: 1100000},{x: 'Legal & Professional Fees', y: 950000},{x: 'Supplies', y: 800000}]" />
+    <victorylabel x="340" y="305" textanchor="middle" verticalanchor="middle" text="Total" style="{fill: '#76847E', fontSize: 13, fontFamily: 'Expensify Neue'}" />
+</victorychart>
