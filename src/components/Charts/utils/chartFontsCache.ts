@@ -4,7 +4,7 @@ import {Image} from 'react-native';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import Log from '@libs/Log';
-import buildChartFontsValueFromTypefaces from './buildChartFontsValue';
+import buildSkiaFontManager from './buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
 
 const EMPTY_CHART_FONTS: ChartFontsValue = {
@@ -54,17 +54,17 @@ function loadChartSkiaTypefaces(): Promise<ChartDefaultTypeface> {
 }
 
 function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<ChartFontsValue> {
-    const fonts = buildChartFontsValueFromTypefaces(typefaces);
+    const fontMgr = buildSkiaFontManager(typefaces);
 
     return Promise.all(
         Object.entries(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS).map(async ([familyName, asset]) => {
             const typeface = await loadTypefaceFromAsset(asset);
 
-            if (typeface && fonts.fontMgr) {
-                fonts.fontMgr.registerFont(typeface, familyName);
+            if (typeface) {
+                fontMgr.registerFont(typeface, familyName);
             }
         }),
-    ).then(() => fonts);
+    ).then(() => ({typefaces, fontMgr}));
 }
 
 function loadChartFonts(): Promise<ChartFontsValue> {
