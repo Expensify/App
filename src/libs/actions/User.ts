@@ -65,7 +65,7 @@ import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {getDeviceInfoWithID} from './Device';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
-import {resendValidateCode as sessionResendValidateCode} from './Session';
+import {isAnonymousUser, resendValidateCode as sessionResendValidateCode} from './Session';
 import redirectToSignIn from './SignInRedirect';
 
 // `sessionAccountID` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
@@ -1224,7 +1224,7 @@ function setContactMethodAsDefault(
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
     // When toggling high contrast from the sign-in page, the user is not signed in. So persist the preference locally only.
-    if (!sessionAccountID) {
+    if (!sessionAccountID || isAnonymousUser()) {
         Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
         return;
     }
