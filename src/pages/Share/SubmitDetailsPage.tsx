@@ -419,9 +419,11 @@ function SubmitDetailsPage({
                         }
                         navigateAfterInteraction(() => performUpload(participant, true));
                     }}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
+                    onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
+                        if (wasUserInitiated) {
+                            updateLastLocationPermissionPrompt();
+                        }
                         const participant = selectedParticipantList.at(0) ?? selectedParticipants.at(0);
                         if (!participant) {
                             setIsConfirming(false);

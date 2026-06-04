@@ -826,9 +826,11 @@ describe('Unread Indicators', () => {
 
         await waitForBatchedUpdates();
         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
-        const displayNameTexts = screen.queryAllByLabelText(hintText);
-        expect(displayNameTexts).toHaveLength(1);
-        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        await waitFor(() => {
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
+            expect(displayNameTexts).toHaveLength(1);
+            expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        });
     });
 
     it('Mark the last comment as unread should set lastReadTime to the last action’s creation time', async () => {

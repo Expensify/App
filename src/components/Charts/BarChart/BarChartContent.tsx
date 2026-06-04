@@ -11,6 +11,7 @@ import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
+    ChartFontsProvider,
     useChartFontManager,
     useChartInteractions,
     useChartLabelFormats,
@@ -44,7 +45,7 @@ type BarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontMgr = useChartFontManager();
@@ -298,6 +299,14 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
                 />
             </Animated.View>
         </GestureDetector>
+    );
+}
+
+function BarChartContent(props: BarChartProps) {
+    return (
+        <ChartFontsProvider>
+            <BarChartContentBody {...props} />
+        </ChartFontsProvider>
     );
 }
 
