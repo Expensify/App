@@ -53,6 +53,11 @@ function getInitialURL() {
 describe('Deep linking', () => {
     let lastVisitedPath: string | undefined;
     let lastVisitedPathConnectionID: ReturnType<typeof Onyx.connect> | undefined;
+    let originalSignInWithShortLivedAuthToken: typeof Session.signInWithShortLivedAuthToken;
+
+    beforeAll(() => {
+        originalSignInWithShortLivedAuthToken = Session.signInWithShortLivedAuthToken;
+    });
 
     beforeEach(() => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -62,9 +67,11 @@ describe('Deep linking', () => {
             callback: (val: OnyxEntry<string>) => (lastVisitedPath = val),
         });
 
-        // Set session state directly rather than going through API.read(SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN),
-        // which adds an optimistic→network→finally Onyx cycle that slows the test down significantly.
-        // Use multiSet so wrapOnyxWithWaitForBatchedUpdates drains a single batch instead of five.
+        // Set session state directly via multiSet rather than waiting for the API.read response
+        // (optimistic→network→finally Onyx cycle) to keep the test fast. Then call through to
+        // the real signInWithShortLivedAuthToken so it sets NetworkStore.lastShortAuthToken —
+        // the token-cache guard in LogInWithShortLivedAuthTokenPage reads that value to skip
+        // re-authentication after sign-out, which is exactly what the second test asserts.
         jest.spyOn(Session, 'signInWithShortLivedAuthToken').mockImplementation(() => {
             Onyx.multiSet({
                 [ONYXKEYS.CREDENTIALS]: {
@@ -84,7 +91,7 @@ describe('Deep linking', () => {
                 },
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
             });
-            setLastShortAuthToken(TEST_AUTH_TOKEN_1);
+            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1);
         });
 
         // Set the keys the app needs to finish loading rather than going through
