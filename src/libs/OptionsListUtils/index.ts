@@ -2570,7 +2570,9 @@ function getValidOptions(
         });
         recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms) as Array<SearchOption<Report>>;
 
-        if (maxRecentReportElements) {
+        // Only cap the recent attendees when there's no active search. During a search we surface every match, since
+        // all recent attendees are excluded from "Contacts" and capped-off matches would otherwise vanish from the list.
+        if (maxRecentReportElements && searchTerms.length === 0) {
             recentReportOptions = recentReportOptions.slice(0, maxRecentReportElements);
         }
     }
