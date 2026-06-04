@@ -341,13 +341,11 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
                 key: policyKey,
                 value: {
                     aiRules: {
-                        rules: {
-                            [aiRuleID]: {
-                                ruleID: aiRuleID,
-                                created: new Date().toISOString(),
-                                prompt,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            },
+                        [aiRuleID]: {
+                            ruleID: aiRuleID,
+                            created: new Date().toISOString(),
+                            prompt,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         },
                     },
                 },
@@ -359,11 +357,9 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
                 key: policyKey,
                 value: {
                     aiRules: {
-                        rules: {
-                            [aiRuleID]: {
-                                pendingAction: null,
-                                errors: null,
-                            },
+                        [aiRuleID]: {
+                            pendingAction: null,
+                            errors: null,
                         },
                     },
                 },
@@ -375,10 +371,8 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
                 key: policyKey,
                 value: {
                     aiRules: {
-                        rules: {
-                            [aiRuleID]: {
-                                pendingAction: null,
-                            },
+                        [aiRuleID]: {
+                            pendingAction: null,
                         },
                     },
                 },
