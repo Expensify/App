@@ -20,7 +20,6 @@ const mockStyles = {
     buttonSuccess: {backgroundColor: 'green'},
     buttonDanger: {backgroundColor: 'red'},
     buttonOpacityDisabled: {opacity: 0.5},
-    buttonDisabled: {backgroundColor: 'gray'},
 } as unknown as ThemeStyles;
 
 const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles} = createStyleUtils(mockTheme, mockStyles);
@@ -79,7 +78,6 @@ describe('getButtonVariantStyles', () => {
         expect(variantStyles.normal).toEqual({
             success: mockStyles.buttonSuccess,
             danger: mockStyles.buttonDanger,
-            link: {},
         });
     });
 
@@ -87,7 +85,6 @@ describe('getButtonVariantStyles', () => {
         expect(variantStyles.disabled).toEqual({
             success: [mockStyles.buttonOpacityDisabled],
             danger: [mockStyles.buttonOpacityDisabled],
-            link: [mockStyles.buttonOpacityDisabled, mockStyles.buttonDisabled],
         });
     });
 });
