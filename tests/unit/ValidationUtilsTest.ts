@@ -5,7 +5,9 @@ import type {Country} from '@src/CONST';
 import {
     containsHtmlTag,
     getAgeRequirementError,
+    getInvalidAddressErrorTranslationPath,
     isInvalidMerchantValue,
+    isPOBoxOrMailDrop,
     isRequiredFulfilled,
     isValidAccountRoute,
     isValidAddress,
@@ -651,6 +653,29 @@ describe('ValidationUtils', () => {
             test('Should return false for addresses containing only emojis', () => {
                 expect(isValidAddress('😊')).toBe(false);
             });
+        });
+    });
+
+    describe('isPOBoxOrMailDrop', () => {
+        test.each([['PO Box 123'], ['P.O. Box 456'], ['po box 100'], ['PMB 123'], ['PMB # 456'], ['Private Mail Box #789']])('Should return true for PO box/PMB value: %s', (address) => {
+            expect(isPOBoxOrMailDrop(address)).toBe(true);
+        });
+
+        test.each([['742 Evergreen Terrace'], ['456 Mailbox Drive'], [''], ['😊']])('Should return false for non PO box/PMB value: %s', (address) => {
+            expect(isPOBoxOrMailDrop(address)).toBe(false);
+        });
+    });
+
+    describe('getInvalidAddressErrorTranslationPath', () => {
+        test.each([['PO Box 123'], ['P.O. Box 456'], ['PMB 123'], ['PMB # 456'], ['Private Mail Box #789']])(
+            'Should return the physical address required copy for PO box/PMB value: %s',
+            (address) => {
+                expect(getInvalidAddressErrorTranslationPath(address)).toBe('bankAccount.error.physicalAddressRequired');
+            },
+        );
+
+        test.each([['😊'], ['742 Evergreen Terrace 🏠'], ['']])('Should return the generic street address copy for other invalid value not related to PO box/PMB: %s', (address) => {
+            expect(getInvalidAddressErrorTranslationPath(address)).toBe('bankAccount.error.addressStreet');
         });
     });
 
