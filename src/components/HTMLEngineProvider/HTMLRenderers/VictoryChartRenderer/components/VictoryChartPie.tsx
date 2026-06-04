@@ -42,12 +42,13 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const perSliceData = Object.values(data)
         .map((entry) => (entry as PolarChartData).label)
         .reduce(
-            (data, dataLabel, index) => {
-                data[dataLabel] = {
+            (slicesData, dataLabel, index) => {
+                // eslint-disable-next-line no-param-reassign
+                slicesData[dataLabel] = {
                     customLabel: pieLabels?.[index],
                     customLabelRadius: labelRadius ? labelRadius * (index % 2 === 0 ? EVEN_SLICE_LABEL_RADIUS_FACTOR : ODD_SLICE_LABEL_RADIUS_FACTOR) : undefined,
                 };
-                return data;
+                return slicesData;
             },
             {} as Record<string, {customLabelRadius: number | undefined; customLabel: string | undefined}>,
         );
