@@ -66,6 +66,7 @@ import {
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isAttendeeTrackingEnabled,
+    isGroupPolicy,
     isPolicyAccessible,
     isTaxTrackingEnabled,
     resolveCurrentTaxCode,
@@ -81,7 +82,6 @@ import {
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isExpenseReport,
-    isGroupPolicy,
     isInvoiceReport,
     isOpenReport,
     isPaidGroupPolicy,
@@ -423,10 +423,8 @@ function MoneyRequestView({
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const [moneyRequestReportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {
-        selector: (policyValue) => policyValue?.type,
-    });
-    const isPolicyExpenseChat = isGroupPolicy(moneyRequestReportPolicyType ?? '');
+    const [moneyRequestReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
+    const isPolicyExpenseChat = isGroupPolicy(moneyRequestReportPolicy);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
