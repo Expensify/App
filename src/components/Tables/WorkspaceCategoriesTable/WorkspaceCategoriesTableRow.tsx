@@ -65,6 +65,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                         <TextWithTooltip
+                            shouldShowTooltip
                             numberOfLines={1}
                             text={item.name}
                         />
