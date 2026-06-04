@@ -1,5 +1,6 @@
 import React, {useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -10,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type ConnectToHRFlowProps from './types';
 
 function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
@@ -27,6 +29,13 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
             />
         </View>
     );
+
+    const handleNavigationStateChange = (navState: WebViewNavigation) => {
+        if (!navState.url.includes(ROUTES.CONNECTION_COMPLETE)) {
+            return;
+        }
+        setIsWebViewOpen(false);
+    };
 
     const authToken = session?.authToken ?? null;
     return (
@@ -53,6 +62,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
                     incognito
                     startInLoadingState
                     renderLoading={renderLoading}
+                    onNavigationStateChange={handleNavigationStateChange}
                 />
             </FullPageOfflineBlockingView>
         </Modal>

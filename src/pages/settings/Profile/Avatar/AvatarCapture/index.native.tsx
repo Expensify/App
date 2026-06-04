@@ -1,4 +1,5 @@
 import React, {useImperativeHandle, useRef} from 'react';
+import type {ViewShotRef} from 'react-native-view-shot';
 import ViewShot from 'react-native-view-shot';
 import variables from '@styles/variables';
 import type {AvatarCaptureProps} from './types';
@@ -7,7 +8,7 @@ import type {AvatarCaptureProps} from './types';
  * Native implementation of AvatarCapture using react-native-view-shot
  */
 function AvatarCapture({children, fileName, ref}: AvatarCaptureProps) {
-    const viewShotRef = useRef<ViewShot>(null);
+    const viewShotRef = useRef<ViewShotRef>(null);
 
     useImperativeHandle(
         ref,
