@@ -50,7 +50,7 @@ const accountDelegationSelector = (accountValue: Account | undefined) => ({
 });
 
 function CopilotPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ThreeDots', 'Trashcan', 'UserPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'CircleSlash', 'Pencil', 'ThreeDots', 'UserPlus']);
     const illustrations = useMemoizedLazyIllustrations(['Copilots', 'Members']);
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
@@ -83,16 +83,22 @@ function CopilotPage() {
         });
     }, [showConfirmModal, translate]);
 
-    const showRemoveDelegatorModal = useCallback(() => {
-        return showConfirmModal({
-            title: translate('delegate.removeCopilotAccess'),
-            prompt: translate('delegate.removeCopilotAccessConfirmation'),
-            confirmText: translate('delegate.removeCopilotAccess'),
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-            danger: true,
-        });
-    }, [showConfirmModal, translate]);
+    const showRemoveDelegatorModal = useCallback(
+        (delegatorEmail: string) => {
+            const personalDetail = personalDetailsByLogin[delegatorEmail.toLowerCase()];
+            const delegatorName = personalDetail?.displayName ?? formatPhoneNumber(delegatorEmail);
+
+            return showConfirmModal({
+                title: translate('delegate.removeCopilotAccessTitle'),
+                prompt: translate('delegate.removeCopilotAccessConfirmation', {delegatorName}),
+                confirmText: translate('delegate.removeCopilotAccessConfirm'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+                danger: true,
+            });
+        },
+        [showConfirmModal, translate, personalDetailsByLogin, formatPhoneNumber],
+    );
 
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
 
@@ -313,7 +319,7 @@ function CopilotPage() {
         },
         {
             text: translate('delegate.removeCopilot'),
-            icon: icons.Trashcan,
+            icon: icons.CircleSlash,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_REMOVE,
             onPress: () => {
                 if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
@@ -347,7 +353,7 @@ function CopilotPage() {
     const delegatorPopoverMenuItems: PopoverMenuItem[] = [
         {
             text: translate('delegate.switch'),
-            icon: icons.Pencil,
+            icon: icons.ArrowCircleClockwise,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS,
             onPress: () => {
                 setShouldShowDelegatorPopoverMenu(false);
@@ -358,13 +364,13 @@ function CopilotPage() {
         },
         {
             text: translate('delegate.removeCopilotAccess'),
-            icon: icons.Trashcan,
+            icon: icons.CircleSlash,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATOR_REMOVE,
             onPress: () => {
                 modalClose(() => {
                     setShouldShowDelegatorPopoverMenu(false);
                     setSelectedEmail(undefined);
-                    showRemoveDelegatorModal().then((result) => {
+                    showRemoveDelegatorModal(selectedDelegator?.email ?? '').then((result) => {
                         if (result.action === ModalActions.CLOSE) {
                             setSelectedDelegator(undefined);
                         } else {
