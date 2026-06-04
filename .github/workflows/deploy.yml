@@ -383,8 +383,8 @@ jobs:
 
       - name: Load Applause API key from 1Password
         id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -614,8 +614,8 @@ jobs:
 
       - name: Load Applause API key from 1Password
         id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -647,6 +647,15 @@ jobs:
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       environment: ${{ needs.prep.outputs.DEPLOY_ENV }}
+    secrets: inherit
+
+  victoryChartRendererBuild:
+    name: Build victory-chart-renderer (Linux x64)
+    needs: [prep]
+    uses: ./.github/workflows/buildVictoryChartRenderer.yml
+    with:
+      ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+      release-tag: ${{ needs.prep.outputs.TAG }}
     secrets: inherit
 
   webDeploy:
@@ -868,7 +877,7 @@ jobs:
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
+    needs: [prep, checkDeploymentSuccess, victoryChartRendererBuild]
     permissions:
       contents: write
     steps:
@@ -955,6 +964,15 @@ jobs:
               echo "❌ Failed to upload {}"
             fi
           '
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload victory-chart-renderer to GitHub Release
+        if: ${{ needs.victoryChartRendererBuild.result == 'success' }}
+        run: |
+          test -x ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
+          gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
+            "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
