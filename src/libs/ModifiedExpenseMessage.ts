@@ -168,7 +168,7 @@ function getMovedFromOrToReportMessage(
 
     if (movedFromReport) {
         const originReportName = getReportName(movedFromReport, reportAttributes);
-        return translate('iou.movedFromReport', originReportName ?? '');
+        return originReportName ? translate('iou.movedFromReport', originReportName) : translate('iou.movedFromReportNoName');
     }
 }
 

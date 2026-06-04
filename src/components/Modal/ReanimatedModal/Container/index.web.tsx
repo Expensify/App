@@ -64,7 +64,6 @@ function Container({
         <Animated.View
             style={[style, type !== CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && type !== CONST.MODAL.MODAL_TYPE.POPOVER && styles.modalAnimatedContainer, animatedStyles, {zIndex: 1}]}
             exiting={Exiting}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {props.children}

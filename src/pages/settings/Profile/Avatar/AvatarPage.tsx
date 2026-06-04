@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import AvatarCropModal from '@components/AvatarCropModal/AvatarCropModal';
 import AvatarSelector from '@components/AvatarSelector';
@@ -13,9 +13,12 @@ import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarURL, isPresetAvatarID} from '@libs/Avatars/PresetAvatarCatalog';
+import {getAvatarURL, isPresetAvatarID, resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {useIsAgentAccount} from '@libs/SessionUtils';
+import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
+import {EditAgentAvatarContent} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
 import {updateAvatar} from '@userActions/PersonalDetails';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
@@ -45,6 +48,7 @@ function ProfileAvatar() {
     });
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isAgentAccount = useIsAgentAccount();
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -53,7 +57,7 @@ function ProfileAvatar() {
         });
     };
 
-    const onImageSelected = useCallback((file: File | CustomRNImageManipulatorResult) => {
+    const onImageSelected = (file: File | CustomRNImageManipulatorResult) => {
         setSelected(undefined);
         setImageData({
             uri: file?.uri ?? '',
@@ -62,9 +66,9 @@ function ProfileAvatar() {
             type: '',
         });
         setIsAvatarCropModalOpen(false);
-    }, []);
+    };
 
-    const onPress = useCallback(() => {
+    const onPress = () => {
         isSavingRef.current = true;
 
         if (imageData.file) {
@@ -99,7 +103,6 @@ function ProfileAvatar() {
             isSavingRef.current = false;
             return;
         }
-        // User selected a letter avatar
         avatarCaptureRef.current
             .capture()
             ?.then((file) => {
@@ -115,7 +118,41 @@ function ProfileAvatar() {
             .catch(() => {
                 isSavingRef.current = false;
             });
-    }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.avatarThumbnail, imageData.file, selected]);
+    };
+
+    if (isAgentAccount) {
+        const handleAgentSave = (params: OnSaveParams) => {
+            if ('file' in params) {
+                updateAvatar(params.file, {
+                    avatar: currentUserPersonalDetails?.avatar,
+                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                    accountID: currentUserPersonalDetails?.accountID,
+                });
+            } else {
+                const {customExpensifyAvatarID} = params;
+                const uri = resolveAvatarURI(customExpensifyAvatarID);
+                updateAvatar(
+                    {
+                        uri,
+                        name: customExpensifyAvatarID,
+                        customExpensifyAvatarID,
+                    },
+                    {
+                        avatar: currentUserPersonalDetails?.avatar,
+                        avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                        accountID: currentUserPersonalDetails?.accountID,
+                    },
+                );
+            }
+            Navigation.dismissModal();
+        };
+        return (
+            <EditAgentAvatarContent
+                accountID={currentUserPersonalDetails.accountID}
+                onSave={handleAgentSave}
+            />
+        );
+    }
 
     return (
         <ScreenWrapper

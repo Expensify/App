@@ -8,7 +8,6 @@ function ValidateCodeForm({ref, ...props}: ValidateCodeFormProps) {
         <BaseValidateCodeForm
             autoComplete={CONST.AUTO_COMPLETE_VARIANTS.SMS_OTP}
             ref={ref}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
         />
     );

@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {KeyboardTypeOptions, NativeSyntheticEvent} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -69,6 +69,12 @@ type NumberWithSymbolFormProps = {
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
 
+    /** Style applied to the outer ScrollView */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to refocus the input when clicking on the ScrollView empty space */
+    shouldRefocusOnScrollViewClick?: boolean;
+
     /** Whether the amount is negative */
     isNegative?: boolean;
 
@@ -83,6 +89,9 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
+
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
 
     /** Whether to use dynamic font size for the amount input */
     shouldUseDynamicFontSize?: boolean;
@@ -171,9 +180,12 @@ function NumberWithSymbolForm({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
+    negativeSymbolStyle,
     toggleNegative,
     clearNegative,
     ref,
@@ -186,7 +198,7 @@ function NumberWithSymbolForm({
     currencyButtonAccessibilityLabel,
     ...props
 }: NumberWithSymbolFormProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus', 'CoinsButton']);
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const styles = useThemeStyles();
@@ -310,6 +322,9 @@ function NumberWithSymbolForm({
 
         const strippedNumber = stripCommaFromAmount(withLeadingZero);
         const isForwardDelete = currentNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+
+        willSelectionBeUpdatedManually.current = true;
+        numberRef.current = strippedNumber;
         setCurrentNumber(strippedNumber);
         setSelection(getNewSelection(selection, isForwardDelete ? strippedNumber.length : currentNumber.length, strippedNumber.length));
         onInputChange?.(strippedNumber);
@@ -409,6 +424,22 @@ function NumberWithSymbolForm({
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
 
+    const handleSelectionChange = (selectionStart: number, selectionEnd: number) => {
+        if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
+            willSelectionBeUpdatedManually.current = false;
+            return;
+        }
+        if (!shouldUpdateSelection) {
+            return;
+        }
+        // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
+        const maxSelection = numberRef.current?.length ?? formattedNumber.length;
+        numberRef.current = undefined;
+        const start = Math.min(selectionStart, maxSelection);
+        const end = Math.min(selectionEnd, maxSelection);
+        setSelection({start, end});
+    };
+
     // Calculate dynamic font size based on the total length of the amount display
     const dynamicAmountStyle = useMemo(() => {
         const totalLength = formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0);
@@ -447,9 +478,9 @@ function NumberWithSymbolForm({
                 )}
                 {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                     <Button
-                        shouldShowRightIcon
                         small
-                        iconRight={icons.DownArrow}
+                        icon={icons.CoinsButton}
+                        iconAccessibilityLabel={translate('common.currency')}
                         onPress={onTrailingDropdownPress}
                         iconWrapperStyles={styles.justifyContentCenter}
                         text={currencyOrUnitButtonText}
@@ -480,6 +511,8 @@ function NumberWithSymbolForm({
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}
+                selection={selection}
+                onSelectionChange={(e) => handleSelectionChange(e.nativeEvent.selection.start, e.nativeEvent.selection.end)}
                 ref={(newRef: BaseTextInputRef | null) => {
                     if (typeof ref === 'function') {
                         ref(newRef);
@@ -504,6 +537,7 @@ function NumberWithSymbolForm({
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
+                onBlur={props.onBlur}
                 rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
         );
@@ -529,21 +563,7 @@ function NumberWithSymbolForm({
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}
             selection={selection}
-            onSelectionChange={(selectionStart, selectionEnd) => {
-                if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
-                    willSelectionBeUpdatedManually.current = false;
-                    return;
-                }
-                if (!shouldUpdateSelection) {
-                    return;
-                }
-                // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
-                const maxSelection = numberRef.current?.length ?? formattedNumber.length;
-                numberRef.current = undefined;
-                const start = Math.min(selectionStart, maxSelection);
-                const end = Math.min(selectionEnd, maxSelection);
-                setSelection({start, end});
-            }}
+            onSelectionChange={handleSelectionChange}
             onKeyPress={textInputKeyPress}
             isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
             symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
@@ -569,6 +589,7 @@ function NumberWithSymbolForm({
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             isNegative={isNegative}
+            negativeSymbolStyle={negativeSymbolStyle}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
@@ -589,9 +610,9 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
                             {isSymbolPressable && (
                                 <Button
-                                    shouldShowRightIcon
                                     small
-                                    iconRight={icons.DownArrow}
+                                    icon={icons.CoinsButton}
+                                    iconAccessibilityLabel={translate('common.currency')}
                                     onPress={onSymbolButtonPress}
                                     style={styles.minWidth18}
                                     iconWrapperStyles={styles.justifyContentCenter}
@@ -601,9 +622,8 @@ function NumberWithSymbolForm({
                             )}
                             {allowFlippingAmount && (
                                 <Button
-                                    shouldShowRightIcon
                                     small
-                                    iconRight={icons.PlusMinus}
+                                    icon={icons.PlusMinus}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
                                     iconWrapperStyles={styles.justifyContentCenter}
@@ -644,8 +664,20 @@ function NumberWithSymbolForm({
 
     return (
         <ScrollView
-            contentContainerStyle={styles.flexGrow1}
-            style={!shouldWrapInputInContainer && styles.flexGrow0}
+            contentContainerStyle={[styles.flexGrow1, scrollViewStyle]}
+            style={[
+                !shouldWrapInputInContainer && styles.flexGrow0,
+                // Hide pointer cursor when refocus feature is enabled (empty space shouldn't look clickable)
+                shouldRefocusOnScrollViewClick && styles.cursorAuto,
+            ]}
+            onMouseDown={(e) => {
+                if (!shouldRefocusOnScrollViewClick) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                textInput.current?.focus();
+            }}
         >
             {shouldWrapInputInContainer ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -657,9 +689,9 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
                             <Button
-                                shouldShowRightIcon
                                 small
-                                iconRight={icons.DownArrow}
+                                icon={icons.CoinsButton}
+                                iconAccessibilityLabel={translate('common.currency')}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 iconWrapperStyles={styles.justifyContentCenter}
@@ -683,9 +715,9 @@ function NumberWithSymbolForm({
             <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
                 {isSymbolPressable && canUseTouchScreen && (
                     <Button
-                        shouldShowRightIcon
                         small
-                        iconRight={icons.DownArrow}
+                        icon={icons.CoinsButton}
+                        iconAccessibilityLabel={translate('common.currency')}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         iconWrapperStyles={styles.justifyContentCenter}
@@ -695,9 +727,8 @@ function NumberWithSymbolForm({
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
                     <Button
-                        shouldShowRightIcon
                         small
-                        iconRight={icons.PlusMinus}
+                        icon={icons.PlusMinus}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         iconWrapperStyles={styles.justifyContentCenter}

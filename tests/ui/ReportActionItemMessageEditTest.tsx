@@ -70,8 +70,6 @@ const defaultProps: ReportActionItemMessageEditProps = {
     action: defaultReportAction,
     reportID: defaultReport.reportID,
     originalReportID: defaultReport.reportID,
-    index: 0,
-    isGroupPolicyReport: false,
 };
 
 function ReportActionEditMessageContextProviderForReport({children}: PropsWithChildren) {
@@ -86,9 +84,7 @@ const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessa
     return render(
         <ReportScreenProviders>
             <ReportActionItemMessageEdit
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </ReportScreenProviders>,

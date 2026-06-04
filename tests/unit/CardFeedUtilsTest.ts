@@ -415,7 +415,7 @@ describe('country-aware domain feed picker', () => {
         const names = getCardFeedNamesWithType({workspaceCardFeeds, policies: undefined, translate: translateLocal});
         expect(Object.keys(names).sort()).toEqual(['cards_5555_Expensify Card', 'cards_5555_Expensify Card_TRAVEL_US']);
         expect(names['cards_5555_Expensify Card'].name).toBe('All Expensify - user.com');
-        expect(names['cards_5555_Expensify Card_TRAVEL_US'].name).toBe('All Central invoicing - user.com');
+        expect(names['cards_5555_Expensify Card_TRAVEL_US'].name).toBe('All Travel invoicing - user.com');
     });
 
     it('resolves a travel selection to only travel cards', () => {

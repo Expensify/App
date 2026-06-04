@@ -7,4 +7,5 @@ type OnBlurHandler = (e: FocusEvent) => void;
 
 type UseLandscapeOnBlurProxy = (inputRef: FocusableRef, onBlur?: OnBlurHandler) => OnBlurHandler | undefined;
 
-export type {FocusableRef, OnBlurHandler, UseLandscapeOnBlurProxy};
+// eslint-disable-next-line import/prefer-default-export
+export type {UseLandscapeOnBlurProxy};

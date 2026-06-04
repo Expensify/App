@@ -52,7 +52,6 @@ describe('AvatarSelector', () => {
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <AvatarSelector
                     onSelect={onSelectMock}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </ComposeProviders>,

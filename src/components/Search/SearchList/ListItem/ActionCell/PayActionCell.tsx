@@ -95,5 +95,4 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     );
 }
 
-export type {PayActionCellProps};
 export default PayActionCell;

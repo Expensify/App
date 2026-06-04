@@ -17,6 +17,14 @@ type UseConfirmationSectionsParams = {
     /** Whether the "to" section should be hidden (used when adding directly to a report) */
     shouldHideToSection: boolean;
 
+    /**
+     * When true with `shouldHideToSection`, still render the "To" section (e.g. new manual flow so the user can open the participant picker).
+     */
+    shouldForceTopEmptySections?: boolean;
+
+    /** Row-level errors for the participant section (e.g. missing recipient / attendees), shown on the list row */
+    participantRowErrors?: Record<string, string>;
+
     /** Whether participant rows should be interactive (allow editing the recipient) */
     canEditParticipant: boolean;
 
@@ -44,6 +52,8 @@ type UseConfirmationSectionsParams = {
 function useConfirmationSections({
     isTypeSplit,
     shouldHideToSection,
+    shouldForceTopEmptySections = false,
+    participantRowErrors,
     canEditParticipant,
     payeePersonalDetails,
     splitParticipants,
@@ -67,18 +77,31 @@ function useConfirmationSections({
             },
         );
         // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
-    } else if (!shouldHideToSection) {
-        const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
-            ...participant,
-            isSelected: false,
-            keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
-            isInteractive: canEditParticipant,
-            shouldShowRightCaret: canEditParticipant,
-        }));
+    } else if (!shouldHideToSection || shouldForceTopEmptySections) {
+        const participantRows =
+            selectedParticipants.length > 0
+                ? selectedParticipants.map((participant) => ({
+                      ...participant,
+                      isSelected: false,
+                      keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
+                      isInteractive: canEditParticipant,
+                      shouldShowRightCaret: canEditParticipant,
+                      ...(participantRowErrors ? {errors: participantRowErrors} : {}),
+                  }))
+                : [
+                      {
+                          keyForList: 'empty-participant-option',
+                          text: translate('iou.chooseRecipient'),
+                          isInteractive: canEditParticipant,
+                          shouldShowRightCaret: canEditParticipant,
+                          isBold: false,
+                          ...(participantRowErrors ? {errors: participantRowErrors} : {}),
+                      },
+                  ];
 
         options.push({
-            title: translate('common.to'),
-            data: formattedSelectedParticipants,
+            title: selectedParticipants.length > 0 ? translate('common.to') : undefined,
+            data: participantRows,
             sectionIndex: 0,
         });
     }

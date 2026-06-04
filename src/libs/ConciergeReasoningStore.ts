@@ -124,4 +124,4 @@ export default {
     subscribe,
 };
 
-export type {ReasoningEntry, ReasoningData};
+export type {ReasoningEntry};

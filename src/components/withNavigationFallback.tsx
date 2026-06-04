@@ -28,16 +28,10 @@ export default function <TProps extends Record<string, unknown>>(WrappedComponen
         );
 
         return context ? (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
+            <WrappedComponent {...props} />
         ) : (
             <NavigationContext.Provider value={navigationContextValue as unknown as NavigationProp<ParamListBase>}>
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                />
+                <WrappedComponent {...props} />
             </NavigationContext.Provider>
         );
     }

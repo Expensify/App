@@ -3,15 +3,15 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestDescription} from '@libs/actions/IOU';
+import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getDescription, hasReceipt} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
@@ -19,6 +19,8 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {descriptionStateSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
     isNewManualExpenseFlowEnabled: boolean;
@@ -31,8 +33,7 @@ type DescriptionFieldProps = {
     reportID: string;
     reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-    isEditingSplitBill: boolean;
+    onSubmitForm?: () => void;
 };
 
 function DescriptionField({
@@ -46,17 +47,20 @@ function DescriptionField({
     reportID,
     reportActionID,
     policy,
-    transaction,
-    isEditingSplitBill,
+    onSubmitForm,
 }: DescriptionFieldProps) {
+    const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
+    const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
+
     // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
     // We normalize to markdown so both the read-only and editable inputs receive a consistent format.
-    const iouComment = Parser.htmlToMarkdown(getDescription(transaction));
+    const iouComment = Parser.htmlToMarkdown(descriptionState?.description ?? '');
+    const transactionHasReceipt = descriptionState?.hasReceipt ?? false;
 
     const contextMenuStateValue = {
         anchor: null,
@@ -87,7 +91,7 @@ function DescriptionField({
             return;
         }
 
-        setMoneyRequestDescription(transactionID, newDescription, true, hasReceipt(transaction));
+        setMoneyRequestDescription(transactionID, newDescription, true, transactionHasReceipt);
     };
 
     return (
@@ -101,6 +105,8 @@ function DescriptionField({
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
+                                    submitBehavior="blurAndSubmit"
+                                    onSubmitEditing={onSubmitForm}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
                                     autoGrowHeight

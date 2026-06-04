@@ -1,15 +1,17 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import type * as ReactNavigation from '@react-navigation/native';
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as AgentActions from '@libs/actions/Agent';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -26,6 +28,25 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('@components/RenderHTML', () => {
+    const ReactMock = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+
+    return ({html}: {html: string}) => {
+        const plainText = html.replaceAll(/<[^>]*>/g, '');
+        return ReactMock.createElement(Text, null, plainText);
+    };
+});
+
+jest.mock('@libs/actions/Agent', () => ({
+    openAgentsPage: jest.fn(),
+    clearAgentPromptUpdateError: jest.fn(),
+    openProfilePage: jest.fn(),
+    updateAgentPrompt: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -150,7 +171,7 @@ const Stack = createPlatformStackNavigator<SettingsSplitNavigatorParamList>();
 
 const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ROOT) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -164,6 +185,188 @@ const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROF
         </ComposeProviders>,
     );
 };
+
+describe('ProfilePage - agent account', () => {
+    beforeAll(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en' as const);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    async function setupUser(email: string) {
+        const accountID = 123;
+        await TestHelper.signInWithTestUser(accountID, email);
+
+        const personalDetails: PersonalDetailsList = {
+            [accountID]: {
+                accountID,
+                login: email,
+                displayName: email,
+                avatar: 'https://example.com/avatar.png',
+                avatarThumbnail: 'https://example.com/avatar.png',
+            } as PersonalDetails,
+        };
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+    }
+
+    it('hides contact methods, pronouns, timezone and private section for agent account', async () => {
+        await setupUser('agent_123@expensify.ai');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('contact-method-menu-item')).toBeNull();
+        expect(screen.queryByTestId('pronouns-menu-item')).toBeNull();
+        expect(screen.queryByTestId('timezone-menu-item')).toBeNull();
+        expect(screen.queryByText('Private')).toBeNull();
+    });
+
+    it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('contact-method-menu-item')).toBeDefined();
+        expect(screen.getByTestId('pronouns-menu-item')).toBeDefined();
+        expect(screen.getByTestId('timezone-menu-item')).toBeDefined();
+        expect(screen.getByText('Private')).toBeDefined();
+    });
+
+    it('shows AI prompt section with prompt text for agent account', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
+        expect(screen.getByTestId('ai-prompt-input').props.value).toBe('Reject gambling expenses.');
+        expect(screen.getByTestId('save-prompt-button')).toBeDefined();
+    });
+
+    it('hides AI prompt section for non-agent account', async () => {
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
+        expect(screen.queryByTestId('save-prompt-button')).toBeNull();
+    });
+
+    it('calls openProfilePage on mount for agent account', async () => {
+        const mockOpenProfilePage = jest.mocked(AgentActions.openProfilePage);
+        await setupUser('agent_123@expensify.ai');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenProfilePage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call openProfilePage on mount for non-agent account', async () => {
+        const mockOpenProfilePage = jest.mocked(AgentActions.openProfilePage);
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenProfilePage).not.toHaveBeenCalled();
+    });
+
+    it('calls updateAgentPrompt when saving non-empty prompt', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPrompt).toHaveBeenCalledWith(accountID, 'Updated prompt text', 'Reject gambling expenses.');
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
+    });
+
+    it('shows loading state on save button while prompt update is pending', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
+        expect(saveButtonProps.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('does not call updateAgentPrompt when saving blank prompt', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), '   ');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPrompt).not.toHaveBeenCalled();
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
+    });
+});
 
 describe('ProfilePage - SMS domain handling', () => {
     beforeAll(async () => {

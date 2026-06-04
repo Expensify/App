@@ -36,6 +36,7 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
+        areWorkflowsEnabled: policy.areWorkflowsEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
@@ -168,9 +169,12 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         return -1;
     }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
 
+    const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
+
     return {
         typeMenuSections,
         activeItemIndex,
+        activeKey,
     };
 };
 

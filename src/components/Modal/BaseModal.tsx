@@ -73,6 +73,7 @@ function BaseModal({
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
     shouldDisplayBelowModals = false,
+    shouldKeepRightDockedBackdropInNarrowPane = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
@@ -305,8 +306,10 @@ function BaseModal({
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
 
+    const shouldSuppressRightDockedBackdrop =
+        type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
     const backdropOpacityAdjusted =
-        hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal)) // right_docked modals shouldn't add backdrops when opened in same-width RHP
+        hideBackdrop || shouldSuppressRightDockedBackdrop // right_docked modals shouldn't add backdrops when opened in same-width RHP
             ? 0
             : backdropOpacity;
 

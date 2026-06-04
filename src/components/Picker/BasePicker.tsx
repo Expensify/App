@@ -14,7 +14,6 @@ import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
 import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
 import type {BasePickerProps} from './types';
@@ -103,7 +102,6 @@ function BasePicker<TPickerValue>({
             <Icon
                 fill={theme.icon}
                 src={icons.DownArrow}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
@@ -146,16 +144,7 @@ function BasePicker<TPickerValue>({
         },
     }));
 
-    /**
-     * We pass light text on Android, since Android Native alerts have a dark background in all themes for now.
-     */
-    const itemColor = useMemo(() => {
-        if (getOperatingSystem() === CONST.OS.ANDROID) {
-            return theme.textLight;
-        }
-
-        return theme.text;
-    }, [theme]);
+    const itemColor = theme.text;
 
     // Windows will reuse the text color of the select for each one of the options
     // so we might need to color accordingly so it doesn't blend with the background.

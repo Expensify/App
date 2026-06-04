@@ -87,6 +87,9 @@ type BaseTextInputWithSymbolProps = {
     /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
 
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
+
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
 

@@ -111,4 +111,4 @@ function SettlementAccountSelector({
 
 export default SettlementAccountSelector;
 export {BankAccountListItemLeftElement};
-export type {BankAccountListItem, SettlementAccountSelectorProps};
+export type {BankAccountListItem};

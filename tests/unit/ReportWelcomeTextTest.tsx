@@ -34,6 +34,9 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getReportRHPActiveRoute: jest.fn(() => ''),
+    getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
 }));
 

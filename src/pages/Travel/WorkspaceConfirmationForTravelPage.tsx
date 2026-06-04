@@ -9,11 +9,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
 import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_CONFIRMATION>;
@@ -28,7 +29,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const goBack = () => {
-        Navigation.goBack(route.params?.backTo ?? ROUTES.TRAVEL_UPGRADE.route);
+        Navigation.goBack(route.params?.backTo ?? createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path, ROUTES.TRAVEL_MY_TRIPS.route));
     };
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {

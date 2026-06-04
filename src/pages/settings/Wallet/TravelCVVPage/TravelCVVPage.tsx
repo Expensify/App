@@ -1,22 +1,21 @@
 import {useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import RESIZE_MODES from '@components/Image/resizeModes';
-import ImageSVG from '@components/ImageSVG';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
+import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,9 +30,10 @@ import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider
  */
 function TravelCVVPage() {
     const styles = useThemeStyles();
+    const [isCopyButtonActive, setCopyButtonInactive] = useThrottledButtonState();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['TravelCVV']);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark']);
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [, lockAccountDetailsMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS);
@@ -43,6 +43,11 @@ function TravelCVVPage() {
     // Get CVV from context - shared with TravelCVVVerifyAccountPage
     const {cvv} = useTravelCVVState();
     const {setCvv} = useTravelCVVActions();
+    const hasRevealedCVV = !!cvv;
+
+    const CVV_LENGTH = cvv?.length ?? 3;
+    const MASKED_CVV = '•'.repeat(CVV_LENGTH);
+    const cvvDigits = (cvv ?? MASKED_CVV).split('');
 
     // Clear CVV when the page unmounts (e.g. backdrop close) so it doesn't
     // remain visible the next time the page is opened
@@ -94,7 +99,7 @@ function TravelCVVPage() {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
     }, [isLoadingAccount, isLoadingLockAccountDetails, cvv, isSignedInAsDelegate, isOffline, isAccountLocked, isVerifyAccountInStack]);
 
-    const handleRevealDetailsPress = useCallback(() => {
+    const handleRevealDetailsPress = () => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
@@ -105,7 +110,32 @@ function TravelCVVPage() {
         resetValidateActionCodeSent();
         // Navigate to the verify account page
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
-    }, [isAccountLocked, showLockedAccountModal]);
+    };
+
+    let actionButton: React.ReactNode = null;
+    if (hasRevealedCVV) {
+        actionButton = (
+            <Button
+                icon={isCopyButtonActive ? icons.Copy : icons.Checkmark}
+                text={isCopyButtonActive ? translate('cardPage.cardDetails.copyCvv') : translate('common.copied')}
+                onPress={() => {
+                    Clipboard.setString(cvv);
+                    setCopyButtonInactive();
+                }}
+                style={[styles.mt10, styles.alignSelfCenter]}
+            />
+        );
+    } else if (!cvv && !isSignedInAsDelegate) {
+        actionButton = (
+            <Button
+                text={translate('cardPage.cardDetails.revealDetails')}
+                onPress={handleRevealDetailsPress}
+                isDisabled={isOffline}
+                style={[styles.mt10, styles.alignSelfCenter]}
+                success
+            />
+        );
+    }
 
     return (
         <ScreenWrapper
@@ -117,37 +147,24 @@ function TravelCVVPage() {
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.pt3, styles.pb5]}>
-                        <ImageSVG
-                            src={illustrations.TravelCVV}
-                            contentFit={RESIZE_MODES.contain}
-                            style={styles.travelCCVIllustration}
-                        />
-                    </View>
-
-                    <View style={[styles.mt5, styles.mb12]}>
+                <ScrollView contentContainerStyle={[styles.ph5]}>
+                    <View style={[styles.mt5, styles.mb8]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('walletPage.travelCVV.description')}</Text>
                     </View>
 
-                    <MenuItemWithTopDescription
-                        description={translate('cardPage.cardDetails.cvv')}
-                        title={cvv ?? '•••'}
-                        interactive={false}
-                        wrapperStyle={[styles.pt0, styles.ph0]}
-                        titleStyle={styles.walletCardNumber}
-                        copyable={!!cvv}
-                        shouldShowRightComponent
-                        rightComponent={
-                            !isSignedInAsDelegate && !cvv ? (
-                                <Button
-                                    text={translate('cardPage.cardDetails.revealDetails')}
-                                    onPress={handleRevealDetailsPress}
-                                    isDisabled={isOffline}
-                                />
-                            ) : undefined
-                        }
-                    />
+                    <View style={[styles.mt0Half, styles.flexRow, styles.justifyContentCenter, styles.gap1]}>
+                        {cvvDigits.map((digit, index) => (
+                            <View
+                                // eslint-disable-next-line react/no-array-index-key -- CVV digits are a fixed-length display-only array that is never reordered
+                                key={`cvv-${digit}-${index}`}
+                                style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.travelCVVDigitBox]}
+                            >
+                                <Text style={[styles.textXLargeThemeText]}>{digit}</Text>
+                            </View>
+                        ))}
+                    </View>
+
+                    {actionButton}
                 </ScrollView>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

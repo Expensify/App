@@ -113,4 +113,3 @@ export default {
 };
 
 export {MAX_AGE_MS};
-export type {OptimisticEntry};

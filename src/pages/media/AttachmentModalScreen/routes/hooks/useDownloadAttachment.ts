@@ -45,4 +45,3 @@ function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: 
 }
 
 export default useDownloadAttachment;
-export type {UseDownloadAttachmentProps};

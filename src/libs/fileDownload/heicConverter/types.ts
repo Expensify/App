@@ -9,4 +9,5 @@ type HeicConverterCallbacks = {
 
 type HeicConverterFunction = (file: FileObject, callbacks?: HeicConverterCallbacks) => void;
 
-export type {HeicConverterCallbacks, HeicConverterFunction};
+// eslint-disable-next-line import/prefer-default-export
+export type {HeicConverterFunction};

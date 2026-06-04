@@ -460,7 +460,6 @@ export type {
     CompanyStepProps,
     RequestorStepProps,
     BeneficialOwnersStepProps,
-    SignerInfoStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
     InputID,

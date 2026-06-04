@@ -180,6 +180,7 @@ function PayActionButton({
                     introSelected,
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserEmail,
+                    currentUserLocalCurrency: currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                     payAsBusiness,
                     existingB2BInvoiceReport,
                     methodID,

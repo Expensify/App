@@ -175,6 +175,9 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Weather Onfido setup is complete */
     isOnfidoSetupComplete?: boolean;
 
+    /** Confirmation that the user accepted the ACH terms. The form input key is `acceptTermsAndConditions`; the achData field uses the shorter `acceptTerms`. */
+    acceptTerms?: boolean;
+
     /** Last 4 digits of the account number */
     mask?: string;
 
@@ -301,4 +304,4 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 export default ReimbursementAccount;
-export type {Corpay, CorpayBeneficialOwner, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {Corpay, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};

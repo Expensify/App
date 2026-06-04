@@ -706,5 +706,4 @@ export {
     removeDelegate,
     openSecuritySettingsPage,
     clearOnyxForDelegateTransition,
-    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
 };

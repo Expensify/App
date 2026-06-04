@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {setMoneyRequestTaxAmount, setMoneyRequestTaxRateValues} from '@libs/actions/IOU';
+import {setMoneyRequestTaxAmount, setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
 
 type TaxControllerProps = {
     transactionID: string | undefined;

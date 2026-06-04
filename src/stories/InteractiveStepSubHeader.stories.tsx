@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, {useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {Button, View} from 'react-native';

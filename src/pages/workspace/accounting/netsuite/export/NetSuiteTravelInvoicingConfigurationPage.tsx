@@ -40,7 +40,7 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
     const sections: NetSuiteSectionType[] = [
         {
             title: travelPayableAccount?.name,
-            description: translate('workspace.common.travelInvoicingPayableAccount'),
+            description: translate('workspace.netsuite.nonReimbursableJournalPostingAccount'),
             onPress: () => {
                 if (!policyID) {
                     return;

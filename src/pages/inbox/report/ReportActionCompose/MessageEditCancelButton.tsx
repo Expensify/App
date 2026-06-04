@@ -27,7 +27,6 @@ function MessageEditCancelButton({onCancel, testID, ...restProps}: MessageEditCa
     const closeButtonStyles = [styles.composerSizeButton, {marginVertical: styles.composerSizeButton.marginHorizontal}];
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <View {...restProps}>
             <Tooltip text={translate('common.cancel')}>
                 <PressableWithFeedback

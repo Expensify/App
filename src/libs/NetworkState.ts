@@ -3,6 +3,8 @@ import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getCommandURL} from './ApiUtils';
+import getEnvironment from './Environment/getEnvironment';
 import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
 
@@ -289,7 +291,7 @@ function configureAndSubscribe() {
 
     if (!CONFIG.IS_USING_LOCAL_WEB) {
         NetInfo.configure({
-            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
+            reachabilityUrl: `${getCommandURL({command: 'Ping'})}accountID=${accountID ?? 'unknown'}`,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
                 if (!response.ok) {
@@ -345,10 +347,14 @@ function configureAndSubscribe() {
     });
 }
 
-// Subscribe to NetInfo immediately so logged-out screens (login, offline indicator)
-// have network detection from the start. Reconfigure when accountID changes to
-// update the reachability URL.
-configureAndSubscribe();
+// Subscribe to NetInfo once getEnvironment() resolves so the first ping uses the correct root.
+// queueMicrotask defers configureAndSubscribe past the current tick so ApiUtils' own
+// SHOULD_USE_STAGING_SERVER Onyx callback — which is the source of truth for getApiRoot() — has
+// already updated its cached flag. Without this defer, configureAndSubscribe samples ApiUtils'
+// stale module-level flag and bakes the wrong reachabilityUrl into NetInfo.
+getEnvironment().then(() => {
+    queueMicrotask(configureAndSubscribe);
+});
 
 // --- Onyx subscriptions (inputs for state computation) ---
 
@@ -361,6 +367,18 @@ Onyx.connectWithoutView({
         }
         accountID = newAccountID;
         configureAndSubscribe();
+    },
+});
+
+// Re-target the reachability ping when the in-app staging-server toggle flips at runtime.
+// queueMicrotask defers configureAndSubscribe so ApiUtils' Onyx callback for the same key —
+// registered later and therefore firing later on the same tick — has already updated
+// shouldUseStagingServer before we re-sample getApiRoot(). Removing the defer causes
+// configureAndSubscribe to read the previous toggle state and invert the URL on every flip.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    callback: () => {
+        queueMicrotask(configureAndSubscribe);
     },
 });
 

@@ -15,9 +15,9 @@ type CopyPolicySettings = {
      * Which step of the copy is happening in the backend
      * - `loading`: copy in progress
      * - `complete`: backend finished
-     * - undefined: copy hasn't started yet (e.g. user is still selecting features)
+     * - null: copy hasn't started yet (e.g. user is still selecting features)
      */
-    currentStep?: 'loading' | 'complete' | undefined;
+    currentStep?: 'loading' | 'complete' | null;
 
     /** Error state */
     errors?: Errors;

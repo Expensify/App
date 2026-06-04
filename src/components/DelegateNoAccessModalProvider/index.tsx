@@ -72,4 +72,3 @@ function useDelegateNoAccessActions(): DelegateNoAccessActionsContextType {
 
 export default DelegateNoAccessModalProvider;
 export {useDelegateNoAccessState, useDelegateNoAccessActions};
-export type {DelegateNoAccessActionsContextType, DelegateNoAccessStateContextType} from './types';

@@ -14,4 +14,3 @@ function addMFABreadcrumb(message: string, data?: BreadcrumbData, level: Severit
 }
 
 export default addMFABreadcrumb;
-export type {BreadcrumbData};

@@ -1,7 +1,6 @@
 import {useEffect, useRef} from 'react';
 import useDebounce from '@hooks/useDebounce';
-
-const DEFAULT_DEBOUNCE_DELAY = 1000;
+import CONST from '@src/CONST';
 
 /**
  * Debounces a function to save a draft for a report comment or report action draft.
@@ -11,7 +10,7 @@ const DEFAULT_DEBOUNCE_DELAY = 1000;
  * @property {Function} triggerSaveDraft - The trigger save draft function.
  * @property {Ref<boolean>} isSavePending - The ref to check whether the save is pending.
  */
-function useDebouncedSaveDraft<SaveDraftArgs extends unknown[]>(saveDraftFn: (...args: SaveDraftArgs) => void, wait = DEFAULT_DEBOUNCE_DELAY) {
+function useDebouncedSaveDraft<SaveDraftArgs extends unknown[]>(saveDraftFn: (...args: SaveDraftArgs) => void, wait = CONST.TIMING.DRAFT_SAVE_DEBOUNCE_TIME) {
     const isSavePending = useRef(false);
 
     const debouncedSaveDraft = useDebounce((...args: SaveDraftArgs) => {

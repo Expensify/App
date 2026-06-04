@@ -27,7 +27,6 @@ function ComposerExpandCollapseButton({reportID, ...restProps}: ComposerExpandCo
             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
             setIsComposerFullSize={setIsComposerFullSize}
             disabled={isBlockedFromConcierge}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
         />
     );

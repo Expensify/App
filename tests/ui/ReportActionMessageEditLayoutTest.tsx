@@ -153,17 +153,12 @@ function MessageEditLayoutHost({layout}: {layout: LayoutMode}) {
     const isWide = layout === 'wide';
     return (
         <ReportScreenProviders>
-            <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            />
+            <ReportActionCompose {...defaultProps} />
             {isWide && (
                 <ReportActionItemMessageEdit
                     action={commentAction}
                     reportID={defaultReport.reportID}
                     originalReportID={defaultReport.reportID}
-                    index={0}
-                    isGroupPolicyReport={false}
                 />
             )}
         </ReportScreenProviders>
@@ -199,10 +194,7 @@ function renderNarrowMessageCompose() {
     mockUseResponsiveLayout.mockReturnValue(narrowLayout);
     return render(
         <ReportScreenProviders>
-            <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            />
+            <ReportActionCompose {...defaultProps} />
         </ReportScreenProviders>,
     );
 }

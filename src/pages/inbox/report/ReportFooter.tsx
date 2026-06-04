@@ -33,6 +33,7 @@ import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaDa
 import type * as OnyxTypes from '@src/types/onyx';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
 
@@ -77,6 +78,7 @@ function ReportFooter() {
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
+    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -151,12 +153,21 @@ function ReportFooter() {
         );
     }
 
-    // Admins-only room
+    // Admins-only room — keep the banner visible; mount the composer above it while editing on narrow screens.
     if (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) {
+        const isEditingWithComposer = shouldShowComposerForActiveEditDraft;
+
         return (
-            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+            <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                {isEditingWithComposer && (
+                    <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
+                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
+                        </SwipeableView>
+                    </View>
+                )}
                 <Banner
-                    containerStyles={[styles.chatFooterBanner]}
+                    containerStyles={[styles.chatFooterBanner, isEditingWithComposer && styles.mt2]}
                     text={translate('adminOnlyCanPost')}
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon

@@ -52,7 +52,6 @@ function InvertedFlashList<T>({
 
     return (
         <FlashList<T>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             inverted
             onStartReached={onStartReached}

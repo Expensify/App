@@ -15,7 +15,6 @@ function FlashList<T>({onScroll: onScrollProp, inverted, ...restProps}: FlashLis
 
     return (
         <ShopifyFlashList<T>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             inverted={inverted}
             onScroll={handleScroll}

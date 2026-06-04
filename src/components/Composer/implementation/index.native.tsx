@@ -133,7 +133,6 @@ function Composer({
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             autoFocus={isInLandscapeMode ? false : props.autoFocus}
             readOnly={isDisabled}

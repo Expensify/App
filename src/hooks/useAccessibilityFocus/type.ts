@@ -9,5 +9,4 @@ type UseAccessibilityFocusParams = {
 
 type UseAccessibilityFocus = (params: UseAccessibilityFocusParams) => void;
 
-export type {UseAccessibilityFocusParams};
 export default UseAccessibilityFocus;
