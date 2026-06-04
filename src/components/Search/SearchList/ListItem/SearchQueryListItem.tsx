@@ -26,6 +26,8 @@ type SearchQueryItem = ListItem & {
     mapKey?: string;
     /** For NAVIGATE items: the route to navigate to when the item is selected */
     route?: Route;
+    /** For NAVIGATE items: an action to run when the item is selected, instead of navigating to a route (e.g. opening a create flow) */
+    onSelectAction?: () => void;
     /** Optional small, muted text shown on the right side of the row (e.g. the workspace name for a workspace page) */
     rightText?: string;
     /** Optional small workspace avatar shown just to the left of rightText */

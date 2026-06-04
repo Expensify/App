@@ -66,6 +66,7 @@ import {
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
+import useCreateMenuSearchOptions from './useCreateMenuSearchOptions';
 
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
@@ -108,6 +109,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     );
     const expensifyIcons = useMemoizedLazyExpensifyIcons(iconNames);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
+    const getCreateMenuSearchOptions = useCreateMenuSearchOptions();
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -150,6 +152,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     ...getNavigationSearchOptions(textInputValue, translate, expensifyIcons),
                     ...getSpendNavigationSearchOptions(textInputValue, translate, typeMenuSections, expensifyIcons),
                     ...getWorkspaceNavigationSearchOptions(textInputValue, translate, {policies, currentUserEmail, isRoomsBetaEnabled}, expensifyIcons),
+                    ...getCreateMenuSearchOptions(textInputValue),
                 ].slice(0, MAX_NAVIGATION_RESULTS);
                 return navigationItems.length > 0 ? [{sectionIndex, data: navigationItems}] : undefined;
             }
@@ -235,6 +238,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             policies,
             currentUserEmail,
             isRoomsBetaEnabled,
+            getCreateMenuSearchOptions,
             styles.activeComponentBG,
             contextualReport,
             personalDetails,
@@ -334,6 +338,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             };
 
             if (isSearchQueryItem(item)) {
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.onSelectAction) {
+                    const {onSelectAction} = item;
+                    backHistory(() => {
+                        onRouterClose();
+                        onSelectAction();
+                    });
+                    return;
+                }
+
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.route) {
                     const {route} = item;
                     backHistory(() => {
