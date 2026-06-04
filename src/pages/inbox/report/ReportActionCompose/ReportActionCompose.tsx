@@ -26,8 +26,9 @@ type ReportActionComposeProps = {
 function ReportActionCompose({reportID}: ReportActionComposeProps) {
     return (
         <ComposerProvider reportID={reportID}>
-            <ComposerInputArea />
-            <ComposerDefaultFooter />
+            <ComposerInputArea>
+                <ComposerDefaultFooter />
+            </ComposerInputArea>
         </ComposerProvider>
     );
 }

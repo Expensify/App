@@ -1,16 +1,17 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasOnlyPersonalPoliciesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useMemo, useRef} from 'react';
+import {useRef} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
-import {getMoneyRequestParticipantsFromReport, initMoneyRequest} from '@userActions/IOU/MoneyRequest';
-import type {IOURequestType} from '@src/CONST';
+import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
 import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
@@ -34,6 +35,9 @@ type UseResetIOUTypeParams = {
 
     /** The current transaction request type derived from tab/transaction state */
     transactionRequestType: IOURequestType | undefined;
+
+    /** The IOU type from the route params, used to resolve the global-create participant fallback */
+    iouType?: IOUType;
 
     /** The policy resolved for this transaction */
     policy?: OnyxEntry<Policy>;
@@ -60,6 +64,7 @@ function useResetIOUType({
     isLoadingTransaction = false,
     isLoadingSelectedTab = false,
     transactionRequestType,
+    iouType,
     policy,
     isTrackDistanceExpense = false,
     skipKeyboardDismissForPerDiem = false,
@@ -81,16 +86,16 @@ function useResetIOUType({
         isLoadingSelectedTab,
     });
 
-    // For the new manual flow, derive participants from the current report so the freshly-rebuilt transaction
-    // already includes them. This prevents the embedded confirmation's auto-assign useEffect from re-firing on
-    // every cleanup and dragging back unrelated draft state (receipt, billable, etc.) along with it.
-    const defaultParticipants = useMemo(() => {
-        if (!isNewManualExpenseFlowEnabled || !report) {
-            return undefined;
-        }
-        const participants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).filter((participant) => participant.selected);
-        return participants.length > 0 ? participants : undefined;
-    }, [isNewManualExpenseFlowEnabled, report, currentUserPersonalDetails.accountID]);
+    // For the new manual flow, derive participants from the current report (or the global-create fallback) so the
+    // freshly-rebuilt transaction already includes them. This prevents the embedded confirmation's auto-assign
+    // useEffect from re-firing on every cleanup and dragging back unrelated draft state (receipt, billable, etc.).
+    const resolvedDefaultParticipants = useDefaultParticipants({
+        sourceReport: report,
+        transaction,
+        iouType,
+        isNewManualExpenseFlowEnabled,
+    });
+    const defaultParticipants = resolvedDefaultParticipants.length > 0 ? resolvedDefaultParticipants : undefined;
 
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
