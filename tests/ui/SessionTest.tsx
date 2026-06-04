@@ -1,4 +1,4 @@
-import {act, cleanup, render} from '@testing-library/react-native';
+import {act, cleanup, render, waitFor} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -91,6 +91,8 @@ describe('Deep linking', () => {
         // getPolicyParamsForOpenOrReconnect + writeWithNoDuplicatesConflictAction(OPEN_APP),
         // which adds a policy-collection read, an isReadyToOpenApp gate, and a full
         // request-queue round-trip with optimistic→network→finally Onyx data.
+        // NVP_ONBOARDING suppresses the onboarding flow that would otherwise render
+        // extra screens and inflate the React work queue drained by act().
         // Single multiSet keeps this to one batched-update cycle.
         jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
             Onyx.multiSet({
@@ -98,6 +100,7 @@ describe('Deep linking', () => {
                 [ONYXKEYS.IS_LOADING_APP]: false,
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                 [ONYXKEYS.HAS_LOADED_APP]: true,
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
             }),
         );
     });
@@ -127,10 +130,13 @@ describe('Deep linking', () => {
         Linking.setInitialURL(url);
         const {unmount} = render(<App />);
 
-        await waitForBatchedUpdatesWithAct();
-
+        // Use waitFor with specific assertions instead of waitForBatchedUpdatesWithAct so we
+        // stop as soon as the deep-link navigation has settled rather than draining the entire
+        // React work queue (all navigation renders, layout effects, etc.).
         const reportPath = `/${ROUTES.REPORT}/${report.reportID}`;
-        expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
+        await waitFor(() => {
+            expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
+        });
 
         expect(hasAuthToken()).toBe(true);
 
@@ -174,9 +180,9 @@ describe('Deep linking', () => {
         Linking.setInitialURL(url);
         const {unmount: unmount2} = render(<App />);
 
-        await waitForBatchedUpdatesWithAct();
-
-        expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
+        await waitFor(() => {
+            expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
+        });
 
         await TestHelper.signOutTestUser();
         await waitForBatchedUpdatesWithAct();
@@ -190,9 +196,9 @@ describe('Deep linking', () => {
 
         const {unmount: unmount3} = render(<App />);
 
-        await waitForBatchedUpdatesWithAct();
-
-        expect(hasAuthToken()).toBe(false);
+        await waitFor(() => {
+            expect(hasAuthToken()).toBe(false);
+        });
 
         unmount3();
         await waitForBatchedUpdatesWithAct();
