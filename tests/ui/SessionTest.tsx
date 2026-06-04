@@ -110,7 +110,7 @@ describe('Deep linking', () => {
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                 [ONYXKEYS.HAS_LOADED_APP]: true,
                 [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
-            } as OnyxMultiSetInput),
+            } as unknown as OnyxMultiSetInput),
         );
     });
 
