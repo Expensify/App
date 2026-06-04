@@ -18,7 +18,7 @@ getting-started:
   - title: With payments
     icon: /assets/images/simple-illustration__cardreader-alt2-alt.svg
     description: Link a business bank account to enable reimbursements and the Expensify Card.
-    href: /articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account
+    href: /articles/new-expensify/Payments-Reimbursement-and-Banking/Learn-how-Payments-Reimbursement-and-Banking-work-in-Expensify
 
 topics:
   - title: Expense management
@@ -30,7 +30,7 @@ topics:
       - label: Submit expense reports
         href: /articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports
       - label: Pay expenses
-        href: /articles/new-expensify/wallet-and-payments/Pay-Expenses
+        href: /articles/new-expensify/Payments-Reimbursement-and-Banking/Learn-how-Payments-Reimbursement-and-Banking-work-in-Expensify
 
   - title: Expensify Card
     icon: /assets/images/simple-illustration__creditcards--green.svg
@@ -246,10 +246,10 @@ platforms:
         icon: /assets/images/domains.svg
         description: Claim and verify your company’s domain to access additional management and security features.
 
-      - href: wallet-and-payments
-        title: Wallet & Payments
+      - href: Payments-Reimbursement-and-Banking
+        title: Payments, Reimbursement & Banking
         icon: /assets/images/money-into-wallet.svg
-        description: Send and receive payments.
+        description: Get reimbursed, pay employees, and manage bank accounts in Expensify.
 
       - href: connect-credit-cards
         title: Connect Credit Cards
