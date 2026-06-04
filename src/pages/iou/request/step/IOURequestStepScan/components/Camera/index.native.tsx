@@ -275,4 +275,3 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 Camera.displayName = 'Camera';
 
 export default Camera;
-export type {CameraProps};

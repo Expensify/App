@@ -12,7 +12,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -51,7 +50,6 @@ function WorkspaceTravelPage({
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {canWrite: canWriteMoreFeatures} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const fetchTravelData = useCallback(() => {
         openPolicyTravelPage(policyID, workspaceAccountID);
@@ -83,12 +81,7 @@ function WorkspaceTravelPage({
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;
             default:
-                return (
-                    <GetStartedTravel
-                        policyID={policyID}
-                        canWriteMoreFeatures={canWriteMoreFeatures}
-                    />
-                );
+                return <GetStartedTravel policyID={policyID} />;
         }
     })();
 
@@ -106,7 +99,6 @@ function WorkspaceTravelPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -123,7 +115,7 @@ function WorkspaceTravelPage({
                     shouldDisplayHelpButton
                     onBackButtonPress={Navigation.goBack}
                 >
-                    {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
+                    {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && (
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}
