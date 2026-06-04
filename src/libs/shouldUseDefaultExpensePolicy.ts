@@ -11,13 +11,13 @@ function shouldUseDefaultExpensePolicy(
     amountOwed: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ) {
     return (
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(defaultExpensePolicy) &&
         defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID)
+        !shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
     );
 }
 

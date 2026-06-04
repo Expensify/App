@@ -191,6 +191,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            currentUserAccountID: currentUserDetails.accountID,
         });
     }, [
         currentSearchHash,

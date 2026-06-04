@@ -90,14 +90,14 @@ function initSplitExpense(
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     report: OnyxEntry<Report>,
-    currentUserAccountID: number | undefined,
+    currentUserAccountID: number,
     {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
 ): void {
     if (!transaction) {
         return;
     }
 
-    if (!!policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID)) {
+    if (!!policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }

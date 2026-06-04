@@ -1,5 +1,6 @@
 import {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,7 +56,7 @@ export default function useCreateReport({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const {accountID} = useCurrentUserPersonalDetails();
 
     // Gate visibility and routing on policy hydration. Without this, during Onyx cold-start
     // groupPoliciesWithChatEnabled.length === 0 would be true even for users who actually have
@@ -107,8 +108,7 @@ export default function useCreateReport({
             const isDefaultPersonal = !activePolicy || activePolicy.type === CONST.POLICY.TYPE.PERSONAL || !isPaidGroupPolicy(activePolicy);
             const hasMultipleNonPersonalWorkspaces = groupPoliciesWithChatEnabled.length > 1;
             const isDefaultBillingRestricted =
-                !!workspaceIDForReportCreation &&
-                shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID ?? CONST.DEFAULT_NUMBER_ID);
+                !!workspaceIDForReportCreation && shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             if (!workspaceIDForReportCreation || (isDefaultPersonal && hasMultipleNonPersonalWorkspaces) || (isDefaultBillingRestricted && hasMultipleNonPersonalWorkspaces)) {
                 if (onNavigateToWorkspaceSelection) {
@@ -120,7 +120,7 @@ export default function useCreateReport({
             }
 
             // Default workspace is not restricted → create report directly (or show empty-report confirmation)
-            if (!shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID ?? CONST.DEFAULT_NUMBER_ID)) {
+            if (!shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                 if (shouldShowEmptyReportConfirmation) {
                     openCreateReportConfirmation();
                 } else {

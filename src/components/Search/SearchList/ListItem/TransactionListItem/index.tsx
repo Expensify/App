@@ -157,6 +157,7 @@ function TransactionListItem<TItem extends ListItem>({
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            currentUserAccountID: currentUserDetails.accountID,
         });
     };
 

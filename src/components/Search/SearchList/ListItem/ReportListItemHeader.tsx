@@ -9,6 +9,7 @@ import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -229,6 +230,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const avatarBorderColor =
@@ -252,6 +254,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            currentUserAccountID: currentUserDetails.accountID,
         });
     };
     return !isLargeScreenWidth ? (
