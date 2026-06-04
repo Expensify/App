@@ -196,7 +196,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
                             existingTransactionDraft: undefined,
-                            draftTransactionIDs: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
@@ -346,7 +345,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: initialCurrencies,
                             existingTransactionDraft: undefined,
-                            draftTransactionIDs: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
@@ -429,7 +427,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 existingTransactionDraft: undefined,
-                                draftTransactionIDs: [],
                                 betas: [],
                                 personalDetails: {},
                             });
@@ -477,7 +474,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 existingTransactionDraft: undefined,
-                                draftTransactionIDs: [],
                                 betas: [],
                                 personalDetails: {},
                             });
@@ -705,7 +701,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 existingTransactionDraft: undefined,
-                                draftTransactionIDs: [],
                                 betas: [],
                                 personalDetails: {},
                             });
@@ -753,7 +748,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 isSelfTourViewed: false,
                                 quickAction: undefined,
                                 existingTransactionDraft: undefined,
-                                draftTransactionIDs: [],
                                 betas: [],
                                 personalDetails: {},
                             });
@@ -948,7 +942,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
                             existingTransactionDraft: undefined,
-                            draftTransactionIDs: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
@@ -1154,7 +1147,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     existingTransactionDraft: undefined,
-                    draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
@@ -3652,6 +3644,107 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result.reportAction).toBeUndefined();
+            expect(result.actionBadge).toBeUndefined();
+        });
+
+        it('should return PAY badge for p2p IOU when IOU report is not loaded in Onyx', async () => {
+            const chatReportID = '800';
+            const iouReportID = '801';
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), undefined),
+                reportID: chatReportID,
+                iouReportID,
+                hasOutstandingChildRequest: true,
+            };
+
+            // Do NOT set the IOU report in Onyx — simulates fresh login where it hasn't loaded yet
+
+            const reportPreviewAction = {
+                reportActionID: '802',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                childType: CONST.REPORT.TYPE.IOU,
+                childManagerAccountID: RORY_ACCOUNT_ID,
+                childOwnerAccountID: CARLOS_ACCOUNT_ID,
+                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                message: [{type: 'TEXT', text: 'IOU preview'}],
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result.reportAction).toMatchObject(reportPreviewAction);
+            expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        });
+
+        it('should NOT return PAY badge fallback when IOU is already settled', async () => {
+            const chatReportID = '810';
+            const iouReportID = '811';
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), undefined),
+                reportID: chatReportID,
+                iouReportID,
+                hasOutstandingChildRequest: true,
+            };
+
+            const reportPreviewAction = {
+                reportActionID: '812',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                childType: CONST.REPORT.TYPE.IOU,
+                childManagerAccountID: RORY_ACCOUNT_ID,
+                childOwnerAccountID: CARLOS_ACCOUNT_ID,
+                childStatusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                message: [{type: 'TEXT', text: 'IOU preview'}],
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result.reportAction).toBeUndefined();
+            expect(result.actionBadge).toBeUndefined();
+        });
+
+        it('should NOT return PAY badge fallback when current user is not the payer', async () => {
+            const chatReportID = '820';
+            const iouReportID = '821';
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), undefined),
+                reportID: chatReportID,
+                iouReportID,
+                hasOutstandingChildRequest: true,
+            };
+
+            const reportPreviewAction = {
+                reportActionID: '822',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                childType: CONST.REPORT.TYPE.IOU,
+                childManagerAccountID: CARLOS_ACCOUNT_ID, // Someone else is the payer
+                childOwnerAccountID: RORY_ACCOUNT_ID,
+                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                message: [{type: 'TEXT', text: 'IOU preview'}],
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });

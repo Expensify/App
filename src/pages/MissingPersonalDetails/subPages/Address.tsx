@@ -1,4 +1,3 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
@@ -78,7 +77,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
             }
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-            const countryRegexDetails = (values.country ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+            const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
             // The postal code system might not exist for a country, so no regex either for them.
             const countrySpecificZipRegex = countryRegexDetails?.regex;
@@ -91,7 +90,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                         errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
                     }
                 }
-            } else if (!COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim()?.toUpperCase() ?? '')) {
+            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim()?.toUpperCase() ?? '')) {
                 errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
             return errors;
@@ -129,7 +128,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
 
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
 
-    const zipSampleFormat = (currentCountry && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
+    const zipSampleFormat = (currentCountry && (CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
 
     const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 

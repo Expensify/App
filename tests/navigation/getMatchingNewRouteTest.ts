@@ -111,9 +111,26 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });
 
+    it('redirects old report Share Code paths to the new dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/details/shareCode')).toBe('/r/123/share-code');
+        expect(getMatchingNewRoute('/e/123/details/shareCode')).toBe('/e/123/share-code');
+    });
+
+    it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
+        expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
+    });
+
     it('redirects old travel upgrade path to dynamic route', () => {
         expect(getMatchingNewRoute('/travel/upgrade')).toBe('/travel/travel-upgrade');
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
+    });
+
+    it('redirects legacy profile avatar path to new avatar route', () => {
+        expect(getMatchingNewRoute('/a/123/avatar')).toBe('/avatar/123');
+    });
+
+    it('preserves query params when redirecting legacy profile avatar path', () => {
+        expect(getMatchingNewRoute('/a/123/avatar?backTo=/home')).toBe('/avatar/123?backTo=/home');
     });
 
     it('does not redirect paths that look similar but do not match migrated patterns', () => {

@@ -1,24 +1,21 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import {getReimbursedMessage} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 type ReimbursedContentProps = {
     action: ReportAction;
-    report: OnyxEntry<Report>;
+    reportOwnerAccountID: number | undefined;
 };
 
-function ReimbursedContent({action, report}: ReimbursedContentProps) {
+function ReimbursedContent({action, reportOwnerAccountID}: ReimbursedContentProps) {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const message = getReimbursedMessage(translate, action, report, currentUserAccountID);
+    const message = getReimbursedMessage(translate, action, reportOwnerAccountID, currentUserAccountID);
 
     return <ReportActionItemBasicMessage message={message} />;
 }
-
-ReimbursedContent.displayName = 'ReimbursedContent';
 
 export default ReimbursedContent;
