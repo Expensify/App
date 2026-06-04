@@ -259,6 +259,7 @@ function SidebarOrderedReportsContextProvider({
         clearCacheDummyCounter,
         currentUserLogin,
         accountID,
+        guidesEmailsByReport,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.
