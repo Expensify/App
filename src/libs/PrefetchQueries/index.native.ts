@@ -1,4 +1,4 @@
-import {WRITE_COMMANDS} from './API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 
 /**
  * The API commands that should be prefetched on app start using `react-native-nitro-fetch`'s `prefetchOnAppStart` function.
