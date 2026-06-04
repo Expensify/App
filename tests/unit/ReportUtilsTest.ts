@@ -261,13 +261,18 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-jest.mock('@libs/PolicyUtils', () => ({
-    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
-    isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
-    isPaidGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team'),
-    isGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team' || policy?.type === 'submit2026'),
-    isPolicyOwner: jest.fn().mockImplementation((policy?: Policy, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
-}));
+jest.mock('@libs/PolicyUtils', () => {
+    const actualPolicyUtils = jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils');
+    const isPaidGroupPolicy = jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team');
+    return {
+        ...actualPolicyUtils,
+        isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
+        isPaidGroupPolicy,
+        // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
+        isGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => isPaidGroupPolicy(policy) === true || actualPolicyUtils.isSubmitPolicy(policy)),
+        isPolicyOwner: jest.fn().mockImplementation((policy?: Policy, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
+    };
+});
 
 const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
@@ -3909,7 +3914,6 @@ describe('ReportUtils', () => {
                         ownerAccountID: currentUserAccountID,
                     };
                     mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
-                    mockedPolicyUtils.isGroupPolicy.mockReturnValue(true);
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -8727,7 +8731,6 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
-            mockedPolicyUtils.isGroupPolicy.mockReturnValue(true);
 
             // When it's checked if the transactions can be added
             // Simulate how components determined if a report is archived by using this hook
@@ -11944,6 +11947,11 @@ describe('ReportUtils', () => {
         let personalPolicy: Policy;
 
         beforeEach(() => {
+            // Other describe blocks leave isPaidGroupPolicy stuck on mockReturnValue(true); restore the type-based default so these policy-type-driven cases aren't poisoned
+            mockedPolicyUtils.isPaidGroupPolicy.mockImplementation(
+                (policyToCheck?: OnyxInputOrEntry<Policy>) => policyToCheck?.type === CONST.POLICY.TYPE.CORPORATE || policyToCheck?.type === CONST.POLICY.TYPE.TEAM,
+            );
+
             // Create test reports using the proper pattern
             expenseReport = {
                 ...LHNTestUtils.getFakeReport(),
@@ -12689,14 +12697,13 @@ describe('ReportUtils', () => {
     });
 
     describe('buildOptimisticExpenseReport', () => {
-        beforeEach(() => {
-            Onyx.clear();
-            // Earlier tests override isGroupPolicy with a persistent mockReturnValue(true); restore the
-            // type-based implementation so computeOptimisticReportName behaves correctly here.
-            mockedPolicyUtils.isGroupPolicy.mockImplementation(
-                (policy: OnyxInputOrEntry<Policy>) => policy?.type === 'corporate' || policy?.type === 'team' || policy?.type === 'submit2026',
-            );
-        });
+        beforeEach(Onyx.clear);
+        // Other describe blocks leave isPaidGroupPolicy stuck on mockReturnValue(true); restore the type-based default so the report-name fallback is driven by the real policy type
+        beforeEach(() =>
+            mockedPolicyUtils.isPaidGroupPolicy.mockImplementation(
+                (policyToCheck?: OnyxInputOrEntry<Policy>) => policyToCheck?.type === CONST.POLICY.TYPE.CORPORATE || policyToCheck?.type === CONST.POLICY.TYPE.TEAM,
+            ),
+        );
 
         it('should include the policy name in report name from report draft', async () => {
             const chatReportID = '1';
