@@ -5650,7 +5650,7 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string, currentTax
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
-function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
+function upgradeToCorporate(policy: OnyxEntry<Policy>, featureKey?: string, customUnitID?: string) {
     if (!policy) {
         return;
     }
@@ -5673,6 +5673,7 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
                     enabled: false,
                 },
                 isAttendeeTrackingEnabled: false,
+                ...(featureKey ? {[featureKey]: true} : {}),
             },
         },
     ];
@@ -5702,11 +5703,16 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
                 harvesting: policy?.harvesting ?? null,
                 isAttendeeTrackingEnabled: null,
                 eReceipts: policy?.eReceipts,
+                ...(featureKey ? {[featureKey]: policy?.[featureKey as keyof typeof policy] ?? null} : {}),
             },
         },
     ];
 
-    const parameters: UpgradeToCorporateParams = {policyID, ...(featureName ? {featureName} : {})};
+    const parameters: UpgradeToCorporateParams = {
+        policyID,
+        ...(featureKey ? {featureKey} : {}),
+        ...(customUnitID ? {customUnitID} : {}),
+    };
 
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
