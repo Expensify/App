@@ -85,6 +85,9 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
     const shouldUseInvoiceRoutes = isInvoicePage || reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    const listInputSubtitleKey = shouldUseInvoiceRoutes ? 'workspace.invoiceFields.listInputSubtitle' : 'workspace.reportFields.listInputSubtitle';
+    const findFieldKey = shouldUseInvoiceRoutes ? 'workspace.invoiceFields.findInvoiceField' : 'workspace.reportFields.findReportField';
+    const emptyValuesSubtitleKey = shouldUseInvoiceRoutes ? 'workspace.invoiceFields.emptyInvoiceFieldsValues.subtitle' : 'workspace.reportFields.emptyReportFieldsValues.subtitle';
 
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
 
@@ -348,11 +351,11 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pv4]}>
-                <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
+                <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate(listInputSubtitleKey)}</Text>
             </View>
             {data.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
-                    label={translate('workspace.reportFields.findReportField')}
+                    label={translate(findFieldKey)}
                     inputValue={inputValue}
                     onChangeText={setInputValue}
                     shouldShowEmptyState={!shouldShowEmptyState && filteredListValues.length === 0}
@@ -392,7 +395,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                         {headerContent}
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                            subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                            subtitle={translate(emptyValuesSubtitleKey)}
                             headerMedia={illustrations.FolderWithPapers}
                             headerStyles={styles.emptyStateCardIllustrationContainer}
                             headerContentStyles={styles.emptyStateFolderWithPaperIconSize}

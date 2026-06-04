@@ -114,7 +114,9 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
             }
 
             if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
+                errors[INPUT_IDS.INITIAL_VALUE] = translate(
+                    isInvoiceField ? 'workspace.invoiceFields.invoiceFieldInitialValueRequiredError' : 'workspace.reportFields.reportFieldInitialValueRequiredError',
+                );
             }
 
             return errors;
@@ -174,7 +176,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.reportFields.addField')}
+                    title={translate(isInvoiceField ? 'workspace.invoiceFields.addField' : 'workspace.reportFields.addField')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
@@ -195,7 +197,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                 InputComponent={TextPicker}
                                 inputID={INPUT_IDS.NAME}
                                 label={translate('common.name')}
-                                subtitle={translate('workspace.reportFields.nameInputSubtitle')}
+                                subtitle={translate(isInvoiceField ? 'workspace.invoiceFields.nameInputSubtitle' : 'workspace.reportFields.nameInputSubtitle')}
                                 description={translate('common.name')}
                                 rightLabel={translate('common.required')}
                                 accessibilityLabel={translate('workspace.editor.nameInputLabel')}
@@ -210,7 +212,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                 InputComponent={TypeSelector}
                                 inputID={INPUT_IDS.TYPE}
                                 label={translate('common.type')}
-                                subtitle={translate('workspace.reportFields.typeInputSubtitle')}
+                                subtitle={translate(isInvoiceField ? 'workspace.invoiceFields.typeInputSubtitle' : 'workspace.reportFields.typeInputSubtitle')}
                                 rightLabel={translate('common.required')}
                                 onTypeSelected={(type) => {
                                     let initialValue;
@@ -245,7 +247,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                     InputComponent={TextPicker}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
-                                    subtitle={translate('workspace.reportFields.initialValueInputSubtitle')}
+                                    subtitle={translate(isInvoiceField ? 'workspace.invoiceFields.initialValueInputSubtitle' : 'workspace.reportFields.initialValueInputSubtitle')}
                                     description={translate('common.initialValue')}
                                     accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
                                     maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
@@ -269,7 +271,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                     InputComponent={InitialListValueSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
-                                    subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
+                                    subtitle={translate(isInvoiceField ? 'workspace.invoiceFields.listValuesInputSubtitle' : 'workspace.reportFields.listValuesInputSubtitle')}
                                 />
                             )}
                         </View>

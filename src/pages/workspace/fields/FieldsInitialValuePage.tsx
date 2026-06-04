@@ -40,6 +40,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, t
     const {inputCallbackRef} = useAutoFocusInput();
 
     const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
+    const isInvoiceField = reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
     const currentInitialValue = getReportFieldInitialValue(reportField, translate);
     const [initialValue, setInitialValue] = useState(currentInitialValue);
@@ -85,12 +86,14 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, t
             }
 
             if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
+                errors[INPUT_IDS.INITIAL_VALUE] = translate(
+                    isInvoiceField ? 'workspace.invoiceFields.invoiceFieldInitialValueRequiredError' : 'workspace.reportFields.reportFieldInitialValueRequiredError',
+                );
             }
 
             return errors;
         },
-        [availableListValuesLength, reportField?.name, reportField?.type, policy?.fieldList, translate],
+        [availableListValuesLength, isInvoiceField, reportField?.name, reportField?.type, policy?.fieldList, translate],
     );
 
     if (!reportField) {
@@ -119,7 +122,9 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, t
                 />
                 {isListFieldType && (
                     <View style={[styles.ph5, styles.pb4]}>
-                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
+                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>
+                            {translate(isInvoiceField ? 'workspace.invoiceFields.listValuesInputSubtitle' : 'workspace.reportFields.listValuesInputSubtitle')}
+                        </Text>
                     </View>
                 )}
 
