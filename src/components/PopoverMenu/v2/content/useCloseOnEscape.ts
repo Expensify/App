@@ -1,10 +1,11 @@
 import {useEffect} from 'react';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import claimEscapeKeyDown from '@libs/claimEscapeKeyDown';
 import suppressNextEscapeKeyUp from '@libs/suppressNextEscapeKeyUp';
-import CONST from '@src/CONST';
 
-// Web: window-capture keydown bypasses the shortcut stack. Native: useKeyboardShortcut below (the window listener no-ops on native).
+/**
+ * Closes the popover on Escape. Web-only via `claimEscapeKeyDown` (no-op on native);
+ * the parent-modal Escape race we're defending against is web-specific.
+ */
 function useCloseOnEscape(isVisible: boolean, close: () => void): void {
     useEffect(() => {
         if (!isVisible) {
@@ -15,15 +16,6 @@ function useCloseOnEscape(isVisible: boolean, close: () => void): void {
             close();
         });
     }, [isVisible, close]);
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
-        () => {
-            suppressNextEscapeKeyUp();
-            close();
-        },
-        {isActive: isVisible, shouldBubble: false},
-    );
 }
 
 export default useCloseOnEscape;

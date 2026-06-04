@@ -548,7 +548,6 @@ function BasePopoverMenu({
         onClose();
     }, [menuItems, onClose]);
 
-    // Web: window-capture keydown bypasses the shortcut stack. Native: useKeyboardShortcut below (the window listener no-ops on native).
     useEffect(() => {
         if (!isVisible) {
             return undefined;
@@ -558,15 +557,6 @@ function BasePopoverMenu({
             handleClose();
         });
     }, [isVisible, handleClose]);
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
-        () => {
-            suppressNextEscapeKeyUp();
-            handleClose();
-        },
-        {isActive: isVisible, shouldBubble: false},
-    );
 
     const handleModalHide = () => {
         onModalHide?.();

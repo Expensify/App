@@ -112,6 +112,27 @@ function pressShortcut(shortcutKey: string): void {
     act(() => entry.callback());
 }
 
+// useCloseOnEscape installs via claimEscapeKeyDown — capture the handler so tests can fire it.
+let mockActiveEscapeHandler: (() => void) | null = null;
+jest.mock('@libs/claimEscapeKeyDown', () => ({
+    __esModule: true,
+    default: (handler: () => void) => {
+        mockActiveEscapeHandler = handler;
+        return () => {
+            if (mockActiveEscapeHandler === handler) {
+                mockActiveEscapeHandler = null;
+            }
+        };
+    },
+}));
+
+function pressEscape(): void {
+    if (!mockActiveEscapeHandler) {
+        return;
+    }
+    act(() => mockActiveEscapeHandler?.());
+}
+
 const mockNavigationState: {blurListeners: Set<() => void>} = {
     blurListeners: new Set(),
 };
@@ -411,7 +432,7 @@ describe('PopoverMenu V2', () => {
                 </Harness>,
             );
             onOpenChange.mockClear();
-            pressShortcut('Escape');
+            pressEscape();
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
@@ -438,11 +459,11 @@ describe('PopoverMenu V2', () => {
             );
             press('More');
             onOpenChange.mockClear();
-            pressShortcut('Escape');
+            pressEscape();
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
-        it('Escape shortcut is inactive while the popover is closed', () => {
+        it('Escape listener is not installed while the popover is closed', () => {
             render(
                 <Harness>
                     <PopoverMenu.Content>
@@ -453,7 +474,7 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            expect(registeredShortcuts.Escape?.isActive).toBe(false);
+            expect(mockActiveEscapeHandler).toBeNull();
         });
     });
 
