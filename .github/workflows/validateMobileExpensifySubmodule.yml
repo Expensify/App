@@ -1,0 +1,28 @@
+name: Validate Mobile-Expensify submodule
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+    paths:
+      - 'Mobile-Expensify'
+
+jobs:
+  validate-mobile-expensify-submodule:
+    if: github.actor != 'OSBotify' && !endsWith(github.actor, '[bot]')
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout App
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Checkout Mobile-Expensify
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        with:
+          repository: Expensify/Mobile-Expensify
+          path: .github/mobile-expensify-repo
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Validate submodule pointer
+        env:
+          MOBILE_EXPENSIFY_GIT_DIR: .github/mobile-expensify-repo
+        run: ./scripts/validateMobileExpensifySubmodule.sh
