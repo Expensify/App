@@ -1,7 +1,7 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
-import {useChartTypefaces} from '@components/Charts/hooks';
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';

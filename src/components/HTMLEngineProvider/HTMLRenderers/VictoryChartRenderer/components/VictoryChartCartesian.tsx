@@ -1,18 +1,24 @@
 import React from 'react';
 import {CartesianChart} from 'victory-native';
-import {ChartFontsProvider} from '@components/Charts/hooks';
+import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
+import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
 
+type VictoryChartCartesianProps = {
+    explicitSize?: {width: number; height: number};
+    headless?: boolean;
+};
+
 /**
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
-function VictoryChartCartesian() {
+function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianProps) {
     const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems} = useVictoryChartContext();
 
     return (
@@ -25,9 +31,9 @@ function VictoryChartCartesian() {
             domain={domain}
             domainPadding={domainPadding}
             padding={padding}
-            renderOutside={(renderArgs) => (
-                // Chart font context does not propagate across the Skia renderOutside boundary.
-                <ChartFontsProvider>
+            {...getChartLayoutModeProps(explicitSize, headless)}
+            renderOutside={(renderArgs) => {
+                const overlayContent = (
                     <VictoryChartRenderArgsProvider value={renderArgs}>
                         {labelItems.map((labelItem) => (
                             <VictoryChartLabel
@@ -42,8 +48,15 @@ function VictoryChartCartesian() {
                             />
                         ))}
                     </VictoryChartRenderArgsProvider>
-                </ChartFontsProvider>
-            )}
+                );
+
+                if (headless) {
+                    return overlayContent;
+                }
+
+                // Chart font context does not propagate across the Skia renderOutside boundary.
+                return <ChartFontsLoaderProvider>{overlayContent}</ChartFontsLoaderProvider>;
+            }}
         >
             {(renderArgs) => (
                 <VictoryChartRenderArgsProvider value={renderArgs}>
