@@ -643,12 +643,12 @@ function MoneyRequestReportTransactionList({
                             setReportLayout(item.keyForList, reportLayoutOption, reportLayoutGroupBy);
                             props.closeOverlay();
                         }}
-                        style={{contentContainerStyle: [styles.pb0]}}
+                        style={{contentContainerStyle: [styles.pb0], listItemWrapperStyle: shouldUseNarrowLayout ? undefined : styles.optionRowCompact}}
                     />
                 </View>
             </View>
         ),
-        [groupByOptions, reportLayoutOption, reportLayoutGroupBy, styles, windowHeight, isInLandscapeMode],
+        [groupByOptions, reportLayoutOption, reportLayoutGroupBy, styles, windowHeight, isInLandscapeMode, shouldUseNarrowLayout],
     );
 
     const isDesktopTableLayout = !shouldUseNarrowLayout;
