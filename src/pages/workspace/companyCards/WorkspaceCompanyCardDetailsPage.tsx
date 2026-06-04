@@ -241,6 +241,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <MenuItemWithTopDescription
                                 description={exportMenuItem.description}
                                 title={exportMenuItem.title}
+                                numberOfLinesTitle={2}
                                 shouldShowRightIcon={canWriteCompanyCards}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
                                 interactive={canWriteCompanyCards}
