@@ -5,19 +5,17 @@ import type {BunPlugin} from 'bun';
 import {existsSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 
-const ALIAS_PREFIXES = ['@components/', '@assets/', '@libs/', '@styles/', '@hooks/', '@src/', '@navigation/', '@userActions/', '@selectors/'] as const;
-
-const ALIAS_TARGETS: Record<(typeof ALIAS_PREFIXES)[number], string> = {
-    '@components/': 'src/components/',
-    '@assets/': 'assets/',
-    '@libs/': 'src/libs/',
-    '@styles/': 'src/styles/',
-    '@hooks/': 'src/hooks/',
-    '@src/': 'src/',
-    '@navigation/': 'src/libs/Navigation/',
-    '@userActions/': 'src/libs/actions/',
-    '@selectors/': 'src/selectors/',
-};
+const ALIAS_ENTRIES = [
+    ['@components/', 'src/components/'],
+    ['@assets/', 'assets/'],
+    ['@libs/', 'src/libs/'],
+    ['@styles/', 'src/styles/'],
+    ['@hooks/', 'src/hooks/'],
+    ['@src/', 'src/'],
+    ['@navigation/', 'src/libs/Navigation/'],
+    ['@userActions/', 'src/libs/actions/'],
+    ['@selectors/', 'src/selectors/'],
+] as const;
 
 export default function createAppPathAliasPlugin(repoRoot: string, stubRoot: string): BunPlugin {
     const resolvedRepoRoot = resolve(repoRoot);
@@ -41,13 +39,13 @@ export default function createAppPathAliasPlugin(repoRoot: string, stubRoot: str
             }));
 
             build.onResolve({filter: /^@(components|assets|libs|styles|hooks|src|navigation|userActions|selectors)\//}, (args) => {
-                for (const prefix of ALIAS_PREFIXES) {
+                for (const [prefix, relativeTargetDir] of ALIAS_ENTRIES) {
                     if (!args.path.startsWith(prefix)) {
                         continue;
                     }
 
                     const relativePath = args.path.slice(prefix.length);
-                    const targetDir = join(resolvedRepoRoot, ALIAS_TARGETS[prefix]);
+                    const targetDir = join(resolvedRepoRoot, relativeTargetDir);
                     const candidates = [
                         `${join(targetDir, relativePath)}.ts`,
                         `${join(targetDir, relativePath)}.tsx`,

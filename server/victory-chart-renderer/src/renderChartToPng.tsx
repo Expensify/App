@@ -2,11 +2,11 @@ import {drawOffscreen, makeOffscreenSurface} from '@shopify/react-native-skia/li
 import type {TNode} from 'react-native-render-html';
 import {TRenderEngineProvider} from 'react-native-render-html';
 import {ChartFontsContext} from '@components/Charts/context/ChartFontsContext';
+import VICTORY_HTML_ELEMENT_MODELS from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import {VictoryChartProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
 import CliVictoryChartContent from './CliVictoryChartContent';
-import {renderEngine} from './parseChartXml';
 
 type CanvasSize = {
     width: number;
@@ -19,7 +19,7 @@ async function renderChartToPng(tnode: TNode, fonts: ChartFontsValue, {width, he
     }
 
     const chartElement = (
-        <TRenderEngineProvider engine={renderEngine}>
+        <TRenderEngineProvider customHTMLElementModels={VICTORY_HTML_ELEMENT_MODELS}>
             <ChartFontsContext.Provider value={fonts}>
                 <VictoryChartProvider tnode={tnode}>
                     <CliVictoryChartContent explicitSize={{width, height}} />

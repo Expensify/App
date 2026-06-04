@@ -14,7 +14,10 @@
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
+// Bun resolves these scripts without the server tsconfig path aliases.
+// eslint-disable-next-line import/no-relative-packages
 import createAppPathAliasPlugin from '../../plugins/appPathAliasPlugin';
+// eslint-disable-next-line import/no-relative-packages
 import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');

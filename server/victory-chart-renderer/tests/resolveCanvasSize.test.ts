@@ -2,7 +2,7 @@ import {afterEach, expect, test} from 'bun:test';
 import type {TNode} from 'react-native-render-html';
 import resolveCanvasSize from '../src/resolveCanvasSize';
 
-const originalExit = process.exit;
+const originalExit = process.exit.bind(process);
 
 function makeChartNode(attributes: TNode['attributes'], children: TNode[] = []): TNode {
     return {
@@ -38,9 +38,11 @@ test('resolveCanvasSize exits when overlays exist without chart dimensions', () 
     ]);
     let exitCode: number | undefined;
 
-    process.exit = ((code?: number) => {
+    const mockExit = (code?: number) => {
         exitCode = code ?? 1;
-    }) as typeof process.exit;
+    };
+
+    process.exit = mockExit as typeof process.exit;
 
     resolveCanvasSize(tnode);
 

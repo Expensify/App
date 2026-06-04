@@ -1,5 +1,7 @@
-export function startSpan() {
+function startSpan() {
     return undefined;
 }
 
-export function endSpan() {}
+function endSpan() {}
+
+export {endSpan, startSpan};

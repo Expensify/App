@@ -10,9 +10,13 @@
  * exits after writing the binary; it does not run it.
  */
 import {join, resolve} from 'node:path';
-import parseCompileTarget from '@libs/parseCompileTarget';
 import CLI from '@scripts/utils/CLI';
+// eslint-disable-next-line import/no-relative-packages
+import parseCompileTarget from '../../libs/parseCompileTarget';
+// Bun resolves these scripts without the server tsconfig path aliases.
+// eslint-disable-next-line import/no-relative-packages
 import createAppPathAliasPlugin from '../../plugins/appPathAliasPlugin';
+// eslint-disable-next-line import/no-relative-packages
 import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');

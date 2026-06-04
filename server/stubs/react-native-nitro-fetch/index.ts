@@ -1,5 +1,7 @@
-export function clearTokenRefresh() {}
+function clearTokenRefresh() {}
 
-export function prefetchOnAppStart() {}
+function prefetchOnAppStart() {}
+
+export {clearTokenRefresh, prefetchOnAppStart};
 
 export default {};
