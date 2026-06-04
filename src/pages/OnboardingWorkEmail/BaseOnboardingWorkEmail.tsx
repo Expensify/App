@@ -141,7 +141,10 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, [onboardingErrorMessageTranslationKey]);
 
     const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
-        if (errorTranslation !== 'onboarding.workEmail2FAError' && errorTranslation !== 'onboarding.mergeBlockScreen.workAccountClosedSubtitle') {
+        if (errorTranslation !== 'onboarding.workEmail2FAError' 
+            && errorTranslation !== 'onboarding.mergeBlockScreen.workAccountClosedSubtitle' 
+            && errorTranslation !== 'onboarding.singleSignOnError') 
+        {
             return true;
         }
         return false;
