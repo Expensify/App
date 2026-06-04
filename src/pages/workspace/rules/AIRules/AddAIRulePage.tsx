@@ -18,9 +18,11 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addPolicyAIRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {rand64} from '@libs/NumberUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -61,6 +63,7 @@ function AddAIRulePage({route}: AddAIRulePageProps) {
     const changeTab = (key: string) => setActiveTabKey(key as TabKey);
     const [prompt, setPrompt] = useState('');
 
+    // s77rt TODO list + icons
     const suggestions: Suggestion[] = [
         {prompt: 'Approve 1bla bla', icon: icons.Feed},
         {prompt: 'Approve b1la bla', icon: icons.Feed},
@@ -87,6 +90,7 @@ function AddAIRulePage({route}: AddAIRulePageProps) {
         return errors;
     };
     const saveRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM>): void => {
+        addPolicyAIRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         Navigation.goBack();
     };
 
