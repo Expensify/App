@@ -16,6 +16,7 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -43,6 +44,11 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    // When the carousel is opened from a search (e.g. the Spend page), the sibling transactions may only exist
+    // in the search snapshot and not in the live collection yet. We keep the snapshot around to fall back to it
+    // so prev/next navigation resolves the correct report instead of breaking.
+    const [snapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
     const {markReportIDAsExpense} = useWideRHPActions();
 
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
@@ -63,8 +69,11 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const prevNextTransactionsSelector = useCallback(
         (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
-            [currentTransactionID, prevTransactionID, nextTransactionID].map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]),
-        [currentTransactionID, nextTransactionID, prevTransactionID],
+            [currentTransactionID, prevTransactionID, nextTransactionID].map((transactionID) => {
+                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+                return allTransactions?.[key] ?? snapshot?.data?.[key];
+            }),
+        [currentTransactionID, nextTransactionID, prevTransactionID, snapshot],
     );
 
     const [[currentTransaction, prevTransaction, nextTransaction] = getEmptyArray<OnyxTypes.Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -74,12 +83,24 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
             let reportActions = {};
+            // Reported transactions keep their IOU action on their own report (reportActions_<reportID>).
             for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
-                reportActions = {...reportActions, ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`]};
+                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}` as const;
+                reportActions = {...reportActions, ...(allReportActions?.[key] ?? (snapshot?.data?.[key] as OnyxTypes.ReportActions | undefined))};
+            }
+            // Unreported transactions (reportID '0') keep their IOU action on a different report (e.g. a self-DM),
+            // so it isn't under reportActions_0. Merge every report's actions from the search snapshot so the action
+            // (and its childReportID thread) can still be located by IOUTransactionID.
+            if (snapshot?.data) {
+                for (const [key, reportActionsForReport] of Object.entries(snapshot.data)) {
+                    if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                        reportActions = {...reportActions, ...(reportActionsForReport as OnyxTypes.ReportActions)};
+                    }
+                }
             }
             return parentReportActionIDsSelector(reportActions);
         },
-        [currentTransaction, nextTransaction, prevTransaction],
+        [currentTransaction, nextTransaction, prevTransaction, snapshot],
     );
 
     const [parentReportActions = new Map<string, OnyxTypes.ReportAction>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -97,10 +118,22 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
 
-    const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
-    const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
-    const [prevTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevTransaction?.reportID}`);
-    const [nextTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextTransaction?.reportID}`);
+    // The "parent report" is where the transaction's IOU action lives: the expense report for reported transactions,
+    // or a self-DM for unreported ones (whose transaction.reportID is '0'). Derive it from the action so unreported
+    // transactions resolve to the correct parent instead of report '0'. Fall back to the transaction's reportID.
+    const prevParentReportID = prevParentReportAction?.reportID ?? prevTransaction?.reportID;
+    const nextParentReportID = nextParentReportAction?.reportID ?? nextTransaction?.reportID;
+
+    const [livePrevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
+    const [liveNextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
+    const [livePrevTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportID}`);
+    const [liveNextTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportID}`);
+
+    // Fall back to the search snapshot for reports that aren't in the live collection yet.
+    const prevThreadReport = livePrevThreadReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`];
+    const nextThreadReport = liveNextThreadReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`];
+    const prevTransactionParentReport = livePrevTransactionParentReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportID}`];
+    const nextTransactionParentReport = liveNextTransactionParentReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportID}`];
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -137,7 +170,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // If the next expense's parent is a one-transaction report, navigate to the parent report instead of the
         // thread. This keeps the view at the same level (parent) so report-level primary actions (Approve, etc.)
         // are preserved when navigating back. Mirrors the open-from-list logic in Search/index.tsx#onSelectRow.
-        if (isOneTransactionReport(nextTransactionParentReport) && nextTransaction?.reportID) {
+        // Skip for unreported transactions (reportID '0'): they have no parent report to land on, so they must open
+        // their transaction thread (handled below).
+        if (isOneTransactionReport(nextTransactionParentReport) && nextTransaction?.reportID && nextTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const targetReportID = nextTransaction.reportID;
             markReportIDAsExpense(targetReportID);
             requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo}));
@@ -154,7 +189,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // user to ROUTES.REPORT_WITH_ID (Inbox/parent). Instead, fall back to navigating to the next
         // transaction's parent report. We pass anchorTransactionID so MoneyReportHeader can keep the
         // transaction carousel anchored on the user's intended next transaction.
-        if (!nextThreadReportID && nextTransaction?.reportID) {
+        if (!nextThreadReportID && nextTransaction?.reportID && nextTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const targetReportID = nextTransaction.reportID;
             markReportIDAsExpense(targetReportID);
             requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo}));
@@ -181,8 +216,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         e?.preventDefault();
         const backTo = getBackTo();
 
-        // See onNext for the rationale behind the one-transaction-parent branch.
-        if (isOneTransactionReport(prevTransactionParentReport) && prevTransaction?.reportID) {
+        // See onNext for the rationale behind the one-transaction-parent branch (and the unreported skip).
+        if (isOneTransactionReport(prevTransactionParentReport) && prevTransaction?.reportID && prevTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const targetReportID = prevTransaction.reportID;
             markReportIDAsExpense(targetReportID);
             requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo}));
@@ -192,8 +227,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 
-        // See onNext for the rationale behind this fallback.
-        if (!prevThreadReportID && prevTransaction?.reportID) {
+        // See onNext for the rationale behind this fallback (and the unreported skip).
+        if (!prevThreadReportID && prevTransaction?.reportID && prevTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const targetReportID = prevTransaction.reportID;
             markReportIDAsExpense(targetReportID);
             requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo}));

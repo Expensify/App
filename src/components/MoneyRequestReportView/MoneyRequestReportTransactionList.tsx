@@ -476,6 +476,14 @@ function MoneyRequestReportTransactionList({
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
+        // If we arrived from a broader (search) carousel anchored on a specific transaction — the no-thread fallback
+        // in MoneyRequestReportTransactionsNavigation passes `anchorTransactionID` — keep that carousel's list (and its
+        // snapshot context) intact. The superset check below only covers reports fully contained in the active list;
+        // this also covers reports whose transactions are only partially present in the search results.
+        const anchorTransactionID = (focusedRoute?.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
+        if (anchorTransactionID && latestActiveTransactionIDs?.includes(anchorTransactionID)) {
+            return;
+        }
         // Don't overwrite active transaction IDs for one-transaction parent reports. When such a report is opened
         // from the flat Spend > Expenses list, the search-list IDs were already set by Search/index.tsx onSelectRow
         // and they back the carousel; overwriting with just this report's single transaction would collapse it.

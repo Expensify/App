@@ -10,23 +10,32 @@ import ONYXKEYS from '@src/ONYXKEYS';
  */
 
 let lastSetIDs: string[] | null = null;
+let lastSetSnapshotHash: number | null = null;
 
 /**
- * Idempotent: skips the Onyx write when the IDs haven't changed.
+ * Idempotent: skips the Onyx write when the IDs (and snapshot hash) haven't changed.
  * This lets callers (e.g. useEffect in MoneyRequestReportTransactionList) fire
  * freely without worrying about referential equality of the input array.
+ *
+ * When the navigation list originates from a search, pass the search snapshot hash so the
+ * transaction RHP carousel can fall back to snapshot data for transactions that aren't in the
+ * live collection yet (e.g. an approver opening an expense from the Spend page).
  */
-function setActiveTransactionIDs(ids: string[]) {
-    if (lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i))) {
+function setActiveTransactionIDs(ids: string[], snapshotHash?: number) {
+    const nextSnapshotHash = snapshotHash ?? null;
+    const areIDsUnchanged = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
+    if (areIDsUnchanged && lastSetSnapshotHash === nextSnapshotHash) {
         return Promise.resolve();
     }
     lastSetIDs = ids;
-    return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids);
+    lastSetSnapshotHash = nextSnapshotHash;
+    return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH, nextSnapshotHash)]);
 }
 
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
-    return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null);
+    lastSetSnapshotHash = null;
+    return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH, null)]);
 }
 
 export {setActiveTransactionIDs, clearActiveTransactionIDs};

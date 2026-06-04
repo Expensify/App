@@ -1202,7 +1202,7 @@ function Search({
                     .filter((t) => !!t && 'transactionID' in t && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                     .map((t) => t.transactionID);
                 if (siblingTransactionIDs.length > 1) {
-                    setActiveTransactionIDs(siblingTransactionIDs);
+                    setActiveTransactionIDs(siblingTransactionIDs, hash);
                 } else {
                     clearActiveTransactionIDs();
                 }
@@ -1364,6 +1364,7 @@ function Search({
             email,
             accountID,
             queryJSON,
+            hash,
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,

@@ -95,7 +95,10 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         if (singleTransactionID) {
             return undefined;
         }
-        if (anchorTransactionIDFromRoute && transactions.some((t) => t.transactionID === anchorTransactionIDFromRoute) && activeTransactionIDs?.includes(anchorTransactionIDFromRoute)) {
+        // Trust the route hint as long as it's part of the active carousel list. We don't also require it to be in
+        // this report's `transactions` because when arriving from a search-based carousel the parent report's
+        // transactions may not be in the live collection yet, which would otherwise hide the carousel entirely.
+        if (anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute)) {
             return anchorTransactionIDFromRoute;
         }
         if (!activeTransactionIDs) {
