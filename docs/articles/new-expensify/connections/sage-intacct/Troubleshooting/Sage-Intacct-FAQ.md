@@ -1,7 +1,7 @@
 ---
 title: Sage Intacct FAQ
 description: Learn why reports may fail to export to Sage Intacct, how to manually export reports, and how to disconnect the Sage Intacct integration.
-keywords: Sage Intacct export FAQ, automatic export failure, manual export Sage Intacct, report not exporting, disconnect Sage Intacct integration
+keywords: Sage Intacct export FAQ, automatic export failure, manual export Sage Intacct, report not exporting, disconnect Sage Intacct integration, update Sage Intacct credentials, update Web Services credentials, rotate Web Services password
 internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers automatic export failures, manual export requirements, updating Web Services credentials, and disconnecting the Sage Intacct integration. Does not cover specific Sage Intacct error codes.
 ---
 
