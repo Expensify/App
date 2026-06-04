@@ -32,6 +32,12 @@ type TransactionViolationData = {
     /** Limit that the transaction violated */
     formattedLimit?: string;
 
+    /** Currency of the transaction */
+    currency?: string;
+
+    /** Limit amount that the transaction violated */
+    amount?: number;
+
     /** Percentage amount of conversion surcharge applied to the transaction */
     surcharge?: number;
 

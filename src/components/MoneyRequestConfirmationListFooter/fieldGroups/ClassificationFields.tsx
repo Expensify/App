@@ -1,13 +1,13 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AttendeeField from '@components/MoneyRequestConfirmationList/sections/AttendeeField';
 import CategoryField from '@components/MoneyRequestConfirmationList/sections/CategoryField';
 import DateField from '@components/MoneyRequestConfirmationList/sections/DateField';
 import TagFields from '@components/MoneyRequestConfirmationList/sections/TagFields';
 import TaxFields from '@components/MoneyRequestConfirmationList/sections/TaxFields';
-import type CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {ErrorState} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FieldVisibility, TagEntry} from './fieldVisibility';
 
@@ -21,48 +21,12 @@ type TagFieldRowProps = {
     /** Previous render's per-tag-list `shouldShow` projection (drives transition styling) */
     previousTagsVisibility: boolean[];
 
-    /** Whether the user has confirmed (locks editable controls) */
-    didConfirm: boolean;
-
-    /** Whether the surface is read-only */
-    isReadOnly: boolean;
-
-    /** ID of the active transaction */
-    transactionID: string | undefined;
-
-    /** Action being performed (drives section navigation targets) */
-    action: IOUAction;
-
-    /** Type of IOU being confirmed */
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** ID of the report the transaction belongs to */
-    reportID: string;
-
-    /** ID of the originating report action when editing */
-    reportActionID: string | undefined;
-
     /** Form-level error message */
     formError: string;
-
-    /** Whether we're editing an existing split expense */
-    isEditingSplitBill: boolean;
 };
 
-function TagFieldRow({
-    entry: {index, isTagRequired},
-    policyTagLists,
-    previousTagsVisibility,
-    didConfirm,
-    isReadOnly,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-    formError,
-    isEditingSplitBill,
-}: TagFieldRowProps) {
+function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTagsVisibility, formError}: TagFieldRowProps) {
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
     const policyTagList = policyTagLists.at(index);
     if (!policyTagList) {
         return null;
@@ -81,28 +45,12 @@ function TagFieldRow({
             reportID={reportID}
             reportActionID={reportActionID}
             formError={formError}
-            isEditingSplitBill={isEditingSplitBill}
         />
     );
 }
 
 type ClassificationFieldsProps = {
-    /** Action being performed (drives section navigation targets) */
-    action: IOUAction;
-
-    /** Type of IOU being confirmed */
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** ID of the active transaction */
-    transactionID: string | undefined;
-
-    /** ID of the report the transaction belongs to */
-    reportID: string;
-
-    /** ID of the originating report action when editing */
-    reportActionID: string | undefined;
-
-    /** Active policy */
+    /** Active policy (read by Category/Tax) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Resolved policy used when moving an expense off track-expense (drives tax fallback) */
@@ -114,20 +62,14 @@ type ClassificationFieldsProps = {
     /** Previous render's per-tag-list `shouldShow` projection (drives `TagFields` transitions) */
     previousTagsVisibility: boolean[];
 
-    /** Whether the surface is read-only */
-    isReadOnly: boolean;
-
-    /** Whether the user has confirmed (locks editable controls) */
-    didConfirm: boolean;
-
     /** Whether the categories field is required (drives above-show-more placement) */
     isCategoryRequired: boolean;
 
     /** Whether tax field modifications are allowed */
     canModifyTaxFields: boolean;
 
-    /** Whether to display per-field validation errors */
-    shouldDisplayFieldError: boolean;
+    /** Error state surfaced into multiple fields */
+    errorState: ErrorState;
 
     /** Whether navigating to upgrade is required to proceed past blocked workspaces */
     shouldNavigateToUpgradePath: boolean;
@@ -141,56 +83,29 @@ type ClassificationFieldsProps = {
     /** Pre-formatted amount-per-attendee string for display */
     formattedAmountPerAttendee: string;
 
-    /** Form-level error message */
-    formError: string;
-
     /** When true, suppresses optional fields (only required Category + required Tags render) */
     isCompactMode: boolean;
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'categoryRequired' | 'categoryOptional' | 'date' | 'tagsRequired' | 'tagsOptional' | 'tax' | 'attendees'>;
-
-    /** Whether we're editing an existing split expense */
-    isEditingSplitBill: boolean;
 };
 
 function ClassificationFields({
-    action,
-    iouType,
-    transactionID,
-    reportID,
-    reportActionID,
     policy,
     policyForMovingExpenses,
     policyTagLists,
     previousTagsVisibility,
-    isReadOnly,
-    didConfirm,
     isCategoryRequired,
     canModifyTaxFields,
-    shouldDisplayFieldError,
+    errorState,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
     iouCurrencyCode,
     formattedAmountPerAttendee,
-    formError,
     isCompactMode,
     fieldVisibility,
-    isEditingSplitBill,
 }: ClassificationFieldsProps) {
-    const tagRowSharedProps = {
-        policyTagLists,
-        previousTagsVisibility,
-        didConfirm,
-        isReadOnly,
-        transactionID,
-        action,
-        iouType,
-        reportID,
-        reportActionID,
-        formError,
-        isEditingSplitBill,
-    };
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
 
     return (
         <>
@@ -205,16 +120,15 @@ function ClassificationFields({
                     reportID={reportID}
                     reportActionID={reportActionID}
                     policy={policy}
-                    formError={formError}
+                    formError={errorState.formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
-                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
             {!isCompactMode && fieldVisibility.date && (
                 <DateField
-                    shouldDisplayFieldError={shouldDisplayFieldError}
+                    shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     transactionID={transactionID}
@@ -222,7 +136,6 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -230,17 +143,9 @@ function ClassificationFields({
                 <TagFieldRow
                     key={`tag_${entry.name}`}
                     entry={entry}
-                    policyTagLists={tagRowSharedProps.policyTagLists}
-                    previousTagsVisibility={tagRowSharedProps.previousTagsVisibility}
-                    didConfirm={tagRowSharedProps.didConfirm}
-                    isReadOnly={tagRowSharedProps.isReadOnly}
-                    transactionID={tagRowSharedProps.transactionID}
-                    action={tagRowSharedProps.action}
-                    iouType={tagRowSharedProps.iouType}
-                    reportID={tagRowSharedProps.reportID}
-                    reportActionID={tagRowSharedProps.reportActionID}
-                    formError={tagRowSharedProps.formError}
-                    isEditingSplitBill={tagRowSharedProps.isEditingSplitBill}
+                    policyTagLists={policyTagLists}
+                    previousTagsVisibility={previousTagsVisibility}
+                    formError={errorState.formError}
                 />
             ))}
 
@@ -249,17 +154,9 @@ function ClassificationFields({
                     <TagFieldRow
                         key={`tag_${entry.name}`}
                         entry={entry}
-                        policyTagLists={tagRowSharedProps.policyTagLists}
-                        previousTagsVisibility={tagRowSharedProps.previousTagsVisibility}
-                        didConfirm={tagRowSharedProps.didConfirm}
-                        isReadOnly={tagRowSharedProps.isReadOnly}
-                        transactionID={tagRowSharedProps.transactionID}
-                        action={tagRowSharedProps.action}
-                        iouType={tagRowSharedProps.iouType}
-                        reportID={tagRowSharedProps.reportID}
-                        reportActionID={tagRowSharedProps.reportActionID}
-                        formError={tagRowSharedProps.formError}
-                        isEditingSplitBill={tagRowSharedProps.isEditingSplitBill}
+                        policyTagLists={policyTagLists}
+                        previousTagsVisibility={previousTagsVisibility}
+                        formError={errorState.formError}
                     />
                 ))}
 
@@ -274,8 +171,8 @@ function ClassificationFields({
                     action={action}
                     iouType={iouType}
                     reportID={reportID}
-                    formError={formError}
-                    isEditingSplitBill={isEditingSplitBill}
+                    formError={errorState.formError}
+                    clearFormErrors={errorState.clearFormErrors}
                 />
             )}
 
@@ -287,7 +184,7 @@ function ClassificationFields({
                     action={action}
                     iouType={iouType}
                     reportID={reportID}
-                    formError={formError}
+                    formError={errorState.formError}
                 />
             )}
         </>

@@ -1,7 +1,7 @@
 ---
 title: Troubleshoot SmartScan Issues
 description: Fix common SmartScan problems, including failed, stuck and incorrect scans. 
-keywords: [New Expensify, SmartScan, scan failed, receipt not scanning, illegible receipt, blurry receipt, stuck scanning, SmartScan error, scan not working, SmartScan troubleshooting, SCANREADY, wrong amount, wrong merchant, wrong date, SmartScan incorrect]
+keywords: [New Expensify, SmartScan, scan failed, receipt not scanning, illegible receipt, blurry receipt, stuck scanning, SmartScan error, scan not working, SmartScan troubleshooting, SCANREADY, wrong amount, wrong merchant, wrong date, SmartScan incorrect, missing fields, missing date, missing merchant, missing amount]
 internalScope: Audience is all Expensify members. Covers troubleshooting SmartScan failures, image quality tips, and what to do when SmartScan returns incorrect data. Does not cover how to attach, replace, or crop receipts.
 ---
 
@@ -25,7 +25,7 @@ Common reasons include:
  - The receipt is faded or low contrast
  - The text is obscured by shadows, glare, or folds
 
-If SmartScan cannot confidently read these required fields, the scan will fail and will show the message: "Receipt scanning failed. Enter details manually".  
+If SmartScan cannot confidently read these required fields, the scan will fail and will show a message specifying which fields are missing — for example, "Receipt scanning failed — missing date. Enter details manually."  
 
 ---
 
@@ -36,7 +36,7 @@ SmartScan may fail if the receipt image is unreadable, or if the image is missin
 To retry SmartScan:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Expenses**.
-2. Click to open the expense with the failed scan. It will show a red dot indicator with the message "receipt scanning failed".
+2. Click to open the expense with the failed scan. It will show a red dot indicator with a message indicating which fields could not be scanned (for example, "Receipt scanning failed — missing merchant and date").
 3. Click the receipt image. 
 4. Click **Replace**.
 5. Take a photo or upload a receipt image file from your device.

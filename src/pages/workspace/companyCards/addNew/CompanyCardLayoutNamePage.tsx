@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -19,7 +20,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/CompanyCardLayoutNameForm';
 
@@ -27,6 +28,7 @@ type CompanyCardLayoutNamePageProps = PlatformStackScreenProps<WorkspaceSplitNav
 
 function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
     const {policyID} = route.params;
+    const dynamicAddNewPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -39,7 +41,7 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
         setAddNewCompanyCardStepAndData({
             data: {companyCardLayoutName},
         });
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
+        Navigation.goBack(dynamicAddNewPath);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM> => {
@@ -64,7 +66,7 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(dynamicAddNewPath)}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM}
