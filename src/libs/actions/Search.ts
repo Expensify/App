@@ -108,12 +108,60 @@ function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport
     return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
 }
 
-function getPolicyFromSearchSnapshot(policyID: string | undefined, searchData?: SearchResultDataType): OnyxEntry<Policy> {
+function getReportFromSearchSnapshot(reportID: string | undefined, searchData: SearchResultDataType | undefined, allReports: OnyxCollection<Report> | undefined): OnyxEntry<Report> {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const snapshotReport = searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // Prefer the search snapshot so payment targets match what the user selected on the search page.
+    return snapshotReport ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
+function getPolicyFromSearchSnapshot(policyID: string | undefined, searchData: SearchResultDataType | undefined, policies: OnyxCollection<Policy> | undefined): OnyxEntry<Policy> {
     if (!policyID) {
         return undefined;
     }
 
-    return searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const snapshotPolicy = searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    // Prefer live policy data for payment so bank account details are current; fall back to the search snapshot.
+    return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? snapshotPolicy;
+}
+
+type ResolvedSearchPayPayment = {
+    paymentType: PaymentMethodType;
+    paymentPolicyID?: string;
+    payPolicy?: OnyxEntry<Policy>;
+    methodID?: number;
+};
+
+/**
+ * When the saved payment method is a workspace policy ID (pay via workspace), translate it to VBBA
+ * and pass the policy ID separately so PayMoneyRequest receives a valid paymentMethodType.
+ */
+function resolveSearchPayPaymentMethod(
+    rawPaymentMethod: string | undefined,
+    searchData: SearchResultDataType | undefined,
+    policies: OnyxCollection<Policy> | undefined,
+): ResolvedSearchPayPayment | undefined {
+    if (!rawPaymentMethod) {
+        return undefined;
+    }
+
+    const isWorkspacePolicyPaymentMethod = !Object.values(CONST.IOU.PAYMENT_TYPE).includes(rawPaymentMethod as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
+    if (isWorkspacePolicyPaymentMethod) {
+        const workspacePolicy = getPolicyFromSearchSnapshot(rawPaymentMethod, searchData, policies);
+        return {
+            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            paymentPolicyID: rawPaymentMethod,
+            payPolicy: workspacePolicy,
+            methodID: workspacePolicy?.achAccount?.bankAccountID,
+        };
+    }
+
+    return {
+        paymentType: rawPaymentMethod as PaymentMethodType,
+    };
 }
 
 type HandleActionButtonPressParams = {
@@ -444,7 +492,7 @@ function getPayActionCallback({
         return;
     }
 
-    const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData);
+    const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData, undefined);
 
     payMoneyRequest({
         paymentType: lastPolicyPaymentMethod,
@@ -1607,5 +1655,8 @@ export {
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
+    getPolicyFromSearchSnapshot,
+    getReportFromSearchSnapshot,
+    resolveSearchPayPaymentMethod,
 };
-export type {TransactionPreviewData};
+export type {ResolvedSearchPayPayment, TransactionPreviewData};

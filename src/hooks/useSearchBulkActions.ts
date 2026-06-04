@@ -33,12 +33,15 @@ import {
     getLastPolicyPaymentMethod,
     getPayMoneyOnSearchInvoiceParams,
     getPayOption,
+    getPolicyFromSearchSnapshot,
+    getReportFromSearchSnapshot,
     getReportType,
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
+    resolveSearchPayPaymentMethod,
     submitMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -64,6 +67,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getSelectedGroupFilterEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getOriginalTransactionWithSplitInfo,
@@ -309,24 +313,6 @@ function shouldShowBulkDuplicateOption({
 
         return true;
     });
-}
-
-function getReportFromSearchSnapshot(reportID: string | undefined, searchData: SearchResultDataType | undefined, allReports: OnyxCollection<Report> | undefined): OnyxEntry<Report> {
-    if (!reportID) {
-        return undefined;
-    }
-
-    const snapshotReport = searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return snapshotReport ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-}
-
-function getPolicyFromSearchSnapshot(policyID: string | undefined, searchData: SearchResultDataType | undefined, policies: OnyxCollection<Policy> | undefined): OnyxEntry<Policy> {
-    if (!policyID) {
-        return undefined;
-    }
-
-    const snapshotPolicy = searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? snapshotPolicy;
 }
 
 function getChatReportForBulkPay(
@@ -1020,11 +1006,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
-                const effectivePaymentType = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
+                const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
+                const resolvedPayment = resolveSearchPayPaymentMethod(rawPaymentMethod, searchData, policies);
+                if (!resolvedPayment) {
+                    continue;
+                }
+
+                const {paymentType: resolvedPaymentType, paymentPolicyID, payPolicy: workspacePayPolicy, methodID: workspaceMethodID} = resolvedPayment;
                 const paymentItem = {
                     reportID: item.reportID,
                     amount: item.amount,
-                    paymentType: effectivePaymentType,
+                    paymentType: resolvedPaymentType,
                     ...(isInvoiceReport(item.reportID)
                         ? getPayMoneyOnSearchInvoiceParams(
                               item.policyID,
@@ -1033,13 +1025,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                           )
                         : {}),
-                    ...(isExpenseReportUtil(item.reportID) && effectivePaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
+                    ...(isExpenseReportUtil(item.reportID) && resolvedPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
                         ? {bankAccountID: expenseReportBankAccountID}
                         : {}),
                 } as PaymentData;
 
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
-                const reportPolicy = getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
+                const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
                 const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.reportID}`];
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
                 const isItemInvoice = isInvoiceReport(item.reportID);
@@ -1062,6 +1054,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         isSelfTourViewed,
                         defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                         additionalOnyxData,
+                        shouldPlaySuccessSound: false,
                     });
                     paidReportCount += 1;
                     continue;
@@ -1083,14 +1076,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
-                    methodID: paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
+                    paymentPolicyID,
+                    methodID:
+                        paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
                     conciergeReportID,
                     additionalOnyxData,
+                    shouldPlaySuccessSound: false,
                 });
                 paidReportCount += 1;
             }
 
             if (paidReportCount > 0) {
+                playSound(SOUNDS.SUCCESS);
                 InteractionManager.runAfterInteractions(() => {
                     clearSelectedTransactions();
                 });

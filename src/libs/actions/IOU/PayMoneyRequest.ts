@@ -60,6 +60,7 @@ type PayInvoiceArgs = {
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
     additionalOnyxData?: AdditionalPayOnyxData;
+    shouldPlaySuccessSound?: boolean;
 };
 
 type PayMoneyRequestData = {
@@ -106,6 +107,7 @@ type PayMoneyRequestFunctionParams = {
     conciergeReportID: string | undefined;
     onPaid?: () => void;
     additionalOnyxData?: AdditionalPayOnyxData;
+    shouldPlaySuccessSound?: boolean;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 };
@@ -799,6 +801,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         conciergeReportID,
         onPaid,
         additionalOnyxData,
+        shouldPlaySuccessSound = true,
         delegateAccountID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
@@ -841,7 +844,9 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
     onPaid?.();
-    playSound(SOUNDS.SUCCESS);
+    if (shouldPlaySuccessSound) {
+        playSound(SOUNDS.SUCCESS);
+    }
     API.write(apiCommand, payMoneyRequestParams, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
@@ -1035,6 +1040,7 @@ function payInvoice({
     isSelfTourViewed,
     defaultWorkspaceName,
     additionalOnyxData,
+    shouldPlaySuccessSound = true,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1104,7 +1110,9 @@ function payInvoice({
         };
     }
 
-    playSound(SOUNDS.SUCCESS);
+    if (shouldPlaySuccessSound) {
+        playSound(SOUNDS.SUCCESS);
+    }
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
 }
 
