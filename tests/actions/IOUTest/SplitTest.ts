@@ -2078,6 +2078,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -2120,7 +2121,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             personalDetails: {},
         });
         await waitForBatchedUpdates();
@@ -2304,6 +2304,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
             activePolicy: undefined,
@@ -2346,7 +2347,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             personalDetails: {},
         });
         await waitForBatchedUpdates();
@@ -2888,6 +2888,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -2928,7 +2929,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3066,6 +3066,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -3106,7 +3107,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3248,6 +3248,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -3289,7 +3290,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3439,6 +3439,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -3482,7 +3483,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3514,7 +3514,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
         }
         await waitForBatchedUpdates();
 
@@ -3707,6 +3707,7 @@ describe('updateSplitTransactions', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -3743,7 +3744,6 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
         });
         await waitForBatchedUpdates();
 
@@ -3839,6 +3839,7 @@ describe('updateSplitTransactions', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -3972,6 +3973,7 @@ describe('updateSplitTransactions', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -4008,7 +4010,6 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
         });
         await waitForBatchedUpdates();
 
@@ -4114,6 +4115,7 @@ describe('updateSplitTransactions', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -4147,7 +4149,6 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -4355,7 +4356,7 @@ describe('updateSplitTransactions', () => {
         // Put the original transaction on hold before splitting it.
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
-        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, ancestors);
+        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, ancestors);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
@@ -4519,7 +4520,7 @@ describe('updateSplitTransactions', () => {
         // Put the split transaction 1 on hold before reverting it
         const {allReports: allReports2, allReportActions: allReportActions2} = await getCollections();
         const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
-        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, ancestors2);
+        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, ancestors2);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
@@ -4848,7 +4849,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4873,7 +4874,7 @@ describe('initSplitExpense', () => {
     });
     it('should not initialize split expense for null transaction', async () => {
         const transaction: Transaction | undefined = undefined;
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         expect(transaction).toBeFalsy();
@@ -4897,7 +4898,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4948,6 +4949,7 @@ describe('initSplitExpense', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -4966,7 +4968,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, policy);
+        initSplitExpense(transaction, policy, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4986,6 +4988,131 @@ describe('initSplitExpense', () => {
         expect(splitExpenses?.[0].merchant).toContain('100');
         expect(splitExpenses?.[1].merchant).toBeTruthy();
         expect(splitExpenses?.[1].merchant).toContain('100');
+    });
+
+    it('should let you split the expense again after its other split half was deleted', async () => {
+        const originalTransactionID = 'dissolved-original';
+        const remainingTransactionID = 'dissolved-remaining';
+        const deletedSiblingTransactionID = 'dissolved-deleted-sibling';
+        const expenseReportID = 'dissolved-expense-report';
+
+        // Given an open expense report (an open report previously kept the remaining transaction stuck in the "edit splits" flow)
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+            reportID: expenseReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+
+        // And the original parent expense transaction still exists, hidden on the split report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        });
+
+        // And the sibling split was unreported and then deleted
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedSiblingTransactionID}`, {
+            transactionID: deletedSiblingTransactionID,
+            amount: -50,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        });
+
+        // And the remaining split is the only child left and still references the original
+        const remainingTransaction: Transaction = {
+            transactionID: remainingTransactionID,
+            amount: -50,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReportID,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${remainingTransactionID}`, remainingTransaction);
+        await waitForBatchedUpdates();
+
+        // When the user initiates a split on the remaining transaction
+        initSplitExpense(remainingTransaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+        await waitForBatchedUpdates();
+
+        // Then a fresh split is started keyed by the remaining transaction (2 new splits)
+        const freshDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${remainingTransactionID}`);
+        expect(freshDraft).toBeTruthy();
+        expect(freshDraft?.comment?.splitExpenses).toHaveLength(2);
+
+        // And the split's edit flow keyed by the original transaction is not re-opened
+        const editDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        expect(editDraft).toBeFalsy();
+    });
+
+    it('should open the edit-splits flow for an intact multi-child split', async () => {
+        const originalTransactionID = 'intact-original';
+        const firstChildTransactionID = 'intact-child-1';
+        const secondChildTransactionID = 'intact-child-2';
+        const expenseReportID = 'intact-expense-report';
+
+        // Given an open expense report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+            reportID: expenseReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+
+        // And the original parent expense transaction still exists, hidden on the split report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        });
+
+        // And two split children both live on the expense report (intact split, no deletions)
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstChildTransactionID}`, {
+            transactionID: firstChildTransactionID,
+            amount: -50,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReportID,
+        });
+        const secondChildTransaction: Transaction = {
+            transactionID: secondChildTransactionID,
+            amount: -50,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReportID,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondChildTransactionID}`, secondChildTransaction);
+        await waitForBatchedUpdates();
+
+        // When the user opens the edit-splits flow from one of the children
+        initSplitExpense(secondChildTransaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+        await waitForBatchedUpdates();
+
+        // Then the edit-splits draft is keyed by the original transaction and rebuilt from the existing children
+        const editDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        expect(editDraft).toBeTruthy();
+        expect(editDraft?.comment?.splitExpenses).toHaveLength(2);
+
+        // And no fresh split was started keyed by the child the user opened it from
+        const freshDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${secondChildTransactionID}`);
+        expect(freshDraft).toBeFalsy();
     });
 });
 
@@ -5161,6 +5288,7 @@ describe('addSplitExpenseField', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -5184,6 +5312,7 @@ describe('addSplitExpenseField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [
@@ -5507,6 +5636,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             transactionID: originalTransactionID,
             amount: -20000,
             currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -5525,6 +5655,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Test comment',
                 originalTransactionID,
@@ -5657,6 +5788,7 @@ describe('updateSplitExpenseAmountField', () => {
             transactionID: originalTransactionID,
             amount: -20000,
             currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -5675,6 +5807,7 @@ describe('updateSplitExpenseAmountField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Test comment',
                 originalTransactionID,
@@ -5974,6 +6107,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
             amount: -20000,
             currency: 'USD',
             merchant: 'Original Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
             comment: {
                 comment: 'Original comment',
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
@@ -5998,6 +6132,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Draft Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Draft comment',
                 originalTransactionID,
@@ -6087,7 +6222,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6145,6 +6285,7 @@ describe('resetSplitExpensesByDateRange', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -6170,7 +6311,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate, policy);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, policy);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6216,7 +6362,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6228,7 +6379,7 @@ describe('resetSplitExpensesByDateRange', () => {
     });
 
     it('should not reset if transaction, startDate, or endDate is missing', async () => {
-        resetSplitExpensesByDateRange(undefined, undefined, '2024-01-01', '2024-01-03');
+        resetSplitExpensesByDateRange(undefined, undefined, undefined, '2024-01-01', '2024-01-03');
         await waitForBatchedUpdates();
     });
 });
@@ -6426,6 +6577,7 @@ describe('updateSplitExpenseField', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
@@ -6450,6 +6602,7 @@ describe('updateSplitExpenseField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Draft comment',
                 originalTransactionID,

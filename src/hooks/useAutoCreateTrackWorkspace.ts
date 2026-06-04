@@ -99,7 +99,6 @@ function useAutoCreateTrackWorkspace() {
                     shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                     introSelected,
                     isSelfTourViewed,
-                    betas,
                 });
 
                 if (isSidePanelReportSupported) {

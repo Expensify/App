@@ -421,7 +421,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, styles.flexRow, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <RenderHTML html={translate('workspace.perDiem.subtitle')} />
             </View>
-            {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {subRatesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.perDiem.findPerDiemRate')}
                     inputValue={inputValue}

@@ -45,7 +45,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
             web: {
                 // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
                 cardStyleInterpolator: isSafari()
-                    ? (props) => customInterpolator({props})
+                    ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}})
                     : (props) => CardStyleInterpolators.forHorizontalIOS(shouldAdjustInterpolatorProps ? getModifiedCardStyleInterpolatorProps(props) : props),
                 presentation: Presentation.TRANSPARENT_MODAL,
                 cardOverlayEnabled: false,

@@ -116,8 +116,6 @@ function PolicyDistanceRatesPage({
                     if (
                         transaction?.reportID &&
                         policyReports?.has(transaction.reportID) &&
-                        customUnit?.customUnitID &&
-                        transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
                         transaction?.comment?.customUnit?.customUnitRateID &&
                         rateIDs.has(transaction?.comment?.customUnit?.customUnitRateID)
                     ) {
@@ -476,7 +474,7 @@ function PolicyDistanceRatesPage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
                 </View>
             )}
-            {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
+            {Object.values(customUnitRates).length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.distanceRates.findRate')}
                     inputValue={inputValue}

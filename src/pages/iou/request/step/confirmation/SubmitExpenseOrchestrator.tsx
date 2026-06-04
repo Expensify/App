@@ -192,10 +192,9 @@ function SubmitExpenseOrchestrator({
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         Navigation.dismissModal({
             afterTransition: () => {
-                // shouldHandleNavigation defaults to true (unlike other fast paths that pass false).
-                // Search pre-insert relies on createTransaction's internal navigation to handle the
-                // post-creation flow (navigateAfterExpenseCreate), because the Search screen was
-                // pre-inserted before the modal opened - the navigation stack is already correct.
+                // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
+                // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
+                // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
                 createTransaction();
                 setIsConfirming(false);
             },
@@ -298,8 +297,17 @@ function SubmitExpenseOrchestrator({
         });
     };
 
+    // A global-create submit off the inbox lands on Search — reserve the channel so the optimistic write defers behind the skeleton.
+    const reserveSearchChannelIfGlobalCreate = () => {
+        if (!isFromGlobalCreate || isReportTopmostSplitNavigator()) {
+            return;
+        }
+        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    };
+
     const handleDefaultSubmit = () => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+        reserveSearchChannelIfGlobalCreate();
         requestAnimationFrame(() => {
             createTransaction();
             requestAnimationFrame(() => {
@@ -399,14 +407,18 @@ function SubmitExpenseOrchestrator({
                     onGrant={() => {
                         startSubmitSpans();
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+                        reserveSearchChannelIfGlobalCreate();
                         navigateAfterInteraction(() => {
                             createTransaction(true);
                         });
                     }}
-                    onDeny={() => {
+                    onDeny={(wasUserInitiated) => {
                         startSubmitSpans();
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-                        updateLastLocationPermissionPrompt();
+                        if (wasUserInitiated) {
+                            updateLastLocationPermissionPrompt();
+                        }
+                        reserveSearchChannelIfGlobalCreate();
                         navigateAfterInteraction(() => {
                             createTransaction(false);
                         });

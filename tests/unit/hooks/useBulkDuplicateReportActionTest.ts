@@ -43,13 +43,15 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
 
 const mockClearSelectedTransactions = jest.fn();
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchSelectionContext: () => ({
         selectedTransactions: {},
         selectedReports: [],
         areAllMatchingItemsSelected: false,
+    }),
+    useSearchResultsContext: () => ({
         currentSearchResults: undefined,
     }),
-    useSearchActionsContext: () => ({
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         selectAllMatchingItems: jest.fn(),
     }),

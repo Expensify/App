@@ -52,6 +52,9 @@ type UseSearchSelectorConfig = {
     /** Initial selected options */
     initialSelected?: Set<string>;
 
+    /** Initial extra options */
+    initialExtraOptions?: OptionData[];
+
     /** Whether to initialize the hook */
     shouldInitialize?: boolean;
 
@@ -67,6 +70,9 @@ type UseSearchSelectorConfig = {
     /** Whether to keep selected options in availableOptions instead of filtering them out */
     shouldKeepSelectedInAvailableOptions?: boolean;
 
+    /** Whether to update selected options when in single select mode and a new option is selected */
+    shouldUpdateSelectedOptionsOnSingleSelect?: boolean;
+
     /** Initial Search Phrase */
     initialSearchPhrase?: string;
 };
@@ -80,9 +86,6 @@ type ContactState = {
 
     /** Function to trigger contact import */
     importContacts: () => void;
-
-    /** Function to initiate contact import and set state */
-    initiateContactImportAndSetState: () => void;
 
     /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
@@ -127,6 +130,9 @@ type UseSearchSelectorReturn = {
 
     /** Contact-related state and functions (when enablePhoneContacts is true) */
     contactState?: ContactState;
+
+    /** Selected options that don't exist in the personal details list (e.g. typed email addresses) */
+    selectedNonExistingOptions: OptionData[];
 };
 
 const defaultListOptions = {
@@ -152,12 +158,14 @@ function usePersonalDetailSearchSelectorBase({
     onSelectionChange,
     onSingleSelect,
     initialSelected = new Set<string>(),
+    initialExtraOptions = [],
     shouldInitialize = true,
     contactOptions,
     includeCurrentUser = false,
     recentAttendees,
     shouldAllowNameOnlyOptions = false,
     shouldKeepSelectedInAvailableOptions = false,
+    shouldUpdateSelectedOptionsOnSingleSelect = false,
     initialSearchPhrase = '',
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -171,7 +179,7 @@ function usePersonalDetailSearchSelectorBase({
     })();
     const areOptionsInitialized = (optionsWithContacts?.length ?? 0) > 0;
     const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(initialSelected);
-    const [extraOptions, setExtraOptions] = useState<OptionData[]>([]);
+    const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -237,6 +245,23 @@ function usePersonalDetailSearchSelectorBase({
     const toggleSelection = (option: OptionData) => {
         if (selectionMode === CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE) {
             onSingleSelect?.(option);
+            if (shouldUpdateSelectedOptionsOnSingleSelect) {
+                if (selectedAccountIDs.has(option.accountID.toString())) {
+                    setSelectedAccountIDs(new Set());
+                    // If the option is selected, remove it from the selected logins
+                    const isInExtraOption = extraOptions.some((extraOption) => extraOption.accountID === option.accountID);
+                    if (isInExtraOption) {
+                        setExtraOptions([]);
+                    }
+                } else {
+                    setSelectedAccountIDs(new Set([option.accountID.toString()]));
+                    if (!existingAccountIDs.has(option.accountID.toString())) {
+                        setExtraOptions([{...option, isSelected: true}]);
+                    } else if (extraOptions.length > 0) {
+                        setExtraOptions([]);
+                    }
+                }
+            }
             return;
         }
 
@@ -266,6 +291,17 @@ function usePersonalDetailSearchSelectorBase({
         setSelectedAccountIDs(new Set());
     };
 
+    const selectedNonExistingOptions = (() => {
+        const filteredOptions: OptionData[] = [];
+        for (const option of extraOptions) {
+            const filteredOption = filterOption(option, debouncedSearchTerm);
+            if (filteredOption) {
+                filteredOptions.push(filteredOption);
+            }
+        }
+        return filteredOptions;
+    })();
+
     return {
         searchTerm,
         debouncedSearchTerm,
@@ -281,8 +317,9 @@ function usePersonalDetailSearchSelectorBase({
         resetSelection,
         areOptionsInitialized,
         contactState: undefined,
+        selectedNonExistingOptions,
     };
 }
 
 export default usePersonalDetailSearchSelectorBase;
-export type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn, SearchSelectorSelectionMode};
+export type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn};

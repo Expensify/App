@@ -174,7 +174,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const selectionListRef = useRef<SelectionListHandle<Transaction & ListItem>>(null);
 
     const shouldShowTextInput = useMemo(() => {
-        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
+        return transactions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     }, [transactions.length]);
 
     const filteredTransactions = useMemo(() => {
@@ -424,7 +424,10 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                             {
                                 buttonText: translate('iou.createExpense'),
                                 buttonAction: () => {
-                                    if (report?.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                                    if (
+                                        report?.policyID &&
+                                        shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
+                                    ) {
                                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
                                         return;
                                     }

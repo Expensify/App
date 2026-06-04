@@ -9,7 +9,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 let mockCurrentSearchResults: SearchResults | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchResultsContext: () => ({
         currentSearchResults: mockCurrentSearchResults,
     }),
 }));
