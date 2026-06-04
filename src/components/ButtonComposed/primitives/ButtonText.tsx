@@ -2,8 +2,6 @@ import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {useButtonContext} from '@components/ButtonComposed/context';
 import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -23,9 +21,7 @@ type ButtonTextProps = {
 
 function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonTextProps) {
     const {variant, size, isHovered} = useButtonContext();
-    const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const sizeTextStyles = {
         [CONST.BUTTON_SIZE.SMALL]: styles.buttonSmallText,
@@ -36,7 +32,6 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
     const variantTextStyles = {
         success: styles.buttonSuccessText,
         danger: styles.buttonDangerText,
-        link: [styles.fontWeightNormal, styles.fontSizeLabel],
     };
 
     return (
@@ -49,10 +44,9 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
                 styles.flexShrink1,
                 sizeTextStyles[size],
                 variant ? variantTextStyles[variant] : undefined,
-                isHovered && hoverStyle,
                 styles.ph1,
                 style,
-                variant === 'link' && [styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
+                isHovered && hoverStyle,
             ]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >

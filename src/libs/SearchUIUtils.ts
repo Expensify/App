@@ -114,6 +114,7 @@ import {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
@@ -138,6 +139,7 @@ import {
     findSelfDMReportID,
     generateReportID,
     getIcons,
+    getInvoiceReceiverPolicyID,
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
@@ -1032,8 +1034,7 @@ function isEligibleForApproveSuggestion(approvalMode: string | undefined, isAppr
 
 function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
     return (
-        isPaidGroupPolicy(policy) &&
-        (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || (!!currentUserEmail && isPolicyApprover(policy, currentUserEmail)))
+        isGroupPolicy(policy) && (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || (!!currentUserEmail && isPolicyApprover(policy, currentUserEmail)))
     );
 }
 
@@ -1066,6 +1067,8 @@ function getSuggestedSearchesVisibility(
         }
 
         const isPaidPolicy = isPaidGroupPolicy(policy);
+        // Submit workspaces qualify for the same submitter/insights surface as paid group workspaces.
+        const isGroupPolicyEligible = isGroupPolicy(policy);
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
@@ -1084,7 +1087,7 @@ function getSuggestedSearchesVisibility(
         const hasReimburser = !!policy.achAccount?.reimburser;
         const isECardEnabled = !!policy.areExpensifyCardsEnabled;
 
-        const isEligibleForSubmitSuggestion = isPaidPolicy;
+        const isEligibleForSubmitSuggestion = isGroupPolicyEligible;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
         const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
@@ -1094,9 +1097,9 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
-        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
-        const isEligibleForTopCategoriesSuggestion = isPaidPolicy && policy.areCategoriesEnabled === true;
-        const isEligibleForTopMerchantsSuggestion = isPaidPolicy;
+        const isEligibleForTopSpendersSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
+        const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
+        const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -1111,7 +1114,7 @@ function getSuggestedSearchesVisibility(
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
         hasGroupPoliciesWithExpenseChat ||=
-            isPaidPolicy &&
+            isGroupPolicyEligible &&
             !!policy.isPolicyExpenseChatEnabled &&
             !policy.isJoinRequestPending &&
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
@@ -2644,8 +2647,8 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
-                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
+                const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
+                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined = invoiceReceiverPolicyID ? data[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
                 if (
                     !reportID ||
                     !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
@@ -2903,6 +2906,31 @@ function getReportSections({
 
     const reportIDToTransactionsValues = Object.values(reportIDToTransactions);
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
+}
+
+function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: SearchFilterKey; value: string | number} | undefined {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: (groupData as SearchWithdrawalIDGroup).entryID};
+        case CONST.SEARCH.GROUP_BY.CATEGORY: {
+            const category = (groupData as SearchCategoryGroup).category;
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category};
+        }
+        case CONST.SEARCH.GROUP_BY.MERCHANT: {
+            const merchant = (groupData as SearchMerchantGroup).merchant;
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchant};
+        }
+        case CONST.SEARCH.GROUP_BY.TAG: {
+            const tag = (groupData as SearchTagGroup).tag;
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
+        }
+        default:
+            return undefined;
+    }
 }
 
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
@@ -4167,8 +4195,6 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'iou.totalPerAttendee';
         case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
             return 'common.receipt';
-        case CONST.SEARCH.TABLE_COLUMNS.TYPE:
-            return 'common.type';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
@@ -4179,12 +4205,6 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.billable';
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
-        case CONST.SEARCH.TABLE_COLUMNS.IN:
-            return 'common.sharedIn';
-        case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
-            return 'common.assignee';
-        case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
-            return 'common.comments';
         case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
@@ -4673,7 +4693,7 @@ function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySym
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
             if (!currencyList?.[currencyCode]?.retired) {
-                options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+                options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode, searchableText: currencyList[currencyCode]?.name});
             }
 
             return options;
@@ -6044,6 +6064,7 @@ export {
     getSearchReportAvatarProps,
     isTodoSearch,
     getActiveGroupSearchHashes,
+    getSelectedGroupFilterEntry,
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
     shouldShowFilter,

@@ -67,7 +67,7 @@ describe('shouldUseDefaultExpensePolicy', () => {
         const amountOwed = 500;
 
         // User is the owner, past due, and owes money → shouldRestrictUserBillableActions returns true
-        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, amountOwed, undefined, pastDueGracePeriodEnd)).toBeFalsy();
+        expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, amountOwed, undefined, pastDueGracePeriodEnd, OWNER_ACCOUNT_ID)).toBeFalsy();
     });
 
     it('returns true when the owner is past due but amount owed is 0', async () => {
