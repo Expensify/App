@@ -4863,6 +4863,9 @@ ${amount} per ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify si sincronizzerà automaticamente con Certinia ogni giorno.',
+            syncReimbursedReportsDescription:
+                'Con questa opzione abilitata, ogni volta che una fattura da pagare viene saldata in FFA, il relativo report Expensify sarà automaticamente contrassegnato come rimborsato.',
             prerequisites: {
                 title: 'Prima di connetterti',
                 installBundle: 'Per connessioni FFA',

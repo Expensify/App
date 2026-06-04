@@ -4732,6 +4732,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify 将每天自动与 Certinia 同步。',
+            syncReimbursedReportsDescription: '启用此选项后，每当在 FFA 中支付应付发票时，关联的 Expensify 报告将自动标记为已报销。',
             prerequisites: {
                 title: '在你连接之前',
                 installBundle: '用于 FFA 连接',

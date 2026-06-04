@@ -518,7 +518,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 rightComponent,
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
-            ...(!hasAccountingConnection || !isConnectionVerified || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA ? [] : configurationOptions),
+            ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
         policy,

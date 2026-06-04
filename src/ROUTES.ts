@@ -194,6 +194,10 @@ const DYNAMIC_ROUTES = {
         path: 'sage-intacct/prerequisites',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
     },
+    POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
+        path: 'certinia/advanced',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
         path: 'vendor/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],

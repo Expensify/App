@@ -4846,6 +4846,9 @@ ${amount} dla ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z Certinia każdego dnia.',
+            syncReimbursedReportsDescription:
+                'Gdy ta opcja jest włączona, za każdym razem gdy Należna faktura zostanie opłacona w FFA, powiązany raport Expensify zostanie automatycznie oznaczony jako zwrócony.',
             prerequisites: {
                 title: 'Zanim się połączysz',
                 installBundle: 'Dla połączeń FFA',
