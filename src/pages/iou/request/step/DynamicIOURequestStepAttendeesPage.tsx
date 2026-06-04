@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -55,6 +56,7 @@ function DynamicIOURequestStepAttendeesPage({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.path);
+    const {isOffline} = useNetwork();
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -75,6 +77,7 @@ function DynamicIOURequestStepAttendeesPage({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    isOffline,
                     delegateAccountID,
                 });
             } else {
@@ -98,6 +101,7 @@ function DynamicIOURequestStepAttendeesPage({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        isOffline,
         delegateAccountID,
         backPath,
     ]);
