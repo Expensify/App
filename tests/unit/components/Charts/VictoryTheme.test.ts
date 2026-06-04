@@ -1,3 +1,4 @@
+import {CHART_FONT_FAMILY_NAMES} from '@components/Charts/utils/chartFontConstants';
 import type VictoryThemeType from '@components/Charts/VictoryTheme';
 import colors from '@styles/theme/colors';
 
@@ -108,7 +109,7 @@ describe('VictoryTheme', () => {
     describe('static configuration values', () => {
         it('exposes the expected font families in order', () => {
             const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.fontFamilies).toEqual(['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSCMonths']);
+            expect(VictoryTheme.fontFamilies).toEqual([...CHART_FONT_FAMILY_NAMES]);
         });
 
         it('exposes axis values', () => {
