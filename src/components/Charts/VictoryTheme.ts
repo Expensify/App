@@ -2,9 +2,7 @@
  * Centralized styles and layout constants for the chart components.
  */
 import colors from '@styles/theme/colors';
-
-/** Font families used by all chart label components (Paragraph API multi-font fallback). */
-const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSCMonths'];
+import {CHART_FONT_FAMILY_NAMES} from './utils/chartFontConstants';
 
 /**
  * Expensify Chart Color Palette.
@@ -54,7 +52,7 @@ const VictoryTheme = {
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
         getColor: getChartColor,
     },
-    fontFamilies: CHART_FONT_FAMILIES,
+    fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
     axis: {
         /** Number of Y-axis ticks (including zero) */
         tickCount: 5,

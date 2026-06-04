@@ -979,7 +979,6 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
@@ -2349,6 +2348,9 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
+    },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -9870,6 +9872,9 @@ const CONST = {
             },
             FEATURE_LIST: {
                 CTA_BUTTON: 'WorkspaceFeatureList-CtaButton',
+            },
+            ROOMS: {
+                CREATE_ROOM_BUTTON: 'WorkspaceRooms-CreateRoomButton',
             },
         },
         ACCOUNT_SWITCHER: {
