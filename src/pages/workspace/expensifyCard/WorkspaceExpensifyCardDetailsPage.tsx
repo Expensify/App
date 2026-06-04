@@ -31,11 +31,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getAllCardsForWorkspace, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedTextColor, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -87,7 +86,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FreezeCard', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
@@ -120,6 +118,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
     const isAdmin = isPolicyAdmin(policy, session?.email);
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
+    const isCardOpen = card?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
     const fetchCardDetails = useCallback(() => {
         openCardDetailsPage(Number(cardID));
@@ -236,7 +235,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                 width={variables.cardPreviewWidth}
             />
             <Text
-                style={styles.walletCardHolder}
+                style={[styles.walletCardHolder, {color: getCardFeedTextColor(CONST.EXPENSIFY_CARD.BANK)}]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
             >
@@ -305,7 +304,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 medium
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
-                                iconFill={theme.icon}
                                 onPress={navigateToTransactions}
                                 innerStyles={styles.ph2}
                                 style={styles.w100}
@@ -316,11 +314,10 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     )}
                     {(!isCardFrozen(card) || !canManageCardFreeze) && (
                         <CardDetailsActionButtons>
-                            {canManageCardFreeze && !isDeactivated && !isCardFrozen(card) && (
+                            {canManageCardFreeze && isCardOpen && !isCardFrozen(card) && (
                                 <CardDetailsActionButton
                                     text={translate('cardPage.freezeCard')}
                                     icon={expensifyIcons.FreezeCard}
-                                    iconFill={theme.icon}
                                     onPress={handleFreezePress}
                                     isDisabled={isOffline}
                                 />
@@ -328,7 +325,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             <CardDetailsActionButton
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
-                                iconFill={theme.icon}
                                 onPress={navigateToTransactions}
                             />
                         </CardDetailsActionButtons>
@@ -348,6 +344,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
+                    {!isProduction && spendRulesSummary.length > 0 && (
+                        <MenuItemWithTopDescription
+                            interactive={false}
+                            description={translate('cardPage.spendRules')}
+                            descriptionTextStyle={[styles.fontSizeLabel]}
+                            titleComponent={spendRulesTitleComponent}
+                            accessibilityLabel={spendRulesSummary.join('. ')}
+                        />
+                    )}
                     <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
@@ -374,16 +379,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path))}
                         />
                     </OfflineWithFeedback>
+
                     <View style={styles.mt6}>
-                        {!isProduction && spendRulesSummary.length > 0 && (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.spendRules')}
-                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                titleComponent={spendRulesTitleComponent}
-                                onPress={navigateToSpendRules}
-                                accessibilityLabel={spendRulesSummary.join('. ')}
-                            />
-                        )}
                         {!isProduction && isAdmin && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}

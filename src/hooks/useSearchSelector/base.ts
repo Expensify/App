@@ -100,9 +100,6 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
-    /** Function to initiate contact import and set state */
-    initiateContactImportAndSetState: () => void;
-
     /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
 };
@@ -217,7 +214,7 @@ function useSearchSelectorBase({
     const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
 
-    const baseOptions = (() => {
+    const {options: baseOptions, hasMore} = (() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
@@ -339,26 +336,8 @@ function useSearchSelectorBase({
         }
     })();
 
-    const optionsCounters: Required<Record<keyof Options, (options: Options) => number>> = {
-        recentReports: (options) => options.recentReports?.length ?? 0,
-        personalDetails: (options) => options.personalDetails?.length ?? 0,
-        userToInvite: (options) => (options.userToInvite ? 1 : 0),
-        currentUserOption: (options) => (options.currentUserOption ? 1 : 0),
-        workspaceChats: (options) => options.workspaceChats?.length ?? 0,
-        selfDMChat: (options) => (options.selfDMChat ? 1 : 0),
-    };
-
     const onListEndReached = useDebounce(() => {
-        if (!areOptionsInitialized) {
-            return;
-        }
-
-        let optionsCount = 0;
-        for (const optionsCounter of Object.values(optionsCounters)) {
-            optionsCount += optionsCounter(baseOptions);
-        }
-
-        if (optionsCount < maxResults) {
+        if (!areOptionsInitialized || !hasMore) {
             return;
         }
 

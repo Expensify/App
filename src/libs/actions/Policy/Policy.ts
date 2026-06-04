@@ -95,7 +95,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {hasValidModifiedAmount} from '@libs/TransactionUtils';
+import {getNegatedAmountTransaction} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -408,7 +408,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
-    const workspaceAccountID = policy?.workspaceAccountID;
+    const workspaceAccountID = policy?.policyAccountID;
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -2392,21 +2392,34 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
     };
 }
 
+type CreateDraftInitialWorkspaceParams = {
+    introSelected: OnyxEntry<IntroSelected>;
+    workspaceName: string;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    currency: string | undefined;
+    policyID?: string;
+    makeMeAdmin?: boolean;
+    file?: File;
+    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    isAnnualSubscription?: boolean;
+};
+
 /**
  * Optimistically creates a Policy Draft for a new workspace
  */
-function createDraftInitialWorkspace(
-    introSelected: OnyxEntry<IntroSelected>,
-    workspaceName: string,
-    currentUserAccountID: number,
-    currentUserEmail: string,
+function createDraftInitialWorkspace({
+    introSelected,
+    workspaceName,
+    currentUserAccountID,
+    currentUserEmail,
+    currency,
     policyID = generatePolicyID(),
     makeMeAdmin = false,
-    currency = '',
-    file?: File,
-    type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT = CONST.POLICY.TYPE.TEAM,
+    file,
+    type = CONST.POLICY.TYPE.TEAM,
     isAnnualSubscription = false,
-) {
+}: CreateDraftInitialWorkspaceParams) {
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
@@ -2643,6 +2656,9 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
+                areInvoicesEnabled: false,
+                areRulesEnabled: false,
+                arePerDiemRatesEnabled: false,
                 employeeList: {
                     ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam
                         ? {
@@ -3106,10 +3122,10 @@ type CreateDraftWorkspaceParams = {
     workspaceName: string;
     currentUserAccountID: number;
     currentUserEmail: string;
+    currency: string | undefined;
     policyOwnerEmail?: string;
     makeMeAdmin?: boolean;
     policyID?: string;
-    currency?: string;
     file?: File;
 };
 
@@ -3118,10 +3134,10 @@ function createDraftWorkspace({
     workspaceName,
     currentUserAccountID,
     currentUserEmail,
+    currency,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyID = generatePolicyID(),
-    currency = '',
     file,
 }: CreateDraftWorkspaceParams): CreateWorkspaceParams {
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -3283,6 +3299,7 @@ function buildOptimisticDuplicatePolicy(
             : undefined;
 
     const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.rules?.codingRules);
+    const willCopyRulesDocument = isOverviewFeatureSelected && !!sourcePolicy?.rulesDocumentURL;
     const employeeListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.employeeList);
     const fieldListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.fieldList);
     const connectionsWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.connections);
@@ -3304,7 +3321,7 @@ function buildOptimisticDuplicatePolicy(
         arePerDiemRatesEnabled: isPerDiemFeatureSelected,
         isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
         travelSettings: undefined,
-        workspaceAccountID: undefined,
+        policyAccountID: undefined,
         tax: isTaxesFeatureSelected ? sourcePolicy?.tax : undefined,
         employeeList: isMemberFeatureSelected ? employeeListWithoutPendingDelete : {[sourcePolicy.owner]: sourcePolicy?.employeeList?.[sourcePolicy.owner]},
         id: duplicatedPolicyID,
@@ -3329,11 +3346,16 @@ function buildOptimisticDuplicatePolicy(
             description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            ...(willCopyRulesDocument ? {rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {}),
         },
         avatarURL: duplicatedPolicyFile?.uri,
         originalFileName: duplicatedPolicyFile?.name,
         outputCurrency: duplicatedOutputCurrency,
         address: isOverviewFeatureSelected ? sourcePolicy?.address : undefined,
+        customRules: isOverviewFeatureSelected ? sourcePolicy?.customRules : undefined,
+        // The PDF URL is owned by the backend: it must re-key the S3 object to the new policy ID
+        // before any GetPolicyRulesDocument call against the duplicate can succeed. As placeholder, we use the source policy's rules document URL so UI doesn't show "Choose file" while the BE round-trip is in flight.
+        rulesDocumentURL: isOverviewFeatureSelected ? sourcePolicy?.rulesDocumentURL : undefined,
     };
 }
 
@@ -3486,6 +3508,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                     description: null,
                     type: null,
                     areReportFieldsEnabled: null,
+                    rulesDocumentURL: null,
                 },
             },
         },
@@ -4461,11 +4484,7 @@ function createWorkspaceFromIOUPayment(
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
     for (const transaction of reportTransactions) {
-        transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
-            ...transaction,
-            amount: -transaction.amount,
-            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
-        };
+        transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = getNegatedAmountTransaction(transaction);
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
@@ -4494,12 +4513,15 @@ function createWorkspaceFromIOUPayment(
         });
     }
 
-    // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
+    // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false.
+    // We also clear iouReportID so the moved IOU report is no longer resolved from this DM when a new expense is
+    // created there (otherwise the moved report would be reused and "reappear" in the DM preview).
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
         value: {
             hasOutstandingChildRequest: false,
+            iouReportID: null,
         },
     });
     failureData.push({
@@ -4507,6 +4529,7 @@ function createWorkspaceFromIOUPayment(
         key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
         value: {
             hasOutstandingChildRequest: true,
+            iouReportID,
         },
     });
 

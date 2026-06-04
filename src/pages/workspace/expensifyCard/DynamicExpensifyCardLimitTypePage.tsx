@@ -251,11 +251,11 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                                 <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
                                 <View style={[styles.ph5]}>
                                     <ToggleSettingOptionRow
-                                        title={translate('workspace.card.issueNewCard.setExpiryDate')}
-                                        subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.setExpiryDateDescription') : ''}
+                                        title={translate('workspace.card.issueNewCard.addExpirationDate')}
+                                        subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
                                         isActive={expirationToggle}
                                         onToggle={setExpirationToggle}
-                                        switchAccessibilityLabel={translate('workspace.card.issueNewCard.setExpiryDate')}
+                                        switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
                                         shouldPlaceSubtitleBelowSwitch
                                         wrapperStyle={[styles.mv3]}
                                     />

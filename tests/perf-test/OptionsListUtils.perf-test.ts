@@ -152,7 +152,7 @@ describe('OptionsListUtils', () => {
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions(
+        const {options: formattedOptions} = getValidOptions(
             {reports: options.reports, personalDetails: options.personalDetails},
             allPolicies,
             {},
@@ -168,7 +168,7 @@ describe('OptionsListUtils', () => {
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions(
+        const {options: formattedOptions} = getValidOptions(
             {reports: options.reports, personalDetails: options.personalDetails},
             allPolicies,
             {},

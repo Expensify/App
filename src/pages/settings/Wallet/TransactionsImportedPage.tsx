@@ -1,10 +1,11 @@
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
@@ -28,12 +29,14 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
+    const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const hasAppliedSavedMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
 
     const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
@@ -94,7 +97,13 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         return errors;
     }, [spreadsheet?.columns, requiredColumns, translate, columnRoles]);
 
-    const importTransactions = useCallback(() => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImporting(false);
+        Navigation.dismissModal();
+    };
+
+    const importTransactions = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
@@ -109,8 +118,14 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         // If existingCardID is provided, add transactions to that card instead of creating a new one
         const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
         const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
-        importTransactionsFromCSV(spreadsheet, cardIDNumber, previouslySavedLayout);
-    }, [validate, spreadsheet, existingCardID, savedColumnLayouts]);
+        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout);
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+        if (!didShowImportFinalModal) {
+            setIsImporting(false);
+            return;
+        }
+        closeImportPageAndModal();
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return null;
@@ -121,12 +136,6 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     if (!spreadsheetColumns) {
         return <NotFoundPage />;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImporting(false);
-        Navigation.dismissModal();
-    };
 
     return (
         <ScreenWrapper
@@ -145,12 +154,6 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImporting}
-            />
-
-            <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                closeImportPageAndModal={closeImportPageAndModal}
-                shouldHandleNavigationBack={false}
             />
         </ScreenWrapper>
     );

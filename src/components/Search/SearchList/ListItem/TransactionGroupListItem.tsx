@@ -9,7 +9,7 @@ import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -92,7 +92,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions} = useSearchStateContext();
+    const {selectedTransactions} = useSearchSelectionContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
@@ -164,9 +164,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
-    // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
-    const isDisabledOrEmpty = isEmpty || isDisabled;
 
     const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {
@@ -278,7 +276,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType || transactions.length === 0) {
+        if (isExpenseReportType) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
@@ -313,7 +311,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -327,7 +325,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
@@ -341,7 +339,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <WithdrawalIDListItemHeader
                     withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -354,7 +352,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <CategoryListItemHeader
                     category={groupItem as TransactionCategoryGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -367,7 +365,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MerchantListItemHeader
                     merchant={groupItem as TransactionMerchantGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -380,7 +378,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <TagListItemHeader
                     tag={groupItem as TransactionTagGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -393,7 +391,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MonthListItemHeader
                     month={groupItem as TransactionMonthGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -406,7 +404,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <WeekListItemHeader
                     week={groupItem as TransactionWeekGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -419,7 +417,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <YearListItemHeader
                     year={groupItem as TransactionYearGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -432,7 +430,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <QuarterListItemHeader
                     quarter={groupItem as TransactionQuarterGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}

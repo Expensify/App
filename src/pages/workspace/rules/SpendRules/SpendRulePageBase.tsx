@@ -26,13 +26,13 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import SpendRuleRestrictionTypeToggle from '@src/components/SpendRules/SpendRuleRestrictionTypeToggle';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
-import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
 
 type SpendRulePageBaseProps = {
     policyID: string;

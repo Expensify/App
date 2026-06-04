@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
@@ -44,13 +45,13 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    existingConnections: {sageIntacct: boolean; qbd: boolean},
+    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare', IconAsset>,
+    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare', IconAsset>,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -73,6 +74,15 @@ function getAccountingIntegrationData(
             return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return getQuickbooksDesktopSetupEntryRoute(policyID);
+    };
+    const getBackToAfterWorkspaceUpgradeRouteForCertinia = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (existingConnections.certinia) {
+            return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID);
     };
 
     switch (connectionName) {
@@ -290,7 +300,6 @@ function getAccountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path)),
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBD)),
                 onAdvancedPagePress: () =>
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
                 subscribedImportSettings: [
@@ -316,6 +325,21 @@ function getAccountingIntegrationData(
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForQBD(),
                 },
             };
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+            return {
+                title: translate('workspace.certinia.title'),
+                icon: expensifyIcons?.CertiniaSquare,
+                setupConnectionFlow: (
+                    <ConnectToCertiniaFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.CERTINIA].alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCertinia(),
+                },
+            } as AccountingIntegration;
         default:
             return undefined;
     }

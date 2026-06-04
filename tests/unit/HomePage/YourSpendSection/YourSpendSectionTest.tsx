@@ -1,3 +1,4 @@
+import type * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import type {ReactNode} from 'react';
 import React from 'react';
@@ -14,6 +15,11 @@ import ROUTES from '@src/ROUTES';
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useFocusEffect: jest.fn(),
 }));
 
 jest.mock('@hooks/useLocalize', () =>

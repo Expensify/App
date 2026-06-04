@@ -44,8 +44,8 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
     const cardIcon = typeof card.icon === 'string' && card.icon.startsWith('http') ? card.icon : (card.icon as IconAsset) || fallbackIcon;
 
     let connectionDescription: string | undefined;
-    if (card.isSyncInProgress && card.syncStageInProgress) {
-        connectionDescription = translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress});
+    if (card.isSyncInProgress) {
+        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress}) : translate('workspace.hr.syncing');
     } else if (card.successfulDate && !card.hasError) {
         connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(card.successfulDate));
     }
@@ -133,7 +133,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !!approvalModeRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !!approvalModeRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.approvalMode}
                     errors={card.config?.errorFields?.approvalMode}
@@ -149,7 +149,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                     />
                 </OfflineWithFeedback>
             )}
-            {card.isConnected && !!finalApproverRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !!finalApproverRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.finalApprover}
                     errors={card.config?.errorFields?.finalApprover}

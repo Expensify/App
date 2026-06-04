@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
@@ -37,7 +38,7 @@ import {
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
@@ -227,12 +228,16 @@ function AvatarWithDisplayName({
     }, [parentReportActionActorAccountID, report?.parentReportActionID]);
 
     const goToDetailsPage = () => {
-        navigateToDetailsPage(report, Navigation.getActiveRoute());
+        navigateToDetailsPage(report);
     };
 
     const navigateToEditReportTitle = (event?: GestureResponderEvent | KeyboardEvent) => {
         event?.stopPropagation?.();
-        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, Navigation.getReportRHPActiveRoute()));
+        if (!report?.policyID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
     };
 
     const showActorDetails = () => {
@@ -243,7 +248,7 @@ function AvatarWithDisplayName({
         }
 
         if (isExpenseReport(report) && report?.ownerAccountID) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(report.ownerAccountID)));
             return;
         }
 
@@ -255,14 +260,14 @@ function AvatarWithDisplayName({
         if (isChatThread(report)) {
             // In an ideal situation account ID won't be 0
             if (actorAccountID.current && actorAccountID.current > 0) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID.current));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(actorAccountID.current)));
                 return;
             }
         }
 
         if (report?.reportID) {
             // Report detail route is added as fallback but based on the current implementation this route won't be executed
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
         }
     };
 

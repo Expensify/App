@@ -7,7 +7,7 @@ import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useFilterPendingDeleteReports, {selectPendingDeleteReportKeys} from './useFilterPendingDeleteReports';
+import useFilterPendingDeleteReports from './useFilterPendingDeleteReports';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useReportAttributes from './useReportAttributes';
@@ -31,6 +31,7 @@ function useSearchSections(): UseSearchSectionsResult {
     });
 
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
@@ -61,6 +62,7 @@ function useSearchSections(): UseSearchSectionsResult {
             archivedReportsIDList: archivedReportsIdSet,
             isActionLoadingSet,
             cardFeeds,
+            cardList: nonPersonalAndWorkspaceCards,
             allReportMetadata,
             conciergeReportID,
             reportAttributesDerivedValue,
@@ -72,5 +74,4 @@ function useSearchSections(): UseSearchSectionsResult {
     return {allReports: useFilterPendingDeleteReports(results), isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};
 }
 
-export {selectPendingDeleteReportKeys};
 export default useSearchSections;

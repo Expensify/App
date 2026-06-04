@@ -74,6 +74,7 @@ type TransactionItemRowProps = {
     isInSingleTransactionReport?: boolean;
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
+    shouldStopRadioButtonMouseDownPropagation?: boolean;
     radioButtonContainerStyle?: StyleProp<ViewStyle>;
     radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
@@ -85,6 +86,9 @@ type TransactionItemRowProps = {
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     reportActions?: ReportAction[];
+    /** Precomputed transaction-thread report ID. When provided, skips the per-row report-actions scan used to derive it
+     * (lets callers that already know the thread mapping avoid O(transactions × actions) work). */
+    transactionThreadReportID?: string;
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
     /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses); drilled instead of the policy object

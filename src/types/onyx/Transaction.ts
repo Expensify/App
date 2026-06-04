@@ -122,6 +122,21 @@ type Comment = {
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
+    /**
+     * Accounting-system vendor matched to this expense.
+     * Stored on non-reimbursable card expenses when a vendor is set either by the
+     * PHP fuzzy matcher (`isManuallySet=false`) or by the user / a merchant rule
+     * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
+     * deliberate selection.
+     */
+    vendor?: {
+        /** Vendor ID in the connected accounting integration (e.g. QBO vendor ID) */
+        externalID: string;
+
+        /** `true` when set by the user or a merchant rule; `false` when set by the PHP fuzzy auto-matcher */
+        isManuallySet: boolean;
+    };
+
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
 
@@ -137,6 +152,9 @@ type Comment = {
 
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
+
+    /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
+    tripID?: string;
 };
 
 /** Model of transaction custom unit */
@@ -237,7 +255,7 @@ type Receipt = {
     /** Collection of reservations */
     reservationList?: Reservation[];
 
-    /** Receipt is manager_mctest@expensify.com testing receipt */
+    /** Whether this is a test receipt */
     isTestReceipt?: true;
 
     /** Receipt is Test Drive testing receipt */
@@ -511,7 +529,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
         groupExchangeRate?: number;
 
-        /** Used during the creation flow before the transaction is saved to the server */
+        /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
 
         /**

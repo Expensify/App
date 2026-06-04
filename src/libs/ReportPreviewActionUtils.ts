@@ -41,10 +41,6 @@ function canSubmit(
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
 
-    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
     if (hasSmartScanFailedWithMissingFields(transactions ?? [], report)) {

@@ -154,7 +154,10 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                 >
                     {!isLoading && showTableControls && (
                         <View style={[styles.mnw200]}>
-                            <Table.SearchBar />
+                            <Table.SearchBar
+                                style={[styles.mh0, styles.mb0]}
+                                label={translate('workspace.companyCards.findCard')}
+                            />
                         </View>
                     )}
 
