@@ -1090,9 +1090,9 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  */
 function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, backTo?: string): boolean {
     if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
-        return false;
+        return false; 
     }
-    // Default the upgrade page's back destination to More Features (the source of most paywalled toggles).
+    // Default the upgrade page's back destination to More Features (the source of most upgrade-gated toggles).
     // Entry points outside More Features (e.g. the Roles flow) pass their own backTo so the user returns there.
     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
     return true;
