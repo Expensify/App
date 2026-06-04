@@ -2250,10 +2250,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
-        };
 
-        /** A set of AI rules that is run by the "RuleBot" */
-        aiRules?: Record<string, AIRule>;
+            /** A set of AI rules defined with natural language - The rules are run by the "RuleBot" */
+            aiRules?: Record<string, AIRule>;
+        };
 
         /** The "RuleBot" agent account ID */
         ruleBotAccountID?: number;
