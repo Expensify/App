@@ -8,15 +8,25 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getTransactionDetails, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
-import {getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isExpenseReport, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import type {Policy, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
+type TotalCellProps = TransactionDataCellProps &
+    EditableProps<number> & {
+        /** Report passed explicitly (used in IOU report view where transactionItem.report may be undefined) */
+        report?: Report;
+
+        /** Policy passed explicitly (used in IOU report view where transactionItem.policy may be undefined) */
+        policy?: Policy;
+    };
 type TransactionItem = TransactionDataCellProps['transactionItem'];
 
 function getTransactionItemIouType(transactionItem: TransactionItem) {
@@ -28,23 +38,26 @@ function getTransactionItemIouType(transactionItem: TransactionItem) {
     return isSplitTransaction ? CONST.IOU.TYPE.SPLIT : CONST.IOU.TYPE.SUBMIT;
 }
 
-function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalCellProps) {
+function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report, policy}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const currency = getTransactionCurrency(transactionItem);
 
+    const effectiveReport = report ?? transactionItem.report;
+    const effectivePolicy = policy ?? transactionItem.policy;
     const isDeleted = isDeletedTransaction(transactionItem);
-    const amount = getTransactionDetails(transactionItem, undefined, undefined, isDeleted)?.amount;
+    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isPaidGroupPolicy(effectivePolicy);
+    const amount = getTransactionAmount(transactionItem, isFromExpenseReport, transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, isDeleted);
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');
     }
 
-    const iouType = getTransactionItemIouType(transactionItem);
+    const iouType = getTransactionItemIouType({...transactionItem, report: effectiveReport});
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isUnreportedExpense = isExpenseUnreported(transactionItem);
-    const allowNegative = isUnreportedExpense || shouldEnableNegative(transactionItem.report, transactionItem.policy, iouType, transactionItem.participants);
+    const allowNegative = isUnreportedExpense || shouldEnableNegative(effectiveReport, effectivePolicy, iouType, transactionItem.participants);
 
     const absoluteAmount = Math.abs(amount ?? 0);
     const isOriginalAmountNegative = (amount ?? 0) < 0;
@@ -111,10 +124,11 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
     // Some currencies display with a space between symbol and amount (e.g., "CZK 100.00") in convertToDisplayString (in preview).
     // We detect this spacing and apply matching padding to the input to prevent visual flicker when entering edit mode.
     // See: https://github.com/Expensify/App/pull/83127#issuecomment-4240055145
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
     const hasSymbolSpaceInPreview = formatToParts(preferredLocale, 0, {
         style: 'currency',
-        currency,
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        currency: sanitizedCurrency,
+        minimumFractionDigits: getCurrencyDecimals(sanitizedCurrency),
         maximumFractionDigits: CONST.DEFAULT_CURRENCY_DECIMALS,
     }).some((part) => part.type === 'literal' && part.value.trim() === '');
 

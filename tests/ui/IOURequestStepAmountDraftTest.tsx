@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
+import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -92,6 +93,12 @@ jest.mock('@libs/Navigation/Navigation', () => {
         isNavigationReady: jest.fn(() => Promise.resolve()),
     };
 });
+
+jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
+
+// Action-assertion test: post-create navigation is exercised elsewhere; keep the nav helpers inert here.
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 
 jest.mock('@react-navigation/native', () => {
     const mockRef = {
@@ -246,5 +253,11 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
                 draftTransactionIDs: expect.any(Array),
             }),
         );
+
+        // The same optimisticTransactionID must reach the action AND post-create cleanup nav, else the destination report highlights the wrong transaction.
+        const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
+        const cleanupArg = jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0];
+        expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
+        expect(cleanupArg?.transactionID).toBe(requestMoneyArg?.optimisticTransactionID);
     });
 });

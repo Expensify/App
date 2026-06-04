@@ -37,8 +37,7 @@ jobs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -83,7 +82,7 @@ jobs:
             local tag="$1"
             local head_sha
             head_sha=$(git rev-parse HEAD)
-            # Fetch the tag from remote before checking locally. actions/checkout uses
+            # Fetch the tag from remote before checking locally. useblacksmith/checkout uses
             # fetch-depth=1 and fetch-tags=false by default, so a previously pushed tag
             # won't be present in the workspace. Without this fetch, git tag "$tag" would
             # succeed locally and then git push would fail because the tag already exists
@@ -216,8 +215,7 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -271,8 +269,7 @@ jobs:
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -386,8 +383,8 @@ jobs:
 
       - name: Load Applause API key from 1Password
         id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -431,8 +428,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -512,8 +508,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -619,8 +614,8 @@ jobs:
 
       - name: Load Applause API key from 1Password
         id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -661,8 +656,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -724,8 +718,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -754,8 +747,7 @@ jobs:
     needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy]
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack

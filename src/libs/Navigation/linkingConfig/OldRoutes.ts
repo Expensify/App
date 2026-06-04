@@ -1,6 +1,11 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
     '/settings/*/category/*/edit': '/settings/$1/category/$2/category-edit',
+    '/settings/*/tags/*/edit': '/settings/$1/tags/settings/edit/$2',
+    '/settings/*/tags/new': '/settings/$1/tags/tag-new',
+    '/settings/*/tag/*/*/edit': '/settings/$1/tags/tag-settings/$2/$3/tag-edit/$2/$3',
+    '/settings/*/tag/*/*/gl-code': '/settings/$1/tags/tag-settings/$2/$3/gl-code/$2/$3',
+    '/settings/*/tag/*/*': '/settings/$1/tags/tag-settings/$2/$3',
     '/workspaces/*/category/*/payroll-code': '/workspaces/$1/categories/category/$2/payroll-code',
     '/workspaces/*/category/*/gl-code': '/workspaces/$1/categories/category/$2/gl-code',
     '/workspaces/*/category/*/edit': '/workspaces/$1/categories/category/$2/edit',
@@ -8,6 +13,11 @@ const oldRoutes: Record<string, string> = {
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
     '/r/*/settings/name': '/r/$1/details/settings/name',
+    '/r/*/title': '/r/$1/title',
+    '/r/*/description': '/r/$1/description',
+    '/r/*/assignee': '/r/$1/assignee',
+    '/r/*/notes/*/edit': '/r/$1/notes-edit/$2',
+    '/r/*/notes': '/r/$1/details/notes',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
@@ -29,6 +39,11 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select':
         '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-out-of-pocket-expense/qbd-entity-select',
     '/flag/*/*': '/r/$1/flag/$1/$2',
+    '/r/*/details/shareCode': '/r/$1/share-code',
+    '/e/*/details/shareCode': '/e/$1/share-code',
+    '/referral/*': '/home/referral/$1',
+    '/a/*/avatar': '/avatar/$1',
+    '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
