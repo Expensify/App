@@ -1994,5 +1994,3 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 }
 
 export {buildPolicyTagListByReportID, getExpenseReportChatContext, updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
-
-export type {UpdateSplitTransactionsParams};
