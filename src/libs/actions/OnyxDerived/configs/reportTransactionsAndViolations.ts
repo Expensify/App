@@ -13,14 +13,16 @@ export default createOnyxDerivedValueConfig({
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
     compute: ([transactions, violations], {sourceValues, currentValue}) => {
         const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
-        if (!transactions) {
-            return reportTransactionsAndViolations;
-        }
 
         // If there is a source value for transactions or transaction violations, we need to process only the transactions that have been updated or added
         // If not, we need to process all transactions
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
+
+        if (!transactions) {
+            return transactionViolationsUpdates ? reportTransactionsAndViolations : {};
+        }
+
         let transactionsToProcess = Object.keys(transactions);
         if (transactionsUpdates) {
             transactionsToProcess = Object.keys(transactionsUpdates);
