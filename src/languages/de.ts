@@ -4882,6 +4882,31 @@ ${amount} für ${merchant} – ${date}`,
             autoSyncDescription: 'Expensify wird jeden Tag automatisch mit Certinia synchronisiert.',
             syncReimbursedReportsDescription:
                 'Wenn diese Option aktiviert ist, wird jedes Mal, wenn eine zu zahlende Rechnung in FFA bezahlt wird, der zugehörige Expensify-Bericht automatisch als erstattet markiert.',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Certinia exportiert werden.',
+            payableInvoices: 'Fällige Rechnungen',
+            exportStatus: {
+                label: 'Status der zu zahlenden Rechnung',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Abschließen',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Bearbeitung',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Übermittelt',
+                },
+            },
+            exportDate: {
+                label: 'Fälligkeitstag der Rechnung',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Datum der letzten Ausgabe',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Datum der Berichtseinreichung',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Exportdatum',
+                },
+            },
+            exportReimbursable: {
+                label: 'Erstattungsfähige Ausgaben exportieren als',
+                helperText: 'Als erstattungsfähig markierte Ausgaben werden als Verbindlichkeitsrechnungen auf den*die Mitarbeitende*n exportiert.',
+            },
+            exportNonReimbursable: {label: 'Nicht erstattungsfähige Ausgaben exportieren als'},
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Lieferanten in Certinia hinzugefügt wurden.',
             prerequisites: {
                 title: 'Bevor Sie die Verbindung herstellen',
                 installBundle: 'Für FFA-Verbindungen',

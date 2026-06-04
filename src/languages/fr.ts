@@ -4895,6 +4895,31 @@ ${amount} pour ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify se synchronisera automatiquement avec Certinia chaque jour.',
             syncReimbursedReportsDescription:
                 'Lorsque cette option est activée, chaque fois qu’une facture à payer est réglée dans FFA, la note de frais Expensify associée est automatiquement marquée comme remboursée.',
+            exportDescription: 'Configurez comment les données Expensify sont exportées vers Certinia.',
+            payableInvoices: 'Factures à payer',
+            exportStatus: {
+                label: 'Statut de facture à payer',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Terminé',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En cours',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Soumis',
+                },
+            },
+            exportDate: {
+                label: 'Date d’échéance de la facture',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Date de la dernière dépense',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Date de soumission de la note de frais',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Date d’exportation',
+                },
+            },
+            exportReimbursable: {
+                label: 'Exporter les dépenses remboursables en tant que',
+                helperText: 'Les dépenses marquées comme remboursables seront exportées en tant que factures à payer établies au nom de l’employé.',
+            },
+            exportNonReimbursable: {label: 'Exporter les dépenses non remboursables en tant que'},
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez synchroniser à nouveau la connexion après l’ajout des fournisseurs dans Certinia.',
             prerequisites: {
                 title: 'Avant de vous connecter',
                 installBundle: 'Pour les connexions FFA',

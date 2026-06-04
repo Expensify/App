@@ -1076,9 +1076,9 @@ type WriteCommandParameters = {
 
     // Certinia (FinancialForce) parameters
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORTER]: Parameters.UpdateFinancialForceGenericTypeParams<'email', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_DATE]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR]: Parameters.UpdateFinancialForceGenericTypeParams<'vendorID', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'exportStatus', ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_DATE]: Parameters.UpdateFinancialForceGenericTypeParams<'exportDate', ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR]: Parameters.UpdateFinancialForceGenericTypeParams<'vendorAccount', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;

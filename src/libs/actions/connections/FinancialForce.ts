@@ -256,12 +256,12 @@ function updateFinancialForceExporter(policyID: string, exporter: string, previo
 
 function updateFinancialForceExportStatus(policyID: string, status: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_STATUS, status, previousStatus ?? undefined);
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS, {policyID, value: status}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS, {policyID, exportStatus: status}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceExportDate(policyID: string, date: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>, previousDate: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE> | null) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_DATE, date, previousDate ?? undefined);
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_DATE, {policyID, value: date}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_DATE, {policyID, exportDate: date}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceDefaultVendor(policyID: string, vendorAccountID: string, previousVendorAccountID: string | null) {
@@ -271,7 +271,7 @@ function updateFinancialForceDefaultVendor(policyID: string, vendorAccountID: st
         vendorAccountID,
         previousVendorAccountID ?? undefined,
     );
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR, {policyID, vendorID: vendorAccountID}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR, {policyID, vendorAccount: vendorAccountID}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceAutoSync(policyID: string, enabled: boolean, previousValue?: boolean) {

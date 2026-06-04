@@ -4850,6 +4850,31 @@ ${amount} dla ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z Certinia każdego dnia.',
             syncReimbursedReportsDescription:
                 'Gdy ta opcja jest włączona, za każdym razem gdy Należna faktura zostanie opłacona w FFA, powiązany raport Expensify zostanie automatycznie oznaczony jako zwrócony.',
+            exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Certinia.',
+            payableInvoices: 'Należne faktury',
+            exportStatus: {
+                label: 'Status faktury do zapłaty',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Zakończ',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'W toku',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Wysłano',
+                },
+            },
+            exportDate: {
+                label: 'Data płatności faktury',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Data ostatniego wydatku',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Data wysłania raportu',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Data eksportu',
+                },
+            },
+            exportReimbursable: {
+                label: 'Eksportuj zwracane wydatki jako',
+                helperText: 'Wydatki oznaczone jako podlegające zwrotowi zostaną wyeksportowane jako faktury do zapłaty wystawione na pracownika.',
+            },
+            exportNonReimbursable: {label: 'Eksportuj niewliczane do zwrotu wydatki jako'},
+            noVendorsFound: 'Nie znaleziono dostawców',
+            noVendorsFoundDescription: 'Po dodaniu dostawców w Certinia zsynchronizuj ponownie to połączenie.',
             prerequisites: {
                 title: 'Zanim się połączysz',
                 installBundle: 'Dla połączeń FFA',

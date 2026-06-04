@@ -194,6 +194,26 @@ const DYNAMIC_ROUTES = {
         path: 'sage-intacct/prerequisites',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
     },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT: {
+        path: 'certinia/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER: {
+        path: 'certinia-preferred-exporter/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS: {
+        path: 'certinia-status/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE: {
+        path: 'certinia-date/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR: {
+        path: 'certinia-default-vendor/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
     POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
         path: 'certinia/advanced',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],

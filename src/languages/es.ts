@@ -4769,6 +4769,31 @@ ${amount} para ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify se sincronizará automáticamente con Certinia cada día.',
             syncReimbursedReportsDescription:
                 'Con esta opción habilitada, cada vez que se pague una factura por pagar en FFA, el informe de Expensify relacionado se marcará automáticamente como reembolsado.',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a Certinia.',
+            payableInvoices: 'Facturas por pagar',
+            exportStatus: {
+                label: 'Estado de factura por pagar',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Completar',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En curso',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
+                },
+            },
+            exportDate: {
+                label: 'Fecha de factura pagadera',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Fecha del último gasto',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Fecha de envío del informe',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Fecha de exportación',
+                },
+            },
+            exportReimbursable: {
+                label: 'Exportar gastos reembolsables como',
+                helperText: 'Los gastos marcados como reembolsables se exportarán como facturas por pagar a nombre de la persona empleada.',
+            },
+            exportNonReimbursable: {label: 'Exportar gastos no reembolsables como'},
+            noVendorsFound: 'No se encontraron proveedores',
+            noVendorsFoundDescription: 'Vuelve a sincronizar la conexión después de añadir los proveedores en Certinia.',
             prerequisites: {
                 title: 'Antes de conectarte',
                 installBundle: 'Para conexiones FFA',

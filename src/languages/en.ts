@@ -4969,6 +4969,33 @@ const translations = {
             title: 'Certinia',
             autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
             syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
+            exportDescription: 'Configure how Expensify data exports to Certinia.',
+            payableInvoices: 'Payable Invoices',
+            exportStatus: {
+                label: 'Payable invoice status',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Complete',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Progress',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Submitted',
+                },
+            },
+            exportDate: {
+                label: 'Payable invoice date',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Date of last expense',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Report submitted date',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Export date',
+                },
+            },
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                helperText: 'Expenses marked as reimbursable will be exported as Payable Invoices made out to the employee.',
+            },
+            exportNonReimbursable: {
+                label: 'Export non-reimbursable expenses as',
+            },
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',
             prerequisites: {
                 title: 'Before you connect',
                 installBundle: 'For FFA Connections',

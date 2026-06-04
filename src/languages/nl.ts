@@ -4858,6 +4858,31 @@ ${amount} voor ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify wordt elke dag automatisch met Certinia gesynchroniseerd.',
             syncReimbursedReportsDescription:
                 'Als deze optie is ingeschakeld, wordt elke keer dat een te betalen factuur in FFA wordt betaald, het bijbehorende Expensify-rapport automatisch als terugbetaald gemarkeerd.',
+            exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Certinia.',
+            payableInvoices: 'Te betalen facturen',
+            exportStatus: {
+                label: 'Status te betalen factuur',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Voltooien',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Bezig',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
+                },
+            },
+            exportDate: {
+                label: 'Vervaldatum factuur',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Datum van laatste uitgave',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Indiendatum rapport',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Exportdatum',
+                },
+            },
+            exportReimbursable: {
+                label: 'Terugbetaalbare declaraties exporteren als',
+                helperText: 'Declarabele uitgaven worden geëxporteerd als te betalen facturen op naam van de werknemer.',
+            },
+            exportNonReimbursable: {label: 'Niet-declarabele uitgaven exporteren als'},
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Synchroniseer de verbinding opnieuw nadat leveranciers zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Voor FFA-verbindingen',

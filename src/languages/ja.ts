@@ -4823,6 +4823,28 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             title: 'Certinia',
             autoSyncDescription: 'Expensify は毎日自動的に Certinia と同期します。',
             syncReimbursedReportsDescription: 'このオプションを有効にすると、FFA で買掛請求書が支払われるたびに、関連する Expensify レポートが自動的に精算済みとしてマークされます。',
+            exportDescription: 'Expensify のデータを Certinia へエクスポートする方法を設定します。',
+            payableInvoices: '支払対象の請求書',
+            exportStatus: {
+                label: '買掛請求書のステータス',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完了',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '進行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '送信済み',
+                },
+            },
+            exportDate: {
+                label: '支払予定請求書日',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: '最終経費日',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'レポート提出日',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'エクスポート日',
+                },
+            },
+            exportReimbursable: {label: '精算対象経費の書き出し形式', helperText: '払い戻し対象としてマークされた経費は、従業員宛ての未払請求書としてエクスポートされます。'},
+            exportNonReimbursable: {label: '未払い精算の対象外経費を次の形式でエクスポートする'},
+            noVendorsFound: 'ベンダーが見つかりませんでした',
+            noVendorsFoundDescription: 'Certinia にベンダーを追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
                 installBundle: 'FFA 接続用',

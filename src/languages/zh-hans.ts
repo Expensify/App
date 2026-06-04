@@ -4735,6 +4735,28 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: 'Certinia',
             autoSyncDescription: 'Expensify 将每天自动与 Certinia 同步。',
             syncReimbursedReportsDescription: '启用此选项后，每当在 FFA 中支付应付发票时，关联的 Expensify 报告将自动标记为已报销。',
+            exportDescription: '配置 Expensify 数据导出到 Certinia 的方式。',
+            payableInvoices: '应付发票',
+            exportStatus: {
+                label: '应付发票状态',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完成',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '进行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '已提交',
+                },
+            },
+            exportDate: {
+                label: '应付发票日期',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: '上次报销日期',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: '报表提交日期',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: '导出日期',
+                },
+            },
+            exportReimbursable: {label: '导出可报销费用为', helperText: '标记为可报销的费用将作为应付账单导出，并开具给员工。'},
+            exportNonReimbursable: {label: '将不可报销的报销单导出为'},
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '在 Certinia 中添加供应商后，请再次同步连接。',
             prerequisites: {
                 title: '在你连接之前',
                 installBundle: '用于 FFA 连接',
