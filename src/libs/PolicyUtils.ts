@@ -1510,7 +1510,7 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         return defaultApprover;
     }
 
-    return getLoginsByAccountIDs([submitToAccountID]).at(0)?.trim() || defaultApprover;
+    return getLoginsByAccountIDs([submitToAccountID]).at(0)?.trim() ?? defaultApprover;
 }
 
 /**

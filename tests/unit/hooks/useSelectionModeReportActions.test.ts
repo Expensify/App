@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 import type * as PolicyUtilsModule from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -578,17 +579,14 @@ describe('useSelectionModeReportActions', () => {
             submitAction?.onSelected?.();
 
             await waitFor(() => {
-                expect(mockOpenReportSubmitToPopover).toHaveBeenCalledWith(
-                    expect.objectContaining({
-                        onSubmitSuccess: expect.any(Function),
-                    }),
-                );
+                expect(mockOpenReportSubmitToPopover).toHaveBeenCalled();
                 expect(IOUActions.submitReport).not.toHaveBeenCalled();
                 expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
             });
 
-            const {onSubmitSuccess} = mockOpenReportSubmitToPopover.mock.calls.at(-1)?.[0] ?? {};
-            onSubmitSuccess?.();
+            const [lastOpenOptions] = (mockOpenReportSubmitToPopover.mock.calls.at(-1) as [ReportSubmitToPopoverOpenOptions | undefined] | undefined) ?? [];
+            expect(typeof lastOpenOptions?.onSubmitSuccess).toBe('function');
+            lastOpenOptions?.onSubmitSuccess?.();
 
             expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
