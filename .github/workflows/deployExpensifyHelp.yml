@@ -139,19 +139,16 @@ jobs:
     if: ${{ failure() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     steps:
       - name: Warn deployers if Expensify Help deploy failed
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `Expensify Help <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> failed. Please fix it!`,
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "#DB4545",
+                "pretext": "<!subteam^S4TJJ3PSL>",
+                "text": "Expensify Help <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> failed. Please fix it!"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
