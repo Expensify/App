@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, getInvalidAddressErrorTranslationPath, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import {setDraftValues} from '@userActions/FormActions';
@@ -141,7 +141,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             const street = values[inputFieldsIDs.street as keyof typeof values];
             if (street && !isValidAddress(street as FormValue)) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate('bankAccount.error.physicalAddressRequired');
+                errors[inputFieldsIDs.street] = translate(getInvalidAddressErrorTranslationPath(street as FormValue));
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];

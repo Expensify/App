@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isRequiredFulfilled, isValidAddress} from '@libs/ValidationUtils';
+import {getInvalidAddressErrorTranslationPath, isRequiredFulfilled, isValidAddress} from '@libs/ValidationUtils';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -141,11 +141,11 @@ function AddressForm({
 
             if (shouldValidatePhysicalAddress) {
                 if (values.addressLine1 && !isValidAddress(values.addressLine1)) {
-                    errors.addressLine1 = translate('bankAccount.error.physicalAddressRequired');
+                    errors.addressLine1 = translate(getInvalidAddressErrorTranslationPath(values.addressLine1));
                 }
 
                 if (values.addressLine2 && !isValidAddress(values.addressLine2)) {
-                    errors.addressLine2 = translate('bankAccount.error.physicalAddressRequired');
+                    errors.addressLine2 = translate(getInvalidAddressErrorTranslationPath(values.addressLine2));
                 }
             }
 

@@ -19,6 +19,7 @@ import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetails
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     getFieldRequiredErrors,
+    getInvalidAddressErrorTranslationPath,
     isValidAddress,
     isValidPastDate,
     isValidSSNFullNine,
@@ -87,7 +88,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
         }
 
         if (values.addressStreet && !isValidAddress(values.addressStreet)) {
-            errors.addressStreet = translate('bankAccount.error.physicalAddressRequired');
+            errors.addressStreet = translate(getInvalidAddressErrorTranslationPath(values.addressStreet));
         }
 
         if (values.addressZipCode && !isValidZipCode(values.addressZipCode)) {

@@ -7,6 +7,7 @@ import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@co
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
@@ -55,6 +56,26 @@ function isValidAddress(value: FormValue): boolean {
     }
 
     return !CONST.REGEX.PO_BOX.test(value) && !CONST.REGEX.PMB.test(value);
+}
+
+/**
+ * Returns whether the value is a PO box or a private mailbox (PMB / mail drop), which are not accepted as physical addresses.
+ */
+function isPOBoxOrMailDrop(value: FormValue): boolean {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
+    return CONST.REGEX.PO_BOX.test(value) || CONST.REGEX.PMB.test(value);
+}
+
+/**
+ * Returns the translation path for the error to display on an invalid address input.
+ * PO boxes and mail drops get the physical-address copy, while any other invalid value
+ * (e.g. an emoji-only or otherwise unparseable address) falls back to the generic street address error.
+ */
+function getInvalidAddressErrorTranslationPath(value: FormValue): TranslationPaths {
+    return isPOBoxOrMailDrop(value) ? 'bankAccount.error.physicalAddressRequired' : 'bankAccount.error.addressStreet';
 }
 
 /**
@@ -810,6 +831,8 @@ export {
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
+    isPOBoxOrMailDrop,
+    getInvalidAddressErrorTranslationPath,
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
