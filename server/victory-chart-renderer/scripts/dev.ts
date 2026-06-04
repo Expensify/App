@@ -11,10 +11,11 @@
  *
  * For a standalone executable instead of a Bun-run bundle, use build.ts.
  */
-import createRnStubPlugin from '@plugins/rnStubPlugin';
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
+import createAppPathAliasPlugin from '../../plugins/appPathAliasPlugin';
+import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const repoRoot = resolve(packageRoot, '../..');
@@ -24,11 +25,11 @@ const outFile = resolve(packageRoot, '.dev/cli.js');
 mkdirSync(join(packageRoot, '.dev'), {recursive: true});
 
 const buildResult = await Bun.build({
-    entrypoints: [resolve(packageRoot, 'src/cli.tsx')],
+    entrypoints: [resolve(packageRoot, 'src/bootstrap.tsx')],
     target: 'bun',
     packages: 'bundle',
     conditions: ['react-native'],
-    plugins: [createRnStubPlugin(stubRoot)],
+    plugins: [createRnStubPlugin(stubRoot), createAppPathAliasPlugin(repoRoot, stubRoot)],
 });
 
 if (!buildResult.success) {

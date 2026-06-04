@@ -9,12 +9,14 @@
  * Required --target and --outfile select the Bun compile target and output path. The script
  * exits after writing the binary; it does not run it.
  */
-import createRnStubPlugin from '@plugins/rnStubPlugin';
 import {join, resolve} from 'node:path';
 import parseCompileTarget from '@libs/parseCompileTarget';
 import CLI from '@scripts/utils/CLI';
+import createAppPathAliasPlugin from '../../plugins/appPathAliasPlugin';
+import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
+const repoRoot = resolve(packageRoot, '../..');
 const stubRoot = resolve(packageRoot, '../stubs');
 
 const cli = new CLI({
@@ -32,14 +34,14 @@ const cli = new CLI({
 const {target, outfile} = cli.namedArgs;
 
 const buildResult = await Bun.build({
-    entrypoints: [join(packageRoot, 'src/cli.tsx')],
+    entrypoints: [join(packageRoot, 'src/bootstrap.tsx')],
     compile: {
         target,
         outfile,
     },
     packages: 'bundle',
     conditions: ['react-native'],
-    plugins: [createRnStubPlugin(stubRoot)],
+    plugins: [createRnStubPlugin(stubRoot), createAppPathAliasPlugin(repoRoot, stubRoot)],
 });
 
 if (!buildResult.success) {

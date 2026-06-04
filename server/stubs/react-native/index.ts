@@ -66,5 +66,21 @@ const TurboModuleRegistry = {
     getEnforcing: (): null => null,
 };
 
+const AppRegistry = {
+    registerComponent: () => {},
+    runApplication: () => {},
+};
+
+const AppState = {
+    addEventListener: () => ({remove: () => {}}),
+    currentState: 'active',
+};
+
+const NativeModules = {};
+
+const Dimensions = {
+    get: () => ({width: 680, height: 530, scale: 1, fontScale: 1}),
+};
+
 export type {LayoutChangeEvent, ViewStyle, ImageStyle, TextStyle, StyleProp, TransformsStyle};
-export {View, Image, Text, Platform, PixelRatio, StyleSheet, findNodeHandle, TurboModuleRegistry};
+export {AppRegistry, AppState, Dimensions, NativeModules, View, Image, Text, Platform, PixelRatio, StyleSheet, findNodeHandle, TurboModuleRegistry};

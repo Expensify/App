@@ -17,10 +17,27 @@ export default function createRnStubPlugin(stubRoot: string): BunPlugin {
     const reactNativeSubpathStub = resolve(stubRoot, 'react-native/subpath.ts');
     const reanimatedStub = resolve(stubRoot, 'react-native-reanimated/index.ts');
     const gestureHandlerStub = resolve(stubRoot, 'react-native-gesture-handler/index.ts');
+    const blobUtilStub = resolve(stubRoot, 'react-native-blob-util/index.ts');
+    const configStub = resolve(stubRoot, 'react-native-config/index.ts');
+    const sentryStub = resolve(stubRoot, 'sentry-react-native/index.ts');
 
     return {
         name: 'victory-chart-renderer-rn-stubs',
         setup(build) {
+            build.onResolve({filter: /^@sentry\/react-native/}, () => ({
+                path: sentryStub,
+            }));
+            build.onResolve({filter: /^react-native-blob-util$/}, () => ({
+                path: blobUtilStub,
+            }));
+
+            build.onResolve({filter: /^react-native-config$/}, () => ({
+                path: configStub,
+            }));
+            build.onResolve({filter: /^@react-native-community\/netinfo$/}, () => ({
+                path: reactNativeSubpathStub,
+            }));
+
             build.onResolve({filter: /^react-native$/}, () => ({
                 path: reactNativeStub,
             }));

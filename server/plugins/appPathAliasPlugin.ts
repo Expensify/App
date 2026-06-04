@@ -1,0 +1,71 @@
+/*
+ * Bun bundler plugin that resolves App tsconfig path aliases for the victory-chart-renderer CLI bundle.
+ */
+import type {BunPlugin} from 'bun';
+import {existsSync} from 'node:fs';
+import {join, resolve} from 'node:path';
+
+const ALIAS_PREFIXES = ['@components/', '@assets/', '@libs/', '@styles/', '@hooks/', '@src/', '@navigation/', '@userActions/', '@selectors/'] as const;
+
+const ALIAS_TARGETS: Record<(typeof ALIAS_PREFIXES)[number], string> = {
+    '@components/': 'src/components/',
+    '@assets/': 'assets/',
+    '@libs/': 'src/libs/',
+    '@styles/': 'src/styles/',
+    '@hooks/': 'src/hooks/',
+    '@src/': 'src/',
+    '@navigation/': 'src/libs/Navigation/',
+    '@userActions/': 'src/libs/actions/',
+    '@selectors/': 'src/selectors/',
+};
+
+export default function createAppPathAliasPlugin(repoRoot: string, stubRoot: string): BunPlugin {
+    const resolvedRepoRoot = resolve(repoRoot);
+    const logStub = resolve(stubRoot, 'expensify-log/index.ts');
+    const nitroFetchStub = resolve(stubRoot, 'react-native-nitro-fetch/index.ts');
+    const activeSpansStub = resolve(stubRoot, 'telemetry-activeSpans/index.ts');
+
+    return {
+        name: 'victory-chart-renderer-app-aliases',
+        setup(build) {
+            build.onResolve({filter: /^@libs\/telemetry\/activeSpans$/}, () => ({
+                path: activeSpansStub,
+            }));
+
+            build.onResolve({filter: /^@libs\/Log$/}, () => ({
+                path: logStub,
+            }));
+
+            build.onResolve({filter: /^react-native-nitro-fetch$/}, () => ({
+                path: nitroFetchStub,
+            }));
+
+            build.onResolve({filter: /^@(components|assets|libs|styles|hooks|src|navigation|userActions|selectors)\//}, (args) => {
+                for (const prefix of ALIAS_PREFIXES) {
+                    if (!args.path.startsWith(prefix)) {
+                        continue;
+                    }
+
+                    const relativePath = args.path.slice(prefix.length);
+                    const targetDir = join(resolvedRepoRoot, ALIAS_TARGETS[prefix]);
+                    const candidates = [
+                        `${join(targetDir, relativePath)}.ts`,
+                        `${join(targetDir, relativePath)}.tsx`,
+                        join(targetDir, relativePath, 'index.ts'),
+                        join(targetDir, relativePath, 'index.tsx'),
+                    ];
+
+                    for (const candidate of candidates) {
+                        if (existsSync(candidate)) {
+                            return {path: candidate};
+                        }
+                    }
+
+                    return {path: join(targetDir, relativePath)};
+                }
+
+                return undefined;
+            });
+        },
+    };
+}
