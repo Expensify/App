@@ -2346,6 +2346,9 @@ const CONST = {
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
     },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
+    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
         THROTTLED: 'throttled',
@@ -9865,6 +9868,9 @@ const CONST = {
             },
             FEATURE_LIST: {
                 CTA_BUTTON: 'WorkspaceFeatureList-CtaButton',
+            },
+            ROOMS: {
+                CREATE_ROOM_BUTTON: 'WorkspaceRooms-CreateRoomButton',
             },
         },
         ACCOUNT_SWITCHER: {
