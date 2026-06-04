@@ -194,13 +194,15 @@ function buildEventsSearchParams({
         params.append('sort', sort);
     }
 
-    if (cursor) {
-        params.append('cursor', cursor);
-    } else if (options.start && options.end) {
+    if (options.start && options.end) {
         params.append('start', options.start);
         params.append('end', options.end);
     } else {
         params.append('statsPeriod', options.period);
+    }
+
+    if (cursor) {
+        params.append('cursor', cursor);
     }
 
     return params;
