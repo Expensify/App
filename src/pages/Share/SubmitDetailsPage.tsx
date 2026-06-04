@@ -39,14 +39,16 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
+import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {isSelfDM} from '@libs/ReportUtils';
-import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -218,6 +220,9 @@ function SubmitDetailsPage({
             return;
         }
 
+        // `transaction.transactionID` is the draft placeholder; mirror the action's `existingTransactionID ?? rand64()` chain so cleanup nav targets the created expense.
+        const optimisticTransactionID = existingTransactionID ?? rand64();
+
         if (isSelfDM(report)) {
             trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
@@ -255,6 +260,7 @@ function SubmitDetailsPage({
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                optimisticTransactionID,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -298,8 +304,18 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                optimisticTransactionID,
             });
         }
+        cleanupAndNavigateAfterExpenseCreate({
+            report: isSelfDM(report) ? report : reportToSubmit,
+            action: CONST.IOU.ACTION.CREATE,
+            draftTransactionIDs,
+            transactionID: optimisticTransactionID,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+            optimisticChatReportID: reportOrAccountID,
+            linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+        });
     };
 
     const onSuccess = (participant: Participant, file: File, locationPermissionGranted?: boolean) => {
@@ -403,9 +419,11 @@ function SubmitDetailsPage({
                         }
                         navigateAfterInteraction(() => performUpload(participant, true));
                     }}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
+                    onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
+                        if (wasUserInitiated) {
+                            updateLastLocationPermissionPrompt();
+                        }
                         const participant = selectedParticipantList.at(0) ?? selectedParticipants.at(0);
                         if (!participant) {
                             setIsConfirming(false);
