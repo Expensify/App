@@ -10,8 +10,8 @@ import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate'
 import clearShortLivedAuthState from './actions/Session/clearShortLivedAuthState';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
-import HttpsError from './Errors/HttpsError';
 import {AUTHENTICATION_COMMAND} from './API/types';
+import HttpsError from './Errors/HttpsError';
 import {getAuthenticateErrorMessage} from './ErrorUtils';
 import Log from './Log';
 import {post} from './Network';

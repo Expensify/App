@@ -261,17 +261,22 @@ describe('NetworkTests', () => {
         const reconnectSpy = jest.spyOn(Reconnect, 'reconnect');
 
         let sessionState: OnyxEntry<OnyxSession>;
+        let isAuthenticatingWithShortLivedToken = false;
         Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (val) => (sessionState = val),
+        });
+        Onyx.connect({
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            callback: (val) => (isAuthenticatingWithShortLivedToken = !!val),
         });
 
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
         await Onyx.merge(ONYXKEYS.SESSION, {
             signedInWithShortLivedAuthToken: true,
-            isAuthenticatingWithShortLivedToken: true,
             isSupportAuthTokenUsed: true,
         });
+        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
         await Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         await waitForBatchedUpdates();
 
@@ -298,7 +303,7 @@ describe('NetworkTests', () => {
         const callsToAuthenticate = mockedXhr.mock.calls.filter(([command]) => command === 'Authenticate');
         expect(callsToAuthenticate).toHaveLength(1);
         expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
-        expect(sessionState?.isAuthenticatingWithShortLivedToken).toBe(false);
+        expect(isAuthenticatingWithShortLivedToken).toBe(false);
         expect(sessionState?.signedInWithShortLivedAuthToken).toBeFalsy();
         expect(sessionState?.isSupportAuthTokenUsed).toBeFalsy();
         expect(reconnectSpy).toHaveBeenCalled();
@@ -313,9 +318,14 @@ describe('NetworkTests', () => {
         const reconnectSpy = jest.spyOn(Reconnect, 'reconnect');
 
         let sessionState: OnyxEntry<OnyxSession>;
+        let isAuthenticatingWithShortLivedToken = false;
         Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (val) => (sessionState = val),
+        });
+        Onyx.connect({
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            callback: (val) => (isAuthenticatingWithShortLivedToken = !!val),
         });
 
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
@@ -325,9 +335,9 @@ describe('NetworkTests', () => {
         await Onyx.set(ONYXKEYS.ACCOUNT, null);
         await Onyx.merge(ONYXKEYS.SESSION, {
             signedInWithShortLivedAuthToken: true,
-            isAuthenticatingWithShortLivedToken: true,
             isSupportAuthTokenUsed: true,
         });
+        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
         await waitForBatchedUpdates();
 
         const mockedXhr = jest.fn().mockImplementationOnce(() =>
@@ -343,7 +353,7 @@ describe('NetworkTests', () => {
 
         const callsToAuthenticate = mockedXhr.mock.calls.filter(([command]) => command === 'Authenticate');
         expect(callsToAuthenticate).toHaveLength(0);
-        expect(sessionState?.isAuthenticatingWithShortLivedToken).toBe(true);
+        expect(isAuthenticatingWithShortLivedToken).toBe(true);
         expect(sessionState?.signedInWithShortLivedAuthToken).toBe(true);
         expect(sessionState?.isSupportAuthTokenUsed).toBe(true);
         expect(reconnectSpy).not.toHaveBeenCalled();
