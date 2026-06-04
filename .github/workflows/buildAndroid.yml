@@ -142,8 +142,8 @@ jobs:
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
-        # v3
-        uses: 1password/load-secrets-action@8d0d610af187e78a2772c2d18d627f4c52d3fbfb
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
