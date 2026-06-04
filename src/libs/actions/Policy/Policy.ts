@@ -3319,7 +3319,7 @@ function buildOptimisticDuplicatePolicy(
         areInvoicesEnabled: isInvoicesFeatureSelected,
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
-        areReportFieldsEnabled: isReportsFeatureSelected,
+        areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
         arePerDiemRatesEnabled: isPerDiemFeatureSelected,
         isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,

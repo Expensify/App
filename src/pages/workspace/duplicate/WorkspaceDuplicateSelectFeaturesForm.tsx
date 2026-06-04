@@ -68,7 +68,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             return 0;
         }
         return Object.values(policyTags).reduce(
-            (sum, tagGroup) => sum + (Object.values(tagGroup.tags)?.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0),
+            (sum, tagGroup) => sum + Object.values(tagGroup.tags ?? {}).filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length,
             0,
         );
     }, [policyTags]);

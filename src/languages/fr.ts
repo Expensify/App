@@ -2985,7 +2985,7 @@ ${amount} pour ${merchant} - ${date}`,
         phoneOrEmail: 'Téléphone ou e-mail',
         error: {
             agentSignInBlocked:
-                'Les comptes d\u2019agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
+                'Les comptes d’agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
         cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
@@ -4432,6 +4432,8 @@ ${amount} pour ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
             peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
+            readOnlyActionTitle: 'Pas si vite...',
+            readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',

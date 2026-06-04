@@ -4412,6 +4412,8 @@ const translations = {
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
+            readOnlyActionTitle: 'Not so fast...',
+            readOnlyActionPrompt: "Your workspace role can view these settings, but can't edit them.",
             goToWorkspace: 'Go to workspace',
             duplicateWorkspace: 'Duplicate workspace',
             duplicateWorkspacePrefix: 'Duplicate',
