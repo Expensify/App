@@ -37,8 +37,10 @@ As part of our high-vetting process, all shortlisted candidates will complete a 
 - Able to operate effectively in a flat, non-hierarchical organization  
 - Comfortable making decisions independently and being accountable for outcomes
 
-**Time Zone & Availability**
+**Hours, Time Zone & Availability**
 
+- Expected Hours: ~40 hours/week
+- Time off: Unpaid and flexible  
 - Must have at least 6 hours of daily overlap with: US Pacific Time (PT) or Central European Time (CET)  
 - Time zone overlap is especially critical during the first 3 months for onboarding and alignment
 
