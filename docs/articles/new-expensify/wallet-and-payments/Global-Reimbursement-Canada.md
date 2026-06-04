@@ -142,6 +142,8 @@ If you are not a Director or Senior Officer:
 - Enter the Director’s or Senior Officer’s information  
 - They will receive instructions to complete identity verification  
 
+**Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
+
 ---
 
 ## Complete the authorization form for Global Reimbursement in Canada (CAD)
