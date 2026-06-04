@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '@src/CONST';
 import {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep} from '@src/libs/Fullstory/utils';
 import type {Policy} from '@src/types/onyx';
