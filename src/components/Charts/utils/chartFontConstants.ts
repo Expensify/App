@@ -2,7 +2,7 @@ import type {TupleToUnion} from 'type-fest';
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 
 /** Font families registered on Skia fontMgr and used by Paragraph API multi-font fallback. */
-const CHART_FONT_FAMILY_NAMES = ['ExpensifyNeue', 'ExpensifyMono', 'ExpensifyNewKansas', 'NotoSansSymbols', 'NotoSansSCMonths'] as const;
+const CHART_FONT_FAMILY_NAMES = ['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSCMonths', 'ExpensifyNewKansas', 'ExpensifyMono'] as const;
 
 type ChartFontFamilyName = TupleToUnion<typeof CHART_FONT_FAMILY_NAMES>;
 
