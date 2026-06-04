@@ -1,6 +1,6 @@
 import type {SkParagraph} from '@shopify/react-native-skia';
 import type {ValueOf} from 'type-fest';
-import type {LABEL_ROTATIONS} from './VictoryTheme';
+import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
 type ChartDataPoint = {
     /** Label displayed under the data point (e.g., "Amazon", "Nov 2025") */
