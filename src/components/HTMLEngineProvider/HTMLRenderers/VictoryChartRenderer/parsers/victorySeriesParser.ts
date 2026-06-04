@@ -3,7 +3,7 @@ import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult, RawChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseArrayAttribute';
 
 /**
  * Parse data points from a `<victorybar>` or `<victoryline>` node.
@@ -12,8 +12,8 @@ import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Victory
 function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null): PartialProcessNodeResult {
     const isHorizontal = rootProcessedResult?.isHorizontal;
     const categories = rootProcessedResult?.categories;
-    const rawPoints = parseAttribute<RawChartData[]>(tnode.attributes.data);
-    const points = (Array.isArray(rawPoints) ? rawPoints : []).filter((point): point is RawChartData => typeof point === 'object' && point !== null);
+    const rawPoints = parseArrayAttribute<RawChartData>(tnode.attributes.data);
+    const points = rawPoints.filter((point): point is RawChartData => typeof point === 'object' && point !== null);
     const yKey = getYKey(tnode);
     const data: Record<string, CartesianChartData> = {};
     for (const point of points) {
