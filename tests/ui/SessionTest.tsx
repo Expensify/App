@@ -1,4 +1,4 @@
-import {act, cleanup, render, waitFor} from '@testing-library/react-native';
+import {act, cleanup, render} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -122,6 +122,8 @@ describe('Deep linking', () => {
         setLastShortAuthToken(null);
     });
 
+    // This test renders the full App and processes a deep-link sign-in flow, so it runs
+    // significantly longer than the suite default on loaded CI runners.
     it('should not remember the report path of the last deep link login after signing out and in again', async () => {
         expect(hasAuthToken()).toBe(false);
 
@@ -130,13 +132,10 @@ describe('Deep linking', () => {
         Linking.setInitialURL(url);
         const {unmount} = render(<App />);
 
-        // Use waitFor with specific assertions instead of waitForBatchedUpdatesWithAct so we
-        // stop as soon as the deep-link navigation has settled rather than draining the entire
-        // React work queue (all navigation renders, layout effects, etc.).
+        await waitForBatchedUpdatesWithAct();
+
         const reportPath = `/${ROUTES.REPORT}/${report.reportID}`;
-        await waitFor(() => {
-            expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
-        });
+        expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
 
         expect(hasAuthToken()).toBe(true);
 
@@ -156,8 +155,10 @@ describe('Deep linking', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
         await waitForNetworkPromises();
-    });
+    }, 240000);
 
+    // This test renders the full App three times, so it runs significantly longer than
+    // the suite default on loaded CI runners.
     it('should not reuse the last deep link and log in again when signing out', async () => {
         expect(hasAuthToken()).toBe(false);
 
@@ -180,9 +181,9 @@ describe('Deep linking', () => {
         Linking.setInitialURL(url);
         const {unmount: unmount2} = render(<App />);
 
-        await waitFor(() => {
-            expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
-        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
 
         await TestHelper.signOutTestUser();
         await waitForBatchedUpdatesWithAct();
@@ -196,12 +197,12 @@ describe('Deep linking', () => {
 
         const {unmount: unmount3} = render(<App />);
 
-        await waitFor(() => {
-            expect(hasAuthToken()).toBe(false);
-        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(hasAuthToken()).toBe(false);
 
         unmount3();
         await waitForBatchedUpdatesWithAct();
         await waitForNetworkPromises();
-    });
+    }, 240000);
 });
