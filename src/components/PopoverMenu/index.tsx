@@ -25,10 +25,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
-import claimEscapeKeyDown from '@libs/claimEscapeKeyDown';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import suppressNextEscapeKeyUp from '@libs/suppressNextEscapeKeyUp';
 import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -36,6 +34,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useCloseOnEscape from './v2/content/useCloseOnEscape';
 
 type PopoverMenuItem = MenuItemProps & {
     /** Text label */
@@ -548,15 +547,7 @@ function BasePopoverMenu({
         onClose();
     }, [menuItems, onClose]);
 
-    useEffect(() => {
-        if (!isVisible) {
-            return undefined;
-        }
-        return claimEscapeKeyDown(() => {
-            suppressNextEscapeKeyUp();
-            handleClose();
-        });
-    }, [isVisible, handleClose]);
+    useCloseOnEscape(isVisible, handleClose);
 
     const handleModalHide = () => {
         onModalHide?.();
