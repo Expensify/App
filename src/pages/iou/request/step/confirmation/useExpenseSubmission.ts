@@ -565,13 +565,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID,
                 conciergeReportID,
             });
-            if (shouldHandleNavigation && result && activeReportID) {
+            const targetReportID = backToReport ?? activeReportID;
+            if (shouldHandleNavigation && result && targetReportID) {
                 navigateAfterExpenseCreate({
-                    activeReportID,
+                    activeReportID: targetReportID,
                     transactionID: result.transactionID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: activeReportID === chatReportID,
+                    shouldAddPendingNewTransactionIDs: targetReportID === chatReportID,
                 });
             }
         }

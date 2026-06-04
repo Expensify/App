@@ -6,7 +6,6 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
@@ -287,6 +286,14 @@ const DYNAMIC_ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         path: 'qbd-company-card-expense-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION: {
+        path: 'qbd-travel-invoicing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'qbd-travel-invoicing-payable-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_CARD_SELECT: {
         path: 'qbd-card-select',
@@ -3694,6 +3701,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/netsuite/import/custom-list/new/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/list-selector/:action?',
+        getRoute: (policyID: string | undefined, action?: 'edit') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom-list/list-selector${action ? `/${action}` : ''}` as const;
+        },
+    },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom-segment/new/:subPage?/:action?',
         getRoute: (policyID: string | undefined, subPage?: string, action?: 'edit') => {
@@ -4141,17 +4157,6 @@ const ROUTES = {
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/move` as const,
     },
 
-    MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,
-    MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
-
-    MULTIFACTOR_AUTHENTICATION_OUTCOME_SUCCESS: 'multifactor-authentication/outcome/success',
-    MULTIFACTOR_AUTHENTICATION_OUTCOME_FAILURE: 'multifactor-authentication/outcome/failure',
-
-    MULTIFACTOR_AUTHENTICATION_PROMPT: {
-        route: `multifactor-authentication/prompt/:promptType`,
-        getRoute: (promptType: MultifactorAuthenticationPromptType) => `multifactor-authentication/prompt/${promptType}` as const,
-    },
-    MULTIFACTOR_AUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',
     MULTIFACTOR_AUTHENTICATION_REVOKE: 'multifactor-authentication/revoke',
 
     DOMAIN_GROUPS: {

@@ -6,6 +6,7 @@ import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
+import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
@@ -23,6 +24,11 @@ Onyx.init({
 });
 
 beforeEach(async () => {
+    // Network arms a module-level setInterval(processMainQueue) once ActiveClientManager is
+    // ready. Left running, it re-fires non-cancellable MainQueue requests (e.g. Log) into the
+    // next test — inflating global.fetch call counts — and is itself the open handle behind the
+    // "worker process failed to exit gracefully" leak. Clear it the same way NetworkTest does.
+    Network.clearProcessQueueInterval();
     await Onyx.clear();
     await waitForBatchedUpdates();
     // Explicitly reset PersistedRequests module state (knownRequestIDs, ongoingRequest,
@@ -94,7 +100,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -149,7 +156,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -204,7 +212,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
@@ -260,7 +269,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/MoveIOUReportToExistingPolicy?', expect.anything());
@@ -349,6 +359,7 @@ describe('Middleware', () => {
                 }));
 
             SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -448,6 +459,7 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
