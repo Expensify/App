@@ -23,7 +23,6 @@ import {
     isThisYear,
     isValid,
     parse,
-    parseISO,
     set,
     startOfDay,
     startOfMonth,
@@ -835,29 +834,18 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 /**
  * Returns a formatted cancellation date, preserving the venue's timezone from the ISO string offset.
  * Dates are formatted as follows:
- * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
- * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM, GMT+7
+ * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
+ * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedCancellationDate(isoDateString: string): string {
     if (!isoDateString) {
         return '';
     }
-    // Derive a human-readable timezone label from the offset (e.g. +07:00 -> GMT+7). A zero offset or a missing offset both display as UTC.
-    const offsetMatch = isoDateString.match(/([+-])(\d{2}):(\d{2})$/);
-    let timezoneLabel = 'UTC';
-    if (offsetMatch) {
-        const [, sign, hoursStr, minutesStr] = offsetMatch;
-        const offsetHours = Number(hoursStr);
-        const offsetMinutes = Number(minutesStr);
-        if (offsetHours !== 0 || offsetMinutes !== 0) {
-            timezoneLabel = `GMT${sign}${offsetHours}${offsetMinutes ? `:${minutesStr}` : ''}`;
-        }
-    }
-    // Strip the trailing offset (or Z) so the wall-clock components are read as-is (venue-local) rather than converted to the device's timezone.
-    const localIsoDateString = isoDateString.replace(/(Z|[+-]\d{2}:\d{2})$/, '');
-    const date = parseISO(localIsoDateString);
+    const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
+    const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
+    const date = new Date(isoDateString);
     const pattern = isThisYear(date) ? 'EEEE, MMM d h:mm a' : 'EEEE, MMM d, yyyy h:mm a';
-    return `${format(date, pattern)}, ${timezoneLabel}`;
+    return formatInTimeZone(date, venueTimezone, pattern);
 }
 
 /**
