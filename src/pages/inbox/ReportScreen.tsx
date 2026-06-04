@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
@@ -69,6 +70,7 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const isInSidePanel = useIsInSidePanel();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
@@ -112,6 +114,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             navigation={navigation}
                             style={screenWrapperStyle}
                             shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                            includePaddingTop={!isInSidePanel}
                             testID={`report-screen-${reportIDFromRoute}`}
                         >
                             {!shouldDeferNonEssentials && (
