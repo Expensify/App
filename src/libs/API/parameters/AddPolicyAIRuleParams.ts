@@ -1,6 +1,6 @@
 type AddPolicyAIRuleParams = {
     policyID: string;
-    ruleID: string;
+    aiRuleID: string;
     prompt: string;
 };
 
