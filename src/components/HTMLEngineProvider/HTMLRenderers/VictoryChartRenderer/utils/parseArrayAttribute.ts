@@ -1,4 +1,4 @@
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseAttribute from './parseAttribute';
 
 /**
  * Parse an attribute expected to be an array, failing closed to an empty array.
