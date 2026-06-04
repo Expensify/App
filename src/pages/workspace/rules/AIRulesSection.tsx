@@ -34,7 +34,7 @@ function AIRulesSection({policyID}: AIRulesSectionProps) {
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {isBetaEnabled} = usePermissions();
-    const aiRules = policy?.aiRules?.rules;
+    const aiRules = policy?.aiRules;
     const hasRules = !isEmptyObject(aiRules);
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
 

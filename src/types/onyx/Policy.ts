@@ -2253,13 +2253,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
 
         /** A set of AI rules that is run by the "RuleBot" */
-        aiRules?: {
-            /** The "RuleBot" agent account ID */
-            agentAccountID?: number;
+        aiRules?: Record<string, AIRule>;
 
-            /** A set of AI rules defined with natural language */
-            rules?: Record<string, AIRule>;
-        };
+        /** The "RuleBot" agent account ID */
+        ruleBotAccountID?: number;
 
         /** A set of custom rules defined with natural language */
         customRules?: string;
