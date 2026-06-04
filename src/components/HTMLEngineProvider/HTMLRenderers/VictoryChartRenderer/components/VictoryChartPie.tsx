@@ -17,21 +17,16 @@ type VictoryChartPieProps = {tnode: TNode};
 // Victory Chart's 0° angle is equivalent to 270° in Victory Native
 const START_ANGLE = 270;
 
+/** Alternating multipliers for pie slice label distance (base `labelradius` from HTML). */
+const EVEN_SLICE_LABEL_RADIUS_FACTOR = 1.2;
+const ODD_SLICE_LABEL_RADIUS_FACTOR = 1;
+
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const {data, chartContainerStyles} = useVictoryChartContext();
     const renderEngine = useAmbientTRenderEngine();
     const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel', HTMLContentModel.textual);
     const baseLabelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
     const pieLabels = parseAttribute<string[]>(tnode.attributes.labels);
-    const customLabels = Object.values(data)
-        .map((entry) => (entry as PolarChartData).label)
-        .reduce(
-            (customLabels, dataLabel, index) => {
-                customLabels[dataLabel] = pieLabels?.[index];
-                return customLabels;
-            },
-            {} as Record<string, string | undefined>,
-        );
     const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : undefined;
     const innerRadius = tnode.attributes.innerradius !== undefined ? Number(parseAttribute(tnode.attributes.innerradius)) : undefined;
     const padAngle = tnode.attributes.padangle !== undefined ? Number(parseAttribute(tnode.attributes.padangle)) : undefined;
@@ -44,6 +39,18 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const {xShift: labelIndicatorXShift, yShift: labelIndicatorYShift, stroke: labelIndicatorStroke, strokeWidth: labelIndicatorStrokeWidth} = labelIndicatorStyles ?? {};
     const labelIndicatorInnerOffset = tnode.attributes.labelindicatorinneroffset !== undefined ? Number(parseAttribute(tnode.attributes.labelindicatorinneroffset)) : undefined;
     const labelIndicatorOuterOffset = tnode.attributes.labelindicatorouteroffset !== undefined ? Number(parseAttribute(tnode.attributes.labelindicatorouteroffset)) : undefined;
+    const perSliceData = Object.values(data)
+        .map((entry) => (entry as PolarChartData).label)
+        .reduce(
+            (data, dataLabel, index) => {
+                data[dataLabel] = {
+                    customLabel: pieLabels?.[index],
+                    customLabelRadius: labelRadius ? labelRadius * (index % 2 === 0 ? EVEN_SLICE_LABEL_RADIUS_FACTOR : ODD_SLICE_LABEL_RADIUS_FACTOR) : undefined,
+                };
+                return data;
+            },
+            {} as Record<string, {customLabelRadius: number | undefined; customLabel: string | undefined}>,
+        );
 
     return (
         <Pie.Chart
@@ -58,8 +65,8 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                             <VictoryChartPieLabel
                                 slice={slice}
                                 baseLabelItem={baseLabelItem}
-                                label={customLabels[slice.label] ?? slice.label}
-                                labelRadius={labelRadius}
+                                label={perSliceData[slice.label].customLabel ?? slice.label}
+                                labelRadius={perSliceData[slice.label].customLabelRadius}
                                 labelIndicatorXShift={labelIndicatorXShift}
                                 labelIndicatorYShift={labelIndicatorYShift}
                                 labelIndicatorStroke={labelIndicatorStroke}
