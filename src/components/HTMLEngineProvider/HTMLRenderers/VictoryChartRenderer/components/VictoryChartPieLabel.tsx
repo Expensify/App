@@ -64,6 +64,4 @@ function VictoryChartPieLabel({
     );
 }
 
-VictoryChartPieLabel.displayName = 'VictoryChartPieLabel';
-
 export default VictoryChartPieLabel;
