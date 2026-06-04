@@ -343,11 +343,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
-    const hasUnreportedSelectedTransaction = useMemo(
-        () => Object.values(selectedTransactions).some((transaction) => transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID),
-        [selectedTransactions],
-    );
-
     const selectedTransactionReportIDs = useMemo(
         () => [
             ...new Set(
@@ -468,8 +463,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (!selectedReport) {
                         return false;
                     }
-                    const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-                    return (fullReport?.transactionCount ?? 0) === 0;
+                    const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`] as Report | undefined;
+                    return !!fullReport && (fullReport.transactionCount ?? 0) === 0;
                 }) ?? [];
             const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
 
@@ -1053,14 +1048,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
-            const exportTemplates = getExportTemplates(
-                integrationsExportTemplates ?? [],
-                csvExportLayouts ?? {},
-                translate,
-                policy,
-                includeReportLevelExport,
-                !hasUnreportedSelectedTransaction,
-            );
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
 
             const exportOptions: PopoverMenuItem[] = [];
 
@@ -1680,7 +1668,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         searchResults,
         currentSearchResults?.data,
         selectedTransactionReportIDs,
-        hasUnreportedSelectedTransaction,
         selectedPolicyIDs,
         policies,
         allReportActions,

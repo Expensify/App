@@ -1219,7 +1219,6 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
  * @param csvExportLayouts - The user's custom account level export templates
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
- * @param includeIntegrationsTemplates - Whether to include integration-backed export templates
  * @returns
  */
 function getExportTemplates(
@@ -1228,7 +1227,6 @@ function getExportTemplates(
     translate: LocalizedTranslate,
     policy?: Policy,
     includeReportLevelExport = true,
-    includeIntegrationsTemplates = true,
 ): ExportTemplate[] {
     // Helper function to normalize template data into consistent ExportTemplate format
     const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
@@ -1239,19 +1237,16 @@ function getExportTemplates(
         type,
     });
 
-    const exportTemplates: ExportTemplate[] = [];
+    // By default, we always include the expense level export template
+    const exportTemplates: ExportTemplate[] = [
+        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
+    ];
 
-    if (includeIntegrationsTemplates) {
+    // Conditionally include the report level export template
+    if (includeReportLevelExport) {
         exportTemplates.push(
-            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
+            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
         );
-
-        // Conditionally include the report level export template
-        if (includeReportLevelExport) {
-            exportTemplates.push(
-                normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
-            );
-        }
     }
 
     // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
@@ -1265,9 +1260,7 @@ function getExportTemplates(
         : [];
 
     // Update the integrations export templates to include the name, description, policyID, and type
-    const integrationsTemplates = includeIntegrationsTemplates
-        ? integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS))
-        : [];
+    const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
 
     return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
 }
