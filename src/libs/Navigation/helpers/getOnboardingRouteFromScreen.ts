@@ -9,7 +9,7 @@ function getOnboardingRouteFromScreen(screen: OnboardingScreen, backTo?: string)
         return undefined;
     }
 
-    if (backTo) {
+    if (backTo && typeof backTo === 'string') {
         return getUrlWithParams(path, {backTo}) as Route;
     }
 
