@@ -344,7 +344,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
-                    {!isProduction && spendRulesSummary.length > 0 && (
+                    {spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             interactive={false}
                             description={translate('cardPage.spendRules')}
@@ -381,7 +381,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     </OfflineWithFeedback>
 
                     <View style={styles.mt6}>
-                        {!isProduction && isAdmin && (
+                        {isAdmin && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}
