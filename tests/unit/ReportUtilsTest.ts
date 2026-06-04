@@ -3914,7 +3914,6 @@ describe('ReportUtils', () => {
                         ownerAccountID: currentUserAccountID,
                     };
                     mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
-                    mockedPolicyUtils.isGroupPolicy.mockReturnValue(true);
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -8732,7 +8731,6 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
-            mockedPolicyUtils.isGroupPolicy.mockReturnValue(true);
 
             // When it's checked if the transactions can be added
             // Simulate how components determined if a report is archived by using this hook
@@ -8799,7 +8797,6 @@ describe('ReportUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
-            mockedPolicyUtils.isGroupPolicy.mockReturnValue(true);
 
             // If the canAddTransaction is used for the case of adding expense into the report
             const result = canAddTransaction(report, isReportArchived.current);
