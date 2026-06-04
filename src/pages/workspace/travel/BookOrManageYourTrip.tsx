@@ -22,7 +22,6 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const policy = usePolicy(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
     const {isBetaEnabled} = usePermissions();
-    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
@@ -68,7 +67,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     wrapperStyle={styles.mt3}
                 />
             </Section>
-            {isTravelInvoicingEnabled && <WorkspaceTravelInvoicingSection policyID={policyID} />}
+            <WorkspaceTravelInvoicingSection policyID={policyID} />
         </>
     );
 }

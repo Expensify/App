@@ -65,6 +65,9 @@ function TransactionItemRow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    shouldStopRadioButtonMouseDownPropagation = false,
+    radioButtonContainerStyle,
+    radioButtonWrapperStyle,
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
@@ -74,6 +77,7 @@ function TransactionItemRow({
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     reportActions,
+    transactionThreadReportID: transactionThreadReportIDProp,
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
     isAttendeesEnabledForMovingPolicy,
@@ -95,7 +99,8 @@ function TransactionItemRow({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);
-    const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const transactionThreadReportID =
+        transactionThreadReportIDProp ?? (reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined);
     const transactionAttendees = useAttendees(transactionItem);
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
@@ -145,6 +150,9 @@ function TransactionItemRow({
             isInSingleTransactionReport,
             shouldShowRadioButton,
             onRadioButtonPress,
+            shouldStopRadioButtonMouseDownPropagation,
+            radioButtonContainerStyle,
+            radioButtonWrapperStyle,
             shouldShowErrors,
             isDisabled,
             violations,
@@ -191,6 +199,8 @@ function TransactionItemRow({
         isInSingleTransactionReport,
         shouldShowRadioButton,
         onRadioButtonPress,
+        shouldStopRadioButtonMouseDownPropagation,
+        radioButtonContainerStyle,
         shouldShowErrors,
         shouldHighlightItemWhenSelected,
         isDisabled,

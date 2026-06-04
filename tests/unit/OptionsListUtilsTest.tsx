@@ -5307,6 +5307,35 @@ describe('OptionsListUtils', () => {
                 );
             });
         });
+        describe('UPDATE_MCC_GROUP_CATEGORY action', () => {
+            it('should surface the friendly MCC group label in the last-message preview', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const changelogAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        mccGroupName: 'Airlines',
+                        oldCategory: 'Insurance',
+                        newCategory: 'Travel',
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [changelogAction.reportActionID]: changelogAction,
+                });
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+            });
+        });
     });
 
     describe('getPersonalDetailSearchTerms', () => {

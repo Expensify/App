@@ -13,7 +13,7 @@ import DateUtils from './DateUtils';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
-import type {TransactionDetails} from './ReportUtils';
+import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
@@ -466,6 +466,9 @@ function transactionHasRBR(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     reportActions?: OnyxTypes.ReportActions,
+    // Optional precomputed action-error state. When provided, the per-transaction action-error check is an O(1)
+    // lookup instead of re-scanning every report action — build it once with getActionErrorsByTransaction.
+    actionErrors?: ActionErrorsByTransaction,
 ): boolean {
     if (!transaction) {
         return false;
@@ -515,7 +518,7 @@ function transactionHasRBR(
     }
 
     // Check for report action errors associated with this transaction
-    if (hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions)) {
+    if (hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions, actionErrors)) {
         return true;
     }
 
