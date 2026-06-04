@@ -4,10 +4,11 @@
  */
 import {fetch as nitroFetch, Headers as NitroHeaders, Request as NitroRequest, Response as NitroResponse} from 'react-native-nitro-fetch';
 
-// nitro-fetch is a native HTTP client and cannot read local-scheme URLs (file://, blob:, data:).
-// So we route only http(s) requests through nitro-fetch and fall back to the original fetch for local schemes.
+// nitro-fetch is a native HTTP client that can only handle http(s) requests; it cannot read local files
+// (file://, blob:, data:, content:, or scheme-less absolute paths such as the rewritten iOS spreadsheet import path).
+// So we route only http(s) requests through nitro-fetch and fall back to the original fetch for everything else.
 const originalFetch = globalThis.fetch;
-const LOCAL_SCHEME_REGEX = /^(file|blob|data|content):/i;
+const HTTP_SCHEME_REGEX = /^https?:/i;
 
 const getRequestUrl = (input: RequestInfo | URL): string => {
     if (typeof input === 'string') {
@@ -20,10 +21,10 @@ const getRequestUrl = (input: RequestInfo | URL): string => {
 };
 
 globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
-    if (LOCAL_SCHEME_REGEX.test(getRequestUrl(input))) {
-        return originalFetch(input, init);
+    if (HTTP_SCHEME_REGEX.test(getRequestUrl(input))) {
+        return nitroFetch(input, init);
     }
-    return nitroFetch(input, init);
+    return originalFetch(input, init);
 }) as typeof fetch;
 
 globalThis.Headers = NitroHeaders;
