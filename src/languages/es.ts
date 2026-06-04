@@ -276,7 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tag: 'Etiqueta',
         receipt: 'Recibo',
         verified: 'Verificado',
-        suggestted: 'Sugerido',
+        suggested: 'Sugerido',
         replace: 'Sustituir',
         distance: 'Distancia',
         mile: 'milla',

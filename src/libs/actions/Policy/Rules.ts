@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {AddPolicyAIRuleParams} from '@libs/API/parameters';
+import type {AddPolicyAIRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';

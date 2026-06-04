@@ -335,7 +335,7 @@ const translations = {
         tag: 'Tag',
         receipt: 'Receipt',
         verified: 'Verified',
-        suggestted: 'Suggested',
+        suggested: 'Suggested',
         replace: 'Replace',
         distance: 'Distance',
         mile: 'mile',

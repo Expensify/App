@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -18,27 +18,29 @@ import {rand64} from '@libs/NumberUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAIRuleForm';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type AddAIRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AI_NEW>;
 
-function AddAIRulePage({route}: AddAIRulePageProps) {
+function AddAIRulePage({
+    route: {
+        params: {policyID},
+    },
+}: AddAIRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const policyID = route.params.policyID;
-    const [prompt, setPrompt] = useState('');
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM>): Errors => {
-        const errors: Errors = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM> = {};
         if (!values[INPUT_IDS.PROMPT].trim()) {
             errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
         }
         return errors;
     };
+
     const saveRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM>): void => {
         addPolicyAIRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         Navigation.goBack();
@@ -82,8 +84,6 @@ function AddAIRulePage({route}: AddAIRulePageProps) {
                             label={translate('workspace.rules.aiRules.describeRuleTitle')}
                             accessibilityLabel={translate('workspace.rules.aiRules.describeRuleTitle')}
                             role={CONST.ROLE.PRESENTATION}
-                            value={prompt}
-                            onChangeText={setPrompt}
                             multiline
                             containerStyles={[styles.flex1]}
                             touchableInputWrapperStyle={[styles.flex1]}
