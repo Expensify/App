@@ -5,7 +5,7 @@ import type {Route} from '@src/ROUTES';
 
 function getOnboardingRouteFromScreen(screen: OnboardingScreen, backTo?: string): Route | undefined {
     const path = normalizedConfigs[screen]?.path;
-    if (!path) {
+    if (!path || typeof path !== 'string') {
         return undefined;
     }
 
