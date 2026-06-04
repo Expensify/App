@@ -148,7 +148,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
                 parsePhoneNumber(appendCountryCode(processedLogin, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCode)) : processedLogin
             ]
         ) {
-            return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
+            return translate('messages.userIsAlreadyMember', processedLogin, reportName ?? '');
         }
         return getHeaderMessage(
             selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
@@ -202,7 +202,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
                 onEndReached={onListEndReached}
             />

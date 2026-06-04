@@ -56,7 +56,6 @@ Each rule file contains:
 8. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
 9. **DO NOT describe what you are doing or add extra content.**
     EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of including it in the violations array rather than skipping it.
-10. **Reality check before posting**: Before creating each inline comment, re-read the specific code one more time and confirm the violation is real. If upon re-reading you realize the code is actually correct, **do NOT post the comment** — silently skip it and move on. Never post a comment that flags a violation and then concludes it is not actually a problem.
 
 ## Comment Format
 

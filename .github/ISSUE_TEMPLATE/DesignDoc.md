@@ -1,7 +1,7 @@
 ---
 name: Design Doc tracking issue
 about: A standard template to follow when leading a project
-labels: Daily, NewFeature
+labels: Daily, NewFeature, DesignDoc
 ---
 
 ## Proposal

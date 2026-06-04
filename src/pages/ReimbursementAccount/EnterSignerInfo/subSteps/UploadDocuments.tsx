@@ -31,11 +31,12 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const styles = useThemeStyles();
 
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [environmentUrl, setEnvironmentUrl] = useState<string | null>(null);
 
-    const currency = policy?.outputCurrency ?? '';
-    const country = mapCurrencyToCountry(currency);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = mapCurrencyToCountry(currency) ?? reimbursementAccountDraft?.country;
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
     const isPDSandFSGDownloaded = enterSignerInfoFormDraft?.[INPUT_IDS.DOWNLOADED_PDS_AND_FSG] ?? false;
     const [isPDSandFSGDownloadedTouched, setIsPDSandFSGDownloadedTouched] = useState<boolean>(false);
@@ -139,7 +140,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedIDs, copyOfIDInputID, setUploadedID);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedIDs}
                         inputID={copyOfIDInputID}
                         setError={(error) => {
@@ -167,7 +168,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedProofsOfAddress, addressProofInputID, setUploadedProofOfAddress);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfAddress}
                         inputID={addressProofInputID}
                         setError={(error) => {
@@ -194,7 +195,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedProofsOfDirectors, directorsProofInputID, setUploadedProofsOfDirectors);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfDirectors}
                         inputID={directorsProofInputID}
                         setError={(error) => {

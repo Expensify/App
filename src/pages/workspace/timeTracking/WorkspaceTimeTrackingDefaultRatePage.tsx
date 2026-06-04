@@ -6,6 +6,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +14,7 @@ import {setPolicyTimeTrackingDefaultRate} from '@libs/actions/Policy/Policy';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -34,11 +36,18 @@ function WorkspaceTimeTrackingDefaultRatePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+
     const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyTimeTrackingSelector});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy || isLoadingOnyxValue(policyFetchStatus)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'WorkspaceTimeTrackingDefaultRatePage',
+            isPolicyMissing: !policy,
+            isPolicyLoading: isLoadingOnyxValue(policyFetchStatus),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -65,7 +74,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.RATE}
                         currency={currency}
-                        defaultValue={convertToFrontendAmountAsString(getDefaultTimeTrackingRate(policy), currency)}
+                        defaultValue={convertToFrontendAmountAsString(getDefaultTimeTrackingRate(policy), getCurrencyDecimals(currency))}
                         isCurrencyPressable={false}
                         ref={inputCallbackRef}
                         displayAsTextInput

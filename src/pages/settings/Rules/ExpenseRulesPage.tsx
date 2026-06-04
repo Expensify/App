@@ -5,9 +5,8 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -15,9 +14,10 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -25,6 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDraftRule, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
@@ -32,6 +33,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,9 +50,11 @@ function ExpenseRulesPage() {
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
+    const genericIllustration = useGenericEmptyStateIllustration();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('expenseRulesPage.title'));
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
     const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
     const styles = useThemeStyles();
@@ -175,6 +179,8 @@ function ExpenseRulesPage() {
         });
     }
 
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
@@ -184,17 +190,17 @@ function ExpenseRulesPage() {
             onPress={() => null}
             options={headerDropdownOptions}
             shouldAlwaysShowDropdownMenu
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
             testID="ExpenseRulesPage-header-dropdown-menu-button"
         />
     ) : (
-        <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+        <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             <Button
                 success
                 onPress={navigateToNewRulePage}
                 icon={icons.Plus}
                 text={translate('expenseRulesPage.newRule')}
-                style={[shouldUseNarrowLayout && styles.flex1]}
+                style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
             />
         </View>
@@ -205,7 +211,7 @@ function ExpenseRulesPage() {
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
             </View>
-            {rulesList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {rulesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('expenseRulesPage.findRule')}
                     inputValue={inputValue}
@@ -228,6 +234,11 @@ function ExpenseRulesPage() {
             />
         );
 
+    const loadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ExpenseRulesPage.loading',
+        isLoading,
+    };
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -249,23 +260,28 @@ function ExpenseRulesPage() {
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldUseHeadlineHeader={!selectionModeHeader}
+                shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
-                {!shouldUseNarrowLayout && headerButton}
+                {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+            {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
             {!hasRules && !isLoading && headerContent}
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                    <EmptyStateComponent
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
+                    <GenericEmptyStateComponent
+                        {...genericIllustration}
                         title={translate('expenseRulesPage.emptyRules.title')}
                         subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                        buttons={[
+                            {
+                                success: true,
+                                buttonAction: navigateToNewRulePage,
+                                icon: icons.Plus,
+                                buttonText: translate('expenseRulesPage.newRule'),
+                            },
+                        ]}
                     />
                 </ScrollView>
             )}
@@ -273,17 +289,19 @@ function ExpenseRulesPage() {
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.flex1]}
+                    reasonAttributes={loadingReasonAttributes}
                 />
             )}
             {hasRules && (
                 <SelectionListWithModal
                     addBottomSafeAreaPadding
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllRules')}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
                     data={filteredRuleList}
                     ListItem={TableListItem}
-                    onCheckboxPress={toggleRule}
+                    onSelectionButtonPress={toggleRule}
                     onSelectAll={filteredRuleList.length > 0 ? toggleAllRules : undefined}
                     onSelectRow={onSelectRow}
                     onTurnOnSelectionMode={(item) => item && toggleRule(item)}
@@ -291,8 +309,7 @@ function ExpenseRulesPage() {
                     shouldHeaderBeInsideList
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldShowRightCaret
-                    shouldUseDefaultRightHandSideCheckmark={false}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress={shouldUseNarrowLayout}
                 />

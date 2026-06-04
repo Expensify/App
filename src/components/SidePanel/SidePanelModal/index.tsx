@@ -51,12 +51,16 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
 
     // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
+        // Side Panel is not a normal modal on ExtraLargeScreenWidth.
+        if (isExtraLargeScreenWidth) {
+            return;
+        }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
         return () => {
             ComposerFocusManager.setReadyToFocus(uniqueModalId);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isExtraLargeScreenWidth]);
 
     return (
         <ModalPortal>

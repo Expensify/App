@@ -1,17 +1,9 @@
 import type {VideoPlayer} from 'expo-video';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
-import type {FullScreenActionsContextType, FullScreenStateContextType} from './FullScreenContextProvider';
 
-type VolumeContext = {
-    /**
-     * Updates the current volume.
-     * @param newVolume The new volume value to set.
-     */
-    updateVolume: (newVolume: number) => void;
-
+type VolumeStateContextType = {
     /**
      * The current volume value.
      */
@@ -22,6 +14,14 @@ type VolumeContext = {
      * This value is restored after unmuting.
      */
     lastNonZeroVolume: SharedValue<number>;
+};
+
+type VolumeActionsContextType = {
+    /**
+     * Updates the current volume.
+     * @param newVolume The new volume value to set.
+     */
+    updateVolume: (newVolume: number) => void;
 
     /**
      * Toggles the mute state.
@@ -29,12 +29,15 @@ type VolumeContext = {
     toggleMute: () => void;
 };
 
-type VideoPopoverMenuContext = {
-    /**
-     * The items displayed in the video popover menu.
-     */
-    menuItems: PopoverMenuItem[];
+type VideoPopoverMenuStateContextType = {
+    /** Currently-selected playback speed (drives the radio indicator in the speeds submenu). */
+    currentPlaybackSpeed: PlaybackSpeed;
 
+    /** True when the source is a local URI; the download row is hidden. */
+    isLocalFile: boolean;
+};
+
+type VideoPopoverMenuActionsContextType = {
     /**
      * Updates the video player reference used by the popover menu.
      * @param ref The video player ref.
@@ -52,10 +55,11 @@ type VideoPopoverMenuContext = {
      * @param source The new source URL.
      */
     updateSource: (source: string) => void;
-};
 
-type FullScreenContext = FullScreenStateContextType & FullScreenActionsContextType;
+    /** Triggers the download flow for the current source. */
+    downloadAttachment: () => void;
+};
 
 type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
-export type {VolumeContext, VideoPopoverMenuContext, FullScreenContext, PlaybackSpeed};
+export type {VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, PlaybackSpeed};

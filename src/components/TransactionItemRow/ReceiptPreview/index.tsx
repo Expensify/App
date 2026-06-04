@@ -108,6 +108,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
 
     const shouldShowImage = source && !(isEReceipt || isDistanceEReceipt || isPerDiemEReceipt);
     const shouldShowDistanceEReceipt = isDistanceEReceipt && !isEReceipt && !isPerDiemEReceipt;
+    const sourceObject = typeof source === 'string' ? {uri: source} : source;
 
     return ReactDOM.createPortal(
         <Animated.View
@@ -118,7 +119,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
             {shouldShowImage ? (
                 <View style={[styles.w100]}>
                     {isLoading && (
-                        <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <View style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 reasonAttributes={reasonAttributes}
@@ -126,23 +127,22 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                         </View>
                     )}
 
-                    <Image
-                        source={typeof source === 'string' ? {uri: source} : source}
-                        style={[
-                            styles.w100,
-                            {aspectRatio: imageAspectRatio ?? 1},
-                            isLoading && {opacity: 0}, // hide until loaded
-                        ]}
-                        onLoadStart={() => {
-                            if (isLoading) {
-                                return;
-                            }
-                            setIsLoading(true);
-                        }}
-                        onError={handleError}
-                        onLoad={handleLoad}
-                        isAuthTokenRequired
-                    />
+                    <View style={[styles.w100, {aspectRatio: imageAspectRatio ?? 1}]}>
+                        {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
+                        <Image
+                            source={sourceObject}
+                            style={[styles.w100, styles.h100]}
+                            onLoadStart={() => {
+                                if (isLoading) {
+                                    return;
+                                }
+                                setIsLoading(true);
+                            }}
+                            onError={handleError}
+                            onLoad={handleLoad}
+                            isAuthTokenRequired
+                        />
+                    </View>
                 </View>
             ) : (
                 <View style={styles.receiptPreviewEReceiptsContainer}>

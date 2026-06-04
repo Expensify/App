@@ -13,6 +13,9 @@ type ImportCSVTransactionsParams = {
 
     /** Whether transactions are reimbursable */
     reimbursable: boolean;
+
+    /** Mapping of transaction attributes (amount, merchant, category, date) to column names */
+    columnMappings: string;
 };
 
 export default ImportCSVTransactionsParams;

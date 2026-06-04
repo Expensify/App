@@ -1,0 +1,3 @@
+const STITCHED_ODOMETER_FILENAME_PREFIX = 'stitched_odometer';
+
+export default STITCHED_ODOMETER_FILENAME_PREFIX;

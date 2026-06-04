@@ -3,10 +3,10 @@ import CONST from '@src/CONST';
 import type {TodosDerivedValue} from '@src/types/onyx';
 
 describe('todosReportCountsSelector', () => {
-    it('returns empty counts when todos is undefined', () => {
+    it('returns undefined when todos is undefined', () => {
         const result = todosReportCountsSelector(undefined);
 
-        expect(result).toEqual(CONST.EMPTY_TODOS_REPORT_COUNTS);
+        expect(result).toBeUndefined();
     });
 
     it('returns correct counts when all report arrays are populated', () => {

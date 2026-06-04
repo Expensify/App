@@ -46,6 +46,15 @@ type AmountFormProps = {
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
+    /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */
+    shouldShowCurrencyButton?: boolean;
+
+    /** Text on the trailing dropdown button. Use with `shouldShowCurrencyButton` when the suffix is not a currency code (e.g. duration unit). */
+    currencyButtonLabel?: string;
+
+    /** Accessibility label for the trailing dropdown */
+    currencyButtonAccessibilityLabel?: string;
+
     /** Whether the input should be disabled */
     disabled?: boolean;
 
@@ -57,7 +66,10 @@ type AmountFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
+
+    /** Callback when the input is focused */
+    onFocus?: () => void;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'onBlur'>;
 
 /**
  * Wrapper around NumberWithSymbolForm with currency handling.
@@ -74,11 +86,16 @@ function AmountForm({
     label,
     decimals: decimalsProp,
     hideCurrencySymbol = false,
+    shouldShowCurrencyButton = false,
+    currencyButtonLabel,
+    currencyButtonAccessibilityLabel,
     disabled = false,
     autoFocus,
     autoGrowExtraSpace,
     autoGrowMarginSide,
     onSubmitEditing,
+    onFocus,
+    onBlur,
     ref,
     numberFormRef,
 }: AmountFormProps) {
@@ -90,7 +107,7 @@ function AmountForm({
     return (
         <NumberWithSymbolForm
             label={label}
-            value={value}
+            value={value ?? ''}
             decimals={decimals}
             currency={currency}
             displayAsTextInput={displayAsTextInput}
@@ -109,6 +126,9 @@ function AmountForm({
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}
+            shouldShowCurrencyButton={shouldShowCurrencyButton}
+            currencyButtonLabel={currencyButtonLabel}
+            currencyButtonAccessibilityLabel={currencyButtonAccessibilityLabel}
             maxLength={amountMaxLength}
             errorText={errorText}
             style={displayAsTextInput ? undefined : styles.iouAmountTextInput}
@@ -119,9 +139,10 @@ function AmountForm({
             autoGrowMarginSide={autoGrowMarginSide}
             onSubmitEditing={onSubmitEditing}
             disabled={disabled}
+            onFocus={onFocus}
+            onBlur={onBlur}
         />
     );
 }
 
 export default AmountForm;
-export type {AmountFormProps, NumberWithSymbolFormRef};

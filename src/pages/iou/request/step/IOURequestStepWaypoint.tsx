@@ -41,7 +41,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
     return waypoints
         .slice(0, CONST.RECENT_WAYPOINTS_NUMBER)
-        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
+        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true && waypoint.lat != null && waypoint.lng != null)
         .map((waypoint) => ({
             name: waypoint.name,
             description: waypoint.address ?? '',

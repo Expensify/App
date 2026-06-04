@@ -9,7 +9,9 @@ You can create as many accounts as needed in order to test your changes directly
 
 **Notes**: 
 
-1. When creating test accounts, include a `+` (plus sign) in the email address (e.g., matt+1@gmail.com). This marks the account and their associated workspaces as test accounts in Expensify, ensuring Expensify Guides are not assigned to help with account setup.
+1. When creating test accounts:
+  - Include a `+` (plus sign) in the email address (e.g., matt+1@gmail.com). This marks the account and their associated workspaces as test accounts in Expensify, ensuring Expensify Guides are not assigned to help with account setup.
+  - When testing on live servers with a private domain, stick to a single, consistent test domain. Please avoid generating random or "fake" domains (e.g., asdfkef23@asfdasfwaf.com).
 2. When testing chat functionality in the app please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you.
 3. A member of our customer onboarding team gets auto-assigned to every new policy created by a non-paying account to help them set up. Please **do not interact with these teams, ask for calls, or support on your issues.** If you do need to test functionality inside the defaultRooms (#admins & #announce) for any issues you’re working on, please let them know that you are a contributor and don’t need assistance. They will proceed to ignore the chat.
 4. Please **do not post in any Expensify owned public room for testing** (e.g #exfy-roadmap, #new-expensify-feedback). These rooms include real customers and investors. You can create your own public rooms, or [use this test public room](https://staging.new.expensify.com/r/2091104345528462) on either staging or production. Thanks!
@@ -50,7 +52,7 @@ We hire and pay external contributors via [Upwork.com](https://www.upwork.com). 
 
 Please add your Upwork profile link in your GitHub Bio to help ensure prompt payment.  If you're using Slack or Expensify for discussions, please add your Upwork profile link **and** your GitHub username in your Slack Title and Expensify Status. 
 
-Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the BugZero team member (Look for the melvin-bot "Triggered auto assignment to... (`Bug`)" to see who this is).
+Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the team member assigned to pay (Look for the melvin-bot "Triggered auto assignment to... (`Awaiting Payment`)" to see who this is).
 
 New contributors are limited to working on one job at a time, **do not submit proposals for new jobs until your first PR has been merged**. Experienced contributors may work on numerous jobs simultaneously.
 
@@ -150,7 +152,7 @@ This helps future investigators understand the history and current status of err
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 ### Propose a solution for the job
-4. You can propose solutions on any Github issue at any time, do not post proposals in Slack. If you propose solutions to jobs before the `Help Wanted` label is applied, you do so at your own risk. Proposals will not be reviewed until the label is added and there is always a chance that we might not add the label or hire an external contributor for the job.
+4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed. Do not post proposals in Slack.
 5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program. 
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
@@ -210,6 +212,9 @@ This helps future investigators understand the history and current status of err
 
 ### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
+
+### Using AI tools
+- If you use AI tools (Copilot, Cursor, ChatGPT, etc.) to help write code or PR descriptions, please read our [AI Etiquette guide](https://github.com/Expensify/App/blob/main/contributingGuides/AI_ETIQUETTE.md). You are accountable for all AI output you submit.
 
 ### For external agencies that Expensify partners with
 Follow all the above above steps and processes. When you find a job you'd like to work on:

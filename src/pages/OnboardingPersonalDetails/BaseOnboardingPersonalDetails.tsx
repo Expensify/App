@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,9 +10,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
@@ -29,6 +34,7 @@ import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardin
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 
@@ -47,6 +53,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingMessages} = useOnboardingMessages();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -57,6 +66,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_DETAILS);
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList, session?.email);
@@ -80,8 +91,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 lastName,
                 adminsChatReportID: onboardingAdminsChatReportID,
                 onboardingPolicyID,
-                shouldSkipTestDriveModal: !!onboardingPolicyID && !mergedAccountConciergeReportID,
                 introSelected,
+                isSelfTourViewed,
             });
 
             setOnboardingAdminsChatReportID();
@@ -108,6 +119,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             mergedAccountConciergeReportID,
             conciergeChatReportID,
             introSelected,
+            isSelfTourViewed,
         ],
     );
 
@@ -120,15 +132,25 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
+            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
+                if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
+                    Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
+                    return;
+                }
+                updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+                autoCreateSubmitWorkspace(firstName, lastName);
+                return;
+            }
+
             if (isPrivateDomainAndHasAccessiblePolicies && (!onboardingPurposeSelected || isVsb || isSmb)) {
                 const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
                 Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
                 return;
             }
 
-            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+            if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
+                autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected);
                 return;
             }
 
@@ -140,11 +162,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             session?.email,
             isPrivateDomainAndHasAccessiblePolicies,
             onboardingPurposeSelected,
+            canUseSubmit2026,
             isVsb,
             isSmb,
             completeOnboarding,
             isValidated,
             route.params?.backTo,
+            autoCreateTrackWorkspace,
+            autoCreateSubmitWorkspace,
         ],
     );
 
@@ -194,7 +219,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
-                progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 20 : 80}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => {
                     // Based on the `handleSubmit` function to reverse where to return
                     if (isPrivateDomainAndHasAccessiblePolicies) {
@@ -236,7 +262,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         aria-label={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={onboardingPersonalDetailsForm?.firstName ?? currentUserPersonalDetails?.firstName ?? ''}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
                         spellCheck={false}
@@ -252,7 +277,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         aria-label={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={onboardingPersonalDetailsForm?.lastName ?? currentUserPersonalDetails?.lastName ?? ''}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
                         spellCheck={false}

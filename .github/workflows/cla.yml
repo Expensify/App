@@ -8,6 +8,29 @@ on:
     branches: [main]
 
 jobs:
+  validate:
+    if: ${{ github.event_name == 'pull_request_target' }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    outputs:
+      IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Check contributor authorization
+        id: gate
+        uses: ./.github/actions/javascript/isAuthorizedContributor
+        with:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
+          ACTOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          GITHUB_TOKEN: ${{ github.token }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
   CLA:
+    needs: [validate]
+    if: |
+      always()
+      && (github.event_name == 'issue_comment' || needs.validate.outputs.IS_AUTHORIZED == 'true')
     uses: Expensify/GitHub-Actions/.github/workflows/cla.yml@main
     secrets: inherit

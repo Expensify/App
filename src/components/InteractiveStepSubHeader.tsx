@@ -3,7 +3,6 @@ import React, {useImperativeHandle, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -42,7 +41,6 @@ const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
@@ -65,15 +63,15 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
         }),
         [],
     );
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const amountOfUnions = stepNames.length - 1;
 
     return (
         <View
             style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}
-            focusable
-            accessibilityLabel={translate('stepCounter', {step: currentStep + 1, total: stepNames.length})}
+            accessible={false}
+            aria-hidden
         >
             {stepNames.map((stepName, index) => {
                 const isCompletedStep = currentStep > index;

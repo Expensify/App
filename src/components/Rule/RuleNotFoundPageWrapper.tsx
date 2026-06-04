@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import React from 'react';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +24,7 @@ function RuleNotFoundPageWrapper({children, hash, shouldPreventShow}: RuleNotFou
     const shouldShowNotFoundPage = !!hash && !doesRuleExist;
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator reasonAttributes={{context: 'RuleNotFoundPageWrapper'}} />;
     }
 
     if (!shouldPreventShow && shouldShowNotFoundPage) {

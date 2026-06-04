@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -25,11 +26,12 @@ import {
     getFilteredRecentAttendees,
     getHeaderMessage,
     getParticipantsOption,
-    getPersonalDetailSearchTerms,
     getPolicyExpenseReportOption,
     isCurrentUser,
     orderOptions,
+    sortAlphabetically,
 } from '@libs/OptionsListUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -58,34 +60,37 @@ type MoneyRequestAttendeesSelectorProps = {
 };
 
 function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const reportAttributesDerived = useReportAttributes();
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const isPaidGroupPolicy = isPaidGroupPolicyFn(policy);
     const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID);
 
-    const initialSelectedOptions = attendees.map((attendee) => ({
+    const initialSelectedOptions = sortAlphabetically([...attendees], 'displayName', localeCompare).map((attendee) => ({
         ...attendee,
         reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-        keyForList: String(attendee.accountID) ?? (attendee.email || attendee.displayName),
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        keyForList: String(attendee.accountID) || attendee.email || attendee.displayName,
         selected: true,
         // Use || to fall back to displayName for name-only attendees (empty email)
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         login: attendee.email || attendee.displayName,
-        ...getPersonalDetailByEmail(attendee.email),
+        ...getPersonalDetailByEmail(attendee?.email),
     }));
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
@@ -152,7 +157,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         };
     }
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(orderedAvailableOptions?.userToInvite);
+    const {userToInviteExpenseReport} = useUserToInviteReports(orderedAvailableOptions?.userToInvite);
+    const userToInviteExpenseReportPolicy = usePolicy(userToInviteExpenseReport?.policyID);
 
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
@@ -164,7 +170,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         onFinish(CONST.IOU.TYPE.SUBMIT);
     };
 
-    const showLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const getFooterContent = () => {
         if (!shouldShowErrorMessage && !selectedOptions.length) {
@@ -207,7 +213,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             initialSelectedOptions,
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
+            privateIsArchivedMap,
             currentUserAccountID,
+            allPolicies,
             personalDetails,
             true,
             undefined,
@@ -252,8 +260,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [orderedAvailableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 sectionIndex: 3,
@@ -265,14 +274,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             !!orderedAvailableOptions?.userToInvite,
             cleanSearchTerm,
             countryCode,
-            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            attendees.some((attendee) => doesPersonalDetailMatchSearchTerm(attendee, currentUserAccountID, cleanSearchTerm)),
         );
         sections = newSections;
     }
 
     const optionLength = !areOptionsInitialized ? 0 : sections.reduce((acc, section) => acc + (section.data?.length ?? 0), 0);
 
-    const shouldShowListEmptyContent = optionLength === 0 && !showLoadingPlaceholder;
+    const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
@@ -294,12 +303,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             }}
             footerContent={footerContent}
             isLoadingNewOptions={!!isSearchingForReports}
-            showLoadingPlaceholder={showLoadingPlaceholder}
-            showListEmptyContent={shouldShowListEmptyContent}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onEndReached={onListEndReached}
-            disableMaintainingScrollPosition
             shouldSingleExecuteRowSelect
             shouldShowTextInput
             canSelectMultiple

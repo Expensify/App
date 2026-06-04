@@ -11622,15 +11622,13 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     })
         .then(() => {
         console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
+        const maxCompletedItems = numberOfChecklistItems + 2;
+        const minCompletedItems = numberOfChecklistItems - 2;
         let foundReviewerChecklist = false;
         let numberOfFinishedChecklistItems = 0;
         let numberOfUnfinishedChecklistItems = 0;
         // Once we've gathered all the data, loop through each comment and look to see if it contains the reviewer checklist
         for (let i = 0; i < combinedComments.length; i++) {
-            // Skip all other comments if we already found the reviewer checklist
-            if (foundReviewerChecklist) {
-                break;
-            }
             const whitespace = /([\n\r])/gm;
             const comment = combinedComments.at(i)?.replaceAll(whitespace, '');
             console.log(`Comment ${i} starts with: ${comment?.slice(0, 20)}...`);
@@ -11640,14 +11638,16 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 foundReviewerChecklist = true;
                 numberOfFinishedChecklistItems = (comment?.match(/- \[x\]/gi) ?? []).length;
                 numberOfUnfinishedChecklistItems = (comment?.match(/- \[ \]/g) ?? []).length;
+                if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+                    console.log('PR Reviewer checklist is complete 🎉');
+                    return;
+                }
             }
         }
         if (!foundReviewerChecklist) {
             core.setFailed('No PR Reviewer Checklist was found');
             return;
         }
-        const maxCompletedItems = numberOfChecklistItems + 2;
-        const minCompletedItems = numberOfChecklistItems - 2;
         console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
         if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
             console.log('PR Reviewer checklist is complete 🎉');
@@ -11691,6 +11691,7 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+        DAILY: 'Daily',
     },
     STATE: {
         OPEN: 'open',
@@ -11787,7 +11788,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -11875,11 +11876,11 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers) {
+    static fetchAllPullRequests(pullRequestNumbers, repo = CONST_1.default.APP_REPO) {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
+            repo,
             state: 'all',
             sort: 'created',
             direction: 'desc',

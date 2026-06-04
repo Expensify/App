@@ -12,11 +12,11 @@ function useParentReportAction(report: OnyxEntry<Report>) {
         [report?.parentReportActionID],
     );
 
-    const [parentReportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`,
-        {
-            canEvict: false,
+    const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);
 
+    const [parentReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+        {
             selector: getParentReportAction,
         },
         [getParentReportAction],

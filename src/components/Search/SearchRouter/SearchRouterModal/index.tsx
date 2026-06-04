@@ -6,7 +6,6 @@ import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperConta
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {isMobileIOS} from '@libs/Browser';
 import CONST from '@src/CONST';
 
@@ -16,7 +15,6 @@ function SearchRouterModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const {closeSearchRouter} = useSearchRouterActions();
-    const viewportOffsetTop = useViewportOffsetTop();
 
     // On mWeb Safari, the input caret stuck for a moment while the modal is animating. So, we hide the caret until the animation is done.
     const [shouldHideInputCaret, setShouldHideInputCaret] = useState(isMobileWebIOS);
@@ -38,7 +36,6 @@ function SearchRouterModal() {
         <Modal
             type={modalType}
             isVisible={isSearchRouterDisplayed}
-            innerContainerStyle={{paddingTop: viewportOffsetTop}}
             popoverAnchorPosition={{right: 6, top: 6}}
             fullscreen
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}

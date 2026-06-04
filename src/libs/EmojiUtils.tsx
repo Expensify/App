@@ -11,10 +11,11 @@ import Text from '@components/Text';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
+import type ReportActionReactions from '@src/types/onyx/ReportActionReactions';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isSafari} from './Browser';
-import type EmojiTrie from './EmojiTrie';
+import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
@@ -22,7 +23,7 @@ type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
-type EmojiTrieModule = {default: typeof EmojiTrie};
+type EmojiTrieModule = {getEmojiTrie: typeof getEmojiTrieType};
 type TextWithEmoji = {
     text: string;
     isEmoji: boolean;
@@ -100,44 +101,65 @@ function revertEmojisInCodeBlocks(text: string, cursorPosition?: number): {text:
     return {text: result, cursorPosition: adjustedCursorPosition};
 }
 
-const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1));
+const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => {
+    const query = emojiData[0].toLowerCase().slice(1);
+    if (emoji.name.includes(query)) {
+        return false;
+    }
+    // An alias match counts as a name match, so emojis with non-readable canonical names
+    // (e.g. `+1`/`-1`) can still rank ahead of keyword-only matches when a readable alias matches.
+    const fullEmoji = Emojis.emojiNameTable[emoji.name];
+    if (fullEmoji?.aliases?.some((alias) => alias.includes(query))) {
+        return false;
+    }
+    return true;
+};
 
 const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     if (!emojiList) {
         return [];
     }
-    const processedFrequentlyUsedEmojis =
-        emojiList
-            ?.map((item) => {
-                let emoji = item;
-                if (!item.code) {
-                    emoji = {...emoji, ...findEmojiByName(item.name)};
-                }
-                if (!item.name) {
-                    emoji = {...emoji, ...findEmojiByCode(item.code)};
-                }
-                const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
-                if (!emojiWithSkinTones) {
-                    return null;
-                }
-                return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
-            })
-            .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
 
     // On AddComment API response, each variant of the same emoji (with different skin tones) is
     // treated as a separate entry due to unique emoji codes for each variant.
     // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
-    const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
-    for (const emoji of processedFrequentlyUsedEmojis) {
-        const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
+    // Prefer hexcode as the dedupe key so that entries stored with only a hexcode merge correctly.
+    const frequentlyUsedEmojiMap = new Map<string, FrequentlyUsedEmoji>();
+    for (const item of emojiList) {
+        let resolvedEmoji: Emoji | undefined;
+        if (item.hexcode) {
+            resolvedEmoji = Emojis.findEmojiByHexCode(item.hexcode);
+        }
+        if (!resolvedEmoji && item.name) {
+            resolvedEmoji = findEmojiByName(item.name);
+        }
+        if (!resolvedEmoji && item.code) {
+            resolvedEmoji = findEmojiByCode(item.code);
+        }
+        if (!resolvedEmoji) {
+            continue;
+        }
+        const key = resolvedEmoji.hexcode ?? resolvedEmoji.code;
+        const existingEmoji = frequentlyUsedEmojiMap.get(key);
         if (existingEmoji) {
-            existingEmoji.count += emoji.count;
-            existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
+            existingEmoji.count += item.count;
+            existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, item.lastUpdatedAt);
         } else {
-            frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
+            const entry: FrequentlyUsedEmoji = {
+                code: resolvedEmoji.code,
+                name: resolvedEmoji.name,
+                hexcode: resolvedEmoji.hexcode,
+                types: resolvedEmoji.types,
+                count: item.count,
+                lastUpdatedAt: item.lastUpdatedAt,
+            };
+            if (item.keywords) {
+                entry.keywords = item.keywords;
+            }
+            frequentlyUsedEmojiMap.set(key, entry);
         }
     }
-    return Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
+    return Array.from(frequentlyUsedEmojiMap.values()).sort((a, b) => {
         if (a.count !== b.count) {
             return b.count - a.count;
         }
@@ -151,11 +173,15 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
 const getLocalizedEmojiName = (name: string, locale: OnyxEntry<Locale>): string => {
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
 
+    // Hex-keyed reactions (e.g. '1F44D') must be resolved to their shortcode name before
+    // locale lookup, since emojiNameTable is indexed by name, not hexcode.
+    const shortcodeName = Emojis.findEmojiByHexCode(name)?.name ?? name;
+
     if (normalizedLocale === CONST.LOCALES.DEFAULT) {
-        return name;
+        return shortcodeName;
     }
 
-    const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
+    const emojiCode = Emojis.emojiNameTable[shortcodeName]?.code ?? '';
     return Emojis.localeEmojis[normalizedLocale]?.[emojiCode]?.name ?? '';
 };
 
@@ -220,6 +246,10 @@ function isFirstLetterEmoji(message: string): boolean {
  * Validates that this message contains only emojis
  */
 function containsOnlyEmojis(message: string): boolean {
+    if (!message) {
+        return false;
+    }
+
     const trimmedMessage = Str.replaceAll(message.replaceAll(' ', ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
@@ -262,34 +292,36 @@ function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndices[] {
 }
 
 /**
- * Get number of empty spaces to be filled to get equal emojis for every row
+ * Push spacer entries into an existing array to pad up to a full row boundary.
  */
-function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
-    const spacerEmojis = [];
+function pushDynamicSpacing(target: EmojiPickerList, emojiCount: number, suffix: number): void {
     let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
 
     // Empty spaces is pushed if the given row has less than eight emojis
     while (modLength > 0 && modLength < CONST.EMOJI_NUM_PER_ROW) {
-        spacerEmojis.push({
+        target.push({
             code: `${CONST.EMOJI_SPACER}_${suffix}_${modLength}`,
             spacer: true,
         });
         modLength -= 1;
     }
-    return spacerEmojis;
 }
 
 /**
  * Add dynamic spaces to emoji categories
  */
 function addSpacesToEmojiCategories(emojis: PickerEmojis): EmojiPickerList {
-    let updatedEmojis: EmojiPickerList = [];
-    for (const [index, emoji] of emojis.entries()) {
+    const updatedEmojis: EmojiPickerList = [];
+    let index = 0;
+    for (const emoji of emojis) {
         if (emoji && typeof emoji === 'object' && 'header' in emoji) {
-            updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
-            continue;
+            pushDynamicSpacing(updatedEmojis, updatedEmojis.length, index);
+            updatedEmojis.push(emoji);
+            pushDynamicSpacing(updatedEmojis, 1, index);
+        } else {
+            updatedEmojis.push(emoji);
         }
-        updatedEmojis.push(emoji);
+        index++;
     }
     return updatedEmojis;
 }
@@ -302,21 +334,43 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis, frequentlyUse
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
-        // Frequently used emojis in the old format will have name/types/code stored with them
-        // The back-end may not always have both, so we'll need to fill them in.
-        if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            return findEmojiByName(frequentlyUsedEmoji.name);
-        }
-        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            return findEmojiByCode(frequentlyUsedEmoji.code);
-        }
+    const updatedEmojis: EmojiPickerList = [];
+    let index = 0;
 
-        return frequentlyUsedEmoji;
-    });
+    // Frequently-used section
+    pushDynamicSpacing(updatedEmojis, updatedEmojis.length, index);
+    updatedEmojis.push(Emojis.categoryFrequentlyUsed);
+    pushDynamicSpacing(updatedEmojis, 1, index);
+    index++;
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
-    return addSpacesToEmojiCategories(mergedEmojis);
+    // count/lastUpdatedAt/keywords are read by the picker but not declared on the base Emoji type.
+    for (const entry of frequentlyUsedEmojis) {
+        const baseEmoji = findEmojiByCode(entry.code) ?? findEmojiByName(entry.name);
+        const emoji = {
+            code: baseEmoji.code,
+            name: baseEmoji.name,
+            hexcode: baseEmoji.hexcode,
+            types: baseEmoji.types,
+            count: entry.count,
+            lastUpdatedAt: entry.lastUpdatedAt,
+            ...(entry.keywords ? {keywords: entry.keywords} : {}),
+        } as Emoji;
+        updatedEmojis.push(emoji);
+        index++;
+    }
+
+    for (const emoji of emojis) {
+        if (emoji && typeof emoji === 'object' && 'header' in emoji) {
+            pushDynamicSpacing(updatedEmojis, updatedEmojis.length, index);
+            updatedEmojis.push(emoji);
+            pushDynamicSpacing(updatedEmojis, 1, index);
+        } else {
+            updatedEmojis.push(emoji);
+        }
+        index++;
+    }
+
+    return updatedEmojis;
 }
 
 /**
@@ -387,11 +441,10 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, locale: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
+    const {getEmojiTrie} = require<EmojiTrieModule>('./EmojiTrie');
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = emojisTrie[normalizedLocale];
+    const trie = getEmojiTrie(normalizedLocale);
     if (!trie) {
         return {text, emojis: []};
     }
@@ -406,7 +459,7 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
     const codeBlockRanges = parseExpensiMark(text);
     const replacements: Array<{position: number; shortcode: string; replacement: string; name: string}> = [];
     const shortcodeSearchPositions: Record<string, number> = {};
-    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? emojisTrie[CONST.LOCALES.DEFAULT] : null;
+    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? getEmojiTrie(CONST.LOCALES.DEFAULT) : null;
 
     for (const emoji of emojiData) {
         const name = emoji.slice(1, -1);
@@ -426,11 +479,18 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
             checkEmoji = englishTrie.search(name);
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
-            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
+            const meta = checkEmoji.metaData;
+            const code = meta.code;
+            const hexcode = meta.hexcode ?? (code ? findEmojiByCode(code)?.hexcode : undefined) ?? findEmojiByName(name)?.hexcode;
+            if (!code || !hexcode) {
+                continue;
+            }
+            const emojiReplacement = getEmojiCodeWithSkinColor({...meta, code, hexcode} as Emoji, preferredSkinTone);
             emojis.push({
                 name,
-                code: checkEmoji.metaData?.code,
-                types: checkEmoji.metaData.types,
+                code,
+                types: meta.types,
+                hexcode,
             });
             replacements.push({
                 position: emojiPosition,
@@ -488,11 +548,10 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  * @param [limit] - matching emojis limit
  */
 function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
-    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
+    const {getEmojiTrie} = require<EmojiTrieModule>('./EmojiTrie');
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = emojisTrie[normalizedLocale];
+    const trie = getEmojiTrie(normalizedLocale);
     if (!trie) {
         return [];
     }
@@ -505,11 +564,18 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
     const matching: Emoji[] = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
     for (const node of nodes) {
-        if (node.metaData?.code && !matching.find((obj) => obj.name === node.name)) {
+        // The trie stores aliases as separate nodes pointing to the same emoji, so prefer the
+        // canonical name from `metaData.name` over the trie path so dedupe and result names are consistent.
+        const canonicalName = node.metaData?.name ?? node.name;
+        if (node.metaData?.code && !matching.find((obj) => obj.name === canonicalName)) {
+            const hexcode = node.metaData.hexcode ?? findEmojiByCode(node.metaData.code)?.hexcode ?? findEmojiByName(canonicalName)?.hexcode;
+            if (!hexcode) {
+                continue;
+            }
             if (matching.length === limit) {
                 return lodashSortBy(matching, (emoji) => sortByName(emoji, emojiData));
             }
-            matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types});
+            matching.push({code: node.metaData.code, name: canonicalName, types: node.metaData.types, hexcode});
         }
         const suggestions = node.metaData.suggestions;
         if (!suggestions) {
@@ -521,7 +587,11 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
             }
 
             if (!matching.find((obj) => obj.name === suggestion.name)) {
-                matching.push({...suggestion});
+                const hexcode = suggestion.hexcode ?? findEmojiByCode(suggestion.code)?.hexcode;
+                if (!hexcode) {
+                    continue;
+                }
+                matching.push({...suggestion, hexcode});
             }
         }
     }
@@ -630,8 +700,8 @@ function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReacti
 const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReaction, currentUserAccountID: number) => {
     const {users, oldestTimestamp} = enrichEmojiReactionWithTimestamps(reaction, emojiName);
 
-    const emoji = findEmojiByName(emojiName);
-    const emojiCodes = getUniqueEmojiCodes(emoji, users);
+    const emoji = Emojis.findEmojiByHexCode(emojiName) ?? findEmojiByName(emojiName);
+    const emojiCodes = emoji ? getUniqueEmojiCodes(emoji, users) : [];
     const reactionCount = Object.values(users ?? {})
         .map((user) => Object.values(user?.skinTones ?? {}).length)
         .reduce((sum, curr) => sum + curr, 0);
@@ -648,6 +718,67 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
         userAccountIDs,
         oldestTimestamp,
     };
+};
+
+/**
+ * Collapses a ReportActionReactions map so that entries whose keys resolve to the same emoji
+ * (one legacy name-key and one hex-key for the same 👍, for example) are merged into a single
+ * entry. This prevents rendering duplicate reaction bubbles during the transitional period
+ * when Onyx may contain both formats simultaneously.
+ *
+ * The first key seen for a canonical emoji is kept; subsequent collisions are merged into it
+ * (per-user skinTones union, earliest timestamps, preserved pendingAction).
+ */
+const mergeReactionsByEmoji = (reactions: ReportActionReactions): ReportActionReactions => {
+    const merged: ReportActionReactions = {};
+    const canonicalToKey: Record<string, string> = {};
+
+    for (const [key, reaction] of Object.entries(reactions)) {
+        if (!reaction) {
+            continue;
+        }
+
+        const resolved = Emojis.findEmojiByHexCode(key) ?? findEmojiByName(key);
+        const canonical = resolved?.hexcode ?? key;
+
+        const existingKey = canonicalToKey[canonical];
+        if (existingKey) {
+            const existing = merged[existingKey];
+            if (!existing) {
+                continue;
+            }
+
+            const mergedUsers: UsersReactions = {...existing.users};
+            for (const [userID, newUser] of Object.entries(reaction.users ?? {})) {
+                if (!newUser) {
+                    continue;
+                }
+                const existingUser = mergedUsers[userID];
+                if (existingUser) {
+                    mergedUsers[userID] = {
+                        ...existingUser,
+                        skinTones: {...existingUser.skinTones, ...newUser.skinTones},
+                        oldestTimestamp: existingUser.oldestTimestamp < newUser.oldestTimestamp ? existingUser.oldestTimestamp : newUser.oldestTimestamp,
+                    };
+                } else {
+                    mergedUsers[userID] = newUser;
+                }
+            }
+
+            merged[existingKey] = {
+                ...existing,
+                createdAt: existing.createdAt < reaction.createdAt ? existing.createdAt : reaction.createdAt,
+                oldestTimestamp: existing.oldestTimestamp < reaction.oldestTimestamp ? existing.oldestTimestamp : reaction.oldestTimestamp,
+                users: mergedUsers,
+                pendingAction: existing.pendingAction ?? reaction.pendingAction,
+            };
+        } else {
+            canonicalToKey[canonical] = key;
+            merged[key] = reaction;
+        }
+    }
+
+    return merged;
 };
 
 /**
@@ -806,7 +937,6 @@ function getTextVSCursorOffset(text: string, cursorPosition: number | undefined 
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
-    findEmojiByName,
     findEmojiByCode,
     getLocalizedEmojiName,
     getProcessedText,
@@ -817,8 +947,8 @@ export {
     suggestEmojis,
     getEmojiCodeWithSkinColor,
     getPreferredEmojiCode,
-    getUniqueEmojiCodes,
     getEmojiReactionDetails,
+    mergeReactionsByEmoji,
     replaceAndExtractEmojis,
     extractEmojis,
     getAddedEmojis,

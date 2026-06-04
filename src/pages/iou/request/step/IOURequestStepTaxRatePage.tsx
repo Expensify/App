@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -15,8 +16,9 @@ import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
-import {setMoneyRequestTaxRateValues, updateMoneyRequestTaxRate} from '@userActions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestTaxRateValues} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestTaxRate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -47,7 +49,9 @@ function IOURequestStepTaxRatePage({
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
+
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: getIOURequestPolicyID(transaction, report?.policyID ? report : participantReport), action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -64,6 +68,7 @@ function IOURequestStepTaxRatePage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -76,7 +81,29 @@ function IOURequestStepTaxRatePage({
     const currency = getCurrency(currentTransaction);
     const decimals = getCurrencyDecimals(currency);
 
-    const updateTaxRates = (taxes: TaxRatesOption) => {
+    const updateTaxRates = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
+        const updateTaxRateParams = {
+            transactionID: currentTransaction?.transactionID,
+            transactionThreadReport: report,
+            parentReport,
+            taxCode: '',
+            taxValue: '',
+            taxAmount: 0,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+            delegateAccountID,
+        };
+
+        if (shouldClearTax && isEditing) {
+            updateMoneyRequestTaxRate(updateTaxRateParams);
+            navigateBack();
+            return;
+        }
         if (!currentTransaction || !taxes.code || !taxRates) {
             Navigation.goBack();
             return;
@@ -97,21 +124,7 @@ function IOURequestStepTaxRatePage({
 
         if (isEditing) {
             const newTaxCode = taxes.code;
-            updateMoneyRequestTaxRate({
-                transactionID: currentTransaction?.transactionID,
-                transactionThreadReport: report,
-                parentReport,
-                taxCode: newTaxCode,
-                taxValue,
-                taxAmount: convertToBackendAmount(taxAmount ?? 0),
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                isASAPSubmitBetaEnabled,
-                parentReportNextStep,
-            });
+            updateMoneyRequestTaxRate({...updateTaxRateParams, taxCode: newTaxCode, taxValue, taxAmount: convertToBackendAmount(taxAmount ?? 0)});
             navigateBack();
             return;
         }
@@ -147,9 +160,8 @@ function IOURequestStepTaxRatePage({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxRatePageWithWritableReportOrNotFound);
 
 export default IOURequestStepTaxRatePageWithFullTransactionOrNotFound;

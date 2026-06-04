@@ -1,6 +1,11 @@
 import React from 'react';
-import {View} from 'react-native';
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,12 +35,20 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle', 'SmartScan', 'ReplaceReceipt']);
 
-    const shouldStackVertically = shouldUseNarrowLayout || isMediumScreenWidth;
+    const {isWideRHPFocused} = useWideRHPState();
+    const shouldStackVertically = (shouldUseNarrowLayout || isMediumScreenWidth) && !isWideRHPFocused;
     const scanReceiptsText = shouldAcceptSingleReceipt ? 'dropzone.addReceipt' : 'dropzone.scanReceipts';
+    const shouldStackRevertHorizontally = isWideRHPFocused;
+    let flexStyle: ViewStyle = styles.flexRow;
+    if (shouldStackVertically) {
+        flexStyle = styles.flexColumn;
+    } else if (shouldStackRevertHorizontally) {
+        flexStyle = styles.flexRowReverse;
+    }
 
     return (
         <DragAndDropConsumer onDrop={() => {}}>
-            <View style={[shouldStackVertically ? styles.flexColumn : styles.flexRow, styles.w100, styles.h100]}>
+            <View style={[flexStyle, styles.w100, styles.h100]}>
                 <DropZoneWrapper onDrop={onAttachmentDrop}>
                     {({isDraggingOver}) => (
                         <DropZoneUI
@@ -52,17 +65,23 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                         />
                     )}
                 </DropZoneWrapper>
-                <DropZoneWrapper onDrop={onReceiptDrop}>
-                    {({isDraggingOver}) => (
-                        <DropZoneUI
-                            icon={isEditing ? icons.ReplaceReceipt : icons.SmartScan}
-                            dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : scanReceiptsText)}
-                            dropStyles={styles.receiptDropOverlay(isDraggingOver)}
-                            dropTextStyles={styles.receiptDropText}
-                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, isDraggingOver)]}
-                        />
-                    )}
-                </DropZoneWrapper>
+                <Animated.View style={isWideRHPFocused ? styles.wideRHPDropZoneContainer : [styles.flex1, styles.h100]}>
+                    <DropZoneWrapper onDrop={onReceiptDrop}>
+                        {({isDraggingOver}) => (
+                            <DropZoneUI
+                                icon={isEditing ? icons.ReplaceReceipt : icons.SmartScan}
+                                dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : scanReceiptsText)}
+                                dropStyles={styles.receiptDropOverlay(isDraggingOver)}
+                                dropTextStyles={styles.receiptDropText}
+                                dashedBorderStyles={[
+                                    styles.dropzoneArea,
+                                    styles.easeInOpacityTransition,
+                                    styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, isDraggingOver),
+                                ]}
+                            />
+                        )}
+                    </DropZoneWrapper>
+                </Animated.View>
             </View>
         </DragAndDropConsumer>
     );

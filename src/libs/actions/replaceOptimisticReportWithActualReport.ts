@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -82,7 +83,6 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
         // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.
@@ -195,13 +195,19 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
-                    openReport(parentReportID, undefined);
+                    // betas is safe to pass as undefined because introSelected is undefined, so the code path
+                    // that uses betas is never reached. Passing it explicitly so the compiler flags this when
+                    // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
+                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
                 });
             } else {
                 callback();
 
                 // We are already on the parent one expense report, so just call the API to fetch report data
-                openReport(parentReportID, undefined);
+                // betas is safe to pass as undefined because introSelected is undefined, so the code path
+                // that uses betas is never reached. Passing it explicitly so the compiler flags this when
+                // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
+                openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
             }
             return;
         }

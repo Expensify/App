@@ -20,15 +20,14 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
     const {isBetaEnabled} = usePermissions();
-    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
     const toggleAutoAddTripName = (enabled: boolean) => {
-        setPolicyTravelSettings(policyID, {autoAddTripName: enabled});
+        setPolicyTravelSettings(policy, {autoAddTripName: enabled});
     };
 
     const handleManageTravel = () => {
@@ -68,7 +67,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     wrapperStyle={styles.mt3}
                 />
             </Section>
-            {isTravelInvoicingEnabled && <WorkspaceTravelInvoicingSection policyID={policyID} />}
+            <WorkspaceTravelInvoicingSection policyID={policyID} />
         </>
     );
 }

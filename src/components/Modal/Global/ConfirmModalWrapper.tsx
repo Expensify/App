@@ -14,7 +14,7 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 // - handle closeModal inside ConfirmModal
 // - remove ConfirmModalWrapper
 
-function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
+function ConfirmModalWrapper({closeModal, onModalHide, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
     const [isVisible, setIsVisible] = useState(true);
     const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
@@ -34,6 +34,7 @@ function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
             return;
         }
         closeModal({action: closeAction});
+        onModalHide?.();
     };
 
     const shortcutConfig = {
@@ -46,7 +47,6 @@ function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
 
     return (
         <ConfirmModal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isVisible={isVisible}
             onConfirm={handleConfirm}

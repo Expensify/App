@@ -10,11 +10,10 @@ on:
 jobs:
   verify:
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
-    runs-on: macos-latest
+    runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

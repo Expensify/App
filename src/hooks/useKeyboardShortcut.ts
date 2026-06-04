@@ -2,6 +2,7 @@ import {useEffect} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import {useScreenFreezeContext} from '@navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/ScreenFreezeContext';
 import CONST from '@src/CONST';
 
 type Shortcut = ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>;
@@ -42,11 +43,14 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: G
         shouldStopPropagation = false,
     } = config;
 
+    const {registerFreezeDefer} = useScreenFreezeContext();
+
     useEffect(() => {
         if (!isActive) {
             return () => {};
         }
 
+        const unregisterFreezeDefer = registerFreezeDefer();
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcut.shortcutKey,
             callback,
@@ -62,7 +66,8 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: G
 
         return () => {
             unsubscribe();
+            unregisterFreezeDefer();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers.join(), shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
+    }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers?.join(), shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
 }

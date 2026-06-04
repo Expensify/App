@@ -10,7 +10,7 @@ Book hotels easily with Expensify Travel. This guide covers how to search for ho
 
 ## Where to find Expensify Travel
 
-Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
 If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
@@ -59,7 +59,7 @@ You can cancel or modify the booking if the hotel’s policy allows.
 Cancellation policies are shown during booking. Changes made through support may incur a fee of up to $25.
 
 To modify or cancel a booking:
-1. Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+1. Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 2. In the window that opens, click the **Trips** tab.
 3. Find your trip and click **Modify or Cancel**
 

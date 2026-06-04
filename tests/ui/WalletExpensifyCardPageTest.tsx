@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -31,7 +32,7 @@ const userCardID = '1234';
 // Renders the ExpensifyCardPage inside a navigation container with necessary providers.
 const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrencyListContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrencyListContextProvider, MultifactorAuthenticationContextProviders]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -74,7 +75,7 @@ describe('ExpensifyCardPage', () => {
         jest.clearAllMocks();
     });
 
-    it('should show the Report Fraud and Reveal details options on screen', async () => {
+    it('should show the Report Fraud and Reveal options on screen', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -106,9 +107,9 @@ describe('ExpensifyCardPage', () => {
             expect(screen.getByText(TestHelper.translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
         });
 
-        // Verify that the "Reveal Details" option is displayed on the screen.
+        // Verify that the "Reveal" option is displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.reveal'))).toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -116,7 +117,7 @@ describe('ExpensifyCardPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should not show the Report Fraud and Reveal details options on screen', async () => {
+    it('should not show the Report Fraud and Reveal options on screen', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -155,9 +156,9 @@ describe('ExpensifyCardPage', () => {
             expect(screen.queryByText(TestHelper.translateLocal('cardPage.reportFraud'))).not.toBeOnTheScreen();
         });
 
-        // Verify that the "Reveal Details" option is NOT displayed on the screen.
+        // Verify that the "Reveal" option is NOT displayed on the screen.
         await waitFor(() => {
-            expect(screen.queryByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.cardDetails.reveal'))).not.toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -181,6 +182,7 @@ describe('ExpensifyCardPage', () => {
                         isVirtual: false,
                         cardTitle: 'Test Card',
                         feedCountry: CONST.COUNTRY.US,
+                        currency: 'USD',
                     },
                     availableSpend: 50000,
                     fraud: null,
@@ -219,6 +221,7 @@ describe('ExpensifyCardPage', () => {
                         isVirtual: false,
                         cardTitle: 'Test Card',
                         feedCountry: CONST.COUNTRY.GB,
+                        currency: 'GBP',
                     },
                     availableSpend: 50000,
                     fraud: null,
@@ -256,6 +259,7 @@ describe('ExpensifyCardPage', () => {
                         isVirtual: false,
                         cardTitle: 'Combo Physical Card',
                         feedCountry: CONST.COUNTRY.GB,
+                        currency: 'GBP',
                     },
                     availableSpend: 50000,
                     fraud: null,
@@ -287,6 +291,42 @@ describe('ExpensifyCardPage', () => {
             expect(screen.getByText(TestHelper.translateLocal('cardPage.physicalCardNumber'))).toBeOnTheScreen();
         });
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the Get Physical Card button when card state is STATE_NOT_ISSUED', async () => {
+        // Sign in as a test user before running the test.
+        await TestHelper.signInWithTestUser();
+
+        // Add a mock card to Onyx storage with STATE_NOT_ISSUED state.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                    domainName: 'xyz',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: false,
+                        cardTitle: 'Test Physical Card',
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // Render the page with the specified card ID.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.getPhysicalCard'))).toBeOnTheScreen();
+        });
+
+        // Unmount the component after assertions to clean up.
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

@@ -1,3 +1,5 @@
+import type CONST from '@src/CONST';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
@@ -13,7 +15,7 @@ type GeneralDomainMemberErrors = {
 /**
  * Errors for domain members
  */
-type DomainMemberErrors = GeneralDomainMemberErrors & {
+type DomainMemberErrors = {
     /**
      * Errors related to a specific domain vacation delegate
      */
@@ -23,6 +25,65 @@ type DomainMemberErrors = GeneralDomainMemberErrors & {
      * Errors related to the list of emails exempt from the 2FA requirement
      */
     twoFactorAuthExemptEmailsError?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to specific domain member lock account status.
+     */
+    lockAccountErrors?: OnyxCommon.Errors;
+    /**
+     * Errors related to changing domain member group.
+     */
+    changeDomainSecurityGroupErrors?: OnyxCommon.Errors;
+} & GeneralDomainMemberErrors;
+
+/**
+ * Errors related to a domain security group
+ */
+type DomainSecurityGroupErrors = {
+    /**
+     * Errors related to the security group name
+     */
+    nameErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the default security group ID setting
+     */
+    defaultSecurityGroupIDErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the strictly enforce workspace rules setting
+     */
+    enableStrictPolicyRulesErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the restricted expense workspace creation
+     */
+    enableRestrictedPolicyCreationErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to group-level operations (create, delete) on the security group
+     */
+    errors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to toggling the preferred workspace setting
+     */
+    enableRestrictedPrimaryPolicyErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to changing the preferred workspace ID
+     */
+    restrictedPrimaryPolicyIDErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the restricted default login selection
+     */
+    enableRestrictedPrimaryLoginErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the override preferred policy with card policy setting
+     */
+    overridePreferredPolicyWithCardPolicyErrors?: OnyxCommon.Errors;
 };
 
 /**
@@ -45,7 +106,7 @@ type DomainErrors = {
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to specific domain member, keyed by their accountID. memberErrors are keyed with user email, NOT accountID
+     * Errors related to specific domain member, keyed by their user email, (NOT accountID)
      */
     memberErrors?: Record<string | number, DomainMemberErrors>;
 
@@ -58,7 +119,7 @@ type DomainErrors = {
      * Errors related to the 2FA toggle
      */
     setTwoFactorAuthRequiredError?: OnyxCommon.Errors;
-};
+} & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupErrors>;
 
-export type {GeneralDomainMemberErrors, DomainMemberErrors};
+export type {DomainMemberErrors, DomainSecurityGroupErrors};
 export default DomainErrors;

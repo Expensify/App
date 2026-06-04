@@ -179,6 +179,10 @@ export default {
         marginRight: 40,
     },
 
+    mr13: {
+        marginRight: 52,
+    },
+
     mrn1: {
         marginRight: -4,
     },
@@ -329,6 +333,10 @@ export default {
 
     mt9: {
         marginTop: 36,
+    },
+
+    mt10: {
+        marginTop: 40,
     },
 
     mt11: {
@@ -615,6 +623,10 @@ export default {
         paddingRight: 4,
     },
 
+    pr1half: {
+        paddingRight: 6,
+    },
+
     pr2: {
         paddingRight: 8,
     },
@@ -641,6 +653,10 @@ export default {
 
     pr8: {
         paddingRight: 32,
+    },
+
+    pr9: {
+        paddingRight: 36,
     },
 
     pr10: {
@@ -896,5 +912,9 @@ export default {
     },
     maxHeight100Percentage: {
         maxHeight: '100%',
+    },
+
+    maxWidth100Percentage: {
+        maxWidth: '100%',
     },
 } satisfies Record<string, ViewStyle>;

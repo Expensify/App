@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -43,7 +43,7 @@ type UberEmployeeStatus = ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPL
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['SewerDino']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -125,7 +125,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
 
         const buttonStyles = [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, true, false, false, false, true, false),
+            StyleUtils.getButtonStyleWithIcon(styles, CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL, true, false),
             styles.ml3,
             {minWidth: variables.uberEmployeeInviteButtonWidth},
         ];
@@ -167,7 +167,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     <Badge
                         text={badgeText}
                         success={isSuccess}
-                        style={[styles.ml3]}
+                        badgeStyles={styles.ml3}
                     />
                 );
             }
@@ -307,7 +307,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                     <TabScreenWithFocusTrapWrapper>
                                         <SelectionList
                                             data={filteredMembers}
-                                            ListItem={UserListItem}
+                                            ListItem={BareUserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
                                             style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
@@ -320,7 +320,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                                 headerMessage: currentHeaderMessage,
                                             }}
                                             listEmptyContent={listEmptyContent}
-                                            showListEmptyContent={shouldShowListEmptyContent}
+                                            shouldShowListEmptyContent={shouldShowListEmptyContent}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 );

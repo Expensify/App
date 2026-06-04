@@ -13,12 +13,53 @@ import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
+import {joinAccessiblePolicy} from '@userActions/Policy/Member';
+import {createWorkspace} from '@userActions/Policy/Policy';
+import {completeOnboarding} from '@userActions/Report';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const mockCreateWorkspace = jest.mocked(createWorkspace);
+const mockCompleteOnboarding = jest.mocked(completeOnboarding);
+const mockJoinAccessiblePolicy = jest.mocked(joinAccessiblePolicy);
+
+jest.mock('@userActions/Report', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Report');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        completeOnboarding: jest.fn(),
+    };
+});
+
+jest.mock('@userActions/Policy/Policy', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Policy/Policy');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        createWorkspace: jest.fn().mockReturnValue({
+            policyID: 'test-policy-id',
+            adminsChatReportID: 'test-admins-report-id',
+        }),
+    };
+});
+
+jest.mock('@userActions/Policy/Member', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Policy/Member');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        joinAccessiblePolicy: jest.fn(),
+    };
+});
 
 TestHelper.setupGlobalFetchMock();
 
@@ -49,6 +90,7 @@ describe('OnboardingWorkspaces Page', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(() => {
@@ -98,7 +140,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding accounting page when skip is pressed and user is routed app via VSB', async () => {
+    it('should navigate to Onboarding employees page when skip is pressed and user is routed app via VSB', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -124,9 +166,168 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
         });
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not show the back button on join workspace after Add work email flow', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the back button on join workspace for the standard personal details flow', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create a Submit workspace when skip is pressed with EMPLOYER purpose and Submit2026 beta', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const skipButton = screen.getByTestId('onboardingWorkSpaceSkipButton');
+
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: skipButton,
+            currentTarget: skipButton,
+        };
+
+        fireEvent.press(skipButton, mockEvent);
+
+        await waitFor(() => {
+            expect(mockCreateWorkspace).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should complete onboarding without passing the joined workspace policyID and open Categories in the admins room', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+                firstName: 'Test',
+                lastName: 'User',
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                submitPolicyID: {
+                    policyID: 'submit-policy-id',
+                    policyName: 'Submit Workspace',
+                    policyOwner: 'owner@test.com',
+                    employeeCount: 4,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.SUBMIT,
+                },
+            });
+        });
+
+        const onyxSetSpy = jest.spyOn(Onyx, 'set');
+        onyxSetSpy.mockClear();
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+
+        await waitFor(() => {
+            expect(mockJoinAccessiblePolicy).toHaveBeenCalledWith('submit-policy-id');
+        });
+
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                }),
+            );
+        });
+        const lastCompleteOnboardingArgs = mockCompleteOnboarding.mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined;
+        expect(lastCompleteOnboardingArgs).not.toHaveProperty('onboardingPolicyID');
+
+        await waitFor(() => {
+            expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
+            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('submit-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+        });
+
+        onyxSetSpy.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

@@ -2,9 +2,11 @@ import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
+import type Attachment from './Attachment';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
@@ -35,19 +37,24 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
+import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
+import type CopyPolicySettings from './CopyPolicySettings';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DeferredAgentWorkflowSave from './DeferredAgentWorkflowSave';
 import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    SortedReportActionsDerivedValue,
     TodoMetadata,
     TodosDerivedValue,
     VisibleReportActionsDerivedValue,
@@ -64,6 +71,8 @@ import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
+import type ExportDownload from './ExportDownload';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -72,6 +81,7 @@ import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
+import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -79,16 +89,20 @@ import type LastExportMethod from './LastExportMethod';
 import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
+import type LocallyProcessed3DSChallengeReviews from './LocallyProcessed3DSChallengeReviews';
 import type LocalPasskeyCredentialsEntry from './LocalPasskeyCredentialsEntry';
 import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredentialsEntry';
 import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
+import type {Login as NewLogin} from './Logins';
+import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
+import type OdometerDraft from './OdometerDraft';
 import type Onboarding from './Onboarding';
 import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
@@ -98,11 +112,12 @@ import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
+import type {AddNewPersonalCard, PersonalCardFeed} from './PersonalCard';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
@@ -110,6 +125,7 @@ import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
 import type QuickAction from './QuickAction';
@@ -125,18 +141,21 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
+import type ReportLastVisitTimes from './ReportLastVisitTimes';
 import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
+import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
+import type ReportPaginationState from './ReportPaginationState';
 import type ReportUserIsTyping from './ReportUserIsTyping';
-import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
-import type ReportViolations from './ReportViolation';
+import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
+import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
@@ -148,12 +167,16 @@ import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
+import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
+import type TransactionPending3DSReview from './TransactionPending3DSReview';
+import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type TravelInvoiceStatement from './TravelInvoiceStatement';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
@@ -175,13 +198,18 @@ import type WalletTransfer from './WalletTransfer';
 export type {
     FileObject,
     TryNewDot,
+    Attachment,
     Account,
     AccountData,
     AssignCard,
+    TransactionPending3DSReview,
+    TransactionsPending3DSReview,
     BankAccount,
     BankAccountList,
     Beta,
+    AddNewPersonalCard,
     BetaConfiguration,
+    PersonalCardFeed,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -196,10 +224,14 @@ export type {
     DismissedReferralBanners,
     Domain,
     Download,
+    ExportDownload,
     DuplicateWorkspace,
+    CopyPolicySettings,
     WorkspaceCardsList,
     ExpenseRule,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
+    NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
@@ -223,6 +255,8 @@ export type {
     LockAccountDetails,
     Login,
     LoginList,
+    NewLogin,
+    Logins,
     PasskeyCredential,
     PasskeyTransport,
     PendingContactAction,
@@ -233,7 +267,9 @@ export type {
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
     AnyOnyxUpdatesFromServer,
+    OdometerDraft,
     Pages,
+    ConciergePendingFollowupList,
     PendingConciergeResponse,
     PersonalBankAccount,
     PersonalDetails,
@@ -248,6 +284,7 @@ export type {
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
+    AutoReportingOffset,
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
@@ -255,6 +292,8 @@ export type {
     QuickAction,
     ShareBankAccount,
     RecentWaypoint,
+    SavedCSVColumnLayoutList,
+    SavedCSVColumnLayoutData,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
@@ -265,11 +304,12 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    ReportLastVisitTimes,
+    ReportLoadingState,
     ReportMetadata,
     ReportNextStepDeprecated,
+    ReportPaginationState,
     ReportViolationName,
-    ReportViolations,
-    ReportFieldsViolations,
     ReportLayoutGroupBy,
     GroupedTransactions,
     AnyRequest,
@@ -296,6 +336,7 @@ export type {
     WalletAdditionalDetails,
     WalletAdditionalQuestionDetails,
     WalletOnfido,
+    TravelInvoiceStatement,
     WalletStatement,
     WalletTerms,
     WalletTransfer,
@@ -314,11 +355,13 @@ export type {
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,
+    PrivatePromoDiscount,
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
+    DeferredAgentWorkflowSave,
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
@@ -342,12 +385,15 @@ export type {
     DismissedProductTraining,
     TravelProvisioning,
     SidePanel,
+    SidePanelContext,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
+    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
@@ -367,4 +413,7 @@ export type {
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
+    LocallyProcessed3DSChallengeReviews,
+    InitiatingBankAccountUnlock,
+    AgentPrompt,
 };

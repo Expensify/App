@@ -5,7 +5,7 @@ const scrollToBottom: ScrollInput = (input) => {
         return;
     }
     // eslint-disable-next-line no-param-reassign
-    input.scrollTop = input.scrollHeight;
+    (input as HTMLInputElement).scrollTop = input.scrollHeight;
 };
 
 const scrollToRight: ScrollInput = (input) => {
@@ -14,7 +14,7 @@ const scrollToRight: ScrollInput = (input) => {
     }
     // Scroll to the far right
     // eslint-disable-next-line no-param-reassign
-    input.scrollLeft = input.scrollWidth;
+    (input as HTMLInputElement).scrollLeft = input.scrollWidth;
 };
 
 const moveSelectionToEnd: MoveSelectionToEnd = (input) => {

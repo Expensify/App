@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -25,6 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {findSelfDMReportID} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,15 +43,14 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const {transactionID, isOnSearch, backTo} = route.params;
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
-    const policyID = targetTransactionReport?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetTransactionPolicy?.id}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetTransactionPolicy?.id}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
@@ -81,12 +82,13 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             targetTransactionThreadParentReport,
             targetTransactionThreadParentReportNextStep,
             allTransactionViolations,
-            policy,
+            policy: targetTransactionPolicy,
             policyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            delegateAccountID,
             selfDMReport,
         });
 
@@ -112,7 +114,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TransactionMerge.ConfirmationPage',
+            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -133,7 +139,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                         <Text>{translate('transactionMerge.confirmationPage.pageTitle')}</Text>
                     </View>
                     <MoneyRequestView
-                        expensePolicy={policy}
+                        expensePolicy={targetTransactionPolicy}
                         parentReportID={targetTransactionReport?.reportID}
                         shouldShowAnimatedBackground={false}
                         readonly

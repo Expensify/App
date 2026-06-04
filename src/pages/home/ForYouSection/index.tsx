@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,12 +10,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
+import ForYouSkeleton from './ForYouSkeleton';
 
 function ForYouSection() {
     const styles = useThemeStyles();
@@ -25,15 +26,20 @@ function ForYouSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    // HAS_LOADED_APP flips to true once the first OpenApp completes and persists across reconnects.
+    // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
+    // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
+    const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
-    const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
-    const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
-    const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
-    const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
+    const submitCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.SUBMIT] ?? 0;
+    const approveCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.APPROVE] ?? 0;
+    const payCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.PAY] ?? 0;
+    const exportCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.EXPORT] ?? 0;
 
     const hasAnyTodos = submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
 
@@ -41,9 +47,9 @@ function ForYouSection() {
         (action: string, queryParams: Record<string, unknown>, reportID?: string) => () => {
             if (reportID) {
                 if (shouldUseNarrowLayout) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
                 } else {
-                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}));
+                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
                 }
                 return;
             }
@@ -122,12 +128,16 @@ function ForYouSection() {
     );
 
     const renderContent = () => {
-        if (isLoadingApp) {
-            return (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.pv6, styles.mb8]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                </View>
-            );
+        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
+        if (isInitialLoad) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'ForYouSection.ForYouSkeleton',
+                isLoadingApp,
+                isLoadingReportData,
+                hasLoadedApp,
+                isReportCountsUndefined: reportCounts === undefined,
+            };
+            return <ForYouSkeleton reasonAttributes={reasonAttributes} />;
         }
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;

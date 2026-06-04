@@ -10,6 +10,7 @@ import useSubPage from '@hooks/useSubPage';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {updateSubscriptionSize} from '@userActions/Subscription';
 import CONST from '@src/CONST';
@@ -61,7 +62,8 @@ function SubscriptionSizePage() {
     }
 
     if (!privateSubscription) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSize', privateSubscriptionLoaded: false};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

@@ -22,5 +22,5 @@ type ExpenseRuleForm = Form<
     }
 >;
 
-export type {ExpenseRuleForm, InputID};
-export default INPUT_IDS;
+// eslint-disable-next-line import/prefer-default-export
+export type {ExpenseRuleForm};

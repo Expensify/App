@@ -1,17 +1,16 @@
 import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
-import type {StackNavigationOptions, StackNavigationProp} from '@react-navigation/stack';
-import React, {useLayoutEffect} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import type {PlatformStackNavigationOptions, PlatformStackNavigationProp} from './types';
+import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
+import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationProp} from './types';
 
 // screenLayout is invoked as a render function (not JSX), so we need this wrapper to create a proper React component boundary for hooks.
-function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, StackNavigationOptions | PlatformStackNavigationOptions, string>) {
+function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions, string>) {
     return (
         <ScreenLayout
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             // The type cast is needed because useNavigationBuilder hardcodes the Navigation generic to `string`.
-            navigation={navigation as unknown as StackNavigationProp<ParamListBase>}
+            navigation={navigation as unknown as PlatformStackNavigationProp<ParamListBase>}
         />
     );
 }
@@ -19,22 +18,26 @@ function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBa
 function ScreenLayout({
     children,
     navigation,
-    options,
-    route,
-}: ScreenLayoutArgs<ParamListBase, string, StackNavigationOptions | PlatformStackNavigationOptions, PlatformStackNavigationProp<ParamListBase>>) {
+}: ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions, PlatformStackNavigationProp<ParamListBase>>) {
+    const transitionHandleRef = useRef<TransitionHandle | null>(null);
+
     useLayoutEffect(() => {
         const transitionStartListener = navigation.addListener('transitionStart', () => {
-            TransitionTracker.startTransition();
+            transitionHandleRef.current = TransitionTracker.startTransition();
         });
         const transitionEndListener = navigation.addListener('transitionEnd', () => {
-            TransitionTracker.endTransition();
+            if (!transitionHandleRef.current) {
+                return;
+            }
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
         });
 
         return () => {
             transitionStartListener();
             transitionEndListener();
         };
-    }, [navigation, options.animation, route?.name]);
+    }, [navigation]);
 
     return children;
 }

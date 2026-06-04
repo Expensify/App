@@ -1,3 +1,4 @@
+import type * as CoreNavigation from '@react-navigation/core';
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -7,7 +8,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
@@ -20,7 +21,23 @@ const FAKE_ACCOUNT_ID = 15593135;
 const FAKE_TRANSACTION_ID = 'FAKE_TXN_001';
 const FAKE_EMAIL = 'testuser@example.com';
 
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useNavigationState: () => true,
+    usePreventRemove: jest.fn(),
+    useRoute: () => ({
+        key: 'test-key',
+        name: 'Report' as never,
+        params: {reportID: FAKE_REPORT_ID},
+    }),
+}));
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+}));
+
+jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
@@ -36,6 +53,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getState: jest.fn(() => ({})),
     },
     getActiveRoute: jest.fn(() => 'activeRoute'),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getDeepestFocusedScreen: jest.fn(() => undefined),
 }));
 
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
@@ -81,7 +101,6 @@ jest.mock('@hooks/useSelectedTransactionsActions', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {default: C} = require('@src/CONST');
     return jest.fn(() => ({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         options: [
             {
                 text: 'Delete',
@@ -178,15 +197,7 @@ const renderComponent = () => {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
-                    <MoneyRequestReportActionsList
-                        report={mockReport}
-                        policy={mockPolicy}
-                        reportActions={[mockReportAction]}
-                        transactions={[mockTransaction]}
-                        newTransactions={[]}
-                        hasNewerActions={false}
-                        hasOlderActions={false}
-                    />
+                    <MoneyRequestReportActionsList />
                 </ScreenWrapper>
             </SearchContextProvider>
         </ComposeProviders>,
@@ -200,11 +211,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
     beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
-        });
-        jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({
-            key: 'test-key',
-            name: 'Report' as never,
-            params: {reportID: FAKE_REPORT_ID},
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         await TestHelper.signInWithTestUser(FAKE_ACCOUNT_ID, FAKE_EMAIL);
@@ -212,6 +219,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -225,6 +233,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
             });
         });

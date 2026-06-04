@@ -1,5 +1,5 @@
 import type {PropsWithChildren} from 'react';
-import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import type {CardList, ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -40,33 +40,25 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
-    const cardListErrors = useMemo(() => {
-        if (!cardList) {
-            return {};
-        }
-        const errors: Record<string, Errors | undefined> = {};
+    const cardListErrors: Record<string, Errors | undefined> = {};
+    if (cardList) {
         for (const cardID of Object.keys(cardList)) {
-            errors[cardID] = cardList[cardID]?.errors;
+            cardListErrors[cardID] = cardList[cardID]?.errors;
         }
-        return errors;
-    }, [cardList]);
+    }
 
-    // Update error state when error is cleared in Onyx DB
-    useEffect(() => {
-        setCardsDetailsErrors((prevErrors) => {
-            const clearedErrors = {...prevErrors};
-            for (const cardID of Object.keys(clearedErrors)) {
-                if (cardListErrors[cardID] && Object.keys(cardListErrors[cardID]).length > 0) {
-                    continue;
-                }
-                delete clearedErrors[Number(cardID)];
-            }
-            return clearedErrors;
-        });
-    }, [cardListErrors]);
+    // Only show detail errors for cards that still have card list errors.
+    // When card list errors clear, we stop showing the corresponding detail error without mutating state.
+    const effectiveCardsDetailsErrors: Record<number, string> = {};
+    for (const cardID of Object.keys(cardsDetailsErrors)) {
+        const numID = Number(cardID);
+        const listErrors = cardListErrors[cardID];
+        if (listErrors && Object.keys(listErrors).length > 0) {
+            effectiveCardsDetailsErrors[numID] = cardsDetailsErrors[numID];
+        }
+    }
 
     // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue: ExpensifyCardActionsContextType = {
         setCardsDetails,
         setIsCardDetailsLoading,
@@ -74,11 +66,10 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     };
 
     // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue: ExpensifyCardStateContextType = {
         cardsDetails,
         isCardDetailsLoading,
-        cardsDetailsErrors,
+        cardsDetailsErrors: effectiveCardsDetailsErrors,
     };
 
     return (

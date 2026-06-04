@@ -62,6 +62,9 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Customize the Icon container */
     iconContainerStyles?: StyleProp<ViewStyle>;
 
+    /** Customize the Central pane container */
+    centralPaneContainerStyle?: StyleProp<ViewStyle>;
+
     /** Whether the section is in the central pane of the layout */
     isCentralPane?: boolean;
 
@@ -115,6 +118,7 @@ function Section({
     renderTitle,
     titleStyles,
     isCentralPane = false,
+    centralPaneContainerStyle,
     illustration,
     illustrationBackgroundColor,
     illustrationContainerStyle,
@@ -130,7 +134,6 @@ function Section({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     const lottieIllustration = isLottie ? illustration : undefined;
@@ -162,7 +165,6 @@ function Section({
                                 source={illustration}
                                 style={styles.h100}
                                 webStyle={styles.h100}
-                                autoPlay
                                 loop
                                 shouldLoadAfterInteractions={shouldUseNarrowLayout}
                             />
@@ -176,7 +178,7 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8))]}>
+            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8)), centralPaneContainerStyle]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection

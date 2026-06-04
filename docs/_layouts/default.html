@@ -24,6 +24,9 @@
 
     <!-- SEO tags -->
     {% seo %}
+    {% if page.noindex %}
+    <meta name="robots" content="noindex, nofollow">
+    {% endif %}
 </head>
 <body{% if page.url contains "/search" %} class="mobile-lhn"{% endif %}>
     <!-- Google Tag Manager (noscript) -->

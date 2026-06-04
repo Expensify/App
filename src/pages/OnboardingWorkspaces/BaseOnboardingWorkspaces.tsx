@@ -1,22 +1,26 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React from 'react';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
@@ -27,19 +31,22 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'DownArrow']);
     const {isOffline} = useNetwork();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
+    const [showAll, setShowAll] = useState(false);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
@@ -51,6 +58,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const isValidated = isCurrentUserValidated(loginList, session?.email);
@@ -61,24 +69,39 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026;
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
+    const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
+        const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
+        const shouldUseSubmitFlow = canUseSubmit2026 && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
+
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
         } else {
             askToJoinPolicy(policy.policyID);
         }
+
         completeOnboarding({
             engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
             onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
-            shouldSkipTestDriveModal: !!(policy.automaticJoiningEnabled ? policy.policyID : undefined),
             companySize: onboardingCompanySize,
             introSelected,
+            isSelfTourViewed,
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
+
+        if (shouldUseSubmitFlow) {
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout);
+            return;
+        }
 
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
@@ -91,33 +114,39 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         );
     };
 
-    const policyIDItems = Object.values(joinablePolicies ?? {}).map((policyInfo) => ({
-        text: policyInfo.policyName,
-        alternateText: translate('onboarding.workspaceMemberList', {employeeCount: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
-        keyForList: policyInfo.policyID,
-        isDisabled: true,
-        rightElement: (
-            <Button
-                isDisabled={isOffline}
-                success
-                medium
-                text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
-                onPress={() => {
-                    handleJoinWorkspace(policyInfo);
-                }}
-                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
-            />
-        ),
-        icons: [
-            {
-                id: policyInfo.policyID,
-                source: getDefaultWorkspaceAvatar(policyInfo.policyName),
-                fallbackIcon: icons.FallbackWorkspaceAvatar,
-                name: policyInfo.policyName,
-                type: CONST.ICON_TYPE_WORKSPACE,
-            },
-        ],
-    }));
+    const allPolicyIDItems = Object.values(joinablePolicies ?? {})
+        .filter((policyInfo) => policyInfo.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026)
+        .sort((a, b) => b.employeeCount - a.employeeCount)
+        .map((policyInfo) => ({
+            text: policyInfo.policyName,
+            alternateText: translate('onboarding.workspaceMemberList', policyInfo.employeeCount, policyInfo.policyOwner),
+            keyForList: policyInfo.policyID,
+            isDisabled: true,
+            rightElement: (
+                <Button
+                    isDisabled={isOffline}
+                    success
+                    medium
+                    text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
+                    onPress={() => {
+                        handleJoinWorkspace(policyInfo);
+                    }}
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
+                />
+            ),
+            icons: [
+                {
+                    id: policyInfo.policyID,
+                    source: getDefaultWorkspaceAvatar(policyInfo.policyName),
+                    fallbackIcon: icons.FallbackWorkspaceAvatar,
+                    name: policyInfo.policyName,
+                    type: CONST.ICON_TYPE_WORKSPACE,
+                },
+            ],
+        }));
+
+    const hasMoreThanLimit = allPolicyIDItems.length > CONST.ONBOARDING_JOINABLE_WORKSPACES_LIMIT;
+    const policyIDItems = !showAll && hasMoreThanLimit ? allPolicyIDItems.slice(0, CONST.ONBOARDING_JOINABLE_WORKSPACES_LIMIT) : allPolicyIDItems;
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
@@ -130,12 +159,12 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     });
 
     const skipJoiningWorkspaces = () => {
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+        if (isEmployerWithSubmit) {
+            autoCreateSubmitWorkspace(onboardingPersonalDetails?.firstName ?? '', onboardingPersonalDetails?.lastName ?? '');
             return;
         }
 
-        if (isSmb) {
+        if (isVsb || isSmb) {
             Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
             return;
         }
@@ -151,17 +180,18 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={60}
+                shouldShowBackButton={!shouldHideBackButton}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldDisplayHelpButton={false}
             />
             <SelectionList
                 data={policyIDItems}
                 onSelectRow={() => {}}
-                ListItem={UserListItem}
+                ListItem={BareUserListItem}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
-                showLoadingPlaceholder={joinablePoliciesLoading}
+                shouldShowLoadingPlaceholder={joinablePoliciesLoading}
                 shouldStopPropagation
                 showScrollIndicator
                 customListHeader={
@@ -175,11 +205,30 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                         <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
                     </View>
                 }
+                listFooterContent={
+                    hasMoreThanLimit && !showAll ? (
+                        <View style={[wrapperPadding, styles.alignItemsStart]}>
+                            <Button
+                                text={translate('common.showMore')}
+                                onPress={() => setShowAll(true)}
+                                link
+                                shouldUseDefaultHover={false}
+                                medium
+                                shouldShowRightIcon
+                                iconRight={icons.DownArrow}
+                                iconRightFill={theme.link}
+                                iconRightHoverFill={theme.linkHover}
+                                innerStyles={styles.ph0}
+                                textStyles={[styles.fontSizeNormal]}
+                            />
+                        </View>
+                    ) : null
+                }
                 footerContent={
                     <Button
                         success={false}
                         large
-                        text={translate('common.skip')}
+                        text={translate('onboarding.skipForNow')}
                         testID="onboardingWorkSpaceSkipButton"
                         onPress={skipJoiningWorkspaces}
                         style={[styles.mt5]}

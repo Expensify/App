@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handlePlaidError, openPlaidBankAccountSelector, openPlaidBankLogin, setPlaidEvent} from '@libs/actions/BankAccounts';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {handleRestrictedEvent} from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,7 +83,7 @@ function AddPlaidBankAccount({
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {initWithStoredValues: false});
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -217,7 +218,7 @@ function AddPlaidBankAccount({
                         }
                     }}
                     // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
                     onExit={onExitPlaid}
                     receivedRedirectURI={receivedRedirectURI}
                 />
@@ -229,9 +230,13 @@ function AddPlaidBankAccount({
         }
 
         if (plaidData?.isLoading) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddPlaidBankAccount', isLoading: !!plaidData.isLoading};
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={reasonAttributes}
+                    />
                 </View>
             );
         }
@@ -246,9 +251,11 @@ function AddPlaidBankAccount({
 
     return (
         <FullPageOfflineBlockingView>
-            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
-            {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+            <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>
+                {translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}
+            </Text>
+            {!!text && <Text style={[styles.mh5, styles.mb6, styles.textSupporting]}>{text}</Text>}
+            <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                 <Icon
                     src={icon}
                     height={iconSize}
@@ -262,14 +269,16 @@ function AddPlaidBankAccount({
                     )}
                 </View>
             </View>
-            <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+            <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
             <RadioButtons
                 items={options}
                 defaultCheckedValue={defaultSelectedPlaidAccountID}
-                onPress={handleSelectingPlaidAccount}
-                radioButtonStyle={[styles.mb6]}
+                onSelect={handleSelectingPlaidAccount}
             />
-            <FormHelpMessage message={errorText} />
+            <FormHelpMessage
+                style={styles.mh5}
+                message={errorText}
+            />
         </FullPageOfflineBlockingView>
     );
 }

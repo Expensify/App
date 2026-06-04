@@ -1,6 +1,39 @@
-import {requiresTwoFactorAuthSelector} from '@selectors/Account';
+import {accountGuideDetailsSelector, primaryLoginSelector, requiresTwoFactorAuthSelector} from '@selectors/Account';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Account} from '@src/types/onyx';
+
+describe('primaryLoginSelector', () => {
+    it('returns primaryLogin when present', () => {
+        const account: OnyxEntry<Account> = {primaryLogin: 'user@expensify.com'};
+        expect(primaryLoginSelector(account)).toBe('user@expensify.com');
+    });
+
+    it('returns undefined when primaryLogin is not set', () => {
+        const account: OnyxEntry<Account> = {};
+        expect(primaryLoginSelector(account)).toBeUndefined();
+    });
+
+    it('returns undefined when account is undefined', () => {
+        expect(primaryLoginSelector(undefined)).toBeUndefined();
+    });
+});
+
+describe('accountGuideDetailsSelector', () => {
+    it('returns guideDetails when present', () => {
+        const guideDetails = {email: 'guide@expensify.com', calendarLink: 'https://calendly.com/guide'};
+        const account: OnyxEntry<Account> = {guideDetails};
+        expect(accountGuideDetailsSelector(account)).toEqual(guideDetails);
+    });
+
+    it('returns undefined when guideDetails is not set', () => {
+        const account: OnyxEntry<Account> = {};
+        expect(accountGuideDetailsSelector(account)).toBeUndefined();
+    });
+
+    it('returns undefined when account is undefined', () => {
+        expect(accountGuideDetailsSelector(undefined)).toBeUndefined();
+    });
+});
 
 describe('requiresTwoFactorAuthSelector', () => {
     it('returns true when requiresTwoFactorAuth is true', () => {

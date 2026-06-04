@@ -2,7 +2,7 @@ import React from 'react';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getCreatedReportForUnapprovedTransactionsMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getCreatedReportForUnapprovedTransactionsMessage, getOriginalMessage, isOriginalReportDeleted} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import type CONST from '@src/CONST';
@@ -17,9 +17,9 @@ type CreatedReportForUnapprovedTransactionsActionProps = {
 function CreatedReportForUnapprovedTransactionsAction({action}: CreatedReportForUnapprovedTransactionsActionProps) {
     const {originalID} = getOriginalMessage(action) ?? {};
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalID}`);
-    const reportName = getReportName(report);
-    const htmlContent = `<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate)}</muted-text></comment>`;
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalID}`);
+    const reportName = getReportName(originalReport);
+    const htmlContent = `<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(action, originalReport), translate)}</muted-text></comment>`;
 
     return (
         <ReportActionItemBasicMessage>

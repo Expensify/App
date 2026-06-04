@@ -1,3 +1,9 @@
+import fs from 'fs';
+import {globSync} from 'glob';
+import path from 'path';
+
+const DEFAULT_EXTENSIONS = ['.ts', '.tsx'];
+
 const ERROR_MESSAGES = {
     SOURCE_CANNOT_BE_EMPTY: 'Source cannot be empty',
     INDEX_CANNOT_BE_NEGATIVE: 'Index cannot be negative',
@@ -30,6 +36,44 @@ const FileUtils = {
         const lastLineBreakIndex = substring.lastIndexOf('\n');
         const column = lastLineBreakIndex === -1 ? index + 1 : index - lastLineBreakIndex;
         return {line, column};
+    },
+
+    /**
+     * Resolve a list of inputs (file paths, directories, or glob patterns) to concrete file paths.
+     * Directories are expanded recursively. Results are deduplicated.
+     *
+     * @param inputs - File paths, directories, or glob patterns
+     * @param extensions - File extensions to include (default: .ts, .tsx)
+     */
+    resolveFilePaths: (inputs: string[], extensions: string[] = DEFAULT_EXTENSIONS): string[] => {
+        const resolved = new Set<string>();
+
+        for (const input of inputs) {
+            const absoluteInput = path.resolve(input);
+            const exists = fs.existsSync(absoluteInput);
+            const stat = exists ? fs.statSync(absoluteInput) : null;
+
+            if (exists && stat?.isDirectory()) {
+                const pattern = path.join(absoluteInput, '**', `*{${extensions.join(',')}}`);
+                for (const file of globSync(pattern)) {
+                    resolved.add(file);
+                }
+                continue;
+            }
+
+            if (exists && stat?.isFile()) {
+                resolved.add(absoluteInput);
+                continue;
+            }
+
+            for (const file of globSync(input, {absolute: true})) {
+                if (extensions.some((ext) => file.endsWith(ext))) {
+                    resolved.add(file);
+                }
+            }
+        }
+
+        return Array.from(resolved);
     },
 };
 

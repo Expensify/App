@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
 import type {TableColumn} from './types';
 
@@ -20,10 +21,7 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps = ViewProps & {
-    /** Hide table header when search returns no results. */
-    shouldHideHeaderWhenEmptySearch?: boolean;
-};
+type TableHeaderProps = ViewProps;
 
 /**
  * Renders the table header row with sortable column headers.
@@ -48,20 +46,30 @@ type TableHeaderProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
+function TableHeader<T, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
-    const {columns, isEmptyResult} = useTableContext<T, ColumnKey>();
+    const {columns, isEmptyResult, title, processedData, shouldUseNarrowTableLayout} = useTableContext<T, ColumnKey>();
 
-    if (shouldHideHeaderWhenEmptySearch && isEmptyResult) {
+    if (shouldUseNarrowTableLayout && !title) {
         return null;
     }
+
+    if (isEmptyResult || !processedData.length) {
+        return null;
+    }
+
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
 
     return (
         <View
             style={[
-                styles.appBG,
+                styles.pv2,
+                styles.ph3,
                 styles.mh5,
-                styles.p4,
+                styles.highlightBG,
+                styles.borderBottom,
+                styles.tableTopRadius,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,
@@ -69,20 +77,32 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 styles.gap3,
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
-                {gridTemplateColumns: `repeat(${columns.length}, 1fr)`},
+                !shouldUseNarrowTableLayout && {gridTemplateColumns},
                 style,
             ]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            {columns.map((column) => {
-                return (
-                    <TableHeaderColumn
-                        column={column}
-                        key={column.key}
-                    />
-                );
-            })}
+            {shouldUseNarrowTableLayout && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight]}>
+                    <Text
+                        numberOfLines={1}
+                        color={theme.textSupporting}
+                        style={[styles.lh16, styles.textMicroSupporting, styles.pr1]}
+                    >
+                        {title}
+                    </Text>
+                </View>
+            )}
+
+            {!shouldUseNarrowTableLayout &&
+                columns.map((column) => {
+                    return (
+                        <TableHeaderColumn
+                            column={column}
+                            key={column.key}
+                        />
+                    );
+                })}
         </View>
     );
 }
@@ -96,7 +116,7 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
 function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
 
     const {
         activeSorting,
@@ -122,12 +142,23 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
         toggleColumnSorting(columnKey);
     };
 
+    const tableHeaderStyles = [
+        styles.flexRow,
+        styles.alignItemsCenter,
+        styles.tableHeaderContentHeight,
+        column.styling?.flex ? {flex: column.styling.flex} : styles.flex1,
+        column.styling?.containerStyles,
+        !column.sortable && styles.cursorDefault,
+    ];
+
     return (
         <PressableWithFeedback
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
-            style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
+            sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
+            style={tableHeaderStyles}
+            disabled={!column.sortable}
             onPress={() => toggleSorting(column.key)}
         >
             <Text

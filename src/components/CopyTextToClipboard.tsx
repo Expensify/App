@@ -32,7 +32,7 @@ function CopyTextToClipboard({
     styles,
 }: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     const copyToClipboard = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
