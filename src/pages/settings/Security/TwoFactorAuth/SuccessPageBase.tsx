@@ -19,10 +19,6 @@ function SuccessPageBase({onButtonPress, onBackButtonPress}: SuccessPageBaseProp
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
             title={translate('twoFactorAuth.headerTitle')}
-            stepCounter={{
-                step: 3,
-                text: translate('twoFactorAuth.stepSuccess'),
-            }}
             onBackButtonPress={onBackButtonPress}
         >
             <ConfirmationPage

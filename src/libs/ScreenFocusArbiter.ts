@@ -45,4 +45,3 @@ function isCycleIdle(): boolean {
 }
 
 export {tryClaim, resetCycle, isCycleIdle, Priorities, CYCLE_TIMEOUT_MS};
-export type {Priority};

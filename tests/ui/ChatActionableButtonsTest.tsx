@@ -39,6 +39,7 @@ function renderChatActionableButtons(action: ReportAction, originalReportID: str
                 action={action}
                 originalReportID={originalReportID}
                 reportID={reportID}
+                hasPendingFollowupListSkeleton={false}
             />
         </ComposeProviders>,
     );

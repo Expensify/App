@@ -23,7 +23,7 @@ export default function (): Promise<void> {
                 const gpsPoints = gpsDraftDetails?.gpsPoints;
 
                 // If gpsPoints is already in the correct format or is empty, skip the migration
-                if (!gpsPoints || is2dArray(gpsPoints)) {
+                if (!gpsPoints || is2dArray<GPSPoint>(gpsPoints)) {
                     Log.info('[Migrate Onyx] Skipped ConvertGpsPointsTo2DArray — already correct format or empty');
                     return resolve();
                 }

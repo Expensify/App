@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -16,7 +17,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
+import {getIOURequestPolicyID, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -51,9 +52,11 @@ function IOURequestStepTag({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
+
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
     const {policy: policyFromTransaction} = usePolicyForTransaction({
         transaction,
-        reportPolicyID: report?.policyID,
+        reportPolicyID: getIOURequestPolicyID(transaction, report?.policyID ? report : participantReport),
         action,
         iouType,
         isPerDiemRequest: isPerDiemRequest(transaction),
@@ -74,6 +77,7 @@ function IOURequestStepTag({
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {isOffline} = useNetwork();
 
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
@@ -157,6 +161,7 @@ function IOURequestStepTag({
                 isASAPSubmitBetaEnabled,
                 hash: currentSearchHash,
                 parentReportNextStep,
+                isOffline,
                 delegateAccountID,
             });
             navigateBack();
