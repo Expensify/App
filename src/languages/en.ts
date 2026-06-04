@@ -4985,6 +4985,24 @@ const translations = {
                 oauthDescription: "To finish setup, you'll have to sign in through Salesforce and Certinia.\n\nUse the button below to continue.",
                 connectButton: 'Connect to Certinia',
             },
+            import: {
+                chartOfAccounts: 'Chart of accounts',
+                chartOfAccountsDescription: 'The chart of accounts is imported into Expensify as categories.',
+                dimensionMapping: ({n}: {n: number}) => `Dimension ${n}`,
+                dimensions: {
+                    dimension1: 'Dimension 1',
+                    dimension2: 'Dimension 2',
+                    dimension3: 'Dimension 3',
+                    dimension4: 'Dimension 4',
+                },
+                doNotMap: 'Do not map',
+                doNotMapSubtitle: 'Use employee resource on default',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Do not map',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Imported as tags',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Imported as report fields',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Subsidiary',
@@ -6519,6 +6537,26 @@ const translations = {
                             return 'Importing Sage Intacct dimensions';
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
+                        case 'financialForceSyncTitle':
+                            return 'Syncing Certinia data';
+                        case 'financialForceSyncStep':
+                            return 'Syncing Certinia connection';
+                        case 'financialForceSyncCategories':
+                            return 'Importing categories';
+                        case 'financialForceSyncTags':
+                            return 'Importing tags';
+                        case 'financialForceSyncVendors':
+                            return 'Importing vendors';
+                        case 'financialForceSyncContacts':
+                            return 'Importing contacts';
+                        case 'financialForceSyncCompanies':
+                            return 'Importing companies';
+                        case 'financialForceSyncUsers':
+                            return 'Importing users';
+                        case 'financialForceSyncDimensions':
+                            return 'Importing dimensions';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marking reports as reimbursed';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }

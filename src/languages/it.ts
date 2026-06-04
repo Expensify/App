@@ -4883,6 +4883,19 @@ ${amount} per ${merchant} - ${date}`,
                 oauthDescription: 'Per completare la configurazione, dovrai accedere tramite Salesforce e Certinia.\n\nUsa il pulsante qui sotto per continuare.',
                 connectButton: 'Connetti a Certinia',
             },
+            import: {
+                chartOfAccounts: 'Piano dei conti',
+                chartOfAccountsDescription: 'Il piano dei conti viene importato in Expensify come categorie.',
+                dimensionMapping: ({n}: {n: number}) => `Dimensione ${n}`,
+                dimensions: {dimension1: 'Dimensione 1', dimension2: 'Dimensione 2', dimension3: 'Dimensione 3', dimension4: 'Dimensione 4'},
+                doNotMap: 'Non mappare',
+                doNotMapSubtitle: 'Usa come predefinita la risorsa dipendente',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Non mappare',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importato come tag',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importato come campi del report',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Filiale',
@@ -6461,6 +6474,26 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             return 'Importazione delle dimensioni Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importazione dei dati Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Sincronizzazione dei dati Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Sincronizzazione della connessione Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importazione delle categorie';
+                        case 'financialForceSyncTags':
+                            return 'Importazione dei tag';
+                        case 'financialForceSyncVendors':
+                            return 'Importazione dei fornitori';
+                        case 'financialForceSyncContacts':
+                            return 'Importazione dei contatti';
+                        case 'financialForceSyncCompanies':
+                            return 'Importazione delle aziende';
+                        case 'financialForceSyncUsers':
+                            return 'Importazione degli utenti';
+                        case 'financialForceSyncDimensions':
+                            return 'Importazione delle dimensioni';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Contrassegno dei report come rimborsati';
                         default: {
                             return `Traduzione mancante per lo stato: ${stage}`;
                         }

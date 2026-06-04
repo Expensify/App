@@ -4898,6 +4898,19 @@ ${amount} für ${merchant} – ${date}`,
                 oauthDescription: 'Um die Einrichtung abzuschließen, müssen Sie sich über Salesforce und Certinia anmelden.\n\nVerwenden Sie die Schaltfläche unten, um fortzufahren.',
                 connectButton: 'Mit Certinia verbinden',
             },
+            import: {
+                chartOfAccounts: 'Kontenplan',
+                chartOfAccountsDescription: 'Der Kontenplan wird als Kategorien in Expensify importiert.',
+                dimensionMapping: ({n}: {n: number}) => `Dimension ${n}`,
+                dimensions: {dimension1: 'Dimension 1', dimension2: 'Dimension 2', dimension3: 'Dimension 3', dimension4: 'Dimension 4'},
+                doNotMap: 'Nicht zuordnen',
+                doNotMapSubtitle: 'Mitarbeiterressource standardmäßig verwenden',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Nicht zuordnen',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Als Tags importiert',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Als Berichtsfelder importiert',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Tochtergesellschaft',
@@ -6473,6 +6486,26 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             return 'Sage Intacct-Dimensionen werden importiert';
                         case 'intacctImportTitle':
                             return 'Sage Intacct-Daten importieren';
+                        case 'financialForceSyncTitle':
+                            return 'Certinia-Daten werden synchronisiert';
+                        case 'financialForceSyncStep':
+                            return 'Certinia-Verbindung wird synchronisiert';
+                        case 'financialForceSyncCategories':
+                            return 'Kategorien werden importiert';
+                        case 'financialForceSyncTags':
+                            return 'Tags werden importiert';
+                        case 'financialForceSyncVendors':
+                            return 'Lieferanten werden importiert';
+                        case 'financialForceSyncContacts':
+                            return 'Kontakte werden importiert';
+                        case 'financialForceSyncCompanies':
+                            return 'Unternehmen werden importiert';
+                        case 'financialForceSyncUsers':
+                            return 'Benutzer werden importiert';
+                        case 'financialForceSyncDimensions':
+                            return 'Dimensionen werden importiert';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Berichte werden als erstattet markiert';
                         default: {
                             return `Übersetzung fehlt für Stufe: ${stage}`;
                         }

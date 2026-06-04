@@ -4749,6 +4749,19 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 oauthDescription: '要完成设置，您需要通过 Salesforce 和 Certinia 登录。\n\n请使用下方按钮继续。',
                 connectButton: '连接到 Certinia',
             },
+            import: {
+                chartOfAccounts: '会计科目表',
+                chartOfAccountsDescription: '会计科目表会作为类别导入 Expensify。',
+                dimensionMapping: ({n}: {n: number}) => `维度 ${n}`,
+                dimensions: {dimension1: '维度 1', dimension2: '维度 2', dimension3: '维度 3', dimension4: '维度 4'},
+                doNotMap: '不要映射',
+                doNotMapSubtitle: '默认使用员工资源',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: '不要映射',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: '已作为标签导入',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: '已作为报表字段导入',
+                },
+            },
         },
         netsuite: {
             subsidiary: '子公司',
@@ -6277,6 +6290,26 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '导入 Sage Intacct 维度';
                         case 'intacctImportTitle':
                             return '导入 Sage Intacct 数据';
+                        case 'financialForceSyncTitle':
+                            return '正在同步 Certinia 数据';
+                        case 'financialForceSyncStep':
+                            return '正在同步 Certinia 连接';
+                        case 'financialForceSyncCategories':
+                            return '正在导入类别';
+                        case 'financialForceSyncTags':
+                            return '正在导入标签';
+                        case 'financialForceSyncVendors':
+                            return '正在导入供应商';
+                        case 'financialForceSyncContacts':
+                            return '正在导入联系人';
+                        case 'financialForceSyncCompanies':
+                            return '正在导入公司';
+                        case 'financialForceSyncUsers':
+                            return '正在导入用户';
+                        case 'financialForceSyncDimensions':
+                            return '正在导入维度';
+                        case 'financialForceMarkAsReimbursed':
+                            return '正在将报告标记为已报销';
                         default: {
                             return `缺少以下阶段的翻译：${stage}`;
                         }

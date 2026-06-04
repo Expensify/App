@@ -4868,6 +4868,19 @@ ${amount} para ${merchant} - ${date}`,
                 oauthDescription: 'Para concluir a configuração, você precisa entrar pelo Salesforce e pela Certinia.\n\nUse o botão abaixo para continuar.',
                 connectButton: 'Conectar ao Certinia',
             },
+            import: {
+                chartOfAccounts: 'Plano de contas',
+                chartOfAccountsDescription: 'O plano de contas é importado para o Expensify como categorias.',
+                dimensionMapping: ({n}: {n: number}) => `Dimensão ${n}`,
+                dimensions: {dimension1: 'Dimensão 1', dimension2: 'Dimensão 2', dimension3: 'Dimensão 3', dimension4: 'Dimensão 4'},
+                doNotMap: 'Não mapear',
+                doNotMapSubtitle: 'Usar recurso de funcionário por padrão',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Não mapear',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importado como tags',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importado como campos de relatório',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Subsidiária',
@@ -6439,6 +6452,26 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             return 'Importando dimensões do Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importando dados do Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Sincronizando dados do Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Sincronizando conexao do Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importando categorias';
+                        case 'financialForceSyncTags':
+                            return 'Importando tags';
+                        case 'financialForceSyncVendors':
+                            return 'Importando fornecedores';
+                        case 'financialForceSyncContacts':
+                            return 'Importando contatos';
+                        case 'financialForceSyncCompanies':
+                            return 'Importando empresas';
+                        case 'financialForceSyncUsers':
+                            return 'Importando usuarios';
+                        case 'financialForceSyncDimensions':
+                            return 'Importando dimensoes';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marcando relatorios como reembolsados';
                         default: {
                             return `Tradução ausente para o estágio: ${stage}`;
                         }
