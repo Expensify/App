@@ -49,8 +49,8 @@ function parseCSVDate(input: string): string | null {
         }
     }
 
-    // Fall back to the native Date constructor for anything else (ISO
-    // datetimes, RFC 2822, etc).
+    // Fall back to the native Date constructor for anything else (ISO 8601
+    // date-time strings, RFC 2822, etc).
     let date = new Date(trimmedInput);
     if (isValid(date) && !Number.isNaN(date.getTime())) {
         return format(date, CONST.DATE.FNS_FORMAT_STRING);

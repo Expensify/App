@@ -12,7 +12,7 @@ describe('CSVDateUtils', () => {
             expect(parseCSVDate('Jan 25, 2024')).toBe('2024-01-25');
         });
 
-        it('returns null for unparseable input', () => {
+        it('returns null for invalid input', () => {
             expect(parseCSVDate('not a date')).toBeNull();
             expect(parseCSVDate('')).toBeNull();
         });
