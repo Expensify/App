@@ -7676,7 +7676,7 @@ describe('OptionsListUtils', () => {
 
         it('caps recent attendees to maxRecentReportElements when there is no search term', () => {
             // When we call getValidOptions with more recent attendees than the display cap and no search term
-            const results = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+            const {options: results} = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: false,
                 recentAttendees,
                 maxRecentReportElements: 5,
@@ -7689,7 +7689,7 @@ describe('OptionsListUtils', () => {
 
         it('shows all matching recent attendees beyond the cap when there is a search term', () => {
             // When we call getValidOptions with a search term that matches all recent attendees
-            const results = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+            const {options: results} = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: false,
                 recentAttendees,
                 maxRecentReportElements: 5,
