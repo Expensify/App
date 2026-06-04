@@ -174,6 +174,18 @@ type TransactionListItemType = ListItem &
         /** The main action that can be performed for the transaction */
         action: SearchTransactionAction;
 
+        /** Whether the current user can pay this report */
+        canPay: boolean;
+
+        /** Whether the current user can approve this report */
+        canApprove: boolean;
+
+        /** Whether the current user can submit this report */
+        canSubmit: boolean;
+
+        /** Whether the current user can change the approver of this report */
+        canChangeApprover: boolean;
+
         /** The tax code of the transaction */
         taxCode?: string;
     };
@@ -254,6 +266,18 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The available actions that can be performed for the report */
         allActions?: SearchTransactionAction[];
+
+        /** Whether the current user can pay this report */
+        canPay: boolean;
+
+        /** Whether the current user can approve this report */
+        canApprove: boolean;
+
+        /** Whether the current user can submit this report */
+        canSubmit: boolean;
+
+        /** Whether the current user can change the approver of this report */
+        canChangeApprover: boolean;
 
         /** Pre-computed total display spend amount */
         totalDisplaySpend?: number;
