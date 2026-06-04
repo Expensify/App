@@ -3065,6 +3065,75 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionCardGroupListItems);
         });
 
+        it('should label personal card groups as "Personal card" while keeping "Deleted feed" for removed company feeds', () => {
+            const personalCardID = 40404040;
+            const csvPersonalCardID = 50505050;
+            const deletedFeedCardID = 60606060;
+
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}${personalCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE,
+                    cardID: personalCardID,
+                    cardName: 'Personal Chase',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '1111',
+                    total: 10,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}${csvPersonalCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+                    cardID: csvPersonalCardID,
+                    cardName: 'CSV import',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '2222',
+                    total: 20,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}${deletedFeedCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.BANK_NAMES.CITIBANK,
+                    cardID: deletedFeedCardID,
+                    cardName: 'Removed company card',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '3333',
+                    total: 30,
+                },
+            };
+
+            // Personal cards have no fundID; the deleted company feed card keeps its fundID so it is not personal.
+            const cardList = {
+                [personalCardID]: {cardID: personalCardID, bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE},
+                [csvPersonalCardID]: {cardID: csvPersonalCardID, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, fundID: '123'},
+                [deletedFeedCardID]: {cardID: deletedFeedCardID, bank: CONST.BANK_NAMES.CITIBANK, fundID: '456'},
+            } as unknown as OnyxTypes.CardList;
+
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data,
+                currentAccountID: adminAccountID,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
+                cardFeeds: {},
+                cardList,
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            }) as [TransactionCardGroupListItemType[], number, boolean];
+
+            const feedNameByCardID = new Map(sections.map((section) => [section.cardID, section.formattedFeedName]));
+
+            expect(feedNameByCardID.get(personalCardID)).toBe('Personal card');
+            expect(feedNameByCardID.get(csvPersonalCardID)).toBe('Personal card');
+            expect(feedNameByCardID.get(deletedFeedCardID)).toBe('Deleted feed');
+        });
+
         it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
                 SearchUIUtils.getSections({
