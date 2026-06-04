@@ -109,7 +109,7 @@ describe('ExportDownloadStatusModal', () => {
         renderModal();
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), DOWNLOAD_URL);
+        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), DOWNLOAD_URL, undefined);
     });
 
     it('shows ready state with Download and Close buttons', async () => {

@@ -44,7 +44,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
 
