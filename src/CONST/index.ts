@@ -4726,13 +4726,6 @@ const CONST = {
             BLOCK: 'block',
         },
     },
-    AI_RULES: {
-        TAB_SELECTOR: {
-            SUGGESTED: 'suggested',
-            EDIT: 'edit',
-        },
-    },
-
     get SUBSCRIPTION_PRICES() {
         return {
             [this.PAYMENT_CARD_CURRENCY.USD]: {
