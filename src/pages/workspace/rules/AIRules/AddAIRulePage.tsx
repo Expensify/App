@@ -10,18 +10,19 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addPolicyAIRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {addPolicyAIRule} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAIRuleForm';
 
 type AddAIRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AI_NEW>;
+type AddAIRuleFormID = 'addAIRuleForm';
 
 function AddAIRulePage({
     route: {
@@ -33,15 +34,15 @@ function AddAIRulePage({
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM> = {};
+    const validate = (values: FormOnyxValues<AddAIRuleFormID>): FormInputErrors<AddAIRuleFormID> => {
+        const errors: FormInputErrors<AddAIRuleFormID> = {};
         if (!values[INPUT_IDS.PROMPT].trim()) {
             errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
         }
         return errors;
     };
 
-    const saveRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM>): void => {
+    const saveRule = (values: FormOnyxValues<AddAIRuleFormID>): void => {
         addPolicyAIRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         Navigation.goBack();
     };

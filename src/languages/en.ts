@@ -7399,7 +7399,7 @@ const translations = {
                 },
             },
             aiRules: {
-                title: 'AI rules',
+                title: 'AI Rules',
                 subtitle: 'Describe flexible runs that runs when you need',
                 addRule: 'Add AI rule',
                 findRule: 'Find AI rule',

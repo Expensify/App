@@ -65,8 +65,9 @@ function AIRulesSection({policyID}: AIRulesSectionProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.aiRules.title')}</Text>
             <Badge
-                text={translate('common.beta')}
+                text={translate('common.newFeature')}
                 isCondensed
+                success
             />
         </View>
     );
