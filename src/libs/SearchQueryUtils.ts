@@ -1141,7 +1141,7 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
             // Presence check only. The filter looks backward at withdrawals that already paid expenses, so a saved
             // search should survive an account changing state (BUSINESS -> LOCKED, etc). Eligibility is only enforced
-            // at option-generation sites (picker, autocomplete, chip) where forward-looking pickability matters.
+            // at option-generation sites (picker, autocomplete, chip) where forward-looking eligibility matters.
             filtersForm[key as typeof filterKey] = filterValues.filter((bankAccountID) => bankAccountList?.[bankAccountID]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
