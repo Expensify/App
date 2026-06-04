@@ -24,8 +24,9 @@ function useCopyPolicySettingsProgressModal() {
     const isVisible = copyInProgressStep || requestNotificationStep;
     const isCopySettingsComplete = bulkPolicyCopySettings?.state === CONST.POLICY.COPY_SETTINGS_NVP_STATE.COMPLETE;
 
-    // Show "All Set" when backend NVP reports complete AND user is still viewing the modal
-    const shouldShowAllSet = isVisible && isCopySettingsComplete;
+    // Show "All Set" only when on the loading step AND backend reports complete.
+    // If user already requested Concierge notification (requestNotificationStep), they should stay on that screen since they explicitly chose to be notified rather than wait.
+    const shouldShowAllSet = copyInProgressStep && isCopySettingsComplete;
 
     if (shouldShowAllSet) {
         return {
@@ -50,6 +51,7 @@ function useCopyPolicySettingsProgressModal() {
             confirmText: translate('workspace.copyPolicySettings.progress.letMeKnowPrompt'),
             cancelText: '',
             shouldShowCancelButton: false,
+            isTitleLoading: true,
             onConfirm: () => {
                 requestCopyPolicySettingsNotification();
                 setCopyPolicySettingsData({currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE});
@@ -89,7 +91,7 @@ function useCopyPolicySettingsProgressModal() {
 }
 
 function CopyPolicySettingsProgressModal() {
-    const {isVisible, title, prompt, confirmText, cancelText, shouldShowCancelButton, onConfirm, onCancel} = useCopyPolicySettingsProgressModal();
+    const {isVisible, title, prompt, confirmText, cancelText, shouldShowCancelButton, isTitleLoading, onConfirm, onCancel} = useCopyPolicySettingsProgressModal();
 
     return (
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- The global useConfirmModal()/showConfirmModal() API is one-shot (its promise resolves on the first confirm/cancel and the modal unmounts). This progress modal must stay open across multiple Onyx state transitions ('loading' → notify-requested → 'complete') and update its content in place, which the global system does not support.
@@ -102,6 +104,7 @@ function CopyPolicySettingsProgressModal() {
             confirmText={confirmText}
             cancelText={cancelText}
             shouldShowCancelButton={shouldShowCancelButton}
+            isTitleLoading={isTitleLoading}
             success
         />
     );
