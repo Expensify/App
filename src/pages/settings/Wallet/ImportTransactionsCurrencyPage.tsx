@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function ImportTransactionsCurrencyPage() {
     const {translate} = useLocalize();
-    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         setImportTransactionCurrency(item.currencyCode);

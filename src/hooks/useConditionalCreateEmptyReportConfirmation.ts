@@ -1,11 +1,6 @@
-import {accountIDSelector} from '@selectors/Session';
-import {useCallback, useMemo} from 'react';
-import type {ReactNode} from 'react';
-import {hasEmptyReportsForPolicy, reportSummariesOnyxSelector} from '@libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
+import {useCallback} from 'react';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
-import useOnyx from './useOnyx';
+import useShouldShowEmptyReportConfirmation from './useShouldShowEmptyReportConfirmation';
 
 type UseConditionalCreateEmptyReportConfirmationParams = {
     /** The policy ID for which the report is being created */
@@ -25,8 +20,6 @@ type UseConditionalCreateEmptyReportConfirmationResult = {
     handleCreateReport: () => void;
     /** Whether an empty report already exists for the provided policy */
     hasEmptyReport: boolean;
-    /** The confirmation modal React component to render */
-    CreateReportConfirmationModal: ReactNode;
 };
 
 /**
@@ -40,16 +33,7 @@ export default function useConditionalCreateEmptyReportConfirmation({
     onCancel,
     shouldBypassConfirmation = false,
 }: UseConditionalCreateEmptyReportConfirmationParams): UseConditionalCreateEmptyReportConfirmationResult {
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
-    const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-        selector: reportSummariesOnyxSelector,
-    });
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
-
-    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, policyID, accountID), [accountID, policyID, reportSummaries]);
-    const shouldSkipConfirmation = useMemo(() => shouldBypassConfirmation || hasDismissedEmptyReportsConfirmation === true, [hasDismissedEmptyReportsConfirmation, shouldBypassConfirmation]);
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(policyID, shouldBypassConfirmation);
 
     const handleReportCreationConfirmed = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -58,7 +42,7 @@ export default function useConditionalCreateEmptyReportConfirmation({
         [onCreateReport],
     );
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID,
         policyName,
         onConfirm: handleReportCreationConfirmed,
@@ -66,17 +50,16 @@ export default function useConditionalCreateEmptyReportConfirmation({
     });
 
     const handleCreateReport = useCallback(() => {
-        if (hasEmptyReport && !shouldSkipConfirmation) {
+        if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
             return;
         }
 
         onCreateReport(false);
-    }, [hasEmptyReport, onCreateReport, openCreateReportConfirmation, shouldSkipConfirmation]);
+    }, [shouldShowEmptyReportConfirmation, onCreateReport, openCreateReportConfirmation]);
 
     return {
         handleCreateReport,
-        hasEmptyReport,
-        CreateReportConfirmationModal,
+        hasEmptyReport: shouldShowEmptyReportConfirmation,
     };
 }

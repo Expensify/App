@@ -41,6 +41,7 @@ const lightTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
     overlay: colors.productLight400,
@@ -83,8 +84,15 @@ const lightTheme = {
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green100,
     reactionActiveText: colors.green600,
+    badgeDefaultBG: colors.productLight400,
+    badgeSuccessBG: colors.green200,
+    badgeDangerBG: colors.tangerine200,
+    badgeSuccessText: colors.green700,
+    badgeDangerText: colors.tangerine700,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    bordersBold: colors.productLight400,
+    buttonIcon: colors.productLight700,
     mentionText: colors.blue600,
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
@@ -104,9 +112,6 @@ const lightTheme = {
     white: colors.white,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
-    emptyFolderBG: colors.yellow600,
-    travelBG: colors.blue600,
-    todoBG: colors.blue800,
     trialTimer: colors.green600,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
@@ -158,7 +163,7 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.REFERRAL_DETAILS]: {
+        [SCREENS.DYNAMIC_REFERRAL_DETAILS]: {
             backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -188,6 +193,14 @@ const lightTheme = {
         closed: {
             backgroundColor: colors.pink200,
             textColor: colors.pink700,
+        },
+        deleted: {
+            backgroundColor: colors.tangerine500,
+            textColor: colors.productLight100,
+        },
+        unreported: {
+            backgroundColor: colors.productLight400,
+            textColor: colors.productLight900,
         },
     },
 

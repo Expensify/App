@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
@@ -14,11 +14,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
@@ -41,12 +42,9 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
 
-    // The selector depends on the dynamic `accountID`, so it cannot be extracted
-    // to a static function outside the component.
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const personalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID], [accountID]);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
+        selector: personalDetailsSelector,
     });
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
@@ -100,7 +98,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                             <MenuItem
                                 title={translate('common.profile')}
                                 icon={icons.Info}
-                                onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}
                                 shouldShowRightIcon
                             />
                         </View>

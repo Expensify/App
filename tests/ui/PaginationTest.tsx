@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {setSidebarLoaded} from '@libs/actions/App';
+import {subscribeToUserEvents} from '@libs/actions/User';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
-import {setSidebarLoaded} from '@userActions/App';
-import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,9 +26,7 @@ jest.mock('@libs/BootSplash', () => ({
 }));
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
-jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
@@ -135,7 +133,7 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+    fetchMock.mockAPICommand('OpenReport', ({reportID, reportActionID}) => {
         const comments = buildReportComments(messageCount, initialID);
         return {
             onyxData:
@@ -149,7 +147,8 @@ function mockOpenReport(messageCount: number, initialID: string) {
                       ]
                     : [],
             hasOlderActions: !comments['1'],
-            hasNewerActions: !!reportID,
+            // When comment-linking (reportActionID present), there may be newer actions beyond the cursor.
+            hasNewerActions: !!reportActionID,
         };
     });
 }
@@ -227,16 +226,18 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents(USER_A_ACCOUNT_ID);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
     await waitForBatchedUpdates();
 
     await act(async () => {
         await Promise.all([
+            Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 lastMessageText: 'Test',
+                lastReadTime: format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING),
                 participants: {
                     [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
@@ -253,6 +254,7 @@ async function signInAndGetApp(): Promise<void> {
                 reportID: COMMENT_LINKING_REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 lastMessageText: 'Test',
+                lastReadTime: format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING),
                 participants: {[USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
                 lastActorAccountID: USER_A_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
@@ -286,6 +288,7 @@ async function signInAndGetApp(): Promise<void> {
 describe('Pagination', () => {
     afterEach(async () => {
         await waitForIdle();
+        cleanup();
         await act(async () => {
             await Onyx.clear();
 
@@ -298,9 +301,7 @@ describe('Pagination', () => {
         jest.clearAllMocks();
     });
 
-    // @TODO: Adjust this test to work with the home page as a default screen.
-    // GitHub issue: https://github.com/Expensify/App/issues/80982
-    xit('opens a chat and load initial messages', async () => {
+    it('opens a chat and load initial messages', async () => {
         mockOpenReport(5, '5');
 
         await signInAndGetApp();
@@ -323,9 +324,7 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
     });
 
-    // @TODO: Adjust this test to work with the home page as a default screen.
-    // GitHub issue: https://github.com/Expensify/App/issues/80982
-    xit('opens a chat and load older messages', async () => {
+    it('opens a chat and load older messages', async () => {
         mockOpenReport(CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT, '18');
         mockGetOlderActions(5);
 
@@ -357,9 +356,7 @@ describe('Pagination', () => {
         });
     });
 
-    // @TODO: Adjust this test to work with the home page as a default screen.
-    // GitHub issue: https://github.com/Expensify/App/issues/80982
-    xit('opens a chat and load newer messages', async () => {
+    it('opens a chat and load newer messages', async () => {
         mockOpenReport(5, '5');
         mockGetNewerActions(5);
 
@@ -376,12 +373,19 @@ describe('Pagination', () => {
         scrollToOffset(0);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
+        await waitForNetworkPromises();
         await waitForBatchedUpdatesWithAct();
 
         // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.
         expect(getReportActions()).toHaveLength(10);
 
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
+
         // There is 1 extra call here because of the comment linking report.
+
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
@@ -393,26 +397,24 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
-
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
 
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         scrollToOffset(500);
         await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
+        // When there are no newer actions, we don't want to trigger GetNewerActions again.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
-        // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
+        // We still have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
     });
 });

@@ -1,36 +1,36 @@
-import Performance from '@libs/Performance';
+import type {SpanAttributes} from '@sentry/core';
 import {isOneTransactionReport, isReportTransactionThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import {endSpan, getSpan} from './activeSpans';
+import {endSpanWithAttributes} from './activeSpans';
+
+type MarkOpenReportEndOptions = {
+    warm?: boolean;
+};
 
 /**
- * Mark all 'open_report*' performance events as finished using both Performance (local) and Timing (remote) tracking.
+ * Mark all 'open_report*' telemetry spans as finished.
  */
-function markOpenReportEnd(report: OnyxTypes.Report) {
+function markOpenReportEnd(report: OnyxTypes.Report, options: MarkOpenReportEndOptions = {}) {
     const {reportID, type, chatType} = report;
 
     const isTransactionThread = isReportTransactionThread(report);
     const isOneTransactionThread = isOneTransactionReport(report);
 
     const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
-    const span = getSpan(spanId);
-    span?.setAttributes({
+
+    const attributes: SpanAttributes = {
         [CONST.TELEMETRY.ATTRIBUTE_IS_TRANSACTION_THREAD]: isTransactionThread,
         [CONST.TELEMETRY.ATTRIBUTE_IS_ONE_TRANSACTION_REPORT]: isOneTransactionThread,
         [CONST.TELEMETRY.ATTRIBUTE_REPORT_TYPE]: type,
         [CONST.TELEMETRY.ATTRIBUTE_CHAT_TYPE]: chatType,
-    });
+    };
 
-    endSpan(spanId);
+    if (options.warm !== undefined) {
+        attributes[CONST.TELEMETRY.ATTRIBUTE_IS_WARM] = options.warm;
+    }
 
-    Performance.markEnd(CONST.TIMING.OPEN_REPORT);
-
-    Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
-
-    Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-
-    Performance.markEnd(CONST.TIMING.OPEN_REPORT_SEARCH);
+    endSpanWithAttributes(spanId, attributes);
 }
 
 export default markOpenReportEnd;

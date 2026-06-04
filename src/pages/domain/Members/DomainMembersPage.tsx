@@ -1,25 +1,45 @@
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
+import type {FeatureListItem} from '@components/FeatureList';
+import FeatureList from '@components/FeatureList';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import Text from '@components/Text';
+import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
+import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDomainMemberError, closeUserAccount} from '@libs/actions/Domain';
+import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {getLatestError} from '@libs/ErrorUtils';
+import {getMemberCustomRowProps, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,33 +51,101 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Profile']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => setSelectedMembers([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedMembers);
+    const {isOffline} = useNetwork();
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true, selector: memberPendingActionSelector});
-    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: defaultSecurityGroupIDSelector});
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: memberPendingActionSelector});
+    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     const {showConfirmModal} = useConfirmModal();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    useDomainDocumentTitle(domainName, 'domain.domainMembers');
     // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: memberAccountIDsSelector,
     });
+
+    const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
+
+    const membersFeatureListItems: FeatureListItem[] = [
+        {
+            icon: illustrations.BuildingCross,
+            translationKey: 'domain.members.membersFeatureList.controlPolicyCreation',
+        },
+        {
+            icon: illustrations.LockClosed,
+            translationKey: 'domain.members.membersFeatureList.enableSamlSso',
+        },
+        {
+            icon: illustrations.Encryption,
+            translationKey: 'domain.members.membersFeatureList.enforce2FA',
+        },
+    ];
+
+    const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
+        <SingleSelectPopup
+            label={translate('common.group')}
+            items={groupOptions}
+            value={selectedGroup ?? groupOptions.at(0)}
+            closeOverlay={closeOverlay}
+            onChange={handleGroupChange}
+            defaultValue={groupOptions.at(0)?.value}
+            itemHeight={variables.optionRowHeightCompact}
+            shouldShowList={isExpanded}
+        />
+    );
+
+    const groupFilterDropdown =
+        groupOptions.length > 1 ? (
+            <DropdownButton
+                label={dropdownLabel}
+                value={null}
+                PopoverComponent={groupPopoverComponent}
+                innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
+                wrapperStyle={shouldUseNarrowLayout && styles.w100}
+                labelStyle={styles.fontSizeLabel}
+                caretWrapperStyle={styles.gap2}
+                medium
+            />
+        ) : null;
+
+    const getGroupRightElement = (accountID: number) => {
+        if (!groups) {
+            return undefined;
+        }
+        const group = groups.find((g) => String(accountID) in g.details.shared);
+        return <Text style={styles.flex1}>{group?.details.name ?? '-'}</Text>;
+    };
+
+    const getCustomListHeader = () => {
+        return (
+            <CustomListHeader
+                canSelectMultiple={canSelectMultiple}
+                leftHeaderText={translate('domain.members.title')}
+                rightHeaderText={translate('common.group')}
+                shouldDivideEqualWidth
+                shouldShowRightCaret
+                shouldAdjustWidthForAvatar
+            />
+        );
+    };
+    useClearSelectedDomainMembersOnMoveComplete(clearSelectedMembers);
 
     useSearchBackPress({
         onClearSelection: clearSelectedMembers,
@@ -118,8 +206,45 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 setIsModalVisible(true);
             },
         },
+        {
+            text: translate('domain.members.moveToGroup'),
+            value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.MOVE_TO_GROUP,
+            icon: icons.Transfer,
+            onSelected: () => {
+                setDomainMembersSelectedForMove(selectedMembers);
+                Navigation.navigate(ROUTES.DOMAIN_MEMBERS_MOVE_TO_GROUP.getRoute(domainAccountID));
+            },
+        },
     ];
 
+    const onDownloadCSV = () => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        exportMembersToCSV(
+            domainAccountID,
+            () => {
+                showConfirmModal({
+                    title: translate('common.downloadFailedTitle'),
+                    prompt: translate('common.downloadFailedDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    success: false,
+                    shouldHandleNavigationBack: true,
+                });
+            },
+            translate,
+        );
+    };
+
+    const hasSettingsErrors = hasDomainMembersSettingsErrors(domainErrors);
     const getHeaderButtons = () => {
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
@@ -129,38 +254,108 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
                 isDisabled={!selectedMembers.length}
                 testID="DomainMembersPage-header-dropdown-menu-button"
-                wrapperStyle={shouldUseNarrowLayout && styles.flexGrow1}
+                wrapperStyle={shouldDisplayButtonsInSeparateLine && styles.flexGrow1}
             />
         ) : (
-            <Button
-                success
-                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                text={translate('domain.members.addMember')}
-                icon={icons.Plus}
-                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-            />
+            <View style={[styles.flexRow, styles.gap2]}>
+                <Button
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+                    text={translate('domain.members.addMember')}
+                    icon={icons.Plus}
+                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
+                />
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    brickRoadIndicator={hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    options={[
+                        {
+                            value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
+                            text: translate('domain.common.settings'),
+                            icon: icons.Gear,
+                            onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
+                            brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                        },
+                        {
+                            text: translate('spreadsheet.downloadCSV'),
+                            icon: icons.Download,
+                            onSelected: onDownloadCSV,
+                            value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SAVE_TO_CSV,
+                        },
+                    ]}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow0}
+                />
+            </View>
         );
     };
 
-    const getCustomRowProps = (accountID: number, email?: string) => {
-        const emailError = email ? getLatestError(domainErrors?.memberErrors?.[email]?.errors) : undefined;
-        const accountIDError = getLatestError(domainErrors?.memberErrors?.[accountID]?.errors);
-        const emailPendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
-        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction;
+    const getCustomRowProps = (accountID: number, email?: string) => getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, email);
 
-        return {errors: emailError ?? accountIDError, pendingAction: emailPendingAction ?? accountIDPendingAction};
-    };
+    if (!domain?.validated) {
+        return (
+            <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+                <ScreenWrapper
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldEnableMaxHeight
+                    shouldShowOfflineIndicatorInWideScreen
+                    testID="DomainMembersPage"
+                >
+                    <HeaderWithBackButton
+                        title={translate('domain.domainMembers')}
+                        onBackButtonPress={Navigation.goBack}
+                        icon={illustrations.Profile}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton
+                    />
+                    <ScrollView
+                        keyboardShouldPersistTaps="handled"
+                        addBottomSafeAreaPadding
+                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    >
+                        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                            <FeatureList
+                                menuItems={membersFeatureListItems}
+                                title={translate('domain.domainMembers')}
+                                renderSubtitle={() => (
+                                    <SectionSubtitleHTML
+                                        html={translate('domain.members.membersFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
+                                        wrapperStyle={styles.pt3}
+                                    />
+                                )}
+                                ctaText={translate('domain.verifyDomain.title')}
+                                ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
+                                onCtaPress={() => {
+                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
+                                }}
+                                illustrationBackgroundColor={colors.ice800}
+                                illustration={illustrations.LaptopWithMembers}
+                                illustrationStyle={styles.emptyStateSamlIllustration}
+                                illustrationContainerStyle={[styles.cardSectionIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
+                                titleStyles={styles.textHeadlineH1}
+                            />
+                        </View>
+                    </ScrollView>
+                </ScreenWrapper>
+            </DomainNotFoundPageWrapper>
+        );
+    }
 
     return (
         <>
             <BaseDomainMembersPage
                 domainAccountID={domainAccountID}
                 accountIDs={memberIDs ?? []}
+                preFilter={groupPreFilter}
                 headerTitle={translate('domain.members.title')}
+                getCustomListHeader={getCustomListHeader}
                 searchPlaceholder={translate('domain.members.findMember')}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
                 headerIcon={illustrations.Profile}
@@ -170,6 +365,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 setSelectedMembers={setSelectedMembers}
                 canSelectMultiple={canSelectMultiple}
                 useSelectionModeHeader={selectionModeHeader}
+                getCustomRightElement={getGroupRightElement}
+                searchBarAccessory={groupFilterDropdown}
+                emptyStateTitle={translate('domain.members.emptyMembers.title')}
+                emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
                 turnOnSelectionModeOnLongPress
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {

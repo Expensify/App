@@ -59,6 +59,9 @@ type ReportActionAvatarsProps = {
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CardFeed;
 
+    /** Size of the subscript card feed icon */
+    subscriptCardFeedIconSize?: {width: number; height: number};
+
     /** Whether we want to be redirected to profile on avatars click */
     useProfileNavigationWrapper?: boolean;
 
@@ -98,6 +101,7 @@ function ReportActionAvatars({
     subscriptAvatarBorderColor,
     noRightMarginOnSubscriptContainer = false,
     subscriptCardFeed,
+    subscriptCardFeedIconSize,
     secondaryAvatarContainerStyle,
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
@@ -115,7 +119,7 @@ function ReportActionAvatars({
 
     // reportID can be an empty string causing Onyx to fetch the whole collection
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {canBeMissing: true});
+    const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`);
     // When the search hash changes, report from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to reportProp while the data is being fetched.
     const report = reportFromOnyx ?? reportProp;
@@ -165,6 +169,7 @@ function ReportActionAvatars({
                 noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
+                subscriptCardFeedIconSize={subscriptCardFeedIconSize}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
                 reportID={reportID}
@@ -175,7 +180,6 @@ function ReportActionAvatars({
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         return (
             <ReportActionAvatar.Multiple.Horizontal
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...(isHorizontalStackingAnObject ? horizontalStacking : {})}
                 size={size}
                 icons={icons}

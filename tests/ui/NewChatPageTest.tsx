@@ -1,7 +1,8 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import React from 'react';
-import {SectionList} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- ScrollView is imported directly to spy on its prototype in tests
+import {ScrollView} from 'react-native';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -19,7 +20,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
 jest.mock('react-native-permissions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     RESULTS: {
         UNAVAILABLE: 'unavailable',
@@ -77,11 +77,11 @@ describe('NewChatPage', () => {
         act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
-        const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
+        const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
         const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
         if (addButton) {
             fireEvent.press(addButton);
-            expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
+            expect(scrollToSpy).toHaveBeenCalled();
         }
     });
 

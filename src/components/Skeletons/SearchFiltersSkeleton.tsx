@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,7 @@ type SearchFiltersSkeletonProps = {
     itemCount?: number;
     width?: number;
     height?: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84, height = 28, reasonAttributes}: SearchFiltersSkeletonProps) {
@@ -31,7 +31,7 @@ function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
     const skeletonCount = new Array(itemCount).fill(0);
 
     return (
-        <View style={[styles.mh5, styles.mb4, styles.mt2]}>
+        <View style={[styles.mh5, styles.mb4, styles.mt3]}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 width={width}
@@ -40,12 +40,11 @@ function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
                 foregroundColor={theme.skeletonLHNOut}
             >
                 {skeletonCount.map((_, index) => (
-                    <Rect
+                    <SkeletonRect
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
                         transform={[{translateX: index * 90}]}
-                        rx={14}
-                        ry={14}
+                        borderRadius={14}
                         width={width}
                         height={height}
                     />
@@ -60,7 +59,7 @@ function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
                     foregroundColor={theme.buttonHoveredBG}
                 >
                     {skeletonCount.map((_, index) => (
-                        <Rect
+                        <SkeletonRect
                             // eslint-disable-next-line react/no-array-index-key
                             key={index}
                             transform={[{translateX: 12 + index * 90}, {translateY: 10}]}

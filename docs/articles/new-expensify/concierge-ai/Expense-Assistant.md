@@ -99,7 +99,7 @@ Some expense actions are not currently supported in chat, but may be added in th
 - Attaching a receipt to an existing transaction via chat
 - Tagging expenses based on past behavior 
 
-If you request these actions, Concierge will notify you that the feature is not yet available."
+If you request these actions, Concierge will notify you that the feature is not yet available.
 
 ---
 

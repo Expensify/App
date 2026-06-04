@@ -1,8 +1,8 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding]
-internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes. Does not cover personal expense rules or accounting integration setup.
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories]
+internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
 ---
 
 
@@ -31,19 +31,49 @@ To delete a category:
 
 ---
 
+## How to add a category while creating or editing an expense
+
+Workspace Admins can also create a new category directly from the category picker when creating or editing an expense, without navigating to workspace settings first. This option is available when no accounting integration is connected to the workspace.
+
+1. While creating or editing an expense, tap the **Category** field.
+2. Tap the **+** icon in the top-right corner.
+3. Enter a category name.
+4. Tap **Save**.
+
+The new category is immediately applied to the expense and added to the workspace's category list.
+
+---
+
 ## How to upload categories using a CSV file
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Categories**.
 4. Click the **three-dot menu**, then select **Import Spreadsheet**.
-5. Format your spreadsheet using the required columns.
+5. Format your spreadsheet using the supported columns listed below.
 6. Download the template using **Download CSV** if needed.
-7. Upload your completed file and follow the prompts.
+7. Upload your completed file and follow the prompts to map each column.
+
+The following columns are supported:
+
+| Column | Required | Plan |
+|---|---|---|
+| **Name** | Yes | All |
+| **Enabled** | No | All |
+| **GL Code** | No | Control |
+| **Require receipts over** | No | Control |
+| **Require itemized receipts over** | No | Control |
+
+For the **Require receipts over** and **Require itemized receipts over** columns, use one of the following values:
+
+- `default` — Keep the existing workspace or category setting (no change).
+- `required` — Always require a receipt (or itemized receipt), regardless of amount.
+- `not_required` — Never require a receipt (or itemized receipt).
+- A number (e.g., `2500`) — Require a receipt (or itemized receipt) for expenses over that amount in cents.
 
 ---
 
-## Enable or disable categories
+## How to enable or disable categories
 
 Once categories are added (manually or via import), they can be toggled on or off.
 
@@ -76,6 +106,32 @@ To edit these fields:
 
 ---
 
+# How to configure Category Rules
+
+Category Rules let you control how specific categories behave. You can require additional information, assign approvers, or set spending thresholds for individual categories.
+
+To manage Category Rules:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Select a category to open its settings panel.
+
+Available Category Rule options include:
+
+- **Approver** – Assign a specific approver for expenses in this category.
+- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Flag amounts over** - Set a spending cap for this category.
+- **Require receipts over** – Set a threshold for when receipts are required.
+- **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
+- **Require fields** - Require specific fields be completed for this category. The options are:
+   - **Require description** - Force members to enter a reason when using the category.
+   - **Require attendees** - Force members to add additional attendees when using the category.
+
+Category Rules apply to all members who use that category. If both a Category Rule and a Workspace Rule apply to the same expense, the Category Rule takes priority.
+
+---
+
 # How to apply categories automatically
 
 Expensify offers two ways to automatically apply categories based on merchant:
@@ -88,13 +144,26 @@ Expensify learns your category preferences over time and suggests them automatic
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
 
+## How to set default categories by MCC code
+
+Expensify can automatically assign a default category based on the merchant's MCC (Merchant Category Code). For example, you can set all airline expenses to default to a "Flights" category.
+
+To manage MCC default categories:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4.  Click **More**
+5. Click **Settings**. 
+6. Update the default category for any MCC group (e.g., Airlines, Gas, Groceries).
+
 ## Workspace Merchant Rules
 
 Workspace Admins can configure [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) to apply consistent categories based on merchant name across all workspace members.
 
 - Rules apply across all expenses on the workspace.
 - Rules take precedence over learned suggestions.
-- If a category is already set manually, Expensify won’t override it.
+- If a category is already set manually, Expensify won't override it.
 
 ---
 

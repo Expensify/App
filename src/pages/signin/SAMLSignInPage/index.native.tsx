@@ -18,12 +18,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SAMLSignInPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
     const hasOpenedAuthSession = useRef(false);
+
+    const handleExitSAMLFlow = useCallback(() => {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack();
+            clearSignInData();
+        });
+    }, []);
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
@@ -80,16 +87,16 @@ function SAMLSignInPage() {
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
                 if (response.type !== 'success') {
-                    Navigation.goBack();
+                    handleExitSAMLFlow();
                     return;
                 }
                 handleNavigationStateChange(response.url);
             })
             .catch((error) => {
                 Log.hmmm('SAML sign in failed', {error});
-                Navigation.goBack();
+                handleExitSAMLFlow();
             });
-    }, [SAMLUrl, handleNavigationStateChange]);
+    }, [SAMLUrl, handleNavigationStateChange, handleExitSAMLFlow]);
 
     useEffect(() => {
         // If we don't have a valid login to pass here, direct the user back to a clean sign in state to try again
@@ -130,12 +137,7 @@ function SAMLSignInPage() {
             {showNavigation && (
                 <HeaderWithBackButton
                     title=""
-                    onBackButtonPress={() => {
-                        clearSignInData();
-                        Navigation.isNavigationReady().then(() => {
-                            Navigation.goBack();
-                        });
-                    }}
+                    onBackButtonPress={handleExitSAMLFlow}
                 />
             )}
             <FullPageOfflineBlockingView>

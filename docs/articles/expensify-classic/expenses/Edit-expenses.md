@@ -1,243 +1,184 @@
 ---
-title: Edit Expenses
-description: Learn how to edit, split, merge, or delete expenses in Expensify, including permissions, limitations, and helpful tips for SmartScan or company cards.
-keywords: edit expenses, split expenses, merge expenses, delete expenses, Expensify Classic, expense permissions, company card, SmartScan, Workspace Admin
+title: Edit expenses
+description: Learn how to edit, split, merge, or delete expenses in Expensify, including permissions and limitations.
+keywords: [Expensify Classic, edit expenses, split expense, merge expenses, delete expense, expense violation, company card expense, change expense amount, unapprove report, Workspace Admin, expense permissions]
+internalScope: Audience all members. Covers how to edit, split, merge, or delete expenses and related permission rules. Does not cover why duplicate expenses happen or SmartScan merge troubleshooting.
 ---
 
+You can edit expenses in Expensify to update details like category, description, tags, attendees, or report assignment. You can also split, merge, or delete expenses when the report is editable.
 
-You can edit expenses in Expensify to update details like category, description, or attendees. You can also split or merge expenses to break up a larger expense or resolve duplicates. However, some fields have restrictions based on the expense type and report status.
+
+---
+# Edit expenses
+
+## Who can edit expenses
+
+Editing permissions depend on the report status and your role.
+
+- The expense submitter can edit expenses on **Draft** reports.
+- Approvers and Workspace Admins can edit expenses on **Outstanding** reports. 
+- Approved expenses must be Unapproved before they can be edited.
+- Expenses on **Done** reports cannot be edited.
 
 ---
 
-# Expense Editing Rules
+## What fields can be edited on an expense
 
-Editing restrictions apply based on expense type and report status.
+For expenses in a **Draft** or **Outstanding** report, you can edit:
 
-## General Editing Rules
-- **Category, description, attendees, and report assignment** can be edited by the expense owner, approvers, and Workspace Admins.
-- **Amount** can be edited for most manually entered expenses, except for company card transactions.
-- **Tag and billable status** can be updated as long as the report is editable.
+- Category
+- Tag
+- Description
+- Attendees
+- Receipt image
+- Amount (if not a company card expense)
 
-## Company Card Expenses
-- **Amount cannot be edited** for expenses imported from a company card.
-- **Category, tag, and billable status** can be edited if the report is in a Draft or Outstanding state.
-- **Receipt images** can be added or replaced at any time.
+---
 
-## Submitted and Approved Expenses
-- **Submitted expenses** can only be edited by an approver or Workspace Admin.
-- **Approved expenses** cannot be edited unless reopened (also called unapproved).
-- **Expenses in a Closed report** cannot be edited.
+## How to identify expense types
 
-## Description and Workspace Violations
-- If an expense has a violation but includes a **description or comment**, it will still be submitted via Scheduled Submit.
-- The **description acts as the user’s explanation** for why the violation wasn’t resolved.
-- This allows the report to move forward while providing visibility for approvers or Workspace Admins.
+Each expense includes an icon that shows how it was created. This helps you understand what can and cannot be edited.
 
-**Note:** The violation will still appear but will not block submission if a comment or explanation is provided.
+- 🏦 **Cash icon**: Manually added or SmartScanned
+- 💳 **Credit card icon**: Imported from a personal card
+- 📄 **Spreadsheet icon**: Imported via CSV
+- 🔒 **Locked credit card icon**: Imported from a company card feed or company CSV
 
-## Expense Icons
-**Each expense has an icon showing how it was created:**
-- 🏦 **Cash Icon**: Manually added or SmartScanned
-- 💳 **Credit Card Icon**: Imported from a personal card
-- 📄 **Spreadsheet Icon**: Imported via CSV
-- 🔒 **Locked Credit Card Icon**: Imported from a company card feed or company CSV
+Company card expenses (🔒) have stricter editing rules. For example, the amount cannot be changed.
 
 ![Image of different expenses]({{site.url}}/assets/images/Expenses.png){:width="100%"}
 
 ---
 
-# Edit an Expense
+# How to edit an expense
 
-**On Desktop:**
+**On Web:**
+
 1. Click the **Expenses** tab.
-2. Select the expense you want to edit.
+2. Click the expense to open it for editing. 
 3. Click the field you want to change (e.g., category, description, attendees).
-4. Make your changes and click **Save**.
+4. Make the relevant changes and click **Save**.
 
 **On Mobile:**
-1. Tap the **Expenses** tab.
-2. Select the expense you want to edit.
+
+1. Tap **Expenses**. 
+2. Tap the expense you want to edit.
 3. Tap **More Options**.
 4. Update the relevant fields and tap **Save**.
 
 ---
 
-# Split an Expense
+## How to resolve an expense violation
 
-Each split becomes its own expense, and the image of the same receipt is attached. You can assign different categories, tags, or details to each one.
+A violation is a flag applied to expenses that break Workspace rules, such as missing required Categories or Tags, or exceeding the allowed amount. Violations should be resolved before reports are submitted and can be approved. 
 
-💡 **Things to know before splitting expenses:** 💡
-- Splitting an expense cannot be undone.
-- Each split must be greater than $0.00.  
-- All splits must add up precisely to the original expense total.
+Violations appear directly on the expense with an explanation. 
 
-## Splitting Expenses on Desktop:
-1. Go to the **Expenses** tab.
-2. Click the expense you want to split.
-3. Scroll to the bottom and click **Split Expense**.
-4. Choose how to split the expense:
-   - **Add Split** – Add another line to enter a custom amount manually.
-   - **Split by Days** – Great for hotel receipts or multi-day expenses.
-   - **Split Even** – Divide the total evenly between the selected number of splits.
+To resolve a violation:
 
-## Splitting Expenses on Mobile:
-1. Tap the **Expenses** tab.
-2. Select the expense you want to split.
-3. Scroll to the bottom and tap **More Options**.
-4. Tap **Split**.
-5. Tap each split expense to enter the amount, category, and other details, then tap **Save**.
-   - To split additional expenses, tap **Add Split**.
-6. Once complete, tap **Save** again.
+1. Open the expense.
+2. Fix the required field (for example, add a Category or Tag).
+
+If the violation cannot be corrected, you can add a Description explaining the exception.
+
+**Note:** Expenses with violations can be submitted manually but cannot be submitted automatically. The violation remains visible for review.
+ 
+---
+
+## How to split an expense
+
+Splitting creates multiple expenses from one original charge. Each split keeps the same receipt image.
+
+To split an expense: 
+
+**On Web:**
+
+1. Click the **Expenses** tab.
+2. Click the expense to open it for editing. 
+3. Select **Split Expense**.
+4. Choose how to divide the expense.
+5. Click **Save**. 
+
+**On Mobile:**
+
+1. Tap **Expenses**.
+2. Select the expense you want to split. 
+3. Tap **More Options**.
+4. Choose how to divide the expense.
+5. Tap **Save**.
+
+**Note:** Splitting an expense cannot be undone. 
 
 ---
 
-# Merge Expenses
+## How to merge expenses
 
-You can merge two duplicate expenses into one consolidated entry. This is useful when the same purchase appears twice—once as a SmartScanned receipt and once as an imported credit card transaction.
+You can merge two expenses into one when they represent the same purchase.
 
-💡 **Things to know before merging expenses:** 💡
-- Merging expenses cannot be undone.
-- You cannot merge two credit card expenses.
-- Ideally, credit card expenses also include a SmartScanned receipt. If your admin has enabled eReceipts (U.S. only), low-value expenses may show a QR code as the receipt image.
+To merge two expenses: 
 
-## Merging Expenses on Desktop
+**On Web:**
 
-**From the Expenses tab:**
-1. Go to the **Expenses** tab.
-2. Check the box next to the two expenses you want to merge.
+1. Click the **Expenses** tab.
+2. Check the box next to the two expenses you want to merge. 
 3. Click **Merge**.
-4. Choose which details to keep (e.g., receipt image, merchant, category, etc.).
+4. Choose which expense details to keep.
+5. Click **Save**. 
 
-**From the Reports tab:**
-1. Go to the **Reports** tab.
-2. Open the report that includes both expenses.
-3. Click the **Details** tab, then select the Edit icon.
-4. Select the two expenses you want to merge.
-5. Choose which details to retain for the new merged expense.
-
-## Merging Expenses on Mobile
-
-If Expensify detects potential duplicates, you'll see a **Resolve Now** button.
-
-1. Tap **Resolve Now**.
-2. Tap **Merge Expense** to combine them into one.
-
-**Note:** If the two expenses are on different reports, you'll be asked to choose which report the new expense should be added.
+**Note:** At least one expense must be manually created or SmartScanned - you cannot merge two card expenses together. Merging cannot be undone.
 
 ---
 
-# Delete an Expense
+# How to delete expenses
 
-The submitter can only delete expenses, and the report must be in a Draft state.
+Only **Unreported** or **Draft** expenses can be deleted, and only the expense submitter can delete them. 
 
-1. Navigate to the **Expenses** tab.
+To delete expenses: 
+
+**On Web:**
+
+1. Click the **Expenses** tab.
+2. Check the box next to the Unreported or Draft expenses you want to delete.
+3. Click the red **Trash icon**
+
+**On Mobile:**
+
+1. Tap **Expenses**.
 2. Select the expense you want to delete.
-3. Click **Delete** and confirm.
-
-**Note:** If the report has been submitted, you will need to retract it before deleting an expense.
-
----
-
-# Preventing and Resolving Duplicate Expenses
-
-If you see two versions of the same expense—one SmartScanned and one from your card feed—it’s likely due to a failed merge. Normally, Expensify merges these automatically to prevent duplicates, but if the merge fails, both versions will appear separately.
-
-## Why duplicates happen
-
-SmartScanned receipts are designed to merge with matching card feed transactions. A failed merge creates two expenses for one purchase:
-- A SmartScan-only expense (marked as "SmartScanned")
-- A card feed-only expense (marked as "Imported")
-
-This can result in duplicate reporting and reimbursement issues if not resolved.
-
-## Auto-merge rules
-
-Expenses will only merge automatically if all of the following are true:
-- The card feed posts within 7 days of the SmartScan.
-- The amounts match exactly.
-- The SmartScanned receipt is not yet submitted.
-- Only one matching pair exists.
-
-If these conditions aren’t met, the merge won’t happen automatically.
-
-## How to fix unmerged duplicates
-
-1. Wait a few days if your card expense hasn’t posted yet. The merge may still happen automatically.
-2. Manually merge the SmartScan and card feed expense:
-   - Go to your **Expenses** tab.
-   - Select both expenses.
-   - Click **Merge**.
-3. Delete one of the duplicates if a merge isn’t possible. We recommend keeping the imported expense for accounting accuracy.
-
-## Why this matters
-
-Unmerged duplicates can cause:
-- Inaccurate totals in reports
-- Over-reimbursement
-- Duplicate entries in accounting exports
-
-Resolving duplicates helps keep your reports clean and accurate.
+If you need to edit an expense on a submitted report, ask an approver or Workspace Admin to Unapprove the report.
+4. Tap **Delete**. 
+5. Tap **Delete** again to confirm the deletion. 
 
 ---
 
 # FAQ
 
-## Can I add multiple attachments to a single expense?
-No, it's only possible to add one attachment per expense. 
+## What happens when an expense is split? 
 
-## Who can edit an expense?
-- **Expense owner**: Can edit expenses if the report is a Draft.
-- **Approvers and Workspace Admins**: Can edit submitted expenses before final approval.
-- **Finance teams** might have additional permissions based on workspace settings.
+When an expense is split, each portion becomes its own expense, with the same receipt image duplicated to each. You can assign different categories, tags, or details to each one.
+
+## Can I add multiple receipts to a single expense?
+
+No, it's only possible to add one receipt per expense. However, you can add additional receipts or supporting documents as a Report Attachment. See [Add Comments & Attachments](https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports#add-comments--attachments-to-a-report) to learn more. 
 
 ## Why can't I edit my expense amount?
-Company card expenses have a fixed amount based on imported transaction data and cannot be changed.
+
+Company card expenses have a fixed amount based on imported transaction data and cannot be changed. Manually created or SmartScanned expenses can only be edited by the expense submitter, approvers and Workspace Admins when the report is in the Draft or Outstanding states.  
 
 ## Can I edit an expense after it has been approved?
-No, approved expenses cannot be edited unless the report is reopened (unapproved).
 
-If you need to edit an expense on a submitted report, you can contact an approver or Workspace Admin to reopen (un-approve) the report.
+No, approved expenses cannot be edited unless the report is Unapproved. 
+
+If you need to edit an expense on a submitted report, ask approver or Workspace Admin to Unapprove the report.
 
 ## Can I undo a split expense?
+
 No, it can't be undone once an expense is split and saved. If you want to start over, delete the split expenses and re-upload the receipt.
 
 ## Will each split have the same receipt image?
+
 Yes. The same image will appear on all the split expenses for easy reference and audit compliance.
 
 ## Can I apply different categories or tags to each split?
 Absolutely! That's one of the main benefits of splitting an expense — you can customize each part individually.
-
-## Can Expensify automatically merge cash and card expenses?
-
-Yes. Expensify auto-merges SmartScanned receipts with matching card transactions by date and amount.
-
-- If the receipt comes first, the card transaction merges into the receipt.
-- If the card comes first, the receipt merges into the card.
-- Merchant names from SmartScan will override merchant names from the card.
-- Merging can occur even after reports are submitted (outstanding), approved, or paid.
-
-**Merging won't happen automatically:**
-- SmartScan is skipped.
-- Expenses were created via the [Expense Importer API](https://integrations.expensify.com/Integration-Server/doc/#expense-creator).
-- Currencies differ and the report is submitted.
-
-## Should I wait for merging before submitting reports?
-No need to wait. Matching expenses can still merge post-submission.
-
-- **Personal cards**: Will merge if reimbursable status matches, or only when the report is a Draft.
-- **Company cards**: Merge regardless of status, unless it changes the reimbursable total of a submitted report. To prevent issues, default cash expenses to non-reimbursable.
-
-## Why didn’t my expenses merge automatically?
-
-**Here are some common reasons:**
-- Receipt wasn’t SmartScanned.
-- Transaction dates don’t closely match.
-- Amounts differ (for expenses in the same currency).
-- Foreign exchange difference exceeds 5% (for expenses in different currencies)
-- The transaction is older than 90 days.
-- One of the expenses was already merged with another expense. 
-- Receipt is reimbursable and report is submitted.
-- Expenses are in different Expensify accounts.
-
-You can still merge expenses manually if both are **Unreported** or **Draft** and exist in the same account.
 

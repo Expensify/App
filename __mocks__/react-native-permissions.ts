@@ -1,5 +1,13 @@
-import {PERMISSIONS, RESULTS} from 'react-native-permissions/dist/commonjs/permissions';
+import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
 import type {ValueOf} from 'type-fest';
+
+const RESULTS = {
+    UNAVAILABLE: 'unavailable',
+    BLOCKED: 'blocked',
+    DENIED: 'denied',
+    GRANTED: 'granted',
+    LIMITED: 'limited',
+} as const;
 
 type Results = ValueOf<typeof RESULTS>;
 type ResultsCollection = Record<string, Results>;
@@ -8,8 +16,8 @@ type Notification = {status: Results; settings: NotificationSettings};
 
 const openLimitedPhotoLibraryPicker: jest.Mock<void> = jest.fn(() => {});
 const openSettings: jest.Mock<void> = jest.fn(() => {});
-const check = jest.fn(() => RESULTS.GRANTED as string);
-const request = jest.fn(() => RESULTS.GRANTED as string);
+const check = jest.fn(() => Promise.resolve(RESULTS.GRANTED as string));
+const request = jest.fn(() => Promise.resolve(RESULTS.GRANTED as string));
 const checkLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 const requestLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 

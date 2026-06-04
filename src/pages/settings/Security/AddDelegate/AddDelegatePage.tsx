@@ -4,14 +4,15 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
+import {searchUserInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -19,9 +20,9 @@ import ROUTES from '@src/ROUTES';
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const existingDelegates =
         account?.delegatedAccess?.delegates?.reduce(
             (prev, {email}) => {
@@ -32,17 +33,20 @@ function AddDelegatePage() {
             {} as Record<string, boolean>,
         ) ?? {};
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, toggleSelection} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, setSelectedOptions, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
         excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        onSingleSelect: (option) => {
-            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.login ?? ''));
-        },
+        shouldKeepSelectedInAvailableOptions: true,
     });
+
+    const handleSelectRow = (option: OptionData) => {
+        setSelectedOptions([option]);
+        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.login ?? ''));
+    };
 
     const headerMessage = getHeaderMessage(
         (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
@@ -85,7 +89,7 @@ function AddDelegatePage() {
     }));
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     return (
@@ -99,10 +103,10 @@ function AddDelegatePage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
+                    <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
-                        onSelectRow={toggleSelection}
+                        onSelectRow={handleSelectRow}
                         shouldSingleExecuteRowSelect
                         textInputOptions={{
                             value: searchTerm,
@@ -110,10 +114,10 @@ function AddDelegatePage() {
                             headerMessage,
                             label: translate('selectionList.nameEmailOrPhoneNumber'),
                         }}
-                        showLoadingPlaceholder={!areOptionsInitialized}
+                        shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
-                        disableMaintainingScrollPosition
                         shouldShowTextInput
+                        onEndReached={onListEndReached}
                     />
                 </View>
             </DelegateNoAccessWrapper>

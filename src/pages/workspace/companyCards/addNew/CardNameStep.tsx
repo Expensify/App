@@ -21,7 +21,7 @@ function CardNameStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE], translate);

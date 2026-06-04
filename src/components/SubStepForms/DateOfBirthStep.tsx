@@ -4,13 +4,13 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getFieldRequiredErrors, isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
-import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -106,6 +106,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus
                 forwardedFSClass={forwardedFSClass}
+                autoComplete="birthdate-full"
             />
             {footerComponent}
             {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}

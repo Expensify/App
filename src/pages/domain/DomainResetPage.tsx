@@ -33,7 +33,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`);
 
     // Selectors used this way bc when useOnyx with it the metadata is wrong + we're already have domain data here
     const domainName = domainNameSelector(domain);
@@ -57,8 +57,8 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
             Log.hmmm('Domain data is missing or there are more than 1 admin left');
             return;
         }
-        resetDomain(route.params.domainAccountID, domainName, domain);
-        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+        resetDomain(route.params.domainAccountID, domainName);
+        Navigation.goBack(ROUTES.DOMAINS_LIST.route);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RESET_DOMAIN_FORM>) => {

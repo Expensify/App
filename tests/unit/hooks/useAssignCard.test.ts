@@ -46,7 +46,7 @@ const mockPlaidFeedData = {
 
 const mockPolicy = {
     id: mockPolicyID,
-    workspaceAccountID,
+    policyAccountID: workspaceAccountID,
     employeeList: {
         'user1@example.com': {email: 'user1@example.com'},
         'user2@example.com': {email: 'user2@example.com'},
@@ -100,8 +100,17 @@ jest.mock('@libs/actions/Plaid', () => ({
     importPlaidAccounts: jest.fn(),
 }));
 
-// Mock the DelegateNoAccessContext
-jest.mock('@components/DelegateNoAccessModalProvider');
+// Mock the DelegateNoAccessModalProvider hooks
+jest.mock('@components/DelegateNoAccessModalProvider', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@components/DelegateNoAccessModalProvider');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        useDelegateNoAccessState: () => ({isActingAsDelegate: false, isDelegateAccessRestricted: false}),
+        useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
+    };
+});
 
 describe('useAssignCard', () => {
     const mockSetShouldShowOfflineModal = jest.fn();

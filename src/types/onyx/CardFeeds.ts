@@ -33,9 +33,10 @@ type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FE
 type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 
 /**
- *
+ * Bank name for card feeds that can be displayed in NewDot but cannot be added
+ * as a new connection (e.g. banks without an OAuth or Plaid integration).
  */
-type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
 
 /**
  * Card type name
@@ -93,6 +94,9 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Preferred policy */
     preferredPolicy?: string;
 
+    /** Linked policy IDs */
+    linkedPolicyIDs?: string[];
+
     /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
     country?: string;
 
@@ -109,6 +113,20 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Plaid access token */
     plaidAccessToken?: string;
+
+    /** CSV upload layout settings (present on ccupload feeds) */
+    uploadLayoutSettings?: {
+        /** User-defined name for the CSV upload layout */
+        layoutName?: string;
+
+        /** Unique identifier for this CSV layout instance */
+        instanceID?: string;
+
+        /** Stored column mappings from the most recent CSV import (column name → column index) */
+        columnMappings?: Record<string, string>;
+
+        [key: string]: unknown;
+    };
 
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
@@ -226,6 +244,15 @@ type CardFeeds = {
 
         /** Whether 2FA is required for all members */
         twoFactorAuthRequired?: boolean;
+
+        /** List of member emails exempt from the domain's 2FA requirement */
+        twoFactorAuthExemptEmails?: string[];
+
+        /** Travel invoicing provisioning data */
+        travelInvoicing?: {
+            /** Provisioning errors for workspace members */
+            errors?: string[];
+        };
     };
 } & CardFeedsStatus &
     DomainSettings;
@@ -240,12 +267,6 @@ type AddNewCardFeedData = {
 
     /** Name of the card */
     cardTitle: string;
-
-    /** Indicates the day (preset value) when the statement period for this card ends */
-    statementPeriodEnd?: StatementPeriodEnd;
-
-    /** Indicates the day (custom day) when the statement period for this card ends */
-    statementPeriodEndDay?: StatementPeriodEndDay;
 
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
@@ -270,6 +291,18 @@ type AddNewCardFeedData = {
 
     /** Feed name from Plaid connection */
     plaidConnectedFeedName?: string;
+
+    /** Name of the CSV layout template */
+    companyCardLayoutName?: string;
+
+    /** Identifier for the CSV layout template */
+    layoutType?: string;
+
+    /** Whether to use advanced fields in the CSV layout */
+    useAdvancedFields?: boolean;
+
+    /** Existing instance ID when editing a CSV feed */
+    existingInstanceID?: string;
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
@@ -318,13 +351,12 @@ export type {
     CardFeedWithNumber,
     CardFeedWithDomainID,
     BankName,
-    CardType,
+    NonConnectableBankName,
     CardTypeName,
     CompanyCardFeed,
     CompanyCardFeedWithNumber,
     CompanyCardFeedWithDomainID,
     CardFeedDetails,
-    DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
     CardFeedsStatus,

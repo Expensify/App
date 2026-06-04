@@ -5,6 +5,7 @@ exports[`PresetAvatarCatalog matches snapshot for a default avatar 1`] = `
   accessibilityElementsHidden={true}
   accessible={false}
   importantForAccessibility="no-hide-descendants"
+  pointerEvents="none"
   style={[]}
   testID=""
 >

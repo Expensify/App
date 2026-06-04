@@ -12,6 +12,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as useSearchSelectorModule from '@hooks/useSearchSelector';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {setHasRadio} from '@libs/NetworkState';
 import {getEmptyOptions} from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AssigneeStep from '@pages/workspace/companyCards/assignCard/AssigneeStep';
@@ -81,6 +82,8 @@ jest.mock('react-native-plaid-link-sdk', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback?.()),
     dismissModal: jest.fn(),
@@ -203,8 +206,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -226,7 +229,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                     currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
@@ -258,8 +261,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -279,7 +282,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                     currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
@@ -311,8 +314,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -334,7 +337,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                     cardToAssign: {
                         email: 'testaccount+1@gmail.com',
@@ -368,14 +371,14 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             // Set up commercial feed card assignment data
             // For commercial feeds: cardName (display) !== encryptedCardNumber (backend identifier)
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
             });
 
@@ -401,14 +404,14 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const cardName = "John's Business Card";
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial', cardName}));
             });
 
@@ -438,14 +441,14 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             // Set up direct feed card assignment data
             // For direct feeds: cardName === encryptedCardNumber
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'direct'}));
             });
 
@@ -470,14 +473,14 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const cardName = "Jane's Plaid Card";
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'direct', cardName}));
             });
 
@@ -507,7 +510,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const mockData = createMockAssignCardData({feedType: 'commercial'});
@@ -518,7 +521,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, mockData);
             });
 
@@ -543,7 +546,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const mockData = createMockAssignCardData({feedType: 'direct'});
@@ -554,7 +557,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, mockData);
             });
 
@@ -586,8 +589,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -607,7 +610,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                     currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
@@ -641,8 +644,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -663,7 +666,7 @@ describe('AssignCardFeed', () => {
             // Pre-select a card (encryptedCardNumber is set)
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                     cardToAssign: {
                         // cspell:disable-next-line
@@ -697,12 +700,12 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
             });
 
@@ -733,12 +736,12 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
             });
 
@@ -786,12 +789,12 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
             });
 
@@ -833,14 +836,14 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const cardName = "Test User's card";
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial', cardName}));
             });
 
@@ -896,7 +899,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             // cardName is the original masked card number
@@ -906,7 +909,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                     cardToAssign: {
                         bankName: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
@@ -976,12 +979,12 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
             });
 
@@ -1013,7 +1016,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const customStartDate = '2024-06-15';
@@ -1021,7 +1024,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                     cardToAssign: {
                         bankName: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
@@ -1063,7 +1066,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             // For commercial feeds: encryptedCardNumber is the backend identifier
@@ -1084,7 +1087,7 @@ describe('AssignCardFeed', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, mockCommercialData);
             });
 

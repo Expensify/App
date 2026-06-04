@@ -48,7 +48,7 @@ function SuggestionEmoji({
     isComposerFocused,
     ref,
 }: SuggestionEmojiProps) {
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     suggestionValuesRef.current = suggestionValues;

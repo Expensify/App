@@ -2,6 +2,7 @@ import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native'
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -65,9 +66,9 @@ const getValidateCodeForAccountMergeSelector = (account: OnyxEntry<Account>) => 
 function AccountDetailsPage() {
     const formRef = useRef<FormRef>(null);
     const navigation = useNavigation();
-    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
-    const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getValidateCodeForAccountMergeSelector, canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getValidateCodeForAccountMergeSelector});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
@@ -83,7 +84,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!validateCodeSent || !email) {
                     return;
@@ -98,7 +98,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!errorKey || !email) {
                     return;
@@ -112,7 +111,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;

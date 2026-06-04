@@ -1,3 +1,4 @@
+import {areInvoicesEnabledSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -9,6 +10,7 @@ import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
     getBankAccountRoute,
+    getInvoiceReceiverPolicyID,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
@@ -61,7 +63,7 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -69,9 +71,11 @@ function usePaymentOptions({
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+    const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
@@ -92,15 +96,14 @@ function usePaymentOptions({
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(
         ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         {
-            canBeMissing: true,
             selector: lastPaymentMethodSelector,
         },
         [lastPaymentMethodSelector],
     );
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
-    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
@@ -116,13 +119,14 @@ function usePaymentOptions({
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
+    const hasPersonalBankAccount = Object.values(bankAccountList).some((account) => account?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: hasActivatedWallet ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
-                icon: icons.Wallet,
+                text: hasActivatedWallet || hasPersonalBankAccount ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
+                icon: hasActivatedWallet || hasPersonalBankAccount ? icons.Wallet : icons.User,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
@@ -132,7 +136,7 @@ function usePaymentOptions({
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', formattedAmount),
-                icon: icons.Cash,
+                icon: icons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
@@ -179,7 +183,13 @@ function usePaymentOptions({
                         text: formattedPaymentMethod?.title ?? '',
                         description: formattedPaymentMethod?.description ?? '',
                         icon: formattedPaymentMethod?.icon,
-                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
+                        onSelected: () =>
+                            onPress({
+                                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                                payAsBusiness,
+                                methodID: formattedPaymentMethod.methodID,
+                                paymentMethod: formattedPaymentMethod.accountType,
+                            }),
                         iconStyles: formattedPaymentMethod?.iconStyles,
                         iconHeight: formattedPaymentMethod?.iconSize,
                         iconWidth: formattedPaymentMethod?.iconSize,
@@ -190,7 +200,7 @@ function usePaymentOptions({
                 text: translate('bankAccount.addBankAccount'),
                 icon: icons.Bank,
                 onSelected: () => {
-                    const bankAccountRoute = getBankAccountRoute(chatReport);
+                    const bankAccountRoute = getBankAccountRoute(chatReport, areInvoicesEnabled);
                     Navigation.navigate(bankAccountRoute);
                 },
             };
@@ -207,7 +217,7 @@ function usePaymentOptions({
                             text: translate('iou.payElsewhere', ''),
                             icon: icons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                            onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}),
                         },
                         ...(showPayViaExpensifyOptions ? [addBankAccountItem] : []),
                     ],
@@ -226,7 +236,7 @@ function usePaymentOptions({
                         text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
+                        onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: true}),
                     },
                 ],
             });
@@ -257,9 +267,12 @@ function usePaymentOptions({
         shouldShowPayWithExpensifyOption,
         shouldShowPayElsewhereOption,
         chatReport,
+        areInvoicesEnabled,
         onPress,
         onlyShowPayElsewhere,
         icons,
+        hasActivatedWallet,
+        hasPersonalBankAccount,
     ]);
 
     return paymentButtonOptions;

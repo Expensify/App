@@ -60,7 +60,7 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
 }
 
 function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const scrollOffsetsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
 

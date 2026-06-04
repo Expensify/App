@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
@@ -28,6 +29,7 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string>;
     onboardingValues: OnyxEntry<Onboarding>;
+    isAccountValidated?: boolean;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -82,7 +84,7 @@ Onyx.connectWithoutView({
  */
 function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams) as Route, undefined, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -106,6 +108,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
         onboardingValues,
+        isAccountValidated,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
@@ -114,23 +117,31 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
 
-    if (onboardingInitialPath.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
-        return `/${ROUTES.TEST_DRIVE_MODAL_ROOT.route}`;
-    }
-
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
     }
     if (isSmb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
     }
 
     if (isIndividual) {
-        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
+        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
-    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
+    // A validated account has no reason to be on the onboarding "add work email" screen.
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
+    }
+
+    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain. Only redirect
+    // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
+    if (isUserFromPublicDomain && isAccountValidated && onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
+        if (isVsb) {
+            return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        }
+        if (isSmb) {
+            return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        }
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
@@ -141,7 +152,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isVsb) {
-        return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
     if (isSmb) {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
@@ -301,13 +312,6 @@ const getOnboardingMessages = (locale?: Locale) => {
         description: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.reviewWorkspaceSettingsTask.description', {workspaceSettingsLink}),
     };
 
-    const inviteAccountantTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.INVITE_ACCOUNTANT,
-        autoCompleted: false,
-        title: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteAccountantTask.title', {workspaceMembersLink}),
-        description: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteAccountantTask.description', {workspaceMembersLink}),
-    };
-
     const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
         message: translate(resolvedLocale, 'onboarding.messages.onboardingEmployerOrSubmitMessage'),
         tasks: [testDriveEmployeeTask, adminSubmitExpenseTask],
@@ -352,7 +356,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             width: 1280,
             height: 960,
         },
-        tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask, setupCategoriesTask, inviteAccountantTask, reviewWorkspaceSettingsTask],
+        tasks: [testDriveAdminTask, createReportTask, setupCategoriesTask],
     };
 
     const onboardingChatSplitMessage: OnboardingMessage = {
@@ -365,7 +369,7 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [reviewWorkspaceSettingsTask, adminSubmitExpenseTask],
     };
     const onboardingLookingAroundMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingLookingAroundMessage'),
+        message: '',
         tasks: [],
     };
 
@@ -380,6 +384,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
             [CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE]: onboardingTrackWorkspaceMessage,
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: onboardingTrackWorkspaceMessage,
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: onboardingChatSplitMessage,
             [CONST.ONBOARDING_CHOICES.ADMIN]: onboardingAdminMessage,

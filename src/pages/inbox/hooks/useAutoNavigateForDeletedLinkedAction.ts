@@ -7,9 +7,9 @@ import {useLayoutEffect} from 'react';
  * auto-recovers by clearing the reportActionID param and re-fetching the report,
  * effectively showing the report from the end instead of a dead-end "not found" screen.
  */
-function useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundPage: boolean, shouldShowNotFoundLinkedAction: boolean, navigateToEndOfReport: () => void) {
+function useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction: boolean, navigateToEndOfReport: () => void) {
     useLayoutEffect(() => {
-        if (!shouldShowNotFoundPage || !shouldShowNotFoundLinkedAction) {
+        if (!shouldShowNotFoundLinkedAction) {
             return;
         }
 

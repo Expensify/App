@@ -3,12 +3,10 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -45,11 +43,11 @@ type UberEmployeeStatus = ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPL
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['SewerDino']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
@@ -127,7 +125,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
 
         const buttonStyles = [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, true, false, false, false, true, false),
+            StyleUtils.getButtonStyleWithIcon(styles, CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL, true, false),
             styles.ml3,
             {minWidth: variables.uberEmployeeInviteButtonWidth},
         ];
@@ -156,8 +154,9 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                         onPress={() => inviteOrResend(email)}
                         styles={[...buttonStyles, isInvite ? styles.buttonSuccess : undefined]}
                         textStyles={[...buttonTextStyles, isInvite ? styles.buttonSuccessText : undefined]}
-                        iconChecked={Expensicons.Checkmark}
+                        iconChecked={icons.Checkmark}
                         inline={false}
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_PARTNERS.INVITE_RESEND_BUTTON}
                         accessible={false}
                     />
                 );
@@ -168,7 +167,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     <Badge
                         text={badgeText}
                         success={isSuccess}
-                        style={[styles.ml3]}
+                        badgeStyles={styles.ml3}
                     />
                 );
             }
@@ -201,7 +200,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
         }
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend, icons.FallbackAvatar]);
+    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend, icons.Checkmark, icons.FallbackAvatar]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {
@@ -308,7 +307,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                     <TabScreenWithFocusTrapWrapper>
                                         <SelectionList
                                             data={filteredMembers}
-                                            ListItem={UserListItem}
+                                            ListItem={BareUserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
                                             style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
@@ -321,7 +320,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                                 headerMessage: currentHeaderMessage,
                                             }}
                                             listEmptyContent={listEmptyContent}
-                                            showListEmptyContent={shouldShowListEmptyContent}
+                                            shouldShowListEmptyContent={shouldShowListEmptyContent}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 );

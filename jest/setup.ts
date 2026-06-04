@@ -1,4 +1,4 @@
-/* eslint-disable max-classes-per-file */
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
@@ -10,7 +10,10 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
-import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
+import {TextDecoder, TextEncoder} from 'util';
+import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
+import '@src/polyfills/PromiseWithResolvers';
+import '@src/polyfills/requestIdleCallback';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -22,6 +25,8 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+
+Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
@@ -41,9 +46,37 @@ jest.mock('expo-task-manager', () => ({
     // Add other methods here if you use them
 }));
 
+// Mock expo-location — the jest-expo preset replaces all native module methods with jest.fn(async () => {}),
+// which returns undefined instead of a proper PermissionResponse. This causes crashes when code reads .status
+// from the result of requestForegroundPermissionsAsync().
+jest.mock('expo-location', () => ({
+    requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    requestBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getCurrentPositionAsync: jest.fn(() => Promise.resolve({coords: {latitude: 0, longitude: 0, altitude: 0, accuracy: 0, altitudeAccuracy: 0, heading: 0, speed: 0}, timestamp: 0})),
+    hasStartedLocationUpdatesAsync: jest.fn(() => Promise.resolve(false)),
+    startLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    stopLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    reverseGeocodeAsync: jest.fn(() => Promise.resolve([])),
+    hasServicesEnabledAsync: jest.fn(() => Promise.resolve(true)),
+    PermissionStatus: {
+        GRANTED: 'granted',
+        DENIED: 'denied',
+        UNDETERMINED: 'undetermined',
+    },
+    Accuracy: {
+        Lowest: 1,
+        Low: 2,
+        Balanced: 3,
+        High: 4,
+        Highest: 5,
+        BestForNavigation: 6,
+    },
+}));
+
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),
@@ -91,9 +124,6 @@ jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
 
-// Jest has no access to the native secure store module, so we mock it with the web implementation.
-jest.mock('@src/libs/MultifactorAuthentication/Biometrics/SecureStore', () => MockedSecureStore);
-
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
@@ -119,7 +149,6 @@ jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
 });
 
 jest.mock('@src/setup/telemetry', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
     navigationIntegration: {
@@ -221,15 +250,23 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
         };
         return Promise.resolve({default: mockIcon});
     }),
+    loadExpensifyIconsChunk: jest.fn(() => Promise.resolve({})),
+    getExpensifyIconsChunk: jest.fn(() => ({})),
+}));
+
+jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
+    loadIllustration: jest.fn(() => Promise.resolve({default: {src: 'mock-illustration', height: 20, width: 20}})),
+    loadIllustrationsChunk: jest.fn(() => Promise.resolve({})),
+    getIllustrationsChunk: jest.fn(() => ({})),
 }));
 
 jest.mock(
-    '@components/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
 
-            add(info: unknown) {
+            add(info: RenderInfo) {
                 this.handler(info);
             }
 
@@ -242,7 +279,6 @@ jest.mock(
 );
 
 jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn((command: string, data: Record<string, unknown>) => {
         const formData = new FormData();
@@ -250,7 +286,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         for (const key of Object.keys(data)) {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 continue;
             }
 
@@ -265,7 +301,6 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
 jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function
 }));
@@ -274,10 +309,28 @@ jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
 
+jest.mock('react-native-nitro-fetch', () => ({
+    __esModule: true,
+    fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
+    prefetchOnAppStart: jest.fn(() => Promise.resolve()),
+    registerTokenRefresh: jest.fn(),
+    clearTokenRefresh: jest.fn(),
+}));
+
 jest.mock('@shopify/react-native-skia', () => ({
     useFont: jest.fn(() => null),
     matchFont: jest.fn(() => null),
     listFontFamilies: jest.fn(() => []),
+}));
+
+jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
+    isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
+    createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
+    deleteKeys: jest.fn(() => Promise.resolve({success: true})),
+    getAllKeys: jest.fn(() => Promise.resolve({keys: []})),
+    signWithOptions: jest.fn(() => Promise.resolve({success: false})),
+    sha256: jest.fn(() => Promise.resolve({hash: ''})),
+    InputEncoding: {Base64: 'base64', Utf8: 'utf8'},
 }));
 
 jest.mock('victory-native', () => ({
@@ -313,3 +366,20 @@ jest.mock('@components/ActionSheetAwareScrollView/index.android');
 jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
 
 jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
+
+// Mock document title hooks as no-ops in tests. The web implementation of setPageTitle uses
+// setTimeout(fn, 0) which accumulates in the fake timer queue. Combined with lodash debounce
+// in triggerUnreadUpdate (also timer-based), this creates excessive timer churn that causes
+// heavy integration tests like SessionTest to exceed their timeout.
+jest.mock('@src/hooks/useDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useWorkspaceDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));

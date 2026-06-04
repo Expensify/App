@@ -4,9 +4,8 @@ import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import useEnableBackAnimationWhenOpenedFromTabBar from '@libs/Navigation/helpers/useEnableBackAnimationWhenOpenedFromTabBar';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, DomainSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {DomainSplitNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -15,14 +14,13 @@ const loadDomainInitialPage = () => require<ReactComponentModule>('../../../../p
 const loadDomainSamlPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainSamlPage').default;
 const loadDomainAdminsPage = () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminsPage').default;
 const loadDomainMembersPage = () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMembersPage').default;
+const loadDomainGroupsPage = () => require<ReactComponentModule>('../../../../pages/domain/Groups/DomainGroupsPage').default;
 
 const Split = createSplitNavigator<DomainSplitNavigatorParamList>();
 
-function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR>) {
+function DomainSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const styles = useThemeStyles();
-
-    useEnableBackAnimationWhenOpenedFromTabBar(navigation, route.key);
 
     return (
         <FocusTrapForScreens>
@@ -56,6 +54,12 @@ function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<Auth
                         key={SCREENS.DOMAIN.MEMBERS}
                         name={SCREENS.DOMAIN.MEMBERS}
                         getComponent={loadDomainMembersPage}
+                    />
+
+                    <Split.Screen
+                        key={SCREENS.DOMAIN.GROUPS}
+                        name={SCREENS.DOMAIN.GROUPS}
+                        getComponent={loadDomainGroupsPage}
                     />
                 </Split.Navigator>
             </View>

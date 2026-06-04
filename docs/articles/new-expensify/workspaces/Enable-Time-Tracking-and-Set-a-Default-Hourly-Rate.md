@@ -23,7 +23,9 @@ Workspace Admins can enable or configure Time Tracking on a workspace to allow w
 After Time Tracking is enabled, **Time** appears in the navigation tabs:
 
 - **Web:** In the navigation tabs on the left  
-- **Mobile:** In the navigation tabs on the bottom  
+- **Mobile:** In the navigation tabs on the bottom
+
+![Time Tracking enabled in a workspace]({{site.url}}/assets/images/ExpensifyHelp-TimeTracking-2.png){:width="100%"}
 
 ---
 

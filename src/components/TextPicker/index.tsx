@@ -20,6 +20,7 @@ function TextPicker({
     interactive = true,
     required = false,
     customValidate,
+    shouldUseStrictHtmlTagValidation,
     wrapperStyle,
     numberOfLinesTitle,
     titleStyle,
@@ -80,7 +81,7 @@ function TextPicker({
                 disabled={disabled}
                 required={required}
                 customValidate={customValidate}
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                shouldUseStrictHtmlTagValidation={shouldUseStrictHtmlTagValidation}
                 {...rest}
             />
         </View>

@@ -12,9 +12,7 @@ import useOnyx from './useOnyx';
  * @returns boolean indicating if there are outstanding child tasks
  */
 function useHasOutstandingChildTask(taskReport: OnyxEntry<Report>): boolean {
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`, {
-        canBeMissing: true,
-    });
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`);
 
     return useMemo(() => {
         if (!taskReport?.parentReportID || !reportActions) {

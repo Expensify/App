@@ -2,15 +2,16 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchContext} from '@components/Search/SearchContext';
-import type {SearchColumnType} from '@components/Search/types';
-import MonthListItemHeader from '@components/SelectionListWithSections/Search/MonthListItemHeader';
-import type {TransactionMonthGroupListItemType} from '@components/SelectionListWithSections/types';
+import MonthListItemHeader from '@components/Search/SearchList/ListItem/MonthListItemHeader';
+import type {TransactionMonthGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -20,34 +21,40 @@ jest.mock('@libs/Navigation/Navigation');
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
-// Mock search context with all required SearchContextProps fields
-const mockSearchContext = {
+// Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
+const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
-    isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
-    showSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
+    currentSimilarSearchHash: -1,
+    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    sortedReportIDs: [],
+    hasSelectedTransactions: false,
+} satisfies SearchStateContextValue;
+
+const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
-    setCurrentSearchHashAndKey: jest.fn(),
-    setCurrentSearchQueryJSON: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    shouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
-};
+    setSortedReportIDs: jest.fn(),
+} satisfies SearchActionsContextValue;
 
 const createMonthListItem = (year: number, month: number, options: Partial<TransactionMonthGroupListItemType> = {}): TransactionMonthGroupListItemType => ({
     year,
@@ -79,8 +86,11 @@ const renderMonthListItemHeader = (
     }> = {},
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchContext.Provider value={mockSearchContext}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
+            <MockSearchContextProvider
+                state={mockSearchStateContext}
+                actions={mockSearchActionsContext}
+            >
                 <MonthListItemHeader
                     month={monthItem}
                     onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
@@ -92,7 +102,7 @@ const renderMonthListItemHeader = (
                     isExpanded={props.isExpanded ?? false}
                     columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
                 />
-            </SearchContext.Provider>
+            </MockSearchContextProvider>
         </ComposeProviders>,
     );
 };
@@ -118,6 +128,7 @@ describe('MonthListItemHeader', () => {
             isSmallScreen: true,
             isInNarrowPaneModal: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         });
     });
 
@@ -250,6 +261,7 @@ describe('MonthListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

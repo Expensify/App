@@ -71,13 +71,12 @@ function ApproverSelectionList({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
     const data = useMemo(() => {
@@ -159,10 +158,10 @@ function ApproverSelectionList({
                     canSelectMultiple={allowMultipleSelection}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listEmptyContent={listEmptyContent}
-                    showListEmptyContent={shouldShowListEmptyContent}
+                    shouldShowListEmptyContent={shouldShowListEmptyContent}
                     initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     shouldShowTextInput={shouldShowTextInput}
-                    showLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     footerContent={footerContent}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}

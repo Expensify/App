@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +19,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 import {setNameValuePair} from '@userActions/User';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -30,9 +32,9 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const session = useSession();
@@ -92,14 +94,19 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                         onBackButtonPress={Navigation.goBack}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={{context: 'SetDefaultWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                            />
+                        </View>
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             data={data}
                             ListItem={UserListItem}
                             textInputOptions={textInputOptions}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
-                            showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                         />
                     )}

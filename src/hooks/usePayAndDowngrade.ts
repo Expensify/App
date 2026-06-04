@@ -6,8 +6,8 @@ import ROUTES from '@src/ROUTES';
 import useOnyx from './useOnyx';
 
 function usePayAndDowngrade(continueAction: () => void) {
-    const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE, {canBeMissing: true});
-    const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING, {canBeMissing: true});
+    const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
+    const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
     const isDeletingPaidWorkspaceRef = useRef(false);
 
     const setIsDeletingPaidWorkspace = (value: boolean) => {

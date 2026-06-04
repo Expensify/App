@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {openApp} from '@libs/actions/App';
@@ -10,6 +11,8 @@ import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import SignInPageWrapped, {SignInPage} from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
@@ -19,6 +22,8 @@ function SignInModal() {
     const StyleUtils = useStyleUtils();
     const signinPageRef = useRef<SignInPageRef | null>(null);
     const session = useSession();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const hasSignedInRef = useRef(false);
     // Use of SignInPageWrapped (with shouldEnableMaxHeight prop in SignInPageWrapper) is a workaround for Safari not supporting interactive-widget=resizes-content.
     // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
     // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
@@ -34,19 +39,27 @@ function SignInModal() {
     useEffect(() => {
         const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
         if (!isAnonymousUser) {
-            // Signing in RHP is only for anonymous users
-            Navigation.isNavigationReady().then(() => {
-                Navigation.dismissModal();
-            });
+            hasSignedInRef.current = true;
 
             // To prevent deadlock when OpenReport and OpenApp overlap, wait for the queue to be idle before calling openApp.
             // This ensures that any communication gaps between the client and server during OpenReport processing do not cause the queue to pause,
             // which would prevent us from processing or clearing the queue.
-            waitForIdle().then(() => {
-                openApp(true);
-            });
+            waitForIdle().then(() => openApp(true));
         }
     }, [session?.authTokenType]);
+
+    // Wait for IS_LOADING_APP to become false after sign-in before dismissing the modal.
+    // openApp queues a request and IS_LOADING_APP only transitions to false once the response
+    // is processed and NVP_ONBOARDING is loaded. Dismissing at that point ensures OnboardingGuard
+    // evaluates with accurate data and properly redirects new users to onboarding.
+    useEffect(() => {
+        if (!hasSignedInRef.current || isLoadingApp !== false) {
+            return;
+        }
+
+        Navigation.dismissModal();
+        Navigation.navigate(ROUTES.HOME);
+    }, [isLoadingApp]);
 
     return (
         <ScreenWrapper

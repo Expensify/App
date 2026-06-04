@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -11,13 +11,15 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateTravelInvoiceSettlementFrequency} from '@libs/actions/TravelInvoicing';
+import {getCardSettings} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getTravelSettlementFrequency} from '@libs/TravelInvoicingUtils';
+import {getTravelInvoicingCardSettingsKey, getTravelSettlementFrequency} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceTravelInvoicingSettlementFrequencyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY>;
 
@@ -30,10 +32,14 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as const, {canBeMissing: true});
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
 
-    const currentFrequency = getTravelSettlementFrequency(cardSettings);
+    const currentFrequency = getTravelSettlementFrequency(travelSettings);
     const frequencies = [CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY];
+
+    const monthlySettlementDateError = getLatestErrorField(travelSettings, CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE);
+    const hasFrequencyError = !isEmptyValueObject(monthlySettlementDateError);
 
     function getSettlementFrequencyLabel(frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
         if (frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY) {
@@ -52,7 +58,9 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
     }));
 
     const selectFrequency = (item: FrequencyItem) => {
-        updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, item.value, cardSettings?.monthlySettlementDate ? new Date(cardSettings.monthlySettlementDate) : undefined);
+        if (item.value !== currentFrequency || hasFrequencyError) {
+            updateTravelInvoiceSettlementFrequency(workspaceAccountID, item.value, travelSettings?.monthlySettlementDate ? new Date(travelSettings.monthlySettlementDate) : undefined);
+        }
         Navigation.goBack();
     };
 
@@ -63,17 +71,17 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
             testID="WorkspaceTravelInvoicingSettlementFrequencyPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
+                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList<FrequencyItem>
                 data={data}
                 onSelectRow={selectFrequency}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={currentFrequency}
                 customListHeaderContent={
                     <Text style={[styles.mh5, styles.mv3]}>
-                        {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyDescription')}
+                        {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyDescription')}
                     </Text>
                 }
             />

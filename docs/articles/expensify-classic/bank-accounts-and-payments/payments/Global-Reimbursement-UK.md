@@ -73,7 +73,7 @@ This is a signed document authorizing a client’s bank to pull payments via dir
 Once the bank account is approved for global reimbursement:
 1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**.
 2. Scroll to **Make or track payments**.
-3. Choose your verified EU account as the default reimbursement method.
+3. Choose your verified UK/GBP account as the default reimbursement method.
 4. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and input their account details.

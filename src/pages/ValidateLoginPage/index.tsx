@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {handleExitToNavigation, signInWithValidateCodeAndNavigate} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,8 +13,8 @@ function ValidateLoginPage({
         params: {accountID, validateCode, exitTo},
     },
 }: ValidateLoginPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
 
     useEffect(() => {
         // Wait till navigation becomes available
@@ -43,7 +44,10 @@ function ValidateLoginPage({
         });
     }, [session?.autoAuthState]);
 
-    return <FullScreenLoadingIndicator />;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ValidateLoginPage',
+    };
+    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }
 
 export default ValidateLoginPage;

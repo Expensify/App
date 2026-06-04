@@ -23,7 +23,7 @@ type BaseTwoFactorAuthFormProps = {
 };
 
 function ToggleTwoFactorAuthForm({validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true, ref}: BaseTwoFactorAuthFormProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
     const shouldAllowRecoveryCode = validateInsteadOfDisable === false;
 

@@ -22,7 +22,7 @@ const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [BANK_INFO_STEP_KEYS.ROUTING_NUMBER, BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER];
 
 function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
-    const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();

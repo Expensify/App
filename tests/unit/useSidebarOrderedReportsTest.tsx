@@ -18,6 +18,8 @@ jest.mock('@libs/SidebarUtils', () => ({
     updateReportsToDisplayInLHN: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     getTopmostReportId: jest.fn(),
 }));
 jest.mock('@libs/ReportUtils', () => ({
@@ -71,7 +73,7 @@ describe('useSidebarOrderedReports', () => {
 
         // Default mock implementations
         mockSidebarUtils.getReportsToDisplayInLHN.mockImplementation(() => ({}));
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => ({...displayedReports}));
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => displayedReports);
         mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue([]);
 
         await waitForBatchedUpdatesWithAct();
@@ -121,7 +123,7 @@ describe('useSidebarOrderedReports', () => {
         // When the initial reports are set
         const initialReports = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(initialReports);
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => ({...displayedReports}));
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => displayedReports);
         currentReportIDForTestsValue = '1';
 
         // When the hook is rendered
@@ -183,8 +185,11 @@ describe('useSidebarOrderedReports', () => {
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
 
-        // When the mock is updated
+        // When the mocks are updated to reflect the new content
+        // getReportsToDisplayInLHN covers the full-scan path; updateReportsToDisplayInLHN covers
+        // the incremental path (taken when priority mode changes and the cache is already populated).
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(updatedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockReturnValue(updatedReports);
 
         // When the priority mode is changed
         await act(async () => {
@@ -202,6 +207,7 @@ describe('useSidebarOrderedReports', () => {
             expect.any(Function), // localeCompare
             expect.any(Object), // reportsDrafts
             expect.any(Object), // reportNameValuePairs
+            expect.anything(), // reportAttributes
         );
     });
 

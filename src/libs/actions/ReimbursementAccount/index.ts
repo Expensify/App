@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {ACHData, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -8,7 +8,6 @@ import resetNonUSDBankAccount from './resetNonUSDBankAccount';
 import resetUSDBankAccount from './resetUSDBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
-export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './errors';
 
 /**
  * Set the current sub step in first step of adding withdrawal bank account:
@@ -18,10 +17,6 @@ export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './e
  */
 function setBankAccountSubStep(subStep: ReimbursementAccountSubStep | null): Promise<void | void[]> {
     return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
-}
-
-function setBankAccountState(state: string): Promise<void | void[]> {
-    return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {state}});
 }
 
 function hideBankAccountErrors() {
@@ -39,6 +34,10 @@ function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementA
 
 function clearReimbursementAccountDraft() {
     Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {});
+}
+
+function clearReimbursementAccount() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
 }
 
 /**
@@ -62,6 +61,17 @@ function setReimbursementAccountOptionPressed(optionPressed: ValueOf<typeof CONS
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED, optionPressed);
 }
 
+/**
+ * Clear validation messages from reimbursement account
+ */
+function resetReimbursementAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        errors: null,
+        pendingAction: null,
+        errorFields: null,
+    });
+}
+
 export {
     resetUSDBankAccount,
     resetNonUSDBankAccount,
@@ -70,8 +80,9 @@ export {
     updateReimbursementAccountDraft,
     requestResetBankAccount,
     cancelResetBankAccount,
+    clearReimbursementAccount,
     clearReimbursementAccountDraft,
-    setBankAccountState,
     setReimbursementAccountOptionPressed,
     updateReimbursementAccount,
+    resetReimbursementAccount,
 };

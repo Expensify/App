@@ -4,12 +4,15 @@ import BaseSelectionList from './BaseSelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from './types';
 
 function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListWithSectionsProps<TItem>) {
-    const {shouldIgnoreFocus, shouldDebounceScrolling, onScroll} = useWebSelectionListBehavior({shouldHideKeyboardOnScroll});
+    const {shouldIgnoreFocus, shouldDebounceScrolling, shouldDisableHoverStyle, setShouldDisableHoverStyle, onScroll} = useWebSelectionListBehavior({
+        shouldTrackHoverStyle: true,
+        shouldHideKeyboardOnScroll,
+    });
 
     return (
         <BaseSelectionList
             // Props spreading is necessary here to pass through all SelectionList props while adding web-specific behavior
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...props}
             ref={ref}
             onScroll={onScroll}
@@ -17,6 +20,8 @@ function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = tru
             // For example, a long press will trigger a focus event on mobile chrome.
             shouldIgnoreFocus={shouldIgnoreFocus}
             shouldDebounceScrolling={shouldDebounceScrolling}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
+            setShouldDisableHoverStyle={setShouldDisableHoverStyle}
         />
     );
 }

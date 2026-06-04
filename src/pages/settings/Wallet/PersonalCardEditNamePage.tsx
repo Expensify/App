@@ -1,5 +1,6 @@
 import {cardByIdSelector} from '@selectors/Card';
-import React from 'react';
+import React, {useCallback} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -23,17 +24,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditPersonalCardNameForm';
+import type {CardList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME>;
 
 function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
-    const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true, selector: cardByIdSelector(cardID)});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList), [cardID]);
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const defaultValue = customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName);
+    const isCSVImportedPersonalCard = !!card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV));
+    const defaultValue =
+        customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -66,7 +71,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                title={translate('workspace.moreFeatures.companyCards.cardName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID))}
             />
             <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
@@ -82,8 +87,8 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
-                    label={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    aria-label={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                    label={translate('workspace.moreFeatures.companyCards.cardName')}
+                    aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValue}
                     ref={inputCallbackRef}

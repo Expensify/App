@@ -3,7 +3,19 @@ import type {Section as SelectionListSection} from '@components/SelectionList/Se
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    TransactionViolation,
+    VisibleReportActionsDerivedValue,
+} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -121,15 +133,6 @@ type PayeePersonalDetails = {
     isInteractive: boolean;
 };
 
-type SectionBase = {
-    title: string | undefined;
-    shouldShow: boolean;
-};
-
-type Section = SectionBase & {
-    data: Option[];
-};
-
 type GetValidOptionsSharedConfig = {
     includeP2P?: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -156,6 +159,7 @@ type GetValidReportsConfig = {
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
+    isTimeRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
     isRestrictedToPreferredPolicy?: boolean;
@@ -163,6 +167,7 @@ type GetValidReportsConfig = {
     shouldUnreadBeBold?: boolean;
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    allPolicyTags?: OnyxCollection<PolicyTagLists>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -185,8 +190,10 @@ type IsValidReportsConfig = Pick<
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
     | 'shouldAlwaysIncludeDM'
+    | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
+    currentUserLogin: string;
 };
 
 type GetOptionsConfig = {
@@ -196,14 +203,17 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
-    excludeHiddenThreads?: boolean;
-    canShowManagerMcTest?: boolean;
+    excludeHidden?: boolean;
     searchString?: string;
     searchInputValue?: string;
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
     shouldAcceptName?: boolean;
+    countryCode?: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    sortedActions?: Record<string, ReportAction[]>;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -222,7 +232,6 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
-    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -287,11 +296,15 @@ type OrderReportOptionsConfig = {
 
 type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
+type OptionsResult = {
+    options: Options;
+    hasMore?: boolean;
+};
+
 export type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
     GetUserToInviteConfig,
-    GetValidOptionsSharedConfig,
     GetValidReportsConfig,
     MemberForList,
     Option,
@@ -306,9 +319,8 @@ export type {
     ReportAndPersonalDetailOptions,
     SearchOption,
     SearchOptionData,
-    Section,
-    SectionBase,
     SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
+    OptionsResult,
 };

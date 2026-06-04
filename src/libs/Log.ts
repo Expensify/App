@@ -1,16 +1,10 @@
 // Making an exception to this rule here since we don't need an "action" for Log and Log should just be used directly. Creating a Log
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
-/* eslint-disable rulesdir/no-api-in-views */
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Logger} from 'expensify-common';
 import AppLogs from 'react-native-app-logs';
-import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
-import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
-import {shouldAttachLog} from './Console';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
 import {post} from './Network';
@@ -18,18 +12,6 @@ import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
-let shouldCollectLogs = false;
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SHOULD_STORE_LOGS,
-    callback: (val) => {
-        if (!val) {
-            shouldCollectLogs = false;
-        }
-
-        shouldCollectLogs = !!val;
-    },
-});
 
 type LogCommandParameters = {
     expensifyCashAppVersion: string;
@@ -128,16 +110,7 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
-        if (!shouldAttachLog(message)) {
-            return;
-        }
-
-        flushAllLogsOnAppLaunch().then(() => {
-            console.debug(message, extraData);
-            if (shouldCollectLogs) {
-                addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message, extraData});
-            }
-        });
+        console.debug(message, extraData);
     },
     maxLogLinesBeforeFlush: 150,
     isDebug: true,

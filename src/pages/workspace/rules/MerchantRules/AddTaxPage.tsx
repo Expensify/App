@@ -15,8 +15,8 @@ function AddTaxPage({route}: AddTaxPageProps) {
     const {policyID, ruleID} = route.params;
     const isEditing = ruleID !== ROUTES.NEW;
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)

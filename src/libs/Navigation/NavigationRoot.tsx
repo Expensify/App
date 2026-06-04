@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
+import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
@@ -9,9 +10,10 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
-import Firebase from '@libs/Firebase';
 import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
+import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
+import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
@@ -25,8 +27,11 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getNavigationBaseTheme from './getNavigationBaseTheme';
+import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {isSplitNavigatorName, isWorkspacesTabScreenName} from './helpers/isNavigatorName';
+import getPathFromState from './helpers/getPathFromState';
+import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -53,7 +58,7 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    const currentPath = getPathFromState(state, linkingConfig.config);
+    const currentPath = getPathFromState(state);
 
     const focusedRoute = findFocusedRoute(state);
 
@@ -68,14 +73,25 @@ function parseAndLogRoute(state: NavigationState) {
     if (currentPath.includes('/transition')) {
         Log.info('Navigating from transition link from OldDot using short lived authToken');
     } else {
-        Log.info('Navigating to route', false, {path: currentPath});
+        Log.info('Navigating to route', false, {path: sanitizeUrlForLogging(currentPath)});
     }
 
     Navigation.setIsNavigationReady();
-    if (isWorkspacesTabScreenName(state.routes.at(-1)?.name)) {
-        saveWorkspacesTabPathToSessionStorage(currentPath);
-    } else if (state.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
-        saveSettingsTabPathToSessionStorage(currentPath);
+
+    const lastRoute = state.routes.at(-1);
+    const activeTabName = getActiveTabName(lastRoute);
+
+    // Skip saving when the focused route is the navigator itself (no nested screen yet), e.g. during
+    // the intermediate state right after `TabActions.jumpTo(WORKSPACE_NAVIGATOR)` and before the
+    // navigator mounts. The path collapses to `/` in that moment and would clobber the real path
+    // that WorkspaceRouter.getInitialState needs to read.
+    const isFocusedOnEmptyNavigator = focusedRoute?.name === activeTabName;
+    if (!isFocusedOnEmptyNavigator) {
+        if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+            saveWorkspacesTabPathToSessionStorage(currentPath);
+        } else if (activeTabName === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+            saveSettingsTabPathToSessionStorage(currentPath);
+        }
     }
 
     // Fullstory Page navigation tracking
@@ -94,10 +110,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const {updateCurrentReportID} = useCurrentReportIDActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
-        canBeMissing: true,
     });
 
     const previousAuthenticated = usePrevious(authenticated);
@@ -109,7 +124,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
-            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            return getAdaptedStateFromPath(lastVisitedPath);
         }
 
         if (!account || account.isFromPublicDomain) {
@@ -132,7 +147,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
             if (!isSpecificDeepLink) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
-                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+                return getAdaptedStateFromPath(lastVisitedPath);
             }
         }
 
@@ -145,7 +160,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+        const defaultNavigationTheme = getNavigationBaseTheme(themePreference);
 
         return {
             ...defaultNavigationTheme,
@@ -190,7 +205,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const lastRoute = navigationRef?.getRootState()?.routes?.at(-1);
 
         // Sidebar is a separate screen only in SplitNavigators, so shouldPopToSidebar should only be set when the last route is a SplitNavigator.
-        if (!isSplitNavigatorName(lastRoute?.name)) {
+        // When the last route is TAB_NAVIGATOR, check the active tab inside it.
+        const effectiveName = lastRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveTabName(lastRoute) : lastRoute?.name;
+        if (!isSplitNavigatorName(effectiveName)) {
             return;
         }
 
@@ -232,7 +249,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
         const currentRoute = navigationRef.getCurrentRoute();
-        Firebase.log(`[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`);
+        Sentry.addBreadcrumb({message: `[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`, category: 'navigation'});
 
         updateCurrentReportID(state);
         parseAndLogRoute(state);
@@ -247,7 +264,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
         onReady();
         navigationIntegration.registerNavigationContainer(navigationRef);
+        setupNavigationFocusReturn();
     }, [onReady]);
+
+    // Re-establish on (re)mount — StrictMode's cleanup-then-remount otherwise leaves us listener-less; setup is idempotent.
+    useEffect(() => {
+        setupNavigationFocusReturn();
+        return teardownNavigationFocusReturn;
+    }, []);
 
     return (
         <NavigationContainer

@@ -7,7 +7,7 @@ import type {DerivedValueContext} from './types';
 /**
  * Check if a specific key exists in sourceValue from OnyxDerived
  */
-const hasKeyTriggeredCompute = <K extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, K>>>(key: K, sourceValues: DerivedValueContext<K, Deps>['sourceValues']) => {
+const hasKeyTriggeredCompute = <TKey extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, TKey>>>(key: TKey, sourceValues: DerivedValueContext<TKey, Deps>['sourceValues']) => {
     if (!sourceValues) {
         return false;
     }

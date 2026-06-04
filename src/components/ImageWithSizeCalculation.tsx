@@ -1,7 +1,8 @@
 import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import RESIZE_MODES from './Image/resizeModes';
@@ -46,6 +47,15 @@ type ImageWithSizeCalculationProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** The resize mode of the image */
+    resizeMode?: ImageResizeMode;
+
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 };
 
 /**
@@ -65,6 +75,9 @@ function ImageWithSizeCalculation({
     loadingIconSize,
     loadingIndicatorStyles,
     onLoad,
+    resizeMode,
+    reasonAttributes,
+    previewUri,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -82,7 +95,7 @@ function ImageWithSizeCalculation({
             source={source}
             aria-label={altText}
             isAuthTokenRequired={isAuthTokenRequired}
-            resizeMode={RESIZE_MODES.cover}
+            resizeMode={resizeMode ?? RESIZE_MODES.cover}
             onError={onError}
             onLoad={(event: OnLoadNativeEvent) => {
                 onMeasure({
@@ -94,6 +107,8 @@ function ImageWithSizeCalculation({
             objectPosition={objectPosition}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
+            reasonAttributes={reasonAttributes}
+            previewUri={previewUri}
         />
     );
 }

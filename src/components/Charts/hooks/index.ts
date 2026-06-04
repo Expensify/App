@@ -1,8 +1,13 @@
-export {useChartInteractionState} from './useChartInteractionState';
-export {useChartLabelLayout} from './useChartLabelLayout';
-export {useChartInteractions} from './useChartInteractions';
+export {default as useChartLabelLayout} from './useChartLabelLayout';
+export {default as useChartLabelMeasurements} from './useChartLabelMeasurements';
+export {default as useChartParagraphs} from './useChartParagraphs';
+export {default as useYAxisLabelWidth} from './useYAxisLabelWidth';
+export {useChartFontManager} from '@components/Charts/context/ChartFontsContext';
+export {default as ChartFontsProvider} from '@components/Charts/context/ChartFontsProvider';
+export {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
+export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';
 export type {HitTestArgs} from './useChartInteractions';
-export type {ChartInteractionState} from './useChartInteractionState';
 export {default as useChartLabelFormats} from './useChartLabelFormats';
 export {default as useDynamicYDomain} from './useDynamicYDomain';
-export {useTooltipData} from './useTooltipData';
+export {default as useTooltipData} from './useTooltipData';
+export {default as useLabelHitTesting} from './useLabelHitTesting';

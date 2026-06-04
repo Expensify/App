@@ -3,18 +3,18 @@ import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type NameProps = SubStepProps;
+type NameProps = SubPageProps;
 
 const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function Address({onNext, isEditing, onMove}: NameProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const inputKeys = {
         street: STREET,

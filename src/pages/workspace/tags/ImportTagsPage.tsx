@@ -24,7 +24,7 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     const backTo = route.params.backTo;
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT;
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

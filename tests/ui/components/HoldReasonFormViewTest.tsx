@@ -5,10 +5,16 @@ import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import {translateLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getActiveRoute: jest.fn(() => ''),
+    navigate: jest.fn(),
+}));
 jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
     useIsFocused: () => true,
-    useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn(), goBack: jest.fn()}),
+    useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn(), goBack: jest.fn(), isFocused: () => true}),
     useFocusEffect: jest.fn(),
     usePreventRemove: jest.fn(),
 }));
@@ -50,5 +56,65 @@ describe('HoldReasonFormView', () => {
         expect(screen.getByText(translateLocal('iou.explainHold', {count: 2}))).toBeTruthy();
         const holdExpenseElements = screen.getAllByText(translateLocal('iou.holdExpense', {count: 2}));
         expect(holdExpenseElements.length).toBeGreaterThanOrEqual(2); // Title and button
+    });
+
+    it('renders submitter copy when isSubmitter is true', () => {
+        render(
+            <LocaleContextProvider>
+                <HoldReasonFormView
+                    onSubmit={onSubmit}
+                    validate={validate}
+                    backTo={backTo}
+                    isSubmitter
+                />
+            </LocaleContextProvider>,
+        );
+
+        expect(screen.getByText(translateLocal('iou.explainHold', {count: 1}))).toBeTruthy();
+    });
+
+    it('renders approver copy when isSubmitter is false', () => {
+        render(
+            <LocaleContextProvider>
+                <HoldReasonFormView
+                    onSubmit={onSubmit}
+                    validate={validate}
+                    backTo={backTo}
+                    isSubmitter={false}
+                />
+            </LocaleContextProvider>,
+        );
+
+        expect(screen.getByText(translateLocal('iou.explainHoldApprover', {count: 1}))).toBeTruthy();
+    });
+
+    it('renders approver plural copy when isSubmitter is false with multiple expenses', () => {
+        render(
+            <LocaleContextProvider>
+                <HoldReasonFormView
+                    onSubmit={onSubmit}
+                    validate={validate}
+                    backTo={backTo}
+                    isSubmitter={false}
+                    expenseCount={3}
+                />
+            </LocaleContextProvider>,
+        );
+
+        expect(screen.getByText(translateLocal('iou.explainHoldApprover', {count: 3}))).toBeTruthy();
+    });
+
+    it('defaults to submitter copy when isSubmitter is not provided', () => {
+        render(
+            <LocaleContextProvider>
+                <HoldReasonFormView
+                    onSubmit={onSubmit}
+                    validate={validate}
+                    backTo={backTo}
+                />
+            </LocaleContextProvider>,
+        );
+
+        expect(screen.getByText(translateLocal('iou.explainHold', {count: 1}))).toBeTruthy();
     });
 });

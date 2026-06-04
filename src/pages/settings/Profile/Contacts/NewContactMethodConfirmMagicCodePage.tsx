@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {clearPendingContactActionErrors, requestValidateCodeAction, verifyAddSecondaryLoginCode} from '@libs/actions/User';
+import {clearPendingContactActionErrors, requestValidateCodeAction, resetValidateActionCodeSent, verifyAddSecondaryLoginCode} from '@libs/actions/User';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -17,10 +17,10 @@ type NewContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<Settin
 function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMagicCodePageProps) {
     const {translate} = useLocalize();
     const navigateBackTo = route?.params?.backTo;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
-    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: false});
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const validateCodeError = getLatestErrorField(pendingContactAction, 'addedLogin');
 
     useEffect(() => {
@@ -42,6 +42,7 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
                 clearPendingContactActionErrors();
             }}
             onClose={() => {
+                resetValidateActionCodeSent();
                 Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
             }}
             isLoading={pendingContactAction?.isLoading}

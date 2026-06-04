@@ -8,6 +8,7 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -19,7 +20,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {getDefaultVendorName} from './utils';
 
@@ -67,7 +68,8 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION.getRoute(policyID, Navigation.getActiveRoute()));
+
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION.path));
             },
             subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE],
         },
@@ -79,7 +81,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.path));
             },
             subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT],
             shouldHide: config?.export.nonReimbursable !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
@@ -123,7 +125,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                             return;
                         }
                         Navigation.navigate(
-                            ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase(), Navigation.getActiveRoute()),
+                            createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())),
                         );
                     },
                     subscribedSettings: [
@@ -148,7 +150,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             displayName="SageIntacctNonReimbursableExpensesPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
-            onBackButtonPress={() => Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
+            onBackButtonPress={() =>
+                Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))))
+            }
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -166,7 +170,6 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                             return (
                                 <ToggleSettingOptionRow
                                     key={key}
-                                    // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...rest}
                                     wrapperStyle={[styles.mv3, styles.ph5]}
                                 />

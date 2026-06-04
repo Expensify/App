@@ -1,6 +1,7 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
+import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -17,6 +18,7 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
     getTopmostReportActionId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
 jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({
@@ -28,10 +30,8 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     addListener: () => () => {},
     isReady: () => true,
 }));
-jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
-jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Object.fromEntries(
@@ -63,7 +63,7 @@ describe('SidebarLinks', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
 
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(waitForBatchedUpdates);
     });
 

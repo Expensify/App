@@ -3,7 +3,7 @@ import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchColumnType} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -82,8 +82,8 @@ function Template(
 
     return (
         <ThemeProvider theme={theme}>
-            <ScreenWrapper testID="testID">
-                <ThemeStylesProvider>
+            <ThemeStylesProvider>
+                <ScreenWrapper testID="testID">
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
@@ -97,8 +97,8 @@ function Template(
                         columns={columns}
                         onButtonPress={() => {}}
                     />
-                </ThemeStylesProvider>
-            </ScreenWrapper>
+                </ScreenWrapper>
+            </ThemeStylesProvider>
         </ThemeProvider>
     );
 }

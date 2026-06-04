@@ -3,23 +3,25 @@ import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type PaymentVolumeProps = SubStepProps;
+type PaymentVolumeProps = SubPageProps;
 
 const {ANNUAL_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [ANNUAL_VOLUME];
 
 function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const currency = policy?.outputCurrency ?? '';
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
 
     const annualVolumeRangeListOptions = useMemo(
         () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange),

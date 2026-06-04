@@ -1,21 +1,25 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {RotateLeft} from '@components/Icon/Expensicons';
+import type {OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, requestResetBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 import Enable2FACard from './Enable2FACard';
 
 type FinishChatCardProps = {
@@ -25,20 +29,41 @@ type FinishChatCardProps = {
     /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
 
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
+
     /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep: (step: string | null) => void;
+    setUSDBankAccountStep?: (step: string | null) => void;
+
+    /** Route to return to when navigating back out of the flow */
+    backTo?: Route;
 };
 
-function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
+function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, setUSDBankAccountStep, backTo}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
-    const policyID = reimbursementAccount?.achData?.policyID;
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ChatBubble']);
+    const handleNavigateToConciergeChat = () =>
+        navigateToConciergeChat(
+            conciergeReportID,
+            introSelected,
+            currentUserAccountID,
+            isSelfTourViewed,
+            betas,
+            true,
+            undefined,
+            undefined,
+            reimbursementAccount?.achData?.ACHRequestReportActionID,
+        );
+
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
 
     return (
@@ -62,22 +87,29 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     title={translate('workspace.bankAccount.updateDetails')}
                     onPress={() => {
                         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
-                            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                            Navigation.navigate(
+                                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                                    policyID: policy?.id,
+                                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
+                                    subPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.FULL_NAME,
+                                    backTo,
+                                }),
+                            );
                         });
                     }}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                     shouldShowRightIcon
                 />
                 <MenuItem
-                    icon={RotateLeft}
+                    icon={icons.RotateLeft}
                     title={translate('workspace.bankAccount.startOver')}
                     onPress={requestResetBankAccount}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                     shouldShowRightIcon
                 />
             </Section>
-            {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
+            {!requiresTwoFactorAuth && <Enable2FACard />}
             {shouldShowResetModal && (
                 <WorkspaceResetBankAccountModal
                     reimbursementAccount={reimbursementAccount}

@@ -1,6 +1,7 @@
-/* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -8,18 +9,19 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
+import {searchUserInServer} from '@libs/actions/Report';
 import {canModifyTask, editTaskAssignee, setAssigneeValue} from '@libs/actions/Task';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -27,25 +29,31 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage, isCurrentUser} from '@libs/OptionsListUtils';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
-import type {TaskDetailsNavigatorParamList} from '@navigation/types';
+import type {NewTaskNavigatorParamList, TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
-    const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
+    const route = useRoute<
+        | PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_TASK_ASSIGNEE>
+        | PlatformStackRouteProp<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR>
+    >();
     const {translate} = useLocalize();
-    const backTo = route.params?.backTo;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const reportID = route.params && 'reportID' in route.params ? route.params.reportID : undefined;
+    const backTo = route.params && 'backTo' in route.params ? route.params.backTo : undefined;
+    const taskEditBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_ASSIGNEE.path);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -80,16 +88,16 @@ function TaskAssigneeSelectorModal() {
     const allPersonalDetails = usePersonalDetails();
 
     const report: OnyxEntry<Report> = (() => {
-        if (!route.params?.reportID) {
+        if (!reportID) {
             return;
         }
-        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (reportOnyx && !isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.dismissModalWithReport({reportID: reportOnyx.reportID});
+                Navigation.goBack(taskEditBackPath);
             });
         }
-        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     })();
 
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -143,7 +151,7 @@ function TaskAssigneeSelectorModal() {
     const initiallyFocusedOptionKey = sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
 
     const selectReport = (option: ListItem) => {
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
         if (!option) {
             return;
         }
@@ -152,6 +160,7 @@ function TaskAssigneeSelectorModal() {
             ...allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
             login: option.login ?? '',
+            isOptimisticPersonalDetail: !allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
         };
 
         // Check to see if we're editing a task and if so, update the assignee
@@ -165,21 +174,22 @@ function TaskAssigneeSelectorModal() {
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}, loginList, currentUserEmail),
                 );
                 // Pass through the selected assignee
-                editTaskAssignee(
+                editTaskAssignee({
                     report,
                     parentReport,
-                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    option?.login ?? '',
-                    currentUserPersonalDetails.accountID,
+                    sessionAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    assigneeEmail: option?.login ?? '',
+                    currentUserEmail,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
-                    option?.accountID,
+                    delegateEmail,
+                    assigneeAccountID: option?.accountID,
                     assigneeChatReport,
                     isOptimisticReport,
-                );
+                });
             }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                Navigation.dismissModalWithReport({reportID: report?.reportID});
+                Navigation.goBack(taskEditBackPath);
             });
             // If there's no report, we're creating a new task
         } else if (option.accountID) {
@@ -190,14 +200,19 @@ function TaskAssigneeSelectorModal() {
                 undefined, // passing null as report is null in this condition
                 isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList, currentUserEmail),
             );
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
             });
         }
     };
 
-    const handleBackButtonPress = () => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo);
+    const handleBackButtonPress = () => {
+        if (!reportID) {
+            Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
+            return;
+        }
+        Navigation.goBack(taskEditBackPath);
+    };
 
     const isOpen = isOpenTaskReport(report);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
@@ -205,7 +220,7 @@ function TaskAssigneeSelectorModal() {
     const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     const textInputOptions = {
@@ -226,7 +241,7 @@ function TaskAssigneeSelectorModal() {
                     onBackButtonPress={handleBackButtonPress}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
+                    <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
@@ -234,9 +249,8 @@ function TaskAssigneeSelectorModal() {
                         textInputOptions={textInputOptions}
                         initialScrollIndex={0}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
-                        showLoadingPlaceholder={!areOptionsInitialized}
+                        shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
-                        disableMaintainingScrollPosition
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
                     />

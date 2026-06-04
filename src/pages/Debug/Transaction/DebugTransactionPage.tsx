@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,15 +35,9 @@ function DebugTransactionPage({
     },
 }: DebugTransactionPageProps) {
     const {translate} = useLocalize();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
-        canBeMissing: true,
-    });
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
-        canBeMissing: true,
-    });
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`, {
-        canBeMissing: true,
-    });
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const styles = useThemeStyles();
@@ -61,7 +56,6 @@ function DebugTransactionPage({
                     Navigation.goBack();
                     // We need to wait for navigation animations to finish before deleting a transaction,
                     // otherwise the user will see a not found page briefly.
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
                     });

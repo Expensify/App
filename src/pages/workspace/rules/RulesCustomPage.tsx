@@ -43,7 +43,6 @@ function RulesCustomPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -58,7 +57,7 @@ function RulesCustomPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_FORM}
                     onSubmit={({customRules}) => {
-                        updateCustomRules(policyID, customRules);
+                        updateCustomRules(policyID, customRules, policy?.customRules);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}

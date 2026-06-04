@@ -1,12 +1,10 @@
-import {getPathFromState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isAuthenticating as isAuthenticatingNetworkStore} from '@libs/Network/NetworkStore';
-import CONST from '@src/CONST';
+import {getIsOffline} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network, Session} from '@src/types/onyx';
 import captureRequestsQueueState from './RequestsQueuesState';
@@ -14,6 +12,7 @@ import type {ExtraLoadingContext, GlobalStateSnapshot, NavigationStateInfo, Netw
 
 let currentSession: OnyxEntry<Session>;
 let currentNetwork: OnyxEntry<Network>;
+let currentIsAuthenticatingWithShortLivedToken = false;
 
 // We have opted for connectWithoutView here as this is strictly non-UI and only for logging.
 Onyx.connectWithoutView({
@@ -31,6 +30,14 @@ Onyx.connectWithoutView({
     },
 });
 
+// We have opted for connectWithoutView here as this is strictly non-UI and only for logging.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+    callback: (value) => {
+        currentIsAuthenticatingWithShortLivedToken = !!value;
+    },
+});
+
 /**
  * Captures current navigation state.
  */
@@ -41,7 +48,7 @@ function captureNavigationState(): NavigationStateInfo {
             return {currentPath: undefined};
         }
 
-        const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+        const routeFromState = getPathFromState(navigationRef.getRootState());
         return {
             currentPath: routeFromState || undefined,
         };
@@ -56,12 +63,11 @@ function captureNavigationState(): NavigationStateInfo {
 function captureSessionState(): SessionStateInfo {
     // Check multiple authentication states to get complete picture
     const isSessionLoading = !!currentSession?.loading;
-    const isAuthenticatingWithShortLivedToken = !!currentSession?.isAuthenticatingWithShortLivedToken;
     const isAuthenticatingFromNetworkStore = isAuthenticatingNetworkStore();
 
     return {
         isSessionLoading,
-        isAuthenticatingWithShortLivedToken,
+        isAuthenticatingWithShortLivedToken: currentIsAuthenticatingWithShortLivedToken,
         isAuthenticatingFromNetworkStore,
     };
 }
@@ -71,7 +77,7 @@ function captureSessionState(): SessionStateInfo {
  */
 function captureNetworkState(): NetworkStateInfo {
     return {
-        networkStatus: (currentNetwork?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN) as ValueOf<typeof CONST.NETWORK.NETWORK_STATUS>,
+        isOffline: getIsOffline(),
         timeSkew: currentNetwork?.timeSkew,
         shouldForceOffline: currentNetwork?.shouldForceOffline,
         shouldSimulatePoorConnection: currentNetwork?.shouldSimulatePoorConnection,

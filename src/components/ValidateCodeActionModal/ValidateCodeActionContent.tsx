@@ -29,7 +29,7 @@ function ValidateCodeActionContent({
 }: ValidateCodeActionContentProps) {
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const firstRenderRef = useRef(true);
 
     useEffect(() => {

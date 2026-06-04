@@ -14,19 +14,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
-function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.PROFILE_AVATAR>) {
-    const {accountID = CONST.DEFAULT_NUMBER_ID, source: tempSource, originalFileName: tempOriginalFileName} = route.params;
+function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.DYNAMIC_PROFILE_AVATAR>) {
+    const {accountID: accountIDParam, source: tempSource, originalFileName: tempOriginalFileName} = route.params;
+    const accountID = Number(accountIDParam ?? CONST.DEFAULT_NUMBER_ID);
 
     const defaultAvatars = useDefaultAvatars();
     const {formatPhoneNumber} = useLocalize();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const personalDetail = personalDetails?.[accountID];
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = getDisplayNameOrDefault(personalDetail);
 
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isLoading = personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
 
     useEffect(() => {
@@ -42,7 +43,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
     const headerTitle = formatPhoneNumber(displayName);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = !avatarURL;
 
     const onDownloadAttachment = useDownloadAttachment();

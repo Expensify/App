@@ -9,9 +9,11 @@ type IllustrationsType = {
     ExampleCheckEN: ImageSourcePropType;
     WorkspaceProfile: ImageSourcePropType;
     ExpensifyApprovedLogo: FC<SvgProps>;
+    ExpensifyApprovedBadge: FC<SvgProps>;
     GenericCompanyCard: IconAsset;
     GenericCompanyCardLarge: IconAsset;
     GenericCSVCompanyCardLarge: IconAsset;
+    FileImportTable: IconAsset;
 };
 
 export default IllustrationsType;

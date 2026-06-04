@@ -1,18 +1,19 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-import useNavigationTabBarIndicatorChecks from './useNavigationTabBarIndicatorChecks';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+import useAccountIndicatorChecks from './useAccountIndicatorChecks';
+import usePolicyIndicatorChecks from './usePolicyIndicatorChecks';
 import useTheme from './useTheme';
 
 type IndicatorStatusResult = {
     indicatorColor: string;
-    status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined;
+    status: IndicatorStatus | undefined;
     policyIDWithErrors: string | undefined;
 };
 
 function useIndicatorStatus(): IndicatorStatusResult {
     const theme = useTheme();
 
-    const {accountStatus, infoStatus, policyStatus, domainStatus, policyIDWithErrors} = useNavigationTabBarIndicatorChecks();
+    const {accountStatus, infoStatus} = useAccountIndicatorChecks();
+    const {policyStatus, domainStatus, policyIDWithErrors} = usePolicyIndicatorChecks();
 
     const errorStatus = accountStatus ?? policyStatus ?? domainStatus;
     const status = errorStatus ?? infoStatus;

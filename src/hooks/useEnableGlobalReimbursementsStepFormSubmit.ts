@@ -2,16 +2,16 @@ import type {FormOnyxKeys} from '@components/Form/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useStepFormSubmit from './useStepFormSubmit';
-import type {SubStepProps} from './useSubStep/types';
+import type {SubPageProps} from './useSubPage/types';
 
-type UseEnableGlobalReimbursementsStepFormSubmit = Pick<SubStepProps, 'onNext'> & {
+type UseEnableGlobalReimbursementsStepFormSubmit = Pick<SubPageProps, 'onNext'> & {
     formId?: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS>>;
     shouldSaveDraft: boolean;
 };
 
 /**
- * Hook for handling submit method in EnterSignerInfo substeps.
+ * Hook for handling submit method in EnterSignerInfo subpages.
  * When user is in editing mode, we should save values only when user confirms the change
  * @param onNext - callback
  * @param fieldIds - field IDs for particular step

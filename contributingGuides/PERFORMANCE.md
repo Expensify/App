@@ -110,46 +110,6 @@ https://github.com/user-attachments/assets/fe00da26-af07-4ea1-bd92-2dbe06c4bdad
 - For more accurate performance data, prefer release builds when possible
 - The generated traces require symbolication to show meaningful function names in release builds
 
-### React Native Release Profiler
-
-For more advanced JavaScript profiling on native devices, [`react-native-release-profiler`](https://github.com/margelo/react-native-release-profiler) provides programmatic profiling capabilities that work on both development and release builds.
-
-#### Setup:
-The profiler is already integrated into our debugging console. See the [App README](https://github.com/Expensify/App?tab=readme-ov-file#release-profiler) for detailed setup instructions.
-
-#### Steps to Profile:
-
-1. **Start Profiling:**
-   - Open the debugging console (four-finger tap)
-   - Press "Record Troubleshoot Data"
-   - Perform the actions you want to profile
-   - Press "Record Troubleshoot Data" again
-
-2. **Retrieve Profile:**
-   - The profile is saved to the device's Documents folder
-
-3. **Symbolicate Profile:**
-   - Download source maps from the GitHub release. Each release contains source maps for Android, iOS and Web.
-   - Copy the recorded profile to the root folder of the E/App repository
-   - Copy the source maps to the specific paths:
-     - **Android:** `android/app/build/generated/sourcemaps/react/productionRelease/` and rename file to `index.android.bundle.map`
-     - **iOS:** root folder and rename file to `main.jsbundle.map`
-     - **Web:** `dist` and run `npm run combine-web-sourcemaps` to generate merged sourcemaps
-   - Run the appropriate symbolication command:
-     ```bash
-     # iOS
-     npm run symbolicate-release:ios
-     # Android
-     npm run symbolicate-release:android
-     # Web
-     npm run symbolicate-release:web
-     ```
-   - This converts the raw profile into a format with readable function names
-
-4. **Analyze:**
-   - Upload the symbolicated profile to [Speedscope](https://www.speedscope.app/)
-   - Or use Chrome DevTools Performance tab
-
 ### Flashlight
 
 [Flashlight](https://github.com/bamlab/flashlight) is a tool for measuring React Native app performance with quantifiable metrics. It provides automated performance testing and can generate consistent baseline measurements.
@@ -276,34 +236,6 @@ https://github.com/user-attachments/assets/39e8514a-caac-4296-b837-b986e088fa9a
 
 You need to have the web server running. The app will open in a separate browser window.
 
-### Performance Metrics (Opt-In on local release builds)
-
-To capture reliable performance metrics for native app launch, we must test against a release build. To make this easier for everyone to do, we created an opt-in tool (using [`react-native-performance`](https://github.com/oblador/react-native-performance)) that will capture metrics and display them in an alert once the app becomes interactive. To set this up, just set `CAPTURE_METRICS=true` in your `.env` file, then create a release build on iOS or Android. The metrics this tool shows are as follows:
-
-- `nativeLaunch` - Total time for the native process to initialize
-- `runJSBundle` - Total time to parse and execute the JS bundle
-- `timeToInteractive` - Rough TTI (Time to Interactive). Includes native init time + sidebar UI partially loaded
-
-#### How to create a Release Build on Android
-
-- Create a keystore by running `keytool -genkey -v -keystore your_key_name.keystore -alias your_key_alias -keyalg RSA -keysize 2048 -validity 10000`
-- Fill out all the prompts with any info and give it a password
-- Drag the generated keystore to `/android/app`
-- Hardcode the values to the gradle config like so:
-
-```
-signingConfigs {
-        release {
-            storeFile file('your_key_name.keystore')
-            storePassword 'Password1'
-            keyAlias 'your_key_alias'
-            keyPassword 'Password1'
-        }
-}
-```
-- Delete any existing apps off emulator or device
-- Run `react-native run-android --variant release`
-
 ## Example Performance Optimization Proposals
 
 Here are examples of well-documented performance optimization proposals that demonstrate good practices for investigating, profiling, and fixing performance issues:
@@ -325,7 +257,7 @@ Another option is to use `React.memo()` with a custom comparison function to pre
 
 React might still take some time to re-render a component when its parent component renders. If it takes a long time to re-render the child even though we have no props changing, then we can use `React.memo()` which will "shallow compare" the `props` to see if a component should re-render.
 
-If you aren't sure what exactly is changing about some deeply nested object prop, you can use `Performance.diffObject()` in `React.memo()` method which should show you exactly what is changing from one update to the next.
+If you aren't sure what exactly is changing about some deeply nested object prop, you can add a temporary custom comparison function to `React.memo()` that logs the differences between previous and next props, which should show you exactly what is changing from one update to the next.
 
 **Suggested resource:** [React Docs - Preserving and Resetting state](https://react.dev/learn/preserving-and-resetting-state)
 
@@ -350,7 +282,7 @@ Since our codebase is very complex, it results in a large DOM tree rendered for 
 
 One of the most common issues is related to modals, popovers, and tooltips — elements that may appear on the screen. The problem is that they are usually present in the DOM tree even when initially invisible. Because of this, the initial render time of a screen may increase, ultimately slowing down the app.
 
-The solution is better control of invisible elements, making sure they are not included in the first render. This can be done, e.g., by a simple `return null`, smart usage of `lazy loading`, the `useTransition` hook, or the `<Deferred />` component.
+The solution is better control of invisible elements, making sure they are not included in the first render. This can be done, e.g., by a simple `return null`, smart usage of `lazy loading`, the `useTransition` hook, or the [`<NavigationDeferredMount />`](/src/components/NavigationDeferredMount.tsx) component. `<NavigationDeferredMount />` gates a heavy subtree behind navigation transition completion via `TransitionTracker`, rendering a cheap `placeholder` until the nav animation has finished, then mounting its `children` inside `startTransition` — ideal for heavy subtrees (e.g. report headers, page-level secondary actions) mounted during navigation transitions that pull many `useOnyx` subscriptions or heavy hooks but don't need to be interactive on first render.
 
 Another issue worth mentioning is unnecessary code execution, especially for elements that are never shown on a specific platform. In theory, we separate the logic between platforms by using index.tsx/index.native.tsx files, but sometimes platform-specific logic may slip in, causing unnecessary execution. For example, this may happen when logic specific to a wide layout (applicable only for web) is included.
 
@@ -362,6 +294,7 @@ Examples:
 - [PopoverWithMeasuredContent optimization for mobile](https://github.com/Expensify/App/pull/68223) - returns early to avoid unnecessary calculations
 - [Reduce confirm modal initial render count](https://github.com/Expensify/App/pull/67518) - returns early to reduce first load cost
 - [Do not render PopoverMenu until it gets opened](https://github.com/Expensify/App/pull/67877) - adds a wrapper to control if `PopoverMenu` should be rendered
+- [Defer mount of MoneyReportHeaderSecondaryActions](https://github.com/Expensify/App/pull/88522) - introduces `NavigationDeferredMount` and uses it to defer the "More" dropdown subtree (20+ `useOnyx` subscriptions) until the navigation transition completes
 
 # Proposing Performance Improvements
 

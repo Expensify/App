@@ -84,11 +84,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5, styles.flexRow]}>
-                <RenderHTML
-                    html={translate('workspace.intacct.toggleImportTitle', {
-                        mappingTitle: translate('workspace.intacct.mappingTitle', {mappingName}),
-                    })}
-                />
+                <RenderHTML html={translate('workspace.intacct.toggleImportTitle', translate('workspace.intacct.mappingTitle', {mappingName}))} />
             </View>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}

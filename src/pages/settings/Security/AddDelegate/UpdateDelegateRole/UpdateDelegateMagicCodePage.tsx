@@ -20,9 +20,9 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
     const {translate} = useLocalize();
     const login = route.params.login;
     const newRole = route.params.newRole as ValueOf<typeof CONST.DELEGATE_ROLE>;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const updateDelegateErrors = account?.delegatedAccess?.errorFields?.updateDelegateRole?.[login];
     useEffect(() => {
@@ -31,7 +31,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
         }
 
         // Dismiss modal on successful magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_SECURITY);
+        Navigation.goBack(ROUTES.SETTINGS_COPILOT);
     }, [login, currentDelegate?.role, currentDelegate?.pendingFields?.role, updateDelegateErrors, newRole]);
 
     const clearError = () => {

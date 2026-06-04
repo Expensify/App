@@ -1,9 +1,11 @@
-import type {ImageContentFit, ImageProps} from 'expo-image';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import type {ImageContentFit} from 'expo-image';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {SharedValue} from 'react-native-reanimated';
+import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import ImageSVG from '@components/ImageSVG';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,6 +15,13 @@ import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {Dimensions} from '@src/types/utils/Layout';
 import IconWrapperStyles from './IconWrapperStyles';
+
+type IconCarouselPagerProps = {
+    pagerRef: AttachmentCarouselPagerStateContextType['pagerRef'];
+    isScrollEnabled: SharedValue<boolean>;
+    onTap: () => void;
+    onSwipeDown: () => void;
+};
 
 type IconProps = {
     /** The asset to render. */
@@ -61,8 +70,8 @@ type IconProps = {
     /** Renders the Icon component within a MultiGestureCanvas for improved gesture controls. */
     enableMultiGestureCanvas?: boolean;
 
-    /** The image cache policy */
-    cachePolicy?: ImageProps['cachePolicy'];
+    /** When set, exposes the icon to assistive tech with this label. Leave unset to keep the icon decorative. */
+    accessibilityLabel?: string;
 };
 
 function Icon({
@@ -82,7 +91,7 @@ function Icon({
     contentFit = 'cover',
     isButtonIcon = false,
     enableMultiGestureCanvas = false,
-    cachePolicy,
+    accessibilityLabel,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -101,14 +110,25 @@ function Icon({
     );
 
     const isScrollingEnabledFallback = useSharedValue(false);
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onTap, onSwipeDown, pagerRef, isScrollEnabled} = useMemo(() => {
-        if (attachmentCarouselPagerContext === null) {
-            return {pagerRef: undefined, isScrollEnabled: isScrollingEnabledFallback, onTap: () => {}, onSwipeDown: () => {}};
-        }
+    const state = useAttachmentCarouselPagerState();
+    const actions = useAttachmentCarouselPagerActions();
 
-        return {...attachmentCarouselPagerContext};
-    }, [attachmentCarouselPagerContext, isScrollingEnabledFallback]);
+    const {onTap, onSwipeDown, pagerRef, isScrollEnabled}: IconCarouselPagerProps = useMemo((): IconCarouselPagerProps => {
+        if (state === null || actions === null) {
+            return {
+                pagerRef: undefined,
+                isScrollEnabled: isScrollingEnabledFallback,
+                onTap: () => {},
+                onSwipeDown: () => {},
+            };
+        }
+        return {
+            pagerRef: state.pagerRef,
+            isScrollEnabled: state.isScrollEnabled,
+            onTap: actions.onTap ?? (() => {}),
+            onSwipeDown: actions.onSwipeDown ?? (() => {}),
+        };
+    }, [state, actions, isScrollingEnabledFallback]);
 
     if (!src) {
         return null;
@@ -119,6 +139,7 @@ function Icon({
             <View
                 testID={testID}
                 style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
+                pointerEvents="none"
             >
                 <View style={iconStyles}>
                     <ImageSVG
@@ -129,7 +150,7 @@ function Icon({
                         hovered={hovered}
                         pressed={pressed}
                         contentFit={contentFit}
-                        cachePolicy={cachePolicy}
+                        pointerEvents="none"
                     />
                 </View>
             </View>
@@ -166,7 +187,6 @@ function Icon({
                                 hovered={hovered}
                                 pressed={pressed}
                                 contentFit={contentFit}
-                                cachePolicy={cachePolicy}
                             />
                         </View>
                     </MultiGestureCanvas>
@@ -175,13 +195,18 @@ function Icon({
         );
     }
 
+    const hasLabel = !!accessibilityLabel;
+
     return (
         <View
             testID={testID}
             style={additionalStyles}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            accessible={false}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityRole={hasLabel ? 'image' : undefined}
+            accessibilityElementsHidden={!hasLabel}
+            importantForAccessibility={hasLabel ? 'yes' : 'no-hide-descendants'}
+            accessible={hasLabel}
+            pointerEvents="none"
         >
             <ImageSVG
                 src={src}
@@ -191,7 +216,7 @@ function Icon({
                 hovered={hovered}
                 pressed={pressed}
                 contentFit={contentFit}
-                cachePolicy={cachePolicy}
+                pointerEvents="none"
             />
         </View>
     );

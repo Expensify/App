@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
@@ -48,8 +49,8 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>,
     );
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const defaultValues = useMemo(
         () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
         [subStepKeys, reimbursementAccount, reimbursementAccountDraft],
@@ -119,13 +120,14 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                 );
             }
 
+            const inputComponent = getInputComponent(field);
             return (
                 <View
                     style={styles.mb6}
                     key={field.id}
                 >
                     <InputWrapper
-                        InputComponent={getInputComponent(field)}
+                        InputComponent={inputComponent}
                         inputID={field.id}
                         label={field.label}
                         aria-label={field.label}
@@ -139,6 +141,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                         }}
                         hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
                     />
                 </View>
             );

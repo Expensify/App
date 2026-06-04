@@ -16,6 +16,9 @@ type AvatarWithDelegateAvatarProps = {
     /** Original account of delegate */
     delegateEmail: string;
 
+    /** Whether the avatar is hovered */
+    isHovered?: boolean;
+
     /** Whether the avatar is selected */
     isSelected?: boolean;
 
@@ -23,20 +26,20 @@ type AvatarWithDelegateAvatarProps = {
     containerStyle?: StyleProp<ViewStyle>;
 };
 
-function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
+function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
     const defaultAvatars = useDefaultAvatars();
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct avatar size
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const delegatePersonalDetail = Object.values(personalDetails?.[0] ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);
 
     return (
         <View style={[styles.sidebarStatusAvatarContainer, containerStyle]}>
             <ProfileAvatarWithIndicator isSelected={isSelected} />
-            <View style={[styles.sidebarStatusAvatar]}>
+            <View style={[styles.sidebarStatusAvatar, isHovered && styles.sidebarStatusAvatarHovered]}>
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
                         size={isSmallScreenWidth ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALL}

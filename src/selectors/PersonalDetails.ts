@@ -1,16 +1,41 @@
-import lodashMapKeys from 'lodash/mapKeys';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+import {getDisplayNameOrDefault, getLoginByAccountID, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
-type PersonalDetailsSelector<T> = (personalDetails: OnyxInputOrEntry<PersonalDetails>) => T;
+const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetailsList?.[accountID] : undefined);
 
-const createPersonalDetailsSelector = <T>(personalDetails: OnyxEntry<PersonalDetailsList>, personalDetailsSelector: PersonalDetailsSelector<T>) =>
-    mapOnyxCollectionItems(personalDetails, personalDetailsSelector);
+const multiPersonalDetailsSelector = (accountIDs: number[]) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
 
-const personalDetailsByEmailSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) =>
-    personalDetails ? lodashMapKeys(personalDetails, (value, key) => value?.login ?? key) : undefined;
+const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
-const personalDetailsSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID];
+const personalDetailsDisplayNameSelector = (accountID: number) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getDisplayNameOrDefault(personalDetails?.[accountID]);
 
-export {createPersonalDetailsSelector, personalDetailsByEmailSelector, personalDetailsSelector};
+const personalDetailByAccountIDSelector =
+    (accountID: number | undefined) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> =>
+        accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
+
+const conciergePersonalDetailSelector = personalDetailByAccountIDSelector(CONST.ACCOUNT_ID.CONCIERGE);
+
+const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+    const map: Record<number, string> = {};
+    for (const report of reportsToArchive) {
+        const {ownerAccountID} = report;
+        if (ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE && personalDetailsList?.[ownerAccountID]?.login) {
+            map[ownerAccountID] = personalDetailsList[ownerAccountID].login;
+        }
+    }
+    return map;
+};
+
+export {
+    personalDetailsSelector,
+    multiPersonalDetailsSelector,
+    personalDetailsDisplayNameSelector,
+    personalDetailsLoginSelector,
+    personalDetailByAccountIDSelector,
+    conciergePersonalDetailSelector,
+    accountIDToLoginSelector,
+};

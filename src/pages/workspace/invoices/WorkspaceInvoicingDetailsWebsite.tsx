@@ -34,7 +34,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values[INPUT_IDS.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        updateInvoiceCompanyWebsite(policyID, companyWebsite);
+        updateInvoiceCompanyWebsite(policyID, companyWebsite, policy?.invoice?.companyWebsite);
         Navigation.goBack();
     };
 

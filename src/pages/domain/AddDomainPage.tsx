@@ -26,9 +26,9 @@ function AddDomainPage() {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {canBeMissing: true});
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: isUserValidatedSelector});
+    const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
@@ -58,8 +58,9 @@ function AddDomainPage() {
         const accountID = Object.values(allDomains ?? {})?.find(
             (domain) => domain && submittedDomainName.current && Str.caseInsensitiveEquals(Str.extractEmailDomain(domain.email), submittedDomainName.current),
         )?.accountID;
+
         if (accountID) {
-            Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true}));
         }
     }, [form?.hasCreationSucceeded, allDomains]);
 
@@ -72,7 +73,7 @@ function AddDomainPage() {
         <ScreenWrapper testID="AddDomainPage">
             <HeaderWithBackButton
                 title={translate('domain.addDomain.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.getRoute())}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.getRoute())}
             />
             <ScrollView
                 contentContainerStyle={[styles.ph5, styles.pt3, styles.flexGrow1, styles.gap5]}

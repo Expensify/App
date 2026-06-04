@@ -30,13 +30,10 @@ function useMultipleSnapshots(hashes: string[]): SnapshotMap {
     }, [hashes]);
 
     const [snapshotMap = getEmptyObject<SnapshotMap>()] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {
-        canBeMissing: true,
         selector,
     });
 
     return snapshotMap;
 }
-
-export type {SnapshotMap};
 
 export default useMultipleSnapshots;

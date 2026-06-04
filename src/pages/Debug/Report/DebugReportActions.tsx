@@ -1,69 +1,59 @@
-import {createPersonalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, formatReportLastMessageText, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, formatReportLastMessageText, getInvoiceReceiverPolicyID, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 type DebugReportActionsProps = {
     reportID: string;
 };
-const personalDetailSelector = (personalDetail: OnyxInputOrEntry<PersonalDetails>): OnyxInputOrEntry<PersonalDetails> =>
-    personalDetail && {
-        accountID: personalDetail.accountID,
-        login: personalDetail.login,
-        avatar: personalDetail.avatar,
-        pronouns: personalDetail.pronouns,
-    };
-
-const personalDetailsSelector = (personalDetail: OnyxEntry<PersonalDetailsList>) => createPersonalDetailsSelector(personalDetail, personalDetailSelector);
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
     const {translate, datetimeToCalendarTime, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const invoiceReceiverPolicyID = report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report.invoiceReceiver.policyID : undefined;
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(reportID);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector, canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
 
     const getSortedAllReportActionsSelector = useCallback(
         (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
-            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true);
+            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID);
         },
-        [ifUserCanPerformWriteAction],
+        [ifUserCanPerformWriteAction, reportID],
     );
 
     const [sortedAllReportActions] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         {
-            canEvict: false,
             selector: getSortedAllReportActionsSelector,
-            canBeMissing: true,
         },
         [getSortedAllReportActionsSelector],
     );
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
-    const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>));
+    const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
 
     const getReportActionDebugText = useCallback(
         (reportAction: ReportAction) => {
@@ -80,8 +70,17 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             if (isCreatedAction(reportAction)) {
                 return formatReportLastMessageText(
-                    SidebarUtils.getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailList, translate, localeCompare, isReportArchived).messageText ??
-                        translate('report.noActivityYet'),
+                    SidebarUtils.getWelcomeMessage({
+                        report,
+                        policy,
+                        invoiceReceiverPolicy,
+                        participantPersonalDetailList,
+                        translate,
+                        localeCompare,
+                        conciergeReportID,
+                        reportAttributes,
+                        isReportArchived,
+                    }).messageText ?? translate('report.noActivityYet'),
                 );
             }
 
@@ -91,7 +90,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, isReportArchived],
+        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, reportAttributes, isReportArchived],
     );
 
     const searchedReportActions = useMemo(() => {
@@ -133,7 +132,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 style={{listItemTitleStyles: styles.fontWeightNormal}}
                 textInputOptions={textInputOptions}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
             />
         </ScrollView>
     );

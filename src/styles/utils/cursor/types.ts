@@ -11,7 +11,11 @@ type CursorStylesKeys =
     | 'cursorGrabbing'
     | 'cursorZoomOut'
     | 'cursorInitial'
-    | 'cursorText';
+    | 'cursorText'
+    | 'cursorEwResize'
+    | 'cursorNsResize'
+    | 'cursorNeswResize'
+    | 'cursorNwseResize';
 
 type CursorStyles = Record<CursorStylesKeys, Pick<ViewStyle, 'cursor'>>;
 

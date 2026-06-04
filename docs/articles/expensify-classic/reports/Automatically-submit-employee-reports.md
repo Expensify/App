@@ -2,7 +2,7 @@
 title: Automatically submit employee reports
 description: Learn how to configure automatic employee report submissions in Expensify Classic using the Submissions setting in your Workspace workflows.
 internalScope: Audience is Workspace Admins. Covers how to enable and configure automatic employee report submissions in Expensify Classic. Does not cover manual report workflows or approval routing.
-keywords: [Expensify Classic, automatic report submission, submission frequency, delay submissions, expense report schedule, Workspace workflows]
+keywords: [Expensify Classic, automatic report submission, submission frequency, delay submissions, expense report schedule, Workspace workflows, Scheduled Submit, auto submit, employee submission, submit expenses automatically]
 ---
 
 

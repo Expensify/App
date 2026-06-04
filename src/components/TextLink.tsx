@@ -1,6 +1,5 @@
 import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -72,7 +71,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
             onMouseDown={onMouseDown}
             ref={ref}
             suppressHighlighting
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            accessible
             {...rest}
         >
             {children}
@@ -80,6 +79,6 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
     );
 }
 
-export type {LinkProps, PressProps, TextLinkProps};
+export type {LinkProps, PressProps};
 
 export default TextLink;

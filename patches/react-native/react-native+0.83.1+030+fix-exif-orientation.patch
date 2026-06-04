@@ -1,0 +1,57 @@
+diff --git a/node_modules/react-native/Libraries/Image/RCTImageUtils.mm b/node_modules/react-native/Libraries/Image/RCTImageUtils.mm
+index d41a26f..5c19949 100644
+--- a/node_modules/react-native/Libraries/Image/RCTImageUtils.mm
++++ b/node_modules/react-native/Libraries/Image/RCTImageUtils.mm
+@@ -55,6 +55,30 @@ static CGImagePropertyOrientation CGImagePropertyOrientationFromUIImageOrientati
+   }
+ }
+
++static UIImageOrientation UIImageOrientationFromCGImagePropertyOrientation(CGImagePropertyOrientation cgOrientation)
++{
++  switch (cgOrientation) {
++    case kCGImagePropertyOrientationUp:
++      return UIImageOrientationUp;
++    case kCGImagePropertyOrientationDown:
++      return UIImageOrientationDown;
++    case kCGImagePropertyOrientationLeft:
++      return UIImageOrientationLeft;
++    case kCGImagePropertyOrientationRight:
++      return UIImageOrientationRight;
++    case kCGImagePropertyOrientationUpMirrored:
++      return UIImageOrientationUpMirrored;
++    case kCGImagePropertyOrientationDownMirrored:
++      return UIImageOrientationDownMirrored;
++    case kCGImagePropertyOrientationLeftMirrored:
++      return UIImageOrientationLeftMirrored;
++    case kCGImagePropertyOrientationRightMirrored:
++      return UIImageOrientationRightMirrored;
++    default:
++      return UIImageOrientationUp;
++  }
++}
++
+ CGRect RCTTargetRect(CGSize sourceSize, CGSize destSize, CGFloat destScale, RCTResizeMode resizeMode)
+ {
+   if (CGSizeEqualToSize(destSize, CGSizeZero)) {
+@@ -270,6 +294,8 @@ UIImage *__nullable RCTDecodeImageWithData(NSData *data, CGSize destSize, CGFloa
+   NSNumber *width = (NSNumber *)CFDictionaryGetValue(imageProperties, kCGImagePropertyPixelWidth);
+   NSNumber *height = (NSNumber *)CFDictionaryGetValue(imageProperties, kCGImagePropertyPixelHeight);
+   CGSize sourceSize = {width.doubleValue, height.doubleValue};
++  NSNumber *exifOrientation = (NSNumber *)CFDictionaryGetValue(imageProperties, kCGImagePropertyOrientation);
++  CGImagePropertyOrientation cgOrientation = exifOrientation ? (CGImagePropertyOrientation)[exifOrientation integerValue] : kCGImagePropertyOrientationUp;
+   CFRelease(imageProperties);
+
+   if (CGSizeEqualToSize(destSize, CGSizeZero)) {
+@@ -321,7 +347,11 @@ UIImage *__nullable RCTDecodeImageWithData(NSData *data, CGSize destSize, CGFloa
+   }
+
+   // Return image
+-  UIImage *image = [UIImage imageWithCGImage:imageRef scale:destScale orientation:UIImageOrientationUp];
++  // For thumbnails, kCGImageSourceCreateThumbnailWithTransform already rotates pixels, so use Up.
++  // For full-size images, CGImageSourceCreateImageAtIndex does NOT apply EXIF transform,
++  // so we must preserve the original EXIF orientation for correct display.
++  UIImageOrientation orientation = createThumbnail ? UIImageOrientationUp : UIImageOrientationFromCGImagePropertyOrientation(cgOrientation);
++  UIImage *image = [UIImage imageWithCGImage:imageRef scale:destScale orientation:orientation];
+   CGImageRelease(imageRef);
+   return image;
+ }

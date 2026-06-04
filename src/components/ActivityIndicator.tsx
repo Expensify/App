@@ -20,7 +20,7 @@ type ActivityIndicatorProps = RNActivityIndicatorProps & {
     extraLoadingContext?: ExtraLoadingContext;
 
     /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, extraLoadingContext, reasonAttributes, ...rest}: ActivityIndicatorProps) {
@@ -40,7 +40,6 @@ function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, e
     return (
         <RNActivityIndicator
             color={theme.spinner}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

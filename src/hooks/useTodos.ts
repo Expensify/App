@@ -114,13 +114,13 @@ function buildSearchResultsData(
 }
 
 export default function useTodos() {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const [todosReports] = useOnyx(ONYXKEYS.DERIVED.TODOS, {canBeMissing: true});
+    const [todosReports] = useOnyx(ONYXKEYS.DERIVED.TODOS);
 
     const transactionsByReportID = todosReports?.transactionsByReportID ?? CONST.EMPTY_OBJECT;
 

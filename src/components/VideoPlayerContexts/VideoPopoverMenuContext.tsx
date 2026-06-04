@@ -1,89 +1,89 @@
 import type {VideoPlayer} from 'expo-video';
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import React, {use, useEffect, useRef, useState} from 'react';
+import {useSession} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
+import {usePlaybackStateContext} from './PlaybackContext';
+import type {PlaybackSpeed, VideoPopoverMenuActionsContextType, VideoPopoverMenuStateContextType} from './types';
 
-const Context = React.createContext<VideoPopoverMenuContext | null>(null);
+const VideoPopoverMenuStateContext = React.createContext<VideoPopoverMenuStateContextType | null>(null);
+const VideoPopoverMenuActionsContext = React.createContext<VideoPopoverMenuActionsContextType | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter']);
     const {translate} = useLocalize();
+    const {currentVideoPlayerRef, originalParent} = usePlaybackStateContext();
     const [source, setSource] = useState('');
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
-    const {isOffline} = useNetwork();
-    const isLocalFile = source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
+    const isLocalFile = !!source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
     const videoPopoverMenuPlayerRef = useRef<VideoPlayer>(null);
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
-    const updatePlaybackSpeed = useCallback(
-        (speed: PlaybackSpeed) => {
-            setCurrentPlaybackSpeed(speed);
-            if (!videoPopoverMenuPlayerRef.current) {
-                return;
-            }
-            videoPopoverMenuPlayerRef.current.playbackRate = speed;
-        },
-        [videoPopoverMenuPlayerRef],
-    );
+    const updatePlaybackSpeed = (speed: PlaybackSpeed) => {
+        setCurrentPlaybackSpeed(speed);
+
+        // Setting the playback rate on iOS can resume playback if it was paused, so skip when already set.
+        if (!videoPopoverMenuPlayerRef.current || videoPopoverMenuPlayerRef.current.playbackRate === speed) {
+            return;
+        }
+        videoPopoverMenuPlayerRef.current.playbackRate = speed;
+    };
+
+    // Apply stored playback speed when the active player changes (e.g. navigating from parent to thread).
+    // Same pattern as VolumeContext which re-applies volume on originalParent change.
+    useEffect(() => {
+        if (!originalParent || !currentVideoPlayerRef.current) {
+            return;
+        }
+
+        if (currentVideoPlayerRef.current.playbackRate !== currentPlaybackSpeed) {
+            currentVideoPlayerRef.current.playbackRate = currentPlaybackSpeed;
+        }
+    }, [originalParent, currentPlaybackSpeed, currentVideoPlayerRef]);
 
     const updateVideoPopoverMenuPlayerRef = (videoPlayer: VideoPlayer | null) => {
         videoPopoverMenuPlayerRef.current = videoPlayer;
     };
 
-    const downloadAttachment = useCallback(() => {
+    const downloadAttachment = () => {
         if (typeof source === 'number' || !source) {
             return;
         }
-        fileDownload(translate, addEncryptedAuthTokenToURL(source));
-    }, [source, translate]);
+        fileDownload(translate, addEncryptedAuthTokenToURL(source, encryptedAuthToken));
+    };
 
-    const menuItems = useMemo(() => {
-        const items: PopoverMenuItem[] = [];
+    const stateValue = {currentPlaybackSpeed, isLocalFile};
+    const actionsValue = {
+        updateVideoPopoverMenuPlayerRef,
+        updatePlaybackSpeed,
+        updateSource: setSource,
+        downloadAttachment,
+    };
 
-        if (!isOffline && !isLocalFile) {
-            items.push({
-                icon: icons.Download,
-                text: translate('common.download'),
-                onSelected: () => {
-                    downloadAttachment();
-                },
-            });
-        }
-
-        items.push({
-            icon: icons.Meter,
-            text: translate('videoPlayer.playbackSpeed'),
-            subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
-                icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
-                text: speed === 1 ? translate('videoPlayer.normal') : speed.toString(),
-                onSelected: () => {
-                    updatePlaybackSpeed(speed);
-                },
-                shouldPutLeftPaddingWhenNoIcon: true,
-                isSelected: currentPlaybackSpeed === speed,
-            })),
-        });
-        return items;
-    }, [icons.Download, icons.Meter, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
-
-    const contextValue = useMemo(() => ({menuItems, updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: setSource}), [menuItems, updatePlaybackSpeed, setSource]);
-    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
+    return (
+        <VideoPopoverMenuStateContext.Provider value={stateValue}>
+            <VideoPopoverMenuActionsContext.Provider value={actionsValue}>{children}</VideoPopoverMenuActionsContext.Provider>
+        </VideoPopoverMenuStateContext.Provider>
+    );
 }
 
-function useVideoPopoverMenuContext() {
-    const videoPopoverMenuContext = useContext(Context);
-    if (!videoPopoverMenuContext) {
-        throw new Error('useVideoPopoverMenuContext must be used within a VideoPopoverMenuContext');
+function useVideoPopoverMenuState() {
+    const context = use(VideoPopoverMenuStateContext);
+    if (!context) {
+        throw new Error('useVideoPopoverMenuState must be used within a VideoPopoverMenuContextProvider');
     }
-    return videoPopoverMenuContext;
+    return context;
 }
 
-export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext};
+function useVideoPopoverMenuActions() {
+    const context = use(VideoPopoverMenuActionsContext);
+    if (!context) {
+        throw new Error('useVideoPopoverMenuActions must be used within a VideoPopoverMenuContextProvider');
+    }
+    return context;
+}
+
+export {VideoPopoverMenuContextProvider, useVideoPopoverMenuState, useVideoPopoverMenuActions};

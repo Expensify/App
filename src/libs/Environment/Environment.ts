@@ -62,4 +62,4 @@ function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};
+export {isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};

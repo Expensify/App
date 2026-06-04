@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -14,15 +14,22 @@ type ReceiptAuditProps = {
 
     /** Whether to show audit result or not (e.g.`Verified`, `Issue Found`) */
     shouldShowAuditResult: boolean;
+
+    /** Whether the receipt upload itself failed — forces the "Issue found" label/dot regardless of audit state */
+    hasReceiptUploadError?: boolean;
 };
 
-function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
+function ReceiptAudit({notes, shouldShowAuditResult, hasReceiptUploadError = false}: ReceiptAuditProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'DotIndicator']);
 
+    const hasIssues = hasReceiptUploadError || notes.length > 0;
     let auditText = '';
-    if (notes.length > 0 && shouldShowAuditResult) {
+    if (hasReceiptUploadError) {
+        auditText = translate('iou.receiptIssuesFound', {count: 1});
+    } else if (notes.length > 0 && shouldShowAuditResult) {
         auditText = translate('iou.receiptIssuesFound', {count: notes.length});
     } else if (!notes.length && shouldShowAuditResult) {
         auditText = translate('common.verified');
@@ -38,8 +45,8 @@ function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
                         <Icon
                             width={12}
                             height={12}
-                            src={notes.length ? Expensicons.DotIndicator : Expensicons.Checkmark}
-                            fill={notes.length ? theme.danger : theme.success}
+                            src={hasIssues ? icons.DotIndicator : icons.Checkmark}
+                            fill={hasIssues ? theme.danger : theme.success}
                             additionalStyles={styles.ml1}
                         />
                     </>

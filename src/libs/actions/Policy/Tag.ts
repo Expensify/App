@@ -3,6 +3,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
+import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
@@ -16,7 +17,7 @@ import type {
     SetPolicyTagsRequired,
     UpdatePolicyTagGLCodeParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -29,20 +30,31 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
-import {completeTask} from '@userActions/Task';
+import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, ReportAction} from '@src/types/onyx';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-/**
- * Checks if a task report is incomplete (not approved)
- */
-function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
-    return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
-}
+type CreatePolicyTagParams = {
+    policyData: PolicyData;
+    tagName: string;
+    setupTagsTaskReport: OnyxEntry<Report>;
+    setupTagsTaskParentReport: OnyxEntry<Report>;
+    isSetupTagsTaskParentReportArchived: boolean;
+    setupTagsHasOutstandingChildTask: boolean;
+    setupTagsParentReportAction: OnyxEntry<ReportAction>;
+    setupCategoriesAndTagsTaskReport: OnyxEntry<Report>;
+    setupCategoriesAndTagsTaskParentReport: OnyxEntry<Report>;
+    isSetupCategoriesAndTagsTaskParentReportArchived: boolean;
+    setupCategoriesAndTagsHasOutstandingChildTask: boolean;
+    setupCategoriesAndTagsParentReportAction: OnyxEntry<ReportAction>;
+    currentUserAccountID: number;
+    policyHasCustomCategories: boolean;
+};
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
@@ -83,71 +95,62 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
     return newOptimisticPolicyRecentlyUsedTags;
 }
 
-function updateImportSpreadsheetData(tagsLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> {
-    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importSuccessfulTitle',
-                        promptKey: 'spreadsheet.importTagsSuccessfulDescription',
-                        promptKeyParams: {
-                            tags: tagsLength,
-                        },
-                    },
-                },
-            },
-        ],
-
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importFailedTitle',
-                        promptKey: 'spreadsheet.importFailedDescription',
-                    },
-                },
-            },
-        ],
+function getImportTagsFinalModal(tagsLength: number): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importTagsSuccessfulDescription',
+        promptKeyParams: {
+            tags: tagsLength,
+        },
     };
-
-    return onyxData;
 }
 
-function createPolicyTag(
-    policyID: string,
-    tagName: string,
-    policyTags: PolicyTagLists = {},
-    setupTagsTaskReport?: OnyxEntry<Report>,
-    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
-    policyHasCustomCategories?: boolean,
-) {
+function getImportMultiLevelTagsFinalModal(): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importMultiLevelTagsSuccessfulDescription',
+    };
+}
+
+function createPolicyTag({
+    policyData,
+    tagName,
+    setupTagsTaskReport,
+    setupTagsTaskParentReport,
+    isSetupTagsTaskParentReportArchived,
+    setupTagsHasOutstandingChildTask,
+    setupTagsParentReportAction,
+    setupCategoriesAndTagsTaskReport,
+    setupCategoriesAndTagsTaskParentReport,
+    isSetupCategoriesAndTagsTaskParentReportArchived,
+    setupCategoriesAndTagsHasOutstandingChildTask,
+    setupCategoriesAndTagsParentReportAction,
+    currentUserAccountID,
+    policyHasCustomCategories,
+}: CreatePolicyTagParams) {
+    const {policy, tags: policyTags} = policyData;
+    const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
+    const tagListsOptimisticData = {
+        [policyTag.name]: {
+            tags: {
+                [newTagName]: {
+                    name: newTagName,
+                    enabled: true,
+                    errors: null,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+    };
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: {
-                    [policyTag.name]: {
-                        tags: {
-                            [newTagName]: {
-                                name: newTagName,
-                                enabled: true,
-                                errors: null,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            },
-                        },
-                    },
-                },
+                value: tagListsOptimisticData,
             },
         ],
         successData: [
@@ -183,6 +186,8 @@ function createPolicyTag(
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, tagListsOptimisticData);
+
     const parameters = {
         policyID,
         tags: JSON.stringify([{name: newTagName}]),
@@ -190,25 +195,57 @@ function createPolicyTag(
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 
-    if (isTaskIncomplete(setupTagsTaskReport)) {
-        completeTask(setupTagsTaskReport, false, false, undefined);
+    const isTaskForCurrentWorkspace = (taskReport: OnyxEntry<Report>) => !taskReport?.policyID || taskReport.policyID === policyID;
+
+    // Complete the "Set up tags" onboarding task
+    if (setupTagsTaskReport && currentUserAccountID && isTaskForCurrentWorkspace(setupTagsTaskReport)) {
+        getFinishOnboardingTaskOnyxData(
+            setupTagsTaskReport,
+            setupTagsTaskParentReport,
+            isSetupTagsTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            setupTagsHasOutstandingChildTask ?? false,
+            setupTagsParentReportAction,
+            // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            undefined,
+        );
     }
 
-    if (isTaskIncomplete(setupCategoriesAndTagsTaskReport) && policyHasCustomCategories) {
-        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
+    // Complete the combined "Set up categories and tags" task only if categories already exist
+    if (setupCategoriesAndTagsTaskReport && policyHasCustomCategories && currentUserAccountID && isTaskForCurrentWorkspace(setupCategoriesAndTagsTaskReport)) {
+        getFinishOnboardingTaskOnyxData(
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            setupCategoriesAndTagsHasOutstandingChildTask ?? false,
+            setupCategoriesAndTagsParentReportAction,
+            // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            undefined,
+        );
     }
 }
 
-function importPolicyTags(policyID: string, tags: PolicyTag[]) {
-    const onyxData = updateImportSpreadsheetData(tags.length);
+async function importPolicyTags(policyID: string, tags: PolicyTag[]): Promise<ImportFinalModal> {
+    const importFinalModal = getImportTagsFinalModal(tags.length);
+
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const optimisticTags = tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}));
 
     const parameters = {
         policyID,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        tags: JSON.stringify(tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}))),
+        tags: JSON.stringify(optimisticTags),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
+    try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters);
+        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+    } catch {
+        return getImportFailedFinalModal();
+    }
 }
 
 function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
@@ -676,6 +713,7 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
                                     name: null,
                                 },
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                                previousTagName: newTagName,
                             },
                         },
                     },
@@ -804,7 +842,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature();
     }
 }
 
@@ -829,15 +867,13 @@ function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
 }
 
-function setImportedSpreadsheetFileURI(fileURI: string) {
-    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
-}
-
-function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
+function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined): Promise<ImportFinalModal> {
     if (!spreadsheet) {
-        return;
+        return Promise.resolve(getImportFailedFinalModal());
     }
 
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
@@ -847,17 +883,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                     hasMultipleTagLists: true,
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importSuccessfulTitle',
-                        promptKey: 'spreadsheet.importMultiLevelTagsSuccessfulDescription',
-                    },
-                },
-            },
+            getImportFinalModalOnyxData(importFinalModalID, getImportMultiLevelTagsFinalModal()),
         ],
         failureData: [
             {
@@ -867,37 +893,38 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                     hasMultipleTagLists: false,
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importFailedTitle',
-                        promptKey: 'spreadsheet.importFailedDescription',
-                    },
-                },
-            },
+            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
         ],
     };
 
-    readFileAsync(
-        spreadsheet?.fileURI ?? '',
-        spreadsheet?.fileName ?? CONST.MULTI_LEVEL_TAGS_FILE_NAME,
-        (file) => {
-            const parameters: ImportMultiLevelTagsParams = {
-                policyID,
-                isFirstLineHeader: spreadsheet?.containsHeader,
-                isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
-                isGLAdjacent: spreadsheet?.isGLAdjacent,
-                file,
-            };
+    return new Promise((resolve) => {
+        readFileAsync(
+            spreadsheet.fileURI ?? '',
+            spreadsheet.fileName ?? CONST.MULTI_LEVEL_TAGS_FILE_NAME,
+            (file) => {
+                const parameters: ImportMultiLevelTagsParams = {
+                    policyID,
+                    isFirstLineHeader: spreadsheet.containsHeader,
+                    isIndependent: spreadsheet.isImportingIndependentMultiLevelTags,
+                    isGLAdjacent: spreadsheet.isGLAdjacent,
+                    file,
+                };
 
-            API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
-        },
-        () => {},
-        spreadsheet?.fileType ?? CONST.SHARE_FILE_MIMETYPE.CSV,
-    );
+                API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData)
+                    .then(() => importFinalModalResult.promise)
+                    .then(resolve)
+                    .catch(() => {
+                        importFinalModalResult.cancel();
+                        resolve(getImportFailedFinalModal());
+                    });
+            },
+            () => {
+                importFinalModalResult.cancel();
+                resolve(getImportFailedFinalModal());
+            },
+            spreadsheet.fileType ?? CONST.SHARE_FILE_MIMETYPE.CSV,
+        );
+    });
 }
 
 function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
@@ -1030,7 +1057,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
 
 function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
-    if (!policyTag || !policyTag.name) {
+    if (!policyTag?.name) {
         return;
     }
 
@@ -1181,7 +1208,7 @@ function setPolicyTagApprover(policy: OnyxEntry<Policy>, tag: string, approver: 
     const policyID = policy.id;
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policy, tag);
-    const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
+    const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule !== approverRuleToUpdate) : prevApprovalRules;
     const toBeUnselected = approverRuleToUpdate?.approver === approver;
 
     const updatedApproverRule = approverRuleToUpdate
@@ -1300,6 +1327,5 @@ export {
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
-    setImportedSpreadsheetFileURI,
     importMultiLevelTags,
 };

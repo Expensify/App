@@ -1,13 +1,11 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -15,16 +13,17 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -74,12 +73,12 @@ function ReportFieldsListValuesPage({
     // See https://github.com/Expensify/App/issues/48724 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
+    const {showConfirmModal} = useConfirmModal();
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
-    const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
@@ -151,6 +150,7 @@ function ReportFieldsListValuesPage({
     }, []);
     const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), [localeCompare]);
     const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Plus', 'Trashcan']);
 
     const filteredListValuesArray = filteredListValues.map((item) => item.value);
 
@@ -189,12 +189,7 @@ function ReportFieldsListValuesPage({
             });
         }
 
-        setDeleteValuesConfirmModalVisible(false);
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedValues({});
-        });
+        setSelectedValues({});
     };
 
     const openListValuePage = (valueItem: ValueListItem) => {
@@ -219,15 +214,31 @@ function ReportFieldsListValuesPage({
         );
     };
 
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         if (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0 && !hasAccountingConnections) {
                 options.push({
-                    icon: Expensicons.Trashcan,
+                    icon: icons.Trashcan,
                     text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => setDeleteValuesConfirmModalVisible(true),
+                    onSelected: () => {
+                        showConfirmModal({
+                            danger: true,
+                            title: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
+                            prompt: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt'),
+                            confirmText: translate('common.delete'),
+                            cancelText: translate('common.cancel'),
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+
+                            handleDeleteValues();
+                        });
+                    },
                 });
             }
             const enabledValues = selectedValuesArray.filter((valueName) => {
@@ -246,7 +257,7 @@ function ReportFieldsListValuesPage({
                 }, []);
 
                 options.push({
-                    icon: Expensicons.Close,
+                    icon: icons.Close,
                     text: translate(enabledValues.length === 1 ? 'workspace.reportFields.disableValue' : 'workspace.reportFields.disableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
@@ -282,7 +293,7 @@ function ReportFieldsListValuesPage({
                 }, []);
 
                 options.push({
-                    icon: Expensicons.Checkmark,
+                    icon: icons.Checkmark,
                     text: translate(disabledValues.length === 1 ? 'workspace.reportFields.enableValue' : 'workspace.reportFields.enableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
@@ -310,7 +321,7 @@ function ReportFieldsListValuesPage({
                     customText={translate('workspace.common.selected', {count: selectedValuesArray.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedValuesArray.length}
                 />
             );
@@ -319,9 +330,9 @@ function ReportFieldsListValuesPage({
         if (!hasAccountingConnections) {
             return (
                 <Button
-                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     success
-                    icon={Expensicons.Plus}
+                    icon={icons.Plus}
                     text={translate('workspace.reportFields.addValue')}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
                 />
@@ -336,7 +347,7 @@ function ReportFieldsListValuesPage({
             <View style={[styles.ph5, styles.pv4]}>
                 <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
             </View>
-            {data.length > CONST.SEARCH_ITEM_LIMIT && (
+            {data.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.reportFields.findReportField')}
                     inputValue={inputValue}
@@ -370,19 +381,17 @@ function ReportFieldsListValuesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!isSmallScreenWidth && getHeaderButtons()}
+                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {shouldShowEmptyState && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         {headerContent}
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
-                            SkeletonComponent={TableListItemSkeleton}
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                             headerMedia={illustrations.FolderWithPapers}
-                            headerStyles={styles.emptyFolderDarkBG}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
                             headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                         />
                     </ScrollView>
@@ -396,28 +405,18 @@ function ReportFieldsListValuesPage({
                         onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
-                        onCheckboxPress={toggleValue}
-                        showListEmptyContent={false}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllValues')}
+                        onSelectionButtonPress={toggleValue}
+                        shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
                         shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}
-                <ConfirmModal
-                    isVisible={deleteValuesConfirmModalVisible}
-                    onConfirm={handleDeleteValues}
-                    onCancel={() => setDeleteValuesConfirmModalVisible(false)}
-                    title={translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues')}
-                    prompt={translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

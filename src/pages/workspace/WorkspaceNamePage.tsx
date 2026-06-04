@@ -31,7 +31,7 @@ function WorkspaceNamePage({policy}: Props) {
                 return;
             }
 
-            updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
+            updateGeneralSettings(policy, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },

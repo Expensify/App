@@ -4,7 +4,7 @@ import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
 import type Report from './Report';
-import type {TransactionCustomUnit} from './Transaction';
+import type {Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
 
 /** Model of IOU participant */
 type Participant = {
@@ -161,62 +161,31 @@ type SplitExpense = {
     /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
     reimbursable?: boolean;
 
-    /** Whether this split has been manually edited by the user (locks the value from auto-adjustment) */
-    isManuallyEdited?: boolean;
+    /** Whether the split expense is billable */
+    billable?: boolean;
 
     /** Custom unit data for distance requests */
     customUnit?: TransactionCustomUnit;
-};
 
-/** Model of IOU request */
-type IOU = {
-    /** ID of the IOU request */
-    id: string;
+    /** Collection of waypoints associated with the transaction */
+    waypoints?: WaypointCollection;
 
-    /** Amount requested in IOU */
-    amount?: number;
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
 
-    /** Selected Currency Code of the current IOU */
-    currency?: string;
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 
-    /** Comment of the IOU request creator */
-    comment?: string;
-
-    /** Category assigned to the IOU request */
-    category?: string;
-
-    /** Merchant where the amount was spent */
-    merchant?: string;
-
-    /** Date timestamp when the IOU request was created */
-    created?: string;
-
-    /** Local file path of the expense receipt */
-    receiptPath?: string;
-
-    /** File name of the expense receipt */
-    receiptFilename?: string;
-
-    /** Transaction ID assigned to the IOU request */
-    transactionID?: string;
-
-    /** Users involved in the IOU request */
-    participants?: Participant[];
-
-    /** Tag assigned to the IOU request */
-    tag?: string;
-
-    /** Whether the IOU request is billable */
-    billable?: boolean;
-
-    /** Whether the IOU request is to be split with multiple users */
-    isSplitRequest?: boolean;
+    /** Existing routes */
+    routes?: Routes;
+    /** Whether this split has been manually edited by the user (locks the value from auto-adjustment) */
+    isManuallyEdited?: boolean;
 };
 
 /** Model of IOU attendee */
 type Attendee = {
     /** IOU attendee email */
-    email: string;
+    email?: string;
 
     /** IOU attendee display name */
     displayName: string;
@@ -256,7 +225,10 @@ type Accountant = {
 };
 
 /** Type of distance expense */
-type DistanceExpenseType = typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MAP | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MANUAL;
+type DistanceExpenseType =
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_MAP
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_GPS
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 
-export default IOU;
 export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};

@@ -10,6 +10,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -55,7 +56,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
-    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
+    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE;
 
 type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
     PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
@@ -64,17 +66,16 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
     WrappedComponent: ComponentType<TProps>,
     shouldShowLoadingIndicator = false,
 ): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
-    // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
         const {route} = props;
         const transactionID = route.params.transactionID;
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
-        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
         const isLoadingTransaction = isLoadingOnyxValue(transactionResult, transactionDraftResult);
 
-        const [splitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+        const [splitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
         const userType = 'iouType' in route.params && route.params.iouType ? route.params.iouType : CONST.IOU.TYPE.CREATE;
 
@@ -90,11 +91,14 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         }
 
         if (isLoadingTransaction && shouldShowLoadingIndicator) {
-            return <FullScreenLoadingIndicator />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'withFullTransactionOrNotFound',
+                isLoadingTransaction,
+            };
+            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 transaction={shouldUseTransactionDraft(userAction, userType) ? transactionDraftData : transaction}
                 isLoadingTransaction={isLoadingTransaction}

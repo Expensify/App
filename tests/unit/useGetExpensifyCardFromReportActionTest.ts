@@ -6,7 +6,6 @@ import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isCardIssuedAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import useGetExpensifyCardFromReportAction from '@src/hooks/useGetExpensifyCardFromReportAction';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, ReportAction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -64,7 +63,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         owner: '1',
         outputCurrency: 'USD',
         isPolicyExpenseChatEnabled: false,
-        workspaceAccountID: 123,
+        policyAccountID: 123,
     };
 
     beforeAll(() => {
@@ -140,12 +139,12 @@ describe('useGetExpensifyCardFromReportAction', () => {
                     owner: '1',
                     outputCurrency: 'USD',
                     isPolicyExpenseChatEnabled: false,
-                    workspaceAccountID: 123,
+                    policyAccountID: 123,
                 });
             });
 
             it('returns card from allExpensifyCards when card exists', async () => {
-                const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
+                const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}`;
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
 
@@ -156,14 +155,24 @@ describe('useGetExpensifyCardFromReportAction', () => {
             });
 
             it('returns undefined when card does not exist in allExpensifyCards', async () => {
-                const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}`;
+
                 mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {}});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
                 await waitForBatchedUpdatesWithAct();
 
                 expect(result.current).toBeUndefined();
+            });
+
+            it('falls back to allUserCards when allExpensifyCards is empty', async () => {
+                mockUseWorkspaceCardList.mockReturnValue({});
+                mockUseCardList.mockReturnValue({[mockCard.cardID]: mockCard});
+
+                const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(result.current).toEqual(mockCard);
             });
         });
     });
@@ -199,7 +208,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 owner: '1',
                 outputCurrency: 'USD',
                 isPolicyExpenseChatEnabled: false,
-                workspaceAccountID: 123,
+                policyAccountID: 123,
             });
 
             // Set initial state
@@ -211,7 +220,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
             expect(result.current).toBeUndefined();
 
-            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
+            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}`;
             // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
             const {result: updatedResult} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
@@ -232,7 +241,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 owner: '1',
                 outputCurrency: 'USD',
                 isPolicyExpenseChatEnabled: false,
-                workspaceAccountID: 123,
+                policyAccountID: 123,
             };
             mockUsePolicy.mockReturnValue(testPolicy);
 
@@ -252,12 +261,12 @@ describe('useGetExpensifyCardFromReportAction', () => {
         it('uses policy workspaceAccountID for building expensify cards key', async () => {
             const policyWithWorkspaceID = {
                 ...mockPolicy,
-                workspaceAccountID: 456,
+                policyAccountID: 456,
             };
             mockUsePolicy.mockReturnValue(policyWithWorkspaceID);
             mockIsPolicyAdmin.mockReturnValue(true);
 
-            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}456_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
+            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}456_${CONST.EXPENSIFY_CARD.BANK}`;
             // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
 
@@ -270,12 +279,12 @@ describe('useGetExpensifyCardFromReportAction', () => {
         it('uses DEFAULT_NUMBER_ID when policy has no workspaceAccountID', async () => {
             const policyWithoutWorkspaceID = {
                 ...mockPolicy,
-                workspaceAccountID: undefined,
+                policyAccountID: undefined,
             };
             mockUsePolicy.mockReturnValue(policyWithoutWorkspaceID);
             mockIsPolicyAdmin.mockReturnValue(true);
 
-            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
+            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}`;
             // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
 

@@ -1,9 +1,6 @@
 import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import createRandomReportAction from './collections/reportActions';
-
-const actionNames: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.CLOSED];
 
 const getFakeReportAction = (index: number, overrides: Partial<ReportAction> = {}): ReportAction =>
     ({
@@ -54,21 +51,12 @@ const getMockedSortedReportActions = (length = 100): ReportAction[] =>
         return getFakeReportAction(index + 1, {actionName});
     }).reverse();
 
-const getMockedReportActionsMap = (length = 100): ReportActions => {
-    const mockReports: ReportActions[] = Array.from({length}, (element, index): ReportActions => {
-        const reportID = index + 1;
-        const actionName: ReportActionName = index === 0 ? 'CREATED' : (actionNames.at(index % actionNames.length) ?? 'CREATED');
-        const reportAction = {
-            ...createRandomReportAction(reportID),
-            actionName,
-            originalMessage: {
-                linkedReportID: reportID.toString(),
-            },
-        } as ReportAction;
+const createMockReport = (overrides: Partial<Report> = {}): Report =>
+    ({
+        reportID: '1',
+        reportName: 'Test Report',
+        type: CONST.REPORT.TYPE.CHAT,
+        ...overrides,
+    }) as Report;
 
-        return {[reportID]: reportAction};
-    });
-    return Object.assign({}, ...mockReports) as ReportActions;
-};
-
-export {getFakeReportAction, getMockedSortedReportActions, getMockedReportActionsMap};
+export {getFakeReportAction, getMockedSortedReportActions, createMockReport};

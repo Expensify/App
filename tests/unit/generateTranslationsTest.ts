@@ -16,7 +16,6 @@ let consoleErrorSpy: jest.SpyInstance;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
 let mockEn: any = jest.requireActual('@src/languages/en');
 jest.mock('@src/languages/en', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     get default() {
@@ -33,11 +32,11 @@ const mockDiff = jest.fn();
 const mockShow = jest.fn();
 
 // Apply mocks to Git using jest.spyOn (ignore type errors for now)
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'isValidRef').mockImplementation(mockIsValidRef);
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'diff').mockImplementation(mockDiff);
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'show').mockImplementation(mockShow);
 
 let tempDir: string;
@@ -114,6 +113,7 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -172,6 +172,7 @@ describe('generateTranslations', () => {
                 import Log from '@libs/Log';
                 import CONST from '@src/CONST';
                 import type en from './en';
+
                 if (CONST.REPORT.TYPE.EXPENSE == 'true') {
                     Log.info('This should not be translated');
                     console.log('This should not be translated either');
@@ -245,6 +246,7 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
+
                 const strings = {
                     simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -303,6 +305,7 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
+
                 const strings = {
                     updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
                         if (toggledOptionsCount > 1) {
@@ -359,6 +362,7 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
+
                 const strings = {
                     bank: '[it][ctx: As in a financial institution] Bank',
                     bankTemplate: \`[it][ctx: As in a financial institution] Bank\`,
@@ -463,6 +467,7 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -498,6 +503,7 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
+
                 const strings = {
                     myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`[it] \${brand} Phone\`,
                 };
@@ -523,6 +529,7 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
+
                 const strings = {
                     hello: '[it] こんにちは',
                     world: '[it] world',
@@ -567,6 +574,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     unchanged: '[it] Unchanged',
@@ -654,6 +662,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -729,6 +738,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -798,6 +808,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -905,6 +916,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -1168,6 +1180,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     deepTemplate: (user: User, settings: Settings) => \`[it] Old complex template\`,
                     unchanged: '[it] Keep this (existing)'
@@ -1240,6 +1253,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     keep: {
                         this: '[it] Keep this section (existing)'
@@ -1340,6 +1354,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     existingSection: {
                         keep: '[it] Keep this existing translation',
@@ -1419,6 +1434,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     existingSection: {
                         keep: '[it] Keep this existing translation',
@@ -1492,6 +1508,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     testDrive: {
                         modal: {
@@ -1585,6 +1602,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     onboarding: {
                         tasks: {
@@ -1643,6 +1661,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     common: {
                         tasks: '[it] Tasks',
@@ -1695,6 +1714,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     pin: '[it] Pin',
@@ -1772,6 +1792,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     // @context original context
@@ -1858,6 +1879,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     // @context as a verb, not a noun
@@ -1940,6 +1962,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     pin: '[it] Pin (existing)',
@@ -2013,6 +2036,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     // TODO: fix this

@@ -1,22 +1,17 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Platform} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
-import useSingleExecution from '@hooks/useSingleExecution';
+import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import {hasBiometricsRegisteredSelector} from '@src/selectors/Account';
+import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -25,33 +20,17 @@ import TestToolRow from './TestToolRow';
 import Text from './Text';
 
 function TestToolMenu() {
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
-    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
-    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
-    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {clearLHNCache} = useSidebarOrderedReports();
-    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: hasBiometricsRegisteredSelector});
-
-    const {singleExecution} = useSingleExecution();
-    const waitForNavigate = useWaitForNavigation();
-
-    /**
-     * The wrapper is needed to prevent rapid double‑taps on native from triggering multiple navigations.
-     * Context: https://github.com/Expensify/App/pull/79475#discussion_r2708230681
-     */
-    const navigateToBiometricsTestPage = singleExecution(
-        waitForNavigate(() => {
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
-        }),
-    );
+    const {clearLHNCache} = useSidebarOrderedReportsActions();
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
-
-    // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
-    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: hasBiometricsRegistered});
 
     return (
         <>
@@ -64,13 +43,27 @@ function TestToolMenu() {
             {isAuthenticated && (
                 <>
                     {/* When toggled the app will be put into debug mode. */}
-                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
+                    <TestToolRow
+                        title={translate('initialSettingsPage.troubleshoot.debugMode')}
+                        isTitleAccessible={false}
+                    >
                         <Switch
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
                             isOn={isDebugModeEnabled}
                             onToggle={() => setIsDebugModeEnabled(!isDebugModeEnabled)}
                         />
                     </TestToolRow>
+
+                    {/* When toggled on web, the current git branch name is prepended to the browser tab title. */}
+                    {Platform.OS === 'web' && !!__GIT_BRANCH__ && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}>
+                            <Switch
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}
+                                isOn={shouldShowBranchNameInTitle}
+                                onToggle={() => setShouldShowBranchNameInTitle(!shouldShowBranchNameInTitle)}
+                            />
+                        </TestToolRow>
+                    )}
 
                     {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
@@ -108,26 +101,8 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Allows testing the biometric multifactor authentication flow */}
-                    <TestToolRow title={biometricsTitle}>
-                        <View style={[styles.flexRow, styles.gap2]}>
-                            <Button
-                                small
-                                text={translate('multifactorAuthentication.biometricsTest.test')}
-                                onPress={() => navigateToBiometricsTestPage()}
-                            />
-                            {hasBiometricsRegistered && (
-                                <Button
-                                    danger
-                                    small
-                                    text={translate('multifactorAuthentication.revoke.remove')}
-                                    onPress={() => {
-                                        revokeMultifactorAuthenticationCredentials();
-                                    }}
-                                />
-                            )}
-                        </View>
-                    </TestToolRow>
+                    {/* Allows testing and revoking biometric multifactor authentication */}
+                    <BiometricsTestToolRow />
                 </>
             )}
 
@@ -135,7 +110,10 @@ function TestToolMenu() {
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
         This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
             {!CONFIG.IS_USING_LOCAL_WEB && (
-                <TestToolRow title={translate('initialSettingsPage.troubleshoot.useStagingServer')}>
+                <TestToolRow
+                    title={translate('initialSettingsPage.troubleshoot.useStagingServer')}
+                    isTitleAccessible={false}
+                >
                     <Switch
                         accessibilityLabel="Use Staging Server"
                         isOn={shouldUseStagingServer}
@@ -145,7 +123,10 @@ function TestToolMenu() {
             )}
 
             {/* When toggled the app will be forced offline. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.forceOffline')}>
+            <TestToolRow
+                title={translate('initialSettingsPage.troubleshoot.forceOffline')}
+                isTitleAccessible={false}
+            >
                 <Switch
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
@@ -155,17 +136,23 @@ function TestToolMenu() {
             </TestToolRow>
 
             {/* When toggled the app will randomly change internet connection every 2-5 seconds */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}>
+            <TestToolRow
+                title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}
+                isTitleAccessible={false}
+            >
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
-                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
+                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection)}
                     disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
                 />
             </TestToolRow>
 
             {/* When toggled all network requests will fail. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}>
+            <TestToolRow
+                title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}
+                isTitleAccessible={false}
+            >
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}

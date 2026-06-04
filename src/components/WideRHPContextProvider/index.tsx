@@ -110,7 +110,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
     const [multiTransactionExpenseReportIDs, setMultiTransactionExpenseReportIDs] = useState<Set<string>>(new Set());
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector});
 
     const isWideRHPClosingRef = useRef(false);
     const isSuperWideRHPClosingRef = useRef(false);
@@ -363,8 +363,6 @@ export {
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayRHPOnSuperWideRHPProgress,
     thirdOverlayProgress,
-    WideRHPStateContext,
-    WideRHPActionsContext,
     useWideRHPState,
     useWideRHPActions,
 };

@@ -13,8 +13,6 @@ import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import {Close} from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
 
@@ -51,6 +49,9 @@ type UploadFileProps = {
 
     /** The total size limit of the files that can be selected. */
     totalFilesSizeLimit?: number;
+
+    /** The maximum size of a single file that can be selected. */
+    maxFileSize?: number;
 };
 
 function UploadFile({
@@ -65,8 +66,9 @@ function UploadFile({
     onInputChange = () => {},
     totalFilesSizeLimit = 0,
     fileLimit = 0,
+    maxFileSize = 0,
 }: UploadFileProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Paperclip']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -75,9 +77,17 @@ function UploadFile({
 
         const totalSize = resultedFiles.reduce((sum, file) => sum + (file.size ?? 0), 0);
 
+        if (maxFileSize) {
+            const oversizedFile = files.find((file) => (file.size ?? 0) > maxFileSize);
+            if (oversizedFile) {
+                setError(translate('attachmentPicker.sizeExceededWithLimit', maxFileSize / (1024 * 1024)));
+                return;
+            }
+        }
+
         if (totalFilesSizeLimit) {
             if (totalSize > totalFilesSizeLimit) {
-                setError(translate('attachmentPicker.sizeExceededWithValue', {maxUploadSizeInMB: totalFilesSizeLimit / (1024 * 1024)}));
+                setError(translate('attachmentPicker.sizeExceededWithValue', totalFilesSizeLimit / (1024 * 1024)));
                 return;
             }
         }
@@ -144,9 +154,10 @@ function UploadFile({
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.remove')}
+                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
                     >
                         <Icon
-                            src={Close}
+                            src={icons.Close}
                             fill={theme.icon}
                             medium
                         />

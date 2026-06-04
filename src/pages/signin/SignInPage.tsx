@@ -7,7 +7,7 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
 import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -151,9 +150,9 @@ function SignInPage({ref}: SignInPageProps) {
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountValidated = account?.validated;
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -161,7 +160,7 @@ function SignInPage({ref}: SignInPageProps) {
       every time the leader client changes.
       We use that function to prevent repeating code that checks which client is the leader.
     */
-    const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});
+    const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
@@ -179,10 +178,6 @@ function SignInPage({ref}: SignInPageProps) {
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
-
-    useEffect(() => {
-        Performance.measureTTI();
-    }, []);
 
     useEffect(() => {
         if (credentials?.login) {
@@ -250,8 +245,8 @@ function SignInPage({ref}: SignInPageProps) {
         } else {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = shouldUseNarrowLayout
-                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
-                : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
+                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay)}`
+                : translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay);
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
@@ -361,16 +356,25 @@ function SignInPageWrapper({ref}: SignInPageProps) {
 }
 
 // WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
+// The sign-in page always uses the dark theme, but respects the user's contrast preference (nvp_preferredTheme) which is preserved on sign-out.
 function WithTheme(Component: React.ComponentType<SignInPageProps>) {
-    return ({ref}: SignInPageProps) => (
-        <ThemeProvider theme={CONST.THEME.DARK}>
-            <ThemeStylesProvider>
-                <HTMLEngineProvider>
-                    <Component ref={ref} />
-                </HTMLEngineProvider>
-            </ThemeStylesProvider>
-        </ThemeProvider>
-    );
+    function ThemedComponent({ref}: SignInPageProps) {
+        const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+        const contrastThemes: string[] = [CONST.THEME.DARK_CONTRAST, CONST.THEME.LIGHT_CONTRAST, CONST.THEME.SYSTEM_CONTRAST];
+        const signInTheme = contrastThemes.includes(preferredTheme ?? '') ? CONST.THEME.DARK_CONTRAST : CONST.THEME.DARK;
+
+        return (
+            <ThemeProvider theme={signInTheme}>
+                <ThemeStylesProvider>
+                    <HTMLEngineProvider>
+                        <Component ref={ref} />
+                    </HTMLEngineProvider>
+                </ThemeStylesProvider>
+            </ThemeProvider>
+        );
+    }
+    ThemedComponent.displayName = `WithTheme(${Component.displayName ?? Component.name ?? 'Component'})`;
+    return ThemedComponent;
 }
 
 const SignInPageThemed = WithTheme(SignInPage);

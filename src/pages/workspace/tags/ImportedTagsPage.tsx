@@ -2,9 +2,9 @@ import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -28,19 +28,20 @@ type ImportedTagsPageProps =
 
 function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED;
 
     const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -85,7 +86,13 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate, containsHeader, spreadsheet?.data]);
 
-    const importTags = useCallback(() => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingTags(false);
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    };
+
+    const importTags = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
@@ -105,7 +112,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             const existingGLCodeOrDefault = tagAlreadyExists?.['GL Code'] ?? '';
             return {
                 name,
-                enabled: tagsEnabledColumn !== -1 ? tagsEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+                enabled: tagsEnabledColumn !== -1 ? ['true', 'yes'].includes(tagsEnabled?.[containsHeader ? index + 1 : index]?.toString().trim().toLowerCase() ?? '') : true,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': tagsGLCodeColumn !== -1 ? (tagsGLCode?.[containsHeader ? index + 1 : index] ?? '') : existingGLCodeOrDefault,
             };
@@ -113,9 +120,15 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
 
         if (tags) {
             setIsImportingTags(true);
-            importPolicyTags(policyID, tags);
+            const importFinalModal = await importPolicyTags(policyID, tags);
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+            if (!didShowImportFinalModal) {
+                setIsImportingTags(false);
+                return;
+            }
+            closeImportPageAndModal();
         }
-    }, [validate, spreadsheet, containsHeader, policyTagLists, policyID]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -125,12 +138,6 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     if (!spreadsheetColumns) {
         return <NotFoundPage />;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingTags(false);
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    };
 
     return (
         <ScreenWrapper
@@ -150,11 +157,6 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingTags}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}
-            />
-
-            <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                closeImportPageAndModal={closeImportPageAndModal}
             />
         </ScreenWrapper>
     );

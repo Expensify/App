@@ -3,13 +3,15 @@ import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import {setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, updateMoneyRequestTaxAmount} from '@libs/actions/IOU';
+import {setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
+import {updateMoneyRequestTaxAmount} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,11 +58,11 @@ function IOURequestStepTaxAmountPage({
 }: IOURequestStepTaxAmountPageProps) {
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -71,6 +73,7 @@ function IOURequestStepTaxAmountPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -121,6 +124,7 @@ function IOURequestStepTaxAmountPage({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
+                delegateAccountID,
             });
             navigateBack();
             return;
@@ -177,9 +181,8 @@ function IOURequestStepTaxAmountPage({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxAmountPageWithWritableReportOrNotFound);
 
 export default IOURequestStepTaxAmountPageWithFullTransactionOrNotFound;

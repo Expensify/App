@@ -10,7 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addReportApprover} from '@libs/actions/IOU';
+import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
@@ -24,7 +25,7 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
@@ -35,15 +36,15 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isBetaEnabled} = usePermissions();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`, {canBeMissing: true});
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {
@@ -120,7 +121,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
     }, []);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
     return (
@@ -128,7 +128,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             testID="ReportAddApproverPage"
             headerTitle={translate('iou.changeApprover.actions.addApprover')}
             onBackButtonPress={() => {
-                Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)), {compareParams: false});
             }}
             subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.addApprover.subtitle')}</Text>}
             isLoadingReportData={isLoadingReportData}
