@@ -3402,6 +3402,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     welcomeSignUpForm: {
         join: '参加',
+        marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します',
     },
     detailsPage: {
         localTime: '現地時間',
@@ -4373,6 +4374,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
+            readOnlyActionTitle: 'ちょっと待ってください…',
+            readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
