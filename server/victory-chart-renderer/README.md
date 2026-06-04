@@ -48,4 +48,4 @@ npm run server:vcr:build:linux-arm
 npm run server:vcr:build:macos
 ```
 
-Binaries are written to `dist/` (gitignored). `canvaskit.wasm` (~8 MB) is embedded in the executable via Bun's `with { type: "file" }` import, so only the binary needs to be shipped.
+Binaries are written to `dist/` (gitignored). `canvaskit.wasm` (~8 MB) is embedded in the executable via Bun's `with { type: "file" }` import; `LoadSkiaWeb` uses `locateFile` to load it from the embedded asset so only the binary needs to be shipped.

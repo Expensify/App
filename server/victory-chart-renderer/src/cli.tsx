@@ -18,7 +18,7 @@ const cli = new CLI({
     },
 });
 
-await LoadSkiaWeb(await getCanvaskitInitOptions());
+await LoadSkiaWeb(getCanvaskitInitOptions());
 
 // The `Skia` named export from `@shopify/react-native-skia` is captured at
 // module load time from `globalThis.SkiaApi` (the native bridge on iOS/Android).
