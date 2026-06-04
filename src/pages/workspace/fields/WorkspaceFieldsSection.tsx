@@ -15,11 +15,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -59,6 +61,7 @@ type WorkspaceFieldsSectionProps = {
     upgradeBackToRoute: Route;
     enableFields: (policyID: string, enabled: boolean) => void;
     openFieldsPage: (policyID: string) => void;
+    policyFeature: PolicyFeature;
     syncErrorConnectionNames?: readonly PolicyConnectionName[];
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 };
@@ -85,6 +88,7 @@ function WorkspaceFieldsSection({
     upgradeBackToRoute,
     enableFields,
     openFieldsPage,
+    policyFeature,
     syncErrorConnectionNames,
     titleAccessibilityRole,
 }: WorkspaceFieldsSectionProps) {
@@ -102,6 +106,7 @@ function WorkspaceFieldsSection({
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const fieldList = policy?.fieldList;
+    const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const fetchFields = useCallback(() => {
         openFieldsPage(policyID);
@@ -133,9 +138,13 @@ function WorkspaceFieldsSection({
 
     const navigateToFieldSettings = useCallback(
         (item: FieldListItem) => {
+            if (!canWrite) {
+                return;
+            }
+
             Navigation.navigate(getSettingsRoute(policyID, item.fieldID));
         },
-        [getSettingsRoute, policyID],
+        [canWrite, getSettingsRoute, policyID],
     );
 
     const renderItem = useCallback(
@@ -146,14 +155,14 @@ function WorkspaceFieldsSection({
                     onPress={() => navigateToFieldSettings(item)}
                     description={item.text}
                     disabled={item.isDisabled}
-                    shouldShowRightIcon={!item.isDisabled}
-                    interactive={!item.isDisabled}
+                    shouldShowRightIcon={!item.isDisabled && canWrite}
+                    interactive={!item.isDisabled && canWrite}
                     rightLabel={item.rightLabel}
                     descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
                 />
             </OfflineWithFeedback>
         ),
-        [navigateToFieldSettings, shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong],
+        [canWrite, navigateToFieldSettings, shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong],
     );
 
     const headerText =
@@ -234,8 +243,9 @@ function WorkspaceFieldsSection({
 
                     enableFields(policyID, true);
                 }}
-                disabled={hasAccountingConnections}
-                disabledAction={onDisabledOrganizeSwitchPress}
+                disabled={hasAccountingConnections || !canWrite}
+                disabledAction={withReadOnlyFallback(onDisabledOrganizeSwitchPress)}
+                showLockIcon={!canWrite}
                 subMenuItems={
                     isEnabled && (
                         <>
@@ -249,7 +259,7 @@ function WorkspaceFieldsSection({
                                     />
                                 )}
                             </View>
-                            {!hasAccountingConnections && (
+                            {!hasAccountingConnections && canWrite && (
                                 <MenuItem
                                     onPress={() => Navigation.navigate(createRoute)}
                                     title={translate(addFieldKey)}

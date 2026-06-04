@@ -169,7 +169,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     return (
         <MenuItemList
             menuItems={savedSearchesMenuItems}
-            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+            wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), styles.searchTypeMenuItemPadding]}
             icon={expensifyIcons.Bookmark}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}

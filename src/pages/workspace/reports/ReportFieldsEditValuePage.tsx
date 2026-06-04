@@ -21,6 +21,7 @@ function ReportFieldsEditValuePage({
             policyID={policyID}
             valueIndex={valueIndex}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
             testID="ReportFieldsEditValuePage"
         />
     );

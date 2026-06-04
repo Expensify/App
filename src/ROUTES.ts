@@ -6,7 +6,6 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
@@ -18,7 +17,7 @@ import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {CompanyCardFeedWithDomainID, PersonalCardFeed} from './types/onyx';
-import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
+import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
 type WorkspaceCompanyCardsAssignCardParams = {
@@ -195,6 +194,30 @@ const DYNAMIC_ROUTES = {
         path: 'sage-intacct/prerequisites',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
     },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT: {
+        path: 'certinia/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER: {
+        path: 'certinia-preferred-exporter/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS: {
+        path: 'certinia-status/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE: {
+        path: 'certinia-date/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR: {
+        path: 'certinia-default-vendor/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
+        path: 'certinia/advanced',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
         path: 'vendor/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
@@ -287,6 +310,14 @@ const DYNAMIC_ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         path: 'qbd-company-card-expense-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION: {
+        path: 'qbd-travel-invoicing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'qbd-travel-invoicing-payable-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_CARD_SELECT: {
         path: 'qbd-card-select',
@@ -411,6 +442,7 @@ const DYNAMIC_ROUTES = {
         path: 'country',
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.ADDRESS,
+            SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
@@ -793,7 +825,14 @@ const ROUTES = {
     INBOX: 'inbox',
     HOME: 'home',
 
-    WORKSPACES_LIST: {route: 'workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo)},
+    WORKSPACES_LIST: {
+        route: 'workspaces',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo),
+    },
+    DOMAINS_LIST: {
+        route: 'domains',
+        getRoute: () => 'domains' as const,
+    },
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
@@ -1281,6 +1320,11 @@ const ROUTES = {
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
     SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
     SETTINGS_ADDRESS: 'settings/profile/address',
+    SETTINGS_PRIVATE_PERSONAL_DETAILS: {
+        route: 'settings/profile/private-personal-details',
+        getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
+    },
+    SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'settings/profile/private-personal-details/confirm',
     SETTINGS_ADDRESS_STATE: {
         route: 'settings/profile/address/state',
 
@@ -2410,6 +2454,10 @@ const ROUTES = {
             return `workspaces/${policyID}/rooms` as const;
         },
     },
+    WORKSPACE_ROOM_CREATE: {
+        route: 'workspaces/:policyID/rooms/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rooms/new` as const,
+    },
     WORKSPACE_MEMBERS_IMPORT: {
         route: 'workspaces/:policyID/members/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/import` as const,
@@ -2732,6 +2780,10 @@ const ROUTES = {
     WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
         route: 'workspaces/:policyID/reports/listValues/:reportFieldID?',
         getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR: {
+        route: 'workspaces/:policyID/reports/typeSelector/:currentType?',
+        getRoute: (policyID: string, currentType?: PolicyReportFieldType) => `workspaces/${policyID}/reports/typeSelector/${currentType ? encodeURIComponent(currentType) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
         route: 'workspaces/:policyID/reports/addValue/:reportFieldID?',
@@ -3708,6 +3760,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/netsuite/import/custom-list/new/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/list-selector/:action?',
+        getRoute: (policyID: string | undefined, action?: 'edit') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom-list/list-selector${action ? `/${action}` : ''}` as const;
+        },
+    },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom-segment/new/:subPage?/:action?',
         getRoute: (policyID: string | undefined, subPage?: string, action?: 'edit') => {
@@ -4155,17 +4216,6 @@ const ROUTES = {
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/move` as const,
     },
 
-    MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,
-    MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
-
-    MULTIFACTOR_AUTHENTICATION_OUTCOME_SUCCESS: 'multifactor-authentication/outcome/success',
-    MULTIFACTOR_AUTHENTICATION_OUTCOME_FAILURE: 'multifactor-authentication/outcome/failure',
-
-    MULTIFACTOR_AUTHENTICATION_PROMPT: {
-        route: `multifactor-authentication/prompt/:promptType`,
-        getRoute: (promptType: MultifactorAuthenticationPromptType) => `multifactor-authentication/prompt/${promptType}` as const,
-    },
-    MULTIFACTOR_AUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',
     MULTIFACTOR_AUTHENTICATION_REVOKE: 'multifactor-authentication/revoke',
 
     DOMAIN_GROUPS: {

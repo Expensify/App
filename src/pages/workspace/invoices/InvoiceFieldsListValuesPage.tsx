@@ -23,6 +23,7 @@ function InvoiceFieldsListValuesPage({
             reportFieldID={reportFieldID}
             isInvoicePage
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             getValueSettingsRoute={(isInvoiceRoute, id, valueIndex, fieldID) =>
                 isInvoiceRoute
                     ? ROUTES.WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS.getRoute(id, valueIndex, fieldID)

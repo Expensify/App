@@ -13,11 +13,13 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteReportFieldsListValue, removeReportFieldListValue, setReportFieldsListValueEnabled, updateReportFieldListValueEnabled} from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections as hasAccountingConnectionsUtil} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -33,16 +35,18 @@ type FieldsValueSettingsPageProps = {
     reportFieldID?: string;
     isInvoicePage: boolean;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+    policyFeature: PolicyFeature;
     getEditValueRoute: (isInvoiceRoute: boolean, policyID: string, valueIndex: number) => Routes;
     testID: string;
 };
 
-function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, isInvoicePage, featureName, getEditValueRoute, testID}: FieldsValueSettingsPageProps) {
+function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, isInvoicePage, featureName, policyFeature, getEditValueRoute, testID}: FieldsValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {showConfirmModal} = useConfirmModal();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const [currentValueName, currentValueDisabled] = useMemo(() => {
         let reportFieldValue: string;
@@ -121,6 +125,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={featureName}
+            policyFeature={policyFeature}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -144,17 +149,20 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                                 isOn={!currentValueDisabled}
                                 accessibilityLabel={translate('workspace.reportFields.enableValue')}
                                 onToggle={updateListValueEnabled}
+                                disabled={!canWrite}
+                                disabledAction={withReadOnlyFallback()}
+                                showLockIcon={!canWrite}
                             />
                         </View>
                     </View>
                     <MenuItemWithTopDescription
                         title={currentValueName ?? oldValueName}
                         description={translate('common.value')}
-                        shouldShowRightIcon={!reportFieldID}
-                        interactive={!reportFieldID}
+                        shouldShowRightIcon={canWrite && !reportFieldID}
+                        interactive={canWrite && !reportFieldID}
                         onPress={navigateToEditValue}
                     />
-                    {!hasAccountingConnections && (
+                    {canWrite && !hasAccountingConnections && (
                         <MenuItem
                             icon={icons.Trashcan}
                             title={translate('common.delete')}

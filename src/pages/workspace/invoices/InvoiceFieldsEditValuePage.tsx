@@ -21,6 +21,7 @@ function InvoiceFieldsEditValuePage({
             policyID={policyID}
             valueIndex={valueIndex}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             testID="InvoiceFieldsEditValuePage"
         />
     );

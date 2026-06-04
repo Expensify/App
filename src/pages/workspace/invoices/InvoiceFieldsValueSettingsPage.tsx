@@ -24,6 +24,7 @@ function InvoiceFieldsValueSettingsPage({
             reportFieldID={reportFieldID}
             isInvoicePage
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             getEditValueRoute={(isInvoiceRoute, id, index) =>
                 isInvoiceRoute ? ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_VALUE.getRoute(id, index) : ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_VALUE.getRoute(id, index)
             }

@@ -22,6 +22,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -37,6 +38,7 @@ import {
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -63,12 +65,13 @@ type FieldsListValuesPageProps = {
     reportFieldID?: string;
     isInvoicePage: boolean;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+    policyFeature: PolicyFeature;
     getValueSettingsRoute: (isInvoiceRoute: boolean, policyID: string, valueIndex: number, reportFieldID?: string) => Routes;
     getAddValueRoute: (isInvoiceRoute: boolean, policyID: string, reportFieldID?: string) => Routes;
     testID: string;
 };
 
-function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, featureName, getValueSettingsRoute, getAddValueRoute, testID}: FieldsListValuesPageProps) {
+function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, featureName, policyFeature, getValueSettingsRoute, getAddValueRoute, testID}: FieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
@@ -80,6 +83,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Plus', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
     const {showConfirmModal} = useConfirmModal();
+    const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -89,7 +93,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const findFieldKey = shouldUseInvoiceRoutes ? 'workspace.invoiceFields.findInvoiceField' : 'workspace.reportFields.findReportField';
     const emptyValuesSubtitleKey = shouldUseInvoiceRoutes ? 'workspace.invoiceFields.emptyInvoiceFieldsValues.subtitle' : 'workspace.reportFields.emptyReportFieldsValues.subtitle';
 
-    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
+    const canSelectMultiple = canWrite && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
@@ -145,10 +149,13 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                         isOn={!disabledListValues.at(index)}
                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                         onToggle={(newValue: boolean) => updateReportFieldListValueEnabled(newValue, index)}
+                        disabled={!canWrite}
+                        disabledAction={withReadOnlyFallback()}
+                        showLockIcon={!canWrite}
                     />
                 ),
             })),
-        [canSelectMultiple, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled],
+        [canSelectMultiple, canWrite, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled, withReadOnlyFallback],
     );
 
     const filterListValue = useCallback((item: ValueListItem, searchInput: string) => {
@@ -224,7 +231,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedValuesArray.length > 0) {
+        if (canWrite && (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedValuesArray.length > 0)) {
             if (selectedValuesArray.length > 0 && !hasAccountingConnections) {
                 options.push({
                     icon: icons.Trashcan,
@@ -333,7 +340,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             );
         }
 
-        if (!hasAccountingConnections) {
+        if (canWrite && !hasAccountingConnections) {
             return (
                 <Button
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
@@ -369,6 +376,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={featureName}
+            policyFeature={policyFeature}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -408,8 +416,8 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                         ListItem={TableListItem}
                         onSelectRow={openListValuePage}
                         selectedItems={selectedValuesArray}
-                        onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
-                        onTurnOnSelectionMode={(item) => item && toggleValue(item)}
+                        onSelectAll={canWrite && filteredListValues.length > 0 ? toggleAllValues : undefined}
+                        onTurnOnSelectionMode={(item) => item && canWrite && toggleValue(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
@@ -417,7 +425,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                         onSelectionButtonPress={toggleValue}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={canWrite}
                         shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />

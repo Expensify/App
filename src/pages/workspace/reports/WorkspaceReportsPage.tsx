@@ -13,6 +13,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -43,6 +44,7 @@ function WorkspaceReportFieldsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
+    const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
@@ -90,6 +92,7 @@ function WorkspaceReportFieldsPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -132,9 +135,10 @@ function WorkspaceReportFieldsPage({
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(titleField?.defaultValue ?? '')}
-                                    shouldShowRightIcon
+                                    shouldShowRightIcon={canWriteReportFields}
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
+                                    interactive={canWriteReportFields}
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
@@ -158,6 +162,9 @@ function WorkspaceReportFieldsPage({
 
                                     setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
                                 }}
+                                disabled={!canWriteReportFields}
+                                disabledAction={withReadOnlyFallback()}
+                                showLockIcon={!canWriteReportFields}
                             />
                         </Section>
                         <WorkspaceFieldsSection
@@ -178,6 +185,7 @@ function WorkspaceReportFieldsPage({
                             upgradeBackToRoute={ROUTES.WORKSPACE_REPORTS.getRoute(policyID)}
                             enableFields={enablePolicyReportFields}
                             openFieldsPage={openPolicyReportFieldsPage}
+                            policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
                             syncErrorConnectionNames={CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES}
                             titleAccessibilityRole={CONST.ROLE.HEADER}
                         />

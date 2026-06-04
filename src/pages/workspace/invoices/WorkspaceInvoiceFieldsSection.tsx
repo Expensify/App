@@ -32,6 +32,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
             upgradeBackToRoute={ROUTES.WORKSPACE_INVOICES.getRoute(policyID)}
             enableFields={enablePolicyInvoiceFields}
             openFieldsPage={openPolicyInvoicesPage}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         />
     );
 }

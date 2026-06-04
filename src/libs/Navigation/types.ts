@@ -15,7 +15,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID, PersonalCardFeed} from '@src/types/onyx';
-import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
@@ -81,6 +81,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
+        fieldToFocus?: string;
+    };
+    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
         country?: Country | '';
     };
@@ -693,9 +697,16 @@ type SettingsNavigatorParamList = {
         policyID: string;
         reportFieldID: string;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: {
+        policyID: string;
+        currentType?: PolicyReportFieldType;
+    };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
         accountID: string;
+    };
+    [SCREENS.WORKSPACE.ROOM_CREATE]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
         policyID: string;
@@ -798,6 +809,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_CONFIGURATION]: {
@@ -994,6 +1011,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_ADD]: {
         policyID: string;
         subPage?: string;
+        action?: 'edit';
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR]: {
+        policyID: string;
         action?: 'edit';
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD]: {
@@ -3000,6 +3021,7 @@ type WorkspaceNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.DOMAINS_LIST]: undefined;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
 };
@@ -3331,15 +3353,18 @@ type TestToolsModalModalNavigatorParamList = {
 };
 
 type MultifactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: {
+        transactionID: string;
+    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: undefined;
+};
+
+type MultifactorAuthenticationModalNavigatorParamList = {
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
         promptType: MultifactorAuthenticationPromptType;
-    };
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: {
-        transactionID: string;
     };
 };
 
@@ -3456,4 +3481,5 @@ export type {
     DomainScreenName,
     SearchColumnsParamList,
     MultifactorAuthenticationParamList,
+    MultifactorAuthenticationModalNavigatorParamList,
 };

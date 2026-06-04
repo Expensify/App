@@ -11,9 +11,11 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -28,14 +30,16 @@ type FieldsAddListValuePageProps = {
     policyID: string;
     reportFieldID?: string;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+    policyFeature: PolicyFeature;
     testID: string;
 };
 
-function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, testID}: FieldsAddListValuePageProps) {
+function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, policyFeature, testID}: FieldsAddListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const listValues = useMemo(() => {
         let reportFieldListValues: string[];
@@ -76,6 +80,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, t
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={featureName}
+            policyFeature={policyFeature}
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
@@ -95,6 +100,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, t
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    isSubmitButtonVisible={canWrite}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
@@ -105,6 +111,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, t
                         inputID={INPUT_IDS.VALUE_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
+                        disabled={!canWrite}
                     />
                 </FormProvider>
             </ScreenWrapper>

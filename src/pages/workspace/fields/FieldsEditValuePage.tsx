@@ -11,9 +11,11 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renameReportFieldsListValue} from '@userActions/Policy/ReportField';
@@ -27,14 +29,16 @@ type FieldsEditValuePageProps = {
     policyID: string;
     valueIndex: number;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+    policyFeature: PolicyFeature;
     testID: string;
 };
 
-function FieldsEditValuePage({policy, policyID, valueIndex, featureName, testID}: FieldsEditValuePageProps) {
+function FieldsEditValuePage({policy, policyID, valueIndex, featureName, policyFeature, testID}: FieldsEditValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
 
@@ -65,6 +69,7 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, testID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={featureName}
+            policyFeature={policyFeature}
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
@@ -84,6 +89,7 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, testID}
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    isSubmitButtonVisible={canWrite}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
@@ -95,6 +101,7 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, testID}
                         inputID={INPUT_IDS.NEW_VALUE_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
+                        disabled={!canWrite}
                     />
                 </FormProvider>
             </ScreenWrapper>

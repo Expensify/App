@@ -11,9 +11,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -28,6 +30,7 @@ type FieldsSettingsPageProps = {
     policyID: string;
     reportFieldID: string;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+    policyFeature: PolicyFeature;
     expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>;
     getListValuesRoute: (policyID: string, reportFieldID: string) => Routes;
     getInitialValueRoute: (policyID: string, reportFieldID: string) => Routes;
@@ -41,6 +44,7 @@ function FieldsSettingsPage({
     policyID,
     reportFieldID,
     featureName,
+    policyFeature,
     expectedTarget,
     getListValuesRoute,
     getInitialValueRoute,
@@ -52,6 +56,7 @@ function FieldsSettingsPage({
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {showConfirmModal} = useConfirmModal();
+    const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportFieldKey = getReportFieldKey(reportFieldID);
@@ -92,6 +97,7 @@ function FieldsSettingsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={featureName}
+            policyFeature={policyFeature}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -122,7 +128,8 @@ function FieldsSettingsPage({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             description={translate('workspace.reportFields.listValues')}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWrite}
+                            interactive={canWrite}
                             onPress={() => Navigation.navigate(getListValuesRoute(policyID, reportFieldID))}
                             title={listValues.join(', ')}
                             numberOfLinesTitle={5}
@@ -134,12 +141,12 @@ function FieldsSettingsPage({
                             titleStyle={styles.flex1}
                             title={getReportFieldInitialValue(reportField, translate)}
                             description={translate('common.initialValue')}
-                            shouldShowRightIcon={!isDateFieldType}
-                            interactive={!isDateFieldType}
+                            shouldShowRightIcon={canWrite && !isDateFieldType}
+                            interactive={canWrite && !isDateFieldType}
                             onPress={() => Navigation.navigate(getInitialValueRoute(policyID, reportFieldID))}
                         />
                     )}
-                    {!hasAccountingConnections && (
+                    {canWrite && !hasAccountingConnections && (
                         <View style={styles.flexGrow1}>
                             <MenuItem
                                 icon={icons.Trashcan}
