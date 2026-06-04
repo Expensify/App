@@ -15,7 +15,9 @@ const mockNavigate = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        navigate: (...args: unknown[]) => mockNavigate(...args),
+        navigate: (...args: unknown[]) => {
+            mockNavigate(...args);
+        },
     },
 }));
 
