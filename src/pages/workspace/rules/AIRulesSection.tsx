@@ -24,9 +24,11 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AIRulesSectionProps = {
     policyID: string;
+    canWriteRules: boolean;
+    showReadOnlyModal: () => void;
 };
 
-function AIRulesSection({policyID}: AIRulesSectionProps) {
+function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -122,8 +124,14 @@ function AIRulesSection({policyID}: AIRulesSectionProps) {
                 icon={expensifyIcons.Plus}
                 iconHeight={20}
                 iconWidth={20}
-                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
-                onPress={() => Navigation.navigate(ROUTES.RULES_AI_NEW.getRoute(policyID))}
+                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                onPress={() => {
+                    if (!canWriteRules) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.RULES_AI_NEW.getRoute(policyID));
+                }}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AI_RULE}
             />
         </Section>
