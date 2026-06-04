@@ -11,7 +11,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -43,7 +42,6 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Plus']);
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
-    const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -218,18 +216,16 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     </OfflineWithFeedback>
                 ))
             )}
-            {!isProduction && (
-                <MenuItem
-                    title={translate('workspace.rules.spendRules.addSpendRule')}
-                    titleStyle={styles.textStrong}
-                    icon={expensifyIcons.Plus}
-                    iconHeight={20}
-                    iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
-                />
-            )}
+            <MenuItem
+                title={translate('workspace.rules.spendRules.addSpendRule')}
+                titleStyle={styles.textStrong}
+                icon={expensifyIcons.Plus}
+                iconHeight={20}
+                iconWidth={20}
+                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
+            />
         </Section>
     );
 }
