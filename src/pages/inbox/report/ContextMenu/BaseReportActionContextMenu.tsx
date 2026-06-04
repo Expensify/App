@@ -1,4 +1,4 @@
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
@@ -240,7 +240,6 @@ function BaseReportActionContextMenu({
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -401,7 +400,6 @@ function BaseReportActionContextMenu({
                                 card,
                                 originalReport,
                                 isTryNewDotNVPDismissed,
-                                isTrackIntentUser,
                                 childReport,
                                 movedFromReport,
                                 movedToReport,

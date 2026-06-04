@@ -20,6 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -65,7 +66,8 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
 
     const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
     const isApproverSelected = isEditFlow ? approverDisplayName.length > 0 : true;

@@ -143,3 +143,27 @@ Yes. Expensify emails are:
 - **SPF and DKIM-signed** to prevent spoofing
 - **Cryptographically authenticated** to verify legitimacy
 - **Sent only from verified domains** controlled by Expensify
+
+# FAQ
+
+## Why do I see the error Incorrect or invalid code when logging in? 
+
+This error appears when the login code entered is no longer valid or was entered incorrectly. It commonly happens when multiple login codes are requested, and an older code is used after a newer one has already been generated. To prevent this issue, avoid requesting multiple login codes in a short period of time.
+
+To resolve it:
+
+- Wait a few minutes to make sure you received the most recent login code.
+- Enter the newest code you received.
+- If the issue continues, request a new code and try again.
+
+## Why did my Magic Code expire?
+
+Magic Codes expire automatically for security reasons. Requesting a new code immediately invalidates any previous code that was sent.
+
+Always use the most recent Magic Code email you received.
+
+## Can I set a password instead of using a Magic Code? 
+
+No. Expensify does not support password-based login.
+
+Instead of passwords, Expensify uses Magic Codes sent to your email address to securely verify your identity when signing in. Each Magic Code is temporary and expires automatically after use or when a newer code is generated.

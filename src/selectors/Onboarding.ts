@@ -1,5 +1,4 @@
 import type {OnyxValue} from 'react-native-onyx';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -69,10 +68,15 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
 }
 
 /**
- * Selector to check if the user selected a track-intent onboarding choice
+ * Combined selector that derives both the self-tour status and the guided-setup
+ * completion flag from a single NVP_ONBOARDING read, avoiding two subscriptions
+ * to the same key from callers that need both.
  */
-function isTrackIntentUserSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean {
-    return isTrackOnboardingChoice(introSelected?.choice);
+function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean | undefined; hasCompletedGuidedSetupFlow: boolean | undefined} {
+    return {
+        isSelfTourViewed: hasSeenTourSelector(onboarding),
+        hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(onboarding),
+    };
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, isTrackIntentUserSelector};
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, guidedSetupAndTourStatusSelector};

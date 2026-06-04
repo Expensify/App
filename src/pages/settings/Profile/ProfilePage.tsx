@@ -1,5 +1,7 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -43,6 +45,7 @@ import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AgentAIPromptSection from './AgentAIPromptSection';
 
 function ProfilePage() {
     const theme = useTheme();
@@ -52,6 +55,7 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
+    const scrollViewRef = useRef<RNScrollView>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -196,9 +200,11 @@ function ProfilePage() {
                 shouldUseHeadlineHeader
             />
             <ScrollView
+                ref={scrollViewRef}
                 style={styles.pt3}
                 contentContainerStyle={safeAreaPaddingBottomStyle}
                 scrollEnabled={scrollEnabled}
+                keyboardShouldPersistTaps="handled"
             >
                 <MenuItemGroup>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -305,6 +311,12 @@ function ProfilePage() {
                                     </MenuItemGroup>
                                 )}
                             </Section>
+                        )}
+                        {isAgentAccount && (
+                            <AgentAIPromptSection
+                                accountID={accountID}
+                                parentScrollViewRef={scrollViewRef}
+                            />
                         )}
                     </View>
                 </MenuItemGroup>

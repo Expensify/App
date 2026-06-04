@@ -185,7 +185,7 @@ export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPoli
 export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
-export type {default as OpenWorkspaceRoomsPageParams} from './OpenWorkspaceRoomsPageParams';
+export type {default as OpenPolicyRoomsPageParams} from './OpenPolicyRoomsPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';
@@ -205,6 +205,7 @@ export type {default as SetReportNameParams} from './SetReportNameParams';
 export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
 export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams';
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
+export type {default as UpdateMoneyRequestVendorParams} from './UpdateMoneyRequestVendorParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
 export type {default as SplitBillParams} from './SplitBillParams';
 export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams} from './SplitTransactionParams';
@@ -281,6 +282,7 @@ export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDista
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
 export type {default as SetCustomUnitDefaultCategoryParams} from './SetCustomUnitDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
+export type {default as UpdatePolicyDistanceRateParams} from './UpdatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
@@ -550,3 +552,4 @@ export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
+export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';

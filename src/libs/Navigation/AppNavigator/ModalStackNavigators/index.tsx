@@ -3,6 +3,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileChrome} from '@libs/Browser';
 import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -64,6 +65,16 @@ const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
+const IS_MOBILE_CHROME = isMobileChrome();
+
+const REIMBURSEMENT_ACCOUNT_FLOW_SCREENS: Screen[] = [
+    SCREENS.REIMBURSEMENT_ACCOUNT,
+    SCREENS.REIMBURSEMENT_ACCOUNT_USD,
+    SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD,
+    SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT,
+    SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO,
+];
+
 const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>> = {
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
         animationTypeForReplace: 'push',
@@ -92,25 +103,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         animationTypeForReplace: 'push',
     },
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: {
-        animationTypeForReplace: 'push',
-    },
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: {
-        animationTypeForReplace: 'push',
-    },
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS]: {
-        animationTypeForReplace: 'push',
-    },
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]: {
-        animationTypeForReplace: 'push',
-    },
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
-        animationTypeForReplace: 'push',
-    },
     [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: {
-        animationTypeForReplace: 'push',
-    },
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: {
         animationTypeForReplace: 'push',
     },
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: {
@@ -131,6 +124,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
         animationTypeForReplace: 'push',
     },
+    // Reimbursement Account flow animations glitch on low-end Android devices in Chrome mWeb so we intentionally disable them here.
+    // see https://github.com/Expensify/App/issues/87658
+    ...(IS_MOBILE_CHROME ? Object.fromEntries(REIMBURSEMENT_ACCOUNT_FLOW_SCREENS.map((screen) => [screen, {animation: Animations.NONE}])) : {}),
 };
 
 /**
@@ -217,7 +213,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.REPORT_REJECT]: () => require<ReactComponentModule>('../../../../pages/RejectExpenseReportPage').default,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
-    [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePaymentsPage').default,
+    [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/Pay/EnablePaymentsPage').default,
     [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default,
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepAttendees').default,
     [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepAccountant').default,
@@ -273,9 +269,9 @@ const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator
 });
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
-    [SCREENS.REPORT_DETAILS.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportDetailsPage').default,
-    [SCREENS.REPORT_DETAILS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ReportDetailsShareCodePage').default,
-    [SCREENS.REPORT_DETAILS.EXPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ReportDetailsExportPage').default,
+    [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicReportDetailsPage').default,
+    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsShareCodePage').default,
+    [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/DynamicReportDetailsExportPage').default,
 });
 
 const ReportCardActivateStackNavigator = createModalStackNavigator<ReportCardActivateNavigatorParamList>({
@@ -283,7 +279,7 @@ const ReportCardActivateStackNavigator = createModalStackNavigator<ReportCardAct
 });
 
 const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<ReportChangeWorkspaceNavigatorParamList>({
-    [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportChangeWorkspacePage').default,
+    [SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicReportChangeWorkspacePage').default,
 });
 
 const ReportChangeApproverModalStackNavigator = createModalStackNavigator<ReportChangeApproverParamList>({
@@ -498,7 +494,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ImportTransactionsSpreadsheetPage').default,
     ),
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransactionsImportedPage').default),
-    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePayments').default),
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/EnablePayments/Wallet/EnablePayments').default),
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UnshareBankAccount/UnshareBankAccount').default,
     ),
@@ -595,6 +591,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsOverLimitApproverPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/AddAgentPage').default),
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceInviteMessagePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceInviteMessageRolePage').default,
     [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessageApproverPage').default,
@@ -617,6 +614,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/WorkspaceDowngradePage').default,
     [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/PayAndDowngradePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default,
+    [SCREENS.WORKSPACE.ROOM_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomCreatePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCustomFieldPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/WorkspaceOwnerChangeWrapperPage').default,
@@ -645,6 +643,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRateTaxReclaimableEditPage').default,
     [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRateTaxRateEditPage').default,
+    [SCREENS.WORKSPACE.DISTANCE_RATE_START_DATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRateDateEditPage').default,
+    [SCREENS.WORKSPACE.DISTANCE_RATE_END_DATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRateDateEditPage').default,
     [SCREENS.WORKSPACE.TAGS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportTagsPage').default,
     [SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportTagsOptionsPage').default,
     [SCREENS.WORKSPACE.TAGS_IMPORT_MULTI_LEVEL_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportMultiLevelTagsSettingsPage').default,
@@ -694,6 +694,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportTravelVendorSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportTravelPayableAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopTravelInvoicingConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopTravelInvoicingPayableAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_CONFIGURATION]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTravelInvoicingConfigurationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: () =>
@@ -746,6 +750,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ITEMS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/import/QuickbooksDesktopItemsPage').default,
     [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: () => require<ReactComponentModule>('@pages/workspace/ConnectExistingBusinessBankAccountPage').default,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default),
+    [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/USD/USDVerifiedBankAccountFlowPage').default,
     [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/NonUSD/NonUSDVerifiedBankAccountFlowPage').default,
     ),
@@ -825,6 +830,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldEdit').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_ADD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteImportAddCustomListPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListSelectorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteImportAddCustomSegmentPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS]: () =>
@@ -912,9 +919,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_PREREQUISITES]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/CertiniaPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/CertiniaExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/advanced/CertiniaAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationQuickbooksDesktopAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS]: () =>
@@ -925,6 +931,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAX_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/NamePage').default,
     [SCREENS.WORKSPACE.TAX_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/ValuePage').default,
     [SCREENS.WORKSPACE.TAX_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default,
+    [SCREENS.WORKSPACE.TAX_CREATE_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceCreateTaxValuePage').default,
     [SCREENS.WORKSPACE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceTaxCodePage').default,
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsName').default,
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite').default,
@@ -943,7 +950,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/InviteNewMemberStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BankConnection').default,
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/AddNewCardPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/DynamicAddNewCardPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CompanyCardsImportSpreadsheetPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CompanyCardsImportedPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_LAYOUT_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CompanyCardLayoutNamePage').default,
@@ -967,6 +974,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardAddWorkEmailPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleSelectionPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleMerchantsPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleMerchantEditPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleMaxAmountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardVerifyWorkAccountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts').default,
@@ -988,6 +1005,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsAddListValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsValueSettingsPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsInitialValuePage').default,
+    [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/TypeSelector/TypeSelectorPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsEditValuePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/import/SageIntacctImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_TOGGLE_MAPPING]: () =>
@@ -1122,7 +1140,7 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<TwoFactor
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
-    [SCREENS.ENABLE_PAYMENTS_ROOT]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePaymentsPage').default,
+    [SCREENS.ENABLE_PAYMENTS_ROOT]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/Pay/EnablePaymentsPage').default,
 });
 
 const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator<AddPersonalBankAccountNavigatorParamList>({
@@ -1150,7 +1168,7 @@ const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParam
     [SCREENS.SIGN_IN_ROOT]: () => require<ReactComponentModule>('../../../../pages/signin/SignInModal').default,
 });
 const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNavigatorParamList>({
-    [SCREENS.REFERRAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/ReferralDetailsPage').default,
+    [SCREENS.DYNAMIC_REFERRAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/DynamicReferralDetailsPage').default,
 });
 
 const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
@@ -1293,14 +1311,8 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
 });
 
 const MultifactorAuthenticationStackNavigator = createModalStackNavigator<MultifactorAuthenticationParamList>({
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/ValidateCodePage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/BiometricsTestPage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/OutcomePage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/OutcomePage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/PromptPage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/RevokePage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/AuthorizeTransactionPage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: () => require<ReactComponentModule>('../../../../pages/ErrorPage/NotFoundPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/RevokePage').default,
 });
 
 export {
