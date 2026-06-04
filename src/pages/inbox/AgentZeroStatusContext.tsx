@@ -2,7 +2,7 @@ import {getAgentAccountIDFlags, getReportParticipantAccountIDs} from '@selectors
 import {getReportChatType} from '@selectors/Report';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
-import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {createContext, useContext, useEffect} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
@@ -95,9 +95,9 @@ function AgentZeroStatusGate({reportID, includeConcierge, children}: React.Props
     // safe because this kickoff always follows the user's own just-sent message, so the newest
     // action isn't from Concierge and reply-detection won't misfire; the per-agent hook also
     // captures the live baseline when its indicator activates.
-    const kickoffWaitingIndicator = useCallback(() => {
+    const kickoffWaitingIndicator = () => {
         AgentZeroOptimisticStore.increment(reportID, CONST.ACCOUNT_ID.CONCIERGE, null);
-    }, [reportID]);
+    };
     const [shouldKickoff] = useOnyx(ONYXKEYS.CONCIERGE_THINKING_KICKOFF);
     useEffect(() => {
         if (!shouldKickoff) {
@@ -107,19 +107,17 @@ function AgentZeroStatusGate({reportID, includeConcierge, children}: React.Props
         kickoffWaitingIndicator();
     }, [shouldKickoff, kickoffWaitingIndicator]);
 
-    const candidateAgentIDs = useMemo(() => {
-        const ids = new Set<number>(serverAgentIDs ?? []);
-        if (includeConcierge) {
-            ids.add(CONST.ACCOUNT_ID.CONCIERGE);
-        }
-        if (currentUserAccountID !== undefined) {
-            ids.delete(currentUserAccountID);
-        }
-        return [...ids];
-    }, [serverAgentIDs, includeConcierge, currentUserAccountID]);
+    const candidateIDs = new Set<number>(serverAgentIDs ?? []);
+    if (includeConcierge) {
+        candidateIDs.add(CONST.ACCOUNT_ID.CONCIERGE);
+    }
+    if (currentUserAccountID !== undefined) {
+        candidateIDs.delete(currentUserAccountID);
+    }
+    const candidateAgentIDs = [...candidateIDs];
 
-    const stateValue = useMemo(() => ({candidateAgentIDs}), [candidateAgentIDs]);
-    const actionsValue = useMemo(() => ({kickoffWaitingIndicator}), [kickoffWaitingIndicator]);
+    const stateValue = {candidateAgentIDs};
+    const actionsValue = {kickoffWaitingIndicator};
 
     return (
         <AgentZeroStatusActionsContext.Provider value={actionsValue}>
