@@ -86,7 +86,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    shouldShowTextInput = !!textInputOptions?.label,
+    shouldShowTextInput: shouldShowTextInputProp,
     shouldClearInputOnSelect = false,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle = false,
@@ -99,6 +99,9 @@ function BaseSelectionList<TItem extends ListItem>({
     const {singleExecution} = useSingleExecution();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+
+    // Kept out of the destructuring default so the `!!` doesn't bail the component out of React Compiler.
+    const shouldShowTextInput = shouldShowTextInputProp ?? !!textInputOptions?.label;
 
     const listRef = useRef<FlashListRef<TItem> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, data);
