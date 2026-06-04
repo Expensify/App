@@ -7,10 +7,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards} from '@libs/CardUtils';
-import {arePaymentsEnabled, hasApprovalFlow, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import YOUR_SPEND_ROW_STATE from './const';
 import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
@@ -38,13 +39,27 @@ type YourSpendCardRow = {
 type YourSpendApplicability = {
     isApprovalApplicable: boolean;
     isPaymentApplicable: boolean;
+    // IDs of the user's Team/Corporate workspaces. Used to scope the
+    // "Awaiting approval" query so IOU and personal expenses don't count.
+    paidGroupPolicyIDs: string[];
 };
 
 function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined): YourSpendApplicability {
-    const policyList = Object.values(policies ?? {});
-    const isApprovalApplicable = policyList.some((policy) => hasApprovalFlow(policy));
-    const isPaymentApplicable = policyList.some((policy) => isPaidGroupPolicy(policy) && arePaymentsEnabled(policy ?? undefined));
-    return {isApprovalApplicable, isPaymentApplicable};
+    const paidGroupPolicyIDs: string[] = [];
+    let isPaymentApplicable = false;
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.id && isPaidGroupPolicy(policy)) {
+            paidGroupPolicyIDs.push(policy.id);
+            if (!isPaymentApplicable && arePaymentsEnabled(policy)) {
+                isPaymentApplicable = true;
+            }
+        }
+    }
+    return {
+        isApprovalApplicable: paidGroupPolicyIDs.length > 0,
+        isPaymentApplicable,
+        paidGroupPolicyIDs,
+    };
 }
 
 type YourSpendRowTotals = {
@@ -61,6 +76,26 @@ type UseYourSpendDataReturn = {
     awaitingApprovalQuery: string;
     repaidLast30DaysQuery: string;
 };
+
+function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefined, paidGroupPolicyIDs: string[], accountID: number): string {
+    if (!reports || paidGroupPolicyIDs.length === 0) {
+        return '';
+    }
+    const policyIDSet = new Set(paidGroupPolicyIDs);
+    const ids: string[] = [];
+    for (const report of Object.values(reports)) {
+        if (
+            report?.policyID &&
+            policyIDSet.has(report.policyID) &&
+            report.ownerAccountID === accountID &&
+            report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED &&
+            report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED
+        ) {
+            ids.push(report.reportID);
+        }
+    }
+    return ids.sort().join(',');
+}
 
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
     if (!isApplicable) {
@@ -83,18 +118,29 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
-    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+
+    const {isApprovalApplicable, isPaymentApplicable, paidGroupPolicyIDs} = getYourSpendApplicability(policies);
+
+    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID, paidGroupPolicyIDs);
     const repaidLast30DaysQuery = buildRepaidLast30DaysQuery(accountID);
 
     const approvalQueryJSON = buildSearchQueryJSON(awaitingApprovalQuery);
     const paymentQueryJSON = buildSearchQueryJSON(repaidLast30DaysQuery);
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [approvalSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}`);
     const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
 
-    const {isApprovalApplicable, isPaymentApplicable} = getYourSpendApplicability(policies);
+    // Signature of the reports the user owns on a paid group workspace that are currently
+    // OUTSTANDING (awaiting approval). The home query results are cached snapshots that are
+    // not patched when a report's state changes, so without this the "Awaiting approval"
+    // total stays stale after the user approves their last outstanding expense. Folding the
+    // signature into the search effect's key refires the search whenever a report enters or
+    // leaves the OUTSTANDING state.
+    const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
+    });
 
     // Memo anchor. The compiler does not auto-cache this call, so without the
     // `useMemo` every downstream value derived from `displayableCards` would
@@ -230,9 +276,18 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // snapshot and briefly flipping this row to HIDDEN_EMPTY between navigation
     // and the home re-fetch. Cache the last READY totals and reuse them when the
     // snapshot is loaded but its count has been wiped. A genuine `count === 0`
-    // is still treated as empty.
+    // is still treated as empty. The approval cache is dropped whenever the query
+    // hash changes (i.e. when the user joins/leaves a workspace) so a stale total
+    // from the previous workspace set isn't reused for the new one.
     const [cachedApprovalReady, setCachedApprovalReady] = useState<YourSpendRowTotals | null>(null);
+    const [cachedApprovalHash, setCachedApprovalHash] = useState<number | undefined>(undefined);
     const [cachedPaymentReady, setCachedPaymentReady] = useState<YourSpendRowTotals | null>(null);
+
+    const approvalHash = approvalQueryJSON?.hash;
+    if (cachedApprovalHash !== approvalHash) {
+        setCachedApprovalReady(null);
+        setCachedApprovalHash(approvalHash);
+    }
 
     if (
         approvalRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
@@ -252,8 +307,17 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalCountIsMissing = approvalCount === undefined || approvalCount === null;
     const paymentCountIsMissing = paymentCount === undefined || paymentCount === null;
 
+    // Only bridge a wiped/missing count with the cached total while the user still owns an
+    // OUTSTANDING report. An empty signature means nothing is awaiting approval, so the row
+    // must hide immediately after approving the last expense — a zero-result search returns
+    // no count, which would otherwise keep the stale cached total on screen.
     const shouldUseCachedApproval =
-        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && approvalCountIsMissing && approvalSearchResults !== undefined && cachedApprovalReady !== null;
+        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY &&
+        approvalCountIsMissing &&
+        approvalSearchResults !== undefined &&
+        cachedApprovalReady !== null &&
+        cachedApprovalHash === approvalHash &&
+        outstandingReportsSignature !== '';
     const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
 
     const approvalRowState = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
@@ -261,9 +325,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
-    // Stable key that changes whenever approval/payment applicability flips, so
-    // the search-firing effect re-runs.
-    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}`;
+    // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
+    // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
+    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${paidGroupPolicyIDs.join(',')}|${outstandingReportsSignature ?? ''}`;
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
@@ -326,5 +390,5 @@ function useYourSpendData(): UseYourSpendDataReturn {
     };
 }
 
-export {YOUR_SPEND_ROW_STATE, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
+export {YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
 export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardRow, YourSpendRowState, YourSpendRowTotals};

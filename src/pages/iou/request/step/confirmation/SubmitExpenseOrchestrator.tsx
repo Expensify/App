@@ -418,10 +418,12 @@ function SubmitExpenseOrchestrator({
                             createTransaction(selectedParticipantList, true);
                         });
                     }}
-                    onDeny={() => {
+                    onDeny={(wasUserInitiated) => {
                         startSubmitSpans();
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-                        updateLastLocationPermissionPrompt();
+                        if (wasUserInitiated) {
+                            updateLastLocationPermissionPrompt();
+                        }
                         reserveSearchChannelIfGlobalCreate();
                         navigateAfterInteraction(() => {
                             createTransaction(selectedParticipantList, false);
