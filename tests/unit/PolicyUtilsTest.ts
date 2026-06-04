@@ -16,6 +16,7 @@ import {
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getConnectedIntegrationNamesForPolicies,
+    getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
@@ -248,7 +249,7 @@ describe('PolicyUtils', () => {
         const memberLogin = 'member@test.com';
         const buildPolicy = (role: Policy['role']): Policy =>
             ({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 role,
                 employeeList: {
                     [memberLogin]: {
@@ -1928,6 +1929,26 @@ describe('PolicyUtils', () => {
             };
             const result = getAllTaxRatesNamesAndValues(policies);
             expect(result.DUP_TAX).toEqual({name: 'First', value: '1'});
+        });
+    });
+
+    describe('getCurrentTaxID', () => {
+        it('prefers an exact current tax key before falling back to previousTaxCode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                taxRates: {
+                    taxes: {
+                        B: {name: 'Renamed tax', value: '5%', previousTaxCode: 'A'},
+                        A: {name: 'Reused tax code', value: '10%'},
+                    },
+                    name: '',
+                    defaultExternalID: '',
+                    defaultValue: '',
+                    foreignTaxDefault: '',
+                },
+            };
+
+            expect(getCurrentTaxID(policy, 'A')).toBe('A');
         });
     });
 

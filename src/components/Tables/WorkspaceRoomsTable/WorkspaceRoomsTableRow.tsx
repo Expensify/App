@@ -47,9 +47,12 @@ type WorkspaceRoomsTableRowProps = {
 
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
+
+    /** Whether or not the row should animate in highlighted */
+    shouldAnimateInHighlight?: boolean;
 };
 
-function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceRoomsTableRowProps) {
+function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldAnimateInHighlight}: WorkspaceRoomsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -65,6 +68,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
             accessibilityLabel={item.name}
             skeletonReasonAttributes={{context: 'WorkspaceRoomsTableRow'}}
             onPress={item.action}
+            shouldAnimateInHighlight={shouldAnimateInHighlight}
         >
             {({hovered}) => (
                 <>
