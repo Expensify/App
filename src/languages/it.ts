@@ -6539,19 +6539,16 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         distanceRates: {
             oopsNotSoFast: 'Ops! Non così in fretta...',
             workspaceNeeds: 'Uno spazio di lavoro necessita di almeno una tariffa distanza abilitata.',
-
             commuterExclusions: {
-                title: 'Exclude commutes',
-                summaryDisabled: 'No commute exclusion',
-                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
-                optionDisabledTitle: 'Do not exclude commutes',
-                optionDisabledHelp: 'No commute exclusion is applied.',
-                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
-                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
-                distanceLabel: 'Distance',
-                errors: {
-                    distanceMustBePositive: 'Distance must be greater than 0.',
-                },
+                title: 'Escludi spostamenti casa-lavoro',
+                summaryDisabled: 'Nessuna esclusione per il tragitto',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Escludi ${distance} ${unit} per rimborso`,
+                optionDisabledTitle: 'Non escludere gli spostamenti casa-lavoro',
+                optionDisabledHelp: 'Non è applicata alcuna esclusione per il tragitto casa-lavoro.',
+                optionFixedDistanceTitle: 'Escludi una distanza fissa per richiesta',
+                optionFixedDistanceHelp: 'Detrai la stessa distanza del tragitto casa-lavoro da ogni richiesta. Ideale per chi invia una richiesta per ogni giorno lavorativo.',
+                distanceLabel: 'Distanza',
+                errors: {distanceMustBePositive: 'La distanza deve essere maggiore di 0.'},
             },
             distance: 'Distanza',
             centrallyManage: 'Gestisci centralmente le tariffe, monitora in miglia o chilometri e imposta una categoria predefinita.',
@@ -7803,22 +7800,21 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha aggiunto "${prohibitedExpense}" alle spese vietate`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
-
         commuterExclusions: {
-            changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
+            changedToFixedDistance: 'ha modificato l’esclusione dei tragitti casa-lavoro in una distanza fissa per rimborso',
             setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
                 const isSingular = distance === 1;
                 let unitLabel: string;
                 if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
+                    unitLabel = isSingular ? 'miglio' : 'miglia';
                 } else {
-                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
+                    unitLabel = isSingular ? 'chilometro' : 'chilometri';
                 }
-                return `set fixed distance exclusion to ${distance} ${unitLabel} per claim`;
+                return `imposta un'esclusione di distanza fissa di ${distance} ${unitLabel} per richiesta`;
             },
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
-            disabled: 'disabled exclude commutes for distance rates',
+                `ha modificato l’esclusione a distanza fissa a ${newDistance} ${unit} per richiesta (in precedenza ${oldDistance} ${unit})`,
+            disabled: 'esclusione delle tratte casa-lavoro per le tariffe a distanza disattivata',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `ha cambiato il metodo di rimborso in "${newReimbursementChoice}" (in precedenza "${oldReimbursementChoice}")`,

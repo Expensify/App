@@ -6512,19 +6512,16 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         distanceRates: {
             oopsNotSoFast: 'Ups! Nie tak szybko...',
             workspaceNeeds: 'Miejsce pracy musi mieć włączoną co najmniej jedną stawkę za dystans.',
-
             commuterExclusions: {
-                title: 'Exclude commutes',
-                summaryDisabled: 'No commute exclusion',
-                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
-                optionDisabledTitle: 'Do not exclude commutes',
-                optionDisabledHelp: 'No commute exclusion is applied.',
-                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
-                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
-                distanceLabel: 'Distance',
-                errors: {
-                    distanceMustBePositive: 'Distance must be greater than 0.',
-                },
+                title: 'Wyklucz dojazdy',
+                summaryDisabled: 'Bez wykluczenia dojazdów',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Wyklucz ${distance} ${unit} na zgłoszenie`,
+                optionDisabledTitle: 'Nie wykluczaj dojazdów',
+                optionDisabledHelp: 'Nie zastosowano wyłączenia dojazdów.',
+                optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
+                optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
+                distanceLabel: 'Dystans',
+                errors: {distanceMustBePositive: 'Dystans musi być większy niż 0.'},
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
@@ -7764,22 +7761,21 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
-
         commuterExclusions: {
-            changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
+            changedToFixedDistance: 'zmienił wykluczanie dojazdów na stały dystans na zgłoszenie',
             setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
                 const isSingular = distance === 1;
                 let unitLabel: string;
                 if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
+                    unitLabel = isSingular ? 'mile' : 'mile';
                 } else {
-                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
+                    unitLabel = isSingular ? 'kilometr' : 'kilometry';
                 }
-                return `set fixed distance exclusion to ${distance} ${unitLabel} per claim`;
+                return `ustaw stałe wykluczenie dystansu na ${distance} ${unitLabel} na zgłoszenie`;
             },
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
-            disabled: 'disabled exclude commutes for distance rates',
+                `zmienił stałe wykluczenie dystansu na ${newDistance} ${unit} na zgłoszenie (wcześniej ${oldDistance} ${unit})`,
+            disabled: 'wyłączono wykluczanie dojazdów dla stawek za odległość',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `zmieniono metodę zwrotu kosztów na „${newReimbursementChoice}” (wcześniej „${oldReimbursementChoice}”)`,

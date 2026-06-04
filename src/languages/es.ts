@@ -6470,17 +6470,15 @@ ${amount} para ${merchant} - ${date}`,
             oopsNotSoFast: 'Ups! No tan rápido...',
             workspaceNeeds: 'Un espacio de trabajo necesita al menos una tasa de distancia activa.',
             commuterExclusions: {
-                title: 'Excluir trayectos',
-                summaryDisabled: 'Sin exclusión de trayectos',
-                summaryFixedDistance: ({distance, unit}) => `Excluir ${distance} ${unit} por solicitud`,
-                optionDisabledTitle: 'No excluir trayectos',
-                optionDisabledHelp: 'No se aplica ninguna exclusión de trayecto.',
-                optionFixedDistanceTitle: 'Excluir una distancia fija por solicitud',
-                optionFixedDistanceHelp: 'Resta la misma distancia de trayecto a cada solicitud. Ideal para miembros que envían una solicitud por día laboral.',
+                title: 'Excluir desplazamientos al trabajo',
+                summaryDisabled: 'Sin exclusión por desplazamiento al trabajo',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por reclamación`,
+                optionDisabledTitle: 'No excluir los desplazamientos al trabajo',
+                optionDisabledHelp: 'No se aplica ninguna exclusión de desplazamiento.',
+                optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
+                optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
                 distanceLabel: 'Distancia',
-                errors: {
-                    distanceMustBePositive: 'La distancia debe ser mayor que 0.',
-                },
+                errors: {distanceMustBePositive: 'La distancia debe ser mayor que 0.'},
             },
             distance: 'Distancia',
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
@@ -7544,8 +7542,8 @@ ${amount} para ${merchant} - ${date}`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
         commuterExclusions: {
-            changedToFixedDistance: 'cambió la exclusión de trayectos a una distancia fija por solicitud',
-            setFixedDistance: ({distance, unit}) => {
+            changedToFixedDistance: 'cambió la exclusión de trayectos al trabajo a una distancia fija por reclamación',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
                 const isSingular = distance === 1;
                 let unitLabel: string;
                 if (unit === 'mi') {
@@ -7553,10 +7551,11 @@ ${amount} para ${merchant} - ${date}`,
                 } else {
                     unitLabel = isSingular ? 'kilómetro' : 'kilómetros';
                 }
-                return `estableció la exclusión de distancia fija en ${distance} ${unitLabel} por solicitud`;
+                return `establecer exclusión de distancia fija en ${distance} ${unitLabel} por reclamación`;
             },
-            changedFixedDistance: ({newDistance, oldDistance, unit}) => `cambió la exclusión de distancia fija a ${newDistance} ${unit} por solicitud (anteriormente ${oldDistance} ${unit})`,
-            disabled: 'desactivó la exclusión de trayectos para tarifas de distancia',
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `cambió la exclusión de distancia fija a ${newDistance} ${unit} por reclamación (previamente ${oldDistance} ${unit})`,
+            disabled: 'desactivó la opción de excluir desplazamientos para las tarifas por distancia',
         },
         updatedReimbursementChoice: (newReimbursementChoice, oldReimbursementChoice) =>
             `cambió el método de reembolso a "${newReimbursementChoice}" (previamente "${oldReimbursementChoice}")`,
