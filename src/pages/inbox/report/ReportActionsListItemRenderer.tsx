@@ -49,6 +49,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Whether the action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport?: boolean;
+
+    /** Whether context menu should be disabled for the active Concierge draft */
+    shouldDisableContextMenuForConciergeDraft?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -66,6 +69,7 @@ function ReportActionsListItemRenderer({
     shouldHighlight = false,
     parentReportActionForTransactionThread,
     isHarvestCreatedExpenseReport = false,
+    shouldDisableContextMenuForConciergeDraft = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -173,6 +177,7 @@ function ReportActionsListItemRenderer({
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
+            shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
         />
     );
 }

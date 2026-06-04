@@ -35,6 +35,7 @@ import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
     getDefaultTaxCode,
+    getDistanceRequestType,
     getIsFromGlobalCreate,
     getRateID,
     getTaxValue,
@@ -245,6 +246,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Derived values from transaction
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
+    const distanceRequestType = getDistanceRequestType(transaction);
+
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
@@ -562,13 +565,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID,
                 conciergeReportID,
             });
-            if (shouldHandleNavigation && result && activeReportID) {
+            const targetReportID = backToReport ?? activeReportID;
+            if (shouldHandleNavigation && result && targetReportID) {
                 navigateAfterExpenseCreate({
-                    activeReportID,
+                    activeReportID: targetReportID,
                     transactionID: result.transactionID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: activeReportID === chatReportID,
+                    shouldAddPendingNewTransactionIDs: targetReportID === chatReportID,
                 });
             }
         }
@@ -639,6 +643,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
+                    distanceRequestType,
                 },
                 accountantParams: {
                     accountant: item.accountant,
@@ -711,6 +716,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
+                distanceRequestType,
             },
             backToReport,
             isASAPSubmitBetaEnabled,

@@ -160,6 +160,29 @@ code {
     margin-bottom: 0px;
 }
 
+pre {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: var(--color-borders);
+    background-color: var(--color-highlightBG);
+    padding: 16px;
+    overflow-x: auto;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    white-space: pre;
+
+    code {
+        border: none;
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre;
+    }
+}
+
 body,
 button,
 input,
