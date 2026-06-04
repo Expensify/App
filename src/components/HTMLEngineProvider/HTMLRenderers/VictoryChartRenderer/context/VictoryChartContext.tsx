@@ -5,6 +5,7 @@ import {CHART_TYPE, LABEL_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLR
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+import Log from '@libs/Log';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -37,8 +38,9 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
     let processedResult: ProcessNodeResult;
     try {
         processedResult = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
-    } catch {
+    } catch (error) {
         // Malformed chart HTML can make a parser throw. Fail closed (render nothing) instead of crashing the whole report.
+        Log.warn('[VictoryChartProvider] Failed to process chart tree from malformed HTML', {error});
         return null;
     }
 
