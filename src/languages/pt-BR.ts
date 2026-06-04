@@ -4395,6 +4395,8 @@ ${amount} para ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gerenciar cartões do workspace.',
             peopleAdminAlternateText: 'Gerencie membros e fluxos de aprovação.',
             paymentsAdminAlternateText: 'Gerencie pagamentos de fluxo de trabalho.',
+            readOnlyActionTitle: 'Calma aí...',
+            readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -4846,6 +4848,9 @@ ${amount} para ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'O Expensify vai sincronizar automaticamente com a Certinia todos os dias.',
+            syncReimbursedReportsDescription:
+                'Com essa opção ativada, sempre que uma Fatura a Pagar for paga no FFA, o relatório correspondente no Expensify será marcado automaticamente como reembolsado.',
             prerequisites: {
                 title: 'Antes de conectar',
                 installBundle: 'Para conexões FFA',

@@ -4205,6 +4205,8 @@ ${amount} para ${merchant} - ${date}`,
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a este espacio de trabajo, pide al dueño del espacio de trabajo que te añada como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
+            readOnlyActionTitle: 'No tan rápido...',
+            readOnlyActionPrompt: 'Tu rol en el espacio de trabajo puede ver estos ajustes, pero no puede editarlos.',
             goToWorkspace: 'Ir al espacio de trabajo',
             duplicateWorkspace: 'Duplicar espacio de trabajo',
             duplicateWorkspacePrefix: 'Duplicar',
@@ -4763,6 +4765,9 @@ ${amount} para ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify se sincronizará automáticamente con Certinia cada día.',
+            syncReimbursedReportsDescription:
+                'Con esta opción habilitada, cada vez que se pague una factura por pagar en FFA, el informe de Expensify relacionado se marcará automáticamente como reembolsado.',
             prerequisites: {
                 title: 'Antes de conectarte',
                 installBundle: 'Para conexiones FFA',
