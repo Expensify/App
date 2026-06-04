@@ -20,8 +20,8 @@ type MileageRate = {
     name?: string;
     enabled?: boolean;
     index?: number;
-    startDate?: string;
-    endDate?: string;
+    startDate?: string | null;
+    endDate?: string | null;
 };
 
 /** @private Only for getRate function */
@@ -65,8 +65,8 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             customUnitRateID: rate.customUnitRateID,
             enabled: rate.enabled,
             index: rate.index,
-            startDate: rate.startDate ?? undefined,
-            endDate: rate.endDate ?? undefined,
+            startDate: rate.startDate,
+            endDate: rate.endDate,
         };
     }
 

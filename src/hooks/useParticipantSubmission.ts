@@ -251,6 +251,7 @@ function useParticipantSubmission({
                     setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
                 }
             } else {
+                // Fallback to using initialTransactionID directly
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID: firstParticipantReportID,
                     isPolicyExpenseChat,
