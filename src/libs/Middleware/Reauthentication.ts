@@ -69,8 +69,7 @@ function shouldResolveAuthenticateHTTPError(error: unknown, request: {command: s
         request.command === 'Authenticate' &&
         error instanceof HttpsError &&
         !!error.status &&
-        error.message !== CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED &&
-        error.message !== CONST.ERROR.THROTTLED
+        error.message !== CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED
     );
 }
 

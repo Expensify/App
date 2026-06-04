@@ -111,9 +111,10 @@ function shouldRetryAuthenticateError(error: unknown): boolean {
         return true;
     }
 
-    // Only retry transient connectivity/service issues. Real HTTP auth failures
-    // like 401/403 should fall through to the normal sign-out path.
-    return error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED || error.message === CONST.ERROR.THROTTLED;
+    // Only retry transient connectivity/service issues. Real HTTP auth failures,
+    // and auth throttling, should fall through to the normal sign-out path so we
+    // do not spin on Authenticate before redirecting to sign in.
+    return error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED;
 }
 
 /**

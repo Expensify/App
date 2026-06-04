@@ -579,6 +579,68 @@ describe('NetworkTests', () => {
         redirectToSignInSpy.mockRestore();
     });
 
+    test('Authenticate HTTP 429 redirects to sign in without retrying re-authentication', async () => {
+        const TEST_USER_LOGIN = 'test@testguy.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+
+        const mockHeaders = {get: () => null};
+        const fetchMock = jest.fn().mockImplementation((input: RequestInfo) => {
+            const requestURL = typeof input === 'string' ? input : input.url;
+            const commandName = requestURL.match(/\/api\/(\w+)\?/)?.[1];
+
+            if (commandName === 'OpenPublicProfilePage') {
+                return Promise.resolve({
+                    ok: false,
+                    status: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                    statusText: 'Proxy Authentication Required',
+                    headers: mockHeaders,
+                });
+            }
+
+            if (commandName === 'Authenticate') {
+                return Promise.resolve({
+                    ok: false,
+                    status: CONST.HTTP_STATUS.TOO_MANY_REQUESTS,
+                    statusText: 'Too Many Requests',
+                    headers: mockHeaders,
+                });
+            }
+
+            return Promise.resolve({
+                ok: true,
+                status: CONST.JSON_CODE.SUCCESS,
+                headers: mockHeaders,
+                json: () =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.SUCCESS,
+                    }),
+            });
+        });
+
+        global.fetch = fetchMock as unknown as typeof fetch;
+
+        PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+
+        const fetchCalls = fetchMock.mock.calls as Array<[RequestInfo, RequestInit | undefined]>;
+        const commandNames = fetchCalls
+            .map(([input]) => {
+                const requestURL = typeof input === 'string' ? input : input.url;
+                return requestURL.match(/\/api\/(\w+)\?/)?.[1];
+            })
+            .filter(Boolean);
+
+        expect(commandNames.filter((commandName) => commandName === 'Authenticate')).toHaveLength(1);
+        expect(redirectToSignInSpy).toHaveBeenCalledWith('passwordForm.error.fallback');
+
+        redirectToSignInSpy.mockRestore();
+    });
+
     test('Request will not run until credentials are read from Onyx', () => {
         // In order to test an scenario where the auth token and credentials hasn't been read from storage we reset hasReadRequiredDataFromStorage
         // and set the session and credentials to "ready" the Network
