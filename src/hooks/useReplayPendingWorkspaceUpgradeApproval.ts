@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import useLocalize from './useLocalize';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {approveMoneyRequest, clearPendingWorkspaceUpgradeIntent} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
