@@ -7,6 +7,12 @@ const renderEngine = new TRenderEngine({
         ...defaultModels,
         ...VICTORY_HTML_ELEMENT_MODELS,
     }),
+    htmlParserOptions: {
+        decodeEntities: true,
+        // Chart XML uses self-closing custom tags (<victorybar ... />). Without this,
+        // htmlparser2 treats them as unclosed opens and nests every sibling.
+        recognizeSelfClosing: true,
+    },
 });
 
 function findVictoryChartRoot(tnode: TNode): TNode | null {
