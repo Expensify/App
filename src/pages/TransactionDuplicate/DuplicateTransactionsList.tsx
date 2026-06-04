@@ -9,11 +9,12 @@ import DuplicateTransactionItem from './DuplicateTransactionItem';
 type DuplicateTransactionsListProps = {
     transactions: Array<OnyxEntry<Transaction>>;
     selectedTransactionID?: string;
+    shouldShowSelection?: boolean;
     onSelectTransaction: (transactionID: string) => void;
     onPreviewPressed: (reportID: string) => void;
 };
 
-function DuplicateTransactionsList({transactions, selectedTransactionID, onSelectTransaction, onPreviewPressed}: DuplicateTransactionsListProps) {
+function DuplicateTransactionsList({transactions, selectedTransactionID, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionsListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -25,6 +26,7 @@ function DuplicateTransactionsList({transactions, selectedTransactionID, onSelec
                     transaction={transaction}
                     isLastItem={index === transactions.length - 1}
                     isSelected={transaction?.transactionID === selectedTransactionID}
+                    shouldShowSelection={shouldShowSelection}
                     onSelectTransaction={onSelectTransaction}
                     onPreviewPressed={onPreviewPressed}
                 />

@@ -56,8 +56,10 @@ import {
     removeMembers,
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getConnectedHRProvider} from '@libs/HRUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,7 +69,6 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
-    getConnectedHRProvider,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
@@ -79,6 +80,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
@@ -179,6 +181,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler', 'EmptyShelves']);
 
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const {approvalWorkflows} = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                policy,
+                personalDetails: personalDetails ?? {},
+                localeCompare,
+            }),
+        [personalDetails, policy, localeCompare],
+    );
+
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
@@ -247,6 +260,39 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
+        // Check if any of the members are approvers
+        const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
+
+        if (hasApprovers) {
+            const ownerEmail = ownerDetails.login;
+            let currentWorkflows = approvalWorkflows;
+            for (const login of selectedEmployees) {
+                if (!isPolicyApprover(policy, login)) {
+                    continue;
+                }
+
+                const accountID = policyMemberEmailsToAccountIDs[login];
+                const removedApprover = personalDetails?.[accountID];
+                if (!removedApprover?.login || !ownerEmail) {
+                    continue;
+                }
+                const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                    approvalWorkflows: currentWorkflows,
+                    removedApprover,
+                    ownerDetails,
+                });
+                currentWorkflows = updatedWorkflows.filter((workflow) => !workflow.removeApprovalWorkflow);
+                for (const workflow of updatedWorkflows) {
+                    if (workflow?.removeApprovalWorkflow) {
+                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+                        removeApprovalWorkflowAction(updatedWorkflow, policy);
+                    } else {
+                        updateApprovalWorkflow(workflow, [], [], policy);
+                    }
+                }
+            }
+        }
+
         setSelectedEmployees([]);
         removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
     };
@@ -337,7 +383,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
             if (!isPolicyAdmin || !canManageMembers) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
@@ -600,7 +646,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchBar = memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const prevMemberCount = usePrevious(memberCount);
+    useEffect(() => {
+        if (prevMemberCount < CONST.STANDARD_LIST_ITEM_LIMIT || memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT) {
+            return;
+        }
+        setInputValue('');
+    }, [memberCount, prevMemberCount, setInputValue]);
     const debouncedFilteredData = useDebouncedValue(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const isFilteringMembers = filteredData?.length < debouncedFilteredData?.length;
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;

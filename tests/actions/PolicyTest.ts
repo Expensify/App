@@ -11,10 +11,11 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Onboarding, PolicyJoinMember, PolicyReportField, Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Onboarding, PolicyJoinMember, PolicyReportField, Policy as PolicyType, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -118,6 +119,13 @@ describe('actions/Policy', () => {
             expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policy?.owner).toBe(ESH_EMAIL);
             expect(policy?.areWorkflowsEnabled).toBe(true);
+            expect(policy?.areDistanceRatesEnabled).toBe(false);
+            expect(policy?.areReportFieldsEnabled).toBe(false);
+            expect(policy?.areConnectionsEnabled).toBe(false);
+            expect(policy?.areExpensifyCardsEnabled).toBe(false);
+            expect(policy?.areInvoicesEnabled).toBe(false);
+            expect(policy?.areRulesEnabled).toBe(false);
+            expect(policy?.arePerDiemRatesEnabled).toBe(false);
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
             expect(policy?.approver).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
@@ -2644,7 +2652,15 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, CONST.CURRENCY.EUR);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: CONST.CURRENCY.EUR,
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -2664,7 +2680,14 @@ describe('actions/Policy', () => {
             const customEmail = 'custom@example.com';
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: customAccountID,
+                currentUserEmail: customEmail,
+                currency: undefined,
+                policyID,
+            });
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -2686,7 +2709,14 @@ describe('actions/Policy', () => {
             const customEmail = 'approver@example.com';
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: customAccountID,
+                currentUserEmail: customEmail,
+                currency: undefined,
+                policyID,
+            });
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -2703,7 +2733,14 @@ describe('actions/Policy', () => {
             const customEmail = 'employee@example.com';
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: customAccountID,
+                currentUserEmail: customEmail,
+                currency: undefined,
+                policyID,
+            });
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -2798,6 +2835,7 @@ describe('actions/Policy', () => {
                 currentUserEmail: customEmail,
                 policyOwnerEmail: customEmail,
                 policyID,
+                currency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2930,6 +2968,113 @@ describe('actions/Policy', () => {
             });
 
             expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
+        });
+    });
+
+    describe('upgradeSubmit', () => {
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
+        it('should upgrade to team optimistically and clear pending state on success', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.SUBMIT),
+                owner: TEST_EMAIL,
+                ownerAccountID: 999,
+                canDowngrade: true,
+                areCompanyCardsEnabled: false,
+                employeeList: {
+                    [ESH_EMAIL]: {email: ESH_EMAIL, role: CONST.POLICY.ROLE.EDITOR},
+                    [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+            Policy.upgradeSubmit(fakePolicy, CONST.POLICY.TYPE.TEAM, ESH_EMAIL, ESH_ACCOUNT_ID, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(updatedPolicy?.type).toBe(CONST.POLICY.TYPE.TEAM);
+            expect(updatedPolicy?.isPendingUpgrade).toBe(true);
+            expect(updatedPolicy?.canDowngrade).toBe(false);
+            expect(updatedPolicy?.areCompanyCardsEnabled).toBe(true);
+            expect(updatedPolicy?.owner).toBe(ESH_EMAIL);
+            expect(updatedPolicy?.ownerAccountID).toBe(ESH_ACCOUNT_ID);
+            expect(updatedPolicy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(updatedPolicy?.employeeList?.[ESH_EMAIL]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(updatedPolicy?.employeeList?.[EMPLOYEE_EMAIL]?.role).toBe(CONST.POLICY.ROLE.USER);
+
+            const firstDayFreeTrial = await getOnyxValue(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+            const lastDayFreeTrial = await getOnyxValue(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+            expect(firstDayFreeTrial).toBeTruthy();
+            expect(lastDayFreeTrial).toBeTruthy();
+
+            await mockFetch.resume();
+
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(updatedPolicy?.isPendingUpgrade).toBe(false);
+        });
+
+        it('should apply corporate upgrade fields when upgrading to corporate', async () => {
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.SUBMIT),
+                outputCurrency: CONST.CURRENCY.USD,
+                eReceipts: false,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+            Policy.upgradeSubmit(fakePolicy, CONST.POLICY.TYPE.CORPORATE, ESH_EMAIL, ESH_ACCOUNT_ID, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(updatedPolicy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+            expect(updatedPolicy?.eReceipts).toBe(true);
+            expect(updatedPolicy?.autoReporting).toBe(true);
+            expect(updatedPolicy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+        });
+
+        it('should revert upgrade and free trial NVPs when the request fails', async () => {
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.SUBMIT),
+                canDowngrade: true,
+                areCompanyCardsEnabled: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, 'prior-first-day');
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, 'prior-last-day');
+            await waitForBatchedUpdates();
+
+            mockFetch.fail();
+            Policy.upgradeSubmit(fakePolicy, CONST.POLICY.TYPE.TEAM, ESH_EMAIL, ESH_ACCOUNT_ID, 'prior-first-day', 'prior-last-day');
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(updatedPolicy?.type).toBe(CONST.POLICY.TYPE.SUBMIT);
+            expect(updatedPolicy?.isPendingUpgrade).toBe(false);
+            expect(updatedPolicy?.canDowngrade).toBe(true);
+            expect(updatedPolicy?.areCompanyCardsEnabled).toBe(false);
+
+            expect(await getOnyxValue(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL)).toBe('prior-first-day');
+            expect(await getOnyxValue(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL)).toBe('prior-last-day');
+        });
+
+        it('should not call API when policy is undefined', async () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            Policy.upgradeSubmit(undefined, CONST.POLICY.TYPE.TEAM, ESH_EMAIL, ESH_ACCOUNT_ID, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(apiWriteSpy).not.toHaveBeenCalled();
+
+            apiWriteSpy.mockRestore();
         });
     });
 
@@ -6751,7 +6896,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6778,7 +6931,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6793,7 +6954,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6808,7 +6977,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, true, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: true,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6821,17 +6998,16 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace(
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                WORKSPACE_NAME,
-                ESH_ACCOUNT_ID,
-                ESH_EMAIL,
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
                 policyID,
-                false,
-                'USD',
-                undefined,
-                CONST.POLICY.TYPE.CORPORATE,
-            );
+                makeMeAdmin: false,
+                type: CONST.POLICY.TYPE.CORPORATE,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6844,7 +7020,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'GBP');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'GBP',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6871,7 +7055,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6886,7 +7078,16 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
             const fakeFile = {uri: 'file://test-avatar.png', name: 'test-avatar.png'} as File;
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD', fakeFile);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+                file: fakeFile,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -7092,6 +7293,55 @@ describe('actions/Policy', () => {
 
             apiWriteSpy.mockRestore();
             isIOUReportUsingReportSpy.mockRestore();
+        });
+
+        it('should negate the converted transaction amounts on the optimistic data so the expense-report table total stays positive', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            const employeeAccountID = 400;
+            const iouReportOwnerEmail = 'employee@example.com';
+
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '900',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: employeeAccountID,
+                chatReportID: '901',
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 5000,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(900),
+                transactionID: 'transaction900',
+                reportID: iouReport.reportID,
+                amount: 5000,
+                modifiedAmount: '',
+                convertedAmount: 6000,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            await waitForBatchedUpdates();
+
+            // Optimistic merge: read the stored transaction from Onyx
+            const optimisticTransaction: OnyxEntry<Transaction> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(optimisticTransaction?.amount).toBe(-5000);
+            expect(optimisticTransaction?.convertedAmount).toBe(-6000);
         });
     });
 });

@@ -55,6 +55,7 @@ function resolveSuggestedFollowup(
         event: 'followup_clicked',
         reportID,
         reportActionID,
+        questionText: selectedFollowup.text,
         hasPregeneratedResponse: !!selectedFollowup.response,
     });
 
@@ -127,7 +128,30 @@ function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConci
  * Called when the response has been pending too long (e.g. app was killed and restarted).
  */
 function discardPendingConciergeAction(reportID: string | undefined) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, null);
+    Onyx.multiSet({
+        [`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`]: null,
+    });
+}
+
+/**
+ * Clears the pending followup-list marker for a report so the skeleton stops rendering.
+ */
+function clearPendingFollowupList(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, null);
+}
+
+/**
+ * Temporarily hides the pending followup-list skeleton.
+ */
+function hidePendingFollowupList(reportID: string | undefined, hidden: boolean | null) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {hidden});
 }
 
 /**
@@ -146,7 +170,12 @@ function applyPendingConciergeAction(reportID: string | undefined, reportAction:
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportAction.reportActionID]: reportAction},
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`,
+            value: {reportActionID: reportAction.reportActionID, createdAt: Date.now()},
+        },
     ]);
 }
 
-export {resolveSuggestedFollowup, discardPendingConciergeAction, applyPendingConciergeAction, CONCIERGE_RESPONSE_DELAY_MS};
+export {resolveSuggestedFollowup, discardPendingConciergeAction, applyPendingConciergeAction, clearPendingFollowupList, hidePendingFollowupList, CONCIERGE_RESPONSE_DELAY_MS};

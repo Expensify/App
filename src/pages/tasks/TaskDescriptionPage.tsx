@@ -53,22 +53,19 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
         [translate],
     );
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.description !== Parser.htmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
-                // Set the description of the report in the store and then call EditTask API
-                // to update the description of the report on the server
-                editTask(report, {description: values.description}, delegateEmail);
-            }
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+        if (values.description !== Parser.htmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
+            // Set the description of the report in the store and then call EditTask API
+            // to update the description of the report on the server
+            editTask(report, {description: values.description}, delegateEmail);
+        }
 
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
-        },
-        [report, delegateEmail],
-    );
+        Navigation.goBack(backPath);
+    };
 
     if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
+            Navigation.goBack(backPath);
         });
     }
     const inputRef = useRef<AnimatedTextInputRef | null>(null);

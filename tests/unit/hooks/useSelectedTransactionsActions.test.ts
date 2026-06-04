@@ -5,13 +5,13 @@ import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {exportReportToCSV} from '@libs/actions/Report';
+import {createTransactionThreadReport, exportReportToCSV} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction, Session} from '@src/types/onyx';
+import type {ReportAction, SearchResults, Session} from '@src/types/onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
@@ -42,6 +42,7 @@ jest.mock('@libs/actions/MergeTransaction', () => ({
 }));
 
 jest.mock('@libs/actions/Report', () => ({
+    createTransactionThreadReport: jest.fn(),
     exportReportToCSV: jest.fn(),
     getCurrentUserEmail: jest.fn(() => 'test@example.com'),
 }));
@@ -69,14 +70,17 @@ const mockClearSelectedTransactions = jest.fn();
 const mockSelectedTransactionIDs: string[] = [];
 const mockSelectedTransactions: SelectedTransactions = {};
 const mockCurrentSearchHash = 12345;
+let mockCurrentSearchResults: SearchResults | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchQueryContext: () => ({currentSearchHash: mockCurrentSearchHash}),
+    useSearchResultsContext: () => ({currentSearchResults: undefined}),
+    useSearchSelectionContext: () => ({
         selectedTransactionIDs: mockSelectedTransactionIDs,
-        currentSearchHash: mockCurrentSearchHash,
         selectedTransactions: mockSelectedTransactions,
+        currentSearchResults: mockCurrentSearchResults,
     }),
-    useSearchActionsContext: () => ({
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
     }),
 }));
@@ -159,6 +163,7 @@ describe('useSelectedTransactionsActions', () => {
             delete mockSelectedTransactions[key];
         }
         mockIsOffline = false;
+        mockCurrentSearchResults = undefined;
         mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(false);
     });
 
@@ -904,130 +909,6 @@ describe('useSelectedTransactionsActions', () => {
         expect(initSplitExpense).toHaveBeenCalled();
     });
 
-    it('should show split option after the other split half was deleted', async () => {
-        // Given an open expense report the current user owns and belongs to
-        const transactionID = '123';
-        const report = {
-            ...createRandomReport(1, undefined),
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-        const policy = {
-            ...createRandomPolicy(1),
-            isPolicyExpenseChatEnabled: true,
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {
-                [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},
-            },
-        };
-        const reportActions: ReportAction[] = [];
-
-        // And a single selected transaction still tagged as a split child
-        const transaction = {
-            ...createRandomTransaction(1),
-            transactionID,
-            amount: 1000,
-            status: CONST.TRANSACTION.STATUS.POSTED,
-            comment: {originalTransactionID: 'ORIGINAL_TXN', source: CONST.IOU.TYPE.SPLIT},
-        };
-
-        mockSelectedTransactionIDs.push(transactionID);
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
-
-        jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
-            isBillSplit: false,
-            isExpenseSplit: true,
-            originalTransaction: transaction,
-        });
-
-        // And no siblings remain, so the split has dissolved
-        jest.spyOn(require('@libs/TransactionUtils'), 'getChildTransactions').mockReturnValue([transaction]);
-        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
-
-        // When the bulk selected-transactions actions are computed
-        const {result} = renderHook(() =>
-            useSelectedTransactionsActions({
-                report,
-                reportActions,
-                allTransactionsLength: 1,
-                policy,
-                beginExportWithTemplate: mockBeginExportWithTemplate,
-            }),
-        );
-
-        // Then the split option is available
-        await waitFor(() => {
-            const splitOption = result.current.options.find((option) => option.value === 'split');
-            expect(splitOption).toBeDefined();
-        });
-    });
-
-    it('should hide split option for an intact multi-child split', async () => {
-        // Given an open expense report the current user owns and belongs to
-        const transactionID = '123';
-        const report = {
-            ...createRandomReport(1, undefined),
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-        const policy = {
-            ...createRandomPolicy(1),
-            isPolicyExpenseChatEnabled: true,
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {
-                [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},
-            },
-        };
-        const reportActions: ReportAction[] = [];
-
-        // And a single selected transaction still tagged as a split child
-        const transaction = {
-            ...createRandomTransaction(1),
-            transactionID,
-            amount: 1000,
-            status: CONST.TRANSACTION.STATUS.POSTED,
-            comment: {originalTransactionID: 'ORIGINAL_TXN', source: CONST.IOU.TYPE.SPLIT},
-        };
-
-        mockSelectedTransactionIDs.push(transactionID);
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
-
-        jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
-            isBillSplit: false,
-            isExpenseSplit: true,
-            originalTransaction: transaction,
-        });
-
-        // And siblings still remain, so it is an intact split (edited via "Edit splits", not re-split)
-        jest.spyOn(require('@libs/TransactionUtils'), 'getChildTransactions').mockReturnValue([transaction, transaction]);
-        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
-
-        // When the bulk selected-transactions actions are computed
-        const {result} = renderHook(() =>
-            useSelectedTransactionsActions({
-                report,
-                reportActions,
-                allTransactionsLength: 1,
-                policy,
-                beginExportWithTemplate: mockBeginExportWithTemplate,
-            }),
-        );
-
-        // Then the split option is not offered
-        await waitFor(() => {
-            expect(result.current.options.length).toBeGreaterThan(0);
-        });
-        expect(result.current.options.find((option) => option.value === 'split')).toBeUndefined();
-    });
-
     it('should show merge option when transaction can be merged', async () => {
         const transactionID = '123';
         const report = createRandomReport(1, undefined);
@@ -1038,6 +919,7 @@ describe('useSelectedTransactionsActions', () => {
         const reportActions: ReportAction[] = [];
         const transaction = createRandomTransaction(1);
         transaction.transactionID = transactionID;
+        transaction.transactionThreadReportID = 'existing-thread-report-id';
         transaction.managedCard = false;
         transaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
 
@@ -1072,6 +954,218 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, false, undefined);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, false, undefined, {
+            transactionID: transaction.transactionID,
+            threadReportID: transaction.transactionThreadReportID,
+        });
+    });
+
+    it('should pass isOnSearch=true for search-origin report checkbox merge', async () => {
+        const transactionID = 'search-transaction-123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.statusNum = 0;
+        report.stateNum = 0;
+        const policy = createRandomPolicy(1);
+        const reportActions: ReportAction[] = [];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.transactionThreadReportID = 'search-thread-report-id';
+        transaction.managedCard = false;
+        transaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                policy,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        await waitFor(() => {
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
+            expect(mergeOption).toBeDefined();
+        });
+
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
+        mergeOption?.onSelected?.();
+
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, true, undefined, {
+            transactionID: transaction.transactionID,
+            threadReportID: transaction.transactionThreadReportID,
+        });
+    });
+
+    it('should use reportActions childReportID as the merge override when transaction thread metadata is missing', async () => {
+        const transactionID = 'report-action-transaction-123';
+        const childReportID = 'child-report-123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.statusNum = 0;
+        report.stateNum = 0;
+        const policy = createRandomPolicy(1);
+        const reportAction = createRandomReportAction(1);
+        reportAction.actionName = CONST.REPORT.ACTIONS.TYPE.IOU;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test needs a legacy IOU action fixture because the production lookup still reads originalMessage.
+        reportAction.originalMessage = {
+            IOUTransactionID: transactionID,
+        } as never;
+        reportAction.childReportID = childReportID;
+        const reportActions: ReportAction[] = [reportAction];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.transactionThreadReportID = undefined;
+        transaction.managedCard = false;
+        transaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                policy,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        await waitFor(() => {
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
+            expect(mergeOption).toBeDefined();
+        });
+
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
+        mergeOption?.onSelected?.();
+
+        expect(createTransactionThreadReport).not.toHaveBeenCalled();
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, true, undefined, {
+            transactionID,
+            threadReportID: childReportID,
+        });
+    });
+
+    it('should create a thread and use its reportID as the merge override when no thread metadata exists', async () => {
+        const transactionID = 'created-thread-transaction-123';
+        const createdThreadReportID = 'created-thread-report-123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.statusNum = 0;
+        report.stateNum = 0;
+        const policy = createRandomPolicy(1);
+        const reportActions: ReportAction[] = [];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.transactionThreadReportID = undefined;
+        transaction.managedCard = false;
+        transaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
+
+        jest.mocked(createTransactionThreadReport).mockReturnValue({reportID: createdThreadReportID} as never);
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                policy,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        await waitFor(() => {
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
+            expect(mergeOption).toBeDefined();
+        });
+
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
+        mergeOption?.onSelected?.();
+
+        expect(createTransactionThreadReport).toHaveBeenCalled();
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, true, undefined, {
+            transactionID,
+            threadReportID: createdThreadReportID,
+        });
+    });
+
+    it('should leave the two-selected report checkbox merge path unchanged', async () => {
+        const firstTransactionID = 'two-selected-transaction-123';
+        const secondTransactionID = 'two-selected-transaction-456';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.statusNum = 0;
+        report.stateNum = 0;
+        const policy = createRandomPolicy(1);
+        const firstTransaction = createRandomTransaction(1);
+        firstTransaction.transactionID = firstTransactionID;
+        firstTransaction.managedCard = false;
+        firstTransaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
+        const secondTransaction = createRandomTransaction(2);
+        secondTransaction.transactionID = secondTransactionID;
+        secondTransaction.managedCard = false;
+        secondTransaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
+
+        mockSelectedTransactionIDs.push(firstTransactionID, secondTransactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`, firstTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, secondTransaction);
+
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions: [],
+                allTransactionsLength: 2,
+                policy,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        await waitFor(() => {
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
+            expect(mergeOption).toBeDefined();
+        });
+
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
+        mergeOption?.onSelected?.();
+
+        expect(createTransactionThreadReport).not.toHaveBeenCalled();
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(
+            firstTransactionID,
+            [firstTransaction, secondTransaction],
+            mockLocalCompare,
+            mockGetCurrencyDecimals,
+            [],
+            false,
+            true,
+            [policy, policy],
+            undefined,
+        );
     });
 });

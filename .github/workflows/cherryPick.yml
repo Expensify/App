@@ -100,10 +100,8 @@ jobs:
         id: getBranchName
         run: echo "CONFLICT_BRANCH_NAME=cherry-pick-${{ inputs.TARGET }}-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
-        # v4
       - name: Checkout target branch
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ inputs.TARGET }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -242,19 +240,18 @@ jobs:
 
       - name: Warn that previous deploy was superseded
         if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' && steps.checkInProgressDeploy.outputs.DEPLOY_RUN_URL != '' }}
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: 'warning',
-                text: `⚠️ ${{ inputs.TARGET == 'production' && 'Production' || 'Staging' }} <${{ steps.checkInProgressDeploy.outputs.DEPLOY_RUN_URL }}|deploy> cancelled by new cherry-pick`
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "warning",
+                "text": "⚠️ ${{ inputs.TARGET == 'production' && 'Production' || 'Staging' }} <${{ steps.checkInProgressDeploy.outputs.DEPLOY_RUN_URL }}|deploy> cancelled by new cherry-pick"
               }]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Find deploy workflow run
         # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
@@ -298,20 +295,18 @@ jobs:
       - name: Announce successful CP in #deployer
         # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
         if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: 'good',
-                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successfully started\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_MESSAGE }}`
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "good",
+                "text": "🍒 Cherry-pick to *${{ inputs.TARGET }}* successfully started\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_MESSAGE }}"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Write workflow summary
         # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
@@ -425,21 +420,19 @@ jobs:
 
       - name: Announce CP conflict in #deployer
         if: steps.cherryPick.outputs.HAS_CONFLICTS == 'true'
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `${{ steps.resolveSlack.outputs.SLACK_MENTION }}`,
-                text: "🚨 Cherry-pick to ${{ inputs.TARGET }} has conflicts and requires manual resolution.\nOriginal PR: ${{ inputs.PULL_REQUEST_URL }}\nConflict PR: ${{ steps.createPullRequest.outputs.PR_URL }}"
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "#DB4545",
+                "pretext": "${{ steps.resolveSlack.outputs.SLACK_MENTION }}",
+                "text": "🚨 Cherry-pick to ${{ inputs.TARGET }} has conflicts and requires manual resolution.\nOriginal PR: ${{ inputs.PULL_REQUEST_URL }}\nConflict PR: ${{ steps.createPullRequest.outputs.PR_URL }}"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Add assignees to conflict PRs
         if: steps.cherryPick.outputs.HAS_CONFLICTS == 'true'
@@ -457,37 +450,32 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: "Announces a CP failure in the #announce Slack room"
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ failure() }}
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Failed to CP ${{ inputs.PULL_REQUEST_URL }} to ${{ inputs.TARGET }} 💥`,
+              "channel": "#announce",
+              "attachments": [{
+                "color": "#DB4545",
+                "pretext": "<!subteam^S4TJJ3PSL>",
+                "text": "💥 Failed to CP ${{ inputs.PULL_REQUEST_URL }} to ${{ inputs.TARGET }} 💥"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: "Announce CP cancellation in #deployer"
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ cancelled() }}
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: 'warning',
-                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* was cancelled\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nWorkflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "warning",
+                "text": "🍒 Cherry-pick to *${{ inputs.TARGET }}* was cancelled\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nWorkflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
