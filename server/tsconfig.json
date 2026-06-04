@@ -6,7 +6,8 @@
             "@libs/*": ["./libs/*"],
             "@plugins/*": ["./plugins/*"],
             "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
-            "@src/*": ["../src/*"]
+            "@src/*": ["../src/*"],
+            "canvaskit-wasm/bin/full/canvaskit.wasm": ["./victory-chart-renderer/src/canvaskit-wasm.d.ts"]
         }
     },
     "include": ["libs", "plugins", "stubs", "victory-chart-renderer"],

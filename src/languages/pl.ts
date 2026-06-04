@@ -3418,6 +3418,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Dołącz',
+        marketingSMSConsent: 'Wyrażam zgodę na otrzymywanie marketingowych wiadomości SMS od Expensify',
     },
     detailsPage: {
         localTime: 'Czas lokalny',
@@ -4393,6 +4394,8 @@ ${amount} dla ${merchant} - ${date}`,
             cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
             peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
             paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
+            readOnlyActionTitle: 'Nie tak szybko…',
+            readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -4843,6 +4846,9 @@ ${amount} dla ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z Certinia każdego dnia.',
+            syncReimbursedReportsDescription:
+                'Gdy ta opcja jest włączona, za każdym razem gdy Należna faktura zostanie opłacona w FFA, powiązany raport Expensify zostanie automatycznie oznaczony jako zwrócony.',
             prerequisites: {
                 title: 'Zanim się połączysz',
                 installBundle: 'Dla połączeń FFA',

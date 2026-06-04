@@ -3427,6 +3427,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Deelnemen',
+        marketingSMSConsent: 'Ik ga akkoord met het ontvangen van marketing-sms van Expensify',
     },
     detailsPage: {
         localTime: 'Lokale tijd',
@@ -4401,6 +4402,8 @@ ${amount} voor ${merchant} - ${date}`,
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
             peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
             paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
+            readOnlyActionTitle: 'Niet zo snel...',
+            readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -4851,6 +4854,9 @@ ${amount} voor ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify wordt elke dag automatisch met Certinia gesynchroniseerd.',
+            syncReimbursedReportsDescription:
+                'Als deze optie is ingeschakeld, wordt elke keer dat een te betalen factuur in FFA wordt betaald, het bijbehorende Expensify-rapport automatisch als terugbetaald gemarkeerd.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Voor FFA-verbindingen',

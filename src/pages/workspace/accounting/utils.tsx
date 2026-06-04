@@ -335,10 +335,14 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
+                onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                subscribedAdvancedSettings: [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.CERTINIA].alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCertinia(),
                 },
+                pendingFields: policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config?.pendingFields,
+                errorFields: policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config?.errorFields,
             } as AccountingIntegration;
         default:
             return undefined;
