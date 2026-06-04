@@ -71,8 +71,6 @@ function isPOBoxOrMailDrop(value: FormValue): boolean {
 
 /**
  * Returns the translation path for the error to display on an invalid address input.
- * PO boxes and mail drops get the physical-address copy, while any other invalid value
- * (e.g. an emoji-only or otherwise unparseable address) falls back to the generic street address error.
  */
 function getInvalidAddressErrorTranslationPath(value: FormValue): TranslationPaths {
     return isPOBoxOrMailDrop(value) ? 'bankAccount.error.physicalAddressRequired' : 'bankAccount.error.addressStreet';
