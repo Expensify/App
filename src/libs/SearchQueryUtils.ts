@@ -603,7 +603,19 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
-        const rawFilterList = rawQuery ? getRawFilterListFromQuery(rawQuery) : result.rawFilterList;
+        let rawFilterList = rawQuery ? getRawFilterListFromQuery(rawQuery) : result.rawFilterList;
+
+        // The parser accepts any identifier as a groupBy value, but downstream consumers (e.g. SearchSavePage and
+        // DisplayPopup) translate it directly via `search.filters.groupBy.<value>`, which throws for unrecognized
+        // values. Normalize an invalid groupBy to undefined here so every consumer reads a valid value or nothing.
+        // Chart views (bar/line/pie) require a valid groupBy, so view is reset to the table default, and both keys
+        // are stripped from the raw filter list that builds the human-readable query so the search bar drops them.
+        const isGroupByInvalid = !!result.groupBy && !Object.values(CONST.SEARCH.GROUP_BY).some((validGroupBy) => validGroupBy === result.groupBy);
+        if (isGroupByInvalid) {
+            result.groupBy = undefined;
+            result.view = CONST.SEARCH.VIEW.TABLE;
+            rawFilterList = rawFilterList?.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY && filter.key !== CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW);
+        }
 
         // Add the full input and hash to the results
         result.inputQuery = query;
@@ -1879,10 +1891,24 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
     return standardQuery;
 }
 
+// Root keys that change how the current results are displayed/grouped rather than which results match.
+// When the search bar only contains these, the typed query refines the current search and must keep its filters.
+const DISPLAY_MODIFIER_ROOT_KEYS = new Set<string>([
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS,
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT,
+]);
+
 function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString, currentQueryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
     const autocompleteRanges = (parseForAutocomplete(queryString) as SearchAutocompleteResult).ranges;
-    const hasOnlyKeywordSearch = queryString.trim().length > 0 && autocompleteRanges.length === 0;
-    if (!hasOnlyKeywordSearch) {
+    const hasContent = queryString.trim().length > 0;
+    const hasOnlyKeywordSearch = hasContent && autocompleteRanges.length === 0;
+    // e.g. adding `group-by:reports` to a search that is filtered by `from:<accountID>` should keep the `from` filter.
+    const hasOnlyDisplayModifiers = hasContent && autocompleteRanges.length > 0 && autocompleteRanges.every((range) => DISPLAY_MODIFIER_ROOT_KEYS.has(range.key));
+    if (!hasOnlyKeywordSearch && !hasOnlyDisplayModifiers) {
         return queryString;
     }
 

@@ -17,6 +17,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
+    getKeywordQueryWithCurrentSearchContext,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     serializeQueryJSONForBackend,
@@ -140,11 +141,19 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated groupBy', () => {
+            const userQuery = 'from:johndoe@example.com groupBy:category';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual('type:expense sortBy:groupCategory sortOrder:asc groupBy:category from:12345');
+        });
+
+        test('strips an invalid groupBy value while preserving other filters', () => {
             const userQuery = 'from:johndoe@example.com groupBy:reports';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
+            expect(result).toEqual(`${defaultQuery} from:12345`);
         });
 
         test('returns query with updated view', () => {
@@ -184,6 +193,45 @@ describe('SearchQueryUtils', () => {
                 {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'me', isDefault: false},
                 {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATA_TYPES.EXPENSE, isDefault: true},
             ]);
+        });
+    });
+
+    describe('getKeywordQueryWithCurrentSearchContext', () => {
+        test('keeps the current filters when the typed query only adds a display modifier', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense from:12345');
+            if (!currentQueryJSON) {
+                throw new Error('Failed to build current query JSON');
+            }
+
+            // Typing `group-by:reports` refines the current results, so the active `from` filter must remain applied.
+            const result = getKeywordQueryWithCurrentSearchContext('group-by:reports', currentQueryJSON);
+
+            expect(result).toContain('from:12345');
+            expect(result).toContain('group-by:reports');
+        });
+
+        test('keeps the current filters when the typed query is only a keyword search', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense from:12345');
+            if (!currentQueryJSON) {
+                throw new Error('Failed to build current query JSON');
+            }
+
+            const result = getKeywordQueryWithCurrentSearchContext('coffee', currentQueryJSON);
+
+            expect(result).toContain('from:12345');
+            expect(result).toContain('coffee');
+        });
+
+        test('replaces the query when the typed query introduces a real filter', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense from:12345');
+            if (!currentQueryJSON) {
+                throw new Error('Failed to build current query JSON');
+            }
+
+            // A real filter defines a new result set, so the current context is discarded.
+            const result = getKeywordQueryWithCurrentSearchContext('to:67890', currentQueryJSON);
+
+            expect(result).toEqual('to:67890');
         });
     });
 
