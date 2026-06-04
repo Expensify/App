@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddPolicyAIRuleParams} from '@libs/API/parameters';
+import type {AddPolicyAIRuleParams, UpdatePolicyAIRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -395,4 +395,72 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
     API.write(WRITE_COMMANDS.ADD_POLICY_AI_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule, getTransactionsMatchingCodingRule, addPolicyAIRule};
+function updatePolicyAIRule(policyID: string, aiRuleID: string, prompt: string, previousPrompt: string) {
+    if (!policyID || !aiRuleID || !prompt) {
+        Log.warn('Invalid params for updatePolicyAIRule', {policyID, aiRuleID, prompt});
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                prompt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                pendingAction: null,
+                                errors: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                prompt: previousPrompt,
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdatePolicyAIRuleParams = {
+        policyID,
+        aiRuleID,
+        prompt,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_AI_RULE, parameters, onyxData);
+}
+
+export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule, getTransactionsMatchingCodingRule, addPolicyAIRule, updatePolicyAIRule};

@@ -375,6 +375,7 @@ export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetP
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as AddPolicyAIRuleParams} from './AddPolicyAIRuleParams';
+export type {default as UpdatePolicyAIRuleParams} from './UpdatePolicyAIRuleParams';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
 export type {default as SetPolicyCashExpenseModeParams} from './SetPolicyCashExpenseModeParams';
