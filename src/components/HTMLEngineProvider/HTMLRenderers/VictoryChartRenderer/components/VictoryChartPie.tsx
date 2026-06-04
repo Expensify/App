@@ -22,8 +22,16 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const renderEngine = useAmbientTRenderEngine();
     const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel', HTMLContentModel.textual);
     const baseLabelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
-    const dataLabels = Object.values(data).map((entry) => (entry as PolarChartData).label);
     const pieLabels = parseAttribute<string[]>(tnode.attributes.labels);
+    const customLabels = Object.values(data)
+        .map((entry) => (entry as PolarChartData).label)
+        .reduce(
+            (customLabels, dataLabel, index) => {
+                customLabels[dataLabel] = pieLabels?.[index];
+                return customLabels;
+            },
+            {} as Record<string, string | undefined>,
+        );
     const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : undefined;
     const innerRadius = tnode.attributes.innerradius !== undefined ? Number(parseAttribute(tnode.attributes.innerradius)) : undefined;
     const padAngle = tnode.attributes.padangle !== undefined ? Number(parseAttribute(tnode.attributes.padangle)) : undefined;
@@ -50,7 +58,7 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                             <VictoryChartPieLabel
                                 slice={slice}
                                 baseLabelItem={baseLabelItem}
-                                label={pieLabels?.[dataLabels.indexOf(slice.label)]}
+                                label={customLabels[slice.label] ?? slice.label}
                                 labelRadius={labelRadius}
                                 labelIndicatorXShift={labelIndicatorXShift}
                                 labelIndicatorYShift={labelIndicatorYShift}

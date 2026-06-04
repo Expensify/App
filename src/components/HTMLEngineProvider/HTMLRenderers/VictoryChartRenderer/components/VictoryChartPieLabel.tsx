@@ -9,7 +9,7 @@ import VictoryChartPieLabelIndicator from './VictoryChartPieLabelIndicator';
 type VictoryChartPieLabelProps = {
     slice: PieSliceData;
     baseLabelItem: LabelItem;
-    label: string | undefined;
+    label: string;
     labelRadius: number | undefined;
     labelIndicatorXShift: number | undefined;
     labelIndicatorYShift: number | undefined;
@@ -31,14 +31,13 @@ function VictoryChartPieLabel({
     labelIndicatorInnerOffset,
     labelIndicatorOuterOffset,
 }: VictoryChartPieLabelProps) {
-    const text = label ?? slice.label;
     const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
     const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle);
     const y = slice.center.y + (labelRadius ?? slice.radius) * Math.sin(midAngle);
 
     const labelItem: LabelItem = {
         ...baseLabelItem,
-        text,
+        text: label,
         x,
         y,
         textAnchor: 'middle',
