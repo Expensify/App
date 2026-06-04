@@ -18188,45 +18188,27 @@ describe('ReportUtils', () => {
             },
         } as unknown as NonNullable<Policy['fieldList']>;
 
-        it('returns empty object when policyID is undefined', () => {
-            const testPolicy = {id: '1', fieldList: mockFieldList} as unknown as Policy;
-            expect(getReportFieldsByPolicyID(undefined, testPolicy)).toEqual({});
+        it('returns empty object when policy is undefined', () => {
+            expect(getReportFieldsByPolicyID(undefined)).toEqual({});
         });
 
-        it('returns empty object when policyID is empty string', () => {
-            const testPolicy = {id: '1', fieldList: mockFieldList} as unknown as Policy;
-            expect(getReportFieldsByPolicyID('', testPolicy)).toEqual({});
+        it('returns empty object when policy has no id', () => {
+            const testPolicy = {fieldList: mockFieldList} as unknown as Policy;
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual({});
         });
 
         it('returns fieldList from policy when policy has fieldList', () => {
             const testPolicy = {id: 'policyA', fieldList: mockFieldList} as unknown as Policy;
-            expect(getReportFieldsByPolicyID('policyA', testPolicy)).toEqual(mockFieldList);
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual(mockFieldList);
         });
 
         it('returns empty object when policy has no fieldList', () => {
             const testPolicy = {id: 'policyA'} as unknown as Policy;
-            expect(getReportFieldsByPolicyID('policyA', testPolicy)).toEqual({});
-        });
-
-        it('returns empty object when policy is undefined and no draft exists', () => {
-            expect(getReportFieldsByPolicyID('nonExistentPolicy', undefined)).toEqual({});
-        });
-
-        it('returns fieldList from policyDraft when policy is undefined', async () => {
-            const policyDraftID = 'draftPolicy1';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyDraftID}`, {
-                id: policyDraftID,
-                fieldList: mockFieldList,
-            } as unknown as Policy);
-            await waitForBatchedUpdates();
-
-            expect(getReportFieldsByPolicyID(policyDraftID, undefined)).toEqual(mockFieldList);
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyDraftID}`, null);
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual({});
         });
 
         it('prefers policy over policyDraft when both exist', async () => {
-            const policyID = 'bothExist';
+            const testPolicyID = 'bothExist';
             const draftFieldList = {
                 expensify_draft_field: {
                     fieldID: 'draft_field',
@@ -18236,16 +18218,16 @@ describe('ReportUtils', () => {
                 },
             } as unknown as NonNullable<Policy['fieldList']>;
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
-                id: policyID,
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`, {
+                id: testPolicyID,
                 fieldList: draftFieldList,
             } as unknown as Policy);
             await waitForBatchedUpdates();
 
-            const testPolicy = {id: policyID, fieldList: mockFieldList} as unknown as Policy;
-            expect(getReportFieldsByPolicyID(policyID, testPolicy)).toEqual(mockFieldList);
+            const testPolicy = {id: testPolicyID, fieldList: mockFieldList} as unknown as Policy;
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual(mockFieldList);
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`, null);
         });
     });
 
@@ -18266,30 +18248,27 @@ describe('ReportUtils', () => {
                 ...overrides,
             }) as ReportAction;
 
-        const adminPolicy = {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN} as unknown as Policy;
-        const memberPolicy = {id: 'policy1', role: CONST.POLICY.ROLE.USER} as unknown as Policy;
-
         it('returns false for non-money-request reports', () => {
             const chatReport = makeReport({type: CONST.REPORT.TYPE.CHAT});
-            expect(canModifyHoldStatus(chatReport, makeReportAction(), currentUserAccountID, adminPolicy)).toBe(false);
+            expect(canModifyHoldStatus(chatReport, makeReportAction(), currentUserAccountID, true)).toBe(false);
         });
 
         it('returns true for IOU report when user is action owner', () => {
             const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU});
             const reportAction = makeReportAction({actorAccountID: currentUserAccountID});
-            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, memberPolicy)).toBe(true);
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(true);
         });
 
         it('returns true for IOU report when user is manager', () => {
             const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU, managerID: currentUserAccountID});
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, memberPolicy)).toBe(true);
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(true);
         });
 
         it('returns false for IOU report when user is neither owner nor manager', () => {
             const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU, managerID: 888});
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, memberPolicy)).toBe(false);
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(false);
         });
 
         it('returns true for open expense report when user is action owner', () => {
@@ -18299,7 +18278,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             });
             const reportAction = makeReportAction({actorAccountID: currentUserAccountID});
-            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, memberPolicy)).toBe(true);
+            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false)).toBe(true);
         });
 
         it('returns false for open expense report when user is not action owner', () => {
@@ -18309,7 +18288,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             });
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, memberPolicy)).toBe(false);
+            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false)).toBe(false);
         });
 
         it('returns true for admin on processing expense report', () => {
@@ -18319,7 +18298,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             });
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, adminPolicy)).toBe(true);
+            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, true)).toBe(true);
         });
 
         it('returns true for manager on processing expense report', () => {
@@ -18330,7 +18309,7 @@ describe('ReportUtils', () => {
                 managerID: currentUserAccountID,
             });
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, memberPolicy)).toBe(true);
+            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, false)).toBe(true);
         });
 
         it('returns false for admin on non-processing expense report', () => {
@@ -18340,7 +18319,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             });
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(approvedReport, reportAction, currentUserAccountID, adminPolicy)).toBe(false);
+            expect(canModifyHoldStatus(approvedReport, reportAction, currentUserAccountID, true)).toBe(false);
         });
     });
 
