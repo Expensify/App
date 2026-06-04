@@ -1,5 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
@@ -71,6 +71,19 @@ function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) 
     const message = getEmptyMessage();
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
+
+    // When the list transitions from empty to populated, reset the scroll position to the top so the first row is visible.
+    // While the list is empty its content container is stretched with flexGrow1, so in a short (landscape) viewport the empty
+    // state content can be taller than the viewport and leave the list scrolled past the top. FlashList does not reset that
+    // offset on the empty -> populated transition, which hides the newly added first row until the user scrolls.
+    const previousDataLengthRef = useRef(filteredAndSortedData.length);
+    useEffect(() => {
+        const previousDataLength = previousDataLengthRef.current;
+        previousDataLengthRef.current = filteredAndSortedData.length;
+        if (previousDataLength === 0 && filteredAndSortedData.length > 0) {
+            listRef?.current?.scrollToOffset({offset: 0, animated: false});
+        }
+    }, [filteredAndSortedData.length, listRef]);
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
