@@ -188,7 +188,9 @@ type ShouldShowBulkDuplicateParams = {
 };
 
 function areIncludedSubmitPolicyTransactions(selectedTransactions: SelectedTransactions, selectedReports: SelectedReports[], allPolicies: OnyxCollection<Policy>): boolean {
-    return selectedReports.length > 0 ? selectedReports.some((report) => isSubmitPolicy(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`])) : Object.values(selectedTransactions).some((transaction) => isSubmitPolicy(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${transaction.policyID}`]));
+    return selectedReports.length > 0
+        ? selectedReports.some((report) => isSubmitPolicy(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
+        : Object.values(selectedTransactions).some((transaction) => isSubmitPolicy(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${transaction.policyID}`]));
 }
 
 function getAllTransactionsForDuplicate({
