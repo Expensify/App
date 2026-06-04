@@ -501,6 +501,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 ),
                 disabled: isSmartLimitEnabled || isDEWEnabled || isHRConnected,
                 disabledAction: getAddApprovalsToggleDisabledAction(),
+                // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as disabled because configuring the advanced approvals is a paid feature.
                 isActive:
                     !canAccessSubmit2026Features &&
                     (isHRConnected ||
