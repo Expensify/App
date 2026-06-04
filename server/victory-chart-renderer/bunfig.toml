@@ -1,2 +1,5 @@
 [test]
 root = "."
+
+[run]
+tsconfig = "tsconfig.json"

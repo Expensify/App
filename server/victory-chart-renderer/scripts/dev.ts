@@ -14,15 +14,13 @@
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
-// Bun resolves these scripts without the server tsconfig path aliases.
-// eslint-disable-next-line import/no-relative-packages
-import createAppPathAliasPlugin from '../../plugins/appPathAliasPlugin';
 // eslint-disable-next-line import/no-relative-packages
 import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const repoRoot = resolve(packageRoot, '../..');
 const stubRoot = resolve(packageRoot, '../stubs');
+const tsconfigPath = join(packageRoot, 'tsconfig.json');
 const outFile = resolve(packageRoot, '.dev/cli.js');
 
 mkdirSync(join(packageRoot, '.dev'), {recursive: true});
@@ -32,7 +30,8 @@ const buildResult = await Bun.build({
     target: 'bun',
     packages: 'bundle',
     conditions: ['react-native'],
-    plugins: [createRnStubPlugin(stubRoot), createAppPathAliasPlugin(repoRoot, stubRoot)],
+    tsconfig: tsconfigPath,
+    plugins: [createRnStubPlugin(stubRoot)],
 });
 
 if (!buildResult.success) {

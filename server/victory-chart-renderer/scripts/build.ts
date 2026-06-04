@@ -13,15 +13,12 @@ import {join, resolve} from 'node:path';
 import CLI from '@scripts/utils/CLI';
 // eslint-disable-next-line import/no-relative-packages
 import parseCompileTarget from '../../libs/parseCompileTarget';
-// Bun resolves these scripts without the server tsconfig path aliases.
-// eslint-disable-next-line import/no-relative-packages
-import createAppPathAliasPlugin from '../../plugins/appPathAliasPlugin';
 // eslint-disable-next-line import/no-relative-packages
 import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
-const repoRoot = resolve(packageRoot, '../..');
 const stubRoot = resolve(packageRoot, '../stubs');
+const tsconfigPath = join(packageRoot, 'tsconfig.json');
 
 const cli = new CLI({
     namedArgs: {
@@ -45,7 +42,8 @@ const buildResult = await Bun.build({
     },
     packages: 'bundle',
     conditions: ['react-native'],
-    plugins: [createRnStubPlugin(stubRoot), createAppPathAliasPlugin(repoRoot, stubRoot)],
+    tsconfig: tsconfigPath,
+    plugins: [createRnStubPlugin(stubRoot)],
 });
 
 if (!buildResult.success) {

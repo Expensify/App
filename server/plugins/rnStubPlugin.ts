@@ -22,10 +22,20 @@ export default function createRnStubPlugin(stubRoot: string): BunPlugin {
     const configStub = resolve(stubRoot, 'react-native-config/index.ts');
     const sentryStub = resolve(stubRoot, 'sentry-react-native/index.ts');
     const nitroFetchStub = resolve(stubRoot, 'react-native-nitro-fetch/index.ts');
+    const logStub = resolve(stubRoot, 'expensify-log/index.ts');
+    const activeSpansStub = resolve(stubRoot, 'telemetry-activeSpans/index.ts');
 
     return {
         name: 'victory-chart-renderer-rn-stubs',
         setup(build) {
+            build.onResolve({filter: /^@libs\/telemetry\/activeSpans$/}, () => ({
+                path: activeSpansStub,
+            }));
+
+            build.onResolve({filter: /^@libs\/Log$/}, () => ({
+                path: logStub,
+            }));
+
             build.onResolve({filter: /^@sentry\/react-native/}, () => ({
                 path: sentryStub,
             }));
