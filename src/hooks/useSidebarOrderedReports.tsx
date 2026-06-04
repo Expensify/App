@@ -300,26 +300,22 @@ function SidebarOrderedReportsContextProvider({
     // non-All tab, so opening a chat from the All tab never makes it appear under Unread/To-do.
     const [stickyReport, setStickyReport] = useState<{reportID: string; tab: ValueOf<typeof CONST.INBOX_TAB>} | undefined>(undefined);
 
-    // Narrow the ordered reports down to the ones belonging to the active Inbox tab, plus the sticky
-    // report (kept visible while it's the one being viewed on the tab it was opened from). The "All" tab
-    // returns everything (still honoring Most Recent / Focus mode from the ordering above).
+    // The reports for the active tab, plus the sticky report opened from it (kept visible even after it's read).
     const stickyReportID = stickyReport?.reportID;
     const stickyReportTab = stickyReport?.tab;
     const filteredReportIDs = useMemo(() => {
-        const base = SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab);
-        if (
-            activeTab === CONST.INBOX_TAB.ALL ||
-            !stickyReportID ||
-            stickyReportTab !== activeTab ||
-            stickyReportID !== derivedCurrentReportID ||
-            base.includes(stickyReportID) ||
-            !orderedReportIDs.includes(stickyReportID)
-        ) {
-            return base;
+        const baseFilteredReportIDs = SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab);
+        if (activeTab === CONST.INBOX_TAB.ALL || !stickyReportID || stickyReportTab !== activeTab || baseFilteredReportIDs.includes(stickyReportID)) {
+            return baseFilteredReportIDs;
         }
-        const baseSet = new Set(base);
+        if (!orderedReportIDs.includes(stickyReportID)) {
+            // While opening the report, reading it can briefly drop it from the LHN set entirely (before
+            // navigation marks it as the focused report). Keep it at the top so the list doesn't flash empty.
+            return [stickyReportID, ...baseFilteredReportIDs];
+        }
+        const baseSet = new Set(baseFilteredReportIDs);
         return orderedReportIDs.filter((reportID) => baseSet.has(reportID) || reportID === stickyReportID);
-    }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID, derivedCurrentReportID]);
+    }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID]);
 
     // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
     const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
@@ -373,7 +369,11 @@ function SidebarOrderedReportsContextProvider({
         // requirement for web. Consider a case, where we have report with expenses and we click on
         // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
+        // Only the "All" tab force-regenerates to surface the current report. On the To-do/Unread tabs the
+        // sticky-aware filteredReportIDs already keeps the opened report visible, and re-filtering here
+        // (without the sticky report) would briefly empty the list while opening it.
         if (
+            activeTab === CONST.INBOX_TAB.ALL &&
             (!shouldUseNarrowLayout || filteredReportIDs.length === 0) &&
             derivedCurrentReportID &&
             derivedCurrentReportID !== '-1' &&
