@@ -810,7 +810,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_STATUS]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_DATE]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DEFAULT_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.route},
-                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {path: ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: {
                             path: ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.route,
@@ -1047,6 +1047,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.ROOM_CREATE]: {
+                            path: ROUTES.WORKSPACE_ROOM_CREATE.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
                         },
@@ -1197,6 +1200,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR.route,
                         },
                         [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
                             path: ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.route,
