@@ -9,7 +9,7 @@
  * Transient by nature: cleared on reply detection, safety timeout, reconnect, or by the
  * caller. Not persisted to Onyx.
  */
-import getAgentStoreKey from '@libs/AgentZeroStoreUtils';
+import getAgentStoreKey from './AgentZeroStoreUtils';
 
 /** Upper bound on how long an optimistic entry stays valid without a server label or reply. */
 const MAX_AGE_MS = 120000;

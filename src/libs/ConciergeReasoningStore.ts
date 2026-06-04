@@ -3,7 +3,7 @@
  * agentAccountID)` so each agent in a room keeps its own reasoning history. This data is
  * transient UI feedback and is NOT persisted to Onyx.
  */
-import getAgentStoreKey from '@libs/AgentZeroStoreUtils';
+import getAgentStoreKey from './AgentZeroStoreUtils';
 
 type ReasoningEntry = {
     reasoning: string;
