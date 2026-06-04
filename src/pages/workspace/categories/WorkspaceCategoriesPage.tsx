@@ -83,7 +83,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {canWrite: canWriteCategories, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
 
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -239,7 +239,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             updateWorkspaceCategoryEnabled(enabled, category.name);
         },
-        [policy, policyCategories, showCannotDeleteOrDisableLastCategoryModal, updateWorkspaceCategoryEnabled],
+        [canWriteCategories, policy, policyCategories, showCannotDeleteOrDisableLastCategoryModal, showReadOnlyModal, updateWorkspaceCategoryEnabled],
     );
 
     const categories = Object.values(policyCategories ?? {});
@@ -292,7 +292,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, policy, policyCategories, navigateToCategory, handleCategoryToggle, policyId]);
+    }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, canWriteCategories, policy, policyCategories, navigateToCategory, handleCategoryToggle, policyId]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryRows);
 
@@ -642,7 +642,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+
                 {(!hasVisibleCategories || isLoading) && headerContent}
+
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -650,6 +652,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         reasonAttributes={reasonAttributes}
                     />
                 )}
+
                 {hasVisibleCategories && !isLoading && (
                     <>
                         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
