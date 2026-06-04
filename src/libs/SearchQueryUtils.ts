@@ -37,7 +37,7 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
-import {getBankAccountSearchLabel, isSearchEligibleBankAccount} from './BankAccountUtils';
+import {getBankAccountSearchLabel} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -1485,7 +1485,7 @@ function getFilterDisplayValue({
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
         const bankAccount = bankAccountList?.[filterValue];
-        if (!bankAccount || !isSearchEligibleBankAccount(bankAccount)) {
+        if (!bankAccount) {
             return filterValue;
         }
         return getBankAccountSearchLabel(bankAccount);
