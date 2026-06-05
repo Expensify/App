@@ -277,3 +277,10 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/57556
 - PR introducing patch: https://github.com/Expensify/App/pull/79815
+
+### [react-native+0.83.1+037+fix-deadlock-APP-7B2.patch](react-native+0.83.1+037+fix-deadlock-APP-7B2.patch)
+
+- Reason: Fixes a fatal iOS app hang (APP-7B2) caused by a deadlock in Fabric's `ComponentDescriptorRegistry`. During HybridApp OldDot->NewDot transitions, a background thread lazily registering legacy interop component descriptors via `ComponentDescriptorRegistry::add()` holds a `unique_lock(mutex_)` while constructing a descriptor that calls `RCTUnsafeExecuteOnMainQueueSync`. Simultaneously, the main thread (driven by `CADisplayLink` animation ticks) tries to acquire `shared_lock(mutex_)` in `findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN`. This creates a circular dependency: main waits for the lock, background waits for main. The fix moves descriptor construction outside the `unique_lock`, so the lock is only held for the two map insertions.
+- Upstream PR/issue: https://github.com/facebook/react-native/issues/53128
+- E/App issue: https://github.com/Expensify/App/issues/91292
+- PR introducing patch: https://github.com/Expensify/App/pull/91736

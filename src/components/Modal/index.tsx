@@ -4,6 +4,7 @@ import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
+import {withInternalPopstate} from './internalPopstateGuard';
 import type BaseModalProps from './types';
 import type {WindowState} from './types';
 
@@ -11,6 +12,22 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
+
+    const isRightDocked = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+    const isCentered =
+        type === CONST.MODAL.MODAL_TYPE.CONFIRM ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT;
+    const rightDockedInTiming = isRightDocked ? CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB : undefined;
+    const rightDockedOutTiming = isRightDocked ? CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB : undefined;
+    const centeredInTiming = isCentered ? CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_IN_WEB : undefined;
+    const centeredOutTiming = isCentered ? CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_OUT_WEB : undefined;
+    const animationInTiming = rest.animationInTiming ?? rightDockedInTiming ?? centeredInTiming;
+    const animationOutTiming = rest.animationOutTiming ?? rightDockedOutTiming ?? centeredOutTiming;
+    const animationIn = rest.animationIn ?? (isRightDocked ? 'slideAndFadeInRight' : undefined);
+    const animationOut = rest.animationOut ?? (isRightDocked ? 'slideAndFadeOutRight' : undefined);
 
     const setStatusBarColor = (color = theme.appBG) => {
         if (!fullscreen) {
@@ -55,7 +72,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
                 if (!(window.history.state as WindowState)?.shouldGoBack) {
                     return;
                 }
-                window.history.back();
+                withInternalPopstate(() => window.history.back());
             }, 0);
         } else {
             onModalHide();
@@ -106,6 +123,10 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     return (
         <BaseModal
             {...rest}
+            animationIn={animationIn}
+            animationOut={animationOut}
+            animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             onModalHide={hideModal}
             onModalShow={showModal}
             onModalWillShow={onModalWillShow}

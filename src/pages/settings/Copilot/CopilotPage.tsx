@@ -23,15 +23,14 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDelegateErrorsByField, clearDelegatorErrors, connect, disconnect, openSecuritySettingsPage, removeDelegate} from '@libs/actions/Delegate';
+import {clearDelegateErrorsByField, clearDelegatorErrors, openSecuritySettingsPage, removeDelegate} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {useIsAgentAccount} from '@libs/SessionUtils';
@@ -42,7 +41,6 @@ import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type Account from '@src/types/onyx/Account';
 import type {Delegate, DelegateRole} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -63,16 +61,10 @@ function CopilotPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountDelegationSelector});
     const isAgentAccount = useIsAgentAccount();
     const actingDelegateEmail = account?.delegatedAccess?.delegate?.toLowerCase();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
-    const {isOffline} = useNetwork();
+    const switchToDelegator = useSwitchToDelegator();
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [selectedDelegate, setSelectedDelegate] = useState<Delegate | undefined>();
@@ -89,34 +81,6 @@ function CopilotPage() {
             danger: true,
         });
     }, [showConfirmModal, translate]);
-
-    const showOfflineModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.offlinePrompt'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
-
-    const showGpsInProgressModal = useCallback(
-        async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
-            const result = await showConfirmModal({
-                title: translate('gps.switchAccountWarningTripInProgress.title'),
-                prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
-                confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
-                cancelText: translate('common.cancel'),
-            });
-
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
-            switchAccount();
-        },
-        [gpsDraftDetails, showConfirmModal, translate],
-    );
 
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
 
@@ -170,44 +134,6 @@ function CopilotPage() {
             popoverPositionListener.remove();
         };
     }, [setMenuPosition]);
-
-    const switchToDelegator = useCallback(
-        (email: string) => {
-            if (isOffline) {
-                modalClose(() => showOfflineModal());
-                return;
-            }
-            const isReturningToOriginalUser = isActingAsDelegate && email === stashedSession?.email;
-            // Chained delegation isn't supported by the backend — if we're already acting as a delegate,
-            // the only legal switch is back to the original user. Anything else triggers the "Not so fast" modal.
-            if (isActingAsDelegate && !isReturningToOriginalUser) {
-                modalClose(() => showDelegateNoAccessModal());
-                return;
-            }
-            const switchAction = isReturningToOriginalUser
-                ? () => disconnect({stashedCredentials, stashedSession})
-                : () => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-            if (isTrackingGPS) {
-                modalClose(() => showGpsInProgressModal(switchAction));
-                return;
-            }
-            switchAction();
-        },
-        [
-            account?.delegatedAccess,
-            activePolicyID,
-            credentials,
-            isActingAsDelegate,
-            isOffline,
-            isTrackingGPS,
-            session,
-            showDelegateNoAccessModal,
-            showGpsInProgressModal,
-            showOfflineModal,
-            stashedCredentials,
-            stashedSession,
-        ],
-    );
 
     const renderTitleWithRole = useCallback(
         (titleText: string, descriptionText: string, role: DelegateRole | undefined) => (

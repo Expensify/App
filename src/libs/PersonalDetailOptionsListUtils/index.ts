@@ -310,7 +310,7 @@ function getValidOptions(
         return matchesSearchTerms(personalDetail, searchTerms);
     };
 
-    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true);
+    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true).options;
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
@@ -374,7 +374,7 @@ function getValidOptions(
             return true;
         };
 
-        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction);
+        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction).options;
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -402,7 +402,7 @@ function getValidOptions(
         return matchesSearchTerms(personalDetail, searchTerms);
     };
 
-    personalDetailsOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, filteringFunction, true);
+    personalDetailsOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, filteringFunction, true).options;
 
     let userToInvite: OptionData | null = null;
     if (includeUserToInvite) {
@@ -491,6 +491,16 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
     return translate('common.noResultsFound');
 }
 
-export {createOption, getContactOption, canCreateOptimisticPersonalDetailOption, filterOption, matchesSearchTerms, getValidOptions, createOptionList, getHeaderMessage};
+export {
+    createOption,
+    getContactOption,
+    canCreateOptimisticPersonalDetailOption,
+    filterOption,
+    matchesSearchTerms,
+    getValidOptions,
+    createOptionList,
+    getHeaderMessage,
+    getUserToInviteOption,
+};
 
 export type {OptionData};

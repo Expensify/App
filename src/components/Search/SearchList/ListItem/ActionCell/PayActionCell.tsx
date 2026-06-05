@@ -13,7 +13,7 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
-import {getReimbursableTotal, isInvoiceReport} from '@libs/ReportUtils';
+import {isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -76,7 +76,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 shouldUseShortForm
                 buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
-                formattedAmount={convertToDisplayString(Math.abs(getReimbursableTotal(iouReport)), currency)}
+                formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
                 policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}

@@ -83,6 +83,9 @@ type PopoverMenuItem = MenuItemProps & {
     /** Whether to close the modal on select */
     shouldCloseModalOnSelect?: boolean;
 
+    /** Whether to render a divider before this menu item */
+    addSeparatorBefore?: boolean;
+
     /** Additional data for the menu item */
     additionalData?: Record<string, unknown>;
 };
@@ -440,6 +443,7 @@ function BasePopoverMenu({
             testID: menuItemTestID,
             shouldShowLoadingSpinnerIcon,
             badgeText,
+            addSeparatorBefore,
             ...menuItemProps
         } = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
@@ -448,49 +452,50 @@ function BasePopoverMenu({
         // In radio-button mode, suppress visual focus highlight until the user starts keyboard navigation.
         const isVisuallyFocused = focusedIndex === menuIndex && (!isRadioButtonMode || hasKeyBeenPressed);
         return (
-            <OfflineWithFeedback
-                key={reactKey}
-                pendingAction={item.pendingAction}
-            >
-                <FocusableMenuItem
-                    key={reactKey}
-                    pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
-                    title={text}
-                    onPress={(event) => selectItem(menuIndex, event)}
-                    focused={isVisuallyFocused}
-                    shouldCheckActionAllowedOnPress={false}
-                    iconRight={item.rightIcon}
-                    shouldShowRightIcon={!!item.rightIcon}
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    onFocus={() => {
-                        if (!shouldUpdateFocusedIndex) {
-                            return;
-                        }
-                        setFocusedIndex(menuIndex);
-                    }}
-                    badgeText={badgeText}
-                    badgeStyle={StyleSheet.flatten(badgeStyle)}
-                    wrapperStyle={[
-                        StyleUtils.getItemBackgroundColorStyle(
-                            !isRadioButtonMode && !!item.isSelected,
-                            isVisuallyFocused,
-                            item.disabled ?? false,
-                            theme.activeComponentBG,
-                            theme.hoverComponentBG,
-                        ),
-                        shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
-                    ]}
-                    shouldRemoveHoverBackground={item.isSelected}
-                    titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                    icon={icon}
-                    role={CONST.ROLE.BUTTON}
-                    // Spread other props dynamically
-                    {...menuItemProps}
-                    shouldShowRadioButton={isRadioButtonMode}
-                    hasSubMenuItems={!!subMenuItems?.length}
-                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
-                />
-            </OfflineWithFeedback>
+            <React.Fragment key={reactKey}>
+                {/* Compact popovers need tighter divider spacing than full-page sections. */}
+                {addSeparatorBefore === true && menuIndex > 0 && <View style={[styles.sectionDividerLine, styles.mh4, styles.mv2]} />}
+                <OfflineWithFeedback pendingAction={item.pendingAction}>
+                    <FocusableMenuItem
+                        key={reactKey}
+                        pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
+                        title={text}
+                        onPress={(event) => selectItem(menuIndex, event)}
+                        focused={isVisuallyFocused}
+                        shouldCheckActionAllowedOnPress={false}
+                        iconRight={item.rightIcon}
+                        shouldShowRightIcon={!!item.rightIcon}
+                        brickRoadIndicator={item.brickRoadIndicator}
+                        onFocus={() => {
+                            if (!shouldUpdateFocusedIndex) {
+                                return;
+                            }
+                            setFocusedIndex(menuIndex);
+                        }}
+                        badgeText={badgeText}
+                        badgeStyle={StyleSheet.flatten(badgeStyle)}
+                        wrapperStyle={[
+                            StyleUtils.getItemBackgroundColorStyle(
+                                !isRadioButtonMode && !!item.isSelected,
+                                isVisuallyFocused,
+                                item.disabled ?? false,
+                                theme.activeComponentBG,
+                                theme.hoverComponentBG,
+                            ),
+                            shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                        ]}
+                        shouldRemoveHoverBackground={item.isSelected}
+                        titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                        icon={icon}
+                        role={CONST.ROLE.BUTTON}
+                        // Spread other props dynamically
+                        {...menuItemProps}
+                        shouldShowRadioButton={isRadioButtonMode}
+                        hasSubMenuItems={!!subMenuItems?.length}
+                        shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+                    />
+                </OfflineWithFeedback>
+            </React.Fragment>
         );
     });
 
