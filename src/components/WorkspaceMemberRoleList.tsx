@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -37,47 +37,43 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     const styles = useThemeStyles();
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
-    const isPolicyControl = isControlPolicy(policy);
-    const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
-
-    const availableRoleItems: ListItemType[] = [];
-    if (canAssignAdminRole) {
-        availableRoleItems.push({
+    const workspaceRoles: ListItemType[] = [
+        {
             value: CONST.POLICY.ROLE.ADMIN,
             text: translate('common.admin'),
             alternateText: translate('workspace.common.adminAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.ADMIN,
             keyForList: CONST.POLICY.ROLE.ADMIN,
-        });
-    }
-    // Auditor only exists on Control workspaces.
-    if (isPolicyControl) {
-        availableRoleItems.push({
+        },
+        {
             value: CONST.POLICY.ROLE.AUDITOR,
             text: translate('common.auditor'),
             alternateText: translate('workspace.common.auditorAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.AUDITOR,
             keyForList: CONST.POLICY.ROLE.AUDITOR,
-        });
-    }
-    // Editor is the only base role on Submit workspaces; Member is the base role everywhere else.
-    if (isSubmitPolicy(policy)) {
-        availableRoleItems.push({
-            value: CONST.POLICY.ROLE.EDITOR,
-            text: translate('common.editor'),
-            alternateText: translate('workspace.common.editorAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.EDITOR,
-            keyForList: CONST.POLICY.ROLE.EDITOR,
-        });
-    } else {
-        availableRoleItems.push({
+        },
+        {
             value: CONST.POLICY.ROLE.USER,
             text: translate('common.member'),
             alternateText: translate('workspace.common.memberAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.USER,
             keyForList: CONST.POLICY.ROLE.USER,
-        });
-    }
+        },
+    ];
+
+    const isPolicyControl = isControlPolicy(policy);
+    // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
+    // invite/manage members but must not be able to escalate anyone to admin.
+    const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
+    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
+        if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
+            return false;
+        }
+        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
+            return false;
+        }
+        return true;
+    });
 
     return (
         <>
@@ -94,7 +90,6 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
-                        alternateNumberOfSupportedLines={2}
                     />
                 </View>
             )}
