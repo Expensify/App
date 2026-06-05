@@ -4710,7 +4710,6 @@ export {
     isSubmittedAction,
     isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
-    isApprovedAction,
     isForwardedAction,
     isDynamicExternalWorkflowForwardedAction,
     isUnapprovedAction,
