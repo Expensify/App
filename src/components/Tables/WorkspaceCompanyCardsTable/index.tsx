@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {shouldSynthesizeWorkspaceFeedsLoadError} from '@libs/CompanyCardsFeedLoadingUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
@@ -52,6 +53,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
+    /** Whether domain feed data is still hydrating for a domain-based card account */
+    isWaitingForDomainFeedData: boolean;
+
     /** Company cards */
     companyCards: UseCompanyCardsResult;
 
@@ -75,6 +79,7 @@ function WorkspaceCompanyCardsTable({
     policyID,
     isPolicyLoaded,
     domainOrWorkspaceAccountID,
+    isWaitingForDomainFeedData,
     companyCards,
     onAssignCard,
     isAssigningCardDisabled,
@@ -118,7 +123,7 @@ function WorkspaceCompanyCardsTable({
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading && !hasOnceLoadedPage;
 
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
-    const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
+    const shouldShowWorkspaceFeedsLoadError = shouldSynthesizeWorkspaceFeedsLoadError(domainOrWorkspaceAccountID, isPolicyLoaded, isOffline, isWaitingForDomainFeedData);
     const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
         ? {
               [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
@@ -150,7 +155,7 @@ function WorkspaceCompanyCardsTable({
     const isLoadingOnyxFeed = !isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata) && !hasOnceLoadedSelectedFeed;
     const isSelectedFeedLoading = !!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed;
 
-    const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
+    const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading || isWaitingForDomainFeedData);
     const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxFeed || isSelectedFeedLoading);
     const isLoading = isLoadingPage || isLoadingFeed || isLoadingOnyxCardList;
 
