@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -27,14 +27,32 @@ function RulesReimbursableDefaultPage({
     const policy = usePolicy(policyID);
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy);
+    const [selectedMode, setSelectedMode] = useState(reimbursableMode);
 
     const reimbursableModes = Object.values(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES).map((mode) => ({
         text: translate(`workspace.rules.individualExpenseRules.${mode}`),
         alternateText: translate(`workspace.rules.individualExpenseRules.${mode}Description`),
         value: mode,
-        isSelected: reimbursableMode === mode,
+        isSelected: selectedMode === mode,
         keyForList: mode,
     }));
+
+    const saveAndGoBack = useCallback(() => {
+        if (!selectedMode) {
+            return;
+        }
+        setPolicyReimbursableMode(policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
+        Navigation.goBack();
+    }, [policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAndGoBack,
+        }),
+        [saveAndGoBack, translate],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -58,8 +76,9 @@ function RulesReimbursableDefaultPage({
                     data={reimbursableModes}
                     ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
-                        setPolicyReimbursableMode(policyID, item.value, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
+                        setSelectedMode(item.value);
                     }}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     style={{containerStyle: styles.pt3}}
                     initiallyFocusedItemKey={reimbursableMode}
