@@ -74,7 +74,7 @@ function PolicyDistanceRatesPage({
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.distanceRates');
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const {canWrite: canWriteDistanceRates, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
+    const {canWrite: canWriteDistanceRates, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
     const canSelectMultiple = canWriteDistanceRates && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const {asset: CarIce} = useMemoizedLazyAsset(() => loadIllustration('CarIce' as IllustrationName));
@@ -261,7 +261,7 @@ function PolicyDistanceRatesPage({
                             onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
                             showLockIcon={!canWriteDistanceRates || !canDisableOrDeleteRate(value.customUnitRateID)}
                             disabled={!canWriteDistanceRates || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            disabledAction={!canWriteDistanceRates ? showReadOnlyModal : undefined}
+                            disabledAction={withReadOnlyFallback()}
                         />
                     ),
                 };
@@ -273,7 +273,7 @@ function PolicyDistanceRatesPage({
             unitTranslation,
             customUnit?.pendingFields?.attributes,
             policy?.pendingAction,
-            showReadOnlyModal,
+            withReadOnlyFallback,
             updateDistanceRateEnabled,
         ],
     );
@@ -294,9 +294,6 @@ function PolicyDistanceRatesPage({
     }, [policyID]);
 
     const openRateDetails = (rate: RateForList) => {
-        if (!canWriteDistanceRates) {
-            return;
-        }
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
     };
 
@@ -373,7 +370,7 @@ function PolicyDistanceRatesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('workspace.distanceRates.rate')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightCaret={canWriteDistanceRates}
+                shouldShowRightCaret
             />
         );
     };
@@ -562,7 +559,7 @@ function PolicyDistanceRatesPage({
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress={canWriteDistanceRates}
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret={canWriteDistanceRates}
+                        shouldShowRightCaret
                     />
                 )}
             </ScreenWrapper>
