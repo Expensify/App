@@ -75,6 +75,7 @@ import {
     isExpensifyTeam,
     isPaidGroupPolicy,
     isPolicyApprover,
+    shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -413,6 +414,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
+    const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
+
     const filteredMembers = useMemo(() => {
         const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
 
@@ -429,19 +432,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 continue;
             }
 
-            // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
-            // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
-            // see random people added to their policy, but guides having access to the policies help set them up.
-            if (isExpensifyTeam(details?.login ?? details?.displayName)) {
-                if (policyOwner && currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
-                    continue;
-                }
+            // Filter out Expensify team members (guides/account managers) unless the policy owner
+            // or current user is also an Expensify team member. This uses the same centralized
+            // logic as getFilteredMemberCount to ensure consistent member counts across the app.
+            if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
+                continue;
             }
 
             result.push({email, policyEmployee, accountID, details});
         }
         return result;
-    }, [policy?.employeeList, policyMemberEmailsToAccountIDs, isOffline, personalDetails, policyOwner, currentUserLogin]);
+    }, [policy?.employeeList, policyMemberEmailsToAccountIDs, isOffline, personalDetails, shouldFilter]);
 
     const hasAnyCustomField1 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeeUserID), [filteredMembers]);
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
