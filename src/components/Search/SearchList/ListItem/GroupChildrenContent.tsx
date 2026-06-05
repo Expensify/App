@@ -1,8 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -10,34 +8,13 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
-import type {TransactionPreviewData} from '@libs/actions/Search';
-import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getSections} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, CardFeeds, CardList, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
-import type {GroupChildrenContainerItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './types';
-
-type GroupChildrenContentProps = {
-    item: GroupChildrenContainerItemType;
-    isExpanded: boolean;
-    groupBy?: SearchGroupBy;
-    searchType?: SearchDataTypes;
-    columns?: SearchColumnType[];
-    canSelectMultiple: boolean;
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
-    onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
-    nonPersonalAndWorkspaceCards?: CardList;
-    onUndelete?: (transaction: Transaction) => void;
-    newTransactionID?: string;
-    bankAccountList?: OnyxEntry<BankAccountList>;
-    cardFeeds?: OnyxCollection<CardFeeds>;
-    conciergeReportID?: string;
-};
+import type {GroupChildrenContentProps, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './types';
 
 function GroupChildrenContent({
     item,

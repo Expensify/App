@@ -1,36 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
-import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TransactionPreviewData} from '@libs/actions/Search';
-import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {BankAccountList, CardFeeds, CardList, Transaction} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import GroupChildrenContent from './GroupChildrenContent';
-import type {GroupChildrenContainerItemType, SearchListItem, TransactionListItemType} from './types';
+import type {GroupChildrenContentProps} from './types';
 
-type GroupChildrenContainerProps = {
-    item: GroupChildrenContainerItemType;
-    isExpanded: boolean;
-    groupBy?: SearchGroupBy;
-    searchType?: SearchDataTypes;
-    columns?: SearchColumnType[];
-    canSelectMultiple: boolean;
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
-    onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
-    nonPersonalAndWorkspaceCards?: CardList;
-    onUndelete?: (transaction: Transaction) => void;
+type GroupChildrenContainerProps = GroupChildrenContentProps & {
     isLastItem?: boolean;
     isSelected?: boolean;
-    newTransactionID?: string;
-    bankAccountList?: OnyxEntry<BankAccountList>;
-    cardFeeds?: OnyxCollection<CardFeeds>;
-    conciergeReportID?: string;
 };
 
 function GroupChildrenContainer({
@@ -63,30 +42,28 @@ function GroupChildrenContainer({
     return (
         <View style={[styles.mh5, {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG}, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
             <Animated.View style={animatedStyle}>
-                {(isExpanded || isRendered) && (
-                    <Animated.View
-                        style={[styles.stickToTop, styles.pb1]}
-                        onLayout={onLayout}
-                    >
-                        <GroupChildrenContent
-                            item={item}
-                            isExpanded={isExpanded}
-                            groupBy={groupBy}
-                            searchType={searchType}
-                            columns={columns}
-                            canSelectMultiple={canSelectMultiple}
-                            onSelectRow={onSelectRow}
-                            onCheckboxPress={onCheckboxPress}
-                            onLongPressRow={onLongPressRow}
-                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                            onUndelete={onUndelete}
-                            newTransactionID={newTransactionID}
-                            bankAccountList={bankAccountList}
-                            cardFeeds={cardFeeds}
-                            conciergeReportID={conciergeReportID}
-                        />
-                    </Animated.View>
-                )}
+                <Animated.View
+                    style={[styles.stickToTop, styles.pb1]}
+                    onLayout={onLayout}
+                >
+                    <GroupChildrenContent
+                        item={item}
+                        isExpanded={isExpanded}
+                        groupBy={groupBy}
+                        searchType={searchType}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        onSelectRow={onSelectRow}
+                        onCheckboxPress={onCheckboxPress}
+                        onLongPressRow={onLongPressRow}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        onUndelete={onUndelete}
+                        newTransactionID={newTransactionID}
+                        bankAccountList={bankAccountList}
+                        cardFeeds={cardFeeds}
+                        conciergeReportID={conciergeReportID}
+                    />
+                </Animated.View>
             </Animated.View>
         </View>
     );

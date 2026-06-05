@@ -3,9 +3,13 @@ import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+import type {TransactionPreviewData} from '@libs/actions/Search';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type CONST from '@src/CONST';
 import type {
+    BankAccountList,
     BillingGraceEndPeriod,
+    CardFeeds,
     CardList,
     LastPaymentMethod,
     PersonalDetails,
@@ -489,6 +493,24 @@ type GroupChildrenContainerItemType = TransactionGroupListItemType & {
     listItemType: 'children_container';
 };
 
+type GroupChildrenContentProps = {
+    item: GroupChildrenContainerItemType;
+    isExpanded: boolean;
+    groupBy?: SearchGroupBy;
+    searchType?: SearchDataTypes;
+    columns?: SearchColumnType[];
+    canSelectMultiple: boolean;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    nonPersonalAndWorkspaceCards?: CardList;
+    onUndelete?: (transaction: Transaction) => void;
+    newTransactionID?: string;
+    bankAccountList?: OnyxEntry<BankAccountList>;
+    cardFeeds?: OnyxCollection<CardFeeds>;
+    conciergeReportID?: string;
+};
+
 type UnreportedExpenseListItemType = Transaction & {
     isDisabled: boolean;
     keyForList: string;
@@ -523,4 +545,5 @@ export type {
     UnreportedExpenseListItemType,
     GroupHeaderItemType,
     GroupChildrenContainerItemType,
+    GroupChildrenContentProps,
 };
