@@ -19,7 +19,7 @@ If you have two expenses that were not automatically flagged but should be combi
 
 ## Who Can Use Duplicate Detection
 
-Duplicate detection is available to all members on Collect and Control plans. Both submitters and approvers can resolve flagged duplicates on Draft and Outstanding reports. The **Potential duplicate** label does not appear on settled or paid reports.
+Duplicate detection is available to all members on Collect and Control plans. Both submitters and approvers can resolve flagged duplicates on Draft and Outstanding reports. 
 
 ---
 
