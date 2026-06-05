@@ -1,6 +1,6 @@
 import accountIDToNameMapConfig from '@libs/actions/OnyxDerived/configs/accountIDToNameMap';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 const {compute} = accountIDToNameMapConfig;
