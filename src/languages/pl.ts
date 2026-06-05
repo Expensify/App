@@ -3342,6 +3342,7 @@ ${amount} dla ${merchant} - ${date}`,
         enterPhoneNumber: 'Jaki jest Twój numer telefonu?',
         personalDetails: 'Dane osobiste',
         privateDataMessage: 'Te dane są używane do podróży i płatności. Nigdy nie są wyświetlane w Twoim publicznym profilu.',
+        basicDetails: 'Podstawowe dane',
         legalName: 'Imię i nazwisko (pełne)',
         legalFirstName: 'Imię (zgodnie z dokumentem tożsamości)',
         legalLastName: 'Nazwisko zgodne z dokumentami',
@@ -3534,7 +3535,7 @@ ${amount} dla ${merchant} - ${date}`,
             noBankAccountSelected: 'Wybierz konto',
             taxID: 'Wprowadź prawidłowy numer identyfikacji podatkowej',
             website: 'Wprowadź prawidłową stronę internetową',
-            zipCode: `Wprowadź prawidłowy kod ZIP w formacie: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Wprowadź prawidłowy kod ZIP w formacie: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Wprowadź prawidłowy numer telefonu',
             email: 'Wpisz prawidłowy adres e‑mail',
             companyName: 'Wprowadź prawidłową nazwę firmy',
@@ -4846,6 +4847,34 @@ ${amount} dla ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z Certinia każdego dnia.',
+            syncReimbursedReportsDescription:
+                'Gdy ta opcja jest włączona, za każdym razem gdy Należna faktura zostanie opłacona w FFA, powiązany raport Expensify zostanie automatycznie oznaczony jako zwrócony.',
+            exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Certinia.',
+            payableInvoices: 'Należne faktury',
+            exportStatus: {
+                label: 'Status faktury do zapłaty',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Zakończ',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'W toku',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Wysłano',
+                },
+            },
+            exportDate: {
+                label: 'Data płatności faktury',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Data ostatniego wydatku',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Data wysłania raportu',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Data eksportu',
+                },
+            },
+            exportReimbursable: {
+                label: 'Eksportuj zwracane wydatki jako',
+                helperText: 'Wydatki oznaczone jako podlegające zwrotowi zostaną wyeksportowane jako faktury do zapłaty wystawione na pracownika.',
+            },
+            exportNonReimbursable: {label: 'Eksportuj niewliczane do zwrotu wydatki jako'},
+            noVendorsFound: 'Nie znaleziono dostawców',
+            noVendorsFoundDescription: 'Po dodaniu dostawców w Certinia zsynchronizuj ponownie to połączenie.',
             prerequisites: {
                 title: 'Zanim się połączysz',
                 installBundle: 'Dla połączeń FFA',
@@ -4862,6 +4891,19 @@ ${amount} dla ${merchant} - ${date}`,
                 oauth: 'Zaloguj się przez Salesforce',
                 oauthDescription: 'Aby zakończyć konfigurację, musisz się zalogować przez Salesforce i Certinia.\n\nUżyj przycisku poniżej, żeby kontynuować.',
                 connectButton: 'Połącz z Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Plan kont',
+                chartOfAccountsDescription: 'Plan kont jest importowany do Expensify jako kategorie.',
+                dimensionMapping: ({n}: {n: number}) => `Wymiar ${n}`,
+                dimensions: {dimension1: 'Wymiar 1', dimension2: 'Wymiar 2', dimension3: 'Wymiar 3', dimension4: 'Wymiar 4'},
+                doNotMap: 'Nie mapuj',
+                doNotMapSubtitle: 'Domyślnie użyj zasobu pracownika',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Nie mapuj',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Zaimportowano jako tagi',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Zaimportowano jako pola raportu',
+                },
             },
         },
         netsuite: {
@@ -6432,6 +6474,26 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             return 'Importowanie wymiarów Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importowanie danych Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Synchronizowanie danych Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Synchronizowanie polaczenia Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importowanie kategorii';
+                        case 'financialForceSyncTags':
+                            return 'Importowanie tagow';
+                        case 'financialForceSyncVendors':
+                            return 'Importowanie dostawcow';
+                        case 'financialForceSyncContacts':
+                            return 'Importowanie kontaktow';
+                        case 'financialForceSyncCompanies':
+                            return 'Importowanie firm';
+                        case 'financialForceSyncUsers':
+                            return 'Importowanie uzytkownikow';
+                        case 'financialForceSyncDimensions':
+                            return 'Importowanie wymiarow';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Oznaczanie raportow jako zwrocone';
                         default: {
                             return `Brak tłumaczenia dla etapu: ${stage}`;
                         }
