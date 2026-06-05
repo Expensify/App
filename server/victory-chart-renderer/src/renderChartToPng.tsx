@@ -4,11 +4,7 @@ import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
 import CliVictoryChart from './components/CliVictoryChart';
-
-type CanvasSize = {
-    width: number;
-    height: number;
-};
+import type CanvasSize from './types/CanvasSize';
 
 async function renderChartToPng(tnode: TNode, fonts: ChartFontsValue, {width, height}: CanvasSize, outPath: string): Promise<void> {
     const {data} = processVictoryChartTree(tnode, fonts.typefaces.EXP_NEUE, null);

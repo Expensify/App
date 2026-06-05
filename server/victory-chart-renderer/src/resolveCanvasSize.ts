@@ -1,13 +1,9 @@
 import type {TNode} from 'react-native-render-html';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import type CanvasSize from './types/CanvasSize';
 
 const DEFAULT_WIDTH = 600;
 const DEFAULT_HEIGHT = 400;
-
-type CanvasSize = {
-    width: number;
-    height: number;
-};
 
 function hasPositionedOverlay(tnode: TNode): boolean {
     if (tnode.tagName === 'victorylabel' || tnode.tagName === 'victorylegend') {
