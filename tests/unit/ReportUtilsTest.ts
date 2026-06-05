@@ -176,7 +176,6 @@ import type {
     Beta,
     Onboarding,
     OnyxInputOrEntry,
-    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyEmployeeList,
