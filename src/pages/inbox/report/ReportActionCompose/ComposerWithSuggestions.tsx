@@ -714,7 +714,10 @@ function ComposerWithSuggestions({
             if (shouldIgnoreEditSelectionResetRef.current && newSelection.start === 0 && newSelection.end === 0) {
                 const savedSelection = currentEditMessageSelection ?? selection;
                 if ((savedSelection.start ?? 0) > 0 || (savedSelection.end ?? 0) > 0) {
-                    setSelection({start: savedSelection.start, end: savedSelection.end ?? savedSelection.start});
+                    const restoredStart = savedSelection.start ?? 0;
+                    const restoredEnd = savedSelection.end ?? restoredStart;
+                    setSelection({start: restoredStart, end: restoredEnd});
+                    ReportActionComposeUtils.updateNativeSelectionValue(composerRef, restoredStart, restoredEnd);
                     return;
                 }
             }
