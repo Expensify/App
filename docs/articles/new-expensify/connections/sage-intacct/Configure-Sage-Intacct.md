@@ -172,6 +172,21 @@ Choose how to sync reimbursement status:
 
 **Note**: Make sure the selected account matches your Bill Payments default in Sage Intacct.
 
+## Sync travel invoicing settlements
+
+If Travel Invoicing is enabled on your workspace, a **Sync travel invoicing settlements** toggle appears in Advanced settings. Turn it on to have Expensify continuously reconcile your travel invoicing settlements with Sage Intacct.
+
+- This toggle requires **Auto-sync** to be enabled. If Auto-sync is off, the toggle is disabled.
+- When you turn it on, choose a **Reconciliation account** — the bank account that your travel invoicing payments are reconciled against.
+
+To enable Travel Invoicing first, [learn how to enable Travel Invoicing in a Workspace](/articles/travel/travel-invoicing/Enable-Travel-Invoicing-in-a-Workspace).
+
+<!-- SCREENSHOT:
+Suggestion: Sage Intacct Advanced settings page showing the Sync travel invoicing settlements toggle enabled with the Reconciliation account menu item below it
+Location: Under the Sync travel invoicing settlements section
+Purpose: Helps admins locate the new toggle and the reconciliation account picker
+-->
+
 ---
 
 # FAQ
