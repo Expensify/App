@@ -65,7 +65,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const {currentReportID} = useCurrentReportIDState();
     const {sessionStartTime: mainDMSessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
-    const {startSession, endSession, setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
+    const {startSession, setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
     const isReportArchived = useReportIsArchived(reportID);
@@ -131,11 +131,8 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
             return;
         }
         startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
-        return () => {
-            endSession();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession/endSession are stable; captured values at mount only
-    }, [isConciergeMainDM, startSession, endSession, hasOnceLoadedReportActions]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession is stable; captured values at mount only
+    }, [isConciergeMainDM, startSession, hasOnceLoadedReportActions]);
 
     // On native the component stays mounted in the navigation stack, so the
     // effect above never re-fires (its isConciergeMainDM dep is always true).

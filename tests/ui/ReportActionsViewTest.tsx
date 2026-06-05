@@ -202,7 +202,7 @@ describe('ReportActionsView', () => {
         mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
         mockUseReportTransactionsCollection.mockReturnValue({});
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
-        mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), endSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+        mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.IS_LOADING_APP) {
@@ -561,7 +561,7 @@ describe('ReportActionsView', () => {
             mockUseIsInSidePanel.mockReturnValue(false);
             mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
             mockUseConciergeSessionState.mockReturnValue({sessionStartTime, showFullHistory, hadMessagesAtSessionStart: false});
-            mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), endSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+            mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
             mockUseOnyx.mockImplementation((key: string) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
@@ -723,9 +723,9 @@ describe('ReportActionsView', () => {
 
         it('should call startSession on mount for main DM concierge', () => {
             const mockStartSession = jest.fn();
-            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, endSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
             setupMainDMConciergeMocks();
-            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, endSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
