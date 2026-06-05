@@ -6,11 +6,14 @@
 // only need enough surface area for `victory-native` and `@shopify/react-native-skia`
 // modules to load without throwing while we walk the headless branch.
 //
-// Anything that escapes into the render tree (e.g. `<View>`) renders to `null`
-// so it cannot affect the Skia output.
+// `<View>` is a transparent pass-through so layout wrappers (e.g. VictoryChartContainer)
+// preserve the Skia subtree without mounting native views. Styles and layout callbacks
+// are ignored. Other RN primitives that are not Skia nodes still render to `null`.
 import type {FunctionComponent, PropsWithChildren} from 'react';
 
 const noopComponent: FunctionComponent<PropsWithChildren<unknown>> = () => null;
+
+const View: FunctionComponent<PropsWithChildren<unknown>> = ({children}) => children;
 
 type LayoutChangeEvent = {nativeEvent: {layout: {x: number; y: number; width: number; height: number}}};
 type ViewStyle = Record<string, unknown>;
@@ -19,7 +22,6 @@ type TextStyle = Record<string, unknown>;
 type StyleProp<T> = T | T[] | null | undefined | false;
 type TransformsStyle = Record<string, unknown>;
 
-const View = noopComponent;
 type ImageResolvedAssetSource = {uri: string};
 
 const Image = Object.assign(noopComponent, {
