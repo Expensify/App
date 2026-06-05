@@ -38,6 +38,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [accountIDToName] = useOnyx(ONYXKEYS.DERIVED.ACCOUNT_ID_TO_NAME_MAP);
 
     const validate = useCallback(
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
@@ -58,7 +59,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-        if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
+        if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName}) && !isEmptyObject(report)) {
             // Set the title of the report in the store and then call EditTask API
             // to update the title of the report on the server
             editTask(report, {title: values.title}, delegateEmail);

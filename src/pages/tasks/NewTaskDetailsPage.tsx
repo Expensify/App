@@ -36,13 +36,14 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [accountIDToName] = useOnyx(ONYXKEYS.DERIVED.ACCOUNT_ID_TO_NAME_MAP);
     const [localTitle, setLocalTitle] = useState<string>();
     const [localDescription, setLocalDescription] = useState<string>();
-    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''));
-    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''));
+    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''), {accountIDToName});
+    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName});
 
-    const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle));
-    const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription));
+    const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle), {accountIDToName});
+    const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription), {accountIDToName});
     const {inputCallbackRef} = useAutoFocusInput();
 
     const backTo = route.params?.backTo;

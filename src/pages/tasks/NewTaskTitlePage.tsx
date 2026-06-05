@@ -34,6 +34,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
     const {translate} = useLocalize();
+    const [accountIDToName] = useOnyx(ONYXKEYS.DERIVED.ACCOUNT_ID_TO_NAME_MAP);
 
     const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
@@ -87,7 +88,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
                     <InputWrapperWithRef
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={Parser.htmlToMarkdown(task?.title ?? '')}
+                        defaultValue={Parser.htmlToMarkdown(task?.title ?? '', {accountIDToName})}
                         ref={inputCallbackRef}
                         inputID={INPUT_IDS.TASK_TITLE}
                         label={translate('task.title')}
