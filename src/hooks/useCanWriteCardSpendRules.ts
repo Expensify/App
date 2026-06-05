@@ -7,10 +7,7 @@ function useCanWriteCardSpendRules(policyID: string | undefined): boolean {
     const policy = usePolicy(policyID);
     const {login = ''} = useCurrentUserPersonalDetails();
 
-    return (
-        canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.RULES) ||
-        canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)
-    );
+    return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.RULES) || canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 }
 
 export default useCanWriteCardSpendRules;
