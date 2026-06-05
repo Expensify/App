@@ -60,7 +60,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             keyForList: CONST.POLICY.ROLE.AUDITOR,
         });
     }
-    // Editor only exists on Submit workspaces.
+    // Editor is the only base role on Submit workspaces; Member is the base role everywhere else.
     if (isSubmitPolicy(policy)) {
         availableRoleItems.push({
             value: CONST.POLICY.ROLE.EDITOR,
@@ -69,14 +69,15 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             isSelected: role === CONST.POLICY.ROLE.EDITOR,
             keyForList: CONST.POLICY.ROLE.EDITOR,
         });
+    } else {
+        availableRoleItems.push({
+            value: CONST.POLICY.ROLE.USER,
+            text: translate('common.member'),
+            alternateText: translate('workspace.common.memberAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.USER,
+            keyForList: CONST.POLICY.ROLE.USER,
+        });
     }
-    availableRoleItems.push({
-        value: CONST.POLICY.ROLE.USER,
-        text: translate('common.member'),
-        alternateText: translate('workspace.common.memberAlternateText'),
-        isSelected: role === CONST.POLICY.ROLE.USER,
-        keyForList: CONST.POLICY.ROLE.USER,
-    });
 
     return (
         <>
