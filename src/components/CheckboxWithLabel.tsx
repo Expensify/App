@@ -109,7 +109,8 @@ function CheckboxWithLabel({
                     pressDimmingValue={variables.checkboxLabelActiveOpacity}
                     // We want to disable hover dimming
                     hoverDimmingValue={variables.checkboxLabelHoverOpacity}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
+                    // Prevent the label text from being selected when double clicking to toggle the checkbox
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.userSelectNone, styles.w100]}
                     wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
                 >
                     {!!label && <Text style={[styles.ml1]}>{label}</Text>}
