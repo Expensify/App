@@ -88,7 +88,6 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
           }
         : undefined;
 
-        console.log('ready?', ready)
     return (
         <ListFilterWrapper
             itemCount={listData.length}
