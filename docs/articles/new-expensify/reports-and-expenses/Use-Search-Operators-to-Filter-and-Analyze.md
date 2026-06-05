@@ -66,7 +66,7 @@ You can use the following operators to filter expenses:
 
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
-- `type:expense -has:tag` — find expenses that have no tag assigned
+- `type:expense -has:tag` – find expenses that have no tag assigned
 
 ---
 
