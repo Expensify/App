@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
@@ -42,39 +42,30 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
     const currentVendor = qboConfig?.[configKey];
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const data: CardListItem[] = useMemo(
-        () =>
-            vendors?.map((vendor) => ({
-                value: vendor.id,
-                text: vendor.name,
-                keyForList: vendor.id,
-                isSelected: vendor.id === currentVendor,
-            })) ?? [],
-        [currentVendor, vendors],
-    );
+    const data: CardListItem[] =
+        vendors?.map((vendor) => ({
+            value: vendor.id,
+            text: vendor.name,
+            keyForList: vendor.id,
+            isSelected: vendor.id === currentVendor,
+        })) ?? [];
 
-    const selectVendor = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== currentVendor) {
-                updateVendor(policyID, row.value, currentVendor);
-            }
-            Navigation.goBack();
-        },
-        [currentVendor, policyID, updateVendor],
-    );
+    const selectVendor = (row: CardListItem) => {
+        if (row.value !== currentVendor) {
+            updateVendor(policyID, row.value, currentVendor);
+        }
+        Navigation.goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbo.noAccountsFound')}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
