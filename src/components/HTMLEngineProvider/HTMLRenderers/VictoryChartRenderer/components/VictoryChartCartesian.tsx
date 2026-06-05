@@ -5,6 +5,7 @@ import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoade
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import {useVictoryChartBarTooltips} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
+import useVictoryChartTooltipFormatter from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartTooltipFormatter';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartBarHitTargetsSync from './VictoryChartBarHitTargetsSync';
 import VictoryChartLabel from './VictoryChartLabel';
@@ -40,8 +41,7 @@ function VictoryChartCartesian() {
     const hasBarTooltips = barYKeys.length > 0 && tooltipData.length > 0;
     const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : 0;
     const {plotGestures, updateHitTargets, matchedIndex, isTooltipActive, initialTooltipPosition} = useVictoryChartBarTooltips();
-
-    const formatTooltipValue = (value: number) => `$${Math.round(value).toLocaleString()}`;
+    const formatTooltipValue = useVictoryChartTooltipFormatter();
 
     return (
         <>

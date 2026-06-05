@@ -8,8 +8,9 @@ import {processDataIntoSlices} from '@components/Charts/utils';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import useVictoryChartPieTooltips from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartPieTooltips';
+import useVictoryChartTooltipFormatter from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartTooltipFormatter';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import getVictoryPieLayout from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryPieLayout';
 import VictoryChartCategories from './VictoryChartCategories';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
@@ -17,30 +18,29 @@ import VictoryChartLegend from './VictoryChartLegend';
 // Victory Chart's 0° angle is equivalent to 270° in Victory Native
 const START_ANGLE = 270;
 
-function formatTooltipValue(value: number): string {
-    return `$${Math.round(value).toLocaleString()}`;
-}
-
 type VictoryChartPolarTooltipsProps = {
     chartWidth: number;
     chartHeight: number;
     innerRadius: number;
-    outerRadius: number;
+    hitTestRadius: number;
+    centerX: number;
+    centerY: number;
 };
 
 /**
  * Captures hover/tap over the pie chart without wrapping PolarChart itself.
  */
-function VictoryChartPolarTooltips({chartWidth, chartHeight, innerRadius, outerRadius}: VictoryChartPolarTooltipsProps) {
+function VictoryChartPolarTooltips({chartWidth, chartHeight, innerRadius, hitTestRadius, centerX, centerY}: VictoryChartPolarTooltipsProps) {
     const {tooltipData} = useVictoryChartContext();
+    const formatTooltipValue = useVictoryChartTooltipFormatter();
 
     const pieGeometry = useMemo(
         () => ({
-            centerX: chartWidth / 2,
-            centerY: chartHeight / 2,
-            radius: outerRadius,
+            centerX,
+            centerY,
+            radius: hitTestRadius,
         }),
-        [chartHeight, chartWidth, outerRadius],
+        [centerX, centerY, hitTestRadius],
     );
 
     const processedSlices = useMemo(() => processDataIntoSlices(tooltipData, pieGeometry, START_ANGLE), [pieGeometry, tooltipData]);
@@ -79,8 +79,7 @@ function VictoryChartPolar() {
     const pieNode = tnode.children.find((child) => child.tagName === 'victorypie');
     const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : 0;
     const chartHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : 0;
-    const outerRadius = pieNode?.attributes.radius !== undefined ? Number(parseAttribute(pieNode.attributes.radius)) : Math.min(chartWidth, chartHeight) / 2;
-    const innerRadius = pieNode?.attributes.innerradius !== undefined ? Number(parseAttribute(pieNode.attributes.innerradius)) : 0;
+    const {innerRadius, hitTestRadius, centerX, centerY} = getVictoryPieLayout(pieNode, chartWidth, chartHeight);
     const hasPieTooltips = tooltipData.length > 0;
 
     return (
@@ -118,7 +117,9 @@ function VictoryChartPolar() {
                     chartWidth={chartWidth}
                     chartHeight={chartHeight}
                     innerRadius={innerRadius}
-                    outerRadius={outerRadius}
+                    hitTestRadius={hitTestRadius}
+                    centerX={centerX}
+                    centerY={centerY}
                 />
             )}
         </>
