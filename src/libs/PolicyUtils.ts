@@ -1098,11 +1098,13 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
  * @returns true if upgrade navigation was performed; false otherwise
  */
-function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, backTo?: string): boolean {
     if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
         return false;
     }
-    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
+    // Default the upgrade page's back destination to More Features (the source of most upgrade-gated toggles).
+    // Entry points outside More Features (e.g. the Roles flow) pass their own backTo so the user returns there.
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
     return true;
 }
 
@@ -2051,19 +2053,7 @@ function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
 }
 
 function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
-    const taxes = policy?.taxRates?.taxes;
-    if (taxes?.[taxID]) {
-        return taxID;
-    }
-
-    return Object.keys(taxes ?? {}).find((taxIDKey) => taxes?.[taxIDKey].previousTaxCode === taxID);
-}
-
-/**
- * Resolves a renamed tax code to the current policy tax key.
- */
-function resolveCurrentTaxCode(policy: OnyxEntry<Policy>, taxCode: string): string {
-    return getCurrentTaxID(policy, taxCode) ?? taxCode;
+    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
 }
 
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
@@ -2569,7 +2559,6 @@ export {
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,
     sortPoliciesByName,
-    resolveCurrentTaxCode,
     isPolicyApprover,
     tryNavigateToSubmitWorkspaceUpgrade,
     canAccessSubmitWorkspaceFeatures,

@@ -448,6 +448,10 @@ const ONYXKEYS = {
     // This can be either "light", "dark", "system", "light-contrast", "dark-contrast" or "system-contrast"
     PREFERRED_THEME: 'nvp_preferredTheme',
 
+    // Client-only flag set when a logged-out user enables high contrast on the sign-in page.
+    // It is reconciled with the server's base theme right after sign-in, then cleared.
+    SIGN_IN_HIGH_CONTRAST_INTENT: 'signInHighContrastIntent',
+
     // Information about the onyx updates IDs that were received from the server
     ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
 
@@ -674,6 +678,9 @@ const ONYXKEYS = {
 
     /** Stores the information about the state of side panel */
     NVP_SIDE_PANEL: 'nvp_sidePanel',
+
+    /** Stores the information about the state of the Search sidebar */
+    NVP_SEARCH_SIDEBAR: 'nvp_searchSidebar',
 
     /** Stores the user's app review prompt state and response */
     NVP_APP_REVIEW: 'nvp_appReview',
@@ -1553,6 +1560,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
+    [ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT]: boolean;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.AnyOnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
@@ -1637,6 +1645,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.NVP_SEARCH_SIDEBAR]: OnyxTypes.SearchSidebar;
     [ONYXKEYS.NVP_APP_REVIEW]: OnyxTypes.AppReview;
     [ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT]: OnyxTypes.OnboardingRHPVariant;
     [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: boolean;
