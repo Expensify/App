@@ -8,15 +8,16 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type CreateHarvestReportActionProps = {
-    /** The original ID of the report */
-    reportNameValuePairsOriginalID: string | undefined;
+    /** ID of the chat report the harvest "Created" action belongs to */
+    reportID: string | undefined;
 };
 
-function CreateHarvestReportAction({reportNameValuePairsOriginalID}: CreateHarvestReportActionProps) {
+function CreateHarvestReportAction({reportID}: CreateHarvestReportActionProps) {
     const {translate} = useLocalize();
-    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportNameValuePairsOriginalID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportNameValuePairs?.originalID}`);
     const harvestReportName = getReportName(harvestReport);
-    const htmlContent = `<comment><muted-text>${getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate)}</muted-text></comment>`;
+    const htmlContent = `<comment><muted-text>${getHarvestCreatedExpenseReportMessage(reportNameValuePairs?.originalID, harvestReportName, translate)}</muted-text></comment>`;
 
     return (
         <ReportActionItemBasicMessage>

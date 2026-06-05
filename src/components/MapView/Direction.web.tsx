@@ -14,6 +14,8 @@ function Direction({coordinates}: DirectionProps) {
     const styles = useThemeStyles();
     const layerLayoutStyle: Record<string, string> = styles.mapDirectionLayer.layout;
     const layerPointStyle: Record<string, string | number> = styles.mapDirectionLayer.paint;
+    const layerBorderLayoutStyle: Record<string, string> = styles.mapDirectionLayerBorder.layout;
+    const layerBorderPointStyle: Record<string, string | number> = styles.mapDirectionLayerBorder.paint;
 
     if (!utils.isSingleSegmentRoute(coordinates)) {
         const validSegments = coordinates.filter((segment) => segment.length >= 2);
@@ -23,31 +25,39 @@ function Direction({coordinates}: DirectionProps) {
 
         return (
             <View>
-                {validSegments.map((segmentCoordinates, index) => (
-                    <Source
-                        // Using index as key is safe because we are not reordering the routes
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
-                        id={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
-                        type="geojson"
-                        data={{
-                            type: 'Feature',
-                            properties: {},
-                            geometry: {
-                                type: 'LineString',
-                                coordinates: segmentCoordinates,
-                            },
-                        }}
-                    >
-                        <Layer
-                            id={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
-                            type="line"
-                            source={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
-                            paint={layerPointStyle}
-                            layout={layerLayoutStyle}
-                        />
-                    </Source>
-                ))}
+                {validSegments.map((segmentCoordinates, index) => {
+                    const sourceId = `${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`;
+                    return (
+                        <Source
+                            key={sourceId}
+                            id={sourceId}
+                            type="geojson"
+                            data={{
+                                type: 'Feature',
+                                properties: {},
+                                geometry: {
+                                    type: 'LineString',
+                                    coordinates: segmentCoordinates,
+                                },
+                            }}
+                        >
+                            <Layer
+                                id={`${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}-segment-${index}`}
+                                type="line"
+                                source={sourceId}
+                                paint={layerBorderPointStyle}
+                                layout={layerBorderLayoutStyle}
+                            />
+                            <Layer
+                                id={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
+                                type="line"
+                                source={sourceId}
+                                paint={layerPointStyle}
+                                layout={layerLayoutStyle}
+                            />
+                        </Source>
+                    );
+                })}
             </View>
         );
     }
@@ -71,6 +81,13 @@ function Direction({coordinates}: DirectionProps) {
                         },
                     }}
                 >
+                    <Layer
+                        id={CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}
+                        type="line"
+                        source={CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}
+                        paint={layerBorderPointStyle}
+                        layout={layerBorderLayoutStyle}
+                    />
                     <Layer
                         id={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
                         type="line"

@@ -38,7 +38,11 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
     const isPreviousLastUsedPaymentMethodVBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
     const onyxData: OnyxData<
-        typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
+        | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+        | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
+        | typeof ONYXKEYS.COLLECTION.POLICY
+        | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
+        | typeof ONYXKEYS.BANK_ACCOUNT_LIST
     > = {
         optimisticData: [
             {
@@ -50,6 +54,11 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     achData: null,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         ],
         successData: [
@@ -63,12 +72,22 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: null},
+            },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {isLoading: false, pendingAction: null},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {pendingAction: null}},
             },
         ],
     };

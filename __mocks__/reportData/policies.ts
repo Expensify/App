@@ -103,7 +103,7 @@ const policy420A: Policy = {
         companyName: 'Company',
         markUp: 0,
     },
-    workspaceAccountID: 93521943,
+    policyAccountID: 93521943,
     address: {
         addressStreet: 'Street',
         city: 'City',

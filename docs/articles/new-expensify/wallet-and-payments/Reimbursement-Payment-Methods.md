@@ -82,7 +82,7 @@ To pay reports in bulk:
 
 Once confirmed, Expensify processes the transfers and the report statuses update to **Paid**.
 
-**Note:** Each selected report is processed as a separate transaction. 
+**Note:** Each selected report is processed as a separate transaction. If the selected reports have different currencies, only **Pay elsewhere** is available. To use a connected business bank account for direct reimbursement, select reports that share the same currency.
 
 ---
 

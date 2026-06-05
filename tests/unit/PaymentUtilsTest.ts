@@ -67,7 +67,7 @@ describe('PaymentUtils', () => {
                 description: 'non-search route defaults to regular report verification',
                 reportID: undefined,
                 activeRoute: 'r',
-                expectedRoute: 'settings/profile/contact-methods/verify?backTo=r',
+                expectedRoute: 'r/verify-account',
             },
         ])('should navigate to $expectedRoute when on $description', ({reportID, activeRoute, expectedRoute}) => {
             mockGetActiveRoute.mockReturnValue(activeRoute);

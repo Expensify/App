@@ -41,6 +41,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
+    /** Callback to handle restricted participant selection */
+    onRestrictedParticipantSelected?: () => void;
+
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
@@ -62,6 +65,7 @@ function MoneyRequestParticipantsSelector({
     isCorporateCardTransaction = false,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
+    onRestrictedParticipantSelected,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const platform = getPlatform();
@@ -95,6 +99,7 @@ function MoneyRequestParticipantsSelector({
             onFinish={onFinish}
             initiallySelectedReportID={initiallySelectedReportID}
             shouldMoveSelectedToTop={shouldMoveSelectedToTop}
+            onRestrictedParticipantSelected={onRestrictedParticipantSelected}
         />
     );
 }

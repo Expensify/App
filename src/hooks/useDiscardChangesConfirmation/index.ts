@@ -19,6 +19,32 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
+    const shouldIgnoreNextBeforeRemove = useRef(false);
+    const clearShouldIgnoreNextBeforeRemoveTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const isDiscardModalOpen = useRef(false);
+
+    const clearShouldIgnoreNextBeforeRemove = useCallback(() => {
+        if (clearShouldIgnoreNextBeforeRemoveTimeout.current) {
+            clearTimeout(clearShouldIgnoreNextBeforeRemoveTimeout.current);
+            clearShouldIgnoreNextBeforeRemoveTimeout.current = undefined;
+        }
+        shouldIgnoreNextBeforeRemove.current = false;
+    }, []);
+
+    const markNextBeforeRemoveAsModalCleanup = useCallback(() => {
+        if ((window.history.state as {shouldGoBack?: boolean} | null)?.shouldGoBack !== true) {
+            return;
+        }
+
+        shouldIgnoreNextBeforeRemove.current = true;
+        if (clearShouldIgnoreNextBeforeRemoveTimeout.current) {
+            clearTimeout(clearShouldIgnoreNextBeforeRemoveTimeout.current);
+        }
+        clearShouldIgnoreNextBeforeRemoveTimeout.current = setTimeout(() => {
+            shouldIgnoreNextBeforeRemove.current = false;
+            clearShouldIgnoreNextBeforeRemoveTimeout.current = undefined;
+        }, 250);
+    }, []);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {
@@ -32,6 +58,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     }, []);
 
     const showDiscardModal = useCallback(() => {
+        isDiscardModalOpen.current = true;
         onVisibilityChange?.(true);
         showConfirmModal({
             title: translate('discardChangesConfirmation.title'),
@@ -41,6 +68,8 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
             cancelText: translate('common.cancel'),
             shouldIgnoreBackHandlerDuringTransition: true,
         }).then((result) => {
+            markNextBeforeRemoveAsModalCleanup();
+            isDiscardModalOpen.current = false;
             onVisibilityChange?.(false);
             if (result.action === ModalActions.CONFIRM) {
                 Promise.resolve()
@@ -59,12 +88,26 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
                 onCancel?.();
             }
         });
-    }, [showConfirmModal, translate, navigateBack, onCancel, onConfirm, onVisibilityChange]);
+    }, [showConfirmModal, translate, navigateBack, onCancel, onConfirm, onVisibilityChange, markNextBeforeRemoveAsModalCleanup]);
 
     useBeforeRemove((e) => {
-        if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
+        const hasUnsavedChanges = getHasUnsavedChanges();
+        if (!hasUnsavedChanges) {
+            clearShouldIgnoreNextBeforeRemove();
             return;
         }
+
+        if (isDiscardModalOpen.current || shouldIgnoreNextBeforeRemove.current) {
+            clearShouldIgnoreNextBeforeRemove();
+            e.preventDefault();
+            return;
+        }
+
+        if (shouldNavigateBack.current) {
+            clearShouldIgnoreNextBeforeRemove();
+            return;
+        }
+
         e.preventDefault();
         blockedNavigationAction.current = e.data.action;
         navigateAfterInteraction(showDiscardModal);
@@ -91,6 +134,8 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
 
         return unsubscribe;
     }, [navigation, getHasUnsavedChanges, showDiscardModal]);
+
+    useEffect(() => clearShouldIgnoreNextBeforeRemove, [clearShouldIgnoreNextBeforeRemove]);
 }
 
 export default useDiscardChangesConfirmation;
