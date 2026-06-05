@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, Getting started, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, recent transactions, company cards, personal cards, Expensify Card limit, remaining limit, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -32,11 +32,11 @@ Home is made up of a small set of sections that summarize what’s happening in 
 Home includes:
 - **Time-sensitive alerts** (when applicable)
 - **For you**
+- **Your spend** (when applicable)
 - **Spend over time** (when applicable)
 - **Getting started** (when applicable)
 - **Discover**
 - **Announcements**
-- **Assigned cards** (when applicable)
 
 Each section provides context so you know where to go next.
 
@@ -68,6 +68,27 @@ Each item links you to where you can complete the action, such as a specific rep
 If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
 
 ![]({{site.url}}/assets/images/home2.png){:width="100%"}
+
+---
+
+## How the Your spend section works on Home
+
+The **Your spend** section gives you a quick summary of your recent card spending and the money moving through your account.
+
+It can include:
+- **Awaiting approval** — the total of your reimbursable expenses that are waiting to be approved.
+- **Repaid in the last 30 days** — the total reimbursed to you in the last 30 days.
+- A **Recent transactions** row for each of your cards, showing the card’s recent spending total and the last four digits of the card number (for example, **Recent transactions • 1234**).
+
+Select any row to open the matching expenses in **Search**.
+
+The **Recent transactions** rows include both your **Expensify Card** and any connected third-party cards, such as company cards assigned from a card feed and personal cards you’ve connected yourself. Expensify Card rows appear first, followed by your other cards.
+
+Expensify Card rows also show how much of your spending limit remains. Company and personal card rows don’t show a remaining limit, because that information isn’t provided by the card.
+
+A card appears here only if it has transactions in the last 30 days. Cards with a broken or disconnected feed are hidden until the connection is fixed.
+
+If you have no recent card spending and nothing awaiting approval or repaid, the **Your spend** section won’t appear.
 
 ---
 
@@ -114,16 +135,6 @@ This section helps you stay informed about what’s new or recently changed in N
 
 ---
 
-## How the Assigned cards section works on Home
-
-The **Assigned cards** section shows your active Expensify Cards along with the available spending limit for each card.
-
-Use this section to quickly check how much you can spend before making a purchase. The available limit updates automatically as transactions are made.
-
-Cards with a custom spending limit of $0 are not shown in this section.
-
----
-
 # FAQ
 
 ## What is Home for?
@@ -158,9 +169,9 @@ The **Discover** section only appears until you’ve watched the demo. Once you�
 
 The **Getting started** section only appears if you selected the **manage my team** or **track and budget my expenses** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
 
-## Why don’t I see the Assigned cards section?
+## Why don’t I see the Your spend section?
 
-The **Assigned cards** section only appears if you have an active **Expensify Card** assigned to you.
+The **Your spend** section only appears when you have recent card spending or money moving through your account.
 
-If you don’t have an Expensify Card assigned, your assigned card isn’t active, or your card has a custom spending limit of $0, the **Assigned cards** section won’t be visible.
+If you have no card transactions in the last 30 days, and nothing awaiting approval or repaid in the last 30 days, the **Your spend** section won’t be visible. Cards with a broken or disconnected feed are also hidden until the connection is fixed.
 
