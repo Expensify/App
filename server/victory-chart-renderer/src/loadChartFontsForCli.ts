@@ -6,8 +6,8 @@ import buildSkiaFontManager from '@components/Charts/utils/buildSkiaFontManager'
 import {CHART_FONT_MGR_SUPPLEMENTAL_PATHS, CHART_SKIA_TYPEFACE_PATHS} from './chartFontPathsForCli';
 
 async function loadTypefaceFromFile(path: string): Promise<SkTypeface | null> {
-    const bytes = await Bun.file(path).arrayBuffer();
-    return Skia.Typeface.MakeFreeTypeFaceFromData(Skia.Data.fromBytes(new Uint8Array(bytes)));
+    const bytes = await Bun.file(path).bytes();
+    return Skia.Typeface.MakeFreeTypeFaceFromData(Skia.Data.fromBytes(bytes));
 }
 
 async function loadChartFontsForCli(): Promise<ChartFontsValue> {
