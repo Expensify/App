@@ -45,9 +45,6 @@ type MultiSelectProps<T> = SearchFilterCommonProps & {
 
     /** Whether to show the loading placeholder */
     shouldShowLoadingPlaceholder?: boolean;
-
-    /** Callback to filter out items based on search term */
-    onSearch?: (searchTerm: string) => void;
 };
 
 function MultiSelect<T extends string>({
@@ -62,7 +59,6 @@ function MultiSelect<T extends string>({
     autoFocus,
     footer,
     onChange,
-    onSearch,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -103,7 +99,7 @@ function MultiSelect<T extends string>({
     const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
-        onChangeText: onSearch ?? setSearchTerm,
+        onChangeText: setSearchTerm,
         headerMessage,
         style: {
             containerStyle: selectionListTextInputStyle,
