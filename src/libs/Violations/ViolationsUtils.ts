@@ -30,21 +30,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Beta,
-    Card,
-    CardList,
-    Policy,
-    PolicyCategories,
-    PolicyTagLists,
-    PolicyTags,
-    Report,
-    ReportAction,
-    TaxRates,
-    Transaction,
-    TransactionViolation,
-    ViolationName,
-} from '@src/types/onyx';
+import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -93,13 +79,6 @@ function isMaxExpenseAmountRuleEnabled(maxAmount: number | undefined) {
 
 function hasEnabledTags(tags?: PolicyTags): boolean {
     return !!tags && Object.values(tags).some((tag) => !!tag.enabled);
-}
-
-function resolveCurrentTaxCodeFromTaxRates(policyTaxRates: TaxRates, taxCode: string): string | undefined {
-    if (policyTaxRates[taxCode]) {
-        return taxCode;
-    }
-    return Object.keys(policyTaxRates).find((taxIDKey) => policyTaxRates[taxIDKey].previousTaxCode === taxCode);
 }
 
 /**
@@ -352,7 +331,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const currentTaxCode = resolveCurrentTaxCodeFromTaxRates(policyTaxRates, taxCode) ?? taxCode;
+            const currentTaxCode = getCurrentTaxID({taxRates: {taxes: policyTaxRates}} as Policy, taxCode) ?? taxCode;
             const matchingTaxRate = policyTaxRates[currentTaxCode];
             if (!matchingTaxRate) {
                 return false;
