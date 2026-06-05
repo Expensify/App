@@ -58,7 +58,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         return null;
     }
 
-    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
+    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, !!isParticipantOptimistic);
 
     return (
         <OfflineWithFeedback

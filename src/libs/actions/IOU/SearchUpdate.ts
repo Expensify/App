@@ -127,8 +127,7 @@ function getSearchOnyxUpdate({
     }
 
     if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, fromAccountID, transaction)) {
-        // TODO: Pass personalDetail in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
-        const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID, undefined);
+        const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
         const successData = [];
         if (isOptimisticToAccountData) {
             // The optimistic personal detail is cleared from PERSONAL_DETAILS_LIST on API success, but the snapshot's report still references

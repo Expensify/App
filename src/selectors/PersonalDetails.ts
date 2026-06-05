@@ -31,9 +31,12 @@ const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetail
     return map;
 };
 
-const isOptimisticPersonalDetailSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-    const personalDetail = personalDetailsList?.[accountID];
+function isPersonalDetailOptimistic(personalDetail: PersonalDetails | null | undefined): boolean {
     return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
+}
+
+const isOptimisticPersonalDetailSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+    return isPersonalDetailOptimistic(personalDetailsList?.[accountID]);
 };
 
 export {
@@ -45,4 +48,5 @@ export {
     conciergePersonalDetailSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
+    isPersonalDetailOptimistic,
 };
