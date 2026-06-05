@@ -10,16 +10,16 @@ From the App repository root:
 npm run server:vcr:dev -- --chart-xml '<victorychart width="400" height="300">...</victorychart>' --out /tmp/out.png
 ```
 
-Or pass a path to a `.xml` file:
+To render from a file, pass its contents with `cat`:
 
 ```bash
-npm run server:vcr:dev -- --chart-xml server/victory-chart-renderer/tests/fixtures/monthly-spend.xml --out /tmp/out.png
+npm run server:vcr:dev -- --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/monthly-spend.xml)" --out /tmp/out.png
 ```
 
 From this directory:
 
 ```bash
-npm run dev -- --chart-xml path/to/chart.xml --out /tmp/out.png
+npm run dev -- --chart-xml "$(cat path/to/chart.xml)" --out /tmp/out.png
 ```
 
 ## Tests

@@ -8,7 +8,7 @@ const cli = new CLI({
     namedArgs: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'chart-xml': {
-            description: 'Chart XML string or path to a .xml file',
+            description: 'Chart XML string (use $(cat path/to/chart.xml) to pass a file)',
         },
         out: {
             description: 'Path to write the rendered PNG to',
@@ -22,9 +22,8 @@ const cli = new CLI({
     },
 });
 
-const chartXMLInput = cli.namedArgs['chart-xml'];
+const xmlString = cli.namedArgs['chart-xml'];
 const outPath = cli.namedArgs.out;
-const xmlString = chartXMLInput.endsWith('.xml') ? await Bun.file(chartXMLInput).text() : chartXMLInput;
 const tnode = parseChartXml(xmlString);
 const canvasSize = resolveCanvasSize(tnode);
 const fonts = await loadChartFontsForCli();
