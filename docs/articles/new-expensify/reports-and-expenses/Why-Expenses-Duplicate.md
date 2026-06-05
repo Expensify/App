@@ -110,4 +110,6 @@ Yes. Imported card expenses can still merge with eligible SmartScanned receipts 
 
 ## Will Expensify warn me about duplicate expenses?
 
-Yes. When two expenses appear to represent the same purchase, a red **Potential duplicate** warning will appear on both expenses. Review these warnings before submitting or approving a report. The warning does not appear on settled or paid reports.
+Yes. When two expenses appear to represent the same purchase, a **Potential duplicate** warning appears on both expenses. Review potential duplicate warnings before submitting or approving a report. 
+
+The **Potential duplicate** warning is shown on **Draft** and **Outstanding** reports. It does not appear on **Approved**, **Paid**, or **Done** reports.
