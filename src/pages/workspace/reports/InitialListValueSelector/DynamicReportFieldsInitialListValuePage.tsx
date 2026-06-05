@@ -56,7 +56,7 @@ function DynamicReportFieldsInitialListValuePage({
                 style={styles.pb0}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={DynamicReportFieldsInitialListValuePage.displayName}
+                testID="DynamicReportFieldsInitialListValuePage"
             >
                 <HeaderWithBackButton
                     title={translate('common.initialValue')}
@@ -76,5 +76,4 @@ function DynamicReportFieldsInitialListValuePage({
     );
 }
 
-DynamicReportFieldsInitialListValuePage.displayName = 'DynamicReportFieldsInitialListValuePage';
 export default withPolicyAndFullscreenLoading(DynamicReportFieldsInitialListValuePage);
