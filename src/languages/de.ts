@@ -5686,6 +5686,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             travel: {
                 title: 'Reisen',
                 subtitle: 'Buchen, verwalten und abstimmen Sie all Ihre Geschäftsreisen.',
+                disableTravelTitle: 'Deaktivieren Sie zuerst die Reiseabrechnung',
+                disableTravelPrompt: 'Reiseabrechnung ist für diesen Workspace aktiviert. Schalten Sie sie aus, bevor Sie Reisen deaktivieren können.',
+                disableTravelButton: 'Zu den Reiseeinstellungen gehen',
                 getStarted: {
                     title: 'Los geht’s mit Expensify Travel',
                     subtitle: 'Wir brauchen nur noch ein paar weitere Informationen zu deinem Unternehmen, dann bist du startklar.',
@@ -8016,6 +8019,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             newChat: 'Neuer Chat-Bildschirm',
             copy: 'Kommentar kopieren',
             openDebug: 'Testeinstellungen öffnen',
+            expenseReportSearch: 'Spesenberichte suchen',
+            goToWorkspace: 'Zum Workspace des aktuellen Berichts gehen',
         },
     },
     guides: {

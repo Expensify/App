@@ -21,12 +21,6 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
-
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
 };
 
 type TabSelectorBaseItem = WithSentryLabel & {
@@ -85,12 +79,6 @@ type TabSelectorBaseProps = {
 
     /** Additional styles for the tabs' scroll content container. */
     contentContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
@@ -129,12 +117,6 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
-
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
 
     /** Text to display on the badge on the tab. */
     badgeText?: string;

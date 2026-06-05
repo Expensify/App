@@ -27,8 +27,6 @@ function TabSelectorBase({
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
     contentContainerStyles,
-    shouldShowProductTrainingTooltip = false,
-    renderProductTrainingTooltip,
 }: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -120,8 +118,6 @@ function TabSelectorBase({
                         testID={tab.testID}
                         sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                        renderProductTrainingTooltip={renderProductTrainingTooltip}
                         equalWidth={equalWidth}
                         badgeText={tab.badgeText}
                         isBadgeCondensed={tab.isBadgeCondensed}

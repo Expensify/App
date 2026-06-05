@@ -336,7 +336,6 @@
 "../../src/libs/actions/IOU/SendMoney.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	2
-"../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/Split.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1

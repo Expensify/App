@@ -1204,6 +1204,28 @@ const CONST = {
                 DEFAULT: {input: keyInputSpace},
             },
         },
+        EXPENSE_REPORT_SEARCH: {
+            descriptionKey: 'expenseReportSearch',
+            shortcutKey: 'U',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'u', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'u', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'u', modifierFlags: keyModifierCommand},
+            },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+        },
+        GO_TO_WORKSPACE: {
+            descriptionKey: 'goToWorkspace',
+            shortcutKey: 'B',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'b', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'b', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'b', modifierFlags: keyModifierCommand},
+            },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
