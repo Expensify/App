@@ -47,6 +47,7 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DeferredAgentWorkflowSave from './DeferredAgentWorkflowSave';
 import type {
+    AccountIDToNameMapDerivedValue,
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OpenAndSubmittedReportsByPolicyIDDerivedValue,
@@ -393,6 +394,7 @@ export type {
     OutstandingReportsByPolicyIDDerivedValue,
     OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    AccountIDToNameMapDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,

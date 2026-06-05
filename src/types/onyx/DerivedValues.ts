@@ -283,6 +283,11 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * Mapping from accountID to user name (login or displayName).
+ */
+type AccountIDToNameMapDerivedValue = Record<string, string>;
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -301,4 +306,5 @@ export type {
     CardFeedErrorState,
     CardFeedErrors,
     CardErrors,
+    AccountIDToNameMapDerivedValue,
 };
