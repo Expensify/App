@@ -448,12 +448,28 @@ function getCustomUnitRateID({
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
 
-        const mileageRates = getMileageRates(policy);
-        const lastSelectedMileageRate = lastSelectedDistanceRateID ? mileageRates[lastSelectedDistanceRateID] : undefined;
-
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID && (!expenseDate || !lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate))) {
-            customUnitRateID = lastSelectedDistanceRateID;
+        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+            if (expenseDate) {
+                const mileageRates = getMileageRates(policy);
+                const lastSelectedMileageRate = mileageRates[lastSelectedDistanceRateID];
+                if (!lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate)) {
+                    customUnitRateID = lastSelectedDistanceRateID;
+                } else {
+                    const bestRate = getBestEligibleRate(mileageRates, expenseDate);
+                    if (bestRate?.customUnitRateID) {
+                        customUnitRateID = bestRate.customUnitRateID;
+                    } else {
+                        const defaultMileageRate = getDefaultMileageRate(policy);
+                        if (defaultMileageRate?.customUnitRateID) {
+                            customUnitRateID = defaultMileageRate.customUnitRateID;
+                        }
+                    }
+                }
+            } else {
+                customUnitRateID = lastSelectedDistanceRateID;
+            }
         } else if (expenseDate) {
+            const mileageRates = getMileageRates(policy);
             const bestRate = getBestEligibleRate(mileageRates, expenseDate);
             if (bestRate?.customUnitRateID) {
                 customUnitRateID = bestRate.customUnitRateID;
