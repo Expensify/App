@@ -3343,6 +3343,7 @@ ${amount} para ${merchant} - ${date}`,
         enterPhoneNumber: 'Qual é o seu número de telefone?',
         personalDetails: 'Dados pessoais',
         privateDataMessage: 'Esses dados são usados para viagens e pagamentos. Eles nunca são exibidos no seu perfil público.',
+        basicDetails: 'Detalhes básicos',
         legalName: 'Nome legal',
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
@@ -3419,6 +3420,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Participar',
+        marketingSMSConsent: 'Concordo em receber mensagens de texto de marketing da Expensify',
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -3534,7 +3536,7 @@ ${amount} para ${merchant} - ${date}`,
             noBankAccountSelected: 'Escolha uma conta',
             taxID: 'Insira um número de identificação fiscal válido',
             website: 'Insira um site válido',
-            zipCode: `Insira um CEP válido usando o formato: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Insira um CEP válido usando o formato: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Insira um número de telefone válido',
             email: 'Insira um endereço de e-mail válido',
             companyName: 'Insira um nome comercial válido',
@@ -4394,6 +4396,8 @@ ${amount} para ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gerenciar cartões do workspace.',
             peopleAdminAlternateText: 'Gerencie membros e fluxos de aprovação.',
             paymentsAdminAlternateText: 'Gerencie pagamentos de fluxo de trabalho.',
+            readOnlyActionTitle: 'Calma aí...',
+            readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -4845,6 +4849,34 @@ ${amount} para ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'O Expensify vai sincronizar automaticamente com a Certinia todos os dias.',
+            syncReimbursedReportsDescription:
+                'Com essa opção ativada, sempre que uma Fatura a Pagar for paga no FFA, o relatório correspondente no Expensify será marcado automaticamente como reembolsado.',
+            exportDescription: 'Configure como os dados do Expensify são exportados para o Certinia.',
+            payableInvoices: 'Faturas a Pagar',
+            exportStatus: {
+                label: 'Status da fatura a pagar',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Concluir',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Em andamento',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
+                },
+            },
+            exportDate: {
+                label: 'Data de vencimento da fatura',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Data da última despesa',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Data de envio do relatório',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Data de exportação',
+                },
+            },
+            exportReimbursable: {
+                label: 'Exportar despesas reembolsáveis como',
+                helperText: 'Despesas marcadas como reembolsáveis serão exportadas como faturas a pagar emitidas em nome do funcionário.',
+            },
+            exportNonReimbursable: {label: 'Exportar despesas não reembolsáveis como'},
+            noVendorsFound: 'Nenhum fornecedor encontrado',
+            noVendorsFoundDescription: 'Sincronize a conexão novamente depois que os fornecedores forem adicionados no Certinia.',
             prerequisites: {
                 title: 'Antes de conectar',
                 installBundle: 'Para conexões FFA',
@@ -4861,6 +4893,19 @@ ${amount} para ${merchant} - ${date}`,
                 oauth: 'Entrar pelo Salesforce',
                 oauthDescription: 'Para concluir a configuração, você precisa entrar pelo Salesforce e pela Certinia.\n\nUse o botão abaixo para continuar.',
                 connectButton: 'Conectar ao Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Plano de contas',
+                chartOfAccountsDescription: 'O plano de contas é importado para o Expensify como categorias.',
+                dimensionMapping: ({n}: {n: number}) => `Dimensão ${n}`,
+                dimensions: {dimension1: 'Dimensão 1', dimension2: 'Dimensão 2', dimension3: 'Dimensão 3', dimension4: 'Dimensão 4'},
+                doNotMap: 'Não mapear',
+                doNotMapSubtitle: 'Usar recurso de funcionário por padrão',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Não mapear',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importado como tags',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importado como campos de relatório',
+                },
             },
         },
         netsuite: {
@@ -5602,6 +5647,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             travel: {
                 title: 'Viagens',
                 subtitle: 'Reserve, gerencie e reconcilie todas as viagens de negócios da sua empresa.',
+                disableTravelTitle: 'Desative primeiro o faturamento de viagens',
+                disableTravelPrompt: 'O faturamento de viagens está ativado para este workspace. Desative-o antes de desativar o Travel.',
+                disableTravelButton: 'Ir para as configurações de Viagem',
                 getStarted: {
                     title: 'Comece a usar o Expensify Travel',
                     subtitle: 'Só precisamos de mais algumas informações sobre sua empresa e você estará pronto para decolar.',
@@ -6433,6 +6481,26 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             return 'Importando dimensões do Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importando dados do Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Sincronizando dados do Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Sincronizando conexao do Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importando categorias';
+                        case 'financialForceSyncTags':
+                            return 'Importando tags';
+                        case 'financialForceSyncVendors':
+                            return 'Importando fornecedores';
+                        case 'financialForceSyncContacts':
+                            return 'Importando contatos';
+                        case 'financialForceSyncCompanies':
+                            return 'Importando empresas';
+                        case 'financialForceSyncUsers':
+                            return 'Importando usuarios';
+                        case 'financialForceSyncDimensions':
+                            return 'Importando dimensoes';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marcando relatorios como reembolsados';
                         default: {
                             return `Tradução ausente para o estágio: ${stage}`;
                         }
@@ -7902,6 +7970,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             newChat: 'Nova tela de chat',
             copy: 'Copiar comentário',
             openDebug: 'Abrir caixa de diálogo de preferências de teste',
+            expenseReportSearch: 'Buscar relatórios de despesas',
+            goToWorkspace: 'Ir para o workspace do relatório atual',
         },
     },
     guides: {
