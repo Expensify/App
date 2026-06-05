@@ -47,7 +47,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             vendors?.map((vendor) => ({
                 value: vendor.id,
                 text: vendor.name,
-                keyForList: vendor.name,
+                keyForList: vendor.id,
                 isSelected: vendor.id === currentVendor,
             })) ?? [],
         [currentVendor, vendors],
