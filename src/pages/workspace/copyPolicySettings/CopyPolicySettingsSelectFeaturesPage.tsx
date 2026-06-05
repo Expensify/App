@@ -20,10 +20,9 @@ import {areAllTargetsAccountingCompatible, areAllTargetsCompatibleForAccountingP
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {createFilteredMemberCountSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
-import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from '@pages/workspace/duplicate/utils';
 import CONST from '@src/CONST';
@@ -52,7 +51,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
@@ -65,6 +63,10 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const [memberCount = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login),
+    });
+    const invoiceCompany = [sourcePolicy?.invoice?.companyName, sourcePolicy?.invoice?.companyWebsite].filter(Boolean).join(', ');
+    const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: createInvoiceConfigurationTextSelector(translate, invoiceCompany),
     });
     const categoriesCount = Object.values(policyCategories ?? {}).filter((c) => c?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const totalTags = policyTags
@@ -83,9 +85,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
     const rules = getWorkspaceRules(sourcePolicy, translate);
-    const invoiceCompany = [sourcePolicy?.invoice?.companyName, sourcePolicy?.invoice?.companyWebsite].filter(Boolean).join(', ');
-
-    const workspaceBankAccountsCount = getEligibleExistingBusinessBankAccounts(bankAccountList, sourcePolicy?.outputCurrency).length;
 
     const sourceFeatureContext = {
         policy: sourcePolicy,
@@ -100,7 +99,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
         codingRulesCount,
-        hasInvoiceConfiguration: (!!sourcePolicy?.areInvoicesEnabled && workspaceBankAccountsCount > 0) || !!invoiceCompany,
+        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && !!invoiceConfigurationText,
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
@@ -165,13 +164,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return distanceRatesCount > 0 ? `${distanceRatesCount} ${translate('iou.rates').toLowerCase()}` : undefined;
             case 'perDiem':
                 return perDiemCount > 0 ? `${perDiemCount} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined;
-            case 'invoices': {
-                const bankAccountsText = workspaceBankAccountsCount > 0 ? `${workspaceBankAccountsCount} ${translate('common.bankAccounts').toLowerCase()}` : '';
-                if (bankAccountsText && invoiceCompany) {
-                    return `${bankAccountsText}, ${invoiceCompany}`;
-                }
-                return bankAccountsText || invoiceCompany || undefined;
-            }
+            case 'invoices':
+                return invoiceConfigurationText || undefined;
             default:
                 return undefined;
         }
