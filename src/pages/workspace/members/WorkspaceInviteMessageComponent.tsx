@@ -162,8 +162,8 @@ function WorkspaceInviteMessageComponent({
                 email: currentUserPersonalDetails.email,
                 avatar: currentUserPersonalDetails?.avatar,
             },
-            shouldShowApproverRow ? validatedApprover : undefined,
             filteredReportActions,
+            shouldShowApproverRow ? validatedApprover : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
