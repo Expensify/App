@@ -2700,26 +2700,35 @@ function isPayer(
     const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
-        if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            if (!policy?.achAccount?.reimburser) {
-                return isAdmin;
-            }
+        const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere;
 
-            // If user is the reimburser, or a policy admin with access to the business bank account via sharees, they can pay.
-            const isReimburser = currentUserEmailParam === policy?.achAccount?.reimburser;
+        // Reimbursement is disabled for this workspace.
+        if (!isAutoReimbursement && !isManualReimbursement) {
+            return false;
+        }
 
-            // Check if the current user has access to the bank account via sharees
-            const bankAccountID = policy?.achAccount?.bankAccountID;
+        // No designated reimburser means any workspace admin can pay.
+        if (!policy?.achAccount?.reimburser) {
+            return isAdmin;
+        }
+
+        const isReimburser = currentUserEmailParam === policy.achAccount.reimburser;
+
+        // If using auto reimbursement, then the reimburser can pay, or an admin with access to the business bank account.
+        if (isAutoReimbursement) {
+            const bankAccountID = policy.achAccount.bankAccountID;
             const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
             const hasAccessToBankAccount = currentUserEmailParam && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParam) : false;
 
             return isReimburser || (isAdmin && hasAccessToBankAccount);
         }
-        if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
-            return isAdmin;
-        }
-        return false;
+
+        // If using manual reimbursement, then only the designated reimburser can pay.
+        return isReimburser;
     }
+
+    // Personal workspaces and IOU reports fall back to admin or report manager.
     return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
 }
 
