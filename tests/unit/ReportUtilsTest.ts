@@ -138,7 +138,6 @@ import {
     isMoneyRequestReportEligibleForMerge,
     isPayer,
     isReportIneligibleForMoveExpenses,
-    isReportInGroupPolicy,
     isReportOutstanding,
     isReportPendingDelete,
     isRootGroupChat,
@@ -18260,41 +18259,6 @@ describe('ReportUtils', () => {
 
             expect(transactionThread).toBeUndefined();
             expect(createdActionForThread).toBeNull();
-        });
-    });
-
-    describe('isReportInGroupPolicy', () => {
-        it('returns true when policy type is corporate', () => {
-            const report = {} as Report;
-            const corporatePolicy = {type: CONST.POLICY.TYPE.CORPORATE} as Policy;
-            expect(isReportInGroupPolicy(report, corporatePolicy)).toBe(true);
-        });
-
-        it('returns true when policy type is team', () => {
-            const report = {} as Report;
-            const teamPolicy = {type: CONST.POLICY.TYPE.TEAM} as Policy;
-            expect(isReportInGroupPolicy(report, teamPolicy)).toBe(true);
-        });
-
-        it('returns false when policy type is personal', () => {
-            const report = {} as Report;
-            const personalPolicy = {type: CONST.POLICY.TYPE.PERSONAL} as Policy;
-            expect(isReportInGroupPolicy(report, personalPolicy)).toBe(false);
-        });
-
-        it('returns false when policy is undefined and report has no policyID', () => {
-            const report = {} as Report;
-            expect(isReportInGroupPolicy(report)).toBe(false);
-        });
-
-        it('falls back to report policyID when policy is not provided', async () => {
-            const policyID = 'testPolicyID';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                id: policyID,
-                type: CONST.POLICY.TYPE.CORPORATE,
-            } as Policy);
-            const report = {policyID} as Report;
-            expect(isReportInGroupPolicy(report)).toBe(true);
         });
     });
 
