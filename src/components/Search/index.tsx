@@ -94,6 +94,7 @@ import {useSyncSelectedReports} from './SearchContextProvider';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
+import SearchSelectionController from './SearchSelectionController';
 import SearchTableHeader from './SearchTableHeader';
 import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
@@ -1659,6 +1660,17 @@ function Search({
 
     return (
         <SearchScopeProvider>
+            <SearchSelectionController
+                filteredData={filteredData}
+                totalSelectableItemsCount={totalSelectableItemsCount}
+                searchResults={searchResults}
+                transactions={transactions}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                type={type}
+                areItemsGrouped={areItemsGrouped}
+                isExpenseReportType={isExpenseReportType}
+                isSearchResultsEmpty={isSearchResultsEmpty}
+            />
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
