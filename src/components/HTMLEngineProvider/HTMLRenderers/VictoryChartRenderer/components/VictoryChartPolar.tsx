@@ -12,7 +12,8 @@ import VictoryChartLegend from './VictoryChartLegend';
  * Renders the PolarChart with data drawn from context.
  */
 function VictoryChartPolar() {
-    const {tnode, data, labelItems, legendItems} = useVictoryChartContext();
+    const {tnode, data, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
+    const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
 
     return (
         <PolarChart
@@ -39,6 +40,7 @@ function VictoryChartPolar() {
                     <VictoryChartLegend
                         key={`legend-${legendItem.x}-${legendItem.y}`}
                         {...legendItem}
+                        chartWidth={chartWidth}
                     />
                 ))}
             </ChartFontsLoaderProvider>
