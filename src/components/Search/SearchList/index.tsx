@@ -10,7 +10,9 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useRowSelectionActions} from '@components/Search/SearchSelectionProvider';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -81,12 +83,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
-
-    /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
-    onAllCheckboxPress: () => void;
-
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -115,9 +111,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     isMobileSelectionModeEnabled: boolean;
 
     newTransactions?: Transaction[];
-
-    /** Selected transactions for determining isSelected state */
-    selectedTransactions: SelectedTransactions;
 
     /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
     nonPersonalAndWorkspaceCards?: CardList;
@@ -194,10 +187,8 @@ function SearchList({
     ListItem,
     SearchTableHeader,
     onSelectRow,
-    onCheckboxPress,
     canSelectMultiple,
     onScroll = () => {},
-    onAllCheckboxPress,
     contentContainerStyle,
     onEndReachedThreshold,
     onEndReached,
@@ -212,7 +203,6 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     nonPersonalAndWorkspaceCards,
-    selectedTransactions,
     hasLoadedAllTransactions,
     isAttendeesEnabledForMovingPolicy,
     isActionColumnWide,
@@ -220,6 +210,8 @@ function SearchList({
 }: SearchListProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const {toggle, toggleAll} = useRowSelectionActions();
+    const {selectedTransactions} = useSearchSelectionContext();
 
     const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
@@ -351,7 +343,7 @@ function SearchList({
             return;
         }
 
-        onCheckboxPress(item, itemTransactions);
+        toggle(item, itemTransactions);
     };
 
     const handleLongPressRow = useCallback(
@@ -376,10 +368,10 @@ function SearchList({
         turnOnMobileSelectionMode();
         setIsModalVisible(false);
 
-        if (onCheckboxPress && longPressedItem) {
-            onCheckboxPress?.(longPressedItem, longPressedItemTransactions);
+        if (longPressedItem) {
+            toggle(longPressedItem, longPressedItemTransactions);
         }
-    }, [longPressedItem, onCheckboxPress, longPressedItemTransactions]);
+    }, [longPressedItem, toggle, longPressedItemTransactions]);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -445,7 +437,7 @@ function SearchList({
                         isFocused={isItemFocused}
                         onSelectRow={onSelectRow}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
-                        onSelectionButtonPress={onCheckboxPress}
+                        onSelectionButtonPress={toggle}
                         canSelectMultiple={canSelectMultiple}
                         item={item}
                         columns={columns}
@@ -481,7 +473,7 @@ function SearchList({
             handleLongPressRow,
             handleLongPressRowInMobileSelectionMode,
             isMobileSelectionModeEnabled,
-            onCheckboxPress,
+            toggle,
             canSelectMultiple,
             columns,
             lastPaymentMethod,
@@ -517,7 +509,7 @@ function SearchList({
                             selectedItemsLength={selectedItemsLength}
                             totalItems={totalItems}
                             shouldShowTextButton={selectAllButtonVisible}
-                            onAllCheckboxPress={onAllCheckboxPress}
+                            onAllCheckboxPress={toggleAll}
                         />
                     )}
 
