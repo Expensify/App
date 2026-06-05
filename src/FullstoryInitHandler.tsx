@@ -13,7 +13,7 @@ import ONYXKEYS from './ONYXKEYS';
  */
 function FullstoryInitHandler() {
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
-
+    // test
     useEffect(() => {
         FS.init(userMetadata);
         FS.getSessionURL()
