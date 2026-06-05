@@ -12,9 +12,7 @@ import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Vi
 function parseVictoryPieNode(tnode: TNode): PartialProcessNodeResult {
     const categories = parseArrayAttribute<RawChartData>(tnode.attributes.data).filter(isNonNullObject<RawChartData>);
     const colorScale = parseArrayAttribute<Color>(tnode.attributes.colorscale);
-    const labels = parseArrayAttribute<string>(tnode.attributes.labels);
     const data: Record<string, PolarChartData> = {};
-    const pieTooltipEntries: PartialProcessNodeResult['pieTooltipEntries'] = [];
 
     for (const [index, category] of categories.entries()) {
         data[category.x] = {
@@ -22,16 +20,9 @@ function parseVictoryPieNode(tnode: TNode): PartialProcessNodeResult {
             [VALUE_KEY]: category.y,
             [COLOR_KEY]: colorScale.at(index) ?? VictoryTheme.colors.default,
         };
-
-        const explicitLabel = labels.at(index);
-        pieTooltipEntries.push({
-            label: explicitLabel ?? String(category.x),
-            total: category.y,
-            isLabelOnly: explicitLabel !== undefined,
-        });
     }
 
-    return {data, pieTooltipEntries};
+    return {data};
 }
 
 export default parseVictoryPieNode;

@@ -1,4 +1,5 @@
 import type {TNode} from 'react-native-render-html';
+import {extractVictoryPieTooltipEntries} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/extractVictoryChartTooltipData';
 import parseVictoryPieNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryPieParser';
 
 function createMockPieNode(data: string, labels?: string): TNode {
@@ -12,12 +13,21 @@ function createMockPieNode(data: string, labels?: string): TNode {
 }
 
 describe('parseVictoryPieNode', () => {
+    it('parses pie chart data without tooltip metadata', () => {
+        const tnode = createMockPieNode("[{x: 'Travel', y: 500}]");
+        const {data} = parseVictoryPieNode(tnode);
+
+        expect(Object.keys(data)).toHaveLength(1);
+    });
+});
+
+describe('extractVictoryPieTooltipEntries', () => {
     it('parses explicit pie labels into tooltip entries', () => {
         const tnode = createMockPieNode("[{x: 'Interest', y: 220}]", "['Interest\\n$220']");
-        const {pieTooltipEntries} = parseVictoryPieNode(tnode);
+        const pieTooltipEntries = extractVictoryPieTooltipEntries(tnode);
 
         expect(pieTooltipEntries).toHaveLength(1);
-        expect(pieTooltipEntries?.at(0)).toMatchObject({
+        expect(pieTooltipEntries.at(0)).toMatchObject({
             label: 'Interest\n$220',
             total: 220,
             isLabelOnly: true,
@@ -26,9 +36,9 @@ describe('parseVictoryPieNode', () => {
 
     it('falls back to the category name when labels are missing', () => {
         const tnode = createMockPieNode("[{x: 'Travel', y: 500}]");
-        const {pieTooltipEntries} = parseVictoryPieNode(tnode);
+        const pieTooltipEntries = extractVictoryPieTooltipEntries(tnode);
 
-        expect(pieTooltipEntries?.at(0)).toMatchObject({
+        expect(pieTooltipEntries.at(0)).toMatchObject({
             label: 'Travel',
             total: 500,
             isLabelOnly: false,

@@ -2,7 +2,6 @@ import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult, RawChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import {parseVictoryBarTooltips} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/buildBarTooltipEntries';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import isNonNullObject from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/isNonNullObject';
 import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseArrayAttribute';
@@ -32,17 +31,6 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
                 [yKey]: point.y,
             } as CartesianChartData;
         }
-    }
-
-    if (tnode.tagName === 'victorybar') {
-        const {entries, seriesConfig} = parseVictoryBarTooltips(tnode, isHorizontal ?? false, categories);
-        return {
-            data,
-            yKeys: [yKey],
-            barTooltipEntries: entries,
-            barYKeys: [yKey],
-            barSeriesConfig: {[yKey]: seriesConfig},
-        };
     }
 
     return {data, yKeys: [yKey]};

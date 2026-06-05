@@ -1,5 +1,5 @@
 import type {TNode} from 'react-native-render-html';
-import parseVictoryBarGroupNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryBarGroupParser';
+import {extractVictoryBarGroupLayout} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/extractVictoryChartTooltipData';
 
 function createMockBarNode(id: string, data: string): TNode {
     return {
@@ -13,7 +13,7 @@ function createMockBarNode(id: string, data: string): TNode {
     } as unknown as TNode;
 }
 
-describe('parseVictoryBarGroupNode', () => {
+describe('extractVictoryBarGroupLayout', () => {
     it('captures grouped bar layout metadata for hit-testing', () => {
         const tnode = {
             tagName: 'victorygroup',
@@ -21,13 +21,12 @@ describe('parseVictoryBarGroupNode', () => {
             children: [createMockBarNode('a', "[{x: 'Carlos Martins', y: 220}]"), createMockBarNode('b', "[{x: 'Carlos Martins', y: 140}]")],
         } as unknown as TNode;
 
-        const {barGroupLayouts} = parseVictoryBarGroupNode(tnode);
+        const layout = extractVictoryBarGroupLayout(tnode);
 
-        expect(barGroupLayouts).toHaveLength(1);
-        expect(barGroupLayouts?.at(0)).toMatchObject({
+        expect(layout).toMatchObject({
             barWidth: 16,
             offset: 18,
         });
-        expect(barGroupLayouts?.at(0)?.yKeys).toHaveLength(2);
+        expect(layout?.yKeys).toHaveLength(2);
     });
 });
