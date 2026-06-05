@@ -360,17 +360,23 @@ function isRateEligibleForDate(rate: MileageRate, expenseDate: string): boolean 
 }
 
 /**
- * Returns whether a rate has both start and end date bounds.
+ * Returns a boundedness score: 2 = fully bounded (both dates), 1 = partially bounded (one date), 0 = unbounded.
  */
-function isRateBounded(rate: MileageRate): boolean {
-    return !!rate.startDate && !!rate.endDate;
+function getBoundednessScore(rate: MileageRate): number {
+    if (rate.startDate && rate.endDate) {
+        return 2;
+    }
+    if (rate.startDate || rate.endDate) {
+        return 1;
+    }
+    return 0;
 }
 
 /**
  * Finds the best eligible rate for a given expense date from a set of mileage rates.
  * Selection order per design doc:
- * 1. Most specific date range (bounded beats unbounded)
- * 2. Narrower date range for two bounded ranges
+ * 1. Most specific date range (fully bounded > partially bounded > unbounded)
+ * 2. Narrower date range for two fully bounded ranges
  * 3. Latest start date
  * 4. Lowest index (creation order)
  */
@@ -382,13 +388,13 @@ function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseD
     }
 
     eligibleRates.sort((a, b) => {
-        const aBounded = isRateBounded(a);
-        const bBounded = isRateBounded(b);
-        if (aBounded !== bBounded) {
-            return aBounded ? -1 : 1;
+        const aScore = getBoundednessScore(a);
+        const bScore = getBoundednessScore(b);
+        if (aScore !== bScore) {
+            return bScore - aScore;
         }
 
-        if (aBounded && bBounded && a.endDate && a.startDate && b.endDate && b.startDate) {
+        if (aScore === 2 && bScore === 2 && a.endDate && a.startDate && b.endDate && b.startDate) {
             const aRange = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
             const bRange = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
             if (aRange !== bRange) {
