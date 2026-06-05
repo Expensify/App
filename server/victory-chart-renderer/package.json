@@ -14,9 +14,6 @@
         "canvaskit-wasm": "0.40.0",
         "@shopify/react-native-skia": "^2.4.14",
         "react": "19.2.0",
-        "react-native": "file:../stubs/react-native",
-        "react-native-gesture-handler": "file:../stubs/react-native-gesture-handler",
-        "react-native-reanimated": "file:../stubs/react-native-reanimated",
         "react-native-render-html": "6.3.1",
         "victory-native": "^41.21.0"
     },
@@ -25,15 +22,6 @@
         "@types/pngjs": "^6.0.5",
         "pixelmatch": "^7.2.0",
         "pngjs": "^7.0.0"
-    },
-    "imports": {
-        "react-native": "../stubs/react-native/index.ts",
-        "react-native/*": "../stubs/react-native/subpath.ts"
-    },
-    "overrides": {
-        "react-native": "file:../stubs/react-native",
-        "react-native-reanimated": "file:../stubs/react-native-reanimated",
-        "react-native-gesture-handler": "file:../stubs/react-native-gesture-handler"
     },
     "installConfig": {
         "hoistingLimits": "workspaces"
