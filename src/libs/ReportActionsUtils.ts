@@ -2807,7 +2807,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
 
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = translate('workspace.common.roleName', originalMessage?.role ?? '');
+    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
     return translate('report.actions.type.addEmployee', formattedEmail, role, originalMessage?.didJoinPolicy);
 }
@@ -2830,8 +2830,8 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
         return translate(translationKey, email, stringNewValue, stringOldValue);
     }
 
-    const newRole = translate('workspace.common.roleName', stringNewValue);
-    const oldRole = translate('workspace.common.roleName', stringOldValue);
+    const newRole = translate('workspace.common.roleName', stringNewValue).toLowerCase();
+    const oldRole = translate('workspace.common.roleName', stringOldValue).toLowerCase();
     return translate('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
@@ -3776,7 +3776,7 @@ function getPolicyChangeLogDeleteMemberMessage(translate: LocalizedTranslate, re
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = formatPhoneNumber(originalMessage?.email ?? '');
-    const role = translate('workspace.common.roleName', originalMessage?.role ?? '');
+    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     return translate('report.actions.type.removeMember', email, role);
 }
 
@@ -3971,7 +3971,7 @@ function getActionableCardFraudAlertMessage(
 function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const policyName = originalMessage?.policyName ?? translate('workspace.common.workspace');
-    const oldRole = translate('workspace.common.roleName', originalMessage?.oldRole);
+    const oldRole = translate('workspace.common.roleName', originalMessage?.oldRole).toLowerCase();
     return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole);
 }
 
