@@ -449,6 +449,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        editor: 'Editor',
         restrictions: 'Restricciones',
     },
     socials: {
@@ -4265,6 +4266,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Administrador';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrador de tarjeta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:

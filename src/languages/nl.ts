@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        editor: 'Editor',
         restrictions: 'Beperkingen',
     },
     socials: {
@@ -4358,6 +4359,8 @@ ${amount} voor ${merchant} - ${date}`,
                         return 'Beheer';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kaartbeheer';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:

@@ -213,6 +213,7 @@ const translations = {
         }),
         remove: 'Remove',
         admin: 'Admin',
+        editor: 'Editor',
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendar opened',
@@ -4474,6 +4475,8 @@ const translations = {
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Card Admin';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
