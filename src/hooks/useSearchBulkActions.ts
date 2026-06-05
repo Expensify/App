@@ -1111,9 +1111,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
 
-    const allReportsShouldMarkAsDone = useMemo(
-        () =>
-            selectedReports.every((report) => {
+    const allReportsShouldMarkAsDone = useMemo(() => {
+        if (selectedReports.length > 0) {
+            return selectedReports.every((report) => {
                 const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
                 return shouldShowMarkAsDone({
@@ -1121,12 +1121,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     report: fullReport,
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
                 });
-            }),
-        [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies],
-    );
-    const noReportsShouldMarkAsDone = useMemo(
-        () =>
-            selectedReports.every((report) => {
+            });
+        }
+
+        return Object.values(selectedTransactions).every((transaction) => {
+            const reportID = transaction.reportID;
+            const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+            return shouldShowMarkAsDone({
+                isTrackIntentUser,
+                report: fullReport,
+                policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${transaction.policyID}`],
+            });
+        });
+    }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
+
+    const noReportsShouldMarkAsDone = useMemo(() => {
+        if (selectedReports.length > 0) {
+            return selectedReports.every((report) => {
                 const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
                 return !shouldShowMarkAsDone({
@@ -1134,9 +1146,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     report: fullReport,
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
                 });
-            }),
-        [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies],
-    );
+            });
+        }
+
+        return Object.values(selectedTransactions).every((transaction) => {
+            const reportID = transaction.reportID;
+            const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+            return !shouldShowMarkAsDone({
+                isTrackIntentUser,
+                report: fullReport,
+                policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${transaction.policyID}`],
+            });
+        });
+    }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -1467,6 +1490,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
             });
         }
+
+        console.log('Selected Reports for Submit Option', selectedReports);
+        console.log('Selected Transactions for Submit Option', selectedTransactionsKeys);
 
         const shouldShowSubmitOption =
             !isOffline &&
