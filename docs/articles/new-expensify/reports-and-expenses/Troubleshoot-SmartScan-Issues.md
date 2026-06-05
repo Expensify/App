@@ -36,7 +36,7 @@ SmartScan may fail if the receipt image is unreadable, or if the image is missin
 To retry SmartScan:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Expenses**.
-2. Click to open the expense with the failed scan. It will show a red dot indicator with a message specifying whcih fields could not be scanned. 
+2. Click to open the expense with the failed scan. It will show a red dot indicator with a message specifying which fields could not be scanned. 
 3. Click the receipt image. 
 4. Click **Replace**.
 5. Take a photo or upload a receipt image file from your device.
