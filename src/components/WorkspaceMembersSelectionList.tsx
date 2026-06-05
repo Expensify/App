@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
@@ -49,50 +49,48 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserPersonalDetails?.login);
     const initialSelectedApprover = useInitialSelection(selectedApprover || undefined, {resetOnFocus: true});
     const initialSelectedApprovers = initialSelectedApprover ? [initialSelectedApprover] : [];
+    const policyOwner = policy?.owner;
+    const policyEmployeeList = policy?.employeeList;
 
-    const approvers = useMemo(() => {
-        const workspaceApprovers: SelectionListApprover[] = [];
+    const approvers: SelectionListApprover[] = [];
 
-        if (policy?.employeeList) {
-            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy.employeeList);
+    if (policyEmployeeList) {
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policyEmployeeList);
 
-            for (const employee of Object.values(policy.employeeList)) {
-                const email = employee.email;
+        for (const employee of Object.values(policyEmployeeList)) {
+            const email = employee.email;
 
-                if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    continue;
-                }
-
-                if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && selectedApprover !== email) {
-                    continue;
-                }
-
-                const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
-                const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
-
-                workspaceApprovers.push({
-                    text: displayName,
-                    alternateText: email,
-                    keyForList: email,
-                    value: email,
-                    isSelected: selectedApprover === email,
-                    login: email,
-                    icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
-                    rightElement: (
-                        <MemberRightIcon
-                            role={employee.role}
-                            owner={policy?.owner}
-                            login={login}
-                        />
-                    ),
-                });
+            if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
             }
+
+            if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && selectedApprover !== email) {
+                continue;
+            }
+
+            const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+            const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
+
+            approvers.push({
+                text: displayName,
+                alternateText: email,
+                keyForList: email,
+                value: email,
+                isSelected: selectedApprover === email,
+                login: email,
+                icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                rightElement: (
+                    <MemberRightIcon
+                        role={employee.role}
+                        owner={policyOwner}
+                        login={login}
+                    />
+                ),
+            });
         }
+    }
 
-        return workspaceApprovers;
-    }, [icons.FallbackAvatar, personalDetails, policy?.employeeList, policy?.owner, selectedApprover, shouldFilterOutExpensifyTeam]);
-
-    const sortedApprovers = useMemo(() => sortAlphabetically(approvers, 'text', localeCompare), [approvers, localeCompare]);
+    const sortedApprovers = sortAlphabetically(approvers, 'text', localeCompare);
     const orderedApprovers = moveInitialSelectionToTop(sortedApprovers, initialSelectedApprovers);
     const searchSourceApprovers = debouncedSearchTerm ? sortedApprovers : orderedApprovers;
     const filteredApprovers = tokenizedSearch(searchSourceApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [

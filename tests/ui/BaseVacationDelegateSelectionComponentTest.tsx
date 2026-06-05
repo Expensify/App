@@ -3,7 +3,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
-import CONST from '@src/CONST';
+import type useInitialSelection from '@hooks/useInitialSelection';
 
 const mockDelegateDetails = {
     accountID: 1,
@@ -54,7 +54,7 @@ jest.mock('@components/DelegatorList', () => jest.fn(() => null));
 jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/SelectionListWithSections', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/UserListItem', () => jest.fn(() => null));
-jest.mock('@hooks/useInitialSelection', () => jest.requireActual('@hooks/useInitialSelection').default);
+jest.mock('@hooks/useInitialSelection', () => jest.requireActual<{default: typeof useInitialSelection}>('@hooks/useInitialSelection').default);
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({FallbackAvatar: 'fallback-avatar'})),
 }));
@@ -151,7 +151,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
     it('does not show the selection list when active delegations block delegate changes', () => {
         render(
             <BaseVacationDelegateSelectionComponent
-                vacationDelegate={{delegate: mockDelegateDetails.login, delegatorFor: [CONST.DEFAULT_NUMBER_ID]}}
+                vacationDelegate={{delegate: mockDelegateDetails.login, delegatorFor: ['delegator@example.com']}}
                 onSelectRow={jest.fn()}
                 headerTitle="Vacation delegate"
                 cannotSetDelegateMessage="Cannot set delegate"
