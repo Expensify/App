@@ -81,7 +81,7 @@ function DateField({
 
     if (isNewManualExpenseFlowEnabled && !isReadOnly) {
         return (
-            <View style={[styles.mh4, styles.mv2]}>
+            <View style={[styles.mh4, styles.mb2]}>
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={iouCreated}
