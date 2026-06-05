@@ -47,7 +47,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const [isAnyModalActive = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
     const isAnyModalActiveRef = useRef(false);
     const wasAnyModalActiveRef = useRef(false);
-    const sidebarRef = useRef<View | HTMLDivElement | null>(null);
+    const sidebarRef = useRef<React.ComponentRef<typeof Animated.View>>(null);
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
