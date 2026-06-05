@@ -1,6 +1,6 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {isModalActiveSelector} from '@selectors/Modal';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
@@ -77,7 +77,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return endPeek;
     }, [endPeek, shouldUseNarrowLayout]);
 
-    const endPeekIfPointerIsOutsideSidebar = useCallback(() => {
+    const endPeekIfPointerIsOutsideSidebar = () => {
         if (!isPeeking || isAnyModalActiveRef.current || typeof document === 'undefined') {
             return;
         }
@@ -88,15 +88,15 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
 
         endPeek();
-    }, [endPeek, isPeeking]);
+    };
 
-    const endPeekWhenNoModalIsActive = useCallback(() => {
+    const endPeekWhenNoModalIsActive = () => {
         if (isAnyModalActiveRef.current) {
             return;
         }
 
         endPeek();
-    }, [endPeek]);
+    };
 
     useEffect(() => {
         isAnyModalActiveRef.current = isAnyModalActive;
