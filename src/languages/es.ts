@@ -3241,6 +3241,7 @@ ${amount} para ${merchant} - ${date}`,
         enterPhoneNumber: '¿Cuál es tu número de teléfono?',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
+        basicDetails: 'Datos básicos',
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
@@ -3439,7 +3440,7 @@ ${amount} para ${merchant} - ${date}`,
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             email: 'Por favor, introduce una dirección de correo electrónico válida',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
@@ -4765,6 +4766,34 @@ ${amount} para ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify se sincronizará automáticamente con Certinia cada día.',
+            syncReimbursedReportsDescription:
+                'Con esta opción habilitada, cada vez que se pague una factura por pagar en FFA, el informe de Expensify relacionado se marcará automáticamente como reembolsado.',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a Certinia.',
+            payableInvoices: 'Facturas por pagar',
+            exportStatus: {
+                label: 'Estado de factura por pagar',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Completar',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En curso',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
+                },
+            },
+            exportDate: {
+                label: 'Fecha de factura pagadera',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Fecha del último gasto',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Fecha de envío del informe',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Fecha de exportación',
+                },
+            },
+            exportReimbursable: {
+                label: 'Exportar gastos reembolsables como',
+                helperText: 'Los gastos marcados como reembolsables se exportarán como facturas por pagar a nombre de la persona empleada.',
+            },
+            exportNonReimbursable: {label: 'Exportar gastos no reembolsables como'},
+            noVendorsFound: 'No se encontraron proveedores',
+            noVendorsFoundDescription: 'Vuelve a sincronizar la conexión después de añadir los proveedores en Certinia.',
             prerequisites: {
                 title: 'Antes de conectarte',
                 installBundle: 'Para conexiones FFA',
@@ -4781,6 +4810,19 @@ ${amount} para ${merchant} - ${date}`,
                 oauth: 'Inicia sesión con Salesforce',
                 oauthDescription: 'Para terminar la configuración, tendrás que iniciar sesión a través de Salesforce y Certinia.\n\nUsa el botón de abajo para continuar.',
                 connectButton: 'Conectar con Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Plan de cuentas',
+                chartOfAccountsDescription: 'El plan de cuentas se importa en Expensify como categorías.',
+                dimensionMapping: ({n}: {n: number}) => `Dimensión ${n}`,
+                dimensions: {dimension1: 'Dimensión 1', dimension2: 'Dimensión 2', dimension3: 'Dimensión 3', dimension4: 'Dimensión 4'},
+                doNotMap: 'No asignar',
+                doNotMapSubtitle: 'Usar recurso de empleado por defecto',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'No asignar',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importado como etiquetas',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importado como campos de informe',
+                },
             },
         },
         netsuite: {
@@ -5473,6 +5515,9 @@ ${amount} para ${merchant} - ${date}`,
             travel: {
                 title: 'Viajes',
                 subtitle: 'Reserva, gestiona y concilia todos tus viajes de negocios.',
+                disableTravelTitle: 'Desactiva primero la facturación de viajes',
+                disableTravelPrompt: 'La facturación de viajes está habilitada para este espacio de trabajo. Desactívala antes de poder deshabilitar Viajes.',
+                disableTravelButton: 'Ve a la configuración de Viajes',
                 getStarted: {
                     title: 'Comienza con Expensify Travel',
                     subtitle: 'Solo necesitamos algunos datos más sobre tu empresa y estarás listo para despegar.',
@@ -6249,6 +6294,26 @@ ${amount} para ${merchant} - ${date}`,
                             return 'Importando dimensiones';
                         case 'intacctImportTitle':
                             return 'Importando datos desde Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Sincronizando datos de Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Sincronizando la conexión de Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importando categorías';
+                        case 'financialForceSyncTags':
+                            return 'Importando etiquetas';
+                        case 'financialForceSyncVendors':
+                            return 'Importando proveedores';
+                        case 'financialForceSyncContacts':
+                            return 'Importando contactos';
+                        case 'financialForceSyncCompanies':
+                            return 'Importando empresas';
+                        case 'financialForceSyncUsers':
+                            return 'Importando usuarios';
+                        case 'financialForceSyncDimensions':
+                            return 'Importando dimensiones';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marcando informes como reembolsados';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
