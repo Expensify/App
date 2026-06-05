@@ -4262,7 +4262,7 @@ ${amount} para ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrador';
+                        return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -6059,6 +6059,7 @@ ${amount} para ${merchant} - ${date}`,
                 `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
             configureHRSync: (providerName: string) => `Configura la sincronización de ${providerName}.`,
             syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
+            makeCardAdmin: () => ({one: 'Hacer administrador de tarjeta', other: 'Hacer administradores de tarjetas'}),
         },
         accounting: {
             settings: 'configuración',
@@ -8181,8 +8182,10 @@ ${amount} para ${merchant} - ${date}`,
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} se unió mediante el enlace de invitación del espacio de trabajo` : `se añadió ${email} como ${role === 'member' ? 'a' : 'a un'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const article = role.toLowerCase() === 'auditor' ? 'un' : 'a';
+                    return didJoinPolicy ? `${email} se unió a través del enlace de invitación del espacio de trabajo` : `añadió ${email} como ${article} ${role}`;
+                },
                 updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: (email, newValue, previousValue) => {
                     if (!newValue) {
