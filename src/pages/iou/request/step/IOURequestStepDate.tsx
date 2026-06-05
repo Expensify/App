@@ -123,8 +123,8 @@ function IOURequestStepDate({
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
 
-            if (isDistanceRequest(transaction)) {
-                const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report);
+            const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report);
+            if (isDistanceRequest(transaction) && (isPolicyExpenseChat || isTrackExpense)) {
                 const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID,
