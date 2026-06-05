@@ -27,8 +27,7 @@ function ZenefitsApprovalModePage({
         getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
         getHeaderTitle: () => translate('workspace.hr.approvalMode'),
-        handleSave: ({draftApprovalMode, currentApprovalMode, connectionSyncProgress}) =>
-            updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress),
+        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
     };
 
     return (
