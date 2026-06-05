@@ -5,15 +5,11 @@ import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {clearPendingWorkspaceUpgradeIntent} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 function useReplayPendingWorkspaceUpgradeApprovalOnSearch() {
     const [pendingWorkspaceUpgradeIntent] = useOnyx(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT);
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
-    const {translate} = useLocalize();
-    const {accountID, email = ''} = useCurrentUserPersonalDetails();
 
     const searchUpgradeIntent = pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST_ON_SEARCH ? pendingWorkspaceUpgradeIntent : undefined;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${searchUpgradeIntent?.policyID}`);
@@ -38,25 +34,16 @@ function useReplayPendingWorkspaceUpgradeApprovalOnSearch() {
         // Clear first to avoid loops if something navigates/re-renders mid-flight.
         clearPendingWorkspaceUpgradeIntent();
 
-        approveMoneyRequestOnSearch(searchUpgradeIntent.searchHash, [searchUpgradeIntent.reportID], searchUpgradeIntent.currentSearchKey ?? currentSearchKey, {
-            shouldNotifyAdminsOfCollectUpgrade: true,
-            policy,
-            currentUserAccountIDParam: accountID,
-            currentUserEmailParam: email,
-            translate,
-        });
+        approveMoneyRequestOnSearch(searchUpgradeIntent.searchHash, [searchUpgradeIntent.reportID], searchUpgradeIntent.currentSearchKey ?? currentSearchKey);
     }, [
-        accountID,
         currentSearchHash,
         currentSearchKey,
-        email,
         policy,
         searchUpgradeIntent,
         searchUpgradeIntent?.currentSearchKey,
         searchUpgradeIntent?.policyID,
         searchUpgradeIntent?.reportID,
         searchUpgradeIntent?.searchHash,
-        translate,
     ]);
 }
 

@@ -6875,8 +6875,6 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>請求書発行機能は、Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName}さんがこのワークスペースを Collect プランにアップグレードしました。すべてのメンバーはメンバー権限になりました。ワークスペース管理者はレポートを承認し、従業員へ直接精算できるようになりました。`,
         },
         downgrade: {
             commonFeatures: {

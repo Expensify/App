@@ -6972,8 +6972,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Die Rechnungsstellung ist in den Collect- und Control-Tarifen verfügbar, beginnend ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName} hat diesen Workspace auf den Collect-Tarif hochgestuft. Alle Mitglieder haben jetzt die Rolle „Mitglied“. Die Workspace-Administration kann jetzt Berichte genehmigen und Mitarbeitende direkt erstatten.`,
         },
         downgrade: {
             commonFeatures: {

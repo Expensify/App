@@ -1,56 +1,54 @@
-import {useEffect} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
+import {useCallback, useEffect} from 'react';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest, clearPendingWorkspaceUpgradeIntent} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useLocalize from './useLocalize';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
-type ApproveParams = Parameters<typeof approveMoneyRequest>[0];
-
-type Params = Omit<ApproveParams, 'policy' | 'onApproved'> & {
-    activePolicy: ApproveParams['policy'];
-    onApproved: NonNullable<ApproveParams['onApproved']>;
+type Params = {
+    reportID: string | undefined;
+    onApproved: () => void;
 };
 
-export default function useReplayPendingWorkspaceUpgradeApproval({
-    expenseReport,
-    expenseReportPolicy,
-    activePolicy,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    hasViolations,
-    isASAPSubmitBetaEnabled,
-    expenseReportCurrentNextStepDeprecated,
-    betas,
-    userBillingGracePeriodEnds,
-    amountOwed,
-    ownerBillingGracePeriodEnd,
-    delegateEmail,
-    onApproved,
-}: Params) {
-    const {translate} = useLocalize();
+export default function useReplayPendingWorkspaceUpgradeApproval({reportID, onApproved}: Params) {
+    const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
     const [pendingWorkspaceUpgradeIntent] = useOnyx(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT);
-    const approveIntentType = pendingWorkspaceUpgradeIntent?.type;
-    const approveIntentReportID = pendingWorkspaceUpgradeIntent?.reportID;
-    const approveIntentPolicyID = pendingWorkspaceUpgradeIntent?.policyID;
-    const approveIntentFull = pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST ? pendingWorkspaceUpgradeIntent.full : undefined;
+    const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
-    useEffect(() => {
-        if (approveIntentType !== CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST) {
+    const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email);
+
+    const tryReplay = useCallback(() => {
+        if (pendingWorkspaceUpgradeIntent?.type !== CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST) {
             return;
         }
 
-        if (!expenseReport?.reportID || approveIntentReportID !== expenseReport.reportID) {
+        if (!expenseReport?.reportID || pendingWorkspaceUpgradeIntent.reportID !== expenseReport.reportID) {
             return;
         }
 
-        if (!activePolicy?.id || approveIntentPolicyID !== activePolicy.id) {
+        if (!expenseReportPolicy?.id || pendingWorkspaceUpgradeIntent.policyID !== expenseReportPolicy.id) {
             return;
         }
 
         // Wait until the policy has actually upgraded (i.e. no longer Submit) and is no longer pending.
-        if (isSubmitPolicy(activePolicy) || activePolicy.isPendingUpgrade) {
+        if (isSubmitPolicy(expenseReportPolicy) || expenseReportPolicy.isPendingUpgrade) {
             return;
         }
 
@@ -60,41 +58,45 @@ export default function useReplayPendingWorkspaceUpgradeApproval({
         approveMoneyRequest({
             expenseReport,
             expenseReportPolicy,
-            policy: activePolicy,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
+            policy: expenseReportPolicy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            expenseReportCurrentNextStepDeprecated,
+            expenseReportCurrentNextStepDeprecated: nextStep,
             betas,
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
-            full: approveIntentFull ?? false,
+            full: pendingWorkspaceUpgradeIntent.full ?? false,
             onApproved,
             delegateEmail,
-            shouldNotifyAdminsOfCollectUpgrade: true,
-            translate,
         });
     }, [
-        activePolicy,
+        accountID,
         amountOwed,
-        approveIntentFull,
-        approveIntentPolicyID,
-        approveIntentReportID,
-        approveIntentType,
         betas,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
         delegateEmail,
+        email,
         expenseReport,
-        expenseReportCurrentNextStepDeprecated,
         expenseReportPolicy,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        nextStep,
         onApproved,
         ownerBillingGracePeriodEnd,
-        translate,
+        pendingWorkspaceUpgradeIntent,
         userBillingGracePeriodEnds,
     ]);
+
+    useEffect(() => {
+        tryReplay();
+    }, [tryReplay]);
+
+    // Re-attempt when the report screen regains focus (e.g. after returning from workspace upgrade).
+    useFocusEffect(
+        useCallback(() => {
+            tryReplay();
+        }, [tryReplay]),
+    );
 }

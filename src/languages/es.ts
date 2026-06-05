@@ -6893,8 +6893,6 @@ ${amount} para ${merchant} - ${date}`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Su empresa ha restringido la creación de espacios de trabajo. Por favor, contacte a un administrador para obtener ayuda.',
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName} ha mejorado este espacio de trabajo al plan Recopilar. Ahora todas las personas integrantes tienen el rol de miembro. La persona administradora del espacio de trabajo ahora puede aprobar informes y reembolsar directamente a las personas empleadas.`,
         },
         downgrade: {
             commonFeatures: {

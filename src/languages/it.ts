@@ -6956,8 +6956,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La fatturazione è disponibile nei piani Collect e Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName} ha aggiornato questo spazio di lavoro al piano Collect. Tutti i membri ora hanno il ruolo di Membro. L’amministratore dello spazio di lavoro ora può approvare i report e rimborsare direttamente i dipendenti.`,
         },
         downgrade: {
             commonFeatures: {

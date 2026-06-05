@@ -6929,8 +6929,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Fakturowanie jest dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName} zaktualizował ten workspace do planu Collect. Wszyscy członkowie mają teraz rolę Członka. Administrator workspace’a może teraz zatwierdzać raporty i bezpośrednio zwracać pracownikom wydatki.`,
         },
         downgrade: {
             commonFeatures: {

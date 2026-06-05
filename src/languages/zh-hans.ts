@@ -6750,8 +6750,6 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>开票功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName} 已将此工作区升级为 Collect 方案。所有成员现在都具有成员角色。工作区管理员现在可以审批报表并直接报销员工。`,
         },
         downgrade: {
             commonFeatures: {

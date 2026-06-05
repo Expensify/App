@@ -35,7 +35,6 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
-import useReplayPendingWorkspaceUpgradeApproval from './useReplayPendingWorkspaceUpgradeApproval';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useThemeStyles from './useThemeStyles';
@@ -177,23 +176,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             clearSelectedTransactions(true);
         }
     };
-
-    useReplayPendingWorkspaceUpgradeApproval({
-        expenseReport: moneyRequestReport,
-        expenseReportPolicy: policy,
-        activePolicy: policy,
-        currentUserAccountIDParam: accountID,
-        currentUserEmailParam: email ?? '',
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        expenseReportCurrentNextStepDeprecated: nextStep,
-        betas: betas as never,
-        userBillingGracePeriodEnds: userBillingGracePeriodEnds as never,
-        amountOwed: amountOwed as never,
-        ownerBillingGracePeriodEnd: ownerBillingGracePeriodEnd as never,
-        delegateEmail,
-        onApproved: startApprovedAnimation,
-    });
 
     const handleSubmitReport = (skipAnimation = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {

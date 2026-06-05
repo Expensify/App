@@ -163,19 +163,7 @@ function PayActionButton({
     };
 
     useReplayPendingWorkspaceUpgradeApproval({
-        expenseReport: iouReport,
-        expenseReportPolicy: policy,
-        activePolicy,
-        currentUserAccountIDParam: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-        currentUserEmailParam: currentUserEmail,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        expenseReportCurrentNextStepDeprecated: iouReportNextStep,
-        betas,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        delegateEmail,
+        reportID: iouReportID,
         onApproved: startApprovedAnimation,
     });
 

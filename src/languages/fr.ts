@@ -7000,8 +7000,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La facturation est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName} a mis à niveau cet espace de travail vers l’offre Collect. Tous les membres ont maintenant le rôle Membre. L’administrateur de l’espace de travail peut désormais approuver les notes de frais et rembourser directement les employé·es.`,
         },
         downgrade: {
             commonFeatures: {

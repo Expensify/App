@@ -64,7 +64,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import getCollectUpgradeAdminsNotificationOnyxData from './IOU/getCollectUpgradeAdminsNotificationOnyxData';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import {setPendingWorkspaceUpgradeIntent} from './IOU/ReportWorkflow';
@@ -689,15 +688,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-type ApproveMoneyRequestOnSearchOptions = {
-    shouldNotifyAdminsOfCollectUpgrade?: boolean;
-    policy?: OnyxEntry<Policy>;
-    currentUserAccountIDParam?: number;
-    currentUserEmailParam?: string;
-    translate?: LocalizedTranslate;
-};
-
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey, options?: ApproveMoneyRequestOnSearchOptions) {
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey) {
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
@@ -776,21 +767,6 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
             ),
         },
     ];
-
-    if (options?.shouldNotifyAdminsOfCollectUpgrade && options.translate && options.policy && options.currentUserAccountIDParam !== undefined && options.currentUserEmailParam) {
-        const adminsNotificationOnyxData = getCollectUpgradeAdminsNotificationOnyxData({
-            translate: options.translate,
-            policy: options.policy,
-            upgraderAccountID: options.currentUserAccountIDParam,
-            currentUserEmail: options.currentUserEmailParam,
-            delegateAccountID: undefined,
-        });
-        if (adminsNotificationOnyxData) {
-            optimisticData.push(...adminsNotificationOnyxData.optimisticData);
-            successData.push(...adminsNotificationOnyxData.successData);
-            failureData.push(...adminsNotificationOnyxData.failureData);
-        }
-    }
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});

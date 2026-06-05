@@ -105,6 +105,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [pendingWorkspaceUpgradeIntent] = useOnyx(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT);
 
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
@@ -177,7 +178,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id ||
                 feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id;
             const targetType = isCorporateUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
+            const pendingReportID = pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST ? pendingWorkspaceUpgradeIntent.reportID : undefined;
+            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, pendingReportID);
             return;
         }
 

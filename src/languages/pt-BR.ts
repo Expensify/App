@@ -6931,8 +6931,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>O faturamento está disponível nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName} atualizou este espaço de trabalho para o plano Collect. Todos os membros agora têm a função de Membro. O administrador do espaço de trabalho agora pode aprovar relatórios e reembolsar participantes diretamente.`,
         },
         downgrade: {
             commonFeatures: {

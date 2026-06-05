@@ -7061,8 +7061,6 @@ const translations = {
                 gotIt: 'Got it, thanks',
                 createdWorkspace: `You've created a workspace!`,
             },
-            adminsCollectUpgradeMessage: (upgraderName: string) =>
-                `${upgraderName} has upgraded this workspace to the Collect plan. All members now have the Member role. The workspace admin can now approve reports and reimburse employees directly.`,
             commonFeatures: {
                 title: 'Upgrade to the Control plan',
                 note: 'Unlock our most powerful features, including:',

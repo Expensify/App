@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReplayPendingWorkspaceUpgradeApproval from '@hooks/useReplayPendingWorkspaceUpgradeApproval';
 import useReportPrimaryAction from '@hooks/useReportPrimaryAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
@@ -23,7 +24,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
-import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
+import {PaymentAnimationsProvider, usePaymentAnimationsContext} from './PaymentAnimationsContext';
 import {useSearchSelectionActions} from './Search/SearchContext';
 
 type MoneyReportHeaderProps = {
@@ -52,6 +53,9 @@ function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackBut
 }
 
 function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+    const {startApprovedAnimation} = usePaymentAnimationsContext();
+    useReplayPendingWorkspaceUpgradeApproval({reportID: reportIDProp, onApproved: startApprovedAnimation});
+
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
