@@ -1,7 +1,8 @@
 import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React, {Fragment} from 'react';
-import {useChartDefaultTypeface} from '@components/Charts/hooks';
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
+import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type VictoryChartLegendProps = LegendItem;
@@ -23,10 +24,10 @@ type ProcessedEntry = {
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
 function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartLegendProps) {
-    const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
+    const typefaces = useChartTypefaces();
     const processedEntries = entries.reduce(
-        (acc, {text, color, fontSize, fontWeight, symbolColor, symbolSize}) => {
-            const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
+        (acc, {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize}) => {
+            const typeface = getChartSkiaTypeface(typefaces, {fontFamily, fontStyle, fontWeight});
             const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
             const fontMetrics = font?.getMetrics();
             const lineHeight = fontMetrics ? fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
@@ -74,7 +75,5 @@ function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartL
         );
     });
 }
-
-VictoryChartLegend.displayName = 'VictoryChartLegend';
 
 export default VictoryChartLegend;
