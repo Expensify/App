@@ -65,7 +65,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         // return to their own entry points.
         if (isSecuritySettingsFlow) {
             Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
-            clearTwoFactorAuthData();
+            // Pass clearProgress=true to also reset twoFactorAuthSetupInProgress. Replacing the success screen with the
+            // Enabled page keeps the TWO_FACTOR_AUTH modal mounted, so RightModalNavigator's beforeRemove cleanup never
+            // runs here; without this the require-2FA overlay would persist for users who haven't finished guided setup.
+            clearTwoFactorAuthData(true);
             return;
         }
         goBack();
