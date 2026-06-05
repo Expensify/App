@@ -11,6 +11,7 @@
         "build:macos": "bun run scripts/build.ts --target bun-darwin-arm64 --outfile dist/victory-chart-renderer-darwin-arm64"
     },
     "dependencies": {
+        "canvaskit-wasm": "0.40.0",
         "@shopify/react-native-skia": "^2.4.14",
         "react": "19.2.0",
         "react-native": "file:../stubs/react-native",
@@ -32,7 +33,9 @@
     "installConfig": {
         "hoistingLimits": "workspaces"
     },
-    "trustedDependencies": ["@shopify/react-native-skia"],
+    "trustedDependencies": [
+        "@shopify/react-native-skia"
+    ],
     "engines": {
         "bun": "1.3.14"
     }
