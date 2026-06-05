@@ -619,6 +619,35 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
 }
 
 /**
+ * Get the count of workspace members, optionally excluding Expensify team members (guides/account managers).
+ * This matches the filtering logic used in WorkspaceMembersPage to ensure consistent member counts.
+ *
+ * Expensify team members are filtered out when:
+ * - The policy owner is NOT an Expensify team member
+ * - AND the current user is NOT an Expensify team member
+ */
+function getFilteredMemberCount(
+    employeeList: PolicyEmployeeList | undefined,
+    personalDetails: PersonalDetailsList | undefined,
+    policyOwner: string | undefined,
+    currentUserLogin: string | undefined,
+): number {
+    const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
+
+    return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
+        const accountID = policyMemberEmailsToAccountIDs[email];
+        const details = personalDetails?.[accountID];
+
+        if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
+            return count;
+        }
+
+        return count + 1;
+    }, 0);
+}
+
+/**
  * Checks if the current user is of the role "user" on the policy.
  */
 const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.USER;
@@ -2416,6 +2445,7 @@ export {
     shouldShowTaxRateError,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
+    getFilteredMemberCount,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,
