@@ -116,14 +116,16 @@ function handleNavigationGuards(
             return null;
         }
 
-        // Idempotency guard against APP-7FR-style loops when multiple actions burst at cold-start.
+        const isModalRedirect = redirectState.routes.some((r) => isModalGuardRedirectTarget(r.name));
         const focusedRouteName = state.routes[state.index]?.name;
         const redirectTargetName = redirectState.routes.at(-1)?.name;
-        if (focusedRouteName && redirectTargetName && focusedRouteName === redirectTargetName) {
+
+        // Idempotency guard against APP-7FR-style loops when multiple actions burst at cold-start.
+        // This is intentionally scoped to modal redirects so non-modal redirects like HOME can still
+        // reset nested state even when their root navigator is already focused.
+        if (isModalRedirect && focusedRouteName && redirectTargetName && focusedRouteName === redirectTargetName) {
             return state;
         }
-
-        const isModalRedirect = redirectState.routes.some((r) => isModalGuardRedirectTarget(r.name));
 
         if (isModalRedirect) {
             // Drop dismissible-modal routes (RHP, SignIn modal, CONCIERGE, etc.) and anything

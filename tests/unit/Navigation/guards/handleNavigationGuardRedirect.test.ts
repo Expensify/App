@@ -1,5 +1,4 @@
-import type {StackNavigationState} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/routers';
+import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 import RootStackRouter from '@libs/Navigation/AppNavigator/createRootStackNavigator/RootStackRouter';
 import {evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
@@ -34,6 +33,8 @@ const routeNames = [
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
     NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
     SCREENS.CONCIERGE,
+    SCREENS.HOME,
+    SCREENS.REPORT,
 ];
 
 function createState(routes: Array<{key: string; name: string}>, index = routes.length - 1): StackNavigationState<ParamListBase> {
@@ -65,7 +66,7 @@ describe('handleNavigationGuards REDIRECT stack preservation', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: '/onboarding/work-email'});
+        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'onboarding/work-email'});
         mockedGetAdaptedStateFromPath.mockReturnValue(onboardingRedirectState);
     });
 
@@ -92,7 +93,7 @@ describe('handleNavigationGuards REDIRECT stack preservation', () => {
 
     it('keeps non-onboarding redirects as full state replacements', () => {
         const state = createState([{key: 'report', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]);
-        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: '/settings'});
+        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'settings'});
         mockedGetAdaptedStateFromPath.mockReturnValue({
             routes: [{key: 'settings', name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}],
         });
@@ -101,6 +102,62 @@ describe('handleNavigationGuards REDIRECT stack preservation', () => {
 
         expect(result?.routes.map((route) => route.name)).toEqual([NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]);
         expect(result?.index).toBe(0);
+    });
+
+    it('does not suppress HOME redirects when TabNavigator is already focused on another tab', () => {
+        const state = createState([
+            {
+                key: 'tabs',
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    key: 'tabs-state',
+                    index: 1,
+                    routeNames: [SCREENS.HOME, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR],
+                    routes: [
+                        {key: 'home', name: SCREENS.HOME},
+                        {
+                            key: 'reports',
+                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                            state: {
+                                key: 'reports-state',
+                                index: 0,
+                                routeNames: [SCREENS.REPORT],
+                                routes: [{key: 'report', name: SCREENS.REPORT, params: {reportID: '7075912447943023'}}],
+                                stale: false,
+                                type: 'stack',
+                            },
+                        },
+                    ],
+                    stale: false,
+                    type: 'tab',
+                },
+            },
+        ]);
+        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'home'});
+        mockedGetAdaptedStateFromPath.mockReturnValue({
+            routes: [
+                {
+                    key: 'tabs-home',
+                    name: NAVIGATORS.TAB_NAVIGATOR,
+                    state: {
+                        key: 'tabs-home-state',
+                        index: 0,
+                        routeNames: [SCREENS.HOME, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR],
+                        routes: [{key: 'home', name: SCREENS.HOME}],
+                        stale: false,
+                        type: 'tab',
+                    },
+                },
+            ],
+        });
+
+        const result = router.getStateForAction(state, action, configOptions);
+
+        expect(result).not.toBe(state);
+        expect(result?.routes).toHaveLength(1);
+        expect(result?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        expect(result?.routes.at(0)?.state?.index).toBe(0);
+        expect(result?.routes.at(0)?.state?.routes.at(0)?.name).toBe(SCREENS.HOME);
     });
 
     it('returns the current state when the redirect target is already focused', () => {
