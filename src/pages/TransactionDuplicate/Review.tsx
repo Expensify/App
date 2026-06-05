@@ -164,6 +164,11 @@ function TransactionDuplicateReview() {
         }
     };
 
+    const currentTransactionViolations = transactionIDs.map((id) => ({
+        transactionID: id,
+        violations: allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [],
+    }));
+
     const keepAll = () => {
         dismissDuplicateTransactionViolation({
             transactionIDs,
@@ -172,7 +177,7 @@ function TransactionDuplicateReview() {
             policy,
             isASAPSubmitBetaEnabled,
             allTransactions,
-            allTransactionViolation: allTransactionViolations,
+            currentTransactionViolations,
         });
         Navigation.goBack();
     };
