@@ -8455,6 +8455,9 @@ const CONST = {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
         },
+        HIGH_CONTRAST_MODE_SWITCHER: {
+            TOGGLE: 'HighContrastModeSwitcher-Toggle',
+        },
         AGENTS_WORKFLOWS_BANNER: {
             DISMISS: 'AgentsWorkflowsBanner-Dismiss',
         },

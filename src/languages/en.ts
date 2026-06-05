@@ -3008,6 +3008,8 @@ const translations = {
             },
         },
         highContrastMode: 'High contrast mode',
+        enableHighContrast: 'Enable high contrast',
+        disableHighContrast: 'Disable high contrast',
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {

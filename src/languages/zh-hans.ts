@@ -2842,6 +2842,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
         },
         highContrastMode: '高对比度模式',
+        enableHighContrast: '启用高对比度',
+        disableHighContrast: '关闭高对比度',
         chooseThemeBelowOrSync: '请选择下方的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
