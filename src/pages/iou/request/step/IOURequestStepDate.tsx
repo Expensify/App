@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,6 +54,9 @@ function IOURequestStepDate({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
@@ -121,14 +125,16 @@ function IOURequestStepDate({
 
             if (isDistanceRequest(transaction)) {
                 const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report);
+                const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID,
                     isPolicyExpenseChat,
-                    policy,
+                    policy: effectivePolicy,
                     lastSelectedDistanceRates,
+                    isTrackDistanceExpense: isTrackExpense,
                     expenseDate: newCreated,
                 });
-                setCustomUnitRateID(transactionID, rateID, transaction, policy);
+                setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy);
             }
         }
 
