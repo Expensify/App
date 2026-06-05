@@ -16,7 +16,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
     getSubmitReportManagerAccountID,

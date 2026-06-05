@@ -22,6 +22,7 @@ export default function useReplayPendingWorkspaceUpgradeApproval({reportID, onAp
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [pendingWorkspaceUpgradeIntent] = useOnyx(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT);
+    const approveMoneyRequestIntent = pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST ? pendingWorkspaceUpgradeIntent : undefined;
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
@@ -35,15 +36,15 @@ export default function useReplayPendingWorkspaceUpgradeApproval({reportID, onAp
     const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email);
 
     const tryReplay = useCallback(() => {
-        if (pendingWorkspaceUpgradeIntent?.type !== CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST) {
+        if (!approveMoneyRequestIntent) {
             return;
         }
 
-        if (!expenseReport?.reportID || pendingWorkspaceUpgradeIntent.reportID !== expenseReport.reportID) {
+        if (!expenseReport?.reportID || approveMoneyRequestIntent.reportID !== expenseReport.reportID) {
             return;
         }
 
-        if (!expenseReportPolicy?.id || pendingWorkspaceUpgradeIntent.policyID !== expenseReportPolicy.id) {
+        if (!expenseReportPolicy?.id || approveMoneyRequestIntent.policyID !== expenseReportPolicy.id) {
             return;
         }
 
@@ -68,13 +69,14 @@ export default function useReplayPendingWorkspaceUpgradeApproval({reportID, onAp
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
-            full: pendingWorkspaceUpgradeIntent.full ?? false,
+            full: approveMoneyRequestIntent.full ?? false,
             onApproved,
             delegateEmail,
         });
     }, [
         accountID,
         amountOwed,
+        approveMoneyRequestIntent,
         betas,
         delegateEmail,
         email,
@@ -85,7 +87,6 @@ export default function useReplayPendingWorkspaceUpgradeApproval({reportID, onAp
         nextStep,
         onApproved,
         ownerBillingGracePeriodEnd,
-        pendingWorkspaceUpgradeIntent,
         userBillingGracePeriodEnds,
     ]);
 
