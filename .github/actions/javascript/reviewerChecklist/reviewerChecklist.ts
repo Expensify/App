@@ -8,6 +8,9 @@ const reviewerChecklistContains = '# Reviewer Checklist';
 const issue: number = github.context.payload.issue?.number ?? github.context.payload.pull_request?.number ?? -1;
 const combinedComments: string[] = [];
 
+// Org members and owners are internal Expensify engineers; external contributors (including C+) are not.
+const INTERNAL_EXPENSIFY_ASSOCIATIONS = new Set(['MEMBER', 'OWNER']);
+
 function getNumberOfItemsFromReviewerChecklist() {
     console.log('Getting the number of items in the reviewer checklist...');
     return new Promise<number>((resolve, reject) => {
@@ -87,9 +90,19 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
         });
 }
 
-getNumberOfItemsFromReviewerChecklist()
-    .then(checkIssueForCompletedChecklist)
-    .catch((err: string | Error) => {
-        console.error(err);
-        core.setFailed(err);
-    });
+// An approval from an internal Expensify engineer means we've decided this PR doesn't need a C+ checklist, so let the check pass.
+function isApprovedByInternalEngineer(): boolean {
+    const review = github.context.payload.review as Record<string, string> | undefined;
+    return review?.state === 'approved' && INTERNAL_EXPENSIFY_ASSOCIATIONS.has(review?.author_association ?? '');
+}
+
+if (isApprovedByInternalEngineer()) {
+    console.log('PR was approved by an internal Expensify engineer, so the reviewer checklist is not required 🎉');
+} else {
+    getNumberOfItemsFromReviewerChecklist()
+        .then(checkIssueForCompletedChecklist)
+        .catch((err: string | Error) => {
+            console.error(err);
+            core.setFailed(err);
+        });
+}
