@@ -497,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        editor: 'Editor',
         restrictions: 'Beschränkungen',
     },
     socials: {
@@ -2930,6 +2931,8 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
         highContrastMode: 'Hoher Kontrast',
+        enableHighContrast: 'Hohen Kontrast aktivieren',
+        disableHighContrast: 'Hohen Kontrast deaktivieren',
         chooseThemeBelowOrSync: 'Wählen Sie unten ein Design aus oder synchronisieren Sie es mit den Einstellungen Ihres Geräts.',
     },
     termsOfUse: {
@@ -4376,6 +4379,8 @@ ${amount} für ${merchant} – ${date}`,
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Prüfer';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5685,6 +5690,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             travel: {
                 title: 'Reisen',
                 subtitle: 'Buchen, verwalten und abstimmen Sie all Ihre Geschäftsreisen.',
+                disableTravelTitle: 'Deaktivieren Sie zuerst die Reiseabrechnung',
+                disableTravelPrompt: 'Reiseabrechnung ist für diesen Workspace aktiviert. Schalten Sie sie aus, bevor Sie Reisen deaktivieren können.',
+                disableTravelButton: 'Zu den Reiseeinstellungen gehen',
                 getStarted: {
                     title: 'Los geht’s mit Expensify Travel',
                     subtitle: 'Wir brauchen nur noch ein paar weitere Informationen zu deinem Unternehmen, dann bist du startklar.',
@@ -8015,6 +8023,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             newChat: 'Neuer Chat-Bildschirm',
             copy: 'Kommentar kopieren',
             openDebug: 'Testeinstellungen öffnen',
+            expenseReportSearch: 'Spesenberichte suchen',
+            goToWorkspace: 'Zum Workspace des aktuellen Berichts gehen',
         },
     },
     guides: {

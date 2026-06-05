@@ -495,6 +495,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        editor: 'Editor',
         restrictions: 'Restrições',
     },
     socials: {
@@ -2917,6 +2918,8 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Modo de alto contraste',
+        enableHighContrast: 'Ativar alto contraste',
+        disableHighContrast: 'Desativar alto contraste',
         chooseThemeBelowOrSync: 'Escolha um tema abaixo ou sincronize com as configurações do seu dispositivo.',
     },
     termsOfUse: {
@@ -4351,6 +4354,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Admin. do Cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5647,6 +5652,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             travel: {
                 title: 'Viagens',
                 subtitle: 'Reserve, gerencie e reconcilie todas as viagens de negócios da sua empresa.',
+                disableTravelTitle: 'Desative primeiro o faturamento de viagens',
+                disableTravelPrompt: 'O faturamento de viagens está ativado para este workspace. Desative-o antes de desativar o Travel.',
+                disableTravelButton: 'Ir para as configurações de Viagem',
                 getStarted: {
                     title: 'Comece a usar o Expensify Travel',
                     subtitle: 'Só precisamos de mais algumas informações sobre sua empresa e você estará pronto para decolar.',
@@ -7967,6 +7975,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             newChat: 'Nova tela de chat',
             copy: 'Copiar comentário',
             openDebug: 'Abrir caixa de diálogo de preferências de teste',
+            expenseReportSearch: 'Buscar relatórios de despesas',
+            goToWorkspace: 'Ir para o workspace do relatório atual',
         },
     },
     guides: {

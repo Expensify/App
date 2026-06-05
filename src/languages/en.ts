@@ -213,6 +213,7 @@ const translations = {
         }),
         remove: 'Remove',
         admin: 'Admin',
+        editor: 'Editor',
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendar opened',
@@ -3007,6 +3008,8 @@ const translations = {
             },
         },
         highContrastMode: 'High contrast mode',
+        enableHighContrast: 'Enable high contrast',
+        disableHighContrast: 'Disable high contrast',
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
@@ -4474,6 +4477,8 @@ const translations = {
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Card Admin';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5716,6 +5721,9 @@ const translations = {
             travel: {
                 title: 'Travel',
                 subtitle: 'Book, manage, and reconcile all your business travel.',
+                disableTravelTitle: 'Turn off Travel Invoicing first',
+                disableTravelPrompt: 'Travel Invoicing is enabled for this workspace. Turn it off before you can disable Travel.',
+                disableTravelButton: 'Go to Travel settings',
                 getStarted: {
                     title: 'Get started with Expensify Travel',
                     subtitle: "We just need a few more pieces of info about your business, then you'll be ready for takeoff.",
@@ -8055,6 +8063,8 @@ const translations = {
             newChat: 'New chat screen',
             copy: 'Copy comment',
             openDebug: 'Open testing preferences dialog',
+            expenseReportSearch: 'Search expense reports',
+            goToWorkspace: "Go to the current report's workspace",
         },
     },
     guides: {

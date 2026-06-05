@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        editor: 'Editor',
         restrictions: 'Beperkingen',
     },
     socials: {
@@ -2923,6 +2924,8 @@ ${amount} voor ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Hoog contrast',
+        enableHighContrast: 'Hoog contrast inschakelen',
+        disableHighContrast: 'Hoog contrast uitschakelen',
         chooseThemeBelowOrSync: 'Kies hieronder een thema, of synchroniseer met de instellingen van je apparaat.',
     },
     termsOfUse: {
@@ -4358,6 +4361,8 @@ ${amount} voor ${merchant} - ${date}`,
                         return 'Beheer';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kaartbeheer';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5656,6 +5661,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             travel: {
                 title: 'Reizen',
                 subtitle: 'Boek, beheer en reconcilieer al je zakelijke reizen.',
+                disableTravelTitle: 'Schakel eerst Reisfacturatie uit',
+                disableTravelPrompt: 'Reisfacturatie is ingeschakeld voor deze workspace. Schakel dit uit voordat je Reis kunt uitschakelen.',
+                disableTravelButton: 'Ga naar Reisinstellingen',
                 getStarted: {
                     title: 'Aan de slag met Expensify Travel',
                     subtitle: 'We hebben nog maar een paar extra gegevens over je bedrijf nodig, dan ben je klaar voor vertrek.',
@@ -7973,6 +7981,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             newChat: 'Nieuw chatscherm',
             copy: 'Opmerking kopiëren',
             openDebug: 'Dialoogvenster testvoorkeuren openen',
+            expenseReportSearch: 'Onkostendeclaraties zoeken',
+            goToWorkspace: 'Ga naar de werkruimte van het huidige rapport',
         },
     },
     guides: {

@@ -205,7 +205,7 @@ function getRulesModifiedMessage(
 
         if (key === 'tax') {
             const taxEntry = value as PolicyRulesModifiedFields['tax'];
-            const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+            const taxRateName = taxEntry?.field_id_TAX?.name ?? '';
             return translate('iou.rulesModifiedFields.tax', taxRateName, isFirst);
         }
 

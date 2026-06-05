@@ -449,6 +449,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        editor: 'Editor',
         restrictions: 'Restricciones',
     },
     socials: {
@@ -2805,6 +2806,8 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Modo de alto contraste',
+        enableHighContrast: 'Activar alto contraste',
+        disableHighContrast: 'Desactivar alto contraste',
         chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
     },
     termsOfUse: {
@@ -4265,6 +4268,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Administrador';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrador de tarjeta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5515,6 +5520,9 @@ ${amount} para ${merchant} - ${date}`,
             travel: {
                 title: 'Viajes',
                 subtitle: 'Reserva, gestiona y concilia todos tus viajes de negocios.',
+                disableTravelTitle: 'Desactiva primero la facturación de viajes',
+                disableTravelPrompt: 'La facturación de viajes está habilitada para este espacio de trabajo. Desactívala antes de poder deshabilitar Viajes.',
+                disableTravelButton: 'Ve a la configuración de Viajes',
                 getStarted: {
                     title: 'Comienza con Expensify Travel',
                     subtitle: 'Solo necesitamos algunos datos más sobre tu empresa y estarás listo para despegar.',
@@ -7811,6 +7819,8 @@ ${amount} para ${merchant} - ${date}`,
             newChat: 'Nueva pantalla de chat',
             copy: 'Copiar comentario',
             openDebug: 'Abrir el diálogo de preferencias de pruebas',
+            expenseReportSearch: 'Buscar informes de gastos',
+            goToWorkspace: 'Ir al espacio de trabajo del informe actual',
         },
     },
     guides: {

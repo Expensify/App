@@ -1204,6 +1204,28 @@ const CONST = {
                 DEFAULT: {input: keyInputSpace},
             },
         },
+        EXPENSE_REPORT_SEARCH: {
+            descriptionKey: 'expenseReportSearch',
+            shortcutKey: 'U',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'u', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'u', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'u', modifierFlags: keyModifierCommand},
+            },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+        },
+        GO_TO_WORKSPACE: {
+            descriptionKey: 'goToWorkspace',
+            shortcutKey: 'B',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'b', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'b', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'b', modifierFlags: keyModifierCommand},
+            },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -8433,6 +8455,9 @@ const CONST = {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
         },
+        HIGH_CONTRAST_MODE_SWITCHER: {
+            TOGGLE: 'HighContrastModeSwitcher-Toggle',
+        },
         AGENTS_WORKFLOWS_BANNER: {
             DISMISS: 'AgentsWorkflowsBanner-Dismiss',
         },
@@ -8576,6 +8601,7 @@ const CONST = {
             TRANSACTION_LIST_ITEM_CHECKBOX: 'Search-TransactionListItemCheckbox',
             EXPANDED_TRANSACTION_ROW: 'Search-ExpandedTransactionRow',
             EXPANDED_TRANSACTION_ROW_CHECKBOX: 'Search-ExpandedTransactionRowCheckbox',
+            SIDEBAR_TOGGLE: 'Search-SidebarToggle',
             TYPE_MENU_ITEM: 'Search-TypeMenuItem',
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             ADVANCED_FILTER_ITEM: 'Search-AdvancedFilterItem',

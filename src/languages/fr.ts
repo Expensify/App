@@ -497,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        editor: 'Éditeur',
         restrictions: 'Restrictions',
     },
     socials: {
@@ -2938,6 +2939,8 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Mode contraste élevé',
+        enableHighContrast: 'Activer le contraste élevé',
+        disableHighContrast: 'Désactiver le contraste élevé',
         chooseThemeBelowOrSync: 'Choisissez un thème ci-dessous ou synchronisez avec les réglages de votre appareil.',
     },
     termsOfUse: {
@@ -4388,6 +4391,8 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Éditeur';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5698,6 +5703,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             travel: {
                 title: 'Déplacements',
                 subtitle: 'Réservez, gérez et rapprochez tous vos déplacements professionnels.',
+                disableTravelTitle: 'Désactivez d’abord la facturation des déplacements',
+                disableTravelPrompt: 'La facturation de voyage est activée pour cet espace de travail. Désactivez-la avant de pouvoir désactiver Travel.',
+                disableTravelButton: 'Accéder aux paramètres de voyage',
                 getStarted: {
                     title: 'Commencez avec Expensify Travel',
                     subtitle: 'Nous avons simplement besoin de quelques informations supplémentaires sur votre entreprise, puis vous serez prêt à décoller.',
@@ -8050,6 +8058,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             newChat: 'Nouvel écran de discussion',
             copy: 'Copier le commentaire',
             openDebug: 'Ouvrir la boîte de dialogue des préférences de test',
+            expenseReportSearch: 'Rechercher des notes de frais',
+            goToWorkspace: "Aller à l'espace de travail de la note de frais actuelle",
         },
     },
     guides: {

@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
         avatar: 'Avatar',
+        editor: 'Edytor',
         restrictions: 'Ograniczenia',
     },
     socials: {
@@ -2917,6 +2918,8 @@ ${amount} dla ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Tryb wysokiego kontrastu',
+        enableHighContrast: 'Włącz wysoki kontrast',
+        disableHighContrast: 'Wyłącz wysoki kontrast',
         chooseThemeBelowOrSync: 'Wybierz motyw poniżej lub zsynchronizuj z ustawieniami urządzenia.',
     },
     termsOfUse: {
@@ -4350,6 +4353,8 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Audytor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Edytor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrator karty';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5644,6 +5649,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             travel: {
                 title: 'Podróże',
                 subtitle: 'Rezerwuj, zarządzaj i uzgadniaj wszystkie wyjazdy służbowe.',
+                disableTravelTitle: 'Najpierw wyłącz fakturowanie podróży',
+                disableTravelPrompt: 'Fakturowanie podróży jest włączone dla tego obszaru roboczego. Wyłącz je, zanim będziesz mógł wyłączyć funkcję Podróże.',
+                disableTravelButton: 'Przejdź do ustawień Podróży',
                 getStarted: {
                     title: 'Pierwsze kroki z Expensify Travel',
                     subtitle: 'Potrzebujemy jeszcze tylko kilku informacji o Twojej firmie, a potem będziesz gotowy do startu.',
@@ -7965,6 +7973,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             newChat: 'Nowy ekran czatu',
             copy: 'Skopiuj komentarz',
             openDebug: 'Otwórz okno preferencji testowania',
+            expenseReportSearch: 'Szukaj raportów wydatków',
+            goToWorkspace: 'Przejdź do przestrzeni roboczej bieżącego raportu',
         },
     },
     guides: {
