@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 
-type Part = 'overview' | 'members' | 'reports' | 'accounting' | 'categories' | 'tags' | 'taxes' | 'workflows' | 'rules' | 'distanceRates' | 'perDiem' | 'invoices' | 'travel';
+type Part = 'overview' | 'members' | 'reports' | 'accounting' | 'categories' | 'tags' | 'taxes' | 'workflows' | 'rules' | 'codingRules' | 'distanceRates' | 'perDiem' | 'invoices' | 'travel';
 
 const PARTS_TO_POLICY_FIELDS = {
     overview: ['outputCurrency', 'address', 'description'],
@@ -37,6 +37,7 @@ const PARTS_TO_POLICY_FIELDS = {
         'shouldShowAutoApprovalOptions',
         'shouldShowAutoReimbursementLimitOption',
     ],
+    codingRules: ['rules'],
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'invoice'],
@@ -111,6 +112,9 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Pol
             if (field === 'customUnits') {
                 continue;
             }
+            if (part === 'codingRules' && field === 'rules') {
+                continue;
+            }
             // The PARTS_TO_POLICY_FIELDS values are typed as keyof Policy, so this assignment is safe.
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
         }
@@ -142,7 +146,8 @@ type CopyPolicySettingsOnyxKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
-    | typeof ONYXKEYS.COPY_POLICY_SETTINGS;
+    | typeof ONYXKEYS.COPY_POLICY_SETTINGS
+    | typeof ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS;
 
 function buildCopyPolicySettingsData(
     sourcePolicy: Policy,
@@ -167,15 +172,36 @@ function buildCopyPolicySettingsData(
     const isTagsSelected = parts.includes('tags');
     const isDistanceSelected = parts.includes('distanceRates');
     const isPerDiemSelected = parts.includes('perDiem');
+    const isCodingRulesSelected = parts.includes('codingRules');
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
     const sourceCategories = allPolicyCategories?.[sourceCategoriesKey] ?? {};
     const sourceTags = allPolicyTags?.[sourceTagsKey] ?? {};
+    const filterPendingDeleteData = <T>(data?: Record<string, T>): Record<string, T> | undefined =>
+        data
+            ? (Object.fromEntries(
+                  Object.entries(data).filter(([, value]) => {
+                      if (!value || typeof value !== 'object' || !('pendingAction' in value)) {
+                          return true;
+                      }
+                      return value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  }),
+              ) as Record<string, T>)
+            : undefined;
+    const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy.rules?.codingRules);
 
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
+        const codingRulesPatch = isCodingRulesSelected
+            ? {
+                  rules: {
+                      ...targetPolicy.rules,
+                      codingRules: codingRulesWithoutPendingDelete,
+                  },
+              }
+            : {};
 
         // Step 1+2: SET the full policy with patched fields overlaid.
         // We use SET (not MERGE) because Onyx.merge deep-merges nested objects — source
@@ -187,6 +213,7 @@ function buildCopyPolicySettingsData(
                 ...targetPolicy,
                 ...policyFieldPatch,
                 ...(customUnitsPatch ? {customUnits: {...targetPolicy.customUnits, ...customUnitsPatch.customUnits}} : {}),
+                ...codingRulesPatch,
                 pendingFields: {...targetPolicy.pendingFields, ...pendingFields},
             },
         });
@@ -262,12 +289,20 @@ function buildCopyPolicySettingsData(
     });
 
     // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
-    // Success intentionally omits this key — the backend transitions currentStep
-    // to 'complete' via the bulkCopySettings NVP push.
+    // Success intentionally omits this key — the backend transitions the bulk policy
+    // copy NVP state to complete, which the UI uses to show the completion modal.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: 'loading'},
+        value: {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING},
+    });
+
+    // Optimistically set NVP state to 'in-progress' to avoid stale state flash
+    // (e.g., if prior run left it at 'complete', user would briefly see "All Set")
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS,
+        value: {state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.IN_PROGRESS},
     });
 
     failureData.push({
@@ -289,7 +324,7 @@ function copyPolicySettings(
     const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
 
     const params: CopyPolicySettingsParams = {
-        sourcePolicyID: sourcePolicy.id,
+        policyID: sourcePolicy.id,
         policyIDList: targetPolicies.map((policy) => policy.id).join(','),
         parts: parts.join(','),
     };
@@ -297,5 +332,5 @@ function copyPolicySettings(
     write(WRITE_COMMANDS.COPY_POLICY_SETTINGS, params, {optimisticData, successData, failureData});
 }
 
-export {PARTS_TO_POLICY_FIELDS, setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings};
+export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings};
 export type {Part};

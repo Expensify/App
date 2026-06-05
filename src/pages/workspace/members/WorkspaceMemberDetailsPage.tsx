@@ -68,7 +68,7 @@ function isNameValuePairsObject(value: unknown): value is Record<string, unknown
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
@@ -339,7 +339,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 description={translate('common.role')}
                                 shouldShowRightIcon={!isReimburser}
                                 onPress={() => {
-                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias)) {
+                                    if (
+                                        tryNavigateToSubmitWorkspaceUpgrade(
+                                            policy,
+                                            true,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
+                                            ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
+                                        )
+                                    ) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));

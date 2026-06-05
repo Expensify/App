@@ -18,7 +18,8 @@ Workspace Admins and their Copilots can assign company cards after a company car
 If you haven’t set up a feed yet, learn how to set one up:
 
  - [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
- - [Learn how to set up a commercial card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Commercial-Card-Feed-Connection). 
+ - [Learn how to set up a commercial card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Commercial-Card-Feed-Connection).
+ - [Learn how to import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet).
 
 ## How to assign company cards 
 
