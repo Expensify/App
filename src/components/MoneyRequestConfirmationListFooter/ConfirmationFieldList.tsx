@@ -179,7 +179,6 @@ function ConfirmationFieldList({
             />
 
             <SettingsFields
-                transaction={transaction}
                 selectedParticipants={selectedParticipants}
                 shouldShowBillable={flags.shouldShowBillable}
                 shouldShowReimbursable={flags.shouldShowReimbursable}

@@ -108,9 +108,6 @@ type ActionContentRouterProps = {
     /** Whether the report action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport: boolean;
 
-    /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
@@ -136,7 +133,6 @@ function ActionContentRouter({
     updateHiddenState,
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
-    personalDetails,
     shouldShowBorder,
     isOnSearch,
     setIsPaymentMethodPopoverActive,
@@ -236,7 +232,6 @@ function ActionContentRouter({
                 action={action}
                 report={report}
                 iouReport={iouReport}
-                personalDetails={personalDetails}
             />
         );
     }

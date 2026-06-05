@@ -152,6 +152,9 @@ type Comment = {
 
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
+
+    /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
+    tripID?: string;
 };
 
 /** Model of transaction custom unit */
@@ -526,7 +529,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
         groupExchangeRate?: number;
 
-        /** Used during the creation flow before the transaction is saved to the server */
+        /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
 
         /**

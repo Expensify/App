@@ -1,5 +1,5 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {ForwardedRef} from 'react';
+import type {RefObject} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
@@ -37,7 +37,7 @@ type BaseSearchListProps = Pick<
     onSelectRow: (item: SearchListItem) => void;
 
     /** The ref to the list */
-    ref: ForwardedRef<FlashListRef<SearchListItem>>;
+    ref: RefObject<FlashListRef<SearchListItem> | null>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;
