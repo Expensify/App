@@ -3,7 +3,6 @@ import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/glob
 import {renderHook} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
-import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -1581,7 +1580,7 @@ describe('actions/Report', () => {
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
 
-        const httpCalls = (HttpUtils.xhr as Mock).mock.calls;
+        const httpCalls = (HttpUtils.xhr as jest.Mock).mock.calls;
 
         const addCommentCalls = httpCalls.filter(([command]) => command === 'AddComment');
         const deleteCommentCalls = httpCalls.filter(([command]) => command === 'DeleteComment');
@@ -4128,6 +4127,7 @@ describe('actions/Report', () => {
                 reportID: iouReport.reportID,
                 amount: 5000,
                 modifiedAmount: 6000,
+                convertedAmount: 6000,
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -4155,6 +4155,7 @@ describe('actions/Report', () => {
             });
             expect(updatedTransaction?.amount).toBe(-5000);
             expect(updatedTransaction?.modifiedAmount).toBe(-6000);
+            expect(updatedTransaction?.convertedAmount).toBe(-6000);
         });
 
         it('should convert IOU report to expense report with correct policyID when reportTransactions are provided', async () => {
@@ -8202,6 +8203,54 @@ describe('actions/Report', () => {
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
+            expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticIOUReportAction delegateAccountID forwarding', () => {
+        const DELEGATE_ACCOUNT_ID = 998;
+
+        it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
+            const result = ReportUtils.buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [],
+                transactionID: '1',
+                delegateAccountIDParam: DELEGATE_ACCOUNT_ID,
+            });
+            expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
+            const result = ReportUtils.buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [],
+                transactionID: '1',
+                delegateAccountIDParam: undefined,
+            });
+            expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticReportPreview delegateAccountID forwarding', () => {
+        const DELEGATE_ACCOUNT_ID = 997;
+
+        it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
+            const chatReport = {reportID: 'chat1'} as OnyxTypes.Report;
+            const iouReport = {reportID: 'iou1', ownerAccountID: 1, managerID: 2} as OnyxTypes.Report;
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined, DELEGATE_ACCOUNT_ID);
+            expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
+            const chatReport = {reportID: 'chat2'} as OnyxTypes.Report;
+            const iouReport = {reportID: 'iou2', ownerAccountID: 1, managerID: 2} as OnyxTypes.Report;
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
         });
     });
