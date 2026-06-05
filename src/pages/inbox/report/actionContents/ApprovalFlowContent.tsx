@@ -42,16 +42,6 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
 
-        if (
-            shouldShowMarkAsDone({
-                isTrackIntentUser,
-                policy,
-                report: originalReport,
-            })
-        ) {
-            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
-        }
-
         if (wasSubmittedViaHarvesting) {
             return (
                 <ReportActionItemMessageWithExplain
@@ -72,12 +62,6 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
             return <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
         }
 
-        return <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
-    }
-
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
-        const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
-
         if (
             shouldShowMarkAsDone({
                 isTrackIntentUser,
@@ -85,8 +69,15 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
                 report: originalReport,
             })
         ) {
-            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
+            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
         }
+
+        return <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
+
         if (wasAutoApproved) {
             return (
                 <ReportActionItemMessageWithExplain
@@ -100,6 +91,16 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
 
         if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
             return <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;
+        }
+
+        if (
+            shouldShowMarkAsDone({
+                isTrackIntentUser,
+                policy,
+                report: originalReport,
+            })
+        ) {
+            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
         }
 
         return <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;

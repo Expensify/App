@@ -655,7 +655,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                             text: actionText,
                         },
                         {
-                            text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
+                            text: hasTransactions && shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
                         },
                     ],
                 };
