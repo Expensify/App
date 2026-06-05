@@ -4765,7 +4765,7 @@ const CONST = {
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
-        PMB: /\b[P|p]?(RIVATE|rivate)?\.?\s*[M|m][A|a]?[I|i]?[L|l]?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s*[#]?\s*(\d+)\b/,
+        PMB: /\b(?:p\.?\s*m\.?\s*b|private\s*mail\s*?box)\.?\s*#?\s*(\d+)\b/i,
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
