@@ -37,52 +37,46 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     const styles = useThemeStyles();
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
-    const workspaceRoles: ListItemType[] = [
-        {
+    const isPolicyControl = isControlPolicy(policy);
+    // Only strict admins can assign the ADMIN role.
+    const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
+
+    const availableRoleItems: ListItemType[] = [];
+    if (canAssignAdminRole) {
+        availableRoleItems.push({
             value: CONST.POLICY.ROLE.ADMIN,
             text: translate('common.admin'),
             alternateText: translate('workspace.common.adminAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.ADMIN,
             keyForList: CONST.POLICY.ROLE.ADMIN,
-        },
-        {
+        });
+    }
+    // Auditor only exists on Control workspaces.
+    if (isPolicyControl) {
+        availableRoleItems.push({
             value: CONST.POLICY.ROLE.AUDITOR,
             text: translate('common.auditor'),
             alternateText: translate('workspace.common.auditorAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.AUDITOR,
             keyForList: CONST.POLICY.ROLE.AUDITOR,
-        },
-        {
+        });
+    }
+    // Editor only exists on Submit workspaces.
+    if (isSubmitPolicy(policy)) {
+        availableRoleItems.push({
             value: CONST.POLICY.ROLE.EDITOR,
             text: translate('common.editor'),
             alternateText: translate('workspace.common.editorAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.EDITOR,
             keyForList: CONST.POLICY.ROLE.EDITOR,
-        },
-        {
-            value: CONST.POLICY.ROLE.USER,
-            text: translate('common.member'),
-            alternateText: translate('workspace.common.memberAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.USER,
-            keyForList: CONST.POLICY.ROLE.USER,
-        },
-    ];
-
-    const isPolicyControl = isControlPolicy(policy);
-    // Only strict admins can assign the ADMIN role.
-    const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
-    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
-        if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
-            return false;
-        }
-        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
-            return false;
-        }
-        // Editor only exists on Submit workspaces.
-        if (item.value === CONST.POLICY.ROLE.EDITOR && !isSubmitPolicy(policy)) {
-            return false;
-        }
-        return true;
+        });
+    }
+    availableRoleItems.push({
+        value: CONST.POLICY.ROLE.USER,
+        text: translate('common.member'),
+        alternateText: translate('workspace.common.memberAlternateText'),
+        isSelected: role === CONST.POLICY.ROLE.USER,
+        keyForList: CONST.POLICY.ROLE.USER,
     });
 
     return (

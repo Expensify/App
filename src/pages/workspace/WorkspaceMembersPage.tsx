@@ -73,9 +73,9 @@ import {
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
-    isSubmitPolicy,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -162,9 +162,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
-    // Paid (Collect/Control) and Submit workspaces allow member management. Submit is gated on the policy type —
-    // the SUBMIT_2026 beta only controls whether a Submit workspace can be created, not behavior on existing ones.
-    const canManageMembers = isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
+    // Group policies (Collect/Control + Submit) allow member management.
+    const canManageMembers = isGroupPolicy(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
