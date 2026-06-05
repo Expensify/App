@@ -52,6 +52,22 @@ function getExportMenuItem(
         currency: '',
     };
 
+    // The default option label matches the export method: a vendor bill exports to a vendor, a journal entry/check to an account, and a card to a card.
+    const getDefaultExportLabel = (exportDestination: string | undefined): {defaultLabel: string; defaultLabelMenuItem: Account & {value?: string}} => {
+        switch (exportDestination) {
+            case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+                return {defaultLabel: defaultVendor, defaultLabelMenuItem: defaultVendorMenuItem};
+            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+                return {defaultLabel: defaultAccount, defaultLabelMenuItem: defaultAccountMenuItem};
+            default:
+                return {defaultLabel: defaultCard, defaultLabelMenuItem: defaultMenuItem};
+        }
+    };
+
     const {nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount, reimbursableExpensesExportDestination, reimbursableExpensesAccount} =
         policy?.connections?.quickbooksOnline?.config ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
@@ -71,7 +87,7 @@ function getExportMenuItem(
             let data: Account[];
             let shouldShowMenuItem = nonReimbursableExpensesExportDestination !== CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
             let selectedAccount: Account | undefined;
-            const defaultAccount = nonReimbursableExpensesAccount?.name ?? reimbursableExpensesAccount?.name;
+            const defaultExportAccount = nonReimbursableExpensesAccount?.name ?? reimbursableExpensesAccount?.name;
             let isDefaultTitle = false;
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
             const qboConfig = nonReimbursableExpensesExportDestination ?? reimbursableExpensesExportDestination;
@@ -81,24 +97,20 @@ function getExportMenuItem(
                 case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD: {
                     data = creditCards ?? [];
-                    isDefaultTitle = !!(
-                        defaultAccount &&
-                        (!companyCard?.nameValuePairs?.quickbooks_online_export_account ||
-                            companyCard?.nameValuePairs?.quickbooks_online_export_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
-                    );
-                    selectedAccount = (creditCards ?? []).find((currentCard) => currentCard.id === (companyCard?.nameValuePairs?.quickbooks_online_export_account ?? defaultAccount));
+                    isDefaultTitle =
+                        !companyCard?.nameValuePairs?.quickbooks_online_export_account ||
+                        companyCard?.nameValuePairs?.quickbooks_online_export_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE;
+                    selectedAccount = (creditCards ?? []).find((currentCard) => currentCard.id === (companyCard?.nameValuePairs?.quickbooks_online_export_account ?? defaultExportAccount));
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT;
                     break;
                 }
                 case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD: {
                     data = quickbooksOnlineBankAccounts ?? [];
-                    isDefaultTitle = !!(
-                        defaultAccount &&
-                        (!companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ||
-                            companyCard?.nameValuePairs?.quickbooks_online_export_account_debit === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
-                    );
+                    isDefaultTitle =
+                        !companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ||
+                        companyCard?.nameValuePairs?.quickbooks_online_export_account_debit === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE;
                     selectedAccount = (quickbooksOnlineBankAccounts ?? []).find(
-                        (bank) => bank.id === (companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ?? defaultAccount),
+                        (bank) => bank.id === (companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ?? defaultExportAccount),
                     );
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT;
                     break;
@@ -107,11 +119,12 @@ function getExportMenuItem(
                     shouldShowMenuItem = false;
                     data = [];
             }
-            const resultData = data.length > 0 ? [defaultMenuItem, ...data] : data;
+            const {defaultLabel, defaultLabelMenuItem} = getDefaultExportLabel(qboConfig);
+            const resultData = data.length > 0 ? [defaultLabelMenuItem, ...data] : data;
 
             return {
                 description,
-                title: isDefaultTitle ? defaultCard : selectedAccount?.name,
+                title: isDefaultTitle ? defaultLabel : selectedAccount?.name,
                 exportType,
                 shouldShowMenuItem,
                 exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, backTo ?? basePath),
@@ -119,7 +132,7 @@ function getExportMenuItem(
                     value: card.id,
                     text: card.name,
                     keyForList: card.name,
-                    isSelected: isDefaultTitle ? card.name === defaultCard : card.id === selectedAccount?.id,
+                    isSelected: isDefaultTitle ? card.name === defaultLabel : card.id === selectedAccount?.id,
                 })),
             };
         }
@@ -127,26 +140,24 @@ function getExportMenuItem(
             const type = translate('workspace.xero.xeroBankAccount');
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
             const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_XERO_EXPORT_BANK_ACCOUNT;
-            const defaultAccount = exportConfiguration?.nonReimbursableAccount;
-            const isDefaultTitle = !!(
-                defaultAccount &&
-                (!companyCard?.nameValuePairs?.xero_export_bank_account || companyCard?.nameValuePairs?.xero_export_bank_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
-            );
-            const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === (companyCard?.nameValuePairs?.xero_export_bank_account ?? defaultAccount));
-            const resultData = (bankAccounts ?? [])?.length > 0 ? [defaultMenuItem, ...(bankAccounts ?? [])] : bankAccounts;
+            const defaultExportAccount = exportConfiguration?.nonReimbursableAccount;
+            const isDefaultTitle =
+                !companyCard?.nameValuePairs?.xero_export_bank_account || companyCard?.nameValuePairs?.xero_export_bank_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE;
+            const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === (companyCard?.nameValuePairs?.xero_export_bank_account ?? defaultExportAccount));
+            const resultData = (bankAccounts ?? [])?.length > 0 ? [defaultAccountMenuItem, ...(bankAccounts ?? [])] : bankAccounts;
 
             return {
                 description,
                 exportType,
                 shouldShowMenuItem: !!exportConfiguration?.nonReimbursableAccount,
-                title: isDefaultTitle ? defaultCard : selectedAccount?.name,
+                title: isDefaultTitle ? defaultAccount : selectedAccount?.name,
                 exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath),
                 data: (resultData ?? []).map((card) => {
                     return {
                         value: card.id,
                         text: card.name,
                         keyForList: card.id,
-                        isSelected: isDefaultTitle ? card.name === defaultCard : selectedAccount?.id === card.id,
+                        isSelected: isDefaultTitle ? card.name === defaultAccount : selectedAccount?.id === card.id,
                     };
                 }),
             };
@@ -240,12 +251,12 @@ function getExportMenuItem(
             switch (sageConfig) {
                 case CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL:
                 case CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL: {
-                    const defaultAccount = isNonReimbursable ? getSageIntacctNonReimbursableActiveDefaultVendor(policy) : exportConfig?.reimbursableExpenseReportDefaultVendor;
+                    const defaultExportAccount = isNonReimbursable ? getSageIntacctNonReimbursableActiveDefaultVendor(policy) : exportConfig?.reimbursableExpenseReportDefaultVendor;
                     isDefaultTitle = !!(
                         companyCard?.nameValuePairs?.intacct_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE || !companyCard?.nameValuePairs?.intacct_export_vendor
                     );
                     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-                    const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_vendor ?? defaultAccount;
+                    const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_vendor ?? defaultExportAccount;
                     const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
                     title = isDefaultTitle ? defaultVendor : selectedVendor?.value;
                     const resultData = (vendors ?? []).length > 0 ? [defaultVendorMenuItem, ...(vendors ?? [])] : vendors;
@@ -266,11 +277,11 @@ function getExportMenuItem(
 
                     const defaultVendorAccount = (policy?.connections?.intacct?.data?.vendors ?? []).find((vendor) => vendor.id === activeDefaultVendor);
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    const defaultAccount = exportConfig?.nonReimbursableAccount || defaultVendorAccount;
+                    const defaultExportAccount = exportConfig?.nonReimbursableAccount || defaultVendorAccount;
                     isDefaultTitle = !!(
                         companyCard?.nameValuePairs?.intacct_export_charge_card === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE || !companyCard?.nameValuePairs?.intacct_export_charge_card
                     );
-                    const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_charge_card ?? defaultAccount;
+                    const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_charge_card ?? defaultExportAccount;
                     const selectedCard = (intacctCreditCards ?? []).find(({id}) => id === selectedVendorID);
                     title = isDefaultTitle ? defaultCard : selectedCard?.name;
                     const resultData = (intacctCreditCards ?? []).length > 0 ? [defaultMenuItem, ...(intacctCreditCards ?? [])] : intacctCreditCards;
@@ -313,10 +324,10 @@ function getExportMenuItem(
                 nonReimbursableExpenses !== CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
             let title: string | undefined = '';
             let selectedAccount: Account | undefined;
-            const defaultAccount = exportQBD?.nonReimbursableAccount ?? exportQBD?.reimbursableAccount;
             let isDefaultTitle = false;
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
             const qbdConfig = nonReimbursableExpenses ?? reimbursableExpenses;
+            const {defaultLabel, defaultLabelMenuItem} = getDefaultExportLabel(qbdConfig);
             switch (qbdConfig) {
                 case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
@@ -326,11 +337,10 @@ function getExportMenuItem(
                     selectedAccount =
                         (creditCardAccounts ?? []).find((account) => account.id === companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit) ??
                         (creditCardAccounts ?? []).find((account) => account.name === companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit);
-                    isDefaultTitle = !!(
+                    isDefaultTitle =
                         companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
-                        (defaultAccount && !companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit)
-                    );
-                    title = isDefaultTitle ? defaultCard : selectedAccount?.name;
+                        !companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit;
+                    title = isDefaultTitle ? defaultLabel : selectedAccount?.name;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT;
                     break;
                 }
@@ -339,7 +349,7 @@ function getExportMenuItem(
                     data = [];
             }
 
-            const resultData = data.length > 0 ? [defaultMenuItem, ...data] : data;
+            const resultData = data.length > 0 ? [defaultLabelMenuItem, ...data] : data;
 
             return {
                 description,
@@ -351,7 +361,7 @@ function getExportMenuItem(
                     value: card.id,
                     text: card.name,
                     keyForList: card.name,
-                    isSelected: isDefaultTitle ? card.name === defaultCard : card.id === selectedAccount?.id,
+                    isSelected: isDefaultTitle ? card.name === defaultLabel : card.id === selectedAccount?.id,
                 })),
             };
         }

@@ -120,6 +120,40 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
         expect(result?.title).toBe(defaultCard);
     });
 
+    it('shows the default label even when no workspace default account is configured', () => {
+        const policy = createQBDPolicy({
+            connections: {
+                quickbooksDesktop: {
+                    config: {
+                        export: {
+                            nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                            nonReimbursableAccount: '',
+                            reimbursable: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
+                            reimbursableAccount: '',
+                            exportDate: CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE,
+                            nonReimbursableBillDefaultVendor: '',
+                            accountingMethod: 'accrual',
+                        },
+                    },
+                    data: {
+                        creditCardAccounts: QBD_CREDIT_CARD_ACCOUNTS,
+                    },
+                },
+            },
+        } as unknown as Partial<Policy>);
+        const card = createCard();
+
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, policy, card);
+
+        expect(result).toBeDefined();
+
+        const defaultCard = translateLocal('workspace.moreFeatures.companyCards.defaultCard');
+        expect(result?.title).toBe(defaultCard);
+
+        const selectedOption = result?.data?.find((item) => item.isSelected);
+        expect(selectedOption?.text).toBe(defaultCard);
+    });
+
     it('uses card.id (not card.name) as the option value for all items', () => {
         const policy = createQBDPolicy();
         const card = createCard('80000103-1746639410');
