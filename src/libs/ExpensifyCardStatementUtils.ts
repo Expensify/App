@@ -1,0 +1,152 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import fileDownload from '@libs/fileDownload';
+import sha1Hex from '@libs/StringUtils/sha1Hex';
+import CONST from '@src/CONST';
+import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+
+const CLEARED_SETTLEMENT_STATE = 8;
+
+type ExpensifyCardStatementFeed = {
+    policyID: string;
+    feedCountry?: string;
+    entryIDs: number[];
+};
+
+type ExpensifyCardStatementSelection = {
+    feeds: ExpensifyCardStatementFeed[];
+    hasMultipleFeeds: boolean;
+};
+
+type ExpensifyCardStatementParams = {
+    policyID: string;
+    feedCountry?: string;
+    entryIDs: number[];
+    statementKey: string;
+};
+
+function isExpensifyCardStatementSearch(queryJSON: SearchQueryJSON | undefined): boolean {
+    if (!queryJSON) {
+        return false;
+    }
+
+    if (queryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        return false;
+    }
+
+    if (queryJSON.groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
+        return false;
+    }
+
+    const withdrawalTypeFilter = queryJSON.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE);
+    return withdrawalTypeFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD) ?? false;
+}
+
+function getExpensifyCardStatementKey(policyID: string, feedCountry: string | undefined, entryIDs: number[]): string {
+    const sortedEntryIDs = [...entryIDs].sort((firstEntryID, secondEntryID) => firstEntryID - secondEntryID);
+    const feedCountrySuffix = feedCountry ? `_${feedCountry}` : '';
+    return `${policyID}${feedCountrySuffix}_${sha1Hex(sortedEntryIDs.join(','))}`;
+}
+
+function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
+    if (!searchData) {
+        return [];
+    }
+
+    return Object.keys(selectedTransactions)
+        .filter((selectionKey) => selectionKey.startsWith(CONST.SEARCH.GROUP_PREFIX) && selectedTransactions[selectionKey]?.isSelected)
+        .map((groupKey) => searchData[groupKey] as SearchWithdrawalIDGroup | undefined)
+        .filter((group): group is SearchWithdrawalIDGroup => !!group && group.state === CLEARED_SETTLEMENT_STATE && typeof group.entryID === 'number');
+}
+
+function getExpensifyCardStatementSelection(
+    queryJSON: SearchQueryJSON | undefined,
+    selectedTransactions: SelectedTransactions | undefined,
+    searchData: SearchResultDataType | undefined,
+): ExpensifyCardStatementSelection | undefined {
+    if (!isExpensifyCardStatementSearch(queryJSON) || !selectedTransactions) {
+        return undefined;
+    }
+
+    const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData);
+    if (selectedSettlementGroups.length === 0) {
+        return undefined;
+    }
+
+    const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
+    for (const settlementGroup of selectedSettlementGroups) {
+        if (!settlementGroup.policyID) {
+            continue;
+        }
+
+        const feedKey = `${settlementGroup.policyID}:${settlementGroup.feedCountry ?? ''}`;
+        const existingFeed = feedsByKey.get(feedKey);
+        if (existingFeed) {
+            existingFeed.entryIDs.push(settlementGroup.entryID);
+            continue;
+        }
+
+        feedsByKey.set(feedKey, {
+            policyID: settlementGroup.policyID,
+            feedCountry: settlementGroup.feedCountry,
+            entryIDs: [settlementGroup.entryID],
+        });
+    }
+
+    const feeds = Array.from(feedsByKey.values());
+    if (feeds.length === 0) {
+        return undefined;
+    }
+
+    return {
+        feeds,
+        hasMultipleFeeds: feeds.length > 1,
+    };
+}
+
+function getExpensifyCardStatementParams(
+    queryJSON: SearchQueryJSON | undefined,
+    selectedTransactions: SelectedTransactions | undefined,
+    searchData: SearchResultDataType | undefined,
+): ExpensifyCardStatementParams | undefined {
+    const selection = getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchData);
+    if (!selection || selection.hasMultipleFeeds || selection.feeds.length !== 1) {
+        return undefined;
+    }
+
+    const feed = selection.feeds.at(0);
+    if (!feed) {
+        return undefined;
+    }
+
+    return {
+        policyID: feed.policyID,
+        feedCountry: feed.feedCountry,
+        entryIDs: feed.entryIDs,
+        statementKey: getExpensifyCardStatementKey(feed.policyID, feed.feedCountry, feed.entryIDs),
+    };
+}
+
+function downloadExpensifyCardStatementPDF(
+    translate: LocalizedTranslate,
+    baseURL: string,
+    fileName: string,
+    statementKey: string,
+    currentUserEmail: string,
+    encryptedAuthToken: string,
+): Promise<void> {
+    const downloadFileName = `Expensify_Card_Statement_${statementKey}.pdf`;
+    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
+}
+
+export type {ExpensifyCardStatementFeed, ExpensifyCardStatementParams, ExpensifyCardStatementSelection};
+export {
+    CLEARED_SETTLEMENT_STATE,
+    downloadExpensifyCardStatementPDF,
+    getExpensifyCardStatementKey,
+    getExpensifyCardStatementParams,
+    getExpensifyCardStatementSelection,
+    isExpensifyCardStatementSearch,
+};
