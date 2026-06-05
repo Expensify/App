@@ -381,16 +381,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     useFocusEffect(
         useCallback(() => {
-            if (isUpgraded && canPerformUpgrade && !policy?.isPendingUpgrade && feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id) {
-                confirmUpgrade();
-            }
-
             return () => {
                 const {
                     isUpgraded: wasUpgraded,
                     canPerformUpgrade: couldPerformUpgrade,
                     upgradingFromSubmit: wasUpgradingFromSubmit,
-                    featureID: featureIDOnBlur,
+                    featureID,
                     confirmUpgrade: confirmUpgradeOnBlur,
                 } = confirmUpgradeOnBlurRef.current;
                 if (!wasUpgraded || !couldPerformUpgrade) {
@@ -398,14 +394,22 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
 
                 // UpgradeSubmit enables Collect-tier features on the backend; skip the redundant client-side enable.
-                if (wasUpgradingFromSubmit && featureIDOnBlur && SUBMIT_FEATURE_IDS.has(featureIDOnBlur)) {
+                if (wasUpgradingFromSubmit && featureID && SUBMIT_FEATURE_IDS.has(featureID)) {
                     return;
                 }
 
                 confirmUpgradeOnBlur();
             };
-        }, [canPerformUpgrade, confirmUpgrade, feature?.id, isUpgraded, policy?.isPendingUpgrade]),
+        }, []),
     );
+
+    useEffect(() => {
+        if (!isUpgraded || policy?.isPendingUpgrade || feature?.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id) {
+            return;
+        }
+
+        confirmUpgrade();
+    }, [confirmUpgrade, feature?.id, isUpgraded, policy?.isPendingUpgrade]);
 
     // Editors can view the intro but only admins can upgrade, so we separate
     // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
