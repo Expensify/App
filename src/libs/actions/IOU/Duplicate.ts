@@ -211,113 +211,52 @@ function mergeDuplicates({
 
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
 
-    // Group each discarded duplicate by its own source report so cleanup targets the right
-    // REPORT and REPORT_ACTIONS Onyx keys when duplicates live in different expense reports.
-    const allIOUReportActions = getAllReportActionsFromIOU();
-    type DiscardedDuplicate = {
-        iouAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
-        sourceReportID: string;
-        amount: number;
-    };
-    const discardedDuplicates: DiscardedDuplicate[] = [];
+    // Group each discarded duplicate's IOU action and amount by its own source report so the
+    // soft-delete MERGE and total decrement target the correct keys when duplicates span reports.
+    const sources = new Map<string, {amount: number; actions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>}>();
     for (const id of params.transactionIDList) {
         const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-        const sourceReportID = transaction?.reportID;
-        if (!sourceReportID) {
+        if (!transaction?.reportID) {
             continue;
         }
-        const reportActions = allIOUReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`];
-        const iouAction = Object.values(reportActions ?? {}).find((reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
-            if (!isMoneyRequestAction(reportAction)) {
-                return false;
-            }
-            return getOriginalMessage(reportAction)?.IOUTransactionID === id;
-        });
-        if (!iouAction) {
-            continue;
-        }
-        discardedDuplicates.push({iouAction, sourceReportID, amount: transaction.amount ?? 0});
+        const entry = sources.get(transaction.reportID) ?? {amount: 0, actions: []};
+        entry.amount += transaction.amount;
+        entry.actions.push(...getIOUActionForTransactions([id], transaction.reportID));
+        sources.set(transaction.reportID, entry);
     }
-    const iouActionsToDelete = discardedDuplicates.map(({iouAction}) => iouAction);
+    const iouActionsToDelete = [...sources.values()].flatMap(({actions}) => actions);
 
-    const discardedDuplicatesBySourceReport = discardedDuplicates.reduce<Record<string, DiscardedDuplicate[]>>((acc, entry) => {
-        const bucket = acc[entry.sourceReportID];
-        if (bucket) {
-            bucket.push(entry);
-        } else {
-            acc[entry.sourceReportID] = [entry];
-        }
-        return acc;
-    }, {});
-
+    const deletedTime = DateUtils.getDBTime();
     const expenseReportOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const expenseReportFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-    const deletedTime = DateUtils.getDBTime();
     const expenseReportActionsOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const expenseReportActionsFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-
-    for (const [sourceReportID, entries] of Object.entries(discardedDuplicatesBySourceReport)) {
+    for (const [sourceReportID, {amount, actions}] of sources) {
         const sourceReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
-        const sourceDuplicateTotals = entries.reduce((total, entry) => total + entry.amount, 0);
-        expenseReportOptimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`,
-            value: {
-                total: (sourceReport?.total ?? 0) - sourceDuplicateTotals,
-            },
-        });
-        expenseReportFailureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`,
-            value: {
-                total: sourceReport?.total,
-            },
-        });
-
-        const optimisticActionsValue = entries.reduce<Record<string, PartialDeep<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, {iouAction}) => {
-            const firstMessage = Array.isArray(iouAction.message) ? iouAction.message.at(0) : null;
-            // eslint-disable-next-line no-param-reassign
-            val[iouAction.reportActionID] = {
-                originalMessage: {
-                    deleted: deletedTime,
-                },
-                ...(firstMessage && {
-                    message: [
-                        {
-                            ...firstMessage,
-                            deleted: deletedTime,
-                        },
-                        ...(Array.isArray(iouAction.message) ? iouAction.message.slice(1) : []),
-                    ],
-                }),
-                ...(!Array.isArray(iouAction.message) && {
-                    message: {
-                        deleted: deletedTime,
-                    },
-                }),
-            };
-            return val;
-        }, {});
+        expenseReportOptimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, value: {total: (sourceReport?.total ?? 0) - amount}});
+        expenseReportFailureData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, value: {total: sourceReport?.total}});
         expenseReportActionsOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
-            value: optimisticActionsValue,
+            value: actions.reduce<Record<string, PartialDeep<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, reportAction) => {
+                const firstMessage = Array.isArray(reportAction.message) ? reportAction.message.at(0) : null;
+                // eslint-disable-next-line no-param-reassign
+                val[reportAction.reportActionID] = {
+                    originalMessage: {deleted: deletedTime},
+                    ...(firstMessage && {message: [{...firstMessage, deleted: deletedTime}, ...(Array.isArray(reportAction.message) ? reportAction.message.slice(1) : [])]}),
+                    ...(!Array.isArray(reportAction.message) && {message: {deleted: deletedTime}}),
+                };
+                return val;
+            }, {}),
         });
-
-        const failureActionsValue = entries.reduce<Record<string, NullishDeep<PartialDeep<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, {iouAction}) => {
-            // eslint-disable-next-line no-param-reassign
-            val[iouAction.reportActionID] = {
-                originalMessage: {
-                    deleted: null,
-                },
-                message: iouAction.message,
-            };
-            return val;
-        }, {});
         expenseReportActionsFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
-            value: failureActionsValue,
+            value: actions.reduce<Record<string, NullishDeep<PartialDeep<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
+                // eslint-disable-next-line no-param-reassign
+                val[reportAction.reportActionID] = {originalMessage: {deleted: null}, message: reportAction.message};
+                return val;
+            }, {}),
         });
     }
 
