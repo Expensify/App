@@ -17,7 +17,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/CompanyCards', () => ({
-    getExpensifyCardStatementPDF: jest.fn(),
+    getExpensifyCardStatementPDF: jest.fn(() => Promise.resolve({})),
 }));
 
 let mockIsOffline = false;
@@ -376,7 +376,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         mockSelectedTransactions = {
-            [groupKey]: makeSelectedTransaction({reportID: undefined}),
+            txn0: makeSelectedTransaction({groupKey, reportID: undefined}),
+            txn1: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
             [groupKey]: {
@@ -405,7 +406,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
     it('should request an Expensify Card statement PDF when Export as PDF is triggered', async () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         mockSelectedTransactions = {
-            [groupKey]: makeSelectedTransaction({reportID: undefined}),
+            txn0: makeSelectedTransaction({groupKey, reportID: undefined}),
+            txn1: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
             [groupKey]: {
@@ -491,7 +493,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
         mockIsOffline = true;
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         mockSelectedTransactions = {
-            [groupKey]: makeSelectedTransaction({reportID: undefined}),
+            txn0: makeSelectedTransaction({groupKey, reportID: undefined}),
+            txn1: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
             [groupKey]: {

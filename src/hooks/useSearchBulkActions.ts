@@ -42,7 +42,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getExpensifyCardStatementKey, getExpensifyCardStatementParams, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+import {getExpensifyCardStatementKey, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import {getTargetTransactionThreadReportIDForSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -506,10 +506,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const expensifyCardStatementSelection = useMemo(
         () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data),
-        [queryJSON, searchResults?.data, selectedTransactions],
-    );
-    const expensifyCardStatementParams = useMemo(
-        () => getExpensifyCardStatementParams(queryJSON, selectedTransactions, searchResults?.data),
         [queryJSON, searchResults?.data, selectedTransactions],
     );
     const firstTransactionID = selectedTransactionsKeys.at(0);
@@ -1312,9 +1308,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             statementKey: getExpensifyCardStatementKey(feed.policyID, feed.feedCountry, feed.entryIDs),
                         };
 
-                        getExpensifyCardStatementPDF(feed.policyID, feed.feedCountry, feed.entryIDs);
                         setExpensifyCardStatementPDFParams(statementParams);
                         setIsExpensifyCardStatementPDFModalVisible(true);
+                        getExpensifyCardStatementPDF(feed.policyID, feed.feedCountry, feed.entryIDs)?.then((response) => {
+                            const statementKey = response?.statementKey;
+                            if (typeof statementKey !== 'string' || statementKey.length === 0) {
+                                return;
+                            }
+
+                            setExpensifyCardStatementPDFParams((currentParams) => (currentParams ? {...currentParams, statementKey} : currentParams));
+                        });
                     },
                     shouldCloseModalOnSelect: true,
                     shouldCallAfterModalHide: true,
