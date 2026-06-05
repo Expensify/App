@@ -1175,6 +1175,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1239,6 +1240,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1295,6 +1297,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1344,6 +1347,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1393,6 +1397,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1445,6 +1450,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1507,6 +1513,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1554,6 +1561,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1594,6 +1602,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1637,6 +1646,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1686,6 +1696,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1751,6 +1762,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1816,6 +1828,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1865,6 +1878,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1925,6 +1939,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2665,6 +2680,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();

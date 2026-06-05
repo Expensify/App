@@ -221,6 +221,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -326,6 +327,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -415,6 +417,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -468,6 +471,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -549,6 +553,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -602,6 +607,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -687,6 +693,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -740,6 +747,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -823,6 +831,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -876,6 +885,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -978,6 +988,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1032,6 +1043,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1094,6 +1106,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             };
         }
 
@@ -1209,6 +1222,53 @@ describe('actions/IOU/TrackExpense', () => {
             expect(createdTransaction?.reimbursable).toBe(true);
         });
 
+        it('threads explicit currentUserLocalCurrency into the draft workspace, not the deprecated session fallback', async () => {
+            // Seed Onyx session + personal details so the deprecated fallback would resolve to EUR
+            await Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, localCurrencyCode: CONST.CURRENCY.EUR},
+            });
+
+            // The buildPolicyData call inside getTrackExpenseInformation is gated on `isDraftReport(chatReport.reportID)`,
+            // which checks REPORT_DRAFT storage. Seed both the report and the draft so the gate opens.
+            const draftReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-currency-thread',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReport.reportID}`, draftReport);
+            await waitForBatchedUpdates();
+
+            // Spy on API.write so we can read the optimisticData straight from the trackExpense call
+            // without depending on draft/onyx side effects after the call.
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When trackExpense is called for a draft report (which triggers buildPolicyData)
+            // with an explicit GBP currentUserLocalCurrency
+            trackExpense({
+                ...getDefaultTrackExpenseParams(draftReport),
+                isDraftPolicy: true,
+                currentUserLocalCurrency: 'GBP',
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic policy in the API call uses GBP, not the deprecated session EUR
+            const optimisticData = (apiWriteSpy.mock.calls.flatMap(
+                (call) => (call.at(2) as {optimisticData?: Array<{key?: string; value?: Record<string, unknown>}>})?.optimisticData ?? [],
+            ) ?? []) as Array<{
+                key?: string;
+                value?: Record<string, unknown>;
+            }>;
+            const policyOptimisticUpdate = optimisticData.find(
+                (update) => (update.key ?? '').startsWith(ONYXKEYS.COLLECTION.POLICY) && (update.value as {outputCurrency?: string})?.outputCurrency !== undefined,
+            );
+            expect((policyOptimisticUpdate?.value as {outputCurrency?: string})?.outputCurrency).toBe('GBP');
+            expect((policyOptimisticUpdate?.value as {outputCurrency?: string})?.outputCurrency).not.toBe(CONST.CURRENCY.EUR);
+
+            apiWriteSpy.mockRestore();
+        });
+
         it('should complete full track expense flow: create -> categorize -> submit to workspace', async () => {
             // Given a selfDM report, policy, and expense chat
             const selfDMReport: Report = {
@@ -1314,6 +1374,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1403,6 +1464,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1740,6 +1802,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1772,6 +1835,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1826,6 +1890,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1871,6 +1936,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1918,6 +1984,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then result should be valid
@@ -1956,6 +2023,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -2117,6 +2185,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2420,6 +2489,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2476,6 +2546,7 @@ describe('actions/IOU/TrackExpense', () => {
         afterEach(PusherHelper.teardown);
 
         it('should call API.write with delete money request onyx data for selfDM track expenses and return the parent report route in single transaction view', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const result = deleteTrackExpense({

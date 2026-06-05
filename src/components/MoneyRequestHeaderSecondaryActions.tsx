@@ -99,7 +99,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
-    const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID, localCurrencyCode} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -245,6 +245,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyTags,
                 conciergeReportID,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         }
     };

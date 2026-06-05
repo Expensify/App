@@ -35,6 +35,13 @@ type CreateTrackExpenseParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
+    /**
+     * Current user's local currency, threaded from `useCurrentUserPersonalDetails().localCurrencyCode`.
+     * Used when trackExpense creates a draft workspace via buildPolicyData so that the optimistic
+     * distance rate currency does not fall back to the deprecated session-scoped Onyx.connect value
+     * (https://github.com/Expensify/App/issues/66580).
+     */
+    currentUserLocalCurrency: string | undefined;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
