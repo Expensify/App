@@ -4327,7 +4327,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'ワークスペース管理者';
+                        return '管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '監査担当者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -4335,7 +4335,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'メンバー管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return '支払い管理者';
+                        return '支払管理者';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -6134,7 +6134,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
             configureHRSync: (providerName: string) => `${providerName} の同期を設定します。`,
             syncWithHR: (providerName: string) => `${providerName}と同期`,
-            makeCardAdmin: {one: 'カード管理者にする', other: 'カード管理者を作成'},
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -8269,10 +8268,8 @@ ${reportName}
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const article = role.toLowerCase() === 'auditor' ? '一つの' : 'a';
-                    return didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${email} を${article}${role}として追加しました`;
-                },
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${role === 'member' ? 'a' : '1つの'} ${role} として ${email} を追加しました`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} のロールを ${currentRole} から ${newRole} に更新しました`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

@@ -4359,13 +4359,13 @@ ${amount} per ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Amministratore spazio di lavoro';
+                        return 'Amministratore';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Amministratore carta';
+                        return 'Amministrazione carta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Amministratore persone';
+                        return 'Amministrazione persone';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Amministrazione pagamenti';
                     case CONST.POLICY.ROLE.USER:
@@ -6207,7 +6207,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},
             configureHRSync: (providerName: string) => `Configura la sincronizzazione di ${providerName}.`,
             syncWithHR: (providerName: string) => `Sincronizza con ${providerName}`,
-            makeCardAdmin: {one: 'Rendi amministratore della carta', other: 'Rendi amministratori carta'},
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -8379,10 +8378,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     `La connessione ${feedName} è interrotta. Per ripristinare le importazioni della carta, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const article = role.toLowerCase() === 'auditor' ? 'un' : 'a';
-                    return didJoinPolicy ? `${email} si è unito tramite il link di invito dello spazio di lavoro` : `ha aggiunto ${email} come ${article} ${role}`;
-                },
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} si è unito tramite il link di invito allo spazio di lavoro` : `ha aggiunto ${email} come ${role === 'member' ? 'a' : 'un'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `ha aggiornato il ruolo di ${email} a ${newRole} (in precedenza ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
