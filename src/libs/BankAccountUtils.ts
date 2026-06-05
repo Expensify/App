@@ -187,3 +187,4 @@ export {
     getCompletedStepsForBankAccount,
     PERSONAL_INFO_STEP,
 };
+export type {KYBVerificationResponses};
