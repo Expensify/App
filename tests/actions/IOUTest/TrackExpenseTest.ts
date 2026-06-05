@@ -2499,7 +2499,6 @@ describe('actions/IOU/TrackExpense', () => {
         afterEach(PusherHelper.teardown);
 
         it('should call API.write with delete money request onyx data for selfDM track expenses and return the parent report route in single transaction view', () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const result = deleteTrackExpense({
