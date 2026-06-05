@@ -258,6 +258,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
+            setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
             return;
         }
 
