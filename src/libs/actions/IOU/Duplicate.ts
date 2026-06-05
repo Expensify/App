@@ -224,13 +224,14 @@ function mergeDuplicates({
         entry.actions.push(...getIOUActionForTransactions([id], transaction.reportID));
         sources.set(transaction.reportID, entry);
     }
-    const iouActionsToDelete = [...sources.values()].flatMap(({actions}) => actions);
-
     const deletedTime = DateUtils.getDBTime();
     const expenseReportOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const expenseReportFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const expenseReportActionsOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const expenseReportActionsFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const cleanUpTransactionThreadReportsOptimisticData = [];
+    const cleanUpTransactionThreadReportsSuccessData = [];
+    const cleanUpTransactionThreadReportsFailureData = [];
     for (const [sourceReportID, {amount, actions}] of sources) {
         const sourceReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
         expenseReportOptimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, value: {total: (sourceReport?.total ?? 0) - amount}});
@@ -258,27 +259,25 @@ function mergeDuplicates({
                 return val;
             }, {}),
         });
-    }
 
-    const cleanUpTransactionThreadReportsOptimisticData = [];
-    const cleanUpTransactionThreadReportsSuccessData = [];
-    const cleanUpTransactionThreadReportsFailureData = [];
-    let updatedReportPreviewAction;
-    for (const [index, iouAction] of Object.entries(iouActionsToDelete)) {
-        const transactionThreadID = iouAction.childReportID;
-        const shouldDeleteTransactionThread = !!transactionThreadID;
-        const cleanUpTransactionThreadReportOnyxDataForIouAction = getCleanUpTransactionThreadReportOnyxData({
-            transactionThreadID,
-            shouldDeleteTransactionThread,
-            reportAction: iouAction,
-            updatedReportPreviewAction,
-            shouldAddUpdatedReportPreviewActionToOnyxData: Number(index) === iouActionsToDelete.length - 1,
-            currentUserAccountID,
-        });
-        cleanUpTransactionThreadReportsOptimisticData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.optimisticData);
-        cleanUpTransactionThreadReportsSuccessData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.successData);
-        cleanUpTransactionThreadReportsFailureData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.failureData);
-        updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxDataForIouAction.updatedReportPreviewAction;
+        // Reset the report-preview accumulator per source so each source report's chat parent
+        // gets its own flushed update (and we don't leak one source's preview action into another).
+        let updatedReportPreviewAction;
+        for (const [index, iouAction] of actions.entries()) {
+            const transactionThreadID = iouAction.childReportID;
+            const cleanUp = getCleanUpTransactionThreadReportOnyxData({
+                transactionThreadID,
+                shouldDeleteTransactionThread: !!transactionThreadID,
+                reportAction: iouAction,
+                updatedReportPreviewAction,
+                shouldAddUpdatedReportPreviewActionToOnyxData: index === actions.length - 1,
+                currentUserAccountID,
+            });
+            cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);
+            cleanUpTransactionThreadReportsSuccessData.push(...cleanUp.successData);
+            cleanUpTransactionThreadReportsFailureData.push(...cleanUp.failureData);
+            updatedReportPreviewAction = cleanUp.updatedReportPreviewAction;
+        }
     }
     const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
 
