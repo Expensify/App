@@ -193,7 +193,11 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ReportField ---
 
-type ReportFieldTransactionState = {reportID: Transaction['reportID']; isFromGlobalCreate: boolean};
+type ReportFieldTransactionState = {
+    reportID: Transaction['reportID'];
+    isFromGlobalCreate: boolean;
+    participantReportID: string | undefined;
+};
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
     if (!t) {
@@ -202,6 +206,7 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     return {
         reportID: t.reportID,
         isFromGlobalCreate: !!t.isFromGlobalCreate,
+        participantReportID: t.participants?.at(0)?.reportID,
     };
 };
 
