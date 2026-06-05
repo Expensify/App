@@ -166,6 +166,7 @@ type PersonalBankAccountUpdateData = Pick<
 >;
 
 function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountUpdateData) {
+    // The BE concatenates addressStreet2 into addressStreet with a newline, so mirror that here to match the stored value.
     const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
 
     const bankAccountKey = String(bankAccountID);
@@ -189,7 +190,8 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
         companyPhone: accountData.phoneNumber,
         legalFirstName: accountData.legalFirstName,
         legalLastName: accountData.legalLastName,
-        addressStreet: formattedStreet,
+        addressStreet: accountData.addressStreet,
+        addressStreet2: accountData.addressStreet2 ?? '',
         addressCity: accountData.addressCity,
         addressState: accountData.addressState,
         addressZip: accountData.addressZipCode,

@@ -7,6 +7,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -28,7 +29,7 @@ import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ConfirmationStepProps = {
     /** ID of the policy that the card will be issued under */
-    policyID: string | undefined;
+    policyID: string;
 
     /** Array of step names */
     stepNames: readonly string[];
@@ -46,9 +47,12 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const defaultFundID = useDefaultFundID(policyID);
     const {isBetaEnabled} = usePermissions();
+    const {cardRules} = useExpensifyCardRules(policyID);
+
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
+    const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
     const personalDetails = usePersonalDetails();
@@ -123,6 +127,33 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
 
     const shouldShowExpirationDate = !isPhysicalCard;
 
+    const cardRuleRestrictionsTitle = (() => {
+        if (!data?.spendRuleEnabled) {
+            return '';
+        }
+
+        const fields: string[] = [];
+        const spendRuleOption = data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
+        const isCopyingExistingRule = spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
+        const spendRuleForm = isCopyingExistingRule ? cardRules.find((rule) => rule.ruleID === data.spendRuleID)?.formValues : data?.spendRuleValue;
+
+        if (spendRuleForm?.categories?.length) {
+            fields.push(translate('workspace.rules.spendRules.categories'));
+        }
+
+        if (spendRuleForm?.maxAmount) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.maxAmount') : translate('workspace.rules.spendRules.maxAmount').toLowerCase();
+            fields.push(translation);
+        }
+
+        if (spendRuleForm?.merchantNames?.length) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.merchants') : translate('workspace.rules.spendRules.merchants').toLowerCase();
+            fields.push(translation);
+        }
+
+        return fields.join(', ');
+    })();
+
     return (
         <InteractiveStepWrapper
             wrapperID="ConfirmationStep"
@@ -171,6 +202,14 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     <MenuItemWithTopDescription
                         description={translate('workspace.card.issueNewCard.expirationDate')}
                         title={expirationDateTitle}
+                        shouldShowRightIcon
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
+                    />
+                )}
+                {isSpendRuleApplied && (
+                    <MenuItemWithTopDescription
+                        description={translate('common.restrictions')}
+                        title={cardRuleRestrictionsTitle}
                         shouldShowRightIcon
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                     />
