@@ -6910,6 +6910,10 @@ const translations = {
             approvalSubmit: {
                 title: 'Approvals',
                 description: 'Centrally configure who all members submit to by enabling approvals.',
+                approveReport: {
+                    title: 'Approve Reports',
+                    description: 'Approve reports and reimburse employees by upgrading to the Collect plan.',
+                },
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Approvals are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },

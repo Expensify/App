@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,6 +29,7 @@ import {
     isControlPolicy,
     isPaidGroupPolicy,
 } from '@libs/PolicyUtils';
+import {tryReplayPendingApproveMoneyRequest, tryReplayPendingApproveMoneyRequestOnSearch} from '@libs/tryReplayPendingWorkspaceUpgradeApproval';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
@@ -106,6 +109,17 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [pendingWorkspaceUpgradeIntent] = useOnyx(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT);
+    const approveMoneyRequestIntent = pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST ? pendingWorkspaceUpgradeIntent : undefined;
+    const [pendingExpenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${approveMoneyRequestIntent?.reportID}`);
+    const [pendingExpenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(pendingExpenseReport?.policyID ?? approveMoneyRequestIntent?.policyID)}`);
+    const [pendingNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${approveMoneyRequestIntent?.reportID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
@@ -178,7 +192,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id ||
                 feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id;
             const targetType = isCorporateUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-            const pendingReportID = pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST ? pendingWorkspaceUpgradeIntent.reportID : undefined;
+            const pendingReportID =
+                pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST ||
+                pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST_ON_SEARCH
+                    ? pendingWorkspaceUpgradeIntent.reportID
+                    : undefined;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, pendingReportID);
             return;
         }
@@ -251,8 +269,32 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePolicyHR(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
                 setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
+                if (pendingWorkspaceUpgradeIntent) {
+                    tryReplayPendingApproveMoneyRequest({
+                        intent: pendingWorkspaceUpgradeIntent,
+                        expenseReport: pendingExpenseReport,
+                        expenseReportPolicy: pendingExpenseReportPolicy,
+                        accountID,
+                        email,
+                        isASAPSubmitBetaEnabled,
+                        nextStep: pendingNextStep,
+                        betas,
+                        userBillingGracePeriodEnds,
+                        amountOwed,
+                        ownerBillingGracePeriodEnd,
+                        allTransactionViolations,
+                        delegateEmail,
+                    });
+                    tryReplayPendingApproveMoneyRequestOnSearch({
+                        intent: pendingWorkspaceUpgradeIntent,
+                        policy,
+                    });
+                } else {
+                    setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
+                }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id:
                 enableExpensifyCard(policyID, true);
@@ -306,22 +348,49 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
         categoryId,
+        pendingWorkspaceUpgradeIntent,
+        pendingExpenseReport,
+        pendingExpenseReportPolicy,
+        pendingNextStep,
+        betas,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        allTransactionViolations,
+        delegateEmail,
+        isASAPSubmitBetaEnabled,
     ]);
 
-    const confirmUpgradeOnBlurRef = useRef({isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID: feature?.id, confirmUpgrade});
+    const confirmUpgradeOnBlurRef = useRef({
+        isUpgraded,
+        canPerformUpgrade,
+        upgradingFromSubmit,
+        featureID: feature?.id,
+        confirmUpgrade,
+    });
 
     useEffect(() => {
-        confirmUpgradeOnBlurRef.current = {isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID: feature?.id, confirmUpgrade};
+        confirmUpgradeOnBlurRef.current = {
+            isUpgraded,
+            canPerformUpgrade,
+            upgradingFromSubmit,
+            featureID: feature?.id,
+            confirmUpgrade,
+        };
     });
 
     useFocusEffect(
         useCallback(() => {
+            if (isUpgraded && canPerformUpgrade && !policy?.isPendingUpgrade && feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id) {
+                confirmUpgrade();
+            }
+
             return () => {
                 const {
                     isUpgraded: wasUpgraded,
                     canPerformUpgrade: couldPerformUpgrade,
                     upgradingFromSubmit: wasUpgradingFromSubmit,
-                    featureID,
+                    featureID: featureIDOnBlur,
                     confirmUpgrade: confirmUpgradeOnBlur,
                 } = confirmUpgradeOnBlurRef.current;
                 if (!wasUpgraded || !couldPerformUpgrade) {
@@ -329,13 +398,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
 
                 // UpgradeSubmit enables Collect-tier features on the backend; skip the redundant client-side enable.
-                if (wasUpgradingFromSubmit && featureID && SUBMIT_FEATURE_IDS.has(featureID)) {
+                if (wasUpgradingFromSubmit && featureIDOnBlur && SUBMIT_FEATURE_IDS.has(featureIDOnBlur)) {
                     return;
                 }
 
                 confirmUpgradeOnBlur();
             };
-        }, []),
+        }, [canPerformUpgrade, confirmUpgrade, feature?.id, isUpgraded, policy?.isPendingUpgrade]),
     );
 
     // Editors can view the intro but only admins can upgrade, so we separate
