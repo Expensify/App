@@ -11,6 +11,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
@@ -41,6 +42,8 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {getExpensifyCardStatementKey, getExpensifyCardStatementParams, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import {getTargetTransactionThreadReportIDForSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -360,6 +363,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
     const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
+    const [isExpensifyCardStatementPDFModalVisible, setIsExpensifyCardStatementPDFModalVisible] = useState(false);
+    const [expensifyCardStatementPDFParams, setExpensifyCardStatementPDFParams] = useState<ExpensifyCardStatementParams | undefined>(undefined);
+    const [isExpensifyCardStatementMultiFeedAlertVisible, setIsExpensifyCardStatementMultiFeedAlertVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
@@ -400,6 +406,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'GustoSquare',
         'Pencil',
         'Workflows',
+        'Document',
     ]);
 
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -497,6 +504,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const expensifyCardStatementSelection = useMemo(
+        () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data),
+        [queryJSON, searchResults?.data, selectedTransactions],
+    );
+    const expensifyCardStatementParams = useMemo(
+        () => getExpensifyCardStatementParams(queryJSON, selectedTransactions, searchResults?.data),
+        [queryJSON, searchResults?.data, selectedTransactions],
+    );
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
         (firstTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined) ??
@@ -1270,6 +1285,42 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
+            if (expensifyCardStatementSelection) {
+                exportOptions.push({
+                    text: translate('export.exportAsPDF'),
+                    icon: expensifyIcons.Document,
+                    onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
+
+                        if (expensifyCardStatementSelection.hasMultipleFeeds) {
+                            setIsExpensifyCardStatementMultiFeedAlertVisible(true);
+                            return;
+                        }
+
+                        const feed = expensifyCardStatementSelection.feeds.at(0);
+                        if (!feed) {
+                            return;
+                        }
+
+                        const statementParams: ExpensifyCardStatementParams = {
+                            policyID: feed.policyID,
+                            feedCountry: feed.feedCountry,
+                            entryIDs: feed.entryIDs,
+                            statementKey: getExpensifyCardStatementKey(feed.policyID, feed.feedCountry, feed.entryIDs),
+                        };
+
+                        getExpensifyCardStatementPDF(feed.policyID, feed.feedCountry, feed.entryIDs);
+                        setExpensifyCardStatementPDFParams(statementParams);
+                        setIsExpensifyCardStatementPDFModalVisible(true);
+                    },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                });
+            }
+
             return exportOptions;
         };
 
@@ -1865,6 +1916,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        expensifyCardStatementSelection,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
@@ -1879,6 +1931,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setPdfReportID(undefined);
         clearSelectedTransactions();
     }, [clearSelectedTransactions]);
+
+    const handleExpensifyCardStatementPDFModalHide = useCallback(() => {
+        setExpensifyCardStatementPDFParams(undefined);
+    }, []);
+
+    const handleExpensifyCardStatementMultiFeedAlertClose = useCallback(() => {
+        setIsExpensifyCardStatementMultiFeedAlertVisible(false);
+    }, []);
 
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
@@ -1919,6 +1979,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        isExpensifyCardStatementPDFModalVisible,
+        setIsExpensifyCardStatementPDFModalVisible,
+        expensifyCardStatementPDFParams,
+        handleExpensifyCardStatementPDFModalHide,
+        isExpensifyCardStatementMultiFeedAlertVisible,
+        handleExpensifyCardStatementMultiFeedAlertClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
