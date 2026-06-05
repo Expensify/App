@@ -44,6 +44,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
+
+    /** When true, keep the popover list area at the maximum height while filtering */
+    shouldUseFixedPopoverHeight?: boolean;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -60,6 +63,7 @@ function SingleSelectPopup<T extends string>({
     selectionListStyle,
     itemHeight,
     shouldShowList = true,
+    shouldUseFixedPopoverHeight,
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
 
@@ -95,6 +99,7 @@ function SingleSelectPopup<T extends string>({
                     selectionListStyle={selectionListStyle}
                     shouldShowList={shouldShowList}
                     itemHeight={itemHeight}
+                    shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
                 />
             </ListFilterHeightContextProvider>
         </BasePopup>

@@ -39,6 +39,9 @@ type SingleSelectProps<T> = {
     /** Custom height for each item in the list */
     itemHeight?: number;
 
+    /** When true, keep the popover list area at the maximum height while filtering */
+    shouldUseFixedPopoverHeight?: boolean;
+
     hasTitle?: boolean;
     hasHeader?: boolean;
 };
@@ -54,6 +57,7 @@ function SingleSelect<T extends string>({
     hasHeader,
     onChange,
     itemHeight,
+    shouldUseFixedPopoverHeight,
 }: SingleSelectProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -117,6 +121,7 @@ function SingleSelect<T extends string>({
             hasTitle={hasTitle}
             isSearchable={isSearchable}
             itemHeight={itemHeight ?? variables.optionRowHeight}
+            shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList
