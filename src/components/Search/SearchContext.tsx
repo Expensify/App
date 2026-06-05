@@ -4,6 +4,7 @@ import {
     SearchQueryContext,
     SearchResultsActionsContext,
     SearchResultsContext,
+    SearchRowSelectionActionsContext,
     SearchSelectionActionsContext,
     SearchSelectionContext,
 } from './SearchContextDefinitions';
@@ -37,6 +38,10 @@ function useSearchSelectionActions() {
     return useContext(SearchSelectionActionsContext);
 }
 
+function useSearchRowSelectionActions() {
+    return useContext(SearchRowSelectionActionsContext);
+}
+
 export {
     SearchQueryContext,
     SearchQueryActionsContext,
@@ -44,10 +49,12 @@ export {
     SearchResultsActionsContext,
     SearchSelectionContext,
     SearchSelectionActionsContext,
+    SearchRowSelectionActionsContext,
     useSearchQueryContext,
     useSearchQueryActions,
     useSearchResultsContext,
     useSearchResultsActions,
     useSearchSelectionContext,
     useSearchSelectionActions,
+    useSearchRowSelectionActions,
 };

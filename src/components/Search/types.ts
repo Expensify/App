@@ -1,13 +1,16 @@
+import type {RefObject} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
-import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {
     ReportActionListItemType,
+    SearchListItem,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -232,6 +235,42 @@ type SearchSelectionActionsValue = {
     selectAllMatchingItems: (on: boolean) => void;
 };
 
+/**
+ * Screen-derived inputs that the row selection write actions read at call time. Populated by
+ * `SearchSelectionController` (a child of `<Search>`) and read by `toggle`/`toggleAll`/`reconcileSelection`,
+ * so those actions can keep a stable identity instead of closing over high-churn screen state.
+ */
+type SearchSelectionScreenContext = {
+    filteredData: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[];
+    transactions: OnyxCollection<Transaction>;
+    searchResultsData: SearchResults['data'] | undefined;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+    selfDMReport: OnyxEntry<Report>;
+    isProduction: boolean;
+    areItemsGrouped: boolean;
+    totalSelectableItemsCount: number;
+};
+
+/**
+ * Stable-identity selection write actions consumed by rows, the table header, and `SearchSelectionController`.
+ * Lives on its own context (separate from both the selection state context and the bulk-action setters) so
+ * pressing a checkbox never re-renders consumers that only need to dispatch.
+ */
+type SearchRowSelectionActionsValue = {
+    /** Toggle selection of a single transaction row or a group (report / grouped rows). */
+    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    /** Toggle selection of all currently selectable items. */
+    toggleAll: () => void;
+    /** Clear the entire selection. */
+    clearAll: () => void;
+    /** Atomically rebuild the selection from freshly-loaded data (used by the reconcile-with-data effect). */
+    reconcileSelection: (newList: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]) => void;
+    /** Mutable screen-context populated by `SearchSelectionController`; read by the write actions at call time. */
+    screenContextRef: RefObject<SearchSelectionScreenContext>;
+};
+
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
 type SearchStateContextValue = SearchQueryContextValue & SearchResultsContextValue & SearchSelectionContextValue;
 
@@ -431,6 +470,8 @@ export type {
     SearchResultsActionsValue,
     SearchSelectionContextValue,
     SearchSelectionActionsValue,
+    SearchSelectionScreenContext,
+    SearchRowSelectionActionsValue,
     ASTNode,
     QueryFilter,
     QueryFilters,
