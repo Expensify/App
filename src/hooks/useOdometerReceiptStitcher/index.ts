@@ -143,5 +143,5 @@ function useOdometerReceiptStitcher({
     return {state, isReady, isStitching, error, hasVerifiedBlobs};
 }
 
-export type {OdometerReceiptState, UseOdometerReceiptStitcherArgs, UseOdometerReceiptStitcherResult} from './types';
+export type {UseOdometerReceiptStitcherArgs} from './types';
 export default useOdometerReceiptStitcher;

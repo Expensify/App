@@ -21,11 +21,8 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** Map of reportActions saved via usePrev */
     prevSortedVisibleReportActionsObjects: Record<string, OnyxTypes.ReportAction>;
 
-    /** Current value for vertical offset */
-    scrollingVerticalOffset: number;
-
-    /** The id of reportAction that was last marked as read */
-    prevUnreadMarkerReportActionID: string | null;
+    /** Whether the list is scrolled past the threshold where incoming actions are considered out of view */
+    isScrolledOverThreshold: boolean;
 
     /** Whether the network is offline */
     isOffline: boolean;
@@ -42,8 +39,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     unreadMarkerTime,
     currentUserAccountID,
     prevSortedVisibleReportActionsObjects,
-    prevUnreadMarkerReportActionID,
-    scrollingVerticalOffset,
+    isScrolledOverThreshold,
     isOffline,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
@@ -80,7 +76,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const isPreviouslyOptimistic =
         (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-    const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
+    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
 
     // When no unread marker exists yet, never anchor it above a self-authored action.
     // (If a marker already exists and then moves due to deletion, allow it to land on a self-authored action.)
@@ -88,7 +84,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
         return false;
     }
 
-    return !isNewMessage || scrollingVerticalOffset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+    return !isNewMessage || isScrolledOverThreshold;
 };
 
 export default shouldDisplayNewMarkerOnReportAction;
@@ -109,11 +105,8 @@ type GetUnreadMarkerReportActionParams = {
     /** Time for unreadMarker */
     unreadMarkerTime: string | undefined;
 
-    /** Current value for vertical offset */
-    scrollingVerticalOffset: number;
-
-    /** The id of reportAction that was last marked as read */
-    prevUnreadMarkerReportActionID: string | null;
+    /** Whether the list is scrolled past the threshold where incoming actions are considered out of view */
+    isScrolledOverThreshold: boolean;
 
     /** Whether the network is offline */
     isOffline: boolean;
@@ -135,8 +128,7 @@ const getUnreadMarkerReportAction = ({
     currentUserAccountID,
     prevSortedVisibleReportActionsObjects,
     unreadMarkerTime,
-    scrollingVerticalOffset,
-    prevUnreadMarkerReportActionID,
+    isScrolledOverThreshold,
     isOffline,
     isReversed,
     isAnonymousUser = false,
@@ -177,8 +169,7 @@ const getUnreadMarkerReportAction = ({
                 currentUserAccountID,
                 prevSortedVisibleReportActionsObjects,
                 unreadMarkerTime,
-                scrollingVerticalOffset,
-                prevUnreadMarkerReportActionID,
+                isScrolledOverThreshold,
                 isOffline,
             });
 
