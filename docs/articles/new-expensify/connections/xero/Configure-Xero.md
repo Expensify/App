@@ -75,6 +75,7 @@ Advanced settings control sync frequency and automation.
 - **Sync reimbursed reports**—Mark reimbursed reports in Expensify as Paid in Xero. This requires selecting a Xero reimbursement account.
 - **Xero bill payment account** – Required if **Sync reimbursed reports** is enabled.
 - **Xero invoice collections account** – Select the account where paid invoices appear.
+- **Sync travel invoicing settlements** – If Travel Invoicing is enabled on the Workspace, turn this on to reconcile your travel invoicing settlements in Xero. Auto-sync must be on for this option to be available. When you turn it on, select a **Reconciliation account** – the bank account used to reconcile travel settlements.
 
 ---
 
