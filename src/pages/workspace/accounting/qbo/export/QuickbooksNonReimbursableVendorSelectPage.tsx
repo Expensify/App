@@ -99,5 +99,4 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
     );
 }
 
-export type {VendorConfigKey};
 export default QuickbooksNonReimbursableVendorSelectPage;
