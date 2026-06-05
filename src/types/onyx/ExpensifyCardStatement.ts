@@ -3,7 +3,7 @@ type ExpensifyCardStatement = {
     /** Whether we are currently generating a PDF version of the statement */
     isGenerating: boolean;
     /**
-     * Cache key format: "{policyID}_{feedCountry}_{sha1(sortedEntryIDs)}" with filename as value.
+     * Server-owned cache keys map to generated PDF filenames.
      * Boolean value added for isGenerating key.
      */
     [cacheKey: string]: string | boolean;

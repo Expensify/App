@@ -1,4 +1,4 @@
-import {getExpensifyCardStatementKey, getExpensifyCardStatementParams, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
+import {getExpensifyCardStatementParams, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
 import type {SearchQueryJSON, SelectedTransactions} from '@src/components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
@@ -124,7 +124,6 @@ describe('ExpensifyCardStatementUtils', () => {
             policyID: 'policy1',
             feedCountry: 'US',
             entryIDs: [123],
-            statementKey: getExpensifyCardStatementKey('policy1', 'US', [123]),
         });
     });
 

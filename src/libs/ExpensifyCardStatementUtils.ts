@@ -6,7 +6,6 @@ import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import fileDownload from '@libs/fileDownload';
 import {getSettlementStatus} from '@libs/SearchUIUtils';
-import sha1Hex from '@libs/StringUtils/sha1Hex';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
 import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
@@ -31,7 +30,8 @@ type ExpensifyCardStatementParams = {
     policyID: string;
     feedCountry?: string;
     entryIDs: number[];
-    statementKey: string;
+    /** Set from the server response after GetExpensifyCardStatementPDF returns. */
+    statementKey?: string;
 };
 
 function isExpensifyCardStatementSearch(queryJSON: SearchQueryJSON | undefined): boolean {
@@ -49,12 +49,6 @@ function isExpensifyCardStatementSearch(queryJSON: SearchQueryJSON | undefined):
 
     const withdrawalTypeFilter = queryJSON.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE);
     return withdrawalTypeFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD) ?? false;
-}
-
-function getExpensifyCardStatementKey(policyID: string, feedCountry: string | undefined, entryIDs: number[]): string {
-    const sortedEntryIDs = [...entryIDs].sort((firstEntryID, secondEntryID) => firstEntryID - secondEntryID);
-    const feedCountrySuffix = feedCountry ? `_${feedCountry}` : '';
-    return `${policyID}${feedCountrySuffix}_${sha1Hex(sortedEntryIDs.join(','))}`;
 }
 
 function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
@@ -137,6 +131,15 @@ function getExpensifyCardStatementSelection(
     };
 }
 
+function getExpensifyCardStatementParamsFromFeed(feed: ExpensifyCardStatementFeed): ExpensifyCardStatementParams {
+    const entryIDs = [...feed.entryIDs];
+    return {
+        policyID: feed.policyID,
+        feedCountry: feed.feedCountry,
+        entryIDs,
+    };
+}
+
 function getExpensifyCardStatementParams(
     queryJSON: SearchQueryJSON | undefined,
     selectedTransactions: SelectedTransactions | undefined,
@@ -152,12 +155,7 @@ function getExpensifyCardStatementParams(
         return undefined;
     }
 
-    return {
-        policyID: feed.policyID,
-        feedCountry: feed.feedCountry,
-        entryIDs: feed.entryIDs,
-        statementKey: getExpensifyCardStatementKey(feed.policyID, feed.feedCountry, feed.entryIDs),
-    };
+    return getExpensifyCardStatementParamsFromFeed(feed);
 }
 
 function downloadExpensifyCardStatementPDF(translate: LocalizedTranslate, fileName: string, statementKey: string, currentUserEmail: string, encryptedAuthToken: string): Promise<void> {
@@ -168,4 +166,4 @@ function downloadExpensifyCardStatementPDF(translate: LocalizedTranslate, fileNa
 }
 
 export type {ExpensifyCardStatementParams};
-export {downloadExpensifyCardStatementPDF, getExpensifyCardStatementKey, getExpensifyCardStatementParams, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch};
+export {downloadExpensifyCardStatementPDF, getExpensifyCardStatementParams, getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch};
