@@ -478,7 +478,6 @@ type DismissDuplicateTransactionViolationProps = {
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     allTransactions: OnyxCollection<Transaction>;
-    /** Onyx TRANSACTION_VIOLATIONS collection. Defaults to {}. */
     currentTransactionViolations?: Array<{
         transactionID: string;
         violations: TransactionViolations;
