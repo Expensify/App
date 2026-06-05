@@ -2475,7 +2475,16 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
         return !isCreatedAction(reportAction);
     }
 
-    return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
+    if (!reportAction?.created || lastReadTime >= reportAction.created) {
+        return false;
+    }
+
+    // Self-authored actions are never unread — mirrors the authorship gate in isUnread()
+    if (reportAction.actorAccountID && reportAction.actorAccountID === deprecatedCurrentUserAccountID) {
+        return false;
+    }
+
+    return true;
 }
 
 /**

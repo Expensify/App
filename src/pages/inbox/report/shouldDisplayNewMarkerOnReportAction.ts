@@ -82,8 +82,9 @@ const shouldDisplayNewMarkerOnReportAction = ({
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
     const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
 
+    // Never anchor the "New" marker above a self-authored action.
     if (isFromCurrentUser) {
-        return !shouldIgnoreUnreadForCurrentUserMessage;
+        return false;
     }
 
     return !isNewMessage || scrollingVerticalOffset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
