@@ -83,7 +83,7 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
     const settlementGroups: SearchWithdrawalIDGroup[] = [];
     for (const groupKey of selectedGroupKeys) {
         const group = searchData[groupKey as keyof SearchResultDataType] as SearchWithdrawalIDGroup | undefined;
-        if (!group || typeof group.entryID !== 'number' || getSettlementStatus(group.state) !== CONST.SEARCH.SETTLEMENT_STATUS.CLEARED) {
+        if (!group || typeof group.entryID !== 'number' || getSettlementStatus(group.state) === CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
             continue;
         }
         settlementGroups.push(group);

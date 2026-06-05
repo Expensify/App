@@ -110,7 +110,7 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
     });
 
-    it('returns a single-feed selection when a whole cleared settlement is selected', () => {
+    it('returns a single-feed selection when a whole settlement is selected', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 2);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
@@ -153,7 +153,16 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
-    it('includes settlements that are settled pending batch processing (state 9, shown as Cleared)', () => {
+    it('includes pending settlements in the selection', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 0})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
+    });
+
+    it('includes settlements that are settled pending batch processing (state 9)', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 9})});
