@@ -435,6 +435,8 @@ type BuildOptimisticIOUReportActionParams = {
     paymentType?: PaymentMethodType;
     iouReportID?: string;
     isSettlingUp?: boolean;
+    /** True when a submitter marks their report as "Payment received"; renders a distinct "received payment" action instead of "marked as paid" */
+    isPaymentReceived?: boolean;
     isSendMoneyFlow?: boolean;
     isOwnPolicyExpenseChat?: boolean;
     created?: string;
@@ -7010,6 +7012,7 @@ function getIOUReportActionMessage(
     isSettlingUp = false,
     bankAccountID?: number | undefined,
     payAsBusiness = false,
+    isPaymentReceived = false,
 ): Message[] {
     const report = getReportOrDraftReport(iouReportID);
     const isInvoice = isInvoiceReport(report);
@@ -7053,7 +7056,10 @@ function getIOUReportActionMessage(
             iouMessage = `deleted the ${amount} expense${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            if (isInvoice && isSettlingUp) {
+            if (isPaymentReceived) {
+                // This function builds non-localized English action messages (server responses are always English).
+                iouMessage = 'received payment';
+            } else if (isInvoice && isSettlingUp) {
                 iouMessage =
                     paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE
                         ? `Mark ${amount} as paid`
@@ -7106,6 +7112,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         paymentType,
         iouReportID = '',
         isSettlingUp = false,
+        isPaymentReceived = false,
         isSendMoneyFlow = false,
         isOwnPolicyExpenseChat = false,
         created = DateUtils.getDBTime(),
@@ -7148,6 +7155,9 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             delete originalMessage.IOUTransactionID;
             delete originalMessage.comment;
             originalMessage.paymentType = paymentType;
+        }
+        if (isPaymentReceived) {
+            originalMessage.isPaymentReceived = true;
         }
     }
 
@@ -7192,7 +7202,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             },
         ],
         avatar: getCurrentUserAvatar(),
-        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp, bankAccountID, payAsBusiness),
+        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp, bankAccountID, payAsBusiness, isPaymentReceived),
     };
 
     return iouReportAction;
@@ -10662,6 +10672,10 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        // A submitter marking their report as "Payment received" gets a distinct message instead of "marked as paid".
+        if (originalMessage?.isPaymentReceived) {
+            return translate('iou.receivedPayment');
+        }
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy);
 

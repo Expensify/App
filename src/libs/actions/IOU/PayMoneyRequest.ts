@@ -842,6 +842,7 @@ function markReportPaymentReceived(
         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         iouReportID: iouReport.reportID,
         isSettlingUp: true,
+        isPaymentReceived: true,
     });
 
     const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID);

@@ -63,6 +63,9 @@ type OriginalMessageIOU = {
     /** Type of payment method used in transaction */
     paymentType?: PaymentMethodType;
 
+    /** Whether this pay action was created by a submitter marking their report as "Payment received" (vs. an actual payer paying elsewhere) */
+    isPaymentReceived?: boolean;
+
     /** Timestamp of when the `IOU` report action was deleted */
     deleted?: string;
 
