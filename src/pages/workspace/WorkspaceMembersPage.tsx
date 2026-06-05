@@ -414,9 +414,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
-    const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-
     const filteredMembers = useMemo(() => {
+        const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
         const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
 
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
@@ -442,7 +441,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             result.push({email, policyEmployee, accountID, details});
         }
         return result;
-    }, [policy?.employeeList, policyMemberEmailsToAccountIDs, isOffline, personalDetails, shouldFilter]);
+    }, [policy?.employeeList, policyMemberEmailsToAccountIDs, isOffline, personalDetails, policyOwner, currentUserLogin]);
 
     const hasAnyCustomField1 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeeUserID), [filteredMembers]);
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
