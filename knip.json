@@ -1,43 +1,55 @@
 {
-    "entry": [
-        "index.js",
-        "wdyr.ts",
-        "src/App.tsx",
-        "src/HybridAppHandler.tsx",
-        "scripts/**/*.{js,ts}",
-        "web/proxy.ts",
-        "config/webpack/**/*.{js,mjs,ts}",
-        ".github/scripts/**/*.ts",
-        ".github/actions/javascript/**/*.ts",
-        ".storybook/**/*.{js,ts,tsx}",
-        "metro.config.js",
-        "eslint.changed.config.mjs",
-        "react-native.config.js",
-        "rock.config.mjs",
-        "server/victory-chart-renderer/src/bootstrap.tsx"
-    ],
-    "project": [
-        "src/**/*.{js,jsx,ts,tsx}",
-        "tests/**/*.{js,jsx,ts,tsx}",
-        "__mocks__/**/*.{js,jsx,ts,tsx}",
-        "web/**/*.{js,jsx,ts,tsx}",
-        "config/**/*.{js,mjs,ts,tsx}",
-        "scripts/**/*.{js,ts}",
-        "jest/**/*.{js,ts}",
-        ".storybook/**/*.{js,ts,tsx}",
-        ".github/actions/javascript/**/*.ts",
-        "server/victory-chart-renderer/**/*.{ts,tsx}"
-    ],
-    "ignore": [
-        ".github/actions/**/index.js",
-        "tests/perf-test/**",
-        "web/snippets/gib.js",
-        "server/victory-chart-renderer/src/bootstrap.tsx",
-        "server/victory-chart-renderer/src/initSkiaForCli.ts",
-        "server/victory-chart-renderer/src/canvaskit.ts",
-        "server/victory-chart-renderer/src/canvaskitWasmAsset.ts",
-        "server/victory-chart-renderer/src/canvaskit-wasm.d.ts"
-    ],
+    "workspaces": {
+        ".": {
+            "entry": [
+                "index.js",
+                "wdyr.ts",
+                "src/App.tsx",
+                "src/HybridAppHandler.tsx",
+                "scripts/**/*.{js,ts}",
+                "web/proxy.ts",
+                "config/webpack/**/*.{js,mjs,ts}",
+                ".github/scripts/**/*.ts",
+                ".github/actions/javascript/**/*.ts",
+                ".storybook/**/*.{js,ts,tsx}",
+                "metro.config.js",
+                "eslint.changed.config.mjs",
+                "react-native.config.js",
+                "rock.config.mjs"
+            ],
+            "project": [
+                "src/**/*.{js,jsx,ts,tsx}",
+                "tests/**/*.{js,jsx,ts,tsx}",
+                "__mocks__/**/*.{js,jsx,ts,tsx}",
+                "web/**/*.{js,jsx,ts,tsx}",
+                "config/**/*.{js,mjs,ts,tsx}",
+                "scripts/**/*.{js,ts}",
+                "jest/**/*.{js,ts}",
+                ".storybook/**/*.{js,ts,tsx}",
+                ".github/actions/javascript/**/*.ts"
+            ],
+            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js"],
+            "eslint": {
+                "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
+            },
+            "webpack": {
+                "config": ["config/webpack/webpack.common.ts"]
+            },
+            "babel": {
+                "config": ["babel.config.js"]
+            },
+            "jest": {
+                "config": ["jest.config.js"]
+            },
+            "storybook": {
+                "config": [".storybook/main.ts"]
+            }
+        },
+        "server/victory-chart-renderer": {
+            "entry": ["src/bootstrap.tsx", "tests/**/*.test.ts"],
+            "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tests/**/*.{ts,tsx}"]
+        }
+    },
     "ignoreDependencies": [
         "@expensify/react-native-hybrid-app",
         "group-ib-fp",
@@ -57,25 +69,7 @@
         "@vercel/ncc",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy",
-        "victory-native",
-        "react-native-gesture-handler",
-        "canvaskit-wasm"
+        "diff-so-fancy"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert"],
-    "eslint": {
-        "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
-    },
-    "webpack": {
-        "config": ["config/webpack/webpack.common.ts"]
-    },
-    "babel": {
-        "config": ["babel.config.js"]
-    },
-    "jest": {
-        "config": ["jest.config.js"]
-    },
-    "storybook": {
-        "config": [".storybook/main.ts"]
-    }
+    "ignoreBinaries": ["metro-symbolicate", "mkcert"]
 }
