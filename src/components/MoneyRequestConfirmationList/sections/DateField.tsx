@@ -90,7 +90,7 @@ function DateField({
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     onInputChange={handleDateChange}
                     disabled={didConfirm}
-                    errorText={inlineDateErrorText}
+                    errorText={inlineDateErrorText || dateErrorText}
                     shouldDeferShowUntilPositioned
                 />
             </View>
