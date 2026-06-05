@@ -486,9 +486,11 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: '四半期',
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
-        concierge: {sidePanelGreeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
+        concierge: {greeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
         duplicateReport: 'レポートを複製',
         approver: '承認者',
+        goToConcierge: 'Conciergeへ移動',
+        allSet: 'すべて完了！',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `${totalDigits}桁中${digitIndex}桁目を入力`,
         copyOfReportName: (reportName: string) => `${reportName} のコピー`,
         previousMonth: '前月',
@@ -496,6 +498,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        editor: '編集者',
         restrictions: '制限',
     },
     socials: {
@@ -2120,7 +2123,7 @@ const translations: TranslationDeepObject<typeof en> = {
             partnerManager: 'パートナーマネージャー',
             yourPartnerManager: 'パートナーマネージャー',
             partnerManagerDescription: 'パートナーシップを最大限に活かし、紹介を促進しましょう',
-            guideDescription: '設定スペシャリスト',
+            guideDescription: 'お客様のアカウント担当者',
             approvedPartnerTeamTitle: '承認済みパートナーチームをご紹介します',
             approvedPartnerTeamDescription: '御社の成長支援、クライアントの迅速なオンボーディング、そして必要なときにいつでも受けられる専門的なサポートに特化した専任チームです。',
             accountExecutive: 'アカウントエグゼクティブ',
@@ -2898,6 +2901,8 @@ ${date} の ${merchant} への ${amount}`,
             },
         },
         highContrastMode: 'ハイコントラストモード',
+        enableHighContrast: 'ハイコントラストを有効にする',
+        disableHighContrast: 'ハイコントラストを無効にする',
         chooseThemeBelowOrSync: '以下からテーマを選択するか、デバイスの設定と同期してください。',
     },
     termsOfUse: {
@@ -3058,7 +3063,7 @@ ${date} の ${merchant} への ${amount}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `ワークスペースを[作成](${workspaceConfirmationLink})`,
-                description: 'ワークスペースを作成し、導入スペシャリストのサポートを受けながら設定を行いましょう！',
+                description: 'ワークスペースを作成し、アカウントエグゼクティブのサポートを受けながら設定を行いましょう。',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `[ワークスペースを作成](${workspaceSettingsLink})`,
@@ -3275,12 +3280,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
                     ? dedent(`
-                        # 無料トライアルが開始されました！さっそく設定を始めましょう。
-                        👋 こんにちは、私はあなたのExpensifyセットアップ担当です。すでにチームの領収書と経費を管理するためのワークスペースを作成しました。30日間の無料トライアルを最大限に活用するには、残りの設定ステップにしたがって進めてください！
+                        # 無料トライアルが開始されました！セットアップを始めましょう。
+                        👋 こんにちは、私はあなたの Expensify アカウントエグゼクティブです。すでにチームの領収書と経費を管理するためのワークスペースを作成済みです。30日間の無料トライアルを最大限に活用するために、以下の残りのセットアップ手順に沿って進めてください。
                     `)
                     : dedent(`
-                        # 無料トライアルが開始されました！セットアップを始めましょう。
-                        👋 はじめまして。私は Expensify のセットアップ担当です。ワークスペースを作成したので、以下の手順に沿って 30 日間の無料トライアルを最大限に活用しましょう！
+                        # 無料トライアルが開始しました！セットアップを始めましょう。
+                        👋 こんにちは、私はあなたの Expensify アカウントエグゼクティブです。ワークスペースを作成いただいたので、下記の手順に従って 30 日間の無料トライアルを最大限に活用しましょう！
                     `),
             onboardingTrackWorkspaceMessage: '30日間の無料トライアルを最大限に活用するために、以下の残りの手順に従ってください。',
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方はこちら。',
@@ -3326,6 +3331,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         enterPhoneNumber: '電話番号は何ですか？',
         personalDetails: '個人情報',
         privateDataMessage: 'これらの詳細は出張と支払いに使用されます。公開プロフィールに表示されることは決してありません。',
+        basicDetails: '基本情報',
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
@@ -3518,7 +3524,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noBankAccountSelected: 'アカウントを選択してください',
             taxID: '有効な納税者番号を入力してください',
             website: '有効なウェブサイトを入力してください',
-            zipCode: `有効なZIPコードを、次の形式で入力してください: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `有効なZIPコードを、次の形式で入力してください: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: '有効な電話番号を入力してください',
             email: '有効なメールアドレスを入力してください',
             companyName: '有効な会社名を入力してください',
@@ -4331,6 +4337,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.ADMIN:
                         return '管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
+                        return '監査人';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return '編集者';
                         return '監査担当者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'カード管理者';
@@ -4377,6 +4386,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
+            readOnlyActionTitle: 'ちょっと待ってください…',
+            readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -4821,6 +4832,30 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify は毎日自動的に Certinia と同期します。',
+            syncReimbursedReportsDescription: 'このオプションを有効にすると、FFA で買掛請求書が支払われるたびに、関連する Expensify レポートが自動的に精算済みとしてマークされます。',
+            exportDescription: 'Expensify のデータを Certinia へエクスポートする方法を設定します。',
+            payableInvoices: '支払対象の請求書',
+            exportStatus: {
+                label: '買掛請求書のステータス',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完了',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '進行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '送信済み',
+                },
+            },
+            exportDate: {
+                label: '支払予定請求書日',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: '最終経費日',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'レポート提出日',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'エクスポート日',
+                },
+            },
+            exportReimbursable: {label: '精算対象経費の書き出し形式', helperText: '払い戻し対象としてマークされた経費は、従業員宛ての未払請求書としてエクスポートされます。'},
+            exportNonReimbursable: {label: '未払い精算の対象外経費を次の形式でエクスポートする'},
+            noVendorsFound: 'ベンダーが見つかりませんでした',
+            noVendorsFoundDescription: 'Certinia にベンダーを追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
                 installBundle: 'FFA 接続用',
@@ -4837,6 +4872,19 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 oauth: 'Salesforce からログイン',
                 oauthDescription: '設定を完了するには、Salesforce と Certinia を通じてサインインする必要があります。\n\n続行するには、下のボタンを使用してください。',
                 connectButton: 'Certinia に接続',
+            },
+            import: {
+                chartOfAccounts: '勘定科目表',
+                chartOfAccountsDescription: '勘定科目表は、カテゴリとして Expensify にインポートされます。',
+                dimensionMapping: ({n}: {n: number}) => `ディメンション ${n}`,
+                dimensions: {dimension1: 'ディメンション 1', dimension2: 'ディメンション 2', dimension3: 'ディメンション 3', dimension4: 'ディメンション4'},
+                doNotMap: 'マッピングしない',
+                doNotMapSubtitle: '従業員リソースをデフォルトで使用する',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'マッピングしない',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'タグとしてインポート済み',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'レポートフィールドとしてインポートしました',
+                },
             },
         },
         netsuite: {
@@ -5573,6 +5621,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             travel: {
                 title: '出張',
                 subtitle: '出張の予約、管理、精算をすべて一元管理。',
+                disableTravelTitle: '先に Travel Invoicing をオフにしてください',
+                disableTravelPrompt: 'このワークスペースでは旅行請求書作成が有効になっています。Travel を無効にする前にオフにしてください。',
+                disableTravelButton: '出張設定に移動します',
                 getStarted: {
                     title: 'Expensify Travel を使い始める',
                     subtitle: 'ビジネスについてあと少しだけ情報を教えてください。準備が整い次第、すぐに開始できます。',
@@ -6017,6 +6068,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 continue: 'メンバーなしで続行',
                 description: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
             },
+            progress: {
+                copyInProgressTitle: 'コピーを実行中です...',
+                copyInProgressDescription: '処理が完了するまで待つこともできますし、完了したら Concierge からお知らせすることもできます。',
+                letMeKnowPrompt: '完了したら教えてください',
+                conciergeNotificationTitle: 'Concierge からお知らせします',
+                conciergeNotificationDescription: '処理が完了すると、Concierge からメッセージが送信されます。',
+                copyCompleted: 'ワークスペースの設定がコピーされました。',
+            },
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
@@ -6172,7 +6231,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'セットアップ担当者とチャットする',
+            talkYourOnboardingSpecialist: 'アカウントエグゼクティブとチャットします。',
             talkYourAccountManager: 'アカウントマネージャーとチャットする',
             talkToConcierge: 'Conciergeとチャットする',
             needAnotherAccounting: 'ほかの会計ソフトが必要ですか？',
@@ -6390,6 +6449,26 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             return 'Sage Intacct ディメンションのインポート';
                         case 'intacctImportTitle':
                             return 'Sage Intacct データのインポート';
+                        case 'financialForceSyncTitle':
+                            return 'Certinia データを同期中';
+                        case 'financialForceSyncStep':
+                            return 'Certinia 接続を同期中';
+                        case 'financialForceSyncCategories':
+                            return 'カテゴリをインポート中';
+                        case 'financialForceSyncTags':
+                            return 'タグをインポート中';
+                        case 'financialForceSyncVendors':
+                            return 'ベンダーをインポート中';
+                        case 'financialForceSyncContacts':
+                            return '連絡先をインポート中';
+                        case 'financialForceSyncCompanies':
+                            return '会社をインポート中';
+                        case 'financialForceSyncUsers':
+                            return 'ユーザーをインポート中';
+                        case 'financialForceSyncDimensions':
+                            return 'ディメンションをインポート中';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'レポートを払い戻し済みにマーク中';
                         default: {
                             return `ステージの翻訳が見つかりません: ${stage}`;
                         }
@@ -7849,6 +7928,8 @@ ${reportName}
             newChat: '新しいチャット画面',
             copy: 'コメントをコピー',
             openDebug: 'テスト設定ダイアログを開く',
+            expenseReportSearch: '経費レポートを検索',
+            goToWorkspace: '現在のレポートのワークスペースに移動',
         },
     },
     guides: {
@@ -8573,8 +8654,8 @@ ${reportName}
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `サポートが必要な場合は、<a href="${href}">${adminReportName}</a> で設定スペシャリストにチャットしてください`,
-        default: `セットアップについては、<concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> にメッセージを送ってサポートを受けてください`,
+            `ヘルプが必要な場合は、<a href="${href}">${adminReportName}</a> でアカウント担当者とチャットしてください`,
+        default: `セットアップのサポートが必要な場合は、<concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> にメッセージを送信してください`,
     },
     violations: {
         allTagLevelsRequired: 'すべてのタグが必須です',
@@ -9216,7 +9297,7 @@ ${reportName}
         confirmation: {
             title: '通話を確認',
             description: '以下の詳細をご確認ください。問題なければ通話を確定してください。確定後、詳細情報を記載した招待状をお送りします。',
-            setupSpecialist: '設定スペシャリスト',
+            setupSpecialist: 'お客様のアカウント担当者',
             meetingLength: '会議時間',
             dateTime: '日時',
             minutes: '30分',
