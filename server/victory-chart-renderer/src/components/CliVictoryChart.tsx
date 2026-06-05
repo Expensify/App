@@ -6,6 +6,7 @@ import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import VictoryChartContainerFixed from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContainer/VictoryChartContainerFixed';
 import VictoryChartContent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContent';
 import {VictoryChartProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import VICTORY_HTML_ELEMENT_MODELS from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 
 // react-native-render-html/lib/commonjs/TRenderEngineProvider.js references
@@ -16,20 +17,25 @@ const RENDER_HTML_SYSTEM_FONTS = ['Arial', 'Courier New', 'Georgia'];
 type CliVictoryChartProps = {
     tnode: TNode;
     fonts: ChartFontsValue;
+    processedResult: ProcessNodeResult;
+    type: ChartType;
     width: number;
     height: number;
 };
 
-function CliVictoryChart({tnode, fonts, width, height}: CliVictoryChartProps) {
+function CliVictoryChart({tnode, fonts, processedResult, type, width, height}: CliVictoryChartProps) {
     const explicitSize = {width, height};
-
     return (
         <TRenderEngineProvider
             customHTMLElementModels={VICTORY_HTML_ELEMENT_MODELS}
             systemFonts={RENDER_HTML_SYSTEM_FONTS}
         >
             <ChartFontsContext.Provider value={fonts}>
-                <VictoryChartProvider tnode={tnode}>
+                <VictoryChartProvider
+                    tnode={tnode}
+                    processedResult={processedResult}
+                    type={type}
+                >
                     <VictoryChartContainerFixed layout={{kind: 'fixed', width: explicitSize.width, height: explicitSize.height}}>
                         <VictoryChartContent
                             explicitSize={explicitSize}

@@ -7,9 +7,10 @@ import CliVictoryChart from './components/CliVictoryChart';
 import type CanvasSize from './types/CanvasSize';
 
 async function renderChartToPng(tnode: TNode, fonts: ChartFontsValue, {width, height}: CanvasSize, outPath: string): Promise<void> {
-    const {data} = processVictoryChartTree(tnode, fonts.typefaces.EXP_NEUE, null);
+    const processedResult = processVictoryChartTree(tnode, fonts.typefaces.EXP_NEUE, null);
+    const type = resolveVictoryChartType(processedResult.data);
 
-    if (!resolveVictoryChartType(data)) {
+    if (!type) {
         throw new Error('Chart XML describes an invalid or mixed chart type');
     }
 
@@ -17,6 +18,8 @@ async function renderChartToPng(tnode: TNode, fonts: ChartFontsValue, {width, he
         <CliVictoryChart
             tnode={tnode}
             fonts={fonts}
+            processedResult={processedResult}
+            type={type}
             width={width}
             height={height}
         />
