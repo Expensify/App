@@ -3,7 +3,7 @@ import type {ChartDataPoint} from '@components/Charts/types';
 type TooltipData = {
     label: string;
     amount: string;
-    percentage: string;
+    percentage?: string;
 };
 
 /**

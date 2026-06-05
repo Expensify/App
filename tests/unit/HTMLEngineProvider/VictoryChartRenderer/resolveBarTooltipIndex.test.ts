@@ -1,6 +1,6 @@
-import resolveBarTooltipIndex from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveBarTooltipIndex';
-import getBarTooltipKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getBarTooltipKey';
 import {findBarAtCursor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
+import getBarTooltipKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getBarTooltipKey';
+import resolveBarTooltipIndex from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveBarTooltipIndex';
 
 describe('resolveBarTooltipIndex', () => {
     const tooltipKeyToIndex = {

@@ -1,11 +1,12 @@
 import React, {createContext, useContext, useMemo} from 'react';
 import type {TNode} from 'react-native-render-html';
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import type {ChartDataPoint} from '@components/Charts/types';
-import {useChartDefaultTypeface} from '@components/Charts/hooks';
-import {CHART_TYPE, LABEL_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import type {BarGroupLayout, BarSeriesConfig, ChartType, ProcessNodeResult, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
+import Log from '@libs/Log';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -64,7 +65,17 @@ function buildPieTooltipData(entries: ProcessNodeResult['pieTooltipEntries']): C
  * Returns null when the chart data is invalid (no data points, or mixed cartesian/polar content).
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
-    const {regular: regularTypeface} = useChartDefaultTypeface();
+    const typefaces = useChartTypefaces();
+
+    let processedResult: ProcessNodeResult;
+    try {
+        processedResult = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
+    } catch (error) {
+        // Malformed chart HTML can make a parser throw. Fail closed (render nothing) instead of crashing the whole report.
+        Log.warn('[VictoryChartProvider] Failed to process chart tree from malformed HTML', {error});
+        return null;
+    }
+
     const {
         data,
         xKey,
@@ -83,7 +94,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         barSeriesConfig,
         barGroupLayouts,
         pieTooltipEntries,
-    } = processVictoryChartTree(tnode, regularTypeface, null);
+    } = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
     const {tooltipData, tooltipKeyToIndex} = useMemo(() => {
         if (barTooltipEntries.length > 0) {
@@ -95,19 +106,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
             tooltipKeyToIndex: {},
         };
     }, [barTooltipEntries, pieTooltipEntries]);
-
-    const hasCartesianData = Object.values(data).some((entry) => X_KEY in entry);
-    const hasPolarData = Object.values(data).some((entry) => LABEL_KEY in entry);
-    let type: ChartType | null = null;
-
-    // XNOR Check. There must be one and only one valid chart
-    if (hasCartesianData === hasPolarData) {
-        type = null;
-    } else if (hasCartesianData) {
-        type = CHART_TYPE.CARTESIAN;
-    } else if (hasPolarData) {
-        type = CHART_TYPE.POLAR;
-    }
+    const type = resolveVictoryChartType(data);
 
     if (!type) {
         return null;
@@ -139,8 +138,6 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
 
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
 }
-
-VictoryChartProvider.displayName = 'VictoryChartProvider';
 
 function useVictoryChartContext(): VictoryChartContextValue {
     const context = useContext(VictoryChartContext);

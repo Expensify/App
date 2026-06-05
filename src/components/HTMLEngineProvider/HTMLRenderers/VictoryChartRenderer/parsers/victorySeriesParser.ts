@@ -4,7 +4,8 @@ import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRe
 import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult, RawChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import {parseVictoryBarTooltips} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/buildBarTooltipEntries';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import isNonNullObject from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/isNonNullObject';
+import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseArrayAttribute';
 
 /**
  * Parse data points from a `<victorybar>` or `<victoryline>` node.
@@ -13,7 +14,8 @@ import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Victory
 function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null): PartialProcessNodeResult {
     const isHorizontal = rootProcessedResult?.isHorizontal;
     const categories = rootProcessedResult?.categories;
-    const points = parseAttribute<RawChartData[]>(tnode.attributes.data) ?? [];
+    const rawPoints = parseArrayAttribute<RawChartData>(tnode.attributes.data);
+    const points = rawPoints.filter(isNonNullObject<RawChartData>);
     const yKey = getYKey(tnode);
     const data: Record<string, CartesianChartData> = {};
     for (const point of points) {

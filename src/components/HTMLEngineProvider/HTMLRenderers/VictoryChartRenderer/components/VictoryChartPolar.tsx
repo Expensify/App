@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {PolarChart} from 'victory-native';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
+import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {processDataIntoSlices} from '@components/Charts/utils';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
@@ -90,24 +91,27 @@ function VictoryChartPolar() {
                 valueKey={VALUE_KEY}
                 colorKey={COLOR_KEY}
             >
-                {tnode.children.map((child) => (
-                    <VictoryChartCategories
-                        key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
-                        tnode={child}
-                    />
-                ))}
-                {labelItems.map((labelItem) => (
-                    <VictoryChartLabel
-                        key={`label-${labelItem.x}-${labelItem.y}`}
-                        {...labelItem}
-                    />
-                ))}
-                {legendItems.map((legendItem) => (
-                    <VictoryChartLegend
-                        key={`legend-${legendItem.x}-${legendItem.y}`}
-                        {...legendItem}
-                    />
-                ))}
+                {/* Chart font context does not propagate into polar Skia children. */}
+                <ChartFontsLoaderProvider>
+                    {tnode.children.map((child) => (
+                        <VictoryChartCategories
+                            key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
+                            tnode={child}
+                        />
+                    ))}
+                    {labelItems.map((labelItem) => (
+                        <VictoryChartLabel
+                            key={`label-${labelItem.x}-${labelItem.y}`}
+                            {...labelItem}
+                        />
+                    ))}
+                    {legendItems.map((legendItem) => (
+                        <VictoryChartLegend
+                            key={`legend-${legendItem.x}-${legendItem.y}`}
+                            {...legendItem}
+                        />
+                    ))}
+                </ChartFontsLoaderProvider>
             </PolarChart>
             {hasPieTooltips && chartWidth > 0 && chartHeight > 0 && (
                 <VictoryChartPolarTooltips
@@ -120,7 +124,5 @@ function VictoryChartPolar() {
         </>
     );
 }
-
-VictoryChartPolar.displayName = 'VictoryChartPolar';
 
 export default VictoryChartPolar;

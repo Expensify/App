@@ -1,11 +1,11 @@
 import {useLayoutEffect} from 'react';
 import type {CartesianChartRenderArg} from 'victory-native';
 import type {BarHitTarget} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
-import type {BarGroupLayout, BarSeriesConfig, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {BarGroupLayout, BarSeriesConfig, CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import buildBarHitTargets from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/buildBarHitTargets';
 
 type VictoryChartBarHitTargetsSyncProps = {
-    renderArgs: CartesianChartRenderArg;
+    renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>;
     valueAxisZero: number;
     updateHitTargets: (targets: BarHitTarget[]) => void;
     barYKeys: YKey[];

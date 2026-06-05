@@ -10,7 +10,7 @@ function createMockBarNode(data: string, labels?: string, barwidth?: string): TN
             ...(labels ? {labels} : {}),
             ...(barwidth ? {barwidth} : {}),
         },
-    } as TNode;
+    } as unknown as TNode;
 }
 
 describe('buildBarTooltipEntries', () => {

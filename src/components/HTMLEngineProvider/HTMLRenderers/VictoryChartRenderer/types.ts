@@ -80,6 +80,8 @@ type RawLabelStyle = {
     fill?: Color;
     fontSize?: string | number;
     fontWeight?: string | number;
+    fontFamily?: string;
+    fontStyle?: string;
 };
 
 type RawLegendStyle = {
@@ -87,6 +89,8 @@ type RawLegendStyle = {
         fill?: Color;
         fontSize?: string | number;
         fontWeight?: string | number;
+        fontFamily?: string;
+        fontStyle?: string;
     };
 };
 
@@ -125,6 +129,12 @@ type LabelItem = {
     /** Font weight (per line) */
     fontWeight?: Record<number, 'normal' | 'bold'>;
 
+    /** Font family (per line) */
+    fontFamily?: Record<number, string>;
+
+    /** Font style (per line) */
+    fontStyle?: Record<number, string>;
+
     /** Line height (per line) */
     lineHeight?: Record<number, number>;
 
@@ -147,6 +157,12 @@ type LegendItemEntry = {
 
     /** Font weight */
     fontWeight?: 'normal' | 'bold';
+
+    /** Font family */
+    fontFamily?: string;
+
+    /** Font style */
+    fontStyle?: string;
 
     /** The color of the symbol */
     symbolColor?: Color;

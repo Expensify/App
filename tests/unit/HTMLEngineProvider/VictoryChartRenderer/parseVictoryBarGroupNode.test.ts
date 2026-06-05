@@ -19,7 +19,7 @@ describe('parseVictoryBarGroupNode', () => {
             tagName: 'victorygroup',
             attributes: {offset: '18'},
             children: [createMockBarNode('a', "[{x: 'Carlos Martins', y: 220}]"), createMockBarNode('b', "[{x: 'Carlos Martins', y: 140}]")],
-        } as TNode;
+        } as unknown as TNode;
 
         const {barGroupLayouts} = parseVictoryBarGroupNode(tnode);
 

@@ -8,7 +8,7 @@ function createMockPieNode(data: string, labels?: string): TNode {
             data,
             ...(labels ? {labels} : {}),
         },
-    } as TNode;
+    } as unknown as TNode;
 }
 
 describe('parseVictoryPieNode', () => {

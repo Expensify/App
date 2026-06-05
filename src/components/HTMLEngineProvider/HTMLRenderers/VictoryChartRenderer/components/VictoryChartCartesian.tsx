@@ -2,9 +2,11 @@ import React, {useCallback, useRef} from 'react';
 import type {CartesianChartRenderArg, Scale} from 'victory-native';
 import {CartesianChart} from 'victory-native';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
+import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import {useVictoryChartBarTooltips} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
+import type {CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import buildBarHitTargets from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/buildBarHitTargets';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartLabel from './VictoryChartLabel';
@@ -41,7 +43,7 @@ function VictoryChartCartesian() {
         tooltipKeyToIndex,
         chartContentStyles,
     } = useVictoryChartContext();
-    const renderArgsRef = useRef<CartesianChartRenderArg | null>(null);
+    const renderArgsRef = useRef<CartesianChartRenderArg<CartesianChartData, YKey> | null>(null);
     const hasBarTooltips = barYKeys.length > 0 && tooltipData.length > 0;
     const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : 0;
     const {plotGestures, updateHitTargets, matchedIndex, isTooltipActive, initialTooltipPosition} = useVictoryChartBarTooltips();
@@ -84,20 +86,23 @@ function VictoryChartCartesian() {
                 customGestures={hasBarTooltips ? plotGestures : undefined}
                 onScaleChange={hasBarTooltips ? syncHitTargets : undefined}
                 renderOutside={(renderArgs) => (
-                    <VictoryChartRenderArgsProvider value={renderArgs}>
-                        {labelItems.map((labelItem) => (
-                            <VictoryChartLabel
-                                key={`label-${labelItem.x}-${labelItem.y}`}
-                                {...labelItem}
-                            />
-                        ))}
-                        {legendItems.map((legendItem) => (
-                            <VictoryChartLegend
-                                key={`legend-${legendItem.x}-${legendItem.y}`}
-                                {...legendItem}
-                            />
-                        ))}
-                    </VictoryChartRenderArgsProvider>
+                    // Chart font context does not propagate across the Skia renderOutside boundary.
+                    <ChartFontsLoaderProvider>
+                        <VictoryChartRenderArgsProvider value={renderArgs}>
+                            {labelItems.map((labelItem) => (
+                                <VictoryChartLabel
+                                    key={`label-${labelItem.x}-${labelItem.y}`}
+                                    {...labelItem}
+                                />
+                            ))}
+                            {legendItems.map((legendItem) => (
+                                <VictoryChartLegend
+                                    key={`legend-${legendItem.x}-${legendItem.y}`}
+                                    {...legendItem}
+                                />
+                            ))}
+                        </VictoryChartRenderArgsProvider>
+                    </ChartFontsLoaderProvider>
                 )}
             >
                 {(renderArgs) => {
@@ -129,7 +134,5 @@ function VictoryChartCartesian() {
         </>
     );
 }
-
-VictoryChartCartesian.displayName = 'VictoryChartCartesian';
 
 export default VictoryChartCartesian;

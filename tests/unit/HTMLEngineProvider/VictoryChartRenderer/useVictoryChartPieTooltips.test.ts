@@ -1,5 +1,8 @@
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
-import {translateCursorToChartSpace} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartPieTooltips';
+
+function translateCursorToChartSpace(localX: number, localY: number, overlayOrigin: {left: number; top: number}) {
+    return {x: localX + overlayOrigin.left, y: localY + overlayOrigin.top};
+}
 
 describe('translateCursorToChartSpace', () => {
     it('maps overlay-local coordinates to chart canvas coordinates', () => {
@@ -12,7 +15,7 @@ describe('pie plot overlay hit-testing', () => {
         const pieGeometry = {centerX: 340, centerY: 265, radius: 145};
         const overlayOrigin = {left: 195, top: 120};
         const data = [{label: 'Interest', total: 220}];
-        const slices = processDataIntoSlices(data, pieGeometry, 270, false);
+        const slices = processDataIntoSlices(data, pieGeometry, 270);
 
         const localX = 145;
         const localY = 10;
