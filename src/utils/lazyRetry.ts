@@ -17,6 +17,16 @@ const RETRY_STATE = {
 } as const;
 
 /**
+ * The retry state must be scoped per import. Multiple chunks are lazy-loaded in sequence
+ * (e.g. AppNavigator, then AuthScreens), so a global flag could be reset to INITIAL by one
+ * chunk's success while another chunk is still failing, restarting that chunk's retry cycle
+ * forever instead of advancing to the cache-clearing branch.
+ */
+function getRetryStateKey(retryKey: string): string {
+    return `${CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED}:${retryKey}`;
+}
+
+/**
  * Attempts to lazily import a React component with a graduated retry strategy.
  *
  * - First failure: plain reload — handles transient network blips without touching caches.
@@ -30,23 +40,26 @@ const RETRY_STATE = {
  *   while offline: propagate to the React error boundary so the user sees the error page.
  *
  * @param componentImport - A function that returns a promise resolving to a lazily imported React component.
+ * @param retryKey - A stable identifier unique to this import, used to scope the retry state so
+ *                    sibling imports do not interfere with each other's recovery cycle.
  * @returns A promise that resolves to the imported component or rejects after all recovery attempts.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ComponentType requires any for the generic constraint to accept all component shapes
-const lazyRetry = function <T extends ComponentType<any>>(componentImport: ComponentImport<T>): Import<T> {
+const lazyRetry = function <T extends ComponentType<any>>(componentImport: ComponentImport<T>, retryKey: string): Import<T> {
     return new Promise((resolve, reject) => {
-        const retryState = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED) ?? RETRY_STATE.INITIAL;
+        const stateKey = getRetryStateKey(retryKey);
+        const retryState = sessionStorage.getItem(stateKey) ?? RETRY_STATE.INITIAL;
 
         componentImport()
             .then((component) => {
-                sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, RETRY_STATE.INITIAL);
+                sessionStorage.setItem(stateKey, RETRY_STATE.INITIAL);
                 resolve(component);
             })
             .catch((error: unknown) => {
                 if (retryState === RETRY_STATE.INITIAL) {
                     // First failure: plain reload to handle transient errors cheaply.
                     console.error('Failed to lazily import a React component, refreshing the page in order to retry the operation.', error);
-                    sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, RETRY_STATE.RELOADED);
+                    sessionStorage.setItem(stateKey, RETRY_STATE.RELOADED);
                     window.location.reload();
                 } else if (retryState === RETRY_STATE.RELOADED && isChunkLoadError(error) && navigator.onLine) {
                     // Second failure, it is a ChunkLoadError, and the device is online: the plain
@@ -54,14 +67,14 @@ const lazyRetry = function <T extends ComponentType<any>>(componentImport: Compo
                     // Clear the service worker cache and reload. Keep the flag at CACHE_CLEARED so
                     // a third failure surfaces the error boundary instead of starting over.
                     console.error('Failed to lazily import a React component after reload, clearing SW caches and reloading.', error);
-                    sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, RETRY_STATE.CACHE_CLEARED);
+                    sessionStorage.setItem(stateKey, RETRY_STATE.CACHE_CLEARED);
                     clearWorkboxRecoveryCaches().then(() => window.location.reload());
                 } else {
                     // All recovery options exhausted, or the device is offline, or the second
                     // failure is not a ChunkLoadError: propagate to the error boundary and reset
                     // the flag so the retry cycle is available again next time the user navigates.
                     console.error('Failed to lazily import a React component after all recovery attempts.', error);
-                    sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, RETRY_STATE.INITIAL);
+                    sessionStorage.setItem(stateKey, RETRY_STATE.INITIAL);
                     reject(error instanceof Error ? error : new Error(String(error)));
                 }
             });
