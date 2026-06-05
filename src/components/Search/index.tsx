@@ -129,14 +129,23 @@ type TransactionSelectionContext = {
     isProduction: boolean;
 };
 
-function mapTransactionItemToSelectedEntry(
-    item: TransactionListItemType,
-    itemTransaction: OnyxEntry<Transaction>,
-    originalItemTransaction: OnyxEntry<Transaction>,
-    transactionSelectionContext: TransactionSelectionContext,
-    allowNegativeAmount: boolean,
-    parentReport: OnyxEntry<Report> | undefined,
-): [string, SelectedTransactionInfo] {
+type MapTransactionItemToSelectedEntryParams = {
+    item: TransactionListItemType;
+    itemTransaction: OnyxEntry<Transaction>;
+    originalItemTransaction: OnyxEntry<Transaction>;
+    transactionSelectionContext: TransactionSelectionContext;
+    allowNegativeAmount: boolean;
+    parentReport: OnyxEntry<Report> | undefined;
+};
+
+function mapTransactionItemToSelectedEntry({
+    item,
+    itemTransaction,
+    originalItemTransaction,
+    transactionSelectionContext,
+    allowNegativeAmount,
+    parentReport,
+}: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
     const {currentUserLogin, currentUserAccountID, archivedReportsIDSet, outstandingReportsByPolicyID, selfDMReport, isProduction} = transactionSelectionContext;
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
@@ -230,21 +239,30 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
     ];
 }
 
-function prepareTransactionsList(
-    item: TransactionListItemType,
-    itemTransaction: OnyxEntry<Transaction>,
-    originalItemTransaction: OnyxEntry<Transaction>,
-    selectedTransactions: SelectedTransactions,
-    transactionSelectionContext: TransactionSelectionContext,
-    parentReport: OnyxEntry<Report> | undefined,
-) {
+type PrepareTransactionsListParams = {
+    item: TransactionListItemType;
+    itemTransaction: OnyxEntry<Transaction>;
+    originalItemTransaction: OnyxEntry<Transaction>;
+    selectedTransactions: SelectedTransactions;
+    transactionSelectionContext: TransactionSelectionContext;
+    parentReport: OnyxEntry<Report> | undefined;
+};
+
+function prepareTransactionsList({item, itemTransaction, originalItemTransaction, selectedTransactions, transactionSelectionContext, parentReport}: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
         return transactions;
     }
 
-    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(item, itemTransaction, originalItemTransaction, transactionSelectionContext, false, parentReport);
+    const [key, selectedInfo] = mapTransactionItemToSelectedEntry({
+        item,
+        itemTransaction,
+        originalItemTransaction,
+        transactionSelectionContext,
+        allowNegativeAmount: false,
+        parentReport,
+    });
 
     return {
         ...selectedTransactions,
@@ -1063,7 +1081,14 @@ function Search({
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                 const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
-                const updatedTransactions = prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, transactionSelectionContext, itemParentReport);
+                const updatedTransactions = prepareTransactionsList({
+                    item,
+                    itemTransaction,
+                    originalItemTransaction,
+                    selectedTransactions,
+                    transactionSelectionContext,
+                    parentReport: itemParentReport,
+                });
 
                 // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
                 if (areItemsGrouped) {
@@ -1135,14 +1160,14 @@ function Search({
                                 searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                                 transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                            const [key, entry] = mapTransactionItemToSelectedEntry(
-                                transactionItem,
+                            const [key, entry] = mapTransactionItemToSelectedEntry({
+                                item: transactionItem,
                                 itemTransaction,
                                 originalItemTransaction,
                                 transactionSelectionContext,
-                                true,
-                                itemParentReport,
-                            );
+                                allowNegativeAmount: true,
+                                parentReport: itemParentReport,
+                            });
                             return [key, {...entry, groupKey: item.keyForList}];
                         }),
                 ),
@@ -1454,14 +1479,14 @@ function Search({
                         const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                         const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                        const [key, entry] = mapTransactionItemToSelectedEntry(
-                            transactionItem,
+                        const [key, entry] = mapTransactionItemToSelectedEntry({
+                            item: transactionItem,
                             itemTransaction,
                             originalItemTransaction,
                             transactionSelectionContext,
-                            true,
-                            itemParentReport,
-                        );
+                            allowNegativeAmount: true,
+                            parentReport: itemParentReport,
+                        });
                         return [key, {...entry, groupKey: item.keyForList}] as [string, SelectedTransactionInfo];
                     });
             });
@@ -1475,7 +1500,14 @@ function Search({
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                         const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, transactionSelectionContext, true, itemParentReport);
+                        return mapTransactionItemToSelectedEntry({
+                            item: transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            transactionSelectionContext,
+                            allowNegativeAmount: true,
+                            parentReport: itemParentReport,
+                        });
                     }),
             );
         }

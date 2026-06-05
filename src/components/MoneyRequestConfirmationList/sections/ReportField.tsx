@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
@@ -8,14 +9,14 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
-import {buildArchivedReportsIDSet, generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import {createOutstandingReportsForPolicySelector, createOutstandingReportsNVPsSelector} from './selectors';
+import {createOutstandingReportsForPolicySelector} from './selectors';
 
 type ReportFieldProps = {
     /** The selected participants */
@@ -53,10 +54,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const reportAttributes = useReportAttributes();
     const policyID = selectedParticipants?.at(0)?.policyID;
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)}, [policyID]);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: createOutstandingReportsNVPsSelector(outstandingReportsForPolicy)}, [
-        outstandingReportsForPolicy,
-    ]);
-    const archivedReportsIDSet = buildArchivedReportsIDSet(reportNameValuePairs);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
