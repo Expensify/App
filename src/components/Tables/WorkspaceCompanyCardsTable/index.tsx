@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {getDefaultCardName} from '@libs/CardUtils';
+import {shouldSynthesizeWorkspaceFeedsLoadError} from '@libs/CompanyCardsFeedLoadingUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
@@ -45,6 +46,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
+    /** Whether domain feed data is still hydrating for a domain-based card account */
+    isWaitingForDomainFeedData: boolean;
+
     /** Company cards */
     companyCards: UseCompanyCardsResult;
 
@@ -65,6 +69,7 @@ function WorkspaceCompanyCardsTable({
     policyID,
     isPolicyLoaded,
     domainOrWorkspaceAccountID,
+    isWaitingForDomainFeedData,
     companyCards,
     onAssignCard,
     isAssigningCardDisabled,
@@ -100,7 +105,7 @@ function WorkspaceCompanyCardsTable({
 
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
-    const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
+    const shouldShowWorkspaceFeedsLoadError = shouldSynthesizeWorkspaceFeedsLoadError(domainOrWorkspaceAccountID, isPolicyLoaded, isOffline, isWaitingForDomainFeedData);
     const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
         ? {[CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage')}
         : workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
@@ -127,7 +132,7 @@ function WorkspaceCompanyCardsTable({
     const isLoadingFeed =
         !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) || !!selectedFeedStatus?.isLoading);
     const isLoadingCards = !hasCards ? isLoadingOnyxValue(cardListMetadata) : false;
-    const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
+    const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading || isWaitingForDomainFeedData);
 
     const isLoading = isLoadingPage || isLoadingFeed;
 
