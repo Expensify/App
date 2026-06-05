@@ -448,6 +448,8 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
+        goToConcierge: 'Ir a Concierge',
+        allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -5983,6 +5985,14 @@ ${amount} para ${merchant} - ${date}`,
             confirmWorkflows: {
                 continue: 'Continuar sin miembros',
                 description: 'Copiar flujos de trabajo sin miembros no copiará los flujos de aprobación. La configuración de envío y pago sí se copiará.',
+            },
+            progress: {
+                copyInProgressTitle: 'Copia en curso...',
+                copyInProgressDescription: 'Puedes esperar a que el proceso termine o Concierge puede avisarte cuando esté listo.',
+                letMeKnowPrompt: 'Avísame cuando esté listo',
+                conciergeNotificationTitle: 'Concierge te avisará',
+                conciergeNotificationDescription: 'Cuando el proceso se complete, Concierge te enviará un mensaje.',
+                copyCompleted: 'Se han copiado la configuración de tu espacio de trabajo.',
             },
         },
         emptyWorkspace: {
