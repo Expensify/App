@@ -15,7 +15,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID, PersonalCardFeed} from '@src/types/onyx';
-import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
@@ -81,6 +81,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
+        fieldToFocus?: string;
+    };
+    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
         country?: Country | '';
     };
@@ -665,9 +669,16 @@ type SettingsNavigatorParamList = {
         policyID: string;
         reportFieldID: string;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: {
+        policyID: string;
+        currentType?: PolicyReportFieldType;
+    };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
         accountID: string;
+    };
+    [SCREENS.WORKSPACE.ROOM_CREATE]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
         policyID: string;
