@@ -14,13 +14,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {getSearchParamFromPath} from '@libs/Url';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
 type GetStartedTravelProps = {
@@ -48,6 +50,12 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
         setPolicyTravelSettings(policy, {autoAddTripName: enabled});
     };
 
+    const navigateToPublicDomainError = () => {
+        const hasPolicyIDInActiveRoute = getSearchParamFromPath(Navigation.getActiveRoute(), CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) !== null;
+        const dynamicSuffix = hasPolicyIDInActiveRoute ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(policyID);
+        Navigation.navigate(createDynamicRoute(dynamicSuffix));
+    };
+
     const handleManageTravel = () => {
         if (isPreventSpotnanaTravelEnabled) {
             showConfirmModal({
@@ -65,12 +73,12 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
         }
 
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(policyID));
+            navigateToPublicDomainError();
             return;
         }
 
         if (isEmailPublicDomain(primaryContactMethod)) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(policyID));
+            navigateToPublicDomainError();
             return;
         }
 
