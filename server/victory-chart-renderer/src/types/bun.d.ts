@@ -67,8 +67,15 @@ type ImportMeta = {
     main: boolean;
 };
 
+type BunTestMatchers = {
+    toBe(expected: unknown): void;
+    toEqual(expected: unknown): void;
+    toContain(expected: string): void;
+    toBeLessThanOrEqual(expected: number): void;
+    toThrow(expected?: string | RegExp): void;
+};
+
 declare module 'bun:test' {
-    type JestExpect = jest.JestExpect;
     function test(label: string, fn: () => void | Promise<void>): void;
     function test(label: string, options: {timeout?: number}, fn: () => void | Promise<void>): void;
     function describe(label: string, fn: () => void): void;
@@ -76,6 +83,5 @@ declare module 'bun:test' {
     function beforeEach(fn: () => void | Promise<void>): void;
     function afterAll(fn: () => void | Promise<void>): void;
     function afterEach(fn: () => void | Promise<void>): void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function expect(value: any): JestExpect;
+    function expect(value: unknown): BunTestMatchers;
 }
