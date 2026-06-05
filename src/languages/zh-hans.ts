@@ -5513,6 +5513,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             travel: {
                 title: '差旅',
                 subtitle: '预订、管理并对账您所有的商务差旅。',
+                disableTravelTitle: '请先关闭差旅开票',
+                disableTravelPrompt: '此工作区已启用差旅开票。要禁用差旅功能，请先将其关闭。',
+                disableTravelButton: '前往差旅设置',
                 getStarted: {
                     title: '开始使用 Expensify Travel',
                     subtitle: '我们只需要再获取一些关于您企业的信息，之后您就可以准备起飞了。',
@@ -7755,6 +7758,8 @@ ${reportName}
             newChat: '新聊天界面',
             copy: '复制评论',
             openDebug: '打开测试首选项对话框',
+            expenseReportSearch: '搜索报销报告',
+            goToWorkspace: '前往当前报表的工作区',
         },
     },
     guides: {
