@@ -444,8 +444,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
         mockSelectedTransactions = {
-            [firstGroupKey]: makeSelectedTransaction({reportID: undefined}),
-            [secondGroupKey]: makeSelectedTransaction({reportID: undefined}),
+            firstTxn: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined}),
+            secondTxn: makeSelectedTransaction({groupKey: secondGroupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
             [firstGroupKey]: {
