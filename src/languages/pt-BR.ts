@@ -2136,7 +2136,7 @@ const translations: TranslationDeepObject<typeof en> = {
             partnerManager: 'Gerente de Parcerias',
             yourPartnerManager: 'Seu gerente de parcerias',
             partnerManagerDescription: 'Maximize sua parceria e aumente as indicações',
-            guideDescription: 'Seu especialista de configuração',
+            guideDescription: 'Seu executivo de contas',
             approvedPartnerTeamTitle: 'Conheça sua equipe parceira Approved!',
             approvedPartnerTeamDescription:
                 'Uma equipe dedicada focada em ajudar sua empresa a crescer, integrar clientes mais rápido e receber suporte especializado sempre que você precisar.',
@@ -3080,7 +3080,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um espaço de trabalho`,
-                description: 'Crie um workspace e configure as definições com a ajuda do seu especialista de configuração!',
+                description: 'Crie um workspace e configure as definições com a ajuda do seu executivo de contas!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Crie um [espaço de trabalho](${workspaceSettingsLink})`,
@@ -3297,12 +3297,12 @@ ${amount} para ${merchant} - ${date}`,
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
                     ? dedent(`
-                        # Sua avaliação gratuita começou! Vamos fazer a configuração.
-                        👋 Olá! Sou seu especialista de configuração do Expensify. Já criei um workspace para ajudar a gerenciar os recibos e despesas da sua equipe. Para aproveitar ao máximo seus 30 dias de avaliação gratuita, basta seguir as etapas de configuração restantes abaixo!
+                        # Seu teste gratuito começou! Vamos fazer a configuração.
+                        👋 Olá, eu sou o executivo de contas da sua conta Expensify. Eu já criei um workspace para ajudar a gerenciar os recibos e despesas da sua equipe. Para aproveitar ao máximo seus 30 dias de teste gratuito, é só seguir as etapas restantes de configuração abaixo!
                     `)
                     : dedent(`
-                        # Seu teste grátis começou! Vamos fazer a configuração.
-                        👋 Olá, sou seu especialista em configuração do Expensify. Agora que você criou um workspace, aproveite ao máximo seus 30 dias de teste grátis seguindo as etapas abaixo!
+                        # Sua avaliação gratuita começou! Vamos configurar tudo.
+                        👋 Oi, eu sou o executivo de contas da sua conta Expensify. Agora que você criou um workspace, aproveite ao máximo seus 30 dias de avaliação gratuita seguindo as etapas abaixo!
                     `),
             onboardingTrackWorkspaceMessage: 'Para aproveitar ao máximo seus 30 dias de teste gratuito, siga as etapas restantes abaixo:',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
@@ -6278,7 +6278,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Converse com seu especialista de configuração.',
+            talkYourOnboardingSpecialist: 'Converse com seu executivo de contas.',
             talkYourAccountManager: 'Converse com seu gerente de conta.',
             talkToConcierge: 'Converse com o Concierge.',
             needAnotherAccounting: 'Precisa de outro software de contabilidade?',
@@ -8727,7 +8727,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Converse com seu especialista de configuração em <a href="${href}">${adminReportName}</a> para obter ajuda`,
+            `Converse com seu executivo de contas em <a href="${href}">${adminReportName}</a> para obter ajuda`,
         default: `Envie uma mensagem para <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> para obter ajuda com a configuração`,
     },
     violations: {
@@ -9375,7 +9375,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         confirmation: {
             title: 'Confirmar chamada',
             description: 'Verifique se os detalhes abaixo estão corretos para você. Assim que você confirmar a chamada, enviaremos um convite com mais informações.',
-            setupSpecialist: 'Seu especialista de configuração',
+            setupSpecialist: 'Seu executivo de contas',
             meetingLength: 'Duração da reunião',
             dateTime: 'Data e hora',
             minutes: '30 minutos',
