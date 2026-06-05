@@ -11,6 +11,7 @@
  *
  * For a standalone executable instead of a Bun-run bundle, use build.ts.
  */
+import assertBuildSuccess from '@server/libs/assertBuildSuccess';
 import createRnStubPlugin from '@server/plugins/rnStubPlugin';
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
@@ -33,12 +34,7 @@ const buildResult = await Bun.build({
     plugins: [createRnStubPlugin(stubRoot)],
 });
 
-if (!buildResult.success) {
-    for (const log of buildResult.logs) {
-        console.error(log);
-    }
-    throw new Error('Failed to bundle victory-chart-renderer CLI');
-}
+assertBuildSuccess(buildResult, 'Failed to bundle victory-chart-renderer CLI');
 
 const [bundle] = buildResult.outputs;
 if (!bundle) {
