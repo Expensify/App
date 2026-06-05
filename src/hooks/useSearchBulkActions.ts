@@ -14,7 +14,15 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {BulkPaySelectionData, PaymentData, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
+import {
+    createTransactionThreadReport,
+    deleteAppReport,
+    exportReportToPDF,
+    markAsManuallyExported,
+    moveIOUReportToPolicy,
+    moveIOUReportToPolicyAndInviteSubmitter,
+} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     exportSearchItemsToCSV,
@@ -34,7 +42,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
+import {getTargetTransactionThreadReportIDForSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -328,10 +336,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -1389,7 +1399,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE))
+                ? selectedReports.every((report) => report.canApprove)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
@@ -1446,7 +1456,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             selectedReports.length &&
-            selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER));
+            selectedReports.every((report) => report.canChangeApprover);
 
         if (shouldShowChangeApproverOption) {
             options.push({
@@ -1462,7 +1472,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT)) &&
+                ? selectedReports.every((report) => report.canSubmit) &&
                   // Disable for mixed selections: all must be the same submit type
                   (isTrackIntentUser ? allReportsShouldMarkAsDone || noReportsShouldMarkAsDone : true)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
@@ -1635,7 +1645,57 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true),
+                        onSelected: () => {
+                            const transactionKey: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                            const searchSnapshotTransaction = currentSearchResults?.data?.[transactionKey];
+                            const selectedTransactionInfo = selectedTransactions[transactionID];
+                            const isSingleSelection = selectedTransactionsKeys.length === 1;
+                            let targetTransactionThreadReportIDOverride = isSingleSelection
+                                ? getTargetTransactionThreadReportIDForSelection(searchSnapshotTransaction ?? searchedTransactions.at(0), selectedTransactionInfo)
+                                : undefined;
+
+                            if (!targetTransactionThreadReportIDOverride && isSingleSelection) {
+                                const selectedReport = selectedTransactionInfo?.report ?? reports.at(0) ?? getReportOrDraftReport(searchSnapshotTransaction?.reportID);
+                                const selectedReportAction = selectedTransactionInfo?.reportAction;
+                                const targetTransaction = searchSnapshotTransaction ?? searchedTransactions.at(0);
+                                const shouldPassTransactionData = !selectedReportAction?.reportActionID || targetTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                                const transactionViolations = targetTransaction
+                                    ? allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`]
+                                    : undefined;
+                                const createdThreadReport = targetTransaction
+                                    ? createTransactionThreadReport({
+                                          introSelected,
+                                          currentUserLogin: currentUserPersonalDetails.login ?? '',
+                                          currentUserAccountID: currentUserPersonalDetails.accountID,
+                                          betas,
+                                          iouReport: selectedReport,
+                                          iouReportAction: selectedReportAction,
+                                          transaction: shouldPassTransactionData ? targetTransaction : undefined,
+                                          transactionViolations: shouldPassTransactionData ? transactionViolations : undefined,
+                                      })
+                                    : undefined;
+                                targetTransactionThreadReportIDOverride = createdThreadReport?.reportID;
+                            }
+
+                            const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = targetTransactionThreadReportIDOverride
+                                ? {
+                                      transactionID,
+                                      threadReportID: targetTransactionThreadReportIDOverride,
+                                  }
+                                : undefined;
+
+                            setupMergeTransactionDataAndNavigate(
+                                transactionID,
+                                searchedTransactions,
+                                localeCompare,
+                                getCurrencyDecimals,
+                                reports,
+                                false,
+                                true,
+                                undefined,
+                                targetTransactionThreadReportCandidate,
+                            );
+                        },
                     });
                 }
             }
@@ -1822,6 +1882,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         invokeDuplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
+        introSelected,
+        betas,
         undeleteTransactions,
         theme.icon,
         styles.colorMuted,

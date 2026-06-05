@@ -964,6 +964,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portafoglio',
             },
+            enterSignerInfo: {title: 'Informazioni del firmatario necessarie', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conto bancario ${bankAccountLastFour}`},
         },
         announcements: 'Annunci',
         discoverSection: {
@@ -1528,6 +1529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
         reviewDuplicates: 'Controlla duplicati',
         keepAll: 'Mantieni tutto',
+        keepSelected: 'Mantieni selezionati',
         noDuplicatesTitle: 'Tutto a posto!',
         noDuplicatesDescription: 'Non ci sono transazioni duplicate da verificare qui.',
         confirmApprove: 'Conferma l’importo approvato',
@@ -1996,11 +1998,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: 'Salvato',
         },
     },
-    securityPage: {
-        title: 'Opzioni di sicurezza',
-        subtitle: 'Attiva l’autenticazione a due fattori per mantenere al sicuro il tuo account.',
-        goToSecurity: 'Torna alla pagina di sicurezza',
-    },
+    securityPage: {title: 'Sicurezza', subtitle: 'Tieni al sicuro il tuo account.', goToSecurity: 'Torna alla pagina di sicurezza'},
     shareCodePage: {
         title: 'Il tuo codice',
         subtitle: 'Invita membri su Expensify condividendo il tuo codice QR personale o il tuo link di riferimento.',
@@ -2150,14 +2148,25 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Account',
         general: 'Generale',
         helpPage: {
-            title: 'Domande?',
+            title: 'Aiuto e supporto',
             description: 'Siamo qui per aiutarti, a qualsiasi ora.',
             helpSite: 'Sito di assistenza',
+            helpSiteDescription: 'Articoli, tutorial e altro',
             conciergeChat: 'Concierge',
-            conciergeChatDescription: 'Il tuo assistente IA personale',
-            accountManagerDescription: 'Il tuo account manager',
-            partnerManagerDescription: 'Il tuo partner manager',
+            conciergeChatDescription: 'Il tuo agente IA personale',
+            accountManager: 'Responsabile account',
+            yourAccountManager: 'Il tuo account manager',
+            accountManagerDescription: 'Fai domande e ottieni assistenza clienti',
+            partnerManager: 'Responsabile partner',
+            yourPartnerManager: 'Il tuo partner manager',
+            partnerManagerDescription: 'Massimizza la tua partnership e genera referral',
             guideDescription: 'Il tuo specialista di configurazione',
+            approvedPartnerTeamTitle: 'Incontra il tuo team partner Approved!',
+            approvedPartnerTeamDescription:
+                'Un team dedicato che ti aiuta a far crescere il tuo studio, ad attivare i clienti più velocemente e a ottenere supporto di esperti ogni volta che ne hai bisogno.',
+            accountExecutive: 'Account Executive',
+            accountExecutiveDescription: 'Configura correttamente i clienti',
+            moreResources: 'Altre risorse',
         },
     },
     closeAccountPage: {
@@ -3363,6 +3372,7 @@ ${amount} per ${merchant} - ${date}`,
         enterPhoneNumber: 'Qual è il tuo numero di telefono?',
         personalDetails: 'Dati personali',
         privateDataMessage: 'Questi dettagli vengono utilizzati per viaggi e pagamenti. Non vengono mai mostrati sul tuo profilo pubblico.',
+        basicDetails: 'Dettagli di base',
         legalName: 'Nome legale',
         legalFirstName: 'Nome legale di battesimo',
         legalLastName: 'Cognome legale',
@@ -3441,6 +3451,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Partecipa',
+        marketingSMSConsent: 'Accetto di ricevere SMS di marketing da Expensify',
     },
     detailsPage: {
         localTime: 'Ora locale',
@@ -3556,7 +3567,7 @@ ${amount} per ${merchant} - ${date}`,
             noBankAccountSelected: 'Scegli un account per favore',
             taxID: 'Inserisci un numero di codice fiscale valido',
             website: 'Inserisci un sito web valido',
-            zipCode: `Inserisci un CAP valido usando il formato: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Inserisci un CAP valido usando il formato: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Inserisci un numero di telefono valido',
             email: 'Inserisci un indirizzo email valido',
             companyName: 'Inserisci un nome aziendale valido',
@@ -4415,6 +4426,8 @@ ${amount} per ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gestisci le carte dello spazio di lavoro.',
             peopleAdminAlternateText: 'Gestisci i membri e i flussi di approvazione.',
             paymentsAdminAlternateText: 'Gestisci i pagamenti del flusso di lavoro.',
+            readOnlyActionTitle: 'Non così in fretta...',
+            readOnlyActionPrompt: 'Il tuo ruolo nello spazio di lavoro può visualizzare queste impostazioni, ma non può modificarle.',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
@@ -4870,6 +4883,34 @@ ${amount} per ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify si sincronizzerà automaticamente con Certinia ogni giorno.',
+            syncReimbursedReportsDescription:
+                'Con questa opzione abilitata, ogni volta che una fattura da pagare viene saldata in FFA, il relativo report Expensify sarà automaticamente contrassegnato come rimborsato.',
+            exportDescription: 'Configura come i dati di Expensify vengono esportati in Certinia.',
+            payableInvoices: 'Fatture da pagare',
+            exportStatus: {
+                label: 'Stato fattura da pagare',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Completa',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In corso',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Inviato',
+                },
+            },
+            exportDate: {
+                label: 'Data fattura da pagare',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: "Data dell'ultima spesa",
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Data di invio del report',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Data di esportazione',
+                },
+            },
+            exportReimbursable: {
+                label: 'Esporta le spese rimborsabili come',
+                helperText: 'Le spese contrassegnate come rimborsabili verranno esportate come fatture passive intestate al dipendente.',
+            },
+            exportNonReimbursable: {label: 'Esporta le spese non rimborsabili come'},
+            noVendorsFound: 'Nessun fornitore trovato',
+            noVendorsFoundDescription: 'Sincronizza di nuovo la connessione dopo che i fornitori sono stati aggiunti in Certinia.',
             prerequisites: {
                 title: 'Prima di connetterti',
                 installBundle: 'Per connessioni FFA',
@@ -4886,6 +4927,19 @@ ${amount} per ${merchant} - ${date}`,
                 oauth: 'Accedi tramite Salesforce',
                 oauthDescription: 'Per completare la configurazione, dovrai accedere tramite Salesforce e Certinia.\n\nUsa il pulsante qui sotto per continuare.',
                 connectButton: 'Connetti a Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Piano dei conti',
+                chartOfAccountsDescription: 'Il piano dei conti viene importato in Expensify come categorie.',
+                dimensionMapping: ({n}: {n: number}) => `Dimensione ${n}`,
+                dimensions: {dimension1: 'Dimensione 1', dimension2: 'Dimensione 2', dimension3: 'Dimensione 3', dimension4: 'Dimensione 4'},
+                doNotMap: 'Non mappare',
+                doNotMapSubtitle: 'Usa come predefinita la risorsa dipendente',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Non mappare',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importato come tag',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importato come campi del report',
+                },
             },
         },
         netsuite: {
@@ -5632,6 +5686,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             travel: {
                 title: 'Viaggi',
                 subtitle: 'Prenota, gestisci e riconcilia tutti i viaggi di lavoro.',
+                disableTravelTitle: 'Disattiva prima la fatturazione viaggi',
+                disableTravelPrompt: 'La fatturazione Viaggi è abilitata per questo spazio di lavoro. Disattivala prima di poter disabilitare Viaggi.',
+                disableTravelButton: 'Vai alle impostazioni Viaggio',
                 getStarted: {
                     title: 'Inizia con Expensify Travel',
                     subtitle: 'Ci servono solo ancora alcune informazioni sulla tua attività, poi sarai pronto al decollo.',
@@ -6465,6 +6522,26 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             return 'Importazione delle dimensioni Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importazione dei dati Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Sincronizzazione dei dati Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Sincronizzazione della connessione Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importazione delle categorie';
+                        case 'financialForceSyncTags':
+                            return 'Importazione dei tag';
+                        case 'financialForceSyncVendors':
+                            return 'Importazione dei fornitori';
+                        case 'financialForceSyncContacts':
+                            return 'Importazione dei contatti';
+                        case 'financialForceSyncCompanies':
+                            return 'Importazione delle aziende';
+                        case 'financialForceSyncUsers':
+                            return 'Importazione degli utenti';
+                        case 'financialForceSyncDimensions':
+                            return 'Importazione delle dimensioni';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Contrassegno dei report come rimborsati';
                         default: {
                             return `Traduzione mancante per lo stato: ${stage}`;
                         }
