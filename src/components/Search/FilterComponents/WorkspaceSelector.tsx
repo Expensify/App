@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -47,28 +47,22 @@ function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, s
             icons: workspace.icons,
         }));
 
-    const [selectedItems, setSelectedItems] = useState(() => {
-        const policyID = value ?? policyIDQuery ?? [];
-        return workspaceOptions.filter((option) => (Array.isArray(policyID) ? policyID : [policyID]).includes(option.value));
-    });
+    const policyID = value ?? policyIDQuery ?? [];
 
     const updateSelectedItems = (item: ListItem) => {
+        let newValue;
         if (item.isSelected) {
-            setSelectedItems((prevSelectedItems) => prevSelectedItems.filter((i) => i.value !== item.keyForList));
-            return;
+            newValue = policyID.filter((i) => i !== item.keyForList);
+        } else {
+            newValue = [...policyID, item.keyForList];
         }
-
-        const newItem = workspaceOptions.find((i) => i.value === item.keyForList);
-        if (!newItem) {
-            return;
-        }
-        setSelectedItems((prevSelectedItems) => [...prevSelectedItems, newItem]);
+        onChange(newValue);
     };
 
     const listData: ListItem[] = workspaceOptions.map((item) => ({
         text: item.text,
         keyForList: item.value,
-        isSelected: !!selectedItems.find((i) => i.value === item.value),
+        isSelected: policyID.includes(item.value),
         icons: item.icons,
     }));
 
