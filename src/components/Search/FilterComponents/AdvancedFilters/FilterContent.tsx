@@ -137,6 +137,7 @@ function FilterContent({filterKey, values, policyIDQuery, autoFocus, ready, onCh
     if (isAmountFilterKey(filterKey)) {
         return (
             <AmountFilterComponent
+                key={filterKey}
                 filterKey={filterKey}
                 value={{
                     [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: values?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`],
@@ -152,6 +153,7 @@ function FilterContent({filterKey, values, policyIDQuery, autoFocus, ready, onCh
     if (isDateFilterKey(filterKey)) {
         return (
             <DateFilterComponent
+                key={filterKey}
                 filterKey={filterKey}
                 value={{
                     [CONST.SEARCH.DATE_MODIFIERS.ON]: values?.[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
