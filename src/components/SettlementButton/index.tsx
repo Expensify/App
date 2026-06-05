@@ -289,6 +289,7 @@ function SettlementButton({
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
     let paymentButtonOptions: Array<DropdownOption<string>>;
+    
     // Only show the Approve button if the user cannot pay the expense
     if (shouldHidePaymentOptions && shouldShowApproveButton) {
         paymentButtonOptions = [approveButtonOption];
