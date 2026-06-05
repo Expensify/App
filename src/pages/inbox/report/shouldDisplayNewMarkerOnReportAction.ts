@@ -26,6 +26,9 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
 
     /** Whether the network is offline */
     isOffline: boolean;
+
+    /** The reportActionID of the current unread marker, if one exists */
+    prevUnreadMarkerReportActionID?: string | null;
 };
 
 /**
@@ -41,6 +44,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     prevSortedVisibleReportActionsObjects,
     isScrolledOverThreshold,
     isOffline,
+    prevUnreadMarkerReportActionID,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
@@ -78,9 +82,13 @@ const shouldDisplayNewMarkerOnReportAction = ({
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
     const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
 
-    // When no unread marker exists yet, never anchor it above a self-authored action.
-    // (If a marker already exists and then moves due to deletion, allow it to land on a self-authored action.)
-    if (isFromCurrentUser && !prevUnreadMarkerReportActionID) {
+    if (isFromCurrentUser) {
+        // When an existing marker is being relocated (e.g. after the original unread message is deleted),
+        // allow the marker to land on a self-authored action.
+        // Otherwise, never anchor the "New" marker above a self-authored action on first open/re-entry.
+        if (prevUnreadMarkerReportActionID) {
+            return !shouldIgnoreUnreadForCurrentUserMessage;
+        }
         return false;
     }
 
@@ -116,6 +124,9 @@ type GetUnreadMarkerReportActionParams = {
 
     /** Whether the current user is anonymous — skips the scan entirely */
     isAnonymousUser?: boolean;
+
+    /** The reportActionID of the current unread marker, if one exists */
+    prevUnreadMarkerReportActionID?: string | null;
 };
 
 /**
@@ -132,6 +143,7 @@ const getUnreadMarkerReportAction = ({
     isOffline,
     isReversed,
     isAnonymousUser = false,
+    prevUnreadMarkerReportActionID,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
     if (isAnonymousUser) {
         return [null, -1];
@@ -171,6 +183,7 @@ const getUnreadMarkerReportAction = ({
                 unreadMarkerTime,
                 isScrolledOverThreshold,
                 isOffline,
+                prevUnreadMarkerReportActionID,
             });
 
         if (shouldShowMarker) {

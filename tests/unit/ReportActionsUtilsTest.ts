@@ -5102,7 +5102,7 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns true when message is from current user but is already present (not new, not optimistic)', () => {
+        it('returns false when message is from current user and is already present (not new, not optimistic) and no existing marker', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -5112,6 +5112,23 @@ describe('ReportActionsUtils', () => {
                     ...baseParams,
                     message,
                     prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: null,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when message is from current user, already present, and marker is being relocated after deletion', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'deleted-action-id',
                     isOffline: false,
                 }),
             ).toBe(true);
