@@ -1,16 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {distanceMapSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import shouldShowDistanceMap from '@components/MoneyRequestConfirmationListFooter/shouldShowDistanceMap';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {Transaction} from '@src/types/onyx';
 
 type DistanceMapSectionProps = {
-    /** Active transaction (drives the rendered route + waypoint pending/error state) */
-    transaction: OnyxEntry<Transaction>;
-
     /** Whether the active transaction is a distance request (gate for showing the map) */
     isDistanceRequest: boolean;
 
@@ -21,9 +19,10 @@ type DistanceMapSectionProps = {
     isOdometerDistanceRequest: boolean;
 };
 
-function DistanceMapSection({transaction, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest}: DistanceMapSectionProps) {
+function DistanceMapSection({isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest}: DistanceMapSectionProps) {
     const styles = useThemeStyles();
-    const {iouType, isReadOnly} = useConfirmationFields();
+    const {iouType, transactionID, isReadOnly} = useConfirmationFields();
+    const transaction = useTransactionSelector(transactionID, distanceMapSliceSelector);
 
     const shouldShowMap = shouldShowDistanceMap({transaction, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, iouType, isReadOnly});
 

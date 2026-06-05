@@ -2,6 +2,8 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import PerDiemFields from '@components/MoneyRequestConfirmationList/sections/PerDiemFields';
+import {perDiemSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -9,9 +11,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 type PerDiemSectionProps = {
     /** Whether the active transaction is a per-diem request (gate for rendering this section) */
     isPerDiemRequest: boolean;
-
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Active policy (used to resolve the per-diem custom unit) */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -23,8 +22,9 @@ type PerDiemSectionProps = {
     formError: string;
 };
 
-function PerDiemSection({isPerDiemRequest, transaction, policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
+function PerDiemSection({isPerDiemRequest, policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
     const {action, iouType, transactionID, reportID, isReadOnly, didConfirm} = useConfirmationFields();
+    const transaction = useTransactionSelector(transactionID, perDiemSliceSelector);
     if (!isPerDiemRequest || action === CONST.IOU.ACTION.SUBMIT) {
         return null;
     }

@@ -1,21 +1,19 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import InvoiceSenderField from '@components/MoneyRequestConfirmationList/sections/InvoiceSenderField';
+import {invoiceSenderSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 type InvoiceSenderSectionProps = {
     /** Selected participants (used to derive the sender workspace) */
     selectedParticipants: Participant[];
-
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-function InvoiceSenderSection({selectedParticipants, transaction}: InvoiceSenderSectionProps) {
-    const {iouType, reportID, isReadOnly, didConfirm} = useConfirmationFields();
+function InvoiceSenderSection({selectedParticipants}: InvoiceSenderSectionProps) {
+    const {iouType, reportID, transactionID, isReadOnly, didConfirm} = useConfirmationFields();
+    const transaction = useTransactionSelector(transactionID, invoiceSenderSliceSelector);
     if (iouType !== CONST.IOU.TYPE.INVOICE) {
         return null;
     }

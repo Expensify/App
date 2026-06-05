@@ -222,6 +222,75 @@ const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => 
     return slice as Transaction;
 };
 
+// --- InvoiceSenderSection ---
+
+type InvoiceSenderSlice = Pick<Transaction, 'isFromGlobalCreate' | 'transactionID'>;
+
+const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: InvoiceSenderSlice = {
+        isFromGlobalCreate: t.isFromGlobalCreate,
+        transactionID: t.transactionID,
+    };
+    return slice as Transaction;
+};
+
+// --- DistanceMapSection ---
+
+type DistanceMapSlice = Pick<Transaction, 'pendingFields' | 'errors' | 'errorFields' | 'routes'> & {
+    comment: {waypoints: NonNullable<Transaction['comment']>['waypoints']} | undefined;
+};
+
+const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: DistanceMapSlice = {
+        pendingFields: t.pendingFields,
+        errors: t.errors,
+        errorFields: t.errorFields,
+        routes: t.routes,
+        comment: t.comment ? {waypoints: t.comment.waypoints} : undefined,
+    };
+    return slice as Transaction;
+};
+
+// --- PerDiemSection ---
+
+type PerDiemSlice = {comment: {customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined};
+
+const perDiemSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: PerDiemSlice = {
+        comment: t.comment ? {customUnit: t.comment.customUnit} : undefined,
+    };
+    return slice as Transaction;
+};
+
+// --- ReceiptSection ---
+
+type ReceiptSlice = Pick<Transaction, 'iouRequestType' | 'receipt' | 'hasEReceipt' | 'transactionID' | 'pendingFields' | 'errors' | 'errorFields'>;
+
+const receiptSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: ReceiptSlice = {
+        iouRequestType: t.iouRequestType,
+        receipt: t.receipt,
+        hasEReceipt: t.hasEReceipt,
+        transactionID: t.transactionID,
+        pendingFields: t.pendingFields,
+        errors: t.errors,
+        errorFields: t.errorFields,
+    };
+    return slice as Transaction;
+};
+
 // --- ReportField ---
 
 type ReportFieldTransactionState = {
@@ -283,8 +352,12 @@ export {
     dateStateSelector,
     derivedFlagsSliceSelector,
     descriptionStateSelector,
+    distanceMapSliceSelector,
+    invoiceSenderSliceSelector,
     invoiceSenderWorkspaceSelector,
     merchantStateSelector,
+    perDiemSliceSelector,
+    receiptSliceSelector,
     reportFieldTransactionStateSelector,
     tagSliceSelector,
     taxSliceSelector,
