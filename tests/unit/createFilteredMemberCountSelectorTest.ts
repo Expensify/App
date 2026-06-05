@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {getFilteredMemberCount} from '../../src/libs/PolicyUtils';
+import {createFilteredMemberCountSelector} from '../../src/libs/PolicyUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyEmployeeList} from '../../src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -53,7 +53,7 @@ const employeeListAllRegular: PolicyEmployeeList = {
     [regularUser2Email]: {email: regularUser2Email, role: 'user'},
 };
 
-describe('getFilteredMemberCount', () => {
+describe('createFilteredMemberCountSelector', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -74,17 +74,20 @@ describe('getFilteredMemberCount', () => {
         beforeEach(() => Onyx.multiSet({[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails}).then(waitForBatchedUpdates));
 
         it('should filter out Expensify guides (team.expensify.com)', () => {
-            const count = getFilteredMemberCount(employeeListWithGuide, personalDetails, policyOwner, currentUserLogin);
+            const selector = createFilteredMemberCountSelector(employeeListWithGuide, policyOwner, currentUserLogin);
+            const count = selector(personalDetails);
             expect(count).toBe(1);
         });
 
         it('should filter out Expensify employees (expensify.com)', () => {
-            const count = getFilteredMemberCount(employeeListWithExpensifyEmployee, personalDetails, policyOwner, currentUserLogin);
+            const selector = createFilteredMemberCountSelector(employeeListWithExpensifyEmployee, policyOwner, currentUserLogin);
+            const count = selector(personalDetails);
             expect(count).toBe(1);
         });
 
         it('should return full count when no Expensify team members are present', () => {
-            const count = getFilteredMemberCount(employeeListAllRegular, personalDetails, policyOwner, currentUserLogin);
+            const selector = createFilteredMemberCountSelector(employeeListAllRegular, policyOwner, currentUserLogin);
+            const count = selector(personalDetails);
             expect(count).toBe(2);
         });
     });
@@ -96,7 +99,8 @@ describe('getFilteredMemberCount', () => {
         beforeEach(() => Onyx.multiSet({[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails}).then(waitForBatchedUpdates));
 
         it('should NOT filter out Expensify team members', () => {
-            const count = getFilteredMemberCount(employeeListWithGuide, personalDetails, policyOwner, currentUserLogin);
+            const selector = createFilteredMemberCountSelector(employeeListWithGuide, policyOwner, currentUserLogin);
+            const count = selector(personalDetails);
             expect(count).toBe(2);
         });
     });
@@ -108,7 +112,8 @@ describe('getFilteredMemberCount', () => {
         beforeEach(() => Onyx.multiSet({[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails}).then(waitForBatchedUpdates));
 
         it('should NOT filter out Expensify team members', () => {
-            const count = getFilteredMemberCount(employeeListWithGuide, personalDetails, policyOwner, currentUserLogin);
+            const selector = createFilteredMemberCountSelector(employeeListWithGuide, policyOwner, currentUserLogin);
+            const count = selector(personalDetails);
             expect(count).toBe(2);
         });
     });
@@ -117,22 +122,26 @@ describe('getFilteredMemberCount', () => {
         beforeEach(() => Onyx.multiSet({[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails}).then(waitForBatchedUpdates));
 
         it('should return 0 when employeeList is undefined', () => {
-            const count = getFilteredMemberCount(undefined, personalDetails, 'owner@company.com', 'user@company.com');
+            const selector = createFilteredMemberCountSelector(undefined, 'owner@company.com', 'user@company.com');
+            const count = selector(personalDetails);
             expect(count).toBe(0);
         });
 
         it('should return 0 when employeeList is empty', () => {
-            const count = getFilteredMemberCount({}, personalDetails, 'owner@company.com', 'user@company.com');
+            const selector = createFilteredMemberCountSelector({}, 'owner@company.com', 'user@company.com');
+            const count = selector(personalDetails);
             expect(count).toBe(0);
         });
 
         it('should NOT filter when policyOwner is undefined (filtering disabled)', () => {
-            const count = getFilteredMemberCount(employeeListWithGuide, personalDetails, undefined, regularUser1Email);
+            const selector = createFilteredMemberCountSelector(employeeListWithGuide, undefined, regularUser1Email);
+            const count = selector(personalDetails);
             expect(count).toBe(2);
         });
 
         it('should NOT filter when currentUserLogin is undefined (filtering disabled)', () => {
-            const count = getFilteredMemberCount(employeeListWithGuide, personalDetails, 'owner@company.com', undefined);
+            const selector = createFilteredMemberCountSelector(employeeListWithGuide, 'owner@company.com', undefined);
+            const count = selector(personalDetails);
             expect(count).toBe(2);
         });
     });

@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import {getDistanceRateCustomUnit, getFilteredMemberCount, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {createFilteredMemberCountSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -36,7 +36,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const policy = usePolicy(policyID);
     const isCollect = isCollectPolicy(policy);
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -51,7 +50,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const totalMembers = getFilteredMemberCount(policy?.employeeList, personalDetails, policy?.owner, currentUserPersonalDetails.login);
+    const [totalMembers = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login),
+    });
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);

@@ -612,32 +612,25 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
 }
 
 /**
- * Get the count of workspace members, optionally excluding Expensify team members (guides/account managers).
- * This matches the filtering logic used in WorkspaceMembersPage to ensure consistent member counts.
- *
- * Expensify team members are filtered out when:
- * - The policy owner is NOT an Expensify team member
- * - AND the current user is NOT an Expensify team member
+ * Creates a selector for useOnyx that computes the filtered member count.
+ * Returns a primitive number to prevent unnecessary re-renders when unrelated personal details change.
  */
-function getFilteredMemberCount(
-    employeeList: PolicyEmployeeList | undefined,
-    personalDetails: PersonalDetailsList | undefined,
-    policyOwner: string | undefined,
-    currentUserLogin: string | undefined,
-): number {
-    const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
+function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
+    return (personalDetails: PersonalDetailsList | undefined): number => {
+        const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
 
-    return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
-        const accountID = policyMemberEmailsToAccountIDs[email];
-        const details = personalDetails?.[accountID];
+        return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
+            const accountID = policyMemberEmailsToAccountIDs[email];
+            const details = personalDetails?.[accountID];
 
-        if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
-            return count;
-        }
+            if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
+                return count;
+            }
 
-        return count + 1;
-    }, 0);
+            return count + 1;
+        }, 0);
+    };
 }
 
 /**
@@ -2462,7 +2455,7 @@ export {
     shouldShowTaxRateError,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
-    getFilteredMemberCount,
+    createFilteredMemberCountSelector,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,

@@ -20,7 +20,7 @@ import {areAllTargetsAccountingCompatible, areAllTargetsCompatibleForAccountingP
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDistanceRateCustomUnit, getFilteredMemberCount, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {createFilteredMemberCountSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
@@ -53,7 +53,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
@@ -64,7 +63,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const isCodingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
     const isAccountingPartCompatible = areAllTargetsCompatibleForAccountingPart(sourcePolicy, targetPolicies);
 
-    const memberCount = getFilteredMemberCount(sourcePolicy?.employeeList, personalDetails, sourcePolicy?.owner, currentUserPersonalDetails.login);
+    const [memberCount = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login),
+    });
     const categoriesCount = Object.values(policyCategories ?? {}).filter((c) => c?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const totalTags = policyTags
         ? Object.values(policyTags).reduce(
