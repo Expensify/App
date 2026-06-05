@@ -328,7 +328,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
             const certiniaConfig = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
             return {
-                title: translate('workspace.certinia.title'),
+                title: policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA] ? translate('workspace.certinia.titleFFA') : translate('workspace.certinia.title'),
                 icon: expensifyIcons?.CertiniaSquare,
                 setupConnectionFlow: (
                     <ConnectToCertiniaFlow

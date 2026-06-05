@@ -2940,9 +2940,9 @@ const CONST = {
     },
 
     CERTINIA_EXPORT_STATUS: {
-        APPROVED: 'APPROVED',
-        IN_PROGRESS: 'IN_PROGRESS',
-        SUBMITTED: 'SUBMITTED',
+        APPROVED: 'Approved',
+        IN_PROGRESS: 'In Progress',
+        SUBMITTED: 'Submitted',
     },
 
     CERTINIA_EXPORT_DATE: {
