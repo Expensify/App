@@ -170,6 +170,7 @@ import {
     isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
     isSubmitAndClose,
+    resolveCurrentTaxCode,
     shouldShowPolicy,
 } from './PolicyUtils';
 import {
@@ -5644,8 +5645,8 @@ function getModifiedExpenseOriginalMessage(
     // Tax rate can change as a result of currency update. In such cases, we want to skip displaying a system message, as discussed.
     const didTaxCodeChange = 'taxCode' in transactionChanges;
     if (didTaxCodeChange && !didAmountOrCurrencyChange) {
-        originalMessage.oldTaxRate = policy?.taxRates?.taxes[getTaxCode(oldTransaction)]?.value;
-        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode]?.value;
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[resolveCurrentTaxCode(policy, getTaxCode(oldTransaction))]?.value;
+        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[resolveCurrentTaxCode(policy, transactionChanges.taxCode)]?.value;
     }
 
     // We only want to display a tax amount update system message when tax amount is updated by user.

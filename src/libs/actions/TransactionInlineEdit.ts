@@ -12,7 +12,7 @@ import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
+import {getTagLists, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -339,7 +339,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     // Keep the existing currency — only the amount is changing from the search table
     const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
     // Recalculate tax from the existing tax code and the new amount
-    const taxCode = iouParams.transaction?.taxCode ?? '';
+    const taxCode = resolveCurrentTaxCode(iouParams.policy, iouParams.transaction?.taxCode ?? '');
     const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
     const decimals = getCurrencyDecimals(getCurrency(iouParams.transaction));
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));

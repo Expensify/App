@@ -10,7 +10,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
     isInvoiceRoom,
@@ -118,7 +118,7 @@ function createTransaction({
         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
         const policy = policyParams?.policy;
         const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-        const taxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
+        const taxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '');
         const taxAmount = transaction?.taxAmount ?? 0;
         const optimisticTransactionID = optimisticTransactionIDs.at(index);
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
