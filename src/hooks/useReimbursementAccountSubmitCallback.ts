@@ -15,9 +15,15 @@ export default function useReimbursementAccountSubmitCallback(onSubmit?: () => v
     const isSubmittingRef = useRef(false);
 
     useEffect(() => {
-        if (!isSubmittingRef.current || reimbursementAccount?.isLoading || reimbursementAccount?.errors) {
+        if (!isSubmittingRef.current || reimbursementAccount?.isLoading) {
             return;
         }
+
+        if (reimbursementAccount?.errors) {
+            isSubmittingRef.current = false;
+            return;
+        }
+
         isSubmittingRef.current = false;
         onSubmit?.();
     }, [reimbursementAccount?.isLoading, reimbursementAccount?.errors, onSubmit]);
