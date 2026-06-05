@@ -323,8 +323,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         loadNewerChats(false);
     }, [loadNewerChats]);
 
-    const prevUnreadMarkerReportActionID = useRef<string | null>(null);
-
     const visibleActionsMap = useMemo(() => {
         return visibleReportActions.reduce((actionsMap, reportAction) => {
             Object.assign(actionsMap, {
@@ -435,12 +433,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         currentUserAccountID,
         prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
         unreadMarkerTime,
-        scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
-        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+        isScrolledOverThreshold: scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD,
         isOffline,
         isReversed: true,
     });
-    prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report?.reportID ?? reportIDFromRoute ?? '',

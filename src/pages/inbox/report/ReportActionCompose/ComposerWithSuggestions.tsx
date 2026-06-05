@@ -11,8 +11,7 @@ import type {
     TextInputKeyPressEvent,
     TextInputScrollEvent,
 } from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -42,6 +41,7 @@ import type {Selection} from '@libs/focusComposerWithDelay/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
@@ -750,12 +750,10 @@ function ComposerWithSuggestions({
         }
         delayedAutoFocusRouteKeyRef.current = route.key;
 
-        const task = InteractionManager.runAfterInteractions(() => {
-            focus(true);
-        });
+        const handle = TransitionTracker.runAfterTransitions({callback: () => focus(true)});
 
         return () => {
-            task?.cancel?.();
+            handle.cancel();
         };
     }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 

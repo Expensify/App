@@ -414,7 +414,12 @@ function mergeDuplicates({
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount?: number; taxValue?: string}) {
+function resolveDuplicates({
+    taxAmount,
+    taxValue,
+    transactionThreadReportIDMap,
+    ...params
+}: MergeDuplicatesParams & {taxAmount?: number; taxValue?: string; transactionThreadReportIDMap: Record<string, string | undefined>}) {
     if (!params.transactionID) {
         return;
     }
@@ -470,32 +475,18 @@ function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesPara
     const resolvedTransactionIDList: string[] = [];
     const optimisticHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
-    const allReportActions = getAllReportActionsFromIOU();
 
-    // For each duplicate transaction, find its IOU action and create hold actions
-    // This handles cross-report duplicates by searching across all reports
     for (const transactionID of params.transactionIDList) {
         const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             continue;
         }
 
-        // Find the IOU action for this transaction in its own report
-        const transactionReportID = transaction.reportID;
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`];
-        const iouAction = Object.values(reportActions ?? {}).find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
-            if (!isMoneyRequestAction(action)) {
-                return false;
-            }
-            const message = getOriginalMessage(action);
-            return message?.IOUTransactionID === transactionID;
-        });
-
-        if (!iouAction) {
+        const transactionThreadReportID = transactionThreadReportIDMap[transactionID];
+        if (!transactionThreadReportID) {
             continue;
         }
 
-        const transactionThreadReportID = iouAction.childReportID;
         const createdReportAction = buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
         resolvedTransactionIDList.push(transactionID);
