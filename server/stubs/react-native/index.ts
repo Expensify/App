@@ -6,9 +6,9 @@
 // only need enough surface area for `victory-native` and `@shopify/react-native-skia`
 // modules to load without throwing while we walk the headless branch.
 //
-// UI primitives are transparent pass-throughs so layout wrappers and label
-// containers preserve the Skia subtree without mounting native views. Styles
-// and layout callbacks are ignored.
+// UI primitives pass children through so layout wrappers and label containers
+// preserve the Skia subtree without mounting native views. Styles and layout
+// callbacks are ignored.
 import type {FunctionComponent, PropsWithChildren} from 'react';
 
 const passThroughComponent: FunctionComponent<PropsWithChildren<unknown>> = ({children}) => children;
