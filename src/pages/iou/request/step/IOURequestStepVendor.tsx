@@ -50,6 +50,9 @@ function IOURequestStepVendor({
     });
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+
+    // Vendor is scoped to non-reimbursable expenses; block deep-link / stale-open access if the transaction is reimbursable.
+    const isReimbursable = !!transaction?.reimbursable;
     const vendors = useMemo(() => getQBOVendors(policy), [policy]);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
 
@@ -66,7 +69,7 @@ function IOURequestStepVendor({
             }));
     }, [vendors, currentVendorID, searchValue]);
 
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable;
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable;
 
     const navigateBack = () => {
         Navigation.goBack();
