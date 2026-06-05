@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        editor: '編集者',
         restrictions: '制限',
     },
     socials: {
@@ -4329,6 +4330,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.ADMIN:
                         return '管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
+                        return '監査人';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return '編集者';
                         return '監査担当者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'カード管理者';
