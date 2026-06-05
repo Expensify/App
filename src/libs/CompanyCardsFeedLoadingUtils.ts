@@ -7,21 +7,10 @@ function shouldWaitForDomainFeedData(
     isOffline: boolean,
     isInitialFeedFetchSettled: boolean,
 ): boolean {
-    return (
-        workspaceAccountID === CONST.DEFAULT_NUMBER_ID &&
-        domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID &&
-        !hasFeedsLoaded &&
-        !isOffline &&
-        !isInitialFeedFetchSettled
-    );
+    return workspaceAccountID === CONST.DEFAULT_NUMBER_ID && domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && !hasFeedsLoaded && !isOffline && !isInitialFeedFetchSettled;
 }
 
-function shouldSynthesizeWorkspaceFeedsLoadError(
-    domainOrWorkspaceAccountID: number,
-    isPolicyLoaded: boolean,
-    isOffline: boolean,
-    isWaitingForDomainFeedData: boolean,
-): boolean {
+function shouldSynthesizeWorkspaceFeedsLoadError(domainOrWorkspaceAccountID: number, isPolicyLoaded: boolean, isOffline: boolean, isWaitingForDomainFeedData: boolean): boolean {
     return domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline && !isWaitingForDomainFeedData;
 }
 

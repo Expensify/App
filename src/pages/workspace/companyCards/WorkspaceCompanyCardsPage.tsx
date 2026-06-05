@@ -74,6 +74,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     useEffect(() => {
         if (isOffline || hasFeedsLoaded) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the fetch-lifecycle flags with the feed-loading outcome; these must persist across the async fetch/RAF window so they can't be derived during render
             setIsInitialFeedFetchPending(false);
             if (hasFeedsLoaded) {
                 setIsInitialFeedFetchSettled(true);
@@ -87,6 +88,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     useEffect(() => {
         if (hasFeedsLoaded || domainOrWorkspaceAccountID !== CONST.DEFAULT_NUMBER_ID) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- settles the fetch state once feeds load or the domain account ID resolves; reflects an async outcome that can't be derived during render
             setIsInitialFeedFetchPending(false);
             setIsInitialFeedFetchSettled(true);
             return;
