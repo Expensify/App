@@ -102,12 +102,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                             showReadOnlyModal={showReadOnlyModal}
                         />
                     )}
-                    {isCustomAgentBetaEnabled && (
-                        <AIRulesSection
-                            policyID={policyID}
-                            canWriteRules={canWriteRules}
-                        />
-                    )}
+                    {isCustomAgentBetaEnabled && <AIRulesSection policyID={policyID} />}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
