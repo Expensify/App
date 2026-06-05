@@ -2,6 +2,7 @@ import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
@@ -80,13 +81,19 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const showDatePickerModal = useCallback(() => {
-        cancelAutoFocus();
-        // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
-        textInputRef.current?.blur();
-        calculatePopoverPosition();
-        setIsModalVisible(true);
-    }, [calculatePopoverPosition, cancelAutoFocus]);
+    const showDatePickerModal = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            if (event && 'preventDefault' in event) {
+                event.preventDefault();
+            }
+            cancelAutoFocus();
+            // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
+            textInputRef.current?.blur();
+            calculatePopoverPosition();
+            setIsModalVisible(true);
+        },
+        [calculatePopoverPosition, cancelAutoFocus],
+    );
 
     const closeDatePicker = useCallback(() => {
         setIsModalVisible(false);
@@ -148,13 +155,14 @@ function DatePicker({
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ROLE.COMBOBOX}
                     value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    onFocus={showDatePickerModal}
+                    onPress={showDatePickerModal}
+                    onSubmitEditing={() => showDatePickerModal()}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
