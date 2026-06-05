@@ -192,6 +192,36 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
     };
 };
 
+// --- ConfirmationFieldList: useFooterDerivedFlags ---
+
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard'>;
+
+const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: DerivedFlagsSlice = {
+        modifiedCurrency: t.modifiedCurrency,
+        currency: t.currency,
+        iouRequestType: t.iouRequestType,
+        reportID: t.reportID,
+        managedCard: t.managedCard,
+    };
+    return slice as Transaction;
+};
+
+// --- ConfirmationFieldList: useFooterTagVisibility ---
+
+type TagSlice = Pick<Transaction, 'tag'>;
+
+const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: TagSlice = {tag: t.tag};
+    return slice as Transaction;
+};
+
 // --- ReportField ---
 
 type ReportFieldTransactionState = {
@@ -251,10 +281,12 @@ export {
     createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
+    derivedFlagsSliceSelector,
     descriptionStateSelector,
     invoiceSenderWorkspaceSelector,
     merchantStateSelector,
     reportFieldTransactionStateSelector,
+    tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,
     toggleStateSelector,
