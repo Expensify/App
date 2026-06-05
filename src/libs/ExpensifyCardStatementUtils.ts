@@ -62,28 +62,34 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         return [];
     }
 
-    // Selecting a settlement adds its transactions (keyed by transaction ID), each tagged with the
-    // settlement's groupKey. Tally how many transactions are selected per settlement so we can require
-    // the whole settlement to be selected (a partial, line-item-only selection should not qualify).
-    const selectedCountByGroupKey = new Map<string, number>();
-    for (const selection of Object.values(selectedTransactions)) {
-        const groupKey = selection?.groupKey;
-        if (!selection?.isSelected || !groupKey?.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+    // A settlement can be selected two ways. When its row is collapsed it has no loaded transactions, so
+    // its group key is stored directly in selectedTransactions. When its row is expanded, its transactions
+    // are stored individually, each tagged with the settlement's groupKey. Collect the settlement keys from
+    // both forms. The PDF is generated for the whole settlement by entryID, so one selected transaction is
+    // enough to include it - we must not require every transaction in the settlement to be loaded.
+    const selectedGroupKeys = new Set<string>();
+    for (const [key, selection] of Object.entries(selectedTransactions)) {
+        if (!selection?.isSelected) {
             continue;
         }
-        selectedCountByGroupKey.set(groupKey, (selectedCountByGroupKey.get(groupKey) ?? 0) + 1);
+        if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+            selectedGroupKeys.add(key);
+        }
+        if (selection.groupKey?.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+            selectedGroupKeys.add(selection.groupKey);
+        }
     }
 
-    return Array.from(selectedCountByGroupKey.entries())
-        .map(([groupKey, selectedCount]) => ({group: searchData[groupKey as keyof SearchResultDataType] as SearchWithdrawalIDGroup | undefined, selectedCount}))
-        .filter(
-            (entry): entry is {group: SearchWithdrawalIDGroup; selectedCount: number} =>
-                !!entry.group &&
-                getSettlementStatus(entry.group.state) === CONST.SEARCH.SETTLEMENT_STATUS.CLEARED &&
-                typeof entry.group.entryID === 'number' &&
-                entry.selectedCount >= entry.group.count,
-        )
-        .map((entry) => entry.group);
+    const settlementGroups: SearchWithdrawalIDGroup[] = [];
+    for (const groupKey of selectedGroupKeys) {
+        const group = searchData[groupKey as keyof SearchResultDataType] as SearchWithdrawalIDGroup | undefined;
+        if (!group || typeof group.entryID !== 'number' || getSettlementStatus(group.state) !== CONST.SEARCH.SETTLEMENT_STATUS.CLEARED) {
+            continue;
+        }
+        settlementGroups.push(group);
+    }
+
+    return settlementGroups;
 }
 
 function getExpensifyCardStatementSelection(

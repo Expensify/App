@@ -489,6 +489,75 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(result.current.isExpensifyCardStatementMultiFeedAlertVisible).toBe(true);
     });
 
+    it('should use the latest settlement selection when Export as PDF is triggered again', async () => {
+        const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        mockSelectedTransactions = {
+            firstTxn0: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined}),
+            firstTxn1: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined}),
+        };
+        mockCurrentSearchResults = makeCurrentSearchResults({
+            [firstGroupKey]: {
+                entryID: 123,
+                count: 2,
+                total: 1000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: 'American Express',
+                debitPosted: '2026-05-31',
+                state: 8,
+                policyID: 'policy1',
+                feedCountry: 'US',
+            },
+            [secondGroupKey]: {
+                entryID: 456,
+                count: 2,
+                total: 2000,
+                currency: 'USD',
+                accountNumber: '5678',
+                bankName: 'American Express',
+                debitPosted: '2026-05-30',
+                state: 8,
+                policyID: 'policy1',
+                feedCountry: 'US',
+            },
+        } as unknown as SearchResultDataType);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+
+        await waitFor(() => {
+            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // Capture the handler now and reuse it after the selection changes. PopoverMenu snapshots the
+        // submenu item and fires it detached from the current render, so a stale handler must still
+        // request the latest selection.
+        const snapshottedOnSelected = getExportAsPDFOption(result.current.headerButtonsOptions)?.onSelected;
+        await act(async () => {
+            await snapshottedOnSelected?.();
+        });
+
+        expect(getExpensifyCardStatementPDF).toHaveBeenCalledWith('policy1', 'US', [123]);
+        jest.mocked(getExpensifyCardStatementPDF).mockClear();
+
+        mockSelectedTransactions = {
+            firstTxn0: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined}),
+            firstTxn1: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined}),
+            secondTxn0: makeSelectedTransaction({groupKey: secondGroupKey, reportID: undefined}),
+            secondTxn1: makeSelectedTransaction({groupKey: secondGroupKey, reportID: undefined}),
+        };
+
+        act(() => {
+            result.current.handleExpensifyCardStatementPDFModalHide();
+        });
+
+        await act(async () => {
+            await snapshottedOnSelected?.();
+        });
+
+        expect(getExpensifyCardStatementPDF).toHaveBeenCalledWith('policy1', 'US', [123, 456]);
+    });
+
     it('should not request an Expensify Card statement PDF when offline', async () => {
         mockIsOffline = true;
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;

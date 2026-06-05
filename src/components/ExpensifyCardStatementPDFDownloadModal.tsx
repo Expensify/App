@@ -43,8 +43,9 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails?.login ?? '';
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    const isGeneratingPDF = expensifyCardStatement?.isGenerating === true;
     const statementFileName = expensifyCardStatement?.[statementParams.statementKey];
-    const hasFinishedPDFDownload = typeof statementFileName === 'string' && statementFileName.length > 0;
+    const hasFinishedPDFDownload = !isGeneratingPDF && typeof statementFileName === 'string' && statementFileName.length > 0;
 
     const messagePDF = hasFinishedPDFDownload ? translate('reportDetailsPage.successPDF') : translate('reportDetailsPage.waitForPDF');
 
@@ -59,7 +60,7 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
 
         downloadExpensifyCardStatementPDF(translate, statementFileName, statementParams.statementKey, currentUserLogin, encryptedAuthToken);
         shouldAutoDownloadPDF.current = false;
-    }, [currentUserLogin, encryptedAuthToken, hasFinishedPDFDownload, isVisible, statementFileName, statementParams.statementKey, translate]);
+    }, [currentUserLogin, encryptedAuthToken, hasFinishedPDFDownload, isGeneratingPDF, isVisible, statementFileName, statementParams.statementKey, translate]);
 
     const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchBulkActions.ExpensifyCardStatementPDFModal',

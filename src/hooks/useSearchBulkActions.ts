@@ -508,6 +508,58 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchResults?.data),
         [queryJSON, searchResults?.data, selectedTransactions],
     );
+
+    // `Export as PDF` is a submenu item invoked with shouldCallAfterModalHide, so PopoverMenu snapshots
+    // it and runs onSelected detached from the current render. Read the latest selection from a ref so
+    // the request always reflects what is selected now, not what was selected when the menu was built.
+    const expensifyCardStatementSelectionRef = useRef(expensifyCardStatementSelection);
+    expensifyCardStatementSelectionRef.current = expensifyCardStatementSelection;
+
+    const exportExpensifyCardStatementPDF = useCallback(() => {
+        if (isOffline) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
+
+        const selection = expensifyCardStatementSelectionRef.current;
+        if (!selection) {
+            return;
+        }
+
+        if (selection.hasMultipleFeeds) {
+            setIsExpensifyCardStatementMultiFeedAlertVisible(true);
+            return;
+        }
+
+        const feed = selection.feeds.at(0);
+        if (!feed) {
+            return;
+        }
+
+        const entryIDs = [...feed.entryIDs];
+        const statementParams: ExpensifyCardStatementParams = {
+            policyID: feed.policyID,
+            feedCountry: feed.feedCountry,
+            entryIDs,
+            statementKey: getExpensifyCardStatementKey(feed.policyID, feed.feedCountry, entryIDs),
+        };
+
+        setExpensifyCardStatementPDFParams(statementParams);
+        setIsExpensifyCardStatementPDFModalVisible(true);
+        getExpensifyCardStatementPDF(feed.policyID, feed.feedCountry, entryIDs)?.then((response) => {
+            const statementKey = response?.statementKey;
+            if (typeof statementKey !== 'string' || statementKey.length === 0) {
+                return;
+            }
+
+            // Sync the modal to the server's cache key, but only while the on-screen selection is still
+            // the one we requested. If the user changed the selection or dismissed the modal in the
+            // meantime, this response is stale and must not overwrite the current params.
+            setExpensifyCardStatementPDFParams((currentParams) =>
+                currentParams && currentParams.entryIDs.join(',') === entryIDs.join(',') ? {...currentParams, statementKey} : currentParams,
+            );
+        });
+    }, [isOffline]);
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
         (firstTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined) ??
@@ -1285,40 +1337,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportOptions.push({
                     text: translate('export.exportAsPDF'),
                     icon: expensifyIcons.Document,
-                    onSelected: () => {
-                        if (isOffline) {
-                            setIsOfflineModalVisible(true);
-                            return;
-                        }
-
-                        if (expensifyCardStatementSelection.hasMultipleFeeds) {
-                            setIsExpensifyCardStatementMultiFeedAlertVisible(true);
-                            return;
-                        }
-
-                        const feed = expensifyCardStatementSelection.feeds.at(0);
-                        if (!feed) {
-                            return;
-                        }
-
-                        const statementParams: ExpensifyCardStatementParams = {
-                            policyID: feed.policyID,
-                            feedCountry: feed.feedCountry,
-                            entryIDs: feed.entryIDs,
-                            statementKey: getExpensifyCardStatementKey(feed.policyID, feed.feedCountry, feed.entryIDs),
-                        };
-
-                        setExpensifyCardStatementPDFParams(statementParams);
-                        setIsExpensifyCardStatementPDFModalVisible(true);
-                        getExpensifyCardStatementPDF(feed.policyID, feed.feedCountry, feed.entryIDs)?.then((response) => {
-                            const statementKey = response?.statementKey;
-                            if (typeof statementKey !== 'string' || statementKey.length === 0) {
-                                return;
-                            }
-
-                            setExpensifyCardStatementPDFParams((currentParams) => (currentParams ? {...currentParams, statementKey} : currentParams));
-                        });
-                    },
+                    onSelected: exportExpensifyCardStatementPDF,
                     shouldCloseModalOnSelect: true,
                     shouldCallAfterModalHide: true,
                 });
@@ -1920,6 +1939,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isBetaEnabled,
         defaultExpensePolicy,
         expensifyCardStatementSelection,
+        exportExpensifyCardStatementPDF,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

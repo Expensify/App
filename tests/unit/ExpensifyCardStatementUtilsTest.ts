@@ -90,13 +90,24 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, {})).toBeUndefined();
     });
 
-    it('returns undefined for a partial (line-item only) settlement selection', () => {
+    it('includes a settlement selected directly by its row (collapsed, no loaded transactions)', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
-        // Only 1 of the settlement's 2 transactions is selected.
+        // A collapsed row stores the group key itself, not individual transactions.
+        const selectedTransactions: SelectedTransactions = {[groupKey]: makeSelectedTransaction({reportID: undefined})};
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
+    });
+
+    it('includes a settlement even when not all of its transactions are loaded or selected', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        // Only 1 of the settlement's 2 transactions is selected; the PDF still covers the whole settlement.
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
-        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
     });
 
     it('returns a single-feed selection when a whole cleared settlement is selected', () => {
