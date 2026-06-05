@@ -1,11 +1,12 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import DeferredAutocompleteList from '@components/Search/DeferredSearchAutocompleteList';
@@ -22,9 +23,11 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
 import backHistory from '@libs/Navigation/helpers/backHistory';
@@ -48,9 +51,22 @@ import type Report from '@src/types/onyx/Report';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
+import {
+    getNavigationSearchOptions,
+    getSpendNavigationIconNames,
+    getSpendNavigationSearchOptions,
+    getTopLevelNavigationSearchOptions,
+    getWorkspaceNavigationSearchOptions,
+    MAX_NAVIGATION_RESULTS,
+    NAVIGATION_OPTION_ICONS,
+    NAVIGATION_TAB_ICONS,
+    TOP_LEVEL_NAVIGATION_ICONS,
+    WORKSPACE_NAVIGATION_ICONS,
+} from './navigationOptions';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
+import useCreateMenuSearchOptions from './useCreateMenuSearchOptions';
 
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
@@ -67,15 +83,33 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.login;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const isRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.WORKSPACE_ROOMS_PAGE);
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
+    const {typeMenuSections} = useSearchTypeMenuSections();
+    const iconNames = useMemo<ExpensifyIconName[]>(
+        () => [
+            'MagnifyingGlass',
+            'ConciergeAvatar',
+            ...NAVIGATION_OPTION_ICONS,
+            ...WORKSPACE_NAVIGATION_ICONS,
+            ...NAVIGATION_TAB_ICONS,
+            ...TOP_LEVEL_NAVIGATION_ICONS,
+            ...getSpendNavigationIconNames(typeMenuSections),
+        ],
+        [typeMenuSections],
+    );
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(iconNames);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
+    const getCreateMenuSearchOptions = useCreateMenuSearchOptions();
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -111,12 +145,19 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}, sectionIndex) => {
-            if (!contextualReportID) {
-                return undefined;
+            // Once the user has typed something, surface matching navigation targets ("Go to X") instead of the contextual suggestion.
+            if (textInputValue) {
+                const navigationItems = [
+                    ...getTopLevelNavigationSearchOptions(textInputValue, translate, expensifyIcons),
+                    ...getNavigationSearchOptions(textInputValue, translate, expensifyIcons),
+                    ...getSpendNavigationSearchOptions(textInputValue, translate, typeMenuSections, expensifyIcons),
+                    ...getWorkspaceNavigationSearchOptions(textInputValue, translate, {policies, currentUserEmail, isRoomsBetaEnabled}, expensifyIcons),
+                    ...getCreateMenuSearchOptions(textInputValue),
+                ].slice(0, MAX_NAVIGATION_RESULTS);
+                return navigationItems.length > 0 ? [{sectionIndex, data: navigationItems}] : undefined;
             }
 
-            // We will only show the contextual search suggestion if the user has not typed anything
-            if (textInputValue) {
+            if (!contextualReportID) {
                 return undefined;
             }
 
@@ -192,7 +233,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isSearchRouterDisplayed,
             isSearchRouterScreen,
             translate,
-            expensifyIcons.MagnifyingGlass,
+            expensifyIcons,
+            typeMenuSections,
+            policies,
+            currentUserEmail,
+            isRoomsBetaEnabled,
+            getCreateMenuSearchOptions,
             styles.activeComponentBG,
             contextualReport,
             personalDetails,
@@ -292,6 +338,24 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             };
 
             if (isSearchQueryItem(item)) {
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.onSelectAction) {
+                    const {onSelectAction} = item;
+                    backHistory(() => {
+                        onRouterClose();
+                        onSelectAction();
+                    });
+                    return;
+                }
+
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.route) {
+                    const {route} = item;
+                    backHistory(() => {
+                        onRouterClose();
+                        Navigation.navigate(route);
+                    });
+                    return;
+                }
+
                 if (!item.searchQuery) {
                     return;
                 }
