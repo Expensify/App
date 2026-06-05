@@ -31,8 +31,7 @@ function resolveCanvasSize(tnode: TNode): CanvasSize {
     }
 
     if (hasPositionedOverlay(tnode)) {
-        console.error('Charts with positioned <victorylabel> or <victorylegend> elements require explicit width and height on <victorychart>.');
-        process.exit(1);
+        throw new Error('Charts with positioned <victorylabel> or <victorylegend> elements require explicit width and height on <victorychart>.');
     }
 
     return {

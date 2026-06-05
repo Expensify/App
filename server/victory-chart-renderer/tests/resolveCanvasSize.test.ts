@@ -1,8 +1,6 @@
-import {afterEach, expect, test} from 'bun:test';
+import {expect, test} from 'bun:test';
 import type {TNode} from 'react-native-render-html';
 import resolveCanvasSize from '../src/resolveCanvasSize';
-
-const originalExit = process.exit.bind(process);
 
 function makeChartNode(attributes: TNode['attributes'], children: TNode[] = []): TNode {
     return {
@@ -11,10 +9,6 @@ function makeChartNode(attributes: TNode['attributes'], children: TNode[] = []):
         children,
     } as unknown as TNode;
 }
-
-afterEach(() => {
-    process.exit = originalExit;
-});
 
 test('resolveCanvasSize reads width and height from victorychart', () => {
     const tnode = makeChartNode({width: '680', height: '530'});
@@ -28,7 +22,7 @@ test('resolveCanvasSize defaults to 600x400 when dimensions are omitted', () => 
     expect(resolveCanvasSize(tnode)).toEqual({width: 600, height: 400});
 });
 
-test('resolveCanvasSize exits when overlays exist without chart dimensions', () => {
+test('resolveCanvasSize throws when overlays exist without chart dimensions', () => {
     const tnode = makeChartNode({}, [
         {
             tagName: 'victorylabel',
@@ -36,15 +30,6 @@ test('resolveCanvasSize exits when overlays exist without chart dimensions', () 
             children: [],
         } as unknown as TNode,
     ]);
-    let exitCode: number | undefined;
 
-    const mockExit = (code?: number) => {
-        exitCode = code ?? 1;
-    };
-
-    process.exit = mockExit as typeof process.exit;
-
-    resolveCanvasSize(tnode);
-
-    expect(exitCode).toBe(1);
+    expect(() => resolveCanvasSize(tnode)).toThrow('require explicit width and height');
 });
