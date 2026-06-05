@@ -4359,7 +4359,7 @@ ${amount} per ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Amministratore dello spazio di lavoro';
+                        return 'Amministratore';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -6177,10 +6177,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             makeAuditor: () => ({
                 one: 'Rendi revisore',
                 other: 'Crea revisori',
-            }),
-            makeCardAdmin: () => ({
-                one: 'Rendi amministratore carta',
-                other: 'Rendi amministratori carta',
             }),
             selectAll: 'Seleziona tutto',
             error: {
@@ -8383,7 +8379,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} si è unito tramite il link di invito allo spazio di lavoro` : `ha aggiunto ${email} con il ruolo ${role}`,
+                    didJoinPolicy ? `${email} si è unito tramite il link di invito allo spazio di lavoro` : `ha aggiunto ${email} come ${role === 'member' ? 'a' : 'un'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `ha aggiornato il ruolo di ${email} a ${newRole} (in precedenza ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
