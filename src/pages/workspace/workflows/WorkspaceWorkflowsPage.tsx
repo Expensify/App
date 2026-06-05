@@ -700,7 +700,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 />
                             )
                         )}
-                        {shouldShowBankAccount && (
+                        {shouldShowBankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburser}
                                 shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
