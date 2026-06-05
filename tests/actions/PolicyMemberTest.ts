@@ -591,6 +591,7 @@ describe('actions/PolicyMember', () => {
                     CONST.POLICY.ROLE.USER,
                     TestHelper.formatPhoneNumber,
                     currentUserInput,
+                    {},
                 );
 
             type BuildResult = ReturnType<typeof buildForCurrentUser>;

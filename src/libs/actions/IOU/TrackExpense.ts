@@ -2240,8 +2240,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             CONST.POLICY.ROLE.ADMIN,
             formatPhoneNumber,
             {accountID: currentUserAccountID},
-            undefined,
-            undefined,
             reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
