@@ -1,7 +1,7 @@
 import {getExpensifyCardStatementKey, getExpensifyCardStatementParams, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
 import type {SearchQueryJSON, SelectedTransactions} from '@src/components/Search/types';
 import CONST from '@src/CONST';
-import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 
 const expensifyCardStatementQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense policyID:policy1 withdrawal-type:expensify-card withdrawn>=2026-05-01 withdrawn<=2026-05-31 groupBy:withdrawal-id',
@@ -44,13 +44,41 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
     };
 }
 
+/**
+ * Selecting a settlement adds its transactions (keyed by transaction ID), each tagged with the settlement's groupKey.
+ * Build `selectedTransactionCount` such entries so tests can model whole-settlement vs partial (line-item) selections.
+ */
+function makeSettlementSelection(groupKey: string, selectedTransactionCount: number): SelectedTransactions {
+    const selection: SelectedTransactions = {};
+    for (let index = 0; index < selectedTransactionCount; index++) {
+        selection[`${groupKey}_txn${index}`] = makeSelectedTransaction({groupKey, reportID: undefined});
+    }
+    return selection;
+}
+
+function makeSettlementGroup(overrides: Partial<SearchWithdrawalIDGroup> = {}): SearchWithdrawalIDGroup {
+    return {
+        entryID: 123,
+        count: 1,
+        total: 1000,
+        currency: 'USD',
+        accountNumber: '1234',
+        bankName: 'American Express' as SearchWithdrawalIDGroup['bankName'],
+        debitPosted: '2026-05-31',
+        state: 8,
+        policyID: 'policy1',
+        feedCountry: 'US',
+        ...overrides,
+    };
+}
+
 describe('ExpensifyCardStatementUtils', () => {
     it('identifies Expensify Card withdrawal-group searches', () => {
         expect(isExpensifyCardStatementSearch(expensifyCardStatementQueryJSON)).toBe(true);
         expect(isExpensifyCardStatementSearch({...expensifyCardStatementQueryJSON, groupBy: undefined})).toBe(false);
     });
 
-    it('returns undefined when only nested transactions are selected', () => {
+    it('returns undefined when no selected transaction maps to a settlement group', () => {
         const selectedTransactions: SelectedTransactions = {
             '123': makeSelectedTransaction(),
         };
@@ -58,35 +86,23 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, {})).toBeUndefined();
     });
 
-    it('returns a single-feed selection with cleared settlement entryIDs', () => {
+    it('returns undefined for a partial (line-item only) settlement selection', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
-        const selectedTransactions: SelectedTransactions = {
-            [groupKey]: makeSelectedTransaction({reportID: undefined}),
-        };
-        const searchData = {
-            [groupKey]: {
-                entryID: 123,
-                count: 2,
-                total: 1000,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
-        } as SearchResultDataType;
+        // Only 1 of the settlement's 2 transactions is selected.
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = {[groupKey]: makeSettlementGroup({entryID: 123, count: 2})} as SearchResultDataType;
+
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('returns a single-feed selection when a whole cleared settlement is selected', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = {[groupKey]: makeSettlementGroup({entryID: 123, count: 2})} as SearchResultDataType;
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(selection?.hasMultipleFeeds).toBe(false);
-        expect(selection?.feeds).toEqual([
-            {
-                policyID: 'policy1',
-                feedCountry: 'US',
-                entryIDs: [123],
-            },
-        ]);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
 
         const params = getExpensifyCardStatementParams(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(params).toEqual({
@@ -101,34 +117,12 @@ describe('ExpensifyCardStatementUtils', () => {
         const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
         const selectedTransactions: SelectedTransactions = {
-            [firstGroupKey]: makeSelectedTransaction({reportID: undefined}),
-            [secondGroupKey]: makeSelectedTransaction({reportID: undefined}),
+            ...makeSettlementSelection(firstGroupKey, 1),
+            ...makeSettlementSelection(secondGroupKey, 1),
         };
         const searchData = {
-            [firstGroupKey]: {
-                entryID: 123,
-                count: 1,
-                total: 100,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
-            [secondGroupKey]: {
-                entryID: 456,
-                count: 1,
-                total: 200,
-                currency: 'USD',
-                accountNumber: '5678',
-                bankName: 'American Express',
-                debitPosted: '2026-05-30',
-                state: 8,
-                policyID: 'policy2',
-                feedCountry: 'US',
-            },
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, policyID: 'policy1'}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, policyID: 'policy2'}),
         } as SearchResultDataType;
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
@@ -136,26 +130,21 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getExpensifyCardStatementParams(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
-    it('excludes pending settlements from the selection', () => {
+    it('excludes failed settlements from the selection', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
-        const selectedTransactions: SelectedTransactions = {
-            [groupKey]: makeSelectedTransaction({reportID: undefined}),
-        };
-        const searchData = {
-            [groupKey]: {
-                entryID: 123,
-                count: 1,
-                total: 100,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 5,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
-        } as SearchResultDataType;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = {[groupKey]: makeSettlementGroup({entryID: 123, state: 5})} as SearchResultDataType;
 
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('includes settlements that are settled pending batch processing (state 9, shown as Cleared)', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = {[groupKey]: makeSettlementGroup({entryID: 123, state: 9})} as SearchResultDataType;
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
     });
 });

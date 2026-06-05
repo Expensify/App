@@ -1,12 +1,20 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
+import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import fileDownload from '@libs/fileDownload';
+import {getSettlementStatus} from '@libs/SearchUIUtils';
 import sha1Hex from '@libs/StringUtils/sha1Hex';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
 import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 
-const CLEARED_SETTLEMENT_STATE = 8;
+let environment: EnvironmentType;
+getEnvironment().then((env) => {
+    environment = env;
+});
 
 type ExpensifyCardStatementFeed = {
     policyID: string;
@@ -54,10 +62,28 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         return [];
     }
 
-    return Object.keys(selectedTransactions)
-        .filter((selectionKey) => selectionKey.startsWith(CONST.SEARCH.GROUP_PREFIX) && selectedTransactions[selectionKey]?.isSelected)
-        .map((groupKey) => searchData[groupKey] as SearchWithdrawalIDGroup | undefined)
-        .filter((group): group is SearchWithdrawalIDGroup => !!group && group.state === CLEARED_SETTLEMENT_STATE && typeof group.entryID === 'number');
+    // Selecting a settlement adds its transactions (keyed by transaction ID), each tagged with the
+    // settlement's groupKey. Tally how many transactions are selected per settlement so we can require
+    // the whole settlement to be selected (a partial, line-item-only selection should not qualify).
+    const selectedCountByGroupKey = new Map<string, number>();
+    for (const selection of Object.values(selectedTransactions)) {
+        const groupKey = selection?.groupKey;
+        if (!selection?.isSelected || !groupKey?.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+            continue;
+        }
+        selectedCountByGroupKey.set(groupKey, (selectedCountByGroupKey.get(groupKey) ?? 0) + 1);
+    }
+
+    return Array.from(selectedCountByGroupKey.entries())
+        .map(([groupKey, selectedCount]) => ({group: searchData[groupKey] as SearchWithdrawalIDGroup | undefined, selectedCount}))
+        .filter(
+            (entry): entry is {group: SearchWithdrawalIDGroup; selectedCount: number} =>
+                !!entry.group &&
+                getSettlementStatus(entry.group.state) === CONST.SEARCH.SETTLEMENT_STATUS.CLEARED &&
+                typeof entry.group.entryID === 'number' &&
+                entry.selectedCount >= entry.group.count,
+        )
+        .map((entry) => entry.group);
 }
 
 function getExpensifyCardStatementSelection(
@@ -128,22 +154,15 @@ function getExpensifyCardStatementParams(
     };
 }
 
-function downloadExpensifyCardStatementPDF(
-    translate: LocalizedTranslate,
-    baseURL: string,
-    fileName: string,
-    statementKey: string,
-    currentUserEmail: string,
-    encryptedAuthToken: string,
-): Promise<void> {
+function downloadExpensifyCardStatementPDF(translate: LocalizedTranslate, fileName: string, statementKey: string, currentUserEmail: string, encryptedAuthToken: string): Promise<void> {
+    const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `Expensify_Card_Statement_${statementKey}.pdf`;
-    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(currentUserEmail)}`;
     return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
 export type {ExpensifyCardStatementFeed, ExpensifyCardStatementParams, ExpensifyCardStatementSelection};
 export {
-    CLEARED_SETTLEMENT_STATE,
     downloadExpensifyCardStatementPDF,
     getExpensifyCardStatementKey,
     getExpensifyCardStatementParams,
