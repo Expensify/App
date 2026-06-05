@@ -3,7 +3,7 @@ import is2dArray from '@libs/is2dArray';
 import type {Coordinate} from './MapViewTypes';
 
 function isSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): directionCoordinates is Coordinate[] {
-    return is2dArray(directionCoordinates);
+    return is2dArray<Coordinate>(directionCoordinates);
 }
 
 function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Coordinate[]): {southWest: Coordinate; northEast: Coordinate} {

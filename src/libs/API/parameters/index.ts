@@ -30,6 +30,7 @@ export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPa
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
 export type {default as SyncPolicyToMergeParams} from './SyncPolicyToMergeParams';
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
+export type {default as SyncPolicyToFinancialForceParams} from './SyncPolicyToFinancialForceParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
@@ -89,6 +90,7 @@ export type {default as ResolveActionableMentionWhisperParams} from './ResolveAc
 export type {default as ChangePolicyUberBillingAccountPageParams} from './ChangePolicyUberBillingAccountPageParams';
 export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
+export type {default as RevealExpensifyCardDetailsWithSCAParams} from './RevealExpensifyCardDetailsWithSCAParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SearchForUsersParams} from './SearchForUsersParams';
@@ -110,6 +112,7 @@ export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
+export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
@@ -135,6 +138,7 @@ export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as ImportPlaidAccountsParams} from './ImportPlaidAccountsParams';
 export type {default as MarkAllMessagesAsReadParams} from './MarkAllMessagesAsReadParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
+export type {default as MarkReportPaymentReceivedParams} from './MarkReportPaymentReceivedParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
 export type {default as DeleteCommentParams} from './DeleteCommentParams';
 export type {default as UpdateCommentParams} from './UpdateCommentParams';
@@ -182,7 +186,7 @@ export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPoli
 export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
-export type {default as OpenWorkspaceRoomsPageParams} from './OpenWorkspaceRoomsPageParams';
+export type {default as OpenPolicyRoomsPageParams} from './OpenPolicyRoomsPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';
@@ -202,6 +206,7 @@ export type {default as SetReportNameParams} from './SetReportNameParams';
 export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
 export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams';
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
+export type {default as UpdateMoneyRequestVendorParams} from './UpdateMoneyRequestVendorParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
 export type {default as SplitBillParams} from './SplitBillParams';
 export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams} from './SplitTransactionParams';
@@ -278,6 +283,7 @@ export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDista
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
 export type {default as SetCustomUnitDefaultCategoryParams} from './SetCustomUnitDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
+export type {default as UpdatePolicyDistanceRateParams} from './UpdatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
@@ -547,3 +553,4 @@ export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
+export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';

@@ -117,6 +117,8 @@ function DebugReportPage({
             isReportArchived,
             isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
             draftComment,
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID,
         });
 
         return [

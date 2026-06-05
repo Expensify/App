@@ -14,16 +14,14 @@ import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 
 type JoinRequestContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
-    reportID: string | undefined;
-    originalReportID: string;
+    actionOwnerReportID: string | undefined;
     policyID: string | undefined;
 };
 
-function JoinRequestContent({action, reportID, originalReportID, policyID}: JoinRequestContentProps) {
+function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequestContentProps) {
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const reportActionReportID = originalReportID ?? reportID;
     const buttons: ActionableItem[] =
         getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution)
             ? []
@@ -31,13 +29,13 @@ function JoinRequestContent({action, reportID, originalReportID, policyID}: Join
                   {
                       text: 'actionableMentionJoinWorkspaceOptions.accept',
                       key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                      onPress: () => acceptJoinRequest(reportActionReportID, action),
+                      onPress: () => acceptJoinRequest(actionOwnerReportID, action),
                       isPrimary: true,
                   },
                   {
                       text: 'actionableMentionJoinWorkspaceOptions.decline',
                       key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                      onPress: () => declineJoinRequest(reportActionReportID, action),
+                      onPress: () => declineJoinRequest(actionOwnerReportID, action),
                   },
               ];
 
@@ -54,7 +52,5 @@ function JoinRequestContent({action, reportID, originalReportID, policyID}: Join
         </View>
     );
 }
-
-JoinRequestContent.displayName = 'JoinRequestContent';
 
 export default JoinRequestContent;

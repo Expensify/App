@@ -100,9 +100,6 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
-    /** Function to initiate contact import and set state */
-    initiateContactImportAndSetState: () => void;
-
     /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
 };
@@ -214,14 +211,10 @@ function useSearchSelectorBase({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const onListEndReached = useDebounce(() => {
-        setMaxResults((previous) => previous + maxResultsPerPage);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-
     const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
 
-    const baseOptions = (() => {
+    const {options: baseOptions, hasMore} = (() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
@@ -342,6 +335,14 @@ function useSearchSelectorBase({
                 return getEmptyOptions();
         }
     })();
+
+    const onListEndReached = useDebounce(() => {
+        if (!areOptionsInitialized || !hasMore) {
+            return;
+        }
+
+        setMaxResults((previous) => previous + maxResultsPerPage);
+    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
 

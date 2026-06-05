@@ -90,7 +90,9 @@ function ReportFooter() {
     if (!shouldHideComposer) {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                <ComposerSwipeable reportID={reportIDFromRoute} />
+                <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                    <ReportActionCompose reportID={reportIDFromRoute} />
+                </SwipeableView>
             </View>
         );
     }
@@ -159,10 +161,9 @@ function ReportFooter() {
             <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 {isEditingWithComposer && (
                     <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
-                        <ComposerSwipeable
-                            reportID={reportIDFromRoute}
-                            isEditOnly
-                        />
+                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
+                        </SwipeableView>
                     </View>
                 )}
                 <Banner
@@ -205,17 +206,6 @@ function ReportFooter() {
     }
 
     return null;
-}
-
-function ComposerSwipeable({reportID, isEditOnly = false}: {reportID: string; isEditOnly?: boolean}) {
-    return (
-        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-            <ReportActionCompose
-                reportID={reportID}
-                isEditOnly={isEditOnly}
-            />
-        </SwipeableView>
-    );
 }
 
 export default ReportFooter;

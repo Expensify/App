@@ -1,0 +1,145 @@
+import React from 'react';
+import {Keyboard} from 'react-native';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import usePolicyData from '@hooks/usePolicyData';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {escapeTagName, getTagList, hasCustomCategories} from '@libs/PolicyUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {createPolicyTag} from '@userActions/Policy/Tag';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
+
+type WorkspaceCreateTagPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE>;
+
+function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
+    const {policyID} = route.params;
+    const policyData = usePolicyData(policyID);
+    const {tags: policyTagLists, categories: policyCategories} = policyData;
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path);
+
+    const policyHasCustomCategories = hasCustomCategories(policyCategories);
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+        const tagName = escapeTagName(values.tagName.trim());
+        const {tags} = getTagList(policyTagLists, 0);
+
+        if (!isRequiredFulfilled(tagName)) {
+            errors.tagName = translate('workspace.tags.tagRequiredError');
+        } else if (tagName === '0') {
+            errors.tagName = translate('workspace.tags.invalidTagNameError');
+        } else if (tags?.[tagName]) {
+            errors.tagName = translate('workspace.tags.existingTagError');
+        } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+            addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', [...tagName].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH));
+        }
+
+        return errors;
+    };
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const {
+        taskReport: setupTagsTaskReport,
+        taskParentReport: setupTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupTagsHasOutstandingChildTask,
+        parentReportAction: setupTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const createTag = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        createPolicyTag({
+            policyData,
+            tagName: values.tagName.trim(),
+            setupTagsTaskReport,
+            setupTagsTaskParentReport,
+            isSetupTagsTaskParentReportArchived,
+            setupTagsHasOutstandingChildTask,
+            setupTagsParentReportAction,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            policyHasCustomCategories,
+        });
+        Keyboard.dismiss();
+        Navigation.goBack(isDynamicFlow ? backPath : undefined);
+    };
+
+    return (
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        >
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                style={[styles.defaultModalContainer]}
+                testID="WorkspaceCreateTagPage"
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.tags.addTag')}
+                    onBackButtonPress={() => Navigation.goBack(isDynamicFlow ? backPath : undefined)}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
+                    onSubmit={createTag}
+                    submitButtonText={translate('common.save')}
+                    validate={validate}
+                    style={[styles.mh5, styles.flex1]}
+                    enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
+                >
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        label={translate('common.name')}
+                        accessibilityLabel={translate('common.name')}
+                        inputID={INPUT_IDS.TAG_NAME}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default WorkspaceCreateTagPage;
