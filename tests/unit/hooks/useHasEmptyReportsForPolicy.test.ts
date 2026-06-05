@@ -1,10 +1,11 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'workspace-001';
 const ACCOUNT_ID = 987654;
@@ -109,15 +110,15 @@ describe('useShouldShowEmptyReportConfirmation', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
 
         const {result} = renderHook(() => useShouldShowEmptyReportConfirmation(POLICY_ID));
+        await waitForBatchedUpdatesWithAct();
 
-        await waitFor(() => {
-            expect(result.current).toBe(false);
+        expect(result.current).toBe(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}new-report`, buildReport('new-report'));
         });
+        await waitForBatchedUpdatesWithAct();
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}new-report`, buildReport('new-report'));
-
-        await waitFor(() => {
-            expect(result.current).toBe(true);
-        });
+        expect(result.current).toBe(true);
     });
 });
