@@ -82,7 +82,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {currentSearchResults} = useSearchResultsContext();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const currentUserDetails = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
@@ -144,8 +144,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return reportItem?.transactions?.some((transaction) => {
             const relevantViolations = (transaction.violations ?? []).filter(
                 (violation) =>
-                    !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
-                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transaction),
+                    !isViolationDismissed(transaction, violation, currentUserEmail ?? '', currentUserAccountID, reportForViolations, policyForViolations) &&
+                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserEmail ?? '', false, transaction),
             );
 
             const violations = syncMissingAttendeesViolation(
@@ -153,14 +153,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 policyCategories,
                 transaction.category ?? '',
                 transaction.attendees,
-                currentUserDetails,
+                {accountID: currentUserAccountID, email: currentUserEmail},
                 isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );
             return violations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         });
-    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails]);
+    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserAccountID, currentUserEmail]);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -208,7 +208,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
-            currentUserAccountID: currentUserDetails.accountID,
+            currentUserAccountID,
         });
     }, [
         currentSearchHash,
@@ -233,6 +233,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         amountOwed,
         showConfirmModal,
         translate,
+        currentUserAccountID,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
