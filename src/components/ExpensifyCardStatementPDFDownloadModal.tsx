@@ -43,9 +43,10 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails?.login ?? '';
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    const statementKey = statementParams.statementKey;
     const isGeneratingPDF = expensifyCardStatement?.isGenerating === true;
-    const statementFileName = expensifyCardStatement?.[statementParams.statementKey];
-    const hasFinishedPDFDownload = !isGeneratingPDF && typeof statementFileName === 'string' && statementFileName.length > 0;
+    const statementFileName = statementKey ? expensifyCardStatement?.[statementKey] : undefined;
+    const hasFinishedPDFDownload = !!statementKey && !isGeneratingPDF && typeof statementFileName === 'string' && statementFileName.length > 0;
 
     const messagePDF = hasFinishedPDFDownload ? translate('reportDetailsPage.successPDF') : translate('reportDetailsPage.waitForPDF');
 
@@ -54,13 +55,13 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     }, [isVisible]);
 
     useEffect(() => {
-        if (!isVisible || !shouldAutoDownloadPDF.current || !hasFinishedPDFDownload) {
+        if (!isVisible || !shouldAutoDownloadPDF.current || !hasFinishedPDFDownload || !statementKey || !statementFileName) {
             return;
         }
 
-        downloadExpensifyCardStatementPDF(translate, statementFileName, statementParams.statementKey, currentUserLogin, encryptedAuthToken);
+        downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken);
         shouldAutoDownloadPDF.current = false;
-    }, [currentUserLogin, encryptedAuthToken, hasFinishedPDFDownload, isGeneratingPDF, isVisible, statementFileName, statementParams.statementKey, translate]);
+    }, [currentUserLogin, encryptedAuthToken, hasFinishedPDFDownload, isGeneratingPDF, isVisible, statementFileName, statementKey, translate]);
 
     const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchBulkActions.ExpensifyCardStatementPDFModal',
@@ -98,12 +99,12 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
                     <Button
                         style={[styles.mt3, styles.noSelect]}
                         onPress={() => {
-                            if (!hasFinishedPDFDownload) {
+                            if (!hasFinishedPDFDownload || !statementKey || !statementFileName) {
                                 onClose();
                                 return;
                             }
 
-                            downloadExpensifyCardStatementPDF(translate, statementFileName, statementParams.statementKey, currentUserLogin, encryptedAuthToken);
+                            downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken);
                         }}
                         text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
                     />

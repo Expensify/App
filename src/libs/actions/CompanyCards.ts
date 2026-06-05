@@ -1319,7 +1319,7 @@ function getExpensifyCardStatementPDF(policyID: string, feedCountry: string | un
         ...(feedCountry ? {feedCountry} : {}),
     };
 
-    // makeRequestWithSideEffects is used so callers can read statementKey from the response and keep the modal cache key in sync with the server.
+    // makeRequestWithSideEffects is used so callers can read statementKey from the response.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF, params, {optimisticData, failureData});
 }

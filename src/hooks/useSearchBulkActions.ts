@@ -42,7 +42,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getExpensifyCardStatementKey, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import {getTargetTransactionThreadReportIDForSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -536,17 +536,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        const entryIDs = [...feed.entryIDs];
-        const statementParams: ExpensifyCardStatementParams = {
-            policyID: feed.policyID,
-            feedCountry: feed.feedCountry,
-            entryIDs,
-            statementKey: getExpensifyCardStatementKey(feed.policyID, feed.feedCountry, entryIDs),
-        };
+        const statementParams = getExpensifyCardStatementParamsFromFeed(feed);
+        const {entryIDs} = statementParams;
 
         setExpensifyCardStatementPDFParams(statementParams);
         setIsExpensifyCardStatementPDFModalVisible(true);
-        getExpensifyCardStatementPDF(feed.policyID, feed.feedCountry, entryIDs)?.then((response) => {
+        getExpensifyCardStatementPDF(statementParams.policyID, statementParams.feedCountry, entryIDs)?.then((response) => {
             const statementKey = response?.statementKey;
             if (typeof statementKey !== 'string' || statementKey.length === 0) {
                 return;
