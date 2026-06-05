@@ -122,11 +122,6 @@ The **Assigned cards** section shows your active Expensify Cards along with the 
 
 Use this section to quickly check how much you can spend before making a purchase. The available limit updates automatically as transactions are made.
 
-Cards that are not shown in this section include:
-- Cards with a custom spending limit of $0
-- Cards that have not yet been issued
-- Cards that are pending activation
-
 ---
 
 # FAQ
@@ -168,4 +163,3 @@ The **Getting started** section only appears if you selected the **manage my tea
 The **Assigned cards** section only appears if you have an active **Expensify Card** assigned to you.
 
 If you don’t have an Expensify Card assigned, your assigned card isn’t active, your card has a custom spending limit of $0, or your card has not yet been issued or activated, the **Assigned cards** section won’t be visible.
-
