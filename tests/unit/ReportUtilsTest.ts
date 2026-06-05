@@ -8443,6 +8443,70 @@ describe('ReportUtils', () => {
             // IOU receiver (payer/manager) should still be able to pay even without access to the policy
             expect(isPayer(currentUserAccountID, currentUserEmail, iouReportWithPolicyID, undefined, undefined, false)).toBe(true);
         });
+
+        it('should return true for designated reimburser in manual reimbursement mode', () => {
+            const reimburserEmail = 'reimburser@manual-test.com';
+            const reimburserAccountID = 700;
+
+            const manualPolicyWithReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                },
+            };
+
+            expect(isPayer(reimburserAccountID, reimburserEmail, approvedReport, undefined, manualPolicyWithReimburser, false)).toBe(true);
+        });
+
+        it('should return false for non-reimburser admin in manual reimbursement mode with designated payer', () => {
+            const otherAdminEmail = 'other-admin@manual-test.com';
+            const otherAdminAccountID = 701;
+            const reimburserEmail = 'reimburser@manual-test.com';
+
+            const manualPolicyWithReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [otherAdminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                },
+            };
+
+            expect(isPayer(otherAdminAccountID, otherAdminEmail, approvedReport, undefined, manualPolicyWithReimburser, false)).toBe(false);
+        });
+
+        it('should return true for any admin in manual reimbursement mode without designated payer', () => {
+            const adminEmail = 'admin@manual-fallback.com';
+            const adminAccountID = 702;
+
+            const manualPolicyNoReimburser: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+            };
+
+            expect(isPayer(adminAccountID, adminEmail, approvedReport, undefined, manualPolicyNoReimburser, false)).toBe(true);
+        });
     });
     describe('buildReportNameFromParticipantNames', () => {
         beforeAll(async () => {

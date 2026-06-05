@@ -5532,6 +5532,37 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
             expect(updatedPolicy?.errorFields?.reimburser).toBeTruthy();
         });
+
+        it('should update workspace payer in manual reimbursement mode', async () => {
+            // Given a workspace in manual reimbursement mode with no designated payer
+            const policy = {
+                ...createRandomPolicy(0),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: '',
+                achAccount: {reimburser: ''},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting a designated payer in manual mode
+            Policy.setWorkspacePayer(policy.id, 'payer@manual.com', policy.reimburser);
+
+            // Then optimistic data should set the reimburser
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL);
+            expect(updatedPolicy?.pendingFields?.reimburser).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared and reimburser preserved
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('payer@manual.com');
+            expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
+        });
     });
 
     describe('setPolicyPreventSelfApproval', () => {
