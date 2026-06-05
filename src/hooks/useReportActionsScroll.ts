@@ -424,4 +424,3 @@ function useReportActionsScroll({
 }
 
 export default useReportActionsScroll;
-export type {UseReportActionsScrollParams, UseReportActionsScrollResult};
