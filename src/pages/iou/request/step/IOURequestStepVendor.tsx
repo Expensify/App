@@ -58,7 +58,7 @@ function IOURequestStepVendor({
 
     const data: VendorListItem[] = useMemo(() => {
         const trimmed = searchValue.trim().toLowerCase();
-        return vendors
+        const vendorRows = vendors
             .filter((vendor) => !trimmed || vendor.name.toLowerCase().includes(trimmed))
             .map((vendor) => ({
                 value: vendor.id,
@@ -67,7 +67,20 @@ function IOURequestStepVendor({
                 isSelected: vendor.id === currentVendorID,
                 searchText: vendor.name,
             }));
-    }, [vendors, currentVendorID, searchValue]);
+
+        // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
+        if (!currentVendorID || trimmed) {
+            return vendorRows;
+        }
+        const clearRow: VendorListItem = {
+            value: '',
+            text: translate('common.none'),
+            keyForList: 'clear-vendor',
+            isSelected: false,
+            searchText: '',
+        };
+        return [clearRow, ...vendorRows];
+    }, [vendors, currentVendorID, searchValue, translate]);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable;
 
