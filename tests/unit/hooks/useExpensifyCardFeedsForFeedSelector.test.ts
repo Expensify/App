@@ -275,6 +275,9 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [domainWithAdmin(orphanDomainFundID, currentUserAccountID), {status: 'loaded'}];
             }
+            if (key === ONYXKEYS.CARD_LIST) {
+                return [{card1: {bank: CONST.EXPENSIFY_CARD.BANK, fundID: orphanDomainFundID.toString()}}, {status: 'loaded'}];
+            }
             return [undefined, {}];
         });
 
@@ -313,6 +316,9 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             }
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [{}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.CARD_LIST) {
+                return [{card1: {bank: CONST.EXPENSIFY_CARD.BANK, fundID: workspaceAccountID.toString()}}, {status: 'loaded'}];
             }
             return [undefined, {}];
         });
