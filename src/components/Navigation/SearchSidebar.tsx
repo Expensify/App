@@ -1,5 +1,6 @@
 import type {ParamListBase} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import {isModalActiveSelector} from '@selectors/Modal';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
@@ -12,6 +13,7 @@ import Tooltip from '@components/Tooltip';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +21,7 @@ import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackN
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {
     useSearchSidebarCollapse,
@@ -40,7 +43,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const {isCollapsed, isPeeking, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const [isAnyModalActive = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
+    const isAnyModalActiveRef = useRef(false);
+    const wasAnyModalActiveRef = useRef(false);
+    const sidebarRef = useRef<View | HTMLDivElement | null>(null);
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -69,6 +76,58 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
         return endPeek;
     }, [endPeek, shouldUseNarrowLayout]);
+
+    const endPeekIfPointerIsOutsideSidebar = useCallback(() => {
+        if (!isPeeking || isAnyModalActiveRef.current || typeof document === 'undefined') {
+            return;
+        }
+
+        const sidebarElement = sidebarRef.current as unknown as HTMLElement | null;
+        if (!sidebarElement || sidebarElement.matches?.(':hover')) {
+            return;
+        }
+
+        endPeek();
+    }, [endPeek, isPeeking]);
+
+    const endPeekWhenNoModalIsActive = useCallback(() => {
+        if (isAnyModalActiveRef.current) {
+            return;
+        }
+
+        endPeek();
+    }, [endPeek]);
+
+    useEffect(() => {
+        isAnyModalActiveRef.current = isAnyModalActive;
+    }, [isAnyModalActive]);
+
+    useEffect(() => {
+        if (!isPeeking || typeof document === 'undefined') {
+            return;
+        }
+
+        document.addEventListener('pointermove', endPeekIfPointerIsOutsideSidebar);
+
+        return () => {
+            document.removeEventListener('pointermove', endPeekIfPointerIsOutsideSidebar);
+        };
+    }, [endPeekIfPointerIsOutsideSidebar, isPeeking]);
+
+    useEffect(() => {
+        const wasAnyModalActive = wasAnyModalActiveRef.current;
+        wasAnyModalActiveRef.current = isAnyModalActive;
+
+        if (!wasAnyModalActive || isAnyModalActive || typeof window === 'undefined') {
+            return;
+        }
+
+        const animationFrame = window.requestAnimationFrame(endPeekIfPointerIsOutsideSidebar);
+
+        return () => {
+            window.cancelAnimationFrame(animationFrame);
+        };
+    }, [endPeekIfPointerIsOutsideSidebar, isAnyModalActive]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -99,8 +158,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     return (
         <Animated.View style={layoutSpacerStyle}>
-            <Hoverable onHoverOut={endPeek}>
-                <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
+            <Hoverable onHoverOut={endPeekWhenNoModalIsActive}>
+                <Animated.View
+                    ref={sidebarRef}
+                    style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}
+                >
                     <View style={styles.flex1}>
                         <TopBar
                             shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
