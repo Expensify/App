@@ -2,12 +2,22 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
-import {areRequiredFieldsEmpty, getTag, hasTaxRateWithMatchingValue, isMerchantMissing, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {
+    areRequiredFieldsEmpty,
+    getCalculatedTaxAmount,
+    getTag,
+    getTaxAmount,
+    hasTaxRateWithMatchingValue,
+    isCreatedMissing,
+    isMerchantMissing,
+    isScanRequest as isScanRequestUtil,
+} from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -179,6 +189,10 @@ function useConfirmationValidation({
         ) {
             return {errorKey: 'common.error.invalidAmount'};
         }
+        // The date is an inline required field in the new manual flow; block confirmation when the user cleared it.
+        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && isCreatedMissing(transaction)) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
         const merchantValue = iouMerchant ?? '';
         const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
@@ -232,6 +246,18 @@ function useConfirmationValidation({
 
         if (shouldShowTax && !!transaction?.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {
             return {errorKey: 'violations.taxOutOfPolicy'};
+        }
+
+        // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
+        // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
+        // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
+        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest) {
+            const decimals = getCurrencyDecimals(iouCurrencyCode);
+            const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, iouCurrencyCode, decimals);
+            const currentTaxAmount = convertToFrontendAmountAsString(Math.abs(getTaxAmount(transaction, false)), decimals);
+            if (isTaxAmountInvalid(currentTaxAmount, maxTaxAmount, decimals)) {
+                return {errorKey: 'iou.error.invalidTaxAmount'};
+            }
         }
 
         if (isPerDiemRequest && (transaction?.comment?.customUnit?.subRates ?? []).length === 0) {

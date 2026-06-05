@@ -73,6 +73,7 @@ import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 
 type GetWorkspaceMenuItem = {item: WorkspaceRowData; index: number};
 
@@ -688,6 +689,7 @@ function WorkspacesListPage() {
                 success={false}
             />
             {outstandingBalanceModal}
+            <CopyPolicySettingsProgressModal />
         </WorkspaceListLayout>
     );
 }
