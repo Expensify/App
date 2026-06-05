@@ -1,4 +1,4 @@
-import {isParticipantP2P} from '@pages/iou/request/step/IOURequestStepAmount';
+import {isParticipantP2P} from '@libs/IOUUtils';
 
 jest.mock('@components/withCurrentUserPersonalDetails', () => (Component: unknown) => Component);
 jest.mock('@pages/iou/request/step/withWritableReportOrNotFound', () => () => (Component: unknown) => Component);
