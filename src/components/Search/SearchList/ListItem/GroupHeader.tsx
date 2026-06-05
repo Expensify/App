@@ -351,7 +351,7 @@ function GroupHeader({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     const handlePress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType || isEmpty) {
+        if (isExpenseReportType) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
