@@ -82,8 +82,9 @@ const shouldDisplayNewMarkerOnReportAction = ({
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
     const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
 
-    // Never anchor the "New" marker above a self-authored action.
-    if (isFromCurrentUser) {
+    // When no unread marker exists yet, never anchor it above a self-authored action.
+    // (If a marker already exists and then moves due to deletion, allow it to land on a self-authored action.)
+    if (isFromCurrentUser && !prevUnreadMarkerReportActionID) {
         return false;
     }
 
