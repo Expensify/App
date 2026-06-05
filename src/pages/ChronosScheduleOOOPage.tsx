@@ -1,3 +1,4 @@
+import {addDays, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
@@ -32,6 +33,62 @@ import INPUT_IDS from '@src/types/form/ChronosScheduleOOOForm';
 
 type ChronosScheduleOOOPageProps = PlatformStackScreenProps<ChronosScheduleOOONavigatorParamList, typeof SCREENS.CHRONOS_SCHEDULE_OOO_ROOT>;
 
+/**
+ * Parse a YYYY-MM-DD string into a Date, returning null when invalid.
+ */
+function parseDate(value: string): Date | null {
+    if (!value) {
+        return null;
+    }
+    const parsed = parseISO(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * Backend semantics for "ooo {start} for N {unit}": the OOO ends at start + interval - 1 second.
+ * For full-day units, the calendar end date is therefore start + interval - 1 day.
+ */
+function computeEndDate(startDate: string, durationAmount: string, durationUnit: string): string {
+    const start = parseDate(startDate);
+    if (!start) {
+        return '';
+    }
+    const sanitized = replaceCommasWithPeriod((durationAmount ?? '').trim());
+    const amount = Number.parseFloat(sanitized);
+    if (!Number.isFinite(amount) || amount <= 0) {
+        return startDate;
+    }
+    const whole = Math.floor(amount);
+    switch (durationUnit) {
+        case CONST.CHRONOS.OOO_DURATION_UNITS.DAY:
+            return format(addDays(start, Math.max(0, whole - 1)), CONST.DATE.FNS_FORMAT_STRING);
+        case CONST.CHRONOS.OOO_DURATION_UNITS.WEEK:
+            return format(addDays(start, Math.max(0, whole * 7 - 1)), CONST.DATE.FNS_FORMAT_STRING);
+        case CONST.CHRONOS.OOO_DURATION_UNITS.MONTH:
+            return format(addDays(addMonths(start, whole), -1), CONST.DATE.FNS_FORMAT_STRING);
+        case CONST.CHRONOS.OOO_DURATION_UNITS.HOUR:
+        default:
+            return startDate;
+    }
+}
+
+/**
+ * Inverse of `computeEndDate` for the day unit: end - start + 1 (inclusive of both days).
+ * Returns null when the dates are missing or the end precedes the start.
+ */
+function computeDurationDays(startDate: string, endDate: string): number | null {
+    const start = parseDate(startDate);
+    const end = parseDate(endDate);
+    if (!start || !end) {
+        return null;
+    }
+    const diff = differenceInCalendarDays(end, start);
+    if (diff < 0) {
+        return null;
+    }
+    return diff + 1;
+}
+
 function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const {reportID} = route.params;
     const styles = useThemeStyles();
@@ -43,6 +100,9 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isDurationUnitModalVisible, setIsDurationUnitModalVisible] = useState(false);
     const [selectedDurationUnit, setSelectedDurationUnit] = useState<string>(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [durationAmount, setDurationAmount] = useState('');
     const ancestors = useAncestors(report);
 
     const durationUnitItems = useMemo(
@@ -57,12 +117,58 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
 
     const durationUnitButtonLabel = durationUnitItems.find((item) => item.value === selectedDurationUnit)?.label ?? '';
 
-    const onDurationUnitSelected = useCallback((item: ValuePickerItem) => {
-        if (item.value) {
-            setSelectedDurationUnit(item.value);
-        }
-        setIsDurationUnitModalVisible(false);
-    }, []);
+    const startDateAsDate = useMemo(() => parseDate(startDate), [startDate]);
+
+    const onDurationUnitSelected = useCallback(
+        (item: ValuePickerItem) => {
+            if (item.value) {
+                setSelectedDurationUnit(item.value);
+                if (startDate && durationAmount) {
+                    setEndDate(computeEndDate(startDate, durationAmount, item.value));
+                }
+            }
+            setIsDurationUnitModalVisible(false);
+        },
+        [startDate, durationAmount],
+    );
+
+    const handleStartDateChange = useCallback(
+        (newStartDate: string) => {
+            setStartDate(newStartDate);
+            if (!newStartDate || !durationAmount) {
+                return;
+            }
+            setEndDate(computeEndDate(newStartDate, durationAmount, selectedDurationUnit));
+        },
+        [durationAmount, selectedDurationUnit],
+    );
+
+    const handleDurationAmountChange = useCallback(
+        (newDurationAmount: string) => {
+            setDurationAmount(newDurationAmount);
+            if (!startDate || !newDurationAmount) {
+                return;
+            }
+            setEndDate(computeEndDate(startDate, newDurationAmount, selectedDurationUnit));
+        },
+        [startDate, selectedDurationUnit],
+    );
+
+    const handleEndDateChange = useCallback(
+        (newEndDate: string) => {
+            setEndDate(newEndDate);
+            if (!startDate || !newEndDate) {
+                return;
+            }
+            const days = computeDurationDays(startDate, newEndDate);
+            if (days === null) {
+                return;
+            }
+            setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
+            setDurationAmount(String(days));
+        },
+        [startDate],
+    );
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> = {};
@@ -71,13 +177,19 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             addErrorMessage(errors, INPUT_IDS.DATE, translate('chronos.dateRequired'));
         }
 
+        const start = parseDate(values[INPUT_IDS.DATE] ?? '');
+        const end = parseDate(values[INPUT_IDS.END_DATE] ?? '');
+        if (start && end && differenceInCalendarDays(end, start) < 0) {
+            addErrorMessage(errors, INPUT_IDS.END_DATE, translate('chronos.endDateBeforeStart'));
+        }
+
         const timeValue = values[INPUT_IDS.TIME]?.trim();
         if (timeValue && !/^([01]?\d|2[0-3])(:[0-5]\d)?$/.test(timeValue)) {
             addErrorMessage(errors, INPUT_IDS.TIME, translate('chronos.invalidTimeFormat'));
         }
 
-        const durationAmount = values[INPUT_IDS.DURATION_AMOUNT]?.trim();
-        if (durationAmount && !/^\d+(\.\d+)?$/.test(replaceCommasWithPeriod(durationAmount))) {
+        const durationAmountValue = values[INPUT_IDS.DURATION_AMOUNT]?.trim();
+        if (durationAmountValue && !/^\d+(\.\d+)?$/.test(replaceCommasWithPeriod(durationAmountValue))) {
             addErrorMessage(errors, INPUT_IDS.DURATION_AMOUNT, translate('chronos.enterANumber'));
         }
 
@@ -136,6 +248,18 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.DATE}
                         label={translate('chronos.date')}
+                        value={startDate}
+                        onValueChange={(value) => handleStartDateChange(value as string)}
+                    />
+                </View>
+                <View style={styles.mb4}>
+                    <InputWrapper
+                        InputComponent={DatePicker}
+                        inputID={INPUT_IDS.END_DATE}
+                        label={translate('chronos.endDate')}
+                        value={endDate}
+                        minDate={startDateAsDate ?? undefined}
+                        onValueChange={(value) => handleEndDateChange(value as string)}
                     />
                 </View>
                 <View style={styles.mb4}>
@@ -160,6 +284,8 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         currencyButtonAccessibilityLabel={`${translate('common.select')}, ${durationUnitButtonLabel}`}
                         currency={CONST.CURRENCY.USD}
                         decimals={2}
+                        value={durationAmount}
+                        onValueChange={(value) => handleDurationAmountChange(value as string)}
                         onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
                         isCurrencyPressable
                     />
