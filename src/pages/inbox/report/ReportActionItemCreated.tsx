@@ -12,14 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
-import {
-    getParticipantsAccountIDsForDisplay,
-    isChatReport,
-    isCurrentUserInvoiceReceiver,
-    isInvoiceRoom,
-    navigateToDetailsPage,
-    shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
-} from '@libs/ReportUtils';
+import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 import {clearCreateChatError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,9 +43,11 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
 
-    const participants = getParticipantsAccountIDsForDisplay(report);
-    const firstParticipantAccountID = participants.at(0) ?? CONST.DEFAULT_NUMBER_ID;
-    const [isParticipantOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(firstParticipantAccountID)});
+    const otherParticipantAccountID =
+        Object.keys(report?.participants ?? {})
+            .map(Number)
+            .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
+    const [isParticipantOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(otherParticipantAccountID)});
 
     if (!isChatReport(report)) {
         return null;
