@@ -114,7 +114,7 @@ function CommonContent({filterKey, value: initialValue, type, policyIDs, policyI
     );
 }
 
-function FilterContent({filterKey, values, policyIDQuery, autoFocus, ready = true, onChange}: FilterContentProps) {
+function FilterContent({filterKey, values, policyIDQuery, autoFocus, ready, onChange}: FilterContentProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||

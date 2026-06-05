@@ -41,7 +41,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
     return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
-function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: InSelectorProps) {
+function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');

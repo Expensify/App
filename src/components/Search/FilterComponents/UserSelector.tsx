@@ -21,7 +21,7 @@ type UserSelectorProps = SearchFilterCommonProps & {
     onChange: (options: string[]) => void;
 };
 
-function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: UserSelectorProps) {
+function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -88,6 +88,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
           }
         : undefined;
 
+        console.log('ready?', ready)
     return (
         <ListFilterWrapper
             itemCount={listData.length}

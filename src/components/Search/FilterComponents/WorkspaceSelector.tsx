@@ -19,7 +19,7 @@ type WorkspaceSelectorProps = SearchFilterCommonProps & {
     onChange: (item: string[]) => void;
 };
 
-function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: WorkspaceSelectorProps) {
+function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
     const {isOffline} = useNetwork();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>(), policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
