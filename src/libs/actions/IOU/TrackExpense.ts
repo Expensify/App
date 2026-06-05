@@ -184,12 +184,6 @@ type GetTrackExpenseInformationParams = {
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
-    /**
-     * Current user's local currency, threaded from `useCurrentUserPersonalDetails().localCurrencyCode`.
-     * Forwarded into the draft-workspace `buildPolicyData` call so the optimistic distance rate
-     * currency does not fall back to the deprecated session-scoped Onyx.connect value
-     * (https://github.com/Expensify/App/issues/66580).
-     */
     currentUserLocalCurrency: string | undefined;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
