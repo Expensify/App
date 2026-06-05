@@ -884,6 +884,60 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
         });
 
+        it('duplicate workspace honors the explicit localCurrency and does not fall back to the deprecated session user localCurrencyCode', async () => {
+            // Seed Onyx session + personal details so the deprecated fallback would resolve to EUR
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL, localCurrencyCode: CONST.CURRENCY.EUR},
+            });
+
+            const fakePolicy = {
+                ...createRandomPolicy(20, CONST.POLICY.TYPE.PERSONAL),
+                outputCurrency: 'JPY',
+                employeeList: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Currency Honor Duplicate',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                    // overview is false so outputCurrency falls through to the explicit localCurrency
+                    overview: false,
+                },
+                // Explicit GBP should win over both the source policy's JPY (overview is off) and
+                // the deprecated session user's EUR localCurrencyCode.
+                localCurrency: 'GBP',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const duplicatePolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+            expect(duplicatePolicy?.outputCurrency).toBe('GBP');
+            expect(duplicatePolicy?.outputCurrency).not.toBe(CONST.CURRENCY.EUR);
+            expect(duplicatePolicy?.outputCurrency).not.toBe('JPY');
+        });
+
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
@@ -7342,6 +7396,59 @@ describe('actions/Policy', () => {
 
             expect(optimisticTransaction?.amount).toBe(-5000);
             expect(optimisticTransaction?.convertedAmount).toBe(-6000);
+        });
+
+        it('honors the explicit currentUserLocalCurrency and does not fall back to the deprecated session user localCurrencyCode', async () => {
+            // Seed Onyx session + personal details so the deprecated fallback would resolve to EUR
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL, localCurrencyCode: CONST.CURRENCY.EUR},
+            });
+
+            const employeeAccountID = 400;
+            const iouReportOwnerEmail = 'employee@example.com';
+
+            // iouReport.currency is empty so buildOptimisticDistanceRateCustomUnits falls through to currentUserLocalCurrency
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '910',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: employeeAccountID,
+                chatReportID: '911',
+                policyID: 'oldPolicyID',
+                currency: '',
+                total: 1000,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            // Pass explicit GBP — this should win over the session user's EUR localCurrencyCode
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, undefined, 'GBP', undefined, mockTranslate, {});
+            await waitForBatchedUpdates();
+
+            const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
+                optimisticData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+            };
+
+            // Find the policy optimistic data entry and pull out the distance rate currency
+            const policyOptimisticUpdate = (writeOptions?.optimisticData ?? []).find(
+                (update) => (update.key ?? '').startsWith(ONYXKEYS.COLLECTION.POLICY) && (update.value as {customUnits?: unknown})?.customUnits !== undefined,
+            );
+
+            const customUnits = (policyOptimisticUpdate?.value as {customUnits?: Record<string, {rates?: Record<string, {currency?: string}>}>})?.customUnits;
+            const customUnit = Object.values(customUnits ?? {}).find((unit) => 'rates' in unit && unit.rates);
+            const rateCurrency = Object.values(customUnit?.rates ?? {}).at(0)?.currency;
+
+            expect(rateCurrency).toBe('GBP');
+            expect(rateCurrency).not.toBe(CONST.CURRENCY.EUR);
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
         });
     });
 });
