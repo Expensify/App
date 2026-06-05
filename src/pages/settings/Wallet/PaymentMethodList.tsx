@@ -20,9 +20,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {
+    formatCardLastSynced,
     getAssignedCardSortKey,
+    getCardConnectionStatus,
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
@@ -180,7 +182,7 @@ function PaymentMethodList({
     onThreeDotsMenuPress,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
@@ -294,6 +296,21 @@ function PaymentMethodList({
                                   cardID: card.cardID,
                               });
 
+                    // Per-card connection status: only shown for personal cards in the per-card branch.
+                    // Direct-feed company cards are grouped per domain below and handled at that group level.
+                    const cardConnectionStatus = isUserPersonalCard ? getCardConnectionStatus(card) : undefined;
+                    const cardStatusLabel = cardConnectionStatus ? translate(cardConnectionStatus.labelKey) : undefined;
+                    const cardHelperText = cardConnectionStatus?.descriptionKey ? translate(cardConnectionStatus.descriptionKey) : undefined;
+                    const cardInlineActionLabel = cardConnectionStatus?.actionLabelKey ? translate(cardConnectionStatus.actionLabelKey) : undefined;
+                    // Show "Last synced …" for personal cards (skip CSV — no sync concept).
+                    const shouldShowLastSync = isUserPersonalCard && !isCSVCard;
+                    const lastSyncText = shouldShowLastSync ? translate('walletPage.lastSynced', {relativeDate: formatCardLastSynced(card, getLocalDateFromDatetime, translate)}) : undefined;
+                    const isCardConnectionInactive = !!cardConnectionStatus?.brickRoadIndicator;
+                    let cardStatusTone: 'success' | 'error' | undefined;
+                    if (cardConnectionStatus) {
+                        cardStatusTone = isCardConnectionInactive ? 'error' : 'success';
+                    }
+
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl,
@@ -306,7 +323,7 @@ function PaymentMethodList({
                         errors: isUserPersonalCard ? undefined : card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
-                        brickRoadIndicator,
+                        brickRoadIndicator: cardConnectionStatus?.brickRoadIndicator ?? brickRoadIndicator,
                         icon,
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
@@ -314,6 +331,12 @@ function PaymentMethodList({
                         isMethodActive: activePaymentMethodID === card.cardID,
                         isInactive: isCardInactive(card),
                         onPress: cardOnPress,
+                        statusLabel: cardStatusLabel,
+                        statusTone: cardStatusTone,
+                        helperText: cardHelperText,
+                        lastSyncText,
+                        inlineActionLabel: cardInlineActionLabel,
+                        inlineActionOnPress: cardInlineActionLabel ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID))) : undefined,
                     });
                     continue;
                 }
@@ -456,15 +479,32 @@ function PaymentMethodList({
                 description: paymentMethod.description,
             };
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
+            const accountState = (paymentMethod as BankAccount).accountData?.state;
+            const connectionStatus = getBankAccountConnectionStatus(accountState);
+
+            const onRowPress = (e: GestureResponderEvent) =>
+                pressHandler({
+                    event: e,
+                    ...paymentMethodData,
+                });
+
+            // Tone: success = Active, error = Locked, undefined = Incomplete / Pending / Verifying (neutral badge).
+            let statusTone: 'success' | 'error' | undefined;
+            if (accountState === CONST.BANK_ACCOUNT.STATE.OPEN) {
+                statusTone = 'success';
+            } else if (accountState === CONST.BANK_ACCOUNT.STATE.LOCKED) {
+                statusTone = 'error';
+            }
+
+            const statusLabel = connectionStatus ? translate(connectionStatus.labelKey) : undefined;
+            const helperText = connectionStatus?.descriptionKey ? translate(connectionStatus.descriptionKey) : undefined;
+            const inlineActionLabel = connectionStatus?.actionLabelKey ? translate(connectionStatus.actionLabelKey) : undefined;
+            const brickRoadIndicator = connectionStatus?.brickRoadIndicator;
 
             return {
                 ...paymentMethod,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
-                onPress: (e: GestureResponderEvent) =>
-                    pressHandler({
-                        event: e,
-                        ...paymentMethodData,
-                    }),
+                onPress: onRowPress,
                 onThreeDotsMenuPress: onThreeDotsMenuPress
                     ? (e: GestureResponderEvent) =>
                           onThreeDotsMenuPress({
@@ -478,6 +518,12 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
+                statusLabel,
+                statusTone,
+                helperText,
+                inlineActionLabel,
+                inlineActionOnPress: inlineActionLabel ? () => onRowPress(undefined as unknown as GestureResponderEvent) : undefined,
+                brickRoadIndicator,
             };
         });
         return combinedPaymentMethods;

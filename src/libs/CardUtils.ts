@@ -1662,6 +1662,77 @@ function isCardInactive(card?: OnyxEntry<Card>): boolean {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && !card?.nameValuePairs?.frozen;
 }
 
+type CardConnectionStatus = {
+    /** Translation key for the user-facing status label (Active / Inactive). */
+    labelKey: TranslationPaths;
+    /** Translation key for the helper copy rendered beneath the row when inactive. */
+    descriptionKey?: TranslationPaths;
+    /** Translation key for the inline CTA button label, when one should render (personal card only). */
+    actionLabelKey?: TranslationPaths;
+    /** Route for an inline link inside the helper copy (admin "fix in Company Cards" variant). */
+    descriptionLinkRoute?: string;
+    /** Brick-road indicator severity; undefined when no dot should render. */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+};
+
+/**
+ * Returns the user-facing connection status for an assigned card row. Combines the existing
+ * `isCardInactive` + `isCardConnectionBroken` predicates and forks the inactive copy by
+ * personal-vs-direct-feed and admin-vs-employee role.
+ *
+ * Pass `policyForCard` for the card's owning policy (resolved from `card.domainName` via
+ * `policiesForAssignedCards` at the call site) and `isCurrentUserPolicyAdmin` for the role
+ * decision; both are optional and only consulted for direct-feed company cards.
+ */
+function getCardConnectionStatus(card: Card, policyForCard?: OnyxEntry<Policy>, isCurrentUserPolicyAdmin = false): CardConnectionStatus {
+    const isPersonal = isPersonalCard(card);
+    const isInactive = isCardInactive(card) || isCardConnectionBroken(card);
+
+    if (!isInactive) {
+        return {labelKey: 'walletPage.cardConnectionStatus.active'};
+    }
+
+    if (isPersonal) {
+        return {
+            labelKey: 'walletPage.cardConnectionStatus.inactive',
+            descriptionKey: 'walletPage.cardConnectionStatus.fixConnection',
+            actionLabelKey: 'walletPage.cardConnectionStatus.fix',
+            brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+        };
+    }
+
+    if (isDirectFeed(card.bank) && isCurrentUserPolicyAdmin && policyForCard?.id) {
+        return {
+            labelKey: 'walletPage.cardConnectionStatus.inactive',
+            descriptionKey: 'walletPage.cardConnectionStatus.fixInCompanyCards',
+            descriptionLinkRoute: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyForCard.id),
+            brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+        };
+    }
+
+    if (isDirectFeed(card.bank)) {
+        return {
+            labelKey: 'walletPage.cardConnectionStatus.inactive',
+            descriptionKey: 'walletPage.cardConnectionStatus.askAdminToFix',
+            brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+        };
+    }
+
+    return {labelKey: 'walletPage.cardConnectionStatus.inactive', brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR};
+}
+
+/**
+ * Last-sync display string for a card row. Returns a localized "Never updated" fallback
+ * when the card has no `lastScrape`. Only meaningful for direct-feed and personal cards;
+ * the call site is responsible for skipping CSV cards.
+ */
+function formatCardLastSynced(card: Card, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'], translate: LocalizedTranslate): string {
+    if (!card.lastScrape) {
+        return translate('workspace.moreFeatures.companyCards.neverUpdated');
+    }
+    return format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+}
+
 /**
  * Return url for fixing broken personal card connection
  *
@@ -1987,6 +2058,8 @@ export {
     getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,
+    getCardConnectionStatus,
+    formatCardLastSynced,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CardConnectionStatus};

@@ -50,7 +50,7 @@ import {
 } from '@libs/actions/Policy/Policy';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
@@ -342,7 +342,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
         const bankAccountID = isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : bankAccountConnectedToWorkspace?.methodID;
         const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
-        const isAccountInSetupState = isBankAccountPartiallySetup(state);
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
@@ -355,16 +354,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
 
-        const getBadgeText = (accountState: string | undefined) => {
-            switch (accountState) {
-                case CONST.BANK_ACCOUNT.STATE.SETUP:
-                    return translate('common.actionRequired');
-                case CONST.BANK_ACCOUNT.STATE.LOCKED:
-                    return translate('common.locked');
-                default:
-                    return undefined;
-            }
-        };
+        // Wallet and Workflows share the same state→status mapping. Verifying intentionally
+        // produces no brick-road dot here (the row stays pressable so the RHP is reachable),
+        // matching the Wallet behavior.
+        const bankAccountConnectionStatus = getBankAccountConnectionStatus(accountData?.state);
+        const bankAccountStatusLabel = bankAccountConnectionStatus ? translate(bankAccountConnectionStatus.labelKey) : undefined;
+        const isOpenState = accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        const isVerifyingState = accountData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
+        const bankAccountBrickRoadIndicator =
+            bankAccountConnectionStatus?.brickRoadIndicator ?? (hasReimburserError && !isVerifyingState ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
 
         const updateWorkspaceCurrencyPrompt = (
             <View style={[styles.renderHTML, styles.flexRow]}>
@@ -640,16 +638,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
                                     descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
                                     disabled={isOffline || !isPolicyAdmin}
-                                    badgeText={getBadgeText(accountData?.state)}
+                                    badgeText={bankAccountStatusLabel}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
-                                    badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
-                                    isBadgeSuccess={isAccountInSetupState}
+                                    badgeIcon={
+                                        (isBusinessBankAccountLocked && isPolicyAdmin) || bankAccountConnectionStatus?.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                            ? expensifyIcons.DotIndicator
+                                            : undefined
+                                    }
+                                    isBadgeSuccess={isOpenState}
                                     isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
                                     shouldShowRightIcon={canWritePayments}
                                     interactive={canWritePayments}
                                     shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={bankAccountBrickRoadIndicator}
                                 />
                             </OfflineWithFeedback>
                         ) : (
