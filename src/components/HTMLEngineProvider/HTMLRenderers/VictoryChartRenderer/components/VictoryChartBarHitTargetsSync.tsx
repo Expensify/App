@@ -6,7 +6,6 @@ import buildBarHitTargets from '@components/HTMLEngineProvider/HTMLRenderers/Vic
 
 type VictoryChartBarHitTargetsSyncProps = {
     renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>;
-    valueAxisZero: number;
     updateHitTargets: (targets: BarHitTarget[]) => void;
     barYKeys: YKey[];
     barSeriesConfig: Partial<Record<YKey, BarSeriesConfig>>;
@@ -21,7 +20,6 @@ type VictoryChartBarHitTargetsSyncProps = {
  */
 function VictoryChartBarHitTargetsSync({
     renderArgs,
-    valueAxisZero,
     updateHitTargets,
     barYKeys,
     barSeriesConfig,
@@ -30,6 +28,8 @@ function VictoryChartBarHitTargetsSync({
     isHorizontal,
     categories,
 }: VictoryChartBarHitTargetsSyncProps) {
+    const valueAxisZero = isHorizontal ? renderArgs.xScale(0) : renderArgs.yScale(0);
+
     useLayoutEffect(() => {
         updateHitTargets(
             buildBarHitTargets({
