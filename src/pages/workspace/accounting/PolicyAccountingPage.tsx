@@ -360,7 +360,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
                         badgeText: isXero ? translate('workspace.accounting.claimOffer.badgeText') : undefined,
-                        onBadgePress: isXero
+                        onBadgePress: isXero && canWriteAccounting
                             ? () => {
                                   Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO));
                               }
