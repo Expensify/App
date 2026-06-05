@@ -10,6 +10,7 @@ import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
@@ -19,15 +20,19 @@ import type BaseSearchListProps from './types';
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
 type CellRendererComponentProps = ViewProps & {
+    ref?: React.Ref<View>;
     style?: StyleProp<ViewStyle>;
 };
 
-function CellRendererComponent({children, style, ...props}: CellRendererComponentProps) {
+function CellRendererComponent({children, ref, style, ...props}: CellRendererComponentProps) {
+    const styles = useThemeStyles();
+
     return (
         <View
+            ref={ref}
             {...props}
             // Keep the FlashList cell itself tracking the animated search pane width.
-            style={[style, {width: '100%'}]}
+            style={[style, styles.w100]}
         >
             {children}
         </View>

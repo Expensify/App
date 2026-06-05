@@ -77,9 +77,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
     const styles = useThemeStyles();
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isExpanded);
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
-    const headerTitleFadeAnimatedStyle = useSearchSidebarCollapseFadeStyle();
-    const headerBadgeFadeAnimatedStyle = useSearchSidebarCollapseFadeStyle();
-    const headerArrowFadeAnimatedStyle = useSearchSidebarCollapseFadeStyle();
+    const headerFadeAnimatedStyle = useSearchSidebarCollapseFadeStyle();
 
     useLayoutEffect(() => {
         isAccordionExpanded.set(isExpanded);
@@ -118,7 +116,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                     sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}
                     hoverStyle={styles.hoveredComponentBG}
                 >
-                    <Animated.View style={[styles.flex1, headerTitleFadeAnimatedStyle]}>
+                    <Animated.View style={[styles.flex1, headerFadeAnimatedStyle]}>
                         <Text
                             style={[styles.mutedNormalTextLabel]}
                             accessibilityRole={CONST.ROLE.HEADER}
@@ -129,14 +127,14 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                     </Animated.View>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                         {!!badgeText && (
-                            <Animated.View style={headerBadgeFadeAnimatedStyle}>
+                            <Animated.View style={headerFadeAnimatedStyle}>
                                 <AnimatedBadge
                                     text={badgeText}
                                     isExpanded={isAccordionExpanded}
                                 />
                             </Animated.View>
                         )}
-                        <Animated.View style={headerArrowFadeAnimatedStyle}>
+                        <Animated.View style={headerFadeAnimatedStyle}>
                             <View style={styles.searchTypeMenuAccessoryBox}>
                                 <Animated.View style={arrowAnimatedStyle}>
                                     <Icon
