@@ -20,7 +20,7 @@ You can update the following profile settings:
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Toggle between light mode, dark mode, or follow device settings, and enable high contrast mode.
 - **Notifications** – Customize how and when you receive email and app notifications.
-- **Personal Information** – Add or update your legal name, birth date, and address.
+- **Personal details** – Add or update your legal name, date of birth, phone number, and address.
 
 ---
 # Supported Languages
@@ -114,19 +114,34 @@ High contrast mode increases the visual contrast of UI elements, making text and
 
 High contrast mode works with any base theme (light, dark, or device settings).
 
-## Personal Information
+## How to update your personal details
 
-To update legal details like name, date of birth, and address:
+Your legal name, date of birth, phone number, and address are part of your private details. They’re used for travel and payments and are never shown on your public profile.
+
 1. Go to **Account > Profile**.
-2. Scroll to the **Private Details** section.
-3. Update the **Legal Name**, **Date of Birth**, or **Address** fields.
+2. Scroll to the **Private** section and click **Legal name**, **Date of birth**, **Phone number**, or **Address**. Any of these opens the **Personal details** page, which has a **Basic details** section and an **Address** section.
+3. Update your details, then click **Save**.
+4. On the **Let's make sure it's you** screen, enter the magic code sent to your primary contact method, then click **Verify** to confirm the update.
 
-## Display or Legal Name
+<!-- SCREENSHOT:
+Suggestion: The Personal details page showing the Basic details and Address sections with the Save button.
+Location: After step 3 of How to update your personal details.
+Purpose: Shows the consolidated page where all private details are edited.
+-->
 
-To edit your display or legal name:
+<!-- SCREENSHOT:
+Suggestion: The "Let's make sure it's you" magic code confirmation screen with the code entry field and Verify button.
+Location: After step 4 of How to update your personal details.
+Purpose: Shows the identity verification step required to save changes.
+-->
+
+## How to update your display name
+
+Your display name is shown on your public profile. To edit it:
 1. Go to **Account > Profile**.
-2. For display name: Click **Display Name**, enter your preferred name, and click **Save**.
-3. For legal name: Scroll to **Private Details**, click **Legal Name**, update it, and click **Save**.
+2. Click **Display name**, enter your preferred name, and click **Save**.
+
+To edit your legal name instead, follow the steps in How to update your personal details above. Your legal name is private and is never shown on your public profile.
 
 ---
 
@@ -149,4 +164,7 @@ Yes! Your chosen theme and high contrast mode setting apply across web, mobile, 
 
 ## Can I set a permanent status message?
 Yes. After entering your status, choose **Never** under “Clear After” to keep it active indefinitely.
+
+## Why do I need to enter a magic code to update my personal details?
+Your legal name, date of birth, phone number, and address are used for travel and payments, so Expensify verifies your identity before saving any changes. After you click **Save**, enter the magic code sent to your primary contact method on the **Let's make sure it's you** screen, then click **Verify** to confirm.
 
