@@ -76,16 +76,34 @@ describe('tabNavigatorReadiness', () => {
         expect(isTabNavigatorMounted()).toBe(true);
     });
 
-    it('treats repeated mount calls as idempotent', () => {
-        const {setTabNavigatorMounted, isTabNavigatorMounted} = loadHelper();
+    it('stays ready while any instance remains mounted (ref-counted)', async () => {
+        const {setTabNavigatorMounted, setTabNavigatorUnmounted, whenTabNavigatorReady, isTabNavigatorMounted} = loadHelper();
+
+        // Two TAB_NAVIGATORs mounted at once (e.g. a cross-tab PUSH stacks a second one).
         setTabNavigatorMounted();
         setTabNavigatorMounted();
         expect(isTabNavigatorMounted()).toBe(true);
-    });
 
-    it('ignores an unmount call when already unmounted', () => {
-        const {setTabNavigatorUnmounted, isTabNavigatorMounted} = loadHelper();
+        // Popping the pushed navigator must not re-arm the signal while the underlying one is still mounted.
+        setTabNavigatorUnmounted();
+        expect(isTabNavigatorMounted()).toBe(true);
+        await expect(whenTabNavigatorReady()).resolves.toBeUndefined();
+
+        // Only once the last instance unmounts does the signal re-arm.
         setTabNavigatorUnmounted();
         expect(isTabNavigatorMounted()).toBe(false);
+    });
+
+    it('does not go negative on an unmount call when already unmounted', async () => {
+        const {setTabNavigatorMounted, setTabNavigatorUnmounted, whenTabNavigatorReady, isTabNavigatorMounted} = loadHelper();
+
+        // An unbalanced unmount must not push the ref count below zero.
+        setTabNavigatorUnmounted();
+        expect(isTabNavigatorMounted()).toBe(false);
+
+        // A single mount must still flip the signal to ready (it would not if the count were now -1).
+        setTabNavigatorMounted();
+        expect(isTabNavigatorMounted()).toBe(true);
+        await expect(whenTabNavigatorReady()).resolves.toBeUndefined();
     });
 });
