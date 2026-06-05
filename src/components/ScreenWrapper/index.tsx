@@ -9,6 +9,7 @@ import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
+import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
@@ -194,6 +195,15 @@ function ScreenWrapper({
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
+
+        // A multifactor authentication flow (e.g. Face ID to reveal UK/EU card details) renders in an independent navigation
+        // tree overlaid above this screen. While that overlay is mounted (including its closing animation) mfaNavigationRef is
+        // ready. The overlay tearing down registers as a screen removal here, which must not be treated as the user backing out
+        // of the single NewDot entry, otherwise we would close NewDot mid-flow and exit to OldDot.
+        if (mfaNavigationRef.isReady()) {
+            return;
+        }
+
         closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
     });
 
