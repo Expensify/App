@@ -73,9 +73,6 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
 
     const popoverAnchorAlignment = popoverAnchorAlignmentProp ?? ANCHOR_ORIGIN;
 
-    /**
-     * Toggle the overlay between open & closed
-     */
     const toggleOverlay = () => {
         setIsOverlayVisible((previousValue) => {
             if (!previousValue && willAlertModalBecomeVisible) {
@@ -86,9 +83,6 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
         });
     };
 
-    /**
-     * Calculate popover position and toggle overlay
-     */
     const calculatePopoverPositionAndToggleOverlay = () => {
         calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
             setPopoverTriggerPosition({...position, vertical: position.vertical});
