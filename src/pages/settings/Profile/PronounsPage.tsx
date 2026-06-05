@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -31,7 +31,6 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const currentPronouns = currentUserPersonalDetails?.pronouns ?? '';
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
     const [searchValue, setSearchValue] = useState('');
-    const isOptionSelected = useRef(false);
     const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
@@ -68,12 +67,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     }, [searchValue, currentPronouns, translate, localeCompare]);
 
     const updatePronouns = (selectedPronouns: PronounEntry) => {
-        if (isOptionSelected.current) {
-            return;
-        }
-        isOptionSelected.current = true;
         updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : (selectedPronouns?.value ?? ''), currentUserAccountID);
-        Navigation.goBack();
     };
 
     const textInputOptions = useMemo(
