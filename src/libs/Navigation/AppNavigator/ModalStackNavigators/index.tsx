@@ -3,7 +3,6 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileChrome} from '@libs/Browser';
 import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -65,16 +64,6 @@ const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
-const IS_MOBILE_CHROME = isMobileChrome();
-
-const REIMBURSEMENT_ACCOUNT_FLOW_SCREENS: Screen[] = [
-    SCREENS.REIMBURSEMENT_ACCOUNT,
-    SCREENS.REIMBURSEMENT_ACCOUNT_USD,
-    SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD,
-    SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT,
-    SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO,
-];
-
 const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>> = {
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
         animationTypeForReplace: 'push',
@@ -124,9 +113,6 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
         animationTypeForReplace: 'push',
     },
-    // Reimbursement Account flow animations glitch on low-end Android devices in Chrome mWeb so we intentionally disable them here.
-    // see https://github.com/Expensify/App/issues/87658
-    ...(IS_MOBILE_CHROME ? Object.fromEntries(REIMBURSEMENT_ACCOUNT_FLOW_SCREENS.map((screen) => [screen, {animation: Animations.NONE}])) : {}),
 };
 
 /**
