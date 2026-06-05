@@ -6,14 +6,12 @@
 // only need enough surface area for `victory-native` and `@shopify/react-native-skia`
 // modules to load without throwing while we walk the headless branch.
 //
-// `<View>` is a transparent pass-through so layout wrappers (e.g. VictoryChartContainer)
-// preserve the Skia subtree without mounting native views. Styles and layout callbacks
-// are ignored. Other RN primitives that are not Skia nodes still render to `null`.
+// UI primitives are transparent pass-throughs so layout wrappers and label
+// containers preserve the Skia subtree without mounting native views. Styles
+// and layout callbacks are ignored.
 import type {FunctionComponent, PropsWithChildren} from 'react';
 
-const noopComponent: FunctionComponent<PropsWithChildren<unknown>> = () => null;
-
-const View: FunctionComponent<PropsWithChildren<unknown>> = ({children}) => children;
+const passThroughComponent: FunctionComponent<PropsWithChildren<unknown>> = ({children}) => children;
 
 type LayoutChangeEvent = {nativeEvent: {layout: {x: number; y: number; width: number; height: number}}};
 type ViewStyle = Record<string, unknown>;
@@ -24,7 +22,9 @@ type TransformsStyle = Record<string, unknown>;
 
 type ImageResolvedAssetSource = {uri: string};
 
-const Image = Object.assign(noopComponent, {
+const View = passThroughComponent;
+
+const Image = Object.assign(passThroughComponent, {
     resolveAssetSource: (source: unknown): ImageResolvedAssetSource => {
         if (source && typeof source === 'object' && 'uri' in source) {
             const {uri} = source as {uri: unknown};
@@ -33,7 +33,8 @@ const Image = Object.assign(noopComponent, {
         return {uri: String(source)};
     },
 });
-const Text = noopComponent;
+
+const Text = passThroughComponent;
 
 const Platform = {
     OS: 'web' as const,

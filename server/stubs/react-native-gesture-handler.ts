@@ -56,10 +56,10 @@ const Gesture = {
     Exclusive: () => buildGesture(),
 };
 
-const noopComponent: FunctionComponent<PropsWithChildren<unknown>> = () => null;
+const passThroughComponent: FunctionComponent<PropsWithChildren<unknown>> = ({children}) => children;
 
-const GestureHandlerRootView = noopComponent;
-const GestureDetector = noopComponent;
+const GestureHandlerRootView = passThroughComponent;
+const GestureDetector = passThroughComponent;
 
 type ComposedGesture = GestureBuilder;
 type GestureType = GestureBuilder;
