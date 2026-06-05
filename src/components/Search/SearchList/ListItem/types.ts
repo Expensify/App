@@ -459,6 +459,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
+        /** Resolved footer search currency for nested subgroup transaction fetches */
+        targetCurrency?: string;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<

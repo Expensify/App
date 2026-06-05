@@ -33,7 +33,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {search, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -107,6 +107,7 @@ type SearchProps = {
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
+    /** Resolved footer search currency used for per-subgroup nested transaction refreshes */
     targetCurrency?: string;
     onContentReady?: () => void;
 
@@ -720,12 +721,11 @@ function Search({
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
             isLoading: !!searchResults?.search?.isLoading,
-            targetCurrency,
         });
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy, targetCurrency]);
+    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -747,20 +747,40 @@ function Search({
             shouldCalculateTotals: true,
             prevReportsLength: filteredDataLength,
             isLoading: false,
-            targetCurrency,
         });
-    }, [
-        filteredDataLength,
-        handleSearch,
-        offset,
-        queryJSON,
-        currentSearchKey,
-        searchResults?.search?.count,
-        searchResults?.search?.isLoading,
-        shouldCalculateTotals,
-        validGroupBy,
-        targetCurrency,
-    ]);
+    }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
+
+    const previousTargetCurrency = usePrevious(targetCurrency);
+
+    // Footer currency changes fetch converted totals in a separate flat-query snapshot (SearchPage).
+    // Grouped individual transactions live in per-subgroup snapshots; refresh loaded nested snapshots with targetCurrency.
+    useEffect(() => {
+        if (!isFocused || !validGroupBy || isExpenseReportType || !targetCurrency || previousTargetCurrency === undefined || previousTargetCurrency === targetCurrency) {
+            return;
+        }
+
+        for (const groupItem of baseFilteredData as TransactionGroupListItemType[]) {
+            const nestedHash = hashToString(groupItem.transactionsQueryJSON?.hash);
+            if (!nestedHash || !groupItem.transactionsQueryJSON) {
+                continue;
+            }
+
+            const snapshot = groupByTransactionSnapshots[nestedHash];
+            if (!snapshot?.data) {
+                continue;
+            }
+
+            search({
+                queryJSON: groupItem.transactionsQueryJSON,
+                searchKey: undefined,
+                offset: snapshot.search?.offset ?? 0,
+                shouldCalculateTotals: false,
+                isLoading: false,
+                isOffline,
+                targetCurrency,
+            });
+        }
+    }, [baseFilteredData, groupByTransactionSnapshots, isExpenseReportType, isFocused, isOffline, previousTargetCurrency, targetCurrency, validGroupBy]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -1879,6 +1899,7 @@ function Search({
                     isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     isActionColumnWide={isTask || hasDeletedTransaction}
+                    targetCurrency={targetCurrency}
                 />
             </Animated.View>
         </SearchScopeProvider>

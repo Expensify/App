@@ -540,7 +540,7 @@ function search({
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}${targetCurrency ? `_${targetCurrency}` : ''}`;
     if (inFlightSearchRequests.has(dedupeKey)) {
         return;
     }

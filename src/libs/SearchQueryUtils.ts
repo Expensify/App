@@ -2174,6 +2174,24 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
     return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
 
+/**
+ * Returns the same search query without groupBy/groupCurrency so footer totals can be fetched in a
+ * separate snapshot without converting grouped list header totals.
+ */
+function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>): Readonly<SearchQueryJSON> | undefined {
+    if (!queryJSON.groupBy) {
+        return queryJSON;
+    }
+
+    return buildSearchQueryJSON(
+        buildSearchQueryString({
+            ...queryJSON,
+            groupBy: undefined,
+            groupCurrency: undefined,
+        }),
+    );
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
@@ -2211,6 +2229,7 @@ export {
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
+    buildFlatQueryWithoutGroupBy,
 };
 
 export type {BuildUserReadableQueryStringParams};

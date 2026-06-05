@@ -19,6 +19,8 @@ import {searchInServer} from '@libs/actions/Report';
 import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {buildFlatQueryWithoutGroupBy} from '@libs/SearchQueryUtils';
+import {getValidGroupBy} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -33,6 +35,8 @@ type FooterCurrencyState = {
     searchHash: number | undefined;
     selectedCurrency: string | undefined;
     defaultCurrency: string | undefined;
+    /** Hash of the auxiliary flat-query snapshot used for converted footer totals in grouped views */
+    footerTotalHash: number | undefined;
 };
 
 function SearchPage({route}: SearchPageProps) {
@@ -54,6 +58,7 @@ function SearchPage({route}: SearchPageProps) {
         searchHash: undefined,
         selectedCurrency: undefined,
         defaultCurrency: undefined,
+        footerTotalHash: undefined,
     });
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     const selectedCurrency = isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined;
@@ -93,6 +98,16 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     const metadata = searchResults?.search;
+    const validGroupBy = getValidGroupBy(currentSearchQueryJSON?.groupBy);
+    const [footerTotalSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${footerCurrencyState.footerTotalHash}`);
+    const footerTotalMetadata = isCurrentFooterState && footerCurrencyState.footerTotalHash !== undefined ? footerTotalSnapshot?.search : undefined;
+    const footerSearchTargetCurrency = useMemo(() => {
+        if (!isCurrentFooterState) {
+            return metadata?.currency;
+        }
+
+        return selectedCurrency ?? defaultFooterCurrency ?? metadata?.currency;
+    }, [defaultFooterCurrency, isCurrentFooterState, metadata?.currency, selectedCurrency]);
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -141,11 +156,32 @@ function SearchPage({route}: SearchPageProps) {
                 return;
             }
 
+            const isResettingToDefault = currency === undefined || nextCurrency === fallbackDefaultCurrency;
+            const flatQueryJSON = validGroupBy ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON) : undefined;
+
             setFooterCurrencyState({
                 searchHash: currentSearchHash,
                 selectedCurrency: currency,
                 defaultCurrency: fallbackDefaultCurrency,
+                footerTotalHash: validGroupBy && !isResettingToDefault ? flatQueryJSON?.hash : undefined,
             });
+
+            if (validGroupBy) {
+                if (isResettingToDefault || !flatQueryJSON) {
+                    return;
+                }
+
+                handleSearchAction({
+                    queryJSON: flatQueryJSON,
+                    searchKey: undefined,
+                    offset: 0,
+                    shouldCalculateTotals: true,
+                    isLoading: false,
+                    targetCurrency: nextCurrency,
+                });
+                return;
+            }
+
             handleSearchAction({
                 queryJSON: currentSearchQueryJSON,
                 searchKey: currentSearchKey,
@@ -155,7 +191,7 @@ function SearchPage({route}: SearchPageProps) {
                 targetCurrency: nextCurrency,
             });
         },
-        [currentSearchHash, currentSearchKey, currentSearchQueryJSON, defaultFooterCurrency, handleSearchAction, metadata?.currency],
+        [currentSearchHash, currentSearchKey, currentSearchQueryJSON, defaultFooterCurrency, handleSearchAction, metadata?.currency, validGroupBy],
     );
 
     const footerData = useMemo(() => {
@@ -165,12 +201,14 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
-        const footerSelectedCurrency = !selectedCurrency || shouldUseClientTotal || metadata?.currency === selectedCurrency ? selectedCurrency : undefined;
+        const defaultCurrency = defaultFooterCurrency ?? metadata?.currency;
+        const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
         const isSelectedSubtotalLoading =
-            shouldUseClientTotal &&
-            !!footerSelectedCurrency &&
-            selectedTransactionItems.some((transaction) => !!transaction.groupCurrency && transaction.groupCurrency !== footerSelectedCurrency);
-        const currency = footerSelectedCurrency ?? metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
+            shouldUseClientTotal && hasCustomFooterCurrency && selectedTransactionItems.some((transaction) => !!transaction.groupCurrency && transaction.groupCurrency !== selectedCurrency);
+        const isFooterGrandTotalLoading = !shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && !!footerTotalMetadata?.isLoading;
+        const currency = shouldUseClientTotal
+            ? (selectedCurrency ?? defaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency)
+            : (selectedCurrency ?? footerTotalMetadata?.currency ?? defaultCurrency ?? metadata?.currency);
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((count, key) => {
                   if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
@@ -184,15 +222,35 @@ function SearchPage({route}: SearchPageProps) {
                   return count + 1;
               }, 0)
             : metadata?.count;
-        const total = shouldUseClientTotal
-            ? selectedTransactionItems.reduce((acc, transaction) => {
-                  const shouldUseGroupAmount = !footerSelectedCurrency || transaction.groupCurrency === footerSelectedCurrency;
-                  return acc - (shouldUseGroupAmount ? (transaction.groupAmount ?? -Math.abs(transaction.amount)) : -Math.abs(transaction.amount));
-              }, 0)
-            : metadata?.total;
+        let total;
+        if (shouldUseClientTotal) {
+            total = selectedTransactionItems.reduce((acc, transaction) => {
+                const shouldUseGroupAmount = !hasCustomFooterCurrency || transaction.groupCurrency === selectedCurrency;
+                return acc - (shouldUseGroupAmount ? (transaction.groupAmount ?? -Math.abs(transaction.amount)) : -Math.abs(transaction.amount));
+            }, 0);
+        } else if (hasCustomFooterCurrency && validGroupBy) {
+            total = footerTotalMetadata?.total;
+        } else {
+            total = metadata?.total;
+        }
 
-        return {count: numberOfExpense, total, currency, isLoading: isSelectedSubtotalLoading};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedCurrency, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals, currentSearchResults]);
+        return {count: numberOfExpense, total, currency, isLoading: isSelectedSubtotalLoading || isFooterGrandTotalLoading};
+    }, [
+        areAllMatchingItemsSelected,
+        currentSearchResults,
+        defaultFooterCurrency,
+        footerTotalMetadata?.currency,
+        footerTotalMetadata?.isLoading,
+        footerTotalMetadata?.total,
+        metadata?.count,
+        metadata?.currency,
+        metadata?.total,
+        selectedCurrency,
+        selectedTransactions,
+        selectedTransactionsKeys,
+        shouldAllowFooterTotals,
+        validGroupBy,
+    ]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -210,7 +268,7 @@ function SearchPage({route}: SearchPageProps) {
         onDestinationVisible: overlayEndSubmitSpans,
     });
 
-    const isFooterTotalLoading = !!footerData.isLoading || !!metadata?.isLoading;
+    const isFooterTotalLoading = !!footerData.isLoading || (!validGroupBy && !!metadata?.isLoading);
 
     return (
         <Animated.View style={[styles.flex1]}>
@@ -223,7 +281,7 @@ function SearchPage({route}: SearchPageProps) {
                     footerData={footerData}
                     footerDefaultCurrency={defaultFooterCurrency ?? metadata?.currency}
                     isFooterTotalLoading={isFooterTotalLoading}
-                    targetCurrency={selectedCurrency}
+                    targetCurrency={footerSearchTargetCurrency}
                     onFooterCurrencyChange={handleFooterCurrencyChange}
                     shouldShowFooter={shouldShowFooter}
                     onSortPressedCallback={onSortPressedCallback}
@@ -241,7 +299,7 @@ function SearchPage({route}: SearchPageProps) {
                     footerData={footerData}
                     footerDefaultCurrency={defaultFooterCurrency ?? metadata?.currency}
                     isFooterTotalLoading={isFooterTotalLoading}
-                    targetCurrency={selectedCurrency}
+                    targetCurrency={footerSearchTargetCurrency}
                     onFooterCurrencyChange={handleFooterCurrencyChange}
                     handleSearchAction={handleSearchAction}
                     onSortPressedCallback={onSortPressedCallback}
