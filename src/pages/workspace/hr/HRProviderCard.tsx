@@ -73,7 +73,15 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
             ? {
                   icon: icons.CheckCircle,
                   text: translate('workspace.hr.mergeHR.completeSetup'),
-                  onSelected: () => card.completeSetupRoute && Navigation.navigate(card.completeSetupRoute),
+                  onSelected: () => {
+                      if (!canWriteMoreFeatures) {
+                          showReadOnlyModal();
+                          return;
+                      }
+                      if (card.completeSetupRoute) {
+                          Navigation.navigate(card.completeSetupRoute);
+                      }
+                  },
                   disabled: isOffline,
               }
             : {
@@ -155,7 +163,9 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 interactive={false}
                 description={card.completeSetupRoute ? undefined : connectionDescription}
                 descriptionAddon={
-                    card.completeSetupRoute ? <RenderHTML html={translate('workspace.hr.mergeHR.setupIncomplete', `${environmentURL}/${card.completeSetupRoute}`)} /> : undefined
+                    card.completeSetupRoute ? (
+                        <RenderHTML html={translate('workspace.hr.mergeHR.setupIncomplete', canWriteMoreFeatures ? `${environmentURL}/${card.completeSetupRoute}` : undefined)} />
+                    ) : undefined
                 }
                 errorText={lastSyncErrorMessage}
                 errorTextStyle={styles.mt5}
@@ -177,9 +187,10 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                                 description={translate('workspace.hr.mergeHR.groups.title')}
                                 title={card.groupsSummary}
                                 style={styles.sectionMenuItemTopDescription}
-                                shouldShowRightIcon
+                                shouldShowRightIcon={canWriteMoreFeatures}
                                 brickRoadIndicator={card.config.errorFields?.groups ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 onPress={() => Navigation.navigate(groupsRoute)}
+                                interactive={canWriteMoreFeatures}
                             />
                         </OfflineWithFeedback>
                     )}
