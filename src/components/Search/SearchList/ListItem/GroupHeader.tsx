@@ -184,15 +184,45 @@ function GroupHeader({
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
+    // For non-expense-report groups, children are loaded from the snapshot
+    // rather than groupItem.transactions (which may be empty). Extract
+    // minimal transaction items from the snapshot so selection and
+    // long-press handlers operate on the actual visible children.
+    const effectiveTransactions = useMemo((): TransactionListItemType[] => {
+        if (isExpenseReportType || groupItem.transactions.length > 0) {
+            return groupItem.transactions;
+        }
+        if (!snapshotData) {
+            return [];
+        }
+        const items: TransactionListItemType[] = [];
+        for (const [key, value] of Object.entries(snapshotData)) {
+            if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+                continue;
+            }
+            const tx = value as Record<string, unknown>;
+            if (!tx || typeof tx !== 'object' || !('transactionID' in tx)) {
+                continue;
+            }
+            const report = snapshotData[`${ONYXKEYS.COLLECTION.REPORT}${tx.reportID as string}`] as TransactionListItemType['report'];
+            items.push({
+                ...tx,
+                keyForList: tx.transactionID as string,
+                report,
+            } as TransactionListItemType);
+        }
+        return items;
+    }, [isExpenseReportType, groupItem.transactions, snapshotData]);
+
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
         const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
-        const filteredTransactions = groupItem.transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const selectedCount = groupItem.transactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
-        const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+        const filteredTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const selectedCount = effectiveTransactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
+        const isEmptyReportSelected = isEmpty && item.keyForList && selectedTransactions[item.keyForList]?.isSelected;
         const allChecked = !!isEmptyReportSelected || (selectedCount === filteredTransactions.length && filteredTransactions.length > 0);
         const indeterminate = selectedCount > 0 && selectedCount !== filteredTransactions.length;
         return {isSelectAllChecked: allChecked, isIndeterminate: indeterminate};
-    }, [selectedTransactions, groupItem.transactions, isEmpty, item?.keyForList]);
+    }, [selectedTransactions, effectiveTransactions, isEmpty, item.keyForList]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
@@ -204,7 +234,7 @@ function GroupHeader({
     });
 
     const handleSelectionButtonPress = () => {
-        onCheckboxPress(item, isExpenseReportType ? undefined : groupItem.transactions);
+        onCheckboxPress(item, isExpenseReportType ? undefined : effectiveTransactions);
     };
 
     const pendingAction =
@@ -360,7 +390,7 @@ function GroupHeader({
     };
 
     const handleLongPress = () => {
-        onLongPressRow?.(item, isExpenseReportType ? undefined : groupItem.transactions);
+        onLongPressRow?.(item, isExpenseReportType ? undefined : effectiveTransactions);
     };
 
     return (
