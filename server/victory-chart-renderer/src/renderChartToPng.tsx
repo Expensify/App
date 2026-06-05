@@ -4,6 +4,7 @@ import {TRenderEngineProvider} from 'react-native-render-html';
 import {ChartFontsContext} from '@components/Charts/context/ChartFontsContext';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import {VictoryChartProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
 import VICTORY_HTML_ELEMENT_MODELS from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 import CliVictoryChartContent from './CliVictoryChartContent';
@@ -19,7 +20,9 @@ type CanvasSize = {
 };
 
 async function renderChartToPng(tnode: TNode, fonts: ChartFontsValue, {width, height}: CanvasSize, outPath: string): Promise<void> {
-    if (!resolveVictoryChartType(tnode, fonts.typefaces.EXP_NEUE)) {
+    const {data} = processVictoryChartTree(tnode, fonts.typefaces.EXP_NEUE, null);
+
+    if (!resolveVictoryChartType(data)) {
         throw new Error('Chart XML describes an invalid or mixed chart type');
     }
 

@@ -9,19 +9,19 @@ This package is an [npm workspace](https://docs.npmjs.com/cli/using-npm/workspac
 From the App repository root:
 
 ```bash
-npm run server:vcr:dev -- '<victorychart width="400" height="300">...</victorychart>' /tmp/out.png
+npm run server:vcr:dev -- --chart-xml '<victorychart width="400" height="300">...</victorychart>' --out /tmp/out.png
 ```
 
 Or pass a path to a `.xml` file:
 
 ```bash
-npm run server:vcr:dev -- server/victory-chart-renderer/tests/fixtures/monthly-spend.xml /tmp/out.png
+npm run server:vcr:dev -- --chart-xml server/victory-chart-renderer/tests/fixtures/monthly-spend.xml --out /tmp/out.png
 ```
 
 From this directory:
 
 ```bash
-npm run dev -- path/to/chart.xml /tmp/out.png
+npm run dev -- --chart-xml path/to/chart.xml --out /tmp/out.png
 ```
 
 ## Tests

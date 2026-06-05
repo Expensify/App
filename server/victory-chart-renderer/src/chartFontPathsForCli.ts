@@ -1,7 +1,24 @@
+import {existsSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 
-const repoRoot = resolve(import.meta.dir, '../../..');
+function resolveRepoRoot(): string {
+    const cwdRoot = process.cwd();
+
+    if (existsSync(join(cwdRoot, 'assets/fonts/web/ExpensifyNeue-Regular.woff2'))) {
+        return cwdRoot;
+    }
+
+    const fromPackageRoot = resolve(import.meta.dir, '../../..');
+
+    if (existsSync(join(fromPackageRoot, 'assets/fonts/web/ExpensifyNeue-Regular.woff2'))) {
+        return fromPackageRoot;
+    }
+
+    throw new Error('Could not locate App repository root for chart font assets');
+}
+
+const repoRoot = resolveRepoRoot();
 
 const CHART_SKIA_TYPEFACE_PATHS: Record<ChartSkiaTypefaceKey, string> = {
     MONOSPACE: join(repoRoot, 'assets/fonts/web/ExpensifyMono-Regular.woff2'),

@@ -18,7 +18,7 @@ const FIXTURE_NAMES = readdirSync(fixturesDir)
     .map((name) => name.replace(/\.xml$/, ''));
 
 function runCli(xmlPath: string, outPath: string) {
-    return spawnSync('npm', ['run', 'dev', '-w', '@expensify/victory-chart-renderer', '--', xmlPath, outPath], {
+    return spawnSync('npm', ['run', 'dev', '-w', '@expensify/victory-chart-renderer', '--', '--chart-xml', xmlPath, '--out', outPath], {
         cwd: repoRoot,
         encoding: 'utf8',
     });

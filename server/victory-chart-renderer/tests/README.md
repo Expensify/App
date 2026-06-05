@@ -27,5 +27,5 @@ Rendered outputs for review are written to `tests/__output__/`.
 ## Manual CLI
 
 ```bash
-npm run server:vcr:dev -- server/victory-chart-renderer/tests/fixtures/monthly-spend.xml /tmp/chart.png
+npm run server:vcr:dev -- --chart-xml server/victory-chart-renderer/tests/fixtures/monthly-spend.xml --out /tmp/chart.png
 ```
