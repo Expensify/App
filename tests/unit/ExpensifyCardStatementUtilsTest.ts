@@ -56,6 +56,10 @@ function makeSettlementSelection(groupKey: string, selectedTransactionCount: num
     return selection;
 }
 
+function makeSearchData(groups: Record<string, SearchWithdrawalIDGroup>): SearchResultDataType {
+    return groups as unknown as SearchResultDataType;
+}
+
 function makeSettlementGroup(overrides: Partial<SearchWithdrawalIDGroup> = {}): SearchWithdrawalIDGroup {
     return {
         entryID: 123,
@@ -90,7 +94,7 @@ describe('ExpensifyCardStatementUtils', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         // Only 1 of the settlement's 2 transactions is selected.
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
-        const searchData = {[groupKey]: makeSettlementGroup({entryID: 123, count: 2})} as SearchResultDataType;
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
@@ -98,7 +102,7 @@ describe('ExpensifyCardStatementUtils', () => {
     it('returns a single-feed selection when a whole cleared settlement is selected', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 2);
-        const searchData = {[groupKey]: makeSettlementGroup({entryID: 123, count: 2})} as SearchResultDataType;
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(selection?.hasMultipleFeeds).toBe(false);
@@ -120,10 +124,10 @@ describe('ExpensifyCardStatementUtils', () => {
             ...makeSettlementSelection(firstGroupKey, 1),
             ...makeSettlementSelection(secondGroupKey, 1),
         };
-        const searchData = {
+        const searchData = makeSearchData({
             [firstGroupKey]: makeSettlementGroup({entryID: 123, policyID: 'policy1'}),
             [secondGroupKey]: makeSettlementGroup({entryID: 456, policyID: 'policy2'}),
-        } as SearchResultDataType;
+        });
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(selection?.hasMultipleFeeds).toBe(true);
@@ -133,7 +137,7 @@ describe('ExpensifyCardStatementUtils', () => {
     it('excludes failed settlements from the selection', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
-        const searchData = {[groupKey]: makeSettlementGroup({entryID: 123, state: 5})} as SearchResultDataType;
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 5})});
 
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
@@ -141,7 +145,7 @@ describe('ExpensifyCardStatementUtils', () => {
     it('includes settlements that are settled pending batch processing (state 9, shown as Cleared)', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
-        const searchData = {[groupKey]: makeSettlementGroup({entryID: 123, state: 9})} as SearchResultDataType;
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, state: 9})});
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(selection?.hasMultipleFeeds).toBe(false);

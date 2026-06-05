@@ -75,7 +75,7 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
     }
 
     return Array.from(selectedCountByGroupKey.entries())
-        .map(([groupKey, selectedCount]) => ({group: searchData[groupKey] as SearchWithdrawalIDGroup | undefined, selectedCount}))
+        .map(([groupKey, selectedCount]) => ({group: searchData[groupKey as keyof SearchResultDataType] as SearchWithdrawalIDGroup | undefined, selectedCount}))
         .filter(
             (entry): entry is {group: SearchWithdrawalIDGroup; selectedCount: number} =>
                 !!entry.group &&
@@ -161,11 +161,5 @@ function downloadExpensifyCardStatementPDF(translate: LocalizedTranslate, fileNa
     return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
-export type {ExpensifyCardStatementFeed, ExpensifyCardStatementParams, ExpensifyCardStatementSelection};
-export {
-    downloadExpensifyCardStatementPDF,
-    getExpensifyCardStatementKey,
-    getExpensifyCardStatementParams,
-    getExpensifyCardStatementSelection,
-    isExpensifyCardStatementSearch,
-};
+export type {ExpensifyCardStatementParams};
+export {downloadExpensifyCardStatementPDF, getExpensifyCardStatementKey, getExpensifyCardStatementParams, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch};
