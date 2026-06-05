@@ -68,13 +68,17 @@ const lazyRetry = function <T extends ComponentType<any>>(componentImport: Compo
                     // a third failure surfaces the error boundary instead of starting over.
                     console.error('Failed to lazily import a React component after reload, clearing SW caches and reloading.', error);
                     sessionStorage.setItem(stateKey, RETRY_STATE.CACHE_CLEARED);
-                    clearWorkboxRecoveryCaches().then(() => window.location.reload());
+                    clearWorkboxRecoveryCaches()
+                        .catch(() => undefined)
+                        .then(() => window.location.reload());
                 } else {
-                    // All recovery options exhausted, or the device is offline, or the second
-                    // failure is not a ChunkLoadError: propagate to the error boundary and reset
-                    // the flag so the retry cycle is available again next time the user navigates.
+                    // All recovery options exhausted, the device is offline, or the second failure is
+                    // not a ChunkLoadError: propagate to the error boundary. The flag is left at its
+                    // current advanced state (not reset), so a later failure of this same import does
+                    // not restart the full reload cycle — it either fails fast (already cache-cleared)
+                    // or retries the cache clear once the device is back online. A successful import
+                    // resets the flag to INITIAL.
                     console.error('Failed to lazily import a React component after all recovery attempts.', error);
-                    sessionStorage.setItem(stateKey, RETRY_STATE.INITIAL);
                     reject(error instanceof Error ? error : new Error(String(error)));
                 }
             });
