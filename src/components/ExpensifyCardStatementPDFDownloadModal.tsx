@@ -1,11 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,7 +33,6 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     const [expensifyCardStatement] = useOnyx(ONYXKEYS.EXPENSIFY_CARD_STATEMENT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
     // We need to use isSmallScreenWidth here because the Modal breaks in RHP with shouldUseNarrowLayout.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -46,8 +43,6 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails?.login ?? '';
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
-    const isGenerating = expensifyCardStatement?.isGenerating ?? false;
-    const prevIsGenerating = usePrevious(isGenerating);
     const statementFileName = expensifyCardStatement?.[statementParams.statementKey];
     const hasFinishedPDFDownload = typeof statementFileName === 'string' && statementFileName.length > 0;
 
@@ -58,25 +53,13 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     }, [isVisible]);
 
     useEffect(() => {
-        if (!hasFinishedPDFDownload || !shouldAutoDownloadPDF.current) {
+        if (!isVisible || !shouldAutoDownloadPDF.current || !hasFinishedPDFDownload) {
             return;
         }
 
-        downloadExpensifyCardStatementPDF(translate, environmentURL, statementFileName, statementParams.statementKey, currentUserLogin, encryptedAuthToken);
+        downloadExpensifyCardStatementPDF(translate, statementFileName, statementParams.statementKey, currentUserLogin, encryptedAuthToken);
         shouldAutoDownloadPDF.current = false;
-    }, [hasFinishedPDFDownload, statementFileName, statementParams.statementKey, translate, environmentURL, currentUserLogin, encryptedAuthToken]);
-
-    useEffect(() => {
-        if (!isVisible || isGenerating || !prevIsGenerating) {
-            return;
-        }
-
-        if (hasFinishedPDFDownload) {
-            return;
-        }
-
-        onClose();
-    }, [hasFinishedPDFDownload, isGenerating, isVisible, onClose, prevIsGenerating]);
+    }, [currentUserLogin, encryptedAuthToken, hasFinishedPDFDownload, isVisible, statementFileName, statementParams.statementKey, translate]);
 
     const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchBulkActions.ExpensifyCardStatementPDFModal',
@@ -119,7 +102,7 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
                                 return;
                             }
 
-                            downloadExpensifyCardStatementPDF(translate, environmentURL, statementFileName, statementParams.statementKey, currentUserLogin, encryptedAuthToken);
+                            downloadExpensifyCardStatementPDF(translate, statementFileName, statementParams.statementKey, currentUserLogin, encryptedAuthToken);
                         }}
                         text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
                     />
