@@ -62,7 +62,11 @@ function TabSelectorBase({
             }}
             ref={containerRef}
             style={styles.scrollableTabSelector}
-            contentContainerStyle={[styles.tabSelectorContentContainer, contentContainerStyles]}
+            // On iOS a horizontal ScrollView lays out its content along an unbounded main axis, so flex-1 tabs
+            // (equalWidth) divide their intrinsic content width instead of the viewport. Giving the content
+            // container a definite width lets the flex children split it evenly. Scoped to equalWidth so normal
+            // overflowing/scrollable tab rows are not constrained.
+            contentContainerStyle={[styles.tabSelectorContentContainer, equalWidth && styles.w100, contentContainerStyles]}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
