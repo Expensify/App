@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +19,10 @@ function ConciergeAutoMatchVendorContent({action, originalReport}: ConciergeAuto
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
 
     const originalMessage = getOriginalMessage(action);
-    const vendorName = originalMessage && typeof originalMessage === 'object' && 'vendorName' in originalMessage ? (originalMessage.vendorName ?? '') : '';
+    const rawVendorName = originalMessage && typeof originalMessage === 'object' && 'vendorName' in originalMessage ? (originalMessage.vendorName ?? '') : '';
+
+    // vendorName is interpolated into an HTML translation rendered via RenderHTML, so encode it to prevent QBO vendor names containing HTML from being parsed as markup.
+    const vendorName = Str.htmlEncode(rawVendorName);
     const message = translate('iou.conciergeAutoMatchedVendor', {vendorName});
 
     return (
