@@ -10,6 +10,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {shouldWaitForDomainFeedData} from '@libs/CompanyCardsFeedLoadingUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -40,10 +41,13 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         bankName,
         isFeedPending,
         isFeedAdded,
+        isInitiallyLoadingFeeds,
+        effectiveWorkspaceAccountID = CONST.DEFAULT_NUMBER_ID,
         onyxMetadata: {cardListMetadata},
     } = companyCards;
 
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
+    const baseAccountID = workspaceAccountID === CONST.DEFAULT_NUMBER_ID ? effectiveWorkspaceAccountID : workspaceAccountID;
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(baseAccountID, selectedFeed);
 
     // Use a ref so that changes to the employee list (e.g. after inviting a member) don't
     // recreate the callback and trigger an unnecessary re-fetch that flashes a skeleton loader.
@@ -65,13 +69,42 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
 
+    const [isInitialFeedFetchPending, setIsInitialFeedFetchPending] = useState(false);
+    const [isInitialFeedFetchSettled, setIsInitialFeedFetchSettled] = useState(false);
+
     useEffect(() => {
         if (isOffline || hasFeedsLoaded) {
+            setIsInitialFeedFetchPending(false);
+            if (hasFeedsLoaded) {
+                setIsInitialFeedFetchSettled(true);
+            }
             return;
         }
 
+        setIsInitialFeedFetchPending(true);
         loadPolicyCompanyCardsPage();
     }, [loadPolicyCompanyCardsPage, isOffline, hasFeedsLoaded]);
+
+    useEffect(() => {
+        if (hasFeedsLoaded || domainOrWorkspaceAccountID !== CONST.DEFAULT_NUMBER_ID) {
+            setIsInitialFeedFetchPending(false);
+            setIsInitialFeedFetchSettled(true);
+            return;
+        }
+
+        if (!isInitialFeedFetchPending || isInitiallyLoadingFeeds) {
+            return;
+        }
+
+        const frame = requestAnimationFrame(() => {
+            setIsInitialFeedFetchPending(false);
+            setIsInitialFeedFetchSettled(true);
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, [domainOrWorkspaceAccountID, hasFeedsLoaded, isInitialFeedFetchPending, isInitiallyLoadingFeeds]);
+
+    const isWaitingForDomainFeedData = shouldWaitForDomainFeedData(workspaceAccountID, domainOrWorkspaceAccountID, hasFeedsLoaded, isOffline, isInitialFeedFetchSettled);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending || isOffline) {
@@ -105,6 +138,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     policyID={policyID}
                     isPolicyLoaded={!!policy}
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                    isWaitingForDomainFeedData={isWaitingForDomainFeedData}
                     companyCards={companyCards}
                     onAssignCard={assignCard}
                     isAssigningCardDisabled={isAssigningCardDisabled}
