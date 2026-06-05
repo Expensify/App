@@ -1,4 +1,5 @@
-import {useEffect} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback} from 'react';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import {approveMoneyRequestOnSearch} from '@libs/actions/Search';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
@@ -14,7 +15,7 @@ function useReplayPendingWorkspaceUpgradeApprovalOnSearch() {
     const searchUpgradeIntent = pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST_ON_SEARCH ? pendingWorkspaceUpgradeIntent : undefined;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${searchUpgradeIntent?.policyID}`);
 
-    useEffect(() => {
+    const tryReplay = useCallback(() => {
         if (!searchUpgradeIntent) {
             return;
         }
@@ -35,16 +36,13 @@ function useReplayPendingWorkspaceUpgradeApprovalOnSearch() {
         clearPendingWorkspaceUpgradeIntent();
 
         approveMoneyRequestOnSearch(searchUpgradeIntent.searchHash, [searchUpgradeIntent.reportID], searchUpgradeIntent.currentSearchKey ?? currentSearchKey);
-    }, [
-        currentSearchHash,
-        currentSearchKey,
-        policy,
-        searchUpgradeIntent,
-        searchUpgradeIntent?.currentSearchKey,
-        searchUpgradeIntent?.policyID,
-        searchUpgradeIntent?.reportID,
-        searchUpgradeIntent?.searchHash,
-    ]);
+    }, [currentSearchHash, currentSearchKey, policy, searchUpgradeIntent]);
+
+    useFocusEffect(
+        useCallback(() => {
+            tryReplay();
+        }, [tryReplay]),
+    );
 }
 
 export default useReplayPendingWorkspaceUpgradeApprovalOnSearch;

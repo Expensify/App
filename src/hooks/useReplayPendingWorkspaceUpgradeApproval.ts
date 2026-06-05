@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
-import {useCallback, useEffect} from 'react';
+import {useCallback} from 'react';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -89,11 +89,6 @@ export default function useReplayPendingWorkspaceUpgradeApproval({reportID, onAp
         userBillingGracePeriodEnds,
     ]);
 
-    useEffect(() => {
-        tryReplay();
-    }, [tryReplay]);
-
-    // Re-attempt when the report screen regains focus (e.g. after returning from workspace upgrade).
     useFocusEffect(
         useCallback(() => {
             tryReplay();
