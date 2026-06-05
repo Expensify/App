@@ -672,7 +672,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         />
     );
 
-    const roleFilterDropdownLabel = `${translate('common.role')}: ${selectedRoleFilters.length > 0 ? selectedRoleFilters.map(({text}) => text).join(', ') : translate('common.all')}`;
+    const selectedRoleFilterLabels = selectedRoleFilters
+        .map(({value}) => roleFilterOptions.find((option) => option.value === value)?.text)
+        .filter((text): text is string => !!text)
+        .join(', ');
+    const roleFilterDropdownLabel = `${translate('common.role')}: ${selectedRoleFilters.length > 0 ? selectedRoleFilterLabels : translate('common.all')}`;
 
     const roleFilterDropdown = shouldShowRoleFilter ? (
         <DropdownButton
