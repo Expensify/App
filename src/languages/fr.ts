@@ -8053,6 +8053,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             newChat: 'Nouvel écran de discussion',
             copy: 'Copier le commentaire',
             openDebug: 'Ouvrir la boîte de dialogue des préférences de test',
+            expenseReportSearch: 'Rechercher des notes de frais',
+            goToWorkspace: "Aller à l'espace de travail de la note de frais actuelle",
         },
     },
     guides: {
