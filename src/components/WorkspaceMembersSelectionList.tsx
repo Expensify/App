@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -9,6 +10,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
@@ -26,7 +28,7 @@ type SelectionListApprover = {
     login: string;
     rightElement?: React.ReactNode;
     icons: Icon[];
-    value?: number;
+    value: string;
 };
 
 type WorkspaceMembersSelectionListProps = {
@@ -45,59 +47,75 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserPersonalDetails?.login);
+    const initialSelectedApprover = useInitialSelection(selectedApprover || undefined, {resetOnFocus: true});
+    const initialSelectedApprovers = initialSelectedApprover ? [initialSelectedApprover] : [];
 
-    const approvers: SelectionListApprover[] = [];
+    const approvers = useMemo(() => {
+        const workspaceApprovers: SelectionListApprover[] = [];
 
-    if (policy?.employeeList) {
-        for (const employee of Object.values(policy.employeeList)) {
-            const email = employee.email;
+        if (policy?.employeeList) {
+            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy.employeeList);
 
-            if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                continue;
+            for (const employee of Object.values(policy.employeeList)) {
+                const email = employee.email;
+
+                if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    continue;
+                }
+
+                if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && selectedApprover !== email) {
+                    continue;
+                }
+
+                const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+                const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
+
+                workspaceApprovers.push({
+                    text: displayName,
+                    alternateText: email,
+                    keyForList: email,
+                    value: email,
+                    isSelected: selectedApprover === email,
+                    login: email,
+                    icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                    rightElement: (
+                        <MemberRightIcon
+                            role={employee.role}
+                            owner={policy?.owner}
+                            login={login}
+                        />
+                    ),
+                });
             }
-
-            if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && selectedApprover !== email) {
-                continue;
-            }
-
-            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-            const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
-            const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
-
-            approvers.push({
-                text: displayName,
-                alternateText: email,
-                keyForList: email,
-                isSelected: selectedApprover === email,
-                login: email,
-                icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
-                rightElement: (
-                    <MemberRightIcon
-                        role={employee.role}
-                        owner={policy?.owner}
-                        login={login}
-                    />
-                ),
-            });
         }
-    }
 
-    const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [approver.text ?? '', approver.login ?? '']);
-    const orderedApprovers = sortAlphabetically(filteredApprovers, 'text', localeCompare);
+        return workspaceApprovers;
+    }, [icons.FallbackAvatar, personalDetails, policy?.employeeList, policy?.owner, selectedApprover, shouldFilterOutExpensifyTeam]);
+
+    const sortedApprovers = useMemo(() => sortAlphabetically(approvers, 'text', localeCompare), [approvers, localeCompare]);
+    const orderedApprovers = moveInitialSelectionToTop(sortedApprovers, initialSelectedApprovers);
+    const searchSourceApprovers = debouncedSearchTerm ? sortedApprovers : orderedApprovers;
+    const filteredApprovers = tokenizedSearch(searchSourceApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [
+        approver.text ?? '',
+        approver.login ?? '',
+    ]);
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         value: searchTerm,
-        headerMessage: searchTerm && !orderedApprovers.length ? translate('common.noResultsFound') : '',
+        headerMessage: searchTerm && !filteredApprovers.length ? translate('common.noResultsFound') : '',
         onChangeText: setSearchTerm,
     };
 
     return (
         <SelectionList
-            data={orderedApprovers}
+            data={filteredApprovers}
             ListItem={InviteMemberListItem}
             onSelectRow={(approver) => setApprover(approver.login)}
             textInputOptions={textInputOptions}
+            searchValueForFocusSync={debouncedSearchTerm}
+            initiallyFocusedItemKey={initialSelectedApprover}
+            shouldScrollToFocusedIndexOnMount={false}
             shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             disableMaintainingScrollPosition

@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -58,12 +59,13 @@ function BaseVacationDelegateSelectionComponent({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const currentVacationDelegate = vacationDelegate?.delegate ?? '';
-    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate);
+    const initialVacationDelegate = useInitialSelection(currentVacationDelegate || undefined, {resetOnFocus: true});
+    const delegatePersonalDetails = getPersonalDetailByEmail(initialVacationDelegate ?? '');
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
 
     const excludeLogins = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
-        ...(currentVacationDelegate && {[currentVacationDelegate]: true}),
+        ...(initialVacationDelegate && {[initialVacationDelegate]: true}),
         ...additionalExcludeLogins,
     };
 
@@ -83,21 +85,23 @@ function BaseVacationDelegateSelectionComponent({
         searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    const shouldShowInitialVacationDelegate = !!initialVacationDelegate && !!delegatePersonalDetails && !debouncedSearchTerm.trim();
+
     const sectionsList = [];
 
-    if (currentVacationDelegate && delegatePersonalDetails) {
+    if (shouldShowInitialVacationDelegate) {
         sectionsList.push({
             title: undefined,
             sectionIndex: 0,
             data: [
                 {
                     ...delegatePersonalDetails,
-                    text: delegatePersonalDetails?.displayName ?? currentVacationDelegate,
-                    alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
-                    login: delegatePersonalDetails.login ?? currentVacationDelegate,
+                    text: delegatePersonalDetails?.displayName ?? initialVacationDelegate,
+                    alternateText: delegatePersonalDetails?.login ?? initialVacationDelegate,
+                    login: delegatePersonalDetails.login ?? initialVacationDelegate,
                     keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
                     isDisabled: false,
-                    isSelected: true,
+                    isSelected: initialVacationDelegate === currentVacationDelegate,
                     shouldShowSubscript: undefined,
                     icons: [
                         {
@@ -187,6 +191,9 @@ function BaseVacationDelegateSelectionComponent({
                             shouldShowLoadingPlaceholder={!areOptionsInitialized}
                             isLoadingNewOptions={!!isSearchingForReports}
                             onEndReached={onListEndReached}
+                            searchValueForFocusSync={debouncedSearchTerm}
+                            initiallyFocusedItemKey={initialVacationDelegate ? `vacationDelegate-${initialVacationDelegate}` : undefined}
+                            initialScrollIndex={0}
                             shouldSingleExecuteRowSelect
                             shouldShowTextInput
                         />
