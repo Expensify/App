@@ -489,6 +489,39 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(result.current.isExpensifyCardStatementMultiFeedAlertVisible).toBe(true);
     });
 
+    it('should open the multi-feed alert for a mixed-workspace settlement', async () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        mockSelectedTransactions = {
+            firstTxn: makeSelectedTransaction({groupKey, reportID: undefined}),
+        };
+        mockCurrentSearchResults = makeCurrentSearchResults({
+            [groupKey]: {
+                entryID: 123,
+                count: 1,
+                total: 100,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: 'American Express',
+                debitPosted: '2026-05-31',
+                state: 8,
+            },
+        } as unknown as SearchResultDataType);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+
+        await waitFor(() => {
+            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        const exportAsPDFOption = getExportAsPDFOption(result.current.headerButtonsOptions);
+        await act(async () => {
+            await exportAsPDFOption?.onSelected?.();
+        });
+
+        expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
+        expect(result.current.isExpensifyCardStatementMultiFeedAlertVisible).toBe(true);
+    });
+
     it('should use the latest settlement selection when Export as PDF is triggered again', async () => {
         const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;

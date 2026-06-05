@@ -127,6 +127,17 @@ describe('ExpensifyCardStatementUtils', () => {
         });
     });
 
+    it('flags mixed-workspace settlements so export shows the one-feed-at-a-time alert', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 1);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: undefined})});
+
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(true);
+        expect(selection?.feeds).toEqual([]);
+        expect(getExpensifyCardStatementParams(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
     it('flags multiple feeds when settlements span workspaces or programs', () => {
         const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;

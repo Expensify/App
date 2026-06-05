@@ -101,8 +101,10 @@ function getExpensifyCardStatementSelection(
     }
 
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
+    let hasMixedWorkspaceSettlement = false;
     for (const settlementGroup of selectedSettlementGroups) {
         if (!settlementGroup.policyID) {
+            hasMixedWorkspaceSettlement = true;
             continue;
         }
 
@@ -121,13 +123,13 @@ function getExpensifyCardStatementSelection(
     }
 
     const feeds = Array.from(feedsByKey.values());
-    if (feeds.length === 0) {
+    if (feeds.length === 0 && !hasMixedWorkspaceSettlement) {
         return undefined;
     }
 
     return {
         feeds,
-        hasMultipleFeeds: feeds.length > 1,
+        hasMultipleFeeds: feeds.length > 1 || hasMixedWorkspaceSettlement,
     };
 }
 
