@@ -46,7 +46,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
 
     const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
-    const type = resolveVictoryChartType(tnode, typefaces.EXP_NEUE);
+    const type = resolveVictoryChartType(data);
 
     if (!type) {
         return null;

@@ -2,7 +2,7 @@ import {Skia} from '@shopify/react-native-skia';
 import type {SkTypeface} from '@shopify/react-native-skia';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
-import buildChartFontsValueFromTypefaces from '@components/Charts/utils/buildChartFontsValue';
+import buildSkiaFontManager from '@components/Charts/utils/buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_PATHS, CHART_SKIA_TYPEFACE_PATHS} from './chartFontPathsForCli';
 
 async function loadTypefaceFromFile(path: string): Promise<SkTypeface | null> {
@@ -21,19 +21,19 @@ async function loadChartFontsForCli(): Promise<ChartFontsValue> {
     );
 
     const typefaces = Object.fromEntries(typefaceEntries) as ChartDefaultTypeface;
-    const fonts = buildChartFontsValueFromTypefaces(typefaces);
+    const fontMgr = buildSkiaFontManager(typefaces);
 
     await Promise.all(
         Object.entries(CHART_FONT_MGR_SUPPLEMENTAL_PATHS).map(async ([familyName, path]) => {
             const typeface = await loadTypefaceFromFile(path);
 
-            if (typeface && fonts.fontMgr) {
-                fonts.fontMgr.registerFont(typeface, familyName);
+            if (typeface) {
+                fontMgr.registerFont(typeface, familyName);
             }
         }),
     );
 
-    return fonts;
+    return {typefaces, fontMgr};
 }
 
 export default loadChartFontsForCli;
