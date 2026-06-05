@@ -93,6 +93,10 @@ These settings control how Expensify exports reports and transactions to QuickBo
 * **Export Expensify Card transactions as**: Typically set to **Credit card**.
 * Expensify Card transactions automatically export to an "Expensify Card Liability Account" created with the integration.
 
+**Travel Expenses:**
+
+* **Export travel invoicing expenses as**: This option appears only when [Travel Invoicing](https://help.expensify.com/travel/hubs/travel-invoicing/) is enabled. Click it, then select the **Travel payable account** where travel expenses will post in QuickBooks Desktop.
+
 ---
 
 # Step 4: Configure Advanced Settings

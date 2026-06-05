@@ -744,6 +744,15 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['server/victory-chart-renderer/**/*.ts', 'server/victory-chart-renderer/**/*.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
+            },
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',

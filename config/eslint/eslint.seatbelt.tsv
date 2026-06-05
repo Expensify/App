@@ -336,12 +336,11 @@
 "../../src/libs/actions/IOU/SendMoney.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	2
-"../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/Split.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
-"../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	2
+"../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	13
@@ -527,7 +526,7 @@
 "../../src/pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/settings/PaymentCard/ChangeCurrency/index.tsx"	"no-restricted-syntax"	1
-"../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
+"../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/settings/Profile/CustomStatus/StatusClearAfterPage.tsx"	"react-hooks/set-state-in-effect"	1
@@ -565,10 +564,7 @@
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	4
-"../../src/pages/workspace/WorkspacePageWithSections.tsx"	"react-hooks/refs"	5
 "../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/workspace/WorkspacesListPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	4
 "../../src/pages/workspace/WorkspacesListPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspacesListPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -620,9 +616,7 @@
 "../../src/pages/workspace/companyCards/addNew/PlaidConnectionStep.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/workspace/companyCards/assignCard/ConfirmationStep.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/pages/workspace/downgrade/WorkspaceDowngradePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/workspace/downgrade/WorkspaceDowngradePage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
-"../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/workspace/downgrade/WorkspaceDowngradePage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1

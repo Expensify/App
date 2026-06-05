@@ -36,6 +36,7 @@ function DatePicker({
     shouldHideClearButton = false,
     autoComplete = 'off',
     forwardedFSClass,
+    shouldDeferShowUntilPositioned = false,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -50,6 +51,11 @@ function DatePicker({
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
+    // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
+    // picker was dismissed before it resolved.
+    const openIntentRef = useRef(false);
+    // Whether the initial autoFocus has already opened the picker, so later focuses don't reopen it.
+    const hasAutoOpenedRef = useRef(false);
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
@@ -69,17 +75,22 @@ function DatePicker({
         setSelectedDate(value);
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const calculatePopoverPosition = useCallback(() => {
-        anchorRef.current?.measureInWindow((x, y, width, height) => {
-            const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
-            setIsInverted(wouldExceedBottom);
+    const calculatePopoverPosition = useCallback(
+        (onMeasured?: () => void) => {
+            anchorRef.current?.measureInWindow((x, y, width, height) => {
+                const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
+                setIsInverted(wouldExceedBottom);
 
-            setPopoverPosition({
-                horizontal: x + width,
-                vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
+                setPopoverPosition({
+                    horizontal: x + width,
+                    vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
+                });
+
+                onMeasured?.();
             });
-        });
-    }, [windowHeight]);
+        },
+        [windowHeight],
+    );
 
     const showDatePickerModal = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -89,15 +100,36 @@ function DatePicker({
             cancelAutoFocus();
             // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
             textInputRef.current?.blur();
-            calculatePopoverPosition();
-            setIsModalVisible(true);
+
+            if (!shouldDeferShowUntilPositioned) {
+                calculatePopoverPosition();
+                setIsModalVisible(true);
+                return;
+            }
+
+            openIntentRef.current = true;
+            calculatePopoverPosition(() => {
+                if (!openIntentRef.current) {
+                    return;
+                }
+                setIsModalVisible(true);
+            });
         },
-        [calculatePopoverPosition, cancelAutoFocus],
+        [shouldDeferShowUntilPositioned, calculatePopoverPosition, cancelAutoFocus],
     );
 
     const closeDatePicker = useCallback(() => {
+        openIntentRef.current = false;
         setIsModalVisible(false);
     }, []);
+
+    const handleInputFocus = useCallback(() => {
+        if (!autoFocus || hasAutoOpenedRef.current) {
+            return;
+        }
+        hasAutoOpenedRef.current = true;
+        showDatePickerModal();
+    }, [autoFocus, showDatePickerModal]);
 
     const handleDateSelected = (newDate: string) => {
         onTouched?.();
@@ -163,6 +195,7 @@ function DatePicker({
                     disabled={disabled}
                     onPress={showDatePickerModal}
                     onSubmitEditing={() => showDatePickerModal()}
+                    onFocus={handleInputFocus}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
