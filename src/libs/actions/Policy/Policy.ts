@@ -285,14 +285,6 @@ Onyx.connect({
     },
 });
 
-let deprecatedSessionAccountID = 0;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        deprecatedSessionAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
 let deprecatedAllPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
