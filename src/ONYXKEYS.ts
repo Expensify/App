@@ -195,6 +195,9 @@ const ONYXKEYS = {
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
 
+    /** Tracks progress for bulk Copy Policy Settings */
+    NVP_BULK_POLICY_COPY_SETTINGS: 'nvp_bulkPolicyCopySettings',
+
     /** This NVP contains the active policyID */
     NVP_ACTIVE_POLICY_ID: 'nvp_expensify_activePolicyID',
 
@@ -678,6 +681,9 @@ const ONYXKEYS = {
 
     /** Stores the information about the state of side panel */
     NVP_SIDE_PANEL: 'nvp_sidePanel',
+
+    /** Stores the information about the state of the Search sidebar */
+    NVP_SEARCH_SIDEBAR: 'nvp_searchSidebar',
 
     /** Stores the user's app review prompt state and response */
     NVP_APP_REVIEW: 'nvp_appReview',
@@ -1496,6 +1502,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST]: SavedCSVColumnLayoutList;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
+    [ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS]: OnyxTypes.CopyPolicySettingsNVP;
     [ONYXKEYS.HAS_NON_PERSONAL_POLICY]: boolean;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
@@ -1642,6 +1649,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.NVP_SEARCH_SIDEBAR]: OnyxTypes.SearchSidebar;
     [ONYXKEYS.NVP_APP_REVIEW]: OnyxTypes.AppReview;
     [ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT]: OnyxTypes.OnboardingRHPVariant;
     [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: boolean;
