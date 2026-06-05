@@ -5698,6 +5698,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             travel: {
                 title: 'Déplacements',
                 subtitle: 'Réservez, gérez et rapprochez tous vos déplacements professionnels.',
+                disableTravelTitle: 'Désactivez d’abord la facturation des déplacements',
+                disableTravelPrompt: 'La facturation de voyage est activée pour cet espace de travail. Désactivez-la avant de pouvoir désactiver Travel.',
+                disableTravelButton: 'Accéder aux paramètres de voyage',
                 getStarted: {
                     title: 'Commencez avec Expensify Travel',
                     subtitle: 'Nous avons simplement besoin de quelques informations supplémentaires sur votre entreprise, puis vous serez prêt à décoller.',

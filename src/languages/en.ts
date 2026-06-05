@@ -5716,6 +5716,9 @@ const translations = {
             travel: {
                 title: 'Travel',
                 subtitle: 'Book, manage, and reconcile all your business travel.',
+                disableTravelTitle: 'Turn off Travel Invoicing first',
+                disableTravelPrompt: 'Travel Invoicing is enabled for this workspace. Turn it off before you can disable Travel.',
+                disableTravelButton: 'Go to Travel settings',
                 getStarted: {
                     title: 'Get started with Expensify Travel',
                     subtitle: "We just need a few more pieces of info about your business, then you'll be ready for takeoff.",

@@ -5647,6 +5647,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             travel: {
                 title: 'Viagens',
                 subtitle: 'Reserve, gerencie e reconcilie todas as viagens de negócios da sua empresa.',
+                disableTravelTitle: 'Desative primeiro o faturamento de viagens',
+                disableTravelPrompt: 'O faturamento de viagens está ativado para este workspace. Desative-o antes de desativar o Travel.',
+                disableTravelButton: 'Ir para as configurações de Viagem',
                 getStarted: {
                     title: 'Comece a usar o Expensify Travel',
                     subtitle: 'Só precisamos de mais algumas informações sobre sua empresa e você estará pronto para decolar.',

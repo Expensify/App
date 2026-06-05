@@ -5667,6 +5667,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             travel: {
                 title: 'Viaggi',
                 subtitle: 'Prenota, gestisci e riconcilia tutti i viaggi di lavoro.',
+                disableTravelTitle: 'Disattiva prima la fatturazione viaggi',
+                disableTravelPrompt: 'La fatturazione Viaggi è abilitata per questo spazio di lavoro. Disattivala prima di poter disabilitare Viaggi.',
+                disableTravelButton: 'Vai alle impostazioni Viaggio',
                 getStarted: {
                     title: 'Inizia con Expensify Travel',
                     subtitle: 'Ci servono solo ancora alcune informazioni sulla tua attività, poi sarai pronto al decollo.',
