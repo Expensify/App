@@ -1491,9 +1491,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        console.log('Selected Reports for Submit Option', selectedReports);
-        console.log('Selected Transactions for Submit Option', selectedTransactionsKeys);
-
         const shouldShowSubmitOption =
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
@@ -1501,7 +1498,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 ? selectedReports.every((report) => report.canSubmit) &&
                   // Disable for mixed selections: all must be the same submit type
                   (isTrackIntentUser ? allReportsShouldMarkAsDone || noReportsShouldMarkAsDone : true)
-                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
+                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT) &&
+                  // Disable for mixed selections: all must be the same submit type
+                  (isTrackIntentUser ? allReportsShouldMarkAsDone || noReportsShouldMarkAsDone : true));
 
         if (shouldShowSubmitOption) {
             options.push({
