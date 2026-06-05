@@ -54,6 +54,7 @@ function getSupportAuthURL() {
     const params = new URLSearchParams();
 
     params.set('email', TEST_USER_LOGIN_1);
+    params.set('delegatorEmail', TEST_USER_LOGIN_2);
     params.set('shortLivedAuthToken', TEST_SUPPORT_AUTH_TOKEN);
     params.set('authTokenType', CONST.AUTH_TOKEN_TYPES.SUPPORT);
 
@@ -251,19 +252,30 @@ describe('Support auth token login', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Now set up the support auth token deep link and remount.
-        // With an existing session, the app renders AuthScreens (LogOutPreviousUserPage),
-        // and the deep link also triggers LogInWithShortLivedAuthTokenPage.
-        // Without the fix, both pages would call signInWithSupportAuthToken.
+        // With an existing delegator session, the app renders AuthScreens (LogOutPreviousUserPage).
         const url = getSupportAuthURL();
         Linking.setInitialURL(url);
         const {unmount: unmount2} = render(<App />);
 
         await waitForBatchedUpdatesWithAct();
 
-        // The dedup guard (getLastShortAuthToken()) should ensure only one call happens.
+        expect(Session.signInWithSupportAuthToken).toHaveBeenCalledWith(TEST_SUPPORT_AUTH_TOKEN);
         expect(Session.signInWithSupportAuthToken).toHaveBeenCalledTimes(1);
 
         unmount2();
+        await waitForBatchedUpdatesWithAct();
+
+        // Clear auth and remount with the same transition URL to emulate PublicScreens
+        // (LogInWithShortLivedAuthTokenPage) processing the already-handled support token.
+        // The duplicate call guard should skip signing in with the same token again.
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: null});
+        const {unmount: unmount3} = render(<App />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Session.signInWithSupportAuthToken).toHaveBeenCalledTimes(1);
+
+        unmount3();
         await waitForBatchedUpdatesWithAct();
     });
 });
