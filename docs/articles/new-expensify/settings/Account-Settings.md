@@ -114,6 +114,21 @@ High contrast mode increases the visual contrast of UI elements, making text and
 
 High contrast mode works with any base theme (light, dark, or device settings).
 
+## How to enable high contrast mode from the sign-in screen
+
+You can turn on high contrast mode before signing in, directly from the sign-in screen. This makes the app accessible from the moment you open it.
+
+1. On the sign-in screen, go to the footer above the language selector.
+2. Click **Enable high contrast**.
+
+The screen immediately switches to high contrast, and the button changes to **Disable high contrast**. Your choice carries over after you sign in and applies to your saved theme.
+
+<!-- SCREENSHOT:
+Suggestion: Sign-in screen footer showing the Enable high contrast button positioned above the language selector.
+Location: After the steps in "How to enable high contrast mode from the sign-in screen".
+Purpose: Helps users locate the high contrast button on the logged-out sign-in screen.
+-->
+
 ## Personal Information
 
 To update legal details like name, date of birth, and address:
