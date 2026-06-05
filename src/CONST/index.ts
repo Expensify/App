@@ -5033,6 +5033,7 @@ const CONST = {
     },
     EXPENSE_PENDING_ACTION: {
         SUBMIT: 'SUBMIT',
+        SUBMIT_FAILED: 'SUBMIT_FAILED',
         APPROVE: 'APPROVE',
     },
     BRICK_ROAD_INDICATOR_STATUS: {

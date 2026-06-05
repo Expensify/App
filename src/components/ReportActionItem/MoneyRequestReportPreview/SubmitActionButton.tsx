@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -42,6 +43,7 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {isOffline} = useNetwork();
+    const isDEWSubmission = hasDynamicExternalWorkflow(policy);
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -85,6 +87,8 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
             }}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
+            isDEWSubmission={isDEWSubmission}
+            reportID={iouReportID}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
         />
     );

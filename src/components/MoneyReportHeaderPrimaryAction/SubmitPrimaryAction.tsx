@@ -16,6 +16,7 @@ import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
@@ -52,6 +53,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     const transactions = Object.values(reportTransactions);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy);
+    const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
@@ -121,6 +123,8 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
             isDisabled={shouldBlockSubmit}
+            isDEWSubmission={isDEWSubmission}
+            reportID={reportID}
         />
     );
 }
