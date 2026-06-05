@@ -8062,6 +8062,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             undelete: 'Cofnij usunięcie',
             duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'raport' : 'raporty'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Pobierz wyciąg PDF',
+            oneFeedAtATime: 'Wybierz jeden feed Expensify Card na raz.',
+        },
         filtersHeader: 'Filtry',
         filters: {
             date: {
@@ -9399,6 +9403,7 @@ Cześć! Właśnie załatwiłem(am) nam *3 miesiące za darmo*, żeby wypróbowa
 Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     export: {
+        exportAsPDF: 'Eksportuj jako PDF',
         basicExport: 'Podstawowy eksport',
         reportLevelExport: 'Wszystkie dane – poziom raportu',
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',

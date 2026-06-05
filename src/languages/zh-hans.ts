@@ -7844,6 +7844,10 @@ ${reportName}
             undelete: '取消删除',
             duplicateReport: ({count}: {count: number}) => `重复 ${count === 1 ? '报表' : '报表'}`,
         },
+        expensifyCardStatementPDF: {
+            title: '下载账单 PDF',
+            oneFeedAtATime: '请一次只选择一个 Expensify Card 数据源。',
+        },
         filtersHeader: '筛选器',
         filters: {
             date: {
@@ -9152,6 +9156,7 @@ ${reportName}
 这里有一张*测试收据*，来展示它是如何运作的：`,
     },
     export: {
+        exportAsPDF: '导出为 PDF',
         basicExport: '基本导出',
         reportLevelExport: '所有数据 - 报告级别',
         expenseLevelExport: '所有数据 - 报销级别',

@@ -8070,6 +8070,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             undelete: 'Terugzetten',
             duplicateReport: ({count}: {count: number}) => `Duplicaat ${count === 1 ? 'rapport' : 'rapporten'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Afschrift als PDF downloaden',
+            oneFeedAtATime: 'Kies telkens slechts één Expensify Card-feed.',
+        },
         filtersHeader: 'Filters',
         filters: {
             date: {
@@ -9415,6 +9419,7 @@ Hoi! Ik heb zojuist *3 maanden gratis* geregeld om Expensify uit te proberen, de
 Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     },
     export: {
+        exportAsPDF: 'Exporteren als PDF',
         basicExport: 'Standaardexport',
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',

@@ -8064,6 +8064,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             undelete: 'Restaurar',
             duplicateReport: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'relatório' : 'relatórios'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Baixar extrato em PDF',
+            oneFeedAtATime: 'Selecione um feed do Expensify Card por vez.',
+        },
         filtersHeader: 'Filtros',
         filters: {
             date: {
@@ -9407,6 +9411,7 @@ Ei! Acabei de conseguir *3 meses grátis* para a gente testar o Expensify, a man
 Aqui está um *comprovante de teste* para mostrar como funciona:`,
     },
     export: {
+        exportAsPDF: 'Exportar como PDF',
         basicExport: 'Exportação básica',
         reportLevelExport: 'Todos os dados - nível de relatório',
         expenseLevelExport: 'Todos os dados - nível de despesa',
