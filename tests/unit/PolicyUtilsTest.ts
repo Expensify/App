@@ -41,6 +41,7 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
+    isPolicyPayer,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -242,6 +243,51 @@ describe('PolicyUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+        });
+    });
+
+    describe('isPolicyPayer', () => {
+        const reimburserEmail = 'payer@test.com';
+        const otherAdminEmail = 'other-admin@test.com';
+
+        const buildPolicy = (reimbursementChoice: Policy['reimbursementChoice'], reimburser?: string): Policy =>
+            ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice,
+                achAccount: reimburser ? {reimburser} : undefined,
+            }) as Policy;
+
+        it('should return true for designated reimburser in manual reimbursement mode', () => {
+            expect(isPolicyPayer(buildPolicy(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, reimburserEmail), reimburserEmail)).toBe(true);
+        });
+
+        it('should return false for non-reimburser admin in manual reimbursement mode with designated payer', () => {
+            expect(isPolicyPayer(buildPolicy(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, reimburserEmail), otherAdminEmail)).toBe(false);
+        });
+
+        it('should return true for any admin in manual reimbursement mode without designated payer', () => {
+            expect(isPolicyPayer(buildPolicy(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL), otherAdminEmail)).toBe(true);
+        });
+
+        it('should return true for designated reimburser in auto reimbursement mode', () => {
+            expect(isPolicyPayer(buildPolicy(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, reimburserEmail), reimburserEmail)).toBe(true);
+        });
+
+        it('should return false for non-reimburser admin in auto reimbursement mode with designated payer', () => {
+            expect(isPolicyPayer(buildPolicy(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, reimburserEmail), otherAdminEmail)).toBe(false);
+        });
+
+        it('should ignore top-level policy reimburser when achAccount reimburser is not set', () => {
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: reimburserEmail,
+            } as Policy;
+
+            expect(isPolicyPayer(policy, otherAdminEmail)).toBe(true);
+            expect(isPolicyPayer(policy, reimburserEmail)).toBe(true);
         });
     });
 
