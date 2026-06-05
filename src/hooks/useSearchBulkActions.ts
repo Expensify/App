@@ -521,7 +521,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         const fromSnapshot = Object.keys(searchData)
             .filter((key): key is `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` => key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
-            .flatMap((key) => Object.values((searchData[key] as Record<string, ReportAction>) ?? {}));
+            .flatMap((key) => Object.values(searchData[key] ?? {}));
         // Merge — real Onyx wins on conflict (real-time updates take precedence over snapshot)
         const merged = new Map<string, ReportAction>();
         for (const action of [...fromSnapshot, ...fromOnyx]) {

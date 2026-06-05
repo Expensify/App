@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
@@ -151,7 +150,6 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 // the bulk-delete path can find the IOU action from the search snapshot.
 let mockShouldShowDeleteOption = false;
 jest.mock('@libs/SearchUIUtils', () => ({
-    ...jest.requireActual('@libs/SearchUIUtils'),
     shouldShowDeleteOption: () => mockShouldShowDeleteOption,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
@@ -163,18 +161,14 @@ jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
 }));
 
 // Make InteractionManager execute callbacks immediately so we don't need fake timers
-jest.mock('react-native', () => {
-    const rn = jest.requireActual('react-native') as Record<string, unknown>;
-    return {
-        ...rn,
-        InteractionManager: {
-            runAfterInteractions: (callback: () => void | Promise<void>) => {
-                callback();
-                return {cancel: jest.fn()};
-            },
+jest.mock('react-native', () => ({
+    InteractionManager: {
+        runAfterInteractions: (callback: () => void | Promise<void>) => {
+            callback();
+            return {cancel: jest.fn()};
         },
-    };
-});
+    },
+}));
 
 // ---------------------------------------------------------------------------
 // Mutable context state
