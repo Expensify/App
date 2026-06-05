@@ -38,7 +38,6 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const isPolicyControl = isControlPolicy(policy);
-    // Only strict admins can assign the ADMIN role.
     const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
 
     const availableRoleItems: ListItemType[] = [];
