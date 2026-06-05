@@ -301,7 +301,7 @@ const WorkspaceConfirmationModalStackNavigator = createModalStackNavigator<Works
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationPage').default,
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationOwnerSelectorPage').default,
     [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationSuccessPage').default,
-    [SCREENS.CURRENCY.SELECTION]: () => require<ReactComponentModule>('../../../../pages/CurrencySelectionPage').default,
+    [SCREENS.CURRENCY.SELECTION]: () => require<ReactComponentModule>('../../../../pages/WorkspaceCurrencySelectionPage').default,
 });
 
 const WorkspaceDuplicateModalStackNavigator = createModalStackNavigator<WorkspaceDuplicateNavigatorParamList>({
@@ -424,6 +424,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default),
     [SCREENS.SETTINGS.PROFILE.PHONE_NUMBER]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PhoneNumberPage').default),
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default),
+    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: withAgentAccessDenied(
+        () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage').default,
+    ),
+    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: withAgentAccessDenied(
+        () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmMagicCodePage').default,
+    ),
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage').default,
     ),
@@ -913,6 +919,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_PREREQUISITES]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/CertiniaPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/CertiniaExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaExportPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_PREFERRED_EXPORTER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaPreferredExporterPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_STATUS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaExportStatusPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_DATE]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaExportDatePage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DEFAULT_VENDOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaDefaultVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/advanced/CertiniaAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
@@ -987,12 +999,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDatePage').default,
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/SaveTheWorldPage').default,
-    [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/PaymentCard/ChangeCurrency').default),
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/ChangeBillingCurrency').default,
     ),
+    [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: withAgentAccessDenied(
+        () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage').default,
+    ),
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default),
-    [SCREENS.SETTINGS.ADD_PAYMENT_CARD_CHANGE_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/settings/PaymentCard/ChangeCurrency').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/CreateReportFieldsPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsSettingsPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsListValuesPage').default,
@@ -1001,6 +1014,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsInitialValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/TypeSelector/TypeSelectorPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsEditValuePage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/import/CertiniaImportPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DIMENSION_MAPPING]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/import/SageIntacctImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_TOGGLE_MAPPING]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/import/SageIntacctToggleMappingsPage').default,

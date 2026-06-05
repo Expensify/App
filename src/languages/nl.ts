@@ -3350,6 +3350,7 @@ ${amount} voor ${merchant} - ${date}`,
         enterPhoneNumber: 'Wat is je telefoonnummer?',
         personalDetails: 'Persoonlijke gegevens',
         privateDataMessage: 'Deze gegevens worden gebruikt voor reizen en betalingen. Ze worden nooit weergegeven op je openbare profiel.',
+        basicDetails: 'Basisgegevens',
         legalName: 'Wettelijke naam',
         legalFirstName: 'Juridische voornaam',
         legalLastName: 'Wettelijke achternaam',
@@ -3543,7 +3544,7 @@ ${amount} voor ${merchant} - ${date}`,
             noBankAccountSelected: 'Kies een account',
             taxID: 'Voer een geldig btw-identificatienummer in',
             website: 'Voer een geldige website in',
-            zipCode: `Voer een geldige postcode in met het volgende formaat: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Voer een geldige postcode in met het volgende formaat: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Voer een geldig telefoonnummer in',
             email: 'Voer een geldig e-mailadres in',
             companyName: 'Voer een geldige bedrijfsnaam in',
@@ -4857,6 +4858,31 @@ ${amount} voor ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify wordt elke dag automatisch met Certinia gesynchroniseerd.',
             syncReimbursedReportsDescription:
                 'Als deze optie is ingeschakeld, wordt elke keer dat een te betalen factuur in FFA wordt betaald, het bijbehorende Expensify-rapport automatisch als terugbetaald gemarkeerd.',
+            exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Certinia.',
+            payableInvoices: 'Te betalen facturen',
+            exportStatus: {
+                label: 'Status te betalen factuur',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Voltooien',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Bezig',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
+                },
+            },
+            exportDate: {
+                label: 'Vervaldatum factuur',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Datum van laatste uitgave',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Indiendatum rapport',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Exportdatum',
+                },
+            },
+            exportReimbursable: {
+                label: 'Terugbetaalbare declaraties exporteren als',
+                helperText: 'Declarabele uitgaven worden geëxporteerd als te betalen facturen op naam van de werknemer.',
+            },
+            exportNonReimbursable: {label: 'Niet-declarabele uitgaven exporteren als'},
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Synchroniseer de verbinding opnieuw nadat leveranciers zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Voor FFA-verbindingen',
@@ -4873,6 +4899,19 @@ ${amount} voor ${merchant} - ${date}`,
                 oauth: 'Log in via Salesforce',
                 oauthDescription: 'Om de installatie te voltooien, moet je je aanmelden via Salesforce en Certinia.\n\nGebruik de knop hieronder om door te gaan.',
                 connectButton: 'Verbind met Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Rekeningschema',
+                chartOfAccountsDescription: 'Het grootboekschema wordt in Expensify geïmporteerd als categorieën.',
+                dimensionMapping: ({n}: {n: number}) => `Dimensie ${n}`,
+                dimensions: {dimension1: 'Dimensie 1', dimension2: 'Dimensie 2', dimension3: 'Dimensie 3', dimension4: 'Dimensie 4'},
+                doNotMap: 'Niet toewijzen',
+                doNotMapSubtitle: 'Standaard werknemersbron gebruiken',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Niet toewijzen',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Geïmporteerd als labels',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Geïmporteerd als rapportvelden',
+                },
             },
         },
         netsuite: {
@@ -5617,6 +5656,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             travel: {
                 title: 'Reizen',
                 subtitle: 'Boek, beheer en reconcilieer al je zakelijke reizen.',
+                disableTravelTitle: 'Schakel eerst Reisfacturatie uit',
+                disableTravelPrompt: 'Reisfacturatie is ingeschakeld voor deze workspace. Schakel dit uit voordat je Reis kunt uitschakelen.',
+                disableTravelButton: 'Ga naar Reisinstellingen',
                 getStarted: {
                     title: 'Aan de slag met Expensify Travel',
                     subtitle: 'We hebben nog maar een paar extra gegevens over je bedrijf nodig, dan ben je klaar voor vertrek.',
@@ -6440,6 +6482,26 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             return 'Sage Intacct-dimensies importeren';
                         case 'intacctImportTitle':
                             return 'Sage Intacct-gegevens importeren';
+                        case 'financialForceSyncTitle':
+                            return 'Certinia-gegevens synchroniseren';
+                        case 'financialForceSyncStep':
+                            return 'Certinia-verbinding synchroniseren';
+                        case 'financialForceSyncCategories':
+                            return 'Categorieen importeren';
+                        case 'financialForceSyncTags':
+                            return 'Tags importeren';
+                        case 'financialForceSyncVendors':
+                            return 'Leveranciers importeren';
+                        case 'financialForceSyncContacts':
+                            return 'Contacten importeren';
+                        case 'financialForceSyncCompanies':
+                            return 'Bedrijven importeren';
+                        case 'financialForceSyncUsers':
+                            return 'Gebruikers importeren';
+                        case 'financialForceSyncDimensions':
+                            return 'Dimensies importeren';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Rapporten als vergoed markeren';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
                         }
@@ -7914,6 +7976,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             newChat: 'Nieuw chatscherm',
             copy: 'Opmerking kopiëren',
             openDebug: 'Dialoogvenster testvoorkeuren openen',
+            expenseReportSearch: 'Onkostendeclaraties zoeken',
+            goToWorkspace: 'Ga naar de werkruimte van het huidige rapport',
         },
     },
     guides: {
