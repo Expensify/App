@@ -139,5 +139,5 @@
   When detected, `boundedSize` settles on the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width.
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
 - Upstream PR/issue: TBD
-- E/App issue: https://github.com/Expensify/App/issues/91584
+- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263
 - PR introducing patch: TBD
