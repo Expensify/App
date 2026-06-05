@@ -120,7 +120,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         hasOlderActions,
         loadOlderChats,
         mainDMSessionStartTime,
-        conciergeShowFullHistory: conciergeShowFullHistory || !!reportActionIDFromRoute,
+        conciergeShowFullHistory: conciergeShowFullHistory || !!reportActionIDFromRoute || !!report?.hasOutstandingChildTask,
         setConciergeShowFullHistory,
         conciergeHadMessagesAtSessionStart,
         setConciergeHadMessagesAtSessionStart,
