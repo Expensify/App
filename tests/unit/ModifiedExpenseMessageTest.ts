@@ -1178,6 +1178,30 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
+            it('does not throw when tax override is missing field_id_TAX', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            tax: {},
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                const expectedResult = `set the tax rate to "" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+                expect(result).toEqual(expectedResult);
+            });
+
             it('returns the correct text message with two overrides', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
