@@ -8459,6 +8459,11 @@ describe('ReportUtils', () => {
                 },
                 achAccount: {
                     reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
                 },
             };
 
@@ -8484,6 +8489,11 @@ describe('ReportUtils', () => {
                 },
                 achAccount: {
                     reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
                 },
             };
 
