@@ -1,12 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import {hasValidModifiedAmount} from '@libs/TransactionUtils';
-import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
+import {deriveSelectedReports} from './selectionBuilders';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
 type SearchSelectionProviderProps = {
@@ -28,68 +25,6 @@ const defaultSelectionState: SelectionState = {
     currentSelectedTransactionReportID: undefined,
     shouldTurnOffSelectionMode: false,
 };
-
-function deriveSelectedReports(
-    transactionIDs: SelectedTransactions,
-    data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[],
-): SelectedReports[] {
-    if (data.length && data.every(isTransactionReportGroupListItemType)) {
-        return data
-            .filter((item) => {
-                if (!isMoneyRequestReport(item)) {
-                    return false;
-                }
-                if (item.transactions.length === 0) {
-                    return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
-                }
-                return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
-            })
-            .map((item) => ({
-                reportID: item.reportID,
-                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: item.total ?? CONST.DEFAULT_NUMBER_ID,
-                policyID: item.policyID,
-                canPay: item.canPay,
-                canApprove: item.canApprove,
-                canSubmit: item.canSubmit,
-                canChangeApprover: item.canChangeApprover,
-                currency: item.currency,
-                chatReportID: item.chatReportID,
-                managerID: item.managerID,
-                ownerAccountID: item.ownerAccountID,
-                parentReportActionID: item.parentReportActionID,
-                parentReportID: item.parentReportID,
-                type: item.type,
-            }));
-    }
-    if (data.length && data.every(isTransactionListItemType)) {
-        return data
-            .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
-            .map((item) => {
-                const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
-                const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
-
-                return {
-                    reportID: item.reportID,
-                    action,
-                    total,
-                    policyID: item.policyID,
-                    canPay: item.canPay,
-                    canApprove: item.canApprove,
-                    canSubmit: item.canSubmit,
-                    canChangeApprover: item.canChangeApprover,
-                    currency: item.currency,
-                    chatReportID: item.report?.chatReportID,
-                    managerID: item.report?.managerID,
-                    ownerAccountID: item.report?.ownerAccountID,
-                    parentReportActionID: item.report?.parentReportActionID,
-                    parentReportID: item.report?.parentReportID,
-                    type: item.report?.type,
-                };
-            });
-    }
-    return [];
-}
 
 function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const {currentSearchHash} = useSearchQueryContext();
