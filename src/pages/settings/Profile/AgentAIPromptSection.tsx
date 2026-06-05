@@ -121,6 +121,18 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         wasSavingRef.current = isSaving;
     }, [isSaving, hasPromptErrors, isUserInitiatedSave, triggerSavedConfirmation]);
 
+    // Network dropped mid-save: pendingAction stays 'update' until reconnect, so isSaving never flips
+    // and the button loader would spin indefinitely. Match the offline-save UX from handleSave by
+    // confirming the optimistic write; the queued request replays on reconnect.
+    useEffect(() => {
+        if (!isOffline || !isUserInitiatedSave) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        triggerSavedConfirmation();
+        setIsUserInitiatedSave(false);
+    }, [isOffline, isUserInitiatedSave, triggerSavedConfirmation]);
+
     useEffect(() => {
         return () => {
             if (!savedConfirmationTimerRef.current) {
