@@ -11,7 +11,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 
 - **Member** – Can submit and/or approve expenses.
 - **Admin** – Can manage members, roles, workflows, and settings.
-- **Auditor** – Can view and comment on reports but cannot make changes.
+- **Auditor** – Can view and comment on reports, and view enabled workspace settings in read-only mode, but cannot make changes. Available on Control workspaces only.
 
 ---
 
@@ -115,4 +115,8 @@ You must be a **Workspace Admin**, and the email or phone number of the individu
 ## Can I invite multiple members to a workspace at the same time?
 
 Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
+
+## What can an Auditor view in a workspace?
+
+On **Control** workspaces, Auditors have read-only access to the workspace settings they're allowed to see. They can open pages such as **Categories**, **Tags**, **Taxes**, **Distance rates**, **Per diem**, **Report fields**, and **Accounting**, and click into individual rows to review the details. Editing controls — including toggles, edit fields, delete actions, and connection or setup buttons — are disabled or hidden. If an Auditor tries to make a change, a **Not so fast...** message appears explaining that their workspace role can view these settings but can't edit them.
 
