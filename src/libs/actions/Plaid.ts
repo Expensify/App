@@ -43,7 +43,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
     ];
 
-    const failureData = [
+    const loadingCompleteData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
@@ -53,7 +53,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData, failureData});
+    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData, successData: loadingCompleteData, failureData: loadingCompleteData});
 }
 
 /**
