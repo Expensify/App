@@ -20,7 +20,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
 import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -191,6 +191,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
+    const distanceRequestType = getDistanceRequestType(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
@@ -283,6 +284,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 }),
                                 attendees: transaction?.comment?.attendees,
                                 gpsCoordinates,
+                                distanceRequestType,
                                 odometerStart,
                                 odometerEnd,
                                 taxCode: distanceTaxCode,
@@ -354,6 +356,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
                             gpsCoordinates,
+                            distanceRequestType,
                             odometerStart,
                             odometerEnd,
                             taxCode: distanceTaxCode,
