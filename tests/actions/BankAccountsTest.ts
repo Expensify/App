@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import {connectBankAccountWithPlaid} from '@libs/actions/BankAccounts';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {connectBankAccountWithPlaid, openPlaidBankLogin} from '@libs/actions/BankAccounts';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
@@ -107,6 +107,18 @@ describe('actions/BankAccounts', () => {
                     }),
                 );
             });
+        });
+    });
+
+    describe('openPlaidBankLogin', () => {
+        test('clears Plaid loading state when the link token request succeeds', async () => {
+            openPlaidBankLogin(true, 123);
+            await waitForBatchedUpdates();
+
+            const plaidData = await getOnyxValue(ONYXKEYS.PLAID_DATA);
+
+            TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, 1);
+            expect(plaidData?.isLoading).toBe(false);
         });
     });
 });
