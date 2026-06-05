@@ -1696,7 +1696,6 @@ export type {
     OriginalMessageChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
-    OriginalMessageConciergeAutoMatchVendor,
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
