@@ -823,7 +823,7 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should redirect a public-domain VSB user away to the accounting step', async () => {
+    it('should redirect a public-domain VSB user away to the employees step', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -839,7 +839,7 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
         });
 
         unmount();
