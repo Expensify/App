@@ -65,8 +65,7 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     // the default persona (the first one), and provides the full agent list so the indicator can
     // tell which mention is the tagged agent.
     const agentParticipantAccountIDs = participantAccountIDs?.filter((accountID) => !!agentAccountIDFlags?.[accountID]) ?? [];
-    const agentParticipantAccountID = agentParticipantAccountIDs.at(0);
-    const isCustomAgentChat = agentParticipantAccountID !== undefined;
+    const isCustomAgentChat = agentParticipantAccountIDs.length > 0;
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
     if (!reportID || !isAgentZeroChat) {
@@ -77,7 +76,6 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
         <AgentZeroStatusGate
             key={reportID}
             reportID={reportID}
-            personaAccountID={agentParticipantAccountID ?? CONST.ACCOUNT_ID.CONCIERGE}
             agentAccountIDs={agentParticipantAccountIDs}
         >
             {children}
@@ -85,8 +83,8 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     );
 }
 
-function AgentZeroStatusGate({reportID, personaAccountID, agentAccountIDs, children}: React.PropsWithChildren<{reportID: string; personaAccountID: number; agentAccountIDs: number[]}>) {
-    const {kickoffWaitingIndicator, ...indicatorState} = useAgentZeroStatusIndicator(reportID, personaAccountID, agentAccountIDs);
+function AgentZeroStatusGate({reportID, agentAccountIDs, children}: React.PropsWithChildren<{reportID: string; agentAccountIDs: number[]}>) {
+    const {kickoffWaitingIndicator, ...indicatorState} = useAgentZeroStatusIndicator(reportID, agentAccountIDs);
     const stateValue = indicatorState;
     const actionsValue = {kickoffWaitingIndicator};
 

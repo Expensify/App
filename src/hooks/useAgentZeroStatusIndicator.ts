@@ -101,7 +101,7 @@ function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): Newe
  *   several accounts, the latch picks the first mention that is one of these agents so a regular
  *   member mentioned before the agent doesn't get latched as the persona we're waiting on.
  */
-function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number = CONST.ACCOUNT_ID.CONCIERGE, agentAccountIDs: readonly number[] = CONST.EMPTY_ARRAY): AgentZeroStatusState {
+function useAgentZeroStatusIndicator(reportID: string, agentAccountIDs: readonly number[] = CONST.EMPTY_ARRAY): AgentZeroStatusState {
     // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
     // Uses selector to only re-render when the specific field changes, not on any NVP change.
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
@@ -112,6 +112,8 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     useEffect(() => {
         newestReportActionRef.current = newestReportAction;
     }, [newestReportAction]);
+
+    const personaAccountID = agentAccountIDs.at(0) ?? CONST.ACCOUNT_ID.CONCIERGE;
 
     // Track pending optimistic requests with a counter, backed by a module-level store so
     // the state survives ReportScreen remounts (switching chats and coming back). Each

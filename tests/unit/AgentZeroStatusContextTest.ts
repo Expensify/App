@@ -1122,7 +1122,7 @@ describe('AgentZeroStatusContext', () => {
                 [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [TAGGED_AGENT_ID]),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
             await waitForBatchedUpdates();
 
             // Indicator activates — latches the tagged agent (B) from the mention on the newest action.
@@ -1152,7 +1152,7 @@ describe('AgentZeroStatusContext', () => {
                 [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [TAGGED_AGENT_ID]),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
             await waitForBatchedUpdates();
 
             act(() => {
@@ -1181,7 +1181,7 @@ describe('AgentZeroStatusContext', () => {
                 [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [HUMAN_USER_ID, TAGGED_AGENT_ID]),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
             await waitForBatchedUpdates();
 
             act(() => {
@@ -1210,7 +1210,7 @@ describe('AgentZeroStatusContext', () => {
                 [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [HUMAN_USER_ID]),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
             await waitForBatchedUpdates();
 
             act(() => {
@@ -1233,7 +1233,7 @@ describe('AgentZeroStatusContext', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID));
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, [DEFAULT_AGENT_ID]));
             await waitForBatchedUpdates();
 
             act(() => {
