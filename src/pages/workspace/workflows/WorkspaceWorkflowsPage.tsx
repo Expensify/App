@@ -132,6 +132,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
@@ -181,10 +182,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
+    const hasPendingDeferredAgentSave = useMemo(
+        () => Object.values(deferredAgentWorkflowSaves ?? {}).some((entry) => entry?.policyID === route.params.policyID),
+        [deferredAgentWorkflowSaves, route.params.policyID],
+    );
+
     const fetchData = useCallback(() => {
-        openPolicyWorkflowsPage(route.params.policyID, true);
+        // Skip the workflows refetch while a freshly-added offline agent's deferred workflow save is still
+        // pending reconciliation: the READ returns the pre-approval-update employeeList (workspace owner is
+        // still the approver), which would clobber the optimistic agent-as-approver overlay and briefly
+        // flicker the approver row when the connection is restored.
+        if (!hasPendingDeferredAgentSave) {
+            openPolicyWorkflowsPage(route.params.policyID, true);
+        }
         getPaymentMethods();
-    }, [route.params.policyID]);
+    }, [route.params.policyID, hasPendingDeferredAgentSave]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
@@ -198,9 +210,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const canReadWorkflows = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
-    const {canWrite: canWriteWorkflows, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
-    const {canWrite: canWriteApprovals} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
-    const {canWrite: canWritePayments} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+    const {canWrite: canWriteWorkflows, showReadOnlyModal, withReadOnlyFallback: withWorkflowsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
+    const {canWrite: canWriteApprovals, withReadOnlyFallback: withApprovalsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
+    const {canWrite: canWritePayments, withReadOnlyFallback: withPaymentsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -374,9 +386,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const approvalOptionSubtitle = isHRConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
 
         const getAddApprovalsToggleDisabledAction = () => {
-            if (canAccessSubmit2026Features) {
-                return navigateToSubmitWorkspaceApprovalsUpgrade;
-            }
             if (isHRConnected) {
                 return promptConfigureApprovalsInHR;
             }
@@ -418,7 +427,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                 disabled: !canWriteWorkflows,
-                disabledAction: showReadOnlyModal,
+                disabledAction: withWorkflowsReadOnlyFallback(),
                 showLockIcon: !canWriteWorkflows,
             },
             {
@@ -428,6 +437,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onToggle: (isEnabled: boolean) => {
                     if (!canWriteApprovals) {
                         showReadOnlyModal();
+                        return;
+                    }
+                    if (isEnabled && canAccessSubmit2026Features) {
+                        navigateToSubmitWorkspaceApprovalsUpgrade();
                         return;
                     }
                     if (isHRConnected) {
@@ -538,13 +551,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                     </>
                 ),
-                disabled: !canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected || canAccessSubmit2026Features,
-                disabledAction: canWriteApprovals ? getAddApprovalsToggleDisabledAction() : showReadOnlyModal,
+                disabled: !canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected,
+                disabledAction: withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction()),
                 showLockIcon: !canWriteApprovals,
+                // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
                 isActive:
-                    isHRConnected ||
-                    isDEWEnabled ||
-                    (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false),
+                    !canAccessSubmit2026Features &&
+                    (isHRConnected ||
+                        isDEWEnabled ||
+                        (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ??
+                            false)),
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
@@ -696,7 +712,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 />
                             )
                         )}
-                        {shouldShowBankAccount && (
+                        {shouldShowBankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburser}
                                 shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
@@ -726,7 +742,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
                 disabled: !canWritePayments,
-                disabledAction: showReadOnlyModal,
+                disabledAction: withPaymentsReadOnlyFallback(),
                 showLockIcon: !canWritePayments,
             },
         ];
@@ -785,6 +801,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         canWriteApprovals,
         canWritePayments,
         canWriteWorkflows,
+        withApprovalsReadOnlyFallback,
+        withPaymentsReadOnlyFallback,
+        withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
         handleAddAgentPress,
     ]);
@@ -842,7 +861,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         policyID={route.params.policyID}
                         canWriteApprovals={canWriteApprovals}
                         canWritePayments={canWritePayments}
-                        showReadOnlyModal={showReadOnlyModal}
+                        withApprovalsReadOnlyFallback={withApprovalsReadOnlyFallback}
+                        withPaymentsReadOnlyFallback={withPaymentsReadOnlyFallback}
                     />
                 </View>
             </WorkspacePageWithSections>
