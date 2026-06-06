@@ -1,10 +1,10 @@
 import React, {createContext, useContext} from 'react';
 import type {TNode} from 'react-native-render-html';
-import {useChartTypefaces} from '@components/Charts/hooks';
-import {CHART_TYPE, LABEL_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
 import Log from '@libs/Log';
 
 type VictoryChartContextValue = {
@@ -46,19 +46,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
 
     const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
-
-    const hasCartesianData = Object.values(data).some((entry) => X_KEY in entry);
-    const hasPolarData = Object.values(data).some((entry) => LABEL_KEY in entry);
-    let type: ChartType | null = null;
-
-    // XNOR Check. There must be one and only one valid chart
-    if (hasCartesianData === hasPolarData) {
-        type = null;
-    } else if (hasCartesianData) {
-        type = CHART_TYPE.CARTESIAN;
-    } else if (hasPolarData) {
-        type = CHART_TYPE.POLAR;
-    }
+    const type = resolveVictoryChartType(data);
 
     if (!type) {
         return null;
