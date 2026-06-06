@@ -103,23 +103,28 @@ describe('getOnboardingFlow', () => {
         ]);
     });
 
-    it('returns 4-step flow for public + skipped + individual + PERSONAL_SPEND', () => {
+    it('returns 3-step flow for public + skipped + individual + PERSONAL_SPEND', () => {
+        // A skipped work email step is no longer part of the navigable flow, so it is excluded.
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND})).toEqual([
-            O.WORK_EMAIL,
             O.PURPOSE,
             O.PERSONAL_DETAILS,
             O.WORKSPACE_OPTIONAL,
         ]);
     });
 
-    it('returns 5-step flow for public + skipped + individual + MANAGE_TEAM', () => {
+    it('returns 4-step flow for public + skipped + individual + MANAGE_TEAM', () => {
+        // A skipped work email step is no longer part of the navigable flow, so it is excluded.
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM})).toEqual([
-            O.WORK_EMAIL,
             O.PURPOSE,
             O.EMPLOYEES,
             O.INTERESTED_FEATURES,
             O.ACCOUNTING,
         ]);
+    });
+
+    it('returns 2-step flow for public + skipped + VSB', () => {
+        // A skipped work email step is no longer part of the navigable flow, so Interested Features becomes the first step.
+        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: true})).toEqual([O.INTERESTED_FEATURES, O.ACCOUNTING]);
     });
 
     it('returns 5-step flow for private domain + VSB', () => {
@@ -239,19 +244,29 @@ describe('getOnboardingStepCounter', () => {
 
     it('returns correct step/total/percentage for public + skipped + individual + MANAGE_TEAM (no gaps)', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
-        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 5}, progressBarPercentage: 20});
-        expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 2, total: 5}, progressBarPercentage: 40});
-        expect(getOnboardingStepCounter(O.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 3, total: 5}, progressBarPercentage: 60});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 4, total: 5}, progressBarPercentage: 80});
-        expect(getOnboardingStepCounter(O.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 5, total: 5}, progressBarPercentage: 100});
+        // The skipped work email step is excluded from the flow, so it has no step counter.
+        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toBeUndefined();
+        expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 1, total: 4}, progressBarPercentage: 25});
+        expect(getOnboardingStepCounter(O.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 2, total: 4}, progressBarPercentage: 50});
+        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 3, total: 4}, progressBarPercentage: 75});
+        expect(getOnboardingStepCounter(O.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 4, total: 4}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for public + skipped + individual + PERSONAL_SPEND (no gaps)', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND};
-        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 4}, progressBarPercentage: 25});
-        expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 2, total: 4}, progressBarPercentage: 50});
-        expect(getOnboardingStepCounter(O.PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 3, total: 4}, progressBarPercentage: 75});
-        expect(getOnboardingStepCounter(O.WORKSPACE_OPTIONAL, ctx)).toEqual({stepCounter: {step: 4, total: 4}, progressBarPercentage: 100});
+        // The skipped work email step is excluded from the flow, so it has no step counter.
+        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toBeUndefined();
+        expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 1, total: 3}, progressBarPercentage: 33});
+        expect(getOnboardingStepCounter(O.PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 2, total: 3}, progressBarPercentage: 67});
+        expect(getOnboardingStepCounter(O.WORKSPACE_OPTIONAL, ctx)).toEqual({stepCounter: {step: 3, total: 3}, progressBarPercentage: 100});
+    });
+
+    it('returns correct step/total/percentage for public + skipped + VSB', () => {
+        const ctx: OnboardingFlowContext = {signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: true};
+        // The skipped work email step is excluded from the flow, so it has no step counter.
+        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toBeUndefined();
+        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 1, total: 2}, progressBarPercentage: 50});
+        expect(getOnboardingStepCounter(O.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 2, total: 2}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for private domain + individual + MANAGE_TEAM (7-step flow)', () => {
@@ -315,9 +330,9 @@ describe('getOnboardingStepCounter', () => {
             {
                 label: 'public-skipped',
                 ctx: {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true},
-                expectedPurposeStep: 2,
-                expectedPurposePct: 40,
-                prefixPages: [{page: O.WORK_EMAIL, step: 1, pct: 20}],
+                expectedPurposeStep: 1,
+                expectedPurposePct: 25,
+                prefixPages: [],
             },
             {
                 label: 'public-merge',
@@ -447,10 +462,9 @@ describe('getPreviousOnboardingRoute', () => {
         expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb', isFromPublicDomain: true})).toBe(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
     });
 
-    it('returns work email for public domain VSB when merge account step was skipped', () => {
-        expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: true})).toBe(
-            ROUTES.ONBOARDING_WORK_EMAIL.getRoute(),
-        );
+    it('returns undefined for public domain VSB when merge account step was skipped', () => {
+        // The skipped work email step is not a navigable previous route, so Interested Features has no back destination.
+        expect(getPreviousOnboardingRoute(O.INTERESTED_FEATURES, {signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: true})).toBeUndefined();
     });
 
     it('returns purpose for individual manage team users', () => {

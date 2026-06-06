@@ -86,9 +86,10 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
         if (context.isMergeAccountStepSkipped === false) {
             return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
         }
-        // User skipped the work email step — they never see WORK_EMAIL_VALIDATION
+        // The user skipped the work email step, so it is no longer a reachable part of the flow: navigating back to it
+        // immediately redirects forward again. Excluding it keeps the step counter accurate and prevents a dead back button.
         if (context.isMergeAccountStepSkipped === true) {
-            return [ONBOARDING.WORK_EMAIL];
+            return [];
         }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
