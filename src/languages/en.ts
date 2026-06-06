@@ -6038,8 +6038,8 @@ const translations = {
             findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             // TODO: Add a actual link to the help article https://github.com/Expensify/App/issues/63612
-            subtitleWithDependentTags: `Tags add more detailed ways to classify costs. You are using <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">dependent tags</a>.`,
-            subtitleWithDependentTagsImport: (importSpreadsheetLink: string) => ` You can <a href="${importSpreadsheetLink}">reimport a spreadsheet</a> to update your tags.`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string, canReimport = true) =>
+                `<muted-text>Tags add more detailed ways to classify costs. You are using <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">dependent tags</a>.${canReimport ? ` You can <a href="${importSpreadsheetLink}">reimport a spreadsheet</a> to update your tags.` : ''}</muted-text>`,
             emptyTags: {
                 title: 'No tags yet',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

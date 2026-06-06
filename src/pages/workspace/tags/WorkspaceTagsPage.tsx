@@ -857,10 +857,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const importSpreadsheetURL = isQuickSettingsFlow
             ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
             : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`;
-        const dependentTagsSubtitle = translate('workspace.tags.subtitleWithDependentTags');
         let subtitleHTML = `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`;
         if (hasDependentTags) {
-            subtitleHTML = `<muted-text>${dependentTagsSubtitle}${canWriteTags ? translate('workspace.tags.subtitleWithDependentTagsImport', importSpreadsheetURL) : ''}</muted-text>`;
+            subtitleHTML = translate('workspace.tags.subtitleWithDependentTags', importSpreadsheetURL, canWriteTags);
         }
 
         return (
