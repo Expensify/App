@@ -302,9 +302,9 @@ function buildMinimalTransactionForFormula(
 function getReportPreviewAction(
     chatReportID: string | undefined,
     iouReportID: string | undefined,
-    chatReportActionsParam?: OnyxEntry<OnyxTypes.ReportActions>,
+    chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>,
 ): OnyxInputValue<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
-    const reportActions = chatReportActionsParam ?? getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
+    const reportActions = chatReportActions ?? getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
 
     // Find the report preview action from the chat report
     return (

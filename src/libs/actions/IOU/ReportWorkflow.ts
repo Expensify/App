@@ -330,14 +330,12 @@ function getIOUReportActionWithBadge(
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    chatReportActionsParam: OnyxEntry<OnyxTypes.ReportActions>,
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
 ): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
-    const chatReportActions = chatReportActionsParam ?? {};
-
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
 
-    for (const action of Object.values(chatReportActions)) {
+    for (const action of Object.values(chatReportActions ?? {})) {
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             continue;
         }
