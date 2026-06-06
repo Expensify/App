@@ -1092,6 +1092,111 @@ describe('AgentZeroStatusContext', () => {
         });
     });
 
+    describe('multi-agent tagged persona', () => {
+        const DEFAULT_AGENT_ID = 111;
+        const TAGGED_AGENT_ID = 222;
+        const HUMAN_USER_ID = 99;
+        const userActionID = '50';
+        const taggedReplyActionID = '300';
+        const defaultAgentReplyActionID = '400';
+        const buildUserMentionAction = (id: string, created: string, mentionedAccountID: number) => ({
+            reportActionID: id,
+            actorAccountID: HUMAN_USER_ID,
+            created,
+            originalMessage: {mentionedAccountIDs: [mentionedAccountID]},
+            message: [{type: 'TEXT', text: '@agent help'}],
+        });
+        const buildAgentReply = (id: string, created: string, actorAccountID: number) => ({
+            reportActionID: id,
+            actorAccountID,
+            created,
+            message: [{type: 'TEXT', text: 'agent reply'}],
+        });
+
+        it('should latch the tagged agent and clear when that agent replies (not the default persona)', async () => {
+            // In a multi-agent chat the user tags a specific agent (B) while the chat's default
+            // persona is a different agent (A). The indicator must latch agent B from the
+            // mention at activation and clear once agent B — the one we're actually waiting on —
+            // replies. This is the core fix for the stuck indicator in #admins multi-agent rooms.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', TAGGED_AGENT_ID),
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID));
+            await waitForBatchedUpdates();
+
+            // Indicator activates — latches the tagged agent (B) from the mention on the newest action.
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.personaAccountID).toBe(TAGGED_AGENT_ID);
+
+            // Agent B's reply lands → reply-detection matches the latched persona and clears.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [taggedReplyActionID]: buildAgentReply(taggedReplyActionID, '2024-01-01 00:00:01.000', TAGGED_AGENT_ID),
+            });
+            await waitForBatchedUpdates();
+
+            await waitFor(() => {
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID);
+            });
+        });
+
+        it('should NOT clear the indicator when a different agent than the tagged one replies', async () => {
+            // User tags agent B, but the default persona (agent A) posts an action. Since we
+            // latched agent B, agent A's action must not be mistaken for the awaited reply —
+            // otherwise the indicator would clear before agent B has actually responded.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', TAGGED_AGENT_ID),
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID));
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.personaAccountID).toBe(TAGGED_AGENT_ID);
+
+            // Agent A (default persona, NOT the tagged agent) posts an action.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [defaultAgentReplyActionID]: buildAgentReply(defaultAgentReplyActionID, '2024-01-01 00:00:01.000', DEFAULT_AGENT_ID),
+            });
+            await waitForBatchedUpdates();
+
+            // The indicator must stay up — we're waiting on agent B, not agent A.
+            expect(result.current.isProcessing).toBe(true);
+            expect(mockClearAgentZeroProcessingIndicator).not.toHaveBeenCalled();
+        });
+
+        it('should fall back to the default persona when the tagging message has no mention', async () => {
+            // Plain message with no @agent mention (e.g. a Concierge DM) → the latch falls back
+            // to the persona param passed to the hook.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [userActionID]: {
+                    reportActionID: userActionID,
+                    actorAccountID: HUMAN_USER_ID,
+                    created: '2024-01-01 00:00:00.000',
+                    message: [{type: 'TEXT', text: 'hello'}],
+                },
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID));
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.personaAccountID).toBe(DEFAULT_AGENT_ID);
+        });
+    });
+
     describe('NVPIndicatorVersionTracker removal', () => {
         it('should NOT use NVPIndicatorVersionTracker (module should not exist)', () => {
             // The NVPIndicatorVersionTracker module was removed as part of the TTL fix.
