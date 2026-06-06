@@ -72,8 +72,8 @@ function setReportLayoutOption(layoutOption: ReportLayoutOption | null, previous
  *
  * Note: this can fire two independent SetNameValuePair calls because App does not expose a plural
  * SetNameValuePairs command yet. Each call has its own failureData rolling back just its own NVP on
- * partial failure, so onyx converges per-key. A follow-up will introduce the plural variant so the
- * writes can land atomically.
+ * partial failure, so onyx converges per-key. Plural variant tracked in
+ * https://github.com/Expensify/Expensify/issues/645997 so the writes can land atomically.
  */
 function setReportLayout(selection: ReportLayoutSelection, currentLayoutOption?: string | null, currentGroupBy?: string | null) {
     if (selection === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX) {
