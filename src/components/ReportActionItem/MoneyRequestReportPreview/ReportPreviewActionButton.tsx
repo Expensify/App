@@ -248,8 +248,8 @@ function ReportPreviewActionButton({
 
     return (
         <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, {height: variables.h40}]}>
-            <View style={[styles.flex1]}>{viewButton}</View>
             <View style={[styles.flex1]}>{primaryButton}</View>
+            <View style={[styles.flex1]}>{viewButton}</View>
         </View>
     );
 }
