@@ -228,7 +228,7 @@ platforms:
 
       - href: ai-agents
         title: AI Agents
-        icon: /assets/images/simple-illustration__concierge-bot.svg
+        icon: /assets/images/simple-illustration__ai-bot.svg
         description: Learn about Custom Agents and what they can do. 
 
       - href: workspaces
