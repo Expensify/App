@@ -2,7 +2,17 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
+import {
+    generateIsEmptyReport,
+    generateReportAttributes,
+    hasVisibleReportFieldViolations,
+    isArchivedReport,
+    isPolicyAdmin,
+    isPolicyExpenseChat,
+    isTaskReport,
+    isValidReport,
+    isWorkspaceTaskReport,
+} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -319,7 +329,8 @@ export default createOnyxDerivedValueConfig({
 
                 // if report has errors or violations, show red dot
                 // Also skip setting ERROR when we'll show the green Submit badge — let the user submit without fix.
-                if (reasonAndReportAction && !willShowGreenSubmit) {
+                const shouldSuppressTaskReportFixBadge = isTaskReport(report) && !isWorkspaceTaskReport(report);
+                if (reasonAndReportAction && !willShowGreenSubmit && !shouldSuppressTaskReportFixBadge) {
                     needsParentChatErrorPropagation = true;
 
                     // RBR/Fix mirrors GBR's access rule: only show on the child when the user can't already
