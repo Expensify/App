@@ -6253,7 +6253,8 @@ const translations = {
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
             allMembers: 'All members',
-            admins: 'Admins',
+            admins: 'Workspace Admins',
+            cardAdmins: 'Card Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
             emptyRoleFilter: {
