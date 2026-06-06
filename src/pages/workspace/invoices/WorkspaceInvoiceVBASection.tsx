@@ -110,10 +110,17 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
 
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID, personalPolicyID);
+        if (paymentMethod.selectedPaymentMethodType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || !bankAccountID) {
+            return;
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID]);
+
+        const remainingEligibleBankAccountID = eligibleBusinessBankAccounts.find((account) => account.accountData?.bankAccountID !== bankAccountID)?.accountData?.bankAccountID;
+        if (transferBankAccountID === bankAccountID && remainingEligibleBankAccountID) {
+            setInvoicingTransferBankAccount(remainingEligibleBankAccountID, policyID, bankAccountID);
+        }
+
+        deletePaymentBankAccount(bankAccountID, personalPolicyID);
+    }, [eligibleBusinessBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, transferBankAccountID]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
