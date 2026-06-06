@@ -5984,7 +5984,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             findTag: 'Trova tag',
             subtitle: 'I tag aggiungono modi più dettagliati per classificare i costi.',
             subtitleWithDependentTags: `I tag aggiungono modi più dettagliati per classificare i costi. Stai usando i <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tag dipendenti</a>.`,
-            subtitleWithDependentTagsImport: (importSpreadsheetLink: string) => ` Puoi <a href="${importSpreadsheetLink}">importare nuovamente un foglio di calcolo</a> per aggiornare i tuoi tag.`,
+            subtitleWithDependentTagsImport: (importSpreadsheetLink: string) =>
+                ` Puoi <a href="${importSpreadsheetLink}">importare nuovamente un foglio di calcolo</a> per aggiornare i tuoi tag.`,
             emptyTags: {
                 title: 'Nessun tag ancora',
                 subtitle: 'Aggiungi un tag per tenere traccia di progetti, sedi, reparti e altro ancora.',
