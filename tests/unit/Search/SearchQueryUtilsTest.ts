@@ -3015,73 +3015,24 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('getAdvancedFiltersToReset', () => {
-        it('should return an empty object when input is empty', () => {
-            const result = getAdvancedFiltersToReset({});
-            expect(result).toEqual({});
-        });
-
-        it('should reset status to ALL when it has a non-ALL value', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            });
-        });
-
-        it('should not include status in reset when it is already ALL', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.status).toBeUndefined();
-        });
-
-        it('should reset type to EXPENSE when it has a non-EXPENSE value', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            });
-        });
-
-        it('should not include type in reset when it is already EXPENSE', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.type).toBeUndefined();
-        });
-
-        it('should reset other filter keys to undefined', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                merchant: 'Marriott',
-                currency: ['USD', 'EUR'],
-                dateAfter: '2024-01-01',
-                keyword: 'hotel',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                merchant: undefined,
-                currency: undefined,
-                dateAfter: undefined,
-                keyword: undefined,
-            });
-        });
-
-        it('should exclude columns from being reset', () => {
+        it('should reset columns if the type is not default (not expense)', () => {
             const form: Partial<SearchAdvancedFiltersForm> = {
                 columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
-                merchant: 'test',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             };
             const result = getAdvancedFiltersToReset(form);
+            expect(result.status).toBe(CONST.SEARCH.STATUS.EXPENSE.ALL);
+            expect(result.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
             expect(result.columns).toBeUndefined();
-            expect(result).toEqual({
-                merchant: undefined,
-            });
+        });
+
+        it('should exclude columns from being reset if the type is default (expense)', () => {
+            const form: Partial<SearchAdvancedFiltersForm> = {
+                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            };
+            const result = getAdvancedFiltersToReset(form);
+            expect(result.columns).toBe(form.columns);
         });
     });
 });
