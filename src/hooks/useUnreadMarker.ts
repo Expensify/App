@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -81,7 +81,7 @@ function useUnreadMarker({
         return actions;
     }, {});
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
-    const prevUnreadMarkerReportActionIDRef = useRef<string | null>(null);
+    const [prevUnreadMarkerReportActionID, setPrevUnreadMarkerReportActionID] = useState<string | null>(null);
 
     let earliestReceivedOfflineMessageIndex: number | undefined;
     for (let i = sortedReportActions.length - 1; i >= 0; i--) {
@@ -111,15 +111,16 @@ function useUnreadMarker({
         isOffline,
         isReversed: false,
         isAnonymousUser,
-        /* eslint-disable-next-line react-hooks/refs -- prevUnreadMarkerReportActionIDRef snapshots the marker ID from the previous render to detect marker relocation */
-        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionIDRef.current,
+        prevUnreadMarkerReportActionID,
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
         oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
-    // eslint-disable-next-line react-hooks/refs -- update snapshot for next render
-    prevUnreadMarkerReportActionIDRef.current = unreadMarkerReportActionID;
+
+    if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
+        setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
+    }
 
     // When the user reads a new message as it is received, push unreadMarkerTime down to the
     // latest action's timestamp so new incoming actions display over those new messages instead of
