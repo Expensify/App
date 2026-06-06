@@ -4252,6 +4252,57 @@ describe('ReportActionsUtils', () => {
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
         });
+
+        it('returns CONCIERGE for automatic DEW_APPROVE_FAILED when shouldUseRealActor is false', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                actorAccountID: 2701545,
+                originalMessage: {automaticAction: true, message: 'failed'},
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(1, undefined)};
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, false);
+            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('returns real actorAccountID for automatic DEW_APPROVE_FAILED when shouldUseRealActor is true', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                actorAccountID: 2701545,
+                originalMessage: {automaticAction: true, message: 'failed'},
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(1, undefined)};
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(2701545);
+        });
+
+        it('returns real actorAccountID for harvest-created CREATED action when shouldUseRealActor is true', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(3, undefined), reportID: 'harvest-report-shouldUseRealActor'};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
+                origin: 'harvest',
+                originalID: 'orig-456',
+            });
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(9999);
+        });
     });
 
     describe('getInvoiceCompanyNameUpdateMessage', () => {
