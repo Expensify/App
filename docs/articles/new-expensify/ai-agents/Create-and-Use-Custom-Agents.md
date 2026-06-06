@@ -36,11 +36,9 @@ To add a Custom Agent as an approver on a workspace:
 5. In the **Write custom instructions** field, enter the prompt, or instructions the agent should follow. 
 6. Click **Create agent**.
 
-<!-- SCREENSHOT:
-Suggestion: Settings > Agents page showing the Create agent button and the agents list with one example agent
-Location: After the create agent steps
-Purpose: Helps users find the entry point for creating an agent
--->
+<!-- Screenshot: Account > Agents | Section: | Feature: New Agent -->
+
+![Agents page showing New Agent button]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-1.png){:width="100%"}
 
 You can also create a Custom Agent from the **Set Approver** page by clicking **Create an agent**. Expensify automatically adds the new agent to the workspace as a member and assigns it as an approver.
 
@@ -157,6 +155,10 @@ Once an agent is added to a workspace as a member, you can select it as an appro
 The agent will receive each report submitted into the workflow and decide whether to **Approve** or **Reject** it based on its instructions.
 
 For details on configuring approval workflows generally, [learn how to add approvals to a workspace](/articles/new-expensify/workspaces/Add-Approvals).
+
+<!-- Screenshot: Workspaces > Workspace Name > Workflows | Section: Approvals | Feature: Approver -->
+
+![Workspace Workflows page showing Approvals section with a workflow configured]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-2.png){:width="100%"}
 
 ## What happens after a Custom Agent reviews a report
 
