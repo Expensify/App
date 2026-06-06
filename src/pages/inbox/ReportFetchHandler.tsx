@@ -115,12 +115,11 @@ function ReportFetchHandler() {
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
-    const isInviteIOUorInvoice = introSelected?.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || introSelected?.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
     const isRegularOnboardingPending =
-        !!introSelected && isSupportedInviteOnboardingChoice(introSelected.choice) && !isInviteIOUorInvoice && !isOnboardingCompleted && !isInviteOnboardingComplete;
-    const shouldHandleInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
+        !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted && !isInviteOnboardingComplete;
+    const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
     const onboardingSignal = introSelected ? `${introSelected.choice ?? ''}:${introSelected.inviteType ?? ''}:${isInviteOnboardingComplete ? 'complete' : 'pending'}` : '';
-    const shouldDeferGuidedSetupOpenReport = !!isLoadingApp && (isRegularOnboardingPending || shouldHandleInviteOnboarding);
+    const shouldDeferGuidedSetupOpenReport = !!isLoadingApp && (isRegularOnboardingPending || isPendingInviteOnboarding);
 
     const fetchReport = useEffectEvent(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
