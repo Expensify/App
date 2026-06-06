@@ -1,6 +1,9 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Reauthentication from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+import reauthenticate from '@libs/Reauthentication';
+import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
@@ -18,6 +21,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 type FormDataObject = {body: TestHelper.FormData};
+
+jest.mock('@libs/Reauthentication');
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -48,7 +53,58 @@ beforeEach(async () => {
 });
 
 describe('Middleware', () => {
+    describe('Reauthentication', () => {
+        test('marks failed reauthentication responses to skip original request Onyx updates', async () => {
+            const mockedReauthenticate = reauthenticate as jest.MockedFunction<typeof reauthenticate>;
+            mockedReauthenticate.mockResolvedValueOnce(false);
+
+            const response = await Reauthentication(
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                }),
+                {
+                    command: 'TestCommand',
+                    data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+                },
+                false,
+            );
+
+            expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
+            expect(response?.shouldSkipOnyxUpdates).toBe(true);
+        });
+    });
+
     describe('SaveResponseInOnyx', () => {
+        test('skips request failure data when response requests Onyx updates to be skipped', async () => {
+            let shouldFailAllRequests: boolean | undefined;
+            Onyx.connect({
+                key: ONYXKEYS.NETWORK,
+                callback: (val) => (shouldFailAllRequests = val?.shouldFailAllRequests),
+            });
+
+            Request.addMiddleware(SaveResponseInOnyx);
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 407,
+                shouldSkipOnyxUpdates: true,
+            });
+
+            const response = await Request.processWithMiddleware({
+                command: 'TestCommand',
+                data: {apiRequestType: 'makeRequestWithSideEffects'},
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.NETWORK,
+                        value: {shouldFailAllRequests: true},
+                    },
+                ],
+            });
+            await waitForBatchedUpdates();
+
+            expect(response?.shouldSkipOnyxUpdates).toBe(true);
+            expect(shouldFailAllRequests).toBeFalsy();
+        });
+
         test('preserves the response for side-effect requests when the update is already applied', async () => {
             // Given the client already has a lastUpdateID applied
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);

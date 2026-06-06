@@ -109,7 +109,11 @@ function handleExpiredSession<TKey extends OnyxKey>(
     return reauthenticate(request?.commandName)
         .then((wasSuccessful) => {
             if (!wasSuccessful) {
-                return;
+                // Reauth already handled the sign-in redirect, so skip the original request's failure UI updates.
+                return {
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                    shouldSkipOnyxUpdates: true,
+                } as Response<TKey>;
             }
 
             if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {

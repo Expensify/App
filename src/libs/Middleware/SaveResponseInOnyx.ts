@@ -19,6 +19,10 @@ const requestsToIgnoreLastUpdateID = new Set<string>([
 
 const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>
     requestResponse.then((response = {}) => {
+        if (response?.shouldSkipOnyxUpdates) {
+            return Promise.resolve(response);
+        }
+
         const onyxUpdates = response?.onyxData ?? [];
 
         // Sometimes we call requests that are successful but they don't have any response or any success/failure/finally data to set. Let's return early since
