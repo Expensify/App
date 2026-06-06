@@ -1,7 +1,7 @@
 ---
 title: Create an Expense
 description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding, email receipt, forward receipt, forward email receipt, email receipts@expensify.com, scan receipt, receipt email]
+keywords: [New Expensify, create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding, email receipt, forward receipt, forward email receipt, email receipts@expensify.com, scan receipt, receipt email]
 internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
 ---
 
