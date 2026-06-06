@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import {chmodSync, copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {comparePng, FIXTURE_NAMES, fixturesDir, getLocalCompileTarget, goldenDir, packageRoot} from './testUtils';
+import {comparePng, FIXTURE_EXPECTED_SIZES, FIXTURE_NAMES, fixturesDir, getLocalCompileTarget, goldenDir, packageRoot} from './testUtils';
 
 const SHOULD_UPDATE_GOLDEN = process.env.UPDATE_GOLDEN === '1';
 const isolatedRunDir = mkdtempSync(join(tmpdir(), 'vcr-standalone-run-'));
@@ -38,6 +38,10 @@ function runBinary(chartXML: string, outPath: string) {
     });
 }
 
+test('golden fixture suite includes all expected charts', () => {
+    expect(FIXTURE_NAMES.length).toBe(4);
+});
+
 for (const fixtureName of FIXTURE_NAMES) {
     test(`renders ${fixtureName} matching golden PNG`, () => {
         const xmlPath = join(fixturesDir, `${fixtureName}.xml`);
@@ -54,7 +58,7 @@ for (const fixtureName of FIXTURE_NAMES) {
             copyFileSync(actualPath, goldenPath);
         }
 
-        comparePng(actualPath, goldenPath);
+        comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES[fixtureName]);
     });
 }
 

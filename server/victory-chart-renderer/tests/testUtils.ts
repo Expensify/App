@@ -14,6 +14,13 @@ const FIXTURE_NAMES = readdirSync(fixturesDir)
     .filter((name) => name.endsWith('.xml') && !name.startsWith('missing-dimensions'))
     .map((name) => name.replace(/\.xml$/, ''));
 
+const FIXTURE_EXPECTED_SIZES: Record<string, {width: number; height: number}> = {
+    'monthly-spend': {width: 680, height: 430},
+    'top-categories-6': {width: 680, height: 530},
+    'top-categories-10': {width: 680, height: 610},
+    'top-employees-by-spend': {width: 680, height: 464},
+};
+
 function getLocalCompileTarget(): string {
     const hostPlatform = platform();
     const hostArch = arch();
@@ -29,9 +36,14 @@ function getLocalCompileTarget(): string {
     throw new Error(`Standalone binary tests are not supported on ${hostPlatform} (${hostArch})`);
 }
 
-function comparePng(actualPath: string, goldenPath: string) {
+function comparePng(actualPath: string, goldenPath: string, expectedSize?: {width: number; height: number}) {
     const actual = PNG.sync.read(readFileSync(actualPath));
     const golden = PNG.sync.read(readFileSync(goldenPath));
+
+    if (expectedSize) {
+        expect(actual.width).toBe(expectedSize.width);
+        expect(actual.height).toBe(expectedSize.height);
+    }
 
     expect(actual.width).toBe(golden.width);
     expect(actual.height).toBe(golden.height);
@@ -45,4 +57,4 @@ function comparePng(actualPath: string, goldenPath: string) {
     expect(mismatchedPixels).toBeLessThanOrEqual(maxAllowedMismatch);
 }
 
-export {comparePng, fixturesDir, FIXTURE_NAMES, getLocalCompileTarget, goldenDir, packageRoot};
+export {comparePng, fixturesDir, FIXTURE_EXPECTED_SIZES, FIXTURE_NAMES, getLocalCompileTarget, goldenDir, packageRoot};
