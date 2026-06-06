@@ -22,7 +22,7 @@ jest.mock('@components/ReportActionAvatars', () => {
 // Admin and announce rooms surface Concierge as the persona, so the mock returns
 // Concierge's accountID here. `mock` prefix lets jest's hoist plugin reference
 // this from inside the factory below.
-const mockPersonalAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+const mockPersonaAccountID = CONST.ACCOUNT_ID.CONCIERGE;
 
 // Mock the AgentZero context to make isProcessing=true so the component renders.
 jest.mock('@pages/inbox/AgentZeroStatusContext', () => ({
@@ -30,7 +30,7 @@ jest.mock('@pages/inbox/AgentZeroStatusContext', () => ({
         isProcessing: true,
         reasoningHistory: [],
         statusLabel: 'Thinking...',
-        personalAccountID: mockPersonalAccountID,
+        personaAccountID: mockPersonaAccountID,
     }),
 }));
 

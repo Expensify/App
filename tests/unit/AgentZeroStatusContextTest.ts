@@ -1131,7 +1131,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.personalAccountID).toBe(TAGGED_AGENT_ID);
+            expect(result.current.personaAccountID).toBe(TAGGED_AGENT_ID);
 
             // Agent B's reply lands → reply-detection matches the latched persona and clears.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -1160,7 +1160,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.personalAccountID).toBe(TAGGED_AGENT_ID);
+            expect(result.current.personaAccountID).toBe(TAGGED_AGENT_ID);
 
             // Agent A (default persona, NOT the tagged agent) posts an action.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -1193,7 +1193,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.personalAccountID).toBe(DEFAULT_AGENT_ID);
+            expect(result.current.personaAccountID).toBe(DEFAULT_AGENT_ID);
         });
     });
 

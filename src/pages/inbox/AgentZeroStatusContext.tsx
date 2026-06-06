@@ -23,7 +23,7 @@ type AgentZeroStatusState = {
      * #admins rooms; the agent's own accountID for custom-agent chats. Consumers use it to render
      * the thinking-bubble avatar and to decide when a reply has actually landed.
      */
-    personalAccountID: number;
+    personaAccountID: number;
 };
 
 type AgentZeroStatusActions = {
@@ -35,7 +35,7 @@ const defaultState: AgentZeroStatusState = {
     isProcessing: false,
     reasoningHistory: [],
     statusLabel: '',
-    personalAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+    personaAccountID: CONST.ACCOUNT_ID.CONCIERGE,
 };
 
 const defaultActions: AgentZeroStatusActions = {
@@ -75,15 +75,15 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
         <AgentZeroStatusGate
             key={reportID}
             reportID={reportID}
-            personalAccountID={agentParticipantAccountID ?? CONST.ACCOUNT_ID.CONCIERGE}
+            personaAccountID={agentParticipantAccountID ?? CONST.ACCOUNT_ID.CONCIERGE}
         >
             {children}
         </AgentZeroStatusGate>
     );
 }
 
-function AgentZeroStatusGate({reportID, personalAccountID, children}: React.PropsWithChildren<{reportID: string; personalAccountID: number}>) {
-    const {kickoffWaitingIndicator, ...indicatorState} = useAgentZeroStatusIndicator(reportID, personalAccountID);
+function AgentZeroStatusGate({reportID, personaAccountID, children}: React.PropsWithChildren<{reportID: string; personaAccountID: number}>) {
+    const {kickoffWaitingIndicator, ...indicatorState} = useAgentZeroStatusIndicator(reportID, personaAccountID);
     const stateValue = indicatorState;
     const actionsValue = {kickoffWaitingIndicator};
 
