@@ -53,9 +53,9 @@ Learn how to [enable Approvals](https://help.expensify.com/articles/new-expensif
    - Twice a month – Reports are submitted on the 15th and the last day of the month. Violations are submitted at the next applicable date.
    - Monthly – Reports are submitted once a month on your selected day. Violations are submitted the following month.
    - By trip – A report is submitted when no new expenses are added for two full days. A new trip report starts after that.
-   - Manually – Expenses are still **auto-added to a report** as they're created, but employees must submit the report manually. This frequency only controls **when** reports are submitted, not whether expenses are placed on a report.
+   - Manually – Expenses are still **auto-added to a report** as they're created, but members must submit the report manually. This frequency only controls **when** reports are submitted, not whether expenses are placed on a report.
 
-**Note:** If Submissions is turned disabled, expenses stay in the **Unreported** state until a member adds them to a report, and reports must be submitted manually. This is the only configuration that prevents expenses from being auto-added to a report.
+**Note:** If Submissions is disabled, expenses stay in the **Unreported** state until a member adds them to a report, and reports must be submitted manually. This is the only configuration that prevents expenses from being auto-added to a report.
 
 Learn how to [configure Submissions](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-set-a-submission-frequency) on your workspace. 
 
