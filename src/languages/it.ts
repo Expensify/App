@@ -6209,7 +6209,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} ha un rapporto in sospeso su cui deve intervenire. Chiedi loro di completare l’azione richiesta prima di rimuoverlə dallo spazio di lavoro.`,
             allMembers: 'Tutti i membri',
-            admins: 'Amministratori',
+            admins: 'Amministratori workspace',
+            cardAdmins: 'Amministratori carte',
             approvers: 'Approvatori',
             auditors: 'Revisori',
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},

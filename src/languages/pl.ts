@@ -6183,7 +6183,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} ma nierozliczony raport w trakcie przetwarzania, który wymaga działania. Poproś tę osobę o wykonanie wymaganej czynności przed jej usunięciem z przestrzeni roboczej.`,
             allMembers: 'Wszyscy członkowie',
-            admins: 'Administratorzy',
+            admins: 'Administratorzy obszaru roboczego',
+            cardAdmins: 'Administratorzy kart',
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},

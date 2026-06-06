@@ -115,6 +115,7 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ALL: 'all',
     ADMINS: 'admins',
+    CARD_ADMINS: 'cardAdmins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
 } as const;
@@ -569,6 +570,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     if (isControlPolicy(policy)) {
         roleFilterOptions.push({
+            text: translate('workspace.people.cardAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
+        });
+
+        roleFilterOptions.push({
             text: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
@@ -597,6 +603,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
             case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
                 return isPolicyApprover(policy, member.login);
+            case WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS:
+                return employee?.role === CONST.POLICY.ROLE.CARD_ADMIN;
             case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
                 return employee?.role === CONST.POLICY.ROLE.AUDITOR;
             default:

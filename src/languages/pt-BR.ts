@@ -6187,7 +6187,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tem um relatório pendente de processamento que requer ação. Peça para que concluam a ação necessária antes de removê-los do workspace.`,
             allMembers: 'Todos os membros',
-            admins: 'Administradores',
+            admins: 'Administradores do workspace',
+            cardAdmins: 'Administradores de cartões',
             approvers: 'Aprovadores',
             auditors: 'Auditores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},

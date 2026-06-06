@@ -6188,7 +6188,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} heeft een openstaand rapport in verwerking waarop actie moet worden ondernomen. Vraag hen dit vereiste actiepunt af te ronden voordat je hen uit de workspace verwijdert.`,
             allMembers: 'Alle leden',
-            admins: 'Beheerders',
+            admins: 'Werkruimtebeheerders',
+            cardAdmins: 'Kaartbeheerders',
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},

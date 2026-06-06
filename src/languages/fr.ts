@@ -6246,7 +6246,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} a une note de frais en cours de traitement sur laquelle il doit agir. Veuillez lui demander d’effectuer l’action requise avant de le retirer de l’espace de travail.`,
             allMembers: 'Tous les membres',
-            admins: 'Administrateurs',
+            admins: 'Administrateurs de l’espace de travail',
+            cardAdmins: 'Administrateurs de cartes',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
