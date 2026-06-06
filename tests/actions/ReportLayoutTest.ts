@@ -8,6 +8,9 @@ jest.mock('@libs/API');
 
 const mockAPI = API as jest.Mocked<typeof API>;
 
+const LAYOUT_OPTION_NVP_NAME = 'expensify_layoutOption';
+const GROUP_BY_OPTION_NVP_NAME = 'expensify_groupByOption';
+
 const getWrittenNameValuePairs = (callIndex = 0) => {
     const call = mockAPI.write.mock.calls.at(callIndex);
     const params = call?.[1] as SetNameValuePairsParams | undefined;
@@ -51,8 +54,8 @@ describe('setReportLayout', () => {
         expect(mockAPI.write).toHaveBeenCalledTimes(1);
         expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
         expect(getWrittenNameValuePairs()).toEqual({
-            expensify_layoutOption: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
-            expensify_groupByOption: '',
+            [LAYOUT_OPTION_NVP_NAME]: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
+            [GROUP_BY_OPTION_NVP_NAME]: '',
         });
     });
 
@@ -61,7 +64,7 @@ describe('setReportLayout', () => {
 
         expect(mockAPI.write).toHaveBeenCalledTimes(1);
         expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
-        expect(getWrittenNameValuePairs()).toEqual({expensify_groupByOption: CONST.REPORT_LAYOUT.GROUP_BY.TAG});
+        expect(getWrittenNameValuePairs()).toEqual({[GROUP_BY_OPTION_NVP_NAME]: CONST.REPORT_LAYOUT.GROUP_BY.TAG});
     });
 
     it('clears the matrix layout atomically when switching from None back to Category or Tag', () => {
@@ -70,8 +73,8 @@ describe('setReportLayout', () => {
         expect(mockAPI.write).toHaveBeenCalledTimes(1);
         expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
         expect(getWrittenNameValuePairs()).toEqual({
-            expensify_groupByOption: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-            expensify_layoutOption: '',
+            [GROUP_BY_OPTION_NVP_NAME]: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+            [LAYOUT_OPTION_NVP_NAME]: '',
         });
     });
 
