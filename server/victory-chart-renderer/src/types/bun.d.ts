@@ -15,10 +15,16 @@ type BunFile = {
     arrayBuffer(): Promise<ArrayBuffer>;
 };
 
+/** Single artifact emitted by Bun.build(). */
+type BunBuildOutput = Blob & {
+    path: string;
+    kind: 'entry-point' | 'asset' | 'chunk';
+};
+
 /** Subset of Bun.BuildResult used by assertBuildSuccess and the build/dev scripts. */
 type BunBuildResult = {
     success: boolean;
-    outputs: Blob[];
+    outputs: BunBuildOutput[];
     logs: Array<{message: string; level: string; position: unknown}>;
 };
 

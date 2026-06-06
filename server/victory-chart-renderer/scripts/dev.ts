@@ -15,7 +15,7 @@ import assertBuildSuccess from '@server/libs/assertBuildSuccess';
 import createRnStubPlugin from '@server/plugins/rnStubPlugin';
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
-import {join, resolve} from 'node:path';
+import {basename, join, resolve} from 'node:path';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const repoRoot = resolve(packageRoot, '../..');
@@ -36,12 +36,18 @@ const buildResult = await Bun.build({
 
 assertBuildSuccess(buildResult, 'Failed to bundle victory-chart-renderer CLI');
 
-const [bundle] = buildResult.outputs;
-if (!bundle) {
+if (buildResult.outputs.length === 0) {
     throw new Error('Bundled CLI output is missing');
 }
 
-await Bun.write(outFile, bundle);
+const devDir = join(packageRoot, '.dev');
+
+for (const output of buildResult.outputs) {
+    const outputName = basename(output.path);
+    const destName = output.kind === 'entry-point' ? 'cli.js' : outputName;
+
+    await Bun.write(join(devDir, destName), output);
+}
 
 const runResult = spawnSync(process.execPath, [outFile, ...process.argv.slice(2)], {
     cwd: repoRoot,

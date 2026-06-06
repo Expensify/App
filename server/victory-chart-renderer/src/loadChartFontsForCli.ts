@@ -1,20 +1,44 @@
 import {Skia} from '@shopify/react-native-skia';
-import type {SkTypeface} from '@shopify/react-native-skia';
+import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
+import {dirname, isAbsolute, join} from 'node:path';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import buildSkiaFontManager from '@components/Charts/utils/buildSkiaFontManager';
-import {CHART_FONT_MGR_SUPPLEMENTAL_PATHS, CHART_SKIA_TYPEFACE_PATHS} from './chartFontPathsForCli';
+import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 
-async function loadTypefaceFromFile(path: string): Promise<SkTypeface | null> {
+function resolveBundledAssetPath(source: DataModule | string): string {
+    let assetPath: string | null = null;
+
+    if (typeof source === 'string') {
+        assetPath = source;
+    } else if (typeof source === 'number') {
+        throw new Error('Numeric chart font asset sources are not supported in the CLI');
+    } else if ('default' in source && typeof source.default === 'string') {
+        assetPath = source.default;
+    }
+
+    if (!assetPath) {
+        throw new Error('Unsupported chart font asset source');
+    }
+
+    if (isAbsolute(assetPath)) {
+        return assetPath;
+    }
+
+    return join(dirname(import.meta.path), assetPath);
+}
+
+async function loadTypefaceFromAsset(source: DataModule | string): Promise<SkTypeface | null> {
+    const path = resolveBundledAssetPath(source);
     const bytes = await Bun.file(path).bytes();
     return Skia.Typeface.MakeFreeTypeFaceFromData(Skia.Data.fromBytes(bytes));
 }
 
 async function loadChartFontsForCli(): Promise<ChartFontsValue> {
-    const typefaceKeys = Object.keys(CHART_SKIA_TYPEFACE_PATHS) as ChartSkiaTypefaceKey[];
+    const typefaceKeys = Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[];
     const typefaceEntries = await Promise.all(
         typefaceKeys.map(async (typefaceKey) => {
-            const typeface = await loadTypefaceFromFile(CHART_SKIA_TYPEFACE_PATHS[typefaceKey]);
+            const typeface = await loadTypefaceFromAsset(CHART_SKIA_TYPEFACE_ASSETS[typefaceKey]);
             return [typefaceKey, typeface] as const;
         }),
     );
@@ -23,8 +47,8 @@ async function loadChartFontsForCli(): Promise<ChartFontsValue> {
     const fontMgr = buildSkiaFontManager(typefaces);
 
     await Promise.all(
-        Object.entries(CHART_FONT_MGR_SUPPLEMENTAL_PATHS).map(async ([familyName, path]) => {
-            const typeface = await loadTypefaceFromFile(path);
+        Object.entries(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS).map(async ([familyName, asset]) => {
+            const typeface = await loadTypefaceFromAsset(asset);
 
             if (typeface) {
                 fontMgr.registerFont(typeface, familyName);
