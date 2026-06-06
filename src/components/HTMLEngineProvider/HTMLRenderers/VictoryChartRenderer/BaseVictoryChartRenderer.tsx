@@ -23,6 +23,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
 
     const type = resolveVictoryChartType(processedResult.data);
     if (!type) {
+        Log.warn('Trying to render an invalid chart (empty or mixed chart types).');
         return null;
     }
 
