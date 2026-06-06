@@ -2,9 +2,9 @@ import React from 'react';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import {updateZenefitsApprovalMode} from '@libs/actions/connections/Zenefits';
+import {isZenefitsConnected} from '@libs/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isZenefitsConnected} from '@libs/PolicyUtils';
 import HRApprovalModePageBase from '@pages/workspace/hr/HRApprovalModePageBase';
 import type {HRApprovalModeProviderConfig} from '@pages/workspace/hr/HRApprovalModePageBase';
 import CONST from '@src/CONST';
@@ -27,8 +27,7 @@ function ZenefitsApprovalModePage({
         getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
         getHeaderTitle: () => translate('workspace.hr.approvalMode'),
-        handleSave: ({draftApprovalMode, currentApprovalMode, connectionSyncProgress}) =>
-            updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress),
+        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
     };
 
     return (
