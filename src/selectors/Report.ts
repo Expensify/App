@@ -197,3 +197,5 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
 };
+
+export type {StableReport};
