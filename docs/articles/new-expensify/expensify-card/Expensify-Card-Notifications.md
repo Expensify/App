@@ -51,5 +51,5 @@ Once both settings are enabled, you'll start receiving instant updates for your 
 
 If your Workspace Admin has set a Spend Rule on your card, a transaction may be declined when it doesn't meet the rule. When this happens, you'll receive a notification from Concierge in your workspace chat explaining why the transaction was declined — for example, a blocked merchant, a restricted spend category, or an amount over the limit.
 
-To learn how these rules work and what an admin can configure, [learn about Expensify Card Spend Rules](https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+To learn how these rules work and what an admin can configure, [learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
