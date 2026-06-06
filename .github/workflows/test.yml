@@ -36,7 +36,11 @@ jobs:
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest
+          # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
+          # shared key freezes one shard's partial cache for all shards. The hash refreshes the
+          # cache when dependencies or Babel config change; restore-keys warms it in between.
+          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'babel.config.js') }}
+          restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
