@@ -2,7 +2,7 @@ import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
-import type {GestureResponderEvent, TextInputKeyPressEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
@@ -93,36 +93,34 @@ function DatePicker({
         [windowHeight],
     );
 
-    const showDatePickerModal = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (event && 'preventDefault' in event) {
-                event.preventDefault();
-            }
-            cancelAutoFocus();
-            // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
-            textInputRef.current?.blur();
+    const showDatePickerModal = useCallback(() => {
+        cancelAutoFocus();
+        // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
+        textInputRef.current?.blur();
 
-            if (!shouldDeferShowUntilPositioned) {
-                calculatePopoverPosition();
-                setIsModalVisible(true);
+        if (!shouldDeferShowUntilPositioned) {
+            calculatePopoverPosition();
+            setIsModalVisible(true);
+            return;
+        }
+
+        openIntentRef.current = true;
+        calculatePopoverPosition(() => {
+            if (!openIntentRef.current) {
                 return;
             }
-
-            openIntentRef.current = true;
-            calculatePopoverPosition(() => {
-                if (!openIntentRef.current) {
-                    return;
-                }
-                setIsModalVisible(true);
-            });
-        },
-        [shouldDeferShowUntilPositioned, calculatePopoverPosition, cancelAutoFocus],
-    );
+            setIsModalVisible(true);
+        });
+    }, [shouldDeferShowUntilPositioned, calculatePopoverPosition, cancelAutoFocus]);
 
     const closeDatePicker = useCallback(() => {
         openIntentRef.current = false;
         setIsModalVisible(false);
     }, []);
+
+    const openDatePickerOnPress = useCallback(() => {
+        showDatePickerModal();
+    }, [showDatePickerModal]);
 
     const handleInputFocus = useCallback(() => {
         if (!autoFocus || hasAutoOpenedRef.current) {
@@ -205,7 +203,7 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    onPress={showDatePickerModal}
+                    onPress={openDatePickerOnPress}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
                     onFocus={handleInputFocus}
