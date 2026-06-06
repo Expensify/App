@@ -69,6 +69,11 @@ function setReportLayoutOption(layoutOption: ReportLayoutOption | null, previous
  * Apply a report layout selection from the group-by selector.
  * "None" maps to the matrix layout (a flat, ungrouped list) and clears the group-by field.
  * Category and Tag set the group-by field and clear any matrix layout so the report groups again.
+ *
+ * Note: this can fire two independent SetNameValuePair calls because App does not expose a plural
+ * SetNameValuePairs command yet. Each call has its own failureData rolling back just its own NVP on
+ * partial failure, so onyx converges per-key. A follow-up will introduce the plural variant so the
+ * writes can land atomically.
  */
 function setReportLayout(selection: ReportLayoutSelection, currentLayoutOption?: string | null, currentGroupBy?: string | null) {
     if (selection === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX) {
