@@ -5462,8 +5462,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             emptyCategories: {
                 title: '尚无类别',
                 subtitle: '添加类别来整理您的支出。',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>您的类别目前正从会计连接中导入。前往<a href="${accountingPageURL}">会计</a>页面进行任何更改。</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>您的类别目前正从会计连接中导入。${canManage ? `前往<a href="${accountingPageURL}">会计</a>页面进行任何更改。` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: '更新类别时出错，请重试',
             createFailureMessage: '创建类别时出错，请重试',
@@ -5809,8 +5809,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '尚无标签',
                 subtitle: '添加标签，以跟踪项目、地点、部门等。',
                 subtitleHTML: `<muted-text><centered-text>添加标签以跟踪项目、地点、部门等。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解更多</a>关于用于导入的标签文件格式。</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>您的标签目前正从会计连接中导入。前往<a href="${accountingPageURL}">会计</a>以进行任何更改。</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>您的标签目前正从会计连接中导入。${canManage ? `前往<a href="${accountingPageURL}">会计</a>以进行任何更改。` : ''}</centered-text></muted-text>`,
             },
             deleteTag: '删除标签',
             deleteTags: '删除标签',

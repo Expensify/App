@@ -5464,8 +5464,8 @@ ${amount} para ${merchant} - ${date}`,
             emptyCategories: {
                 title: 'Todavía no hay categorías',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
-                subtitleWithAccounting: (accountingPageURL) =>
-                    `<muted-text><centered-text>Tus categorías se están importando actualmente desde una conexión de contabilidad. Dirígete a <a href="${accountingPageURL}">contabilidad</a> para hacer cualquier cambio.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL, canManage = true) =>
+                    `<muted-text><centered-text>Tus categorías se están importando actualmente desde una conexión de contabilidad.${canManage ? ` Dirígete a <a href="${accountingPageURL}">contabilidad</a> para hacer cualquier cambio.` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
@@ -5837,8 +5837,8 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Aún no hay etiquetas',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
                 subtitleHTML: `<muted-text><centered-text>Importa una hoja de cálculo para añadir etiquetas y organizar proyectos, ubicaciones, departamentos y más. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Obtén más información</a> sobre cómo dar formato a los archivos de etiquetas.</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL) =>
-                    `<muted-text><centered-text>Tus etiquetas se están importando actualmente desde una conexión de contabilidad. Dirígete a <a href="${accountingPageURL}">contabilidad</a> para hacer cualquier cambio.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL, canManage = true) =>
+                    `<muted-text><centered-text>Tus etiquetas se están importando actualmente desde una conexión de contabilidad.${canManage ? ` Dirígete a <a href="${accountingPageURL}">contabilidad</a> para hacer cualquier cambio.` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'Eliminar etiqueta',
             deleteTags: 'Eliminar etiquetas',

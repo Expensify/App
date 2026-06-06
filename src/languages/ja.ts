@@ -5560,8 +5560,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptyCategories: {
                 title: 'カテゴリはまだありません',
                 subtitle: '支出を整理するカテゴリを追加してください。',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>現在、お客様のカテゴリは会計連携からインポートされています。変更するには、<a href="${accountingPageURL}">会計</a>に移動してください。</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>現在、お客様のカテゴリは会計連携からインポートされています。${canManage ? `変更するには、<a href="${accountingPageURL}">会計</a>に移動してください。` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'カテゴリの更新中にエラーが発生しました。もう一度お試しください。',
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
@@ -5918,8 +5918,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'タグはまだありません',
                 subtitle: 'タグを追加して、プロジェクト、所在地、部署などを追跡しましょう。',
                 subtitleHTML: `<muted-text><centered-text>タグを追加して、プロジェクト、所在地、部門などを追跡しましょう。インポート用のタグファイルの書式設定については、<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">詳しくはこちら</a>をご覧ください。</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>現在、タグは会計連携からインポートされています。変更するには<a href="${accountingPageURL}">会計</a>に移動してください。</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>現在、タグは会計連携からインポートされています。${canManage ? `変更するには<a href="${accountingPageURL}">会計</a>に移動してください。` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'タグを削除',
             deleteTags: 'タグを削除',

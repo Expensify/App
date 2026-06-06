@@ -885,14 +885,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const subtitleText = useMemo(() => {
         const emptyTagsSubtitle = hasAccountingConnections
-            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`)
+            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, canWriteTags)
             : translate('workspace.tags.emptyTags.subtitleHTML');
         return (
             <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
                 <RenderHTML html={emptyTagsSubtitle} />
             </View>
         );
-    }, [hasAccountingConnections, translate, environmentURL, policyID, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]);
+    }, [hasAccountingConnections, translate, environmentURL, policyID, canWriteTags, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]);
 
     return (
         <>

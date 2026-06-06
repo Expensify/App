@@ -5596,8 +5596,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             emptyCategories: {
                 title: 'Ainda não há categorias',
                 subtitle: 'Adicione uma categoria para organizar seus gastos.',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Suas categorias estão sendo importadas de uma conexão de contabilidade. Vá até <a href="${accountingPageURL}">contabilidade</a> para fazer qualquer alteração.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Suas categorias estão sendo importadas de uma conexão de contabilidade.${canManage ? ` Vá até <a href="${accountingPageURL}">contabilidade</a> para fazer qualquer alteração.` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Ocorreu um erro ao atualizar a categoria, tente novamente',
             createFailureMessage: 'Ocorreu um erro ao criar a categoria, tente novamente.',
@@ -5967,8 +5967,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Ainda não há tags',
                 subtitle: 'Adicione uma tag para acompanhar projetos, locais, departamentos e mais.',
                 subtitleHTML: `<muted-text><centered-text>Adicione tags para acompanhar projetos, locais, departamentos e mais. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Saiba mais</a> sobre como formatar arquivos de tags para importação.</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Suas tags estão sendo importadas de uma conexão contábil. Vá até a página de <a href="${accountingPageURL}">contabilidade</a> para fazer alterações.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Suas tags estão sendo importadas de uma conexão contábil.${canManage ? ` Vá até a página de <a href="${accountingPageURL}">contabilidade</a> para fazer alterações.` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'Excluir etiqueta',
             deleteTags: 'Excluir tags',
