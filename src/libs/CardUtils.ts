@@ -1559,8 +1559,6 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
         return false;
     }
 
-    const isDirectFeedType = isDirectFeed(feedName);
-
     return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
         if (!workspaceCards) {
             return false;
@@ -1581,15 +1579,17 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
             return false;
         }
 
-        // For direct feeds (Plaid/OAuth): check across ALL workspaces that share the same feed name,
-        // because the same Plaid card should not be assignable to multiple workspaces.
-        // For commercial feeds: restrict to the current domain only, because different domains
-        // can legitimately have cards with the same masked display name (e.g., "VISA - 1234").
-        if (isDirectFeedType) {
-            if (feedName && feedBankName !== feedName) {
-                return false;
-            }
-        } else if (feedDomainID !== domainOrWorkspaceAccountID) {
+        // Only flag a card already assigned within the CURRENT workspace/domain (and feed).
+        // Direct feeds (Plaid/OAuth) must NOT be matched across other workspaces: the only
+        // identifier the client has for them is the masked display name (getFilteredCardList
+        // sets cardID = cardName, which CardSelectionStep stores into encryptedCardNumber),
+        // e.g. "CREDIT CARD...6607", which is not unique across accounts. Genuine cross-account
+        // duplicates are rejected server-side by ASSIGN_COMPANY_CARD — the same path Expensify
+        // Classic uses, which is why the identical assignment succeeds there.
+        if (feedDomainID !== domainOrWorkspaceAccountID) {
+            return false;
+        }
+        if (feedName && feedBankName !== feedName) {
             return false;
         }
 
