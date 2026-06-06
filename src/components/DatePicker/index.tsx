@@ -119,16 +119,12 @@ function DatePicker({
     }, []);
 
     const openDatePickerOnPress = useCallback(() => {
-        showDatePickerModal();
-    }, [showDatePickerModal]);
-
-    const handleInputFocus = useCallback(() => {
-        if (!autoFocus || hasAutoOpenedRef.current) {
+        if (!shouldDeferShowUntilPositioned) {
             return;
         }
-        hasAutoOpenedRef.current = true;
         showDatePickerModal();
-    }, [autoFocus, showDatePickerModal]);
+    }, [shouldDeferShowUntilPositioned, showDatePickerModal]);
+
 
     const handleInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
@@ -206,7 +202,6 @@ function DatePicker({
                     onPress={openDatePickerOnPress}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
-                    onFocus={handleInputFocus}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
