@@ -250,7 +250,15 @@ function CalendarPicker({
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
     return (
-        <View style={[themeStyles.pb4, themeStyles.pt1, isHiddenForYearPicker && themeStyles.opacity0, isHiddenForYearPicker && themeStyles.pointerEventsNone]}>
+        <View
+            style={[
+                themeStyles.pb4,
+                themeStyles.pt1,
+                isHiddenForYearPicker && themeStyles.opacity0,
+                isHiddenForYearPicker && themeStyles.pointerEventsNone,
+                isHiddenForYearPicker && themeStyles.visibilityHidden,
+            ]}
+        >
             <View
                 style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.gap3, headerPaddingStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

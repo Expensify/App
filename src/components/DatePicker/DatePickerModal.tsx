@@ -1,10 +1,10 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
-import {Platform} from 'react-native';
 import type {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
@@ -47,7 +47,7 @@ function DatePickerModal({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const shouldHideInPlace = Platform.OS === 'web' && !isSmallScreenWidth;
+    const shouldHideInPlace = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
