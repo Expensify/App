@@ -16,6 +16,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 
+import useReportWasDeleted from './hooks/useReportWasDeleted';
+
 type ReportNotFoundGuardProps = {
     children: ReactNode;
 };
@@ -49,8 +51,9 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isInvalidReportPath = !!routeParams?.reportID && !isValidReportIDFromPath(routeParams.reportID);
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
+    const {wasDeleted} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
 
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists));
+    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists && !wasDeleted));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
