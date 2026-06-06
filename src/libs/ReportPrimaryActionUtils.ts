@@ -127,7 +127,9 @@ function isSubmitAction(
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction) || isScanning(transaction))) {
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+
+    if (isAnyReceiptBeingScanned) {
         return false;
     }
 
@@ -198,6 +200,9 @@ function isPrimaryPayAction({
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
+    if (isExpenseReport && !isPaidGroupPolicy(policy)) {
+        return false;
+    }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});

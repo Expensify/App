@@ -1,15 +1,17 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import type * as ReactNavigation from '@react-navigation/native';
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as AgentActions from '@libs/actions/Agent';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -28,6 +30,23 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('@components/RenderHTML', () => {
+    const ReactMock = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+
+    return ({html}: {html: string}) => {
+        const plainText = html.replaceAll(/<[^>]*>/g, '');
+        return ReactMock.createElement(Text, null, plainText);
+    };
+});
+
+jest.mock('@libs/actions/Agent', () => ({
+    openAgentsPage: jest.fn(),
+    clearAgentPromptUpdateError: jest.fn(),
+    openProfilePage: jest.fn(),
+    updateAgentPrompt: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -152,7 +171,7 @@ const Stack = createPlatformStackNavigator<SettingsSplitNavigatorParamList>();
 
 const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ROOT) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -180,6 +199,7 @@ describe('ProfilePage - agent account', () => {
     });
 
     afterEach(async () => {
+        jest.clearAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -228,6 +248,220 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByTestId('pronouns-menu-item')).toBeDefined();
         expect(screen.getByTestId('timezone-menu-item')).toBeDefined();
         expect(screen.getByText('Private')).toBeDefined();
+    });
+
+    it('shows AI prompt section with prompt text for agent account', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
+        expect(screen.getByTestId('ai-prompt-input').props.value).toBe('Reject gambling expenses.');
+        expect(screen.getByTestId('save-prompt-button')).toBeDefined();
+    });
+
+    it('hides AI prompt section for non-agent account', async () => {
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
+        expect(screen.queryByTestId('save-prompt-button')).toBeNull();
+    });
+
+    it('calls openProfilePage on mount for agent account', async () => {
+        const mockOpenProfilePage = jest.mocked(AgentActions.openProfilePage);
+        await setupUser('agent_123@expensify.ai');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenProfilePage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call openProfilePage on mount for non-agent account', async () => {
+        const mockOpenProfilePage = jest.mocked(AgentActions.openProfilePage);
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenProfilePage).not.toHaveBeenCalled();
+    });
+
+    it('calls updateAgentPrompt when saving non-empty prompt', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPrompt).toHaveBeenCalledWith(accountID, 'Updated prompt text', 'Reject gambling expenses.');
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
+    });
+
+    it('does not show loading state on save button for a pending prompt update that was not user-initiated', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
+        expect(saveButtonProps.accessibilityState?.disabled).toBe(false);
+    });
+
+    it('shows loading state on save button while a user-initiated prompt update is pending', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Updated prompt text',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
+        expect(saveButtonProps.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('allows re-saving an edited prompt while offline even when a previous save is still pending', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            // Simulate a first offline save that is queued but not yet replayed: pendingAction stays 'update',
+            // so isSaving is true. The button is intentionally not disabled while offline.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'First offline edit.',
+                pendingAction: 'update',
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Second offline edit.');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPrompt).toHaveBeenCalledWith(accountID, 'Second offline edit.', 'First offline edit.');
+    });
+
+    it('clears save loader when network drops mid-save', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+
+        // Optimistic write sets pendingAction='update' so the user-initiated save shows the loader.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Updated prompt text',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const loadingButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
+        expect(loadingButtonProps.accessibilityState?.disabled).toBe(true);
+
+        // Network drops while the request is still in flight: pendingAction stays 'update'.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const offlineButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
+        expect(offlineButtonProps.accessibilityState?.disabled).toBe(false);
+    });
+
+    it('does not call updateAgentPrompt when saving blank prompt', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), '   ');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPrompt).not.toHaveBeenCalled();
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
     });
 });
 

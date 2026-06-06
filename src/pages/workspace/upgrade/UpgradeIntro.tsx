@@ -86,7 +86,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'InvoiceBlue',
         'Members',
     ]);
-    const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'AdvancedApprovalsSquare', 'Unlock']);
+    const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'AdvancedApprovalsSquare', 'Unlock']);
     const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
     const missing = allIconNames.filter((n): n is string => !!n && !imported.has(n));
     if (missing.length) {

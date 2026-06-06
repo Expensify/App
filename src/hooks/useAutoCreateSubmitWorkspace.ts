@@ -80,7 +80,6 @@ function useAutoCreateSubmitWorkspace() {
                 onboardingPolicyID: newPolicyID,
                 introSelected,
                 isSelfTourViewed,
-                betas,
             });
 
             setOnboardingAdminsChatReportID();

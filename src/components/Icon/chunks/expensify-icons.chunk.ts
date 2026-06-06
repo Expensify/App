@@ -175,6 +175,7 @@ import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
+import Moon from '@assets/images/moon.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
 import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
@@ -238,6 +239,7 @@ import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsDown from '@assets/images/thumbs-down.svg';
+import ThumbsUpHourglass from '@assets/images/thumbs-up-hourglass.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
@@ -264,6 +266,12 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+// These icons are React components because they have
+// drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
+import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
+import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
+import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
+import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
 
 const Expensicons = {
     ReceiptBody,
@@ -395,6 +403,10 @@ const Expensicons = {
     Mail,
     MakeAdmin,
     Map,
+    MapCurrentLocation,
+    MapStartWaypoint,
+    MapStopWaypoint,
+    MapWaypoint,
     Menu,
     Meter,
     Megaphone,
@@ -405,6 +417,7 @@ const Expensicons = {
     MoneyWaving,
     MoneyHourglass,
     Monitor,
+    Moon,
     Mute,
     ExpensifyLogoNew,
     NewWindow,
@@ -449,6 +462,7 @@ const Expensicons = {
     Sync,
     Task,
     ThumbsUp,
+    ThumbsUpHourglass,
     ThreeDots,
     Transfer,
     Trashcan,

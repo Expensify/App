@@ -22,7 +22,7 @@ function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActiv
 
     const {domainAccountID, accountID} = route.params;
 
-    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)});
+    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)}, [accountID]);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     const {translate} = useLocalize();
