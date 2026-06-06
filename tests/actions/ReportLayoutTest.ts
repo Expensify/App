@@ -1,11 +1,18 @@
 import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportLayout} from '@libs/actions/ReportLayout';
 import * as API from '@libs/API';
+import type {SetNameValuePairsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/API');
 
 const mockAPI = API as jest.Mocked<typeof API>;
+
+const getWrittenNameValuePairs = (callIndex = 0) => {
+    const call = mockAPI.write.mock.calls.at(callIndex);
+    const params = call?.[1] as SetNameValuePairsParams | undefined;
+    return params ? (JSON.parse(params.nameValuePairs) as Record<string, string>) : {};
+};
 
 describe('getReportLayoutGroupBy', () => {
     it('returns CATEGORY when storedValue is null', () => {
@@ -38,30 +45,40 @@ describe('setReportLayout', () => {
         mockAPI.write.mockClear();
     });
 
-    it('sets matrix layout and removes the group-by field when None is selected', () => {
+    it('writes layoutOption=matrix and clears groupByOption atomically when None is selected', () => {
         setReportLayout(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, null, CONST.REPORT_LAYOUT.GROUP_BY.TAG);
 
-        expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'expensify_layoutOption', value: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX}, expect.any(Object));
-        expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'expensify_groupByOption', value: ''}, expect.any(Object));
+        expect(mockAPI.write).toHaveBeenCalledTimes(1);
+        expect(mockAPI.write.mock.calls[0][0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(getWrittenNameValuePairs()).toEqual({
+            expensify_layoutOption: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
+            expensify_groupByOption: '',
+        });
     });
 
-    it('sets the group-by field when Category or Tag is selected', () => {
+    it('writes only groupByOption when Category or Tag is selected without a prior matrix layout', () => {
         setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.TAG, null, null);
 
-        expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'expensify_groupByOption', value: CONST.REPORT_LAYOUT.GROUP_BY.TAG}, expect.any(Object));
+        expect(mockAPI.write).toHaveBeenCalledTimes(1);
+        expect(mockAPI.write.mock.calls[0][0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(getWrittenNameValuePairs()).toEqual({expensify_groupByOption: CONST.REPORT_LAYOUT.GROUP_BY.TAG});
     });
 
-    it('does not touch the layout option when switching group-by without a matrix layout', () => {
-        setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY, null, CONST.REPORT_LAYOUT.GROUP_BY.TAG);
-
-        expect(mockAPI.write).not.toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, expect.objectContaining({name: 'expensify_layoutOption'}), expect.any(Object));
-    });
-
-    it('clears the matrix layout when switching from None to Category or Tag', () => {
+    it('clears the matrix layout atomically when switching from None back to Category or Tag', () => {
         setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY, CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, null);
 
-        expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'expensify_groupByOption', value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY}, expect.any(Object));
-        expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'expensify_layoutOption', value: ''}, expect.any(Object));
+        expect(mockAPI.write).toHaveBeenCalledTimes(1);
+        expect(mockAPI.write.mock.calls[0][0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(getWrittenNameValuePairs()).toEqual({
+            expensify_groupByOption: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+            expensify_layoutOption: '',
+        });
+    });
+
+    it('never falls back to the singular SetNameValuePair command', () => {
+        setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.TAG, null, null);
+
+        expect(mockAPI.write).not.toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, expect.any(Object), expect.any(Object));
     });
 });
 
