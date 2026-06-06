@@ -1,36 +1,35 @@
 ---
-title: Set Up Expensify Card Spend Rules
+title: Expensify Card Spend Rules
 description: Learn how Workspace Admins use Expensify Card Spend Rules to approve or decline card transactions in real time at the point of sale, including Block rules, Allow rules, and default protections.
 keywords: [New Expensify, Expensify Card Spend Rules, block card transactions, allow list, decline transaction, merchant restrictions, spend category, default protections, Workspace Admin]
 internalScope: Audience is Workspace Admins. Covers creating and managing Expensify Card Spend Rules and understanding default protections. Does not cover post-submission expense rules, card limits, or cardholder-side card management.
 ---
 
-Spend Rules let Workspace Admins approve or decline Expensify Card transactions in real time, at the moment the card is used, before any expense is created. This gives you guardrails to issue cards more broadly while keeping tight control over where and how they can be used.
+# Expensify Card Spend Rules 
 
-Spend Rules apply only to Expensify Card transactions. They do not apply to reimbursements, manually created expenses, or third-party card transactions. They are also distinct from expense rules, which determine how an expense is categorized *after* a transaction is approved.
-
-Each card can have at most one admin-defined Spend Rule, in either **Block** mode or **Allow** mode.
+Spend Rules let Workspace Admins approve or decline Expensify Card transactions in real time before an expense is created. This gives you more control over where cards can be used while allowing you to issue cards more broadly across your organization.
 
 ---
 
 ## Who can manage Expensify Card Spend Rules
 
 - **Workspace Admins** can create, edit, and delete Spend Rules.
-- **Cardholders** are subject to Spend Rules and can view them, but cannot create or change them.
-
-Spend Rules can only be configured in New Expensify. Once set, they are enforced on transactions made through Expensify Classic as well.
+- **Cardholders** can view Spend Rules that apply to their cards but cannot create or modify them.
 
 ---
 
-## What default protections apply to every Expensify Card
+## What rules are automatically applied to every Expensify Card
 
-Every Expensify Card includes built-in default protections that block certain merchant category codes (MCCs), such as ATMs and gambling. These protections are part of the Expensify Card program.
+These protections act as baseline rules for all cards and are evaluated before any Spend Rule.. 
 
-- They apply automatically to all Expensify Cards.
-- They cannot be edited or overridden, including by a Spend Rule.
-- A transaction that matches a blocked MCC is always declined.
+When you create a Spend Rule, it is applied in addition to these default protections rather than replacing them.
 
-To view the default protections, go to **Settings > Workspaces > [Workspace Name] > Spend**. The default protection appears as a non-editable rule.
+- Default protections apply to all Expensify Cards.
+- They cannot be edited or removed.
+- They cannot be overridden by Spend Rules.
+- Transactions that match a blocked MCC are automatically declined.
+
+To view the default protections, go to **Workspaces > [Workspace Name] > Spend**. The default protection appears as a non-editable rule.
 
 <!-- SCREENSHOT:
 Suggestion: The workspace Spend section showing the non-editable Default Protection rule.
@@ -40,35 +39,43 @@ Purpose: Helps admins recognize the new Spend section and what the default prote
 
 ---
 
-## How Expensify Card Spend Rules are evaluated
+## How Spend Rules are evaluated
 
-For every transaction, Expensify returns a single decision — approve or decline — using this order:
+For every transaction, Expensify returns a single decision: approved or declined.
 
-1. **Default protections** are checked first. If the transaction matches a blocked MCC, it is declined.
-2. **The card's admin-defined Spend Rule** is checked next, if one exists:
-   - **Block mode:** the transaction is declined if it matches a blocked merchant or spend category, or exceeds the max amount. Otherwise, it is approved.
-   - **Allow mode:** the transaction is approved only if it matches an allowed merchant or spend category and does not exceed the max amount. Otherwise, it is declined.
-3. If nothing above declines the transaction, it is approved.
+Transactions are evaluated in the following order:
 
-A card with no admin-defined Spend Rule is governed only by the default protections and its card limit.
+1. **Default protections** are checked first. If a transaction matches a blocked MCC, it is declined.
+2. **The card's admin-defined Spend Rule** is checked next, if one exists. 
+   - In **Block mode**, a transaction is declined if it matches a blocked merchant or spend category, or exceeds the maximum amount
+   - In **Allow mode**, a transaction is approved only when it matches an allowed merchant or spend category and remains within the maximum amount..
+3. If no rule declines the transaction, the transaction is approved.
+
+Cards without an admin-defined Spend Rule are governed only by default protections and any applicable card limits.
 
 ---
 
 ## How to add a Block rule to an Expensify Card
 
-Use a Block rule for broadly-used cards where only specific spend needs to be restricted — for example, a sales team card that works nearly everywhere except gambling or specific merchants.
+Use a Block rule when cards should work broadly but specific spending needs to be restricted.
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Spend**.
+Examples include:
+
+- Restricting subscription services
+- Blocking specific a merchant
+- Preventing transactions above a defined amount
+
+1. Go to **Workspaces > [Workspace Name] > Rules**.
 2. Click **Add card rule**.
-3. Select one or more cards to apply the rule to. Only cards without an existing Spend Rule appear in the list.
-4. Choose **Block** mode.
-5. Configure any combination of the following restrictions:
-   - **Merchants:** add merchant names using **Contains** or **Exact match**.
-   - **Spend categories:** select one or more categories from the MCC-group list.
-   - **Max amount:** enter a maximum transaction amount.
+3. Select one or more cards to apply the rule to.
+4. Select **Block**. 
+5. Configure one or more restrictions:
+   - **Merchants:** Add merchants using **Contains** or **Exact match**.
+   - **Spend categories:** Select blocked spend categories.
+   - **Max amount:** Enter a maximum transaction amount.
 6. Click **Save**.
 
-A transaction is declined if it matches any blocked merchant or spend category, or exceeds the max amount.
+A transaction is declined when it matches any blocked condition.
 
 <!-- SCREENSHOT:
 Suggestion: The Add card rule flow with Block mode selected and merchant/category/max amount fields visible.
@@ -80,21 +87,26 @@ Purpose: Shows admins the rule configuration fields.
 
 ## How to add an Allow rule to an Expensify Card
 
-Use an Allow rule for tightly-scoped cards that should only work in specific situations — for example, a travel-only card (hotels, airlines, transportation), a benefits card (gym or fitness merchants), or a subscription card (specific merchant names).
+Use an Allow rule when cards should only work in specific situations.
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Spend**.
+Examples include:
+
+ - Travel-only cards
+ - Subscription cards
+ - Benefits cards
+ - Vendor-specific purchasing cards
+
+1. Go to **Workspaces > [Workspace Name] > Rules**.
 2. Click **Add card rule**.
-3. Select one or more cards to apply the rule to. Only cards without an existing Spend Rule appear in the list.
-4. Choose **Allow** mode.
-5. Configure the restrictions that define what is permitted:
-   - **Merchants:** add allowed merchant names using **Contains** or **Exact match**.
-   - **Spend categories:** select the allowed categories from the MCC-group list.
-   - **Max amount:** enter a maximum transaction amount.
+3. Select one or more cards.
+4. Select **Allow**.
+5. Configure the allowed conditions:
+   - **Merchants:** Add merchants using **Contains** or **Exact match**.
+   - **Spend categories:** Select allowed spend categories.
+   - **Max amount:** Enter a maximum transaction amount.
 6. Click **Save**.
 
-A transaction is approved only if it matches an allowed merchant or spend category and does not exceed the max amount. Anything else is declined.
-
-Each card can have one Spend Rule in one mode. A card cannot have both an Allow rule and a Block rule at the same time.
+Transactions are approved only when they satisfy the allowed conditions and remain within the maximum amount.
 
 ---
 
@@ -102,31 +114,40 @@ Each card can have one Spend Rule in one mode. A card cannot have both an Allow 
 
 After a rule is created, you can review, change, or remove it.
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Spend**.
-2. Locate the card's Spend Rule summary.
-3. Click the rule to edit its merchants, spend categories, max amount, or mode.
-4. To remove the rule entirely, choose **Delete**.
+1. Go to **Workspaces > [Workspace Name] > Rules**.
+2. Locate the card's Spend Rule.
+3. Select the rule to update its merchants, spend categories, maximum amount, or mode.
+4. Click Save to apply changes.
 
-When you delete a rule, the card returns to being governed only by default protections and its card limit.
+To remove a rule: 
+1. Open the Spend Rule.
+2. Click **Delete**.
+
+After deletion, the card is governed only by default protections and any applicable card limits.
 
 ---
 
-## How to apply a Spend Rule when issuing a new Expensify Card
+## How to apply an Expensify Card Spend Rule when issuing a card
 
-You can apply a Spend Rule at the time you issue a card, so the card has controls in place from its first use.
+You can apply a Spend Rule during card issuance so spending controls are active before the card is used.
 
-1. Issue a new card from **Settings > Workspaces > [Workspace Name] > Expensify Card**. For the full issuance steps, [learn how to set up and manage Expensify Cards](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card).
-2. During issuance, apply an existing Spend Rule or create a new one for the card.
+[Learn how to set up and manage Expensify Cards](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card).
 
-If a cardholder loses a card or orders a replacement, the Spend Rule from the old card is automatically copied to the new one.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Expensify Card** and begin issuing a new card.
+2. On the **Set card rules** step, enable **Add a spend rule**
+3. Choose **Copy existing** to reuse an existing rule, or **Create new** to create a new one. 
+4. Configure the **Block** or **Allow** rule.
+5. Complete the card issuance process. 
+
+The Spend Rule is applied when the card is issued and is enforced from the card's first transaction.
 
 ---
 
 ## How to find a card or Spend Rule using search
 
-In workspaces with many cards, use the search filter to quickly locate a specific card or its Spend Rule.
+Use search to quickly locate a card or Spend Rule. 
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Spend**.
+1. Go to **Workspaces > [Workspace Name] > Rules**.
 2. Use the search field to filter the list by card or rule.
 
 ---
@@ -156,3 +177,4 @@ If a member loses a card or orders a replacement, Expensify automatically copies
 ## Can Spend Rules be configured in Expensify Classic?
 
 No. Spend Rules can only be configured in New Expensify. Once set, they are enforced on Expensify Classic transactions as well.
+
