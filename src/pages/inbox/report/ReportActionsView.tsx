@@ -14,6 +14,7 @@ import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
@@ -75,7 +76,8 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
-    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID, chatReportActions), [report?.chatReportID, report?.reportID, chatReportActions]);
     const didLayout = useRef(false);
 
     useEffect(() => {

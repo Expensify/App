@@ -58,7 +58,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const lastAction = allReportActions?.at(-1);
     const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
 
-    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID, chatReportActions), [report?.chatReportID, report?.reportID, chatReportActions]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
