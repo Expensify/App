@@ -179,18 +179,13 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         />
                     </View>
                     {shouldBreakGrouping ? (
-                        <View
+                        <PressableWithoutFeedback
                             accessible
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}
-                            accessibilityActions={[{name: 'activate'}]}
-                            onAccessibilityAction={(event) => {
-                                if (event.nativeEvent.actionName !== 'activate') {
-                                    return;
-                                }
-                                Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}));
-                            }}
+                            onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                             style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
                         >
                             {hasAssignee && (
                                 <UserDetailsTooltip accountID={taskAssigneeAccountID}>
@@ -208,7 +203,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             <View style={[styles.alignSelfCenter, styles.flex1]}>
                                 <RenderHTML html={getTaskHTML()} />
                             </View>
-                        </View>
+                        </PressableWithoutFeedback>
                     ) : (
                         <>
                             {hasAssignee && (
