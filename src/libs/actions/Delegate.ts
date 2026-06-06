@@ -19,9 +19,9 @@ import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
+import initializePusher from './initializePusher';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
-import {subscribeToUserEvents} from './User';
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -69,16 +69,7 @@ function initializePusherForDelegateTransition(): Promise<void> {
                 const nextAccountID = nextSession.accountID;
 
                 Onyx.disconnect(connection);
-
-                Pusher.init({
-                    appKey: CONFIG.PUSHER.APP_KEY,
-                    cluster: CONFIG.PUSHER.CLUSTER,
-                    authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-                })
-                    .then(() => {
-                        subscribeToUserEvents(nextAccountID, nextSession.email ?? '');
-                    })
-                    .finally(resolve);
+                initializePusher(nextAccountID, nextSession.email ?? '').finally(resolve);
             },
         });
     });

@@ -13,7 +13,6 @@ import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -23,24 +22,12 @@ import {openAgentsPage} from '@userActions/Agent';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
+import initializePusher from '@userActions/initializePusher';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
-import * as User from '@userActions/User';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
-
-function initializePusher(currentUserAccountID?: number, currentUserEmail?: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
-    return Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
-        cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-    }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getReportAttributes);
-    });
-}
 
 /**
  * Component that does not render anything and owns mount-only initialization logic, network reconnect,
