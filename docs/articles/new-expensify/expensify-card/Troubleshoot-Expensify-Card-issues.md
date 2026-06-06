@@ -68,7 +68,7 @@ To check whether a Spend Rule caused the decline:
 - **On web:** Go to **Account > Wallet > Expensify Card** using the navigation tabs on the left.
 - **On mobile:** Go to **Wallet > Expensify Card** using the navigation tabs at the bottom.
 
-Then click your card to view its Spend Rule summary. If a Spend Rule is blocking your purchase, contact your Workspace Admin, since only an admin can change the rule. To learn more, [learn about Expensify Card Spend Rules](https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+Then click your card to view its Spend Rule summary. If a Spend Rule is blocking your purchase, contact your Workspace Admin, since only an admin can change the rule. To learn more, [learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
 ---
 
