@@ -61,9 +61,11 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-    // First participant whose accountID has a SHARED_NVP_AGENT_PROMPT entry. Both gates and
-    // identifies the persona in one pass.
-    const agentParticipantAccountID = participantAccountIDs?.find((accountID) => !!agentAccountIDFlags?.[accountID]);
+    // Participants whose accountID has a SHARED_NVP_AGENT_PROMPT entry. Gates the chat, identifies
+    // the default persona (the first one), and provides the full agent list so the indicator can
+    // tell which mention is the tagged agent.
+    const agentParticipantAccountIDs = participantAccountIDs?.filter((accountID) => !!agentAccountIDFlags?.[accountID]) ?? [];
+    const agentParticipantAccountID = agentParticipantAccountIDs.at(0);
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
@@ -76,14 +78,15 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
             key={reportID}
             reportID={reportID}
             personaAccountID={agentParticipantAccountID ?? CONST.ACCOUNT_ID.CONCIERGE}
+            agentAccountIDs={agentParticipantAccountIDs}
         >
             {children}
         </AgentZeroStatusGate>
     );
 }
 
-function AgentZeroStatusGate({reportID, personaAccountID, children}: React.PropsWithChildren<{reportID: string; personaAccountID: number}>) {
-    const {kickoffWaitingIndicator, ...indicatorState} = useAgentZeroStatusIndicator(reportID, personaAccountID);
+function AgentZeroStatusGate({reportID, personaAccountID, agentAccountIDs, children}: React.PropsWithChildren<{reportID: string; personaAccountID: number; agentAccountIDs: number[]}>) {
+    const {kickoffWaitingIndicator, ...indicatorState} = useAgentZeroStatusIndicator(reportID, personaAccountID, agentAccountIDs);
     const stateValue = indicatorState;
     const actionsValue = {kickoffWaitingIndicator};
 

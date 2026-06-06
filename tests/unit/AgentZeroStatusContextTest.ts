@@ -1099,11 +1099,11 @@ describe('AgentZeroStatusContext', () => {
         const userActionID = '50';
         const taggedReplyActionID = '300';
         const defaultAgentReplyActionID = '400';
-        const buildUserMentionAction = (id: string, created: string, mentionedAccountID: number) => ({
+        const buildUserMentionAction = (id: string, created: string, mentionedAccountIDs: number[]) => ({
             reportActionID: id,
             actorAccountID: HUMAN_USER_ID,
             created,
-            originalMessage: {mentionedAccountIDs: [mentionedAccountID]},
+            originalMessage: {mentionedAccountIDs},
             message: [{type: 'TEXT', text: '@agent help'}],
         });
         const buildAgentReply = (id: string, created: string, actorAccountID: number) => ({
@@ -1119,10 +1119,10 @@ describe('AgentZeroStatusContext', () => {
             // mention at activation and clear once agent B — the one we're actually waiting on —
             // replies. This is the core fix for the stuck indicator in #admins multi-agent rooms.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', TAGGED_AGENT_ID),
+                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [TAGGED_AGENT_ID]),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID));
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
             await waitForBatchedUpdates();
 
             // Indicator activates — latches the tagged agent (B) from the mention on the newest action.
@@ -1149,10 +1149,10 @@ describe('AgentZeroStatusContext', () => {
             // latched agent B, agent A's action must not be mistaken for the awaited reply —
             // otherwise the indicator would clear before agent B has actually responded.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', TAGGED_AGENT_ID),
+                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [TAGGED_AGENT_ID]),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID));
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
             await waitForBatchedUpdates();
 
             act(() => {
@@ -1171,6 +1171,54 @@ describe('AgentZeroStatusContext', () => {
             // The indicator must stay up — we're waiting on agent B, not agent A.
             expect(result.current.isProcessing).toBe(true);
             expect(mockClearAgentZeroProcessingIndicator).not.toHaveBeenCalled();
+        });
+
+        it('should latch the tagged agent when a regular member is mentioned before the agent', async () => {
+            // The message mentions a human (not an agent) before the tagged agent. The latch must
+            // skip the non-agent mention and pick the agent — otherwise the agent's reply never
+            // matches the latched persona and the indicator stays stuck until the safety timeout.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [HUMAN_USER_ID, TAGGED_AGENT_ID]),
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            // The human mention is ignored; the tagged agent is latched.
+            expect(result.current.personaAccountID).toBe(TAGGED_AGENT_ID);
+
+            // The tagged agent replies → reply-detection matches the latched persona and clears.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [taggedReplyActionID]: buildAgentReply(taggedReplyActionID, '2024-01-01 00:00:01.000', TAGGED_AGENT_ID),
+            });
+            await waitForBatchedUpdates();
+
+            await waitFor(() => {
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID);
+            });
+        });
+
+        it('should fall back to the default persona when only non-agent members are mentioned', async () => {
+            // The message mentions a human but no agent → no mention matches the agent list, so the
+            // latch falls back to the default persona whose reply will correctly clear the indicator.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [HUMAN_USER_ID]),
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, DEFAULT_AGENT_ID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.personaAccountID).toBe(DEFAULT_AGENT_ID);
         });
 
         it('should fall back to the default persona when the tagging message has no mention', async () => {

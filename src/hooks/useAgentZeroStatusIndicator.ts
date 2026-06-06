@@ -28,8 +28,8 @@ type NewestReportAction = {
     reportActionID: string;
     actorAccountID?: number;
 
-    /** First account mentioned in the action (the tagged agent for an `@agent` message), if any. */
-    mentionedAccountID?: number;
+    /** Accounts mentioned in the action, in order — used to resolve the tagged agent for an `@agent` message. */
+    mentionedAccountIDs?: number[];
 };
 
 /**
@@ -75,12 +75,12 @@ function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): Newe
     });
 
     const originalMessage = getOriginalMessage(newest);
-    const mentionedAccountID = originalMessage && 'mentionedAccountIDs' in originalMessage ? originalMessage.mentionedAccountIDs?.at(0) : undefined;
+    const mentionedAccountIDs = originalMessage && 'mentionedAccountIDs' in originalMessage ? originalMessage.mentionedAccountIDs : undefined;
 
     return {
         reportActionID: newest.reportActionID,
         actorAccountID: newest.actorAccountID,
-        mentionedAccountID,
+        mentionedAccountIDs,
     };
 }
 
@@ -93,12 +93,15 @@ function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): Newe
  * for an AgentZero chat.
  *
  * @param reportID - The report ID to monitor
- * @param personaAccountID - The persona handling this chat (Concierge for Concierge/admin chats;
- *   the agent's accountID for custom-agent chats). Used to decide when a final reply has
- *   actually landed: the indicator only clears once the newest reportAction's actorAccountID
- *   matches this persona AND the server NVP signals done.
+ * @param personaAccountID - The default persona handling this chat (Concierge for Concierge/admin
+ *   chats; the agent's accountID for custom-agent chats). Used as the fallback persona and to
+ *   decide when a final reply has actually landed: the indicator only clears once the newest
+ *   reportAction's actorAccountID matches the latched persona AND the server NVP signals done.
+ * @param agentAccountIDs - The agent participants in this chat. When the tagging message mentions
+ *   several accounts, the latch picks the first mention that is one of these agents so a regular
+ *   member mentioned before the agent doesn't get latched as the persona we're waiting on.
  */
-function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
+function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number = CONST.ACCOUNT_ID.CONCIERGE, agentAccountIDs: readonly number[] = CONST.EMPTY_ARRAY): AgentZeroStatusState {
     // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
     // Uses selector to only re-render when the specific field changes, not on any NVP change.
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
@@ -160,6 +163,13 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     // can't re-derive it once the reply lands. Falls back to the default persona when nothing was
     // tagged (e.g. Concierge DMs).
     const [effectivePersonaAccountID, setEffectivePersonaAccountID] = useState<number>(personaAccountID);
+
+    // Mirror the agent participant list into a ref so the latch effect can read the current value
+    // without taking the array (whose identity can change between renders) as a dependency.
+    const agentAccountIDsRef = useRef(agentAccountIDs);
+    useEffect(() => {
+        agentAccountIDsRef.current = agentAccountIDs;
+    }, [agentAccountIDs]);
 
     /**
      * Clear the safety timer. Called when the indicator clears normally, when a new
@@ -386,7 +396,11 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     useEffect(() => {
         if (isIndicatorActive && !wasIndicatorActiveRef.current) {
             indicatorBaselineActionIDRef.current = newestReportActionRef.current?.reportActionID ?? null;
-            setEffectivePersonaAccountID(newestReportActionRef.current?.mentionedAccountID ?? personaAccountID);
+            // The message can mention regular members before the agent, so pick the first mention
+            // that is an actual agent participant rather than blindly taking the first mention.
+            // Falls back to the default persona when nothing agent-like was tagged.
+            const taggedAgentAccountID = newestReportActionRef.current?.mentionedAccountIDs?.find((accountID) => agentAccountIDsRef.current.includes(accountID));
+            setEffectivePersonaAccountID(taggedAgentAccountID ?? personaAccountID);
         } else if (!isIndicatorActive) {
             indicatorBaselineActionIDRef.current = null;
             setEffectivePersonaAccountID(personaAccountID);
