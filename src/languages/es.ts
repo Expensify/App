@@ -5831,8 +5831,8 @@ ${amount} para ${merchant} - ${date}`,
             editTags: 'Editar etiquetas',
             findTag: 'Encontrar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
-            subtitleWithDependentTags: (importSpreadsheetLink) =>
-                `<muted-text>Las etiquetas añaden formas más detalladas de clasificar los costos. Estás usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">etiquetas dependientes</a>. Puedes <a href="${importSpreadsheetLink}">reimportar una hoja de cálculo</a> para actualizar tus etiquetas.</muted-text>`,
+            subtitleWithDependentTags: `Las etiquetas añaden formas más detalladas de clasificar los costos. Estás usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">etiquetas dependientes</a>.`,
+            subtitleWithDependentTagsImport: (importSpreadsheetLink) => ` Puedes <a href="${importSpreadsheetLink}">reimportar una hoja de cálculo</a> para actualizar tus etiquetas.`,
             emptyTags: {
                 title: 'Aún no hay etiquetas',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',

@@ -89,44 +89,6 @@ type WorkspaceTagsPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT>;
 
-function removeSentenceContainingHref(html: string, href: string) {
-    const anchorStart = `<a href="${href}">`;
-    const anchorStartIndex = html.indexOf(anchorStart);
-    if (anchorStartIndex === -1) {
-        return html;
-    }
-
-    const anchorEndIndex = html.indexOf('</a>', anchorStartIndex + anchorStart.length);
-    if (anchorEndIndex === -1) {
-        return html;
-    }
-
-    const sentenceDelimiters = ['. ', '。'];
-    const sentenceStartDelimiter = sentenceDelimiters.reduce(
-        (latestDelimiter, delimiter) => {
-            const delimiterIndex = html.lastIndexOf(delimiter, anchorStartIndex);
-            return delimiterIndex > latestDelimiter.index ? {delimiter, index: delimiterIndex} : latestDelimiter;
-        },
-        {delimiter: '', index: -1},
-    );
-    if (sentenceStartDelimiter.index === -1) {
-        return html;
-    }
-
-    const sentenceEndDelimiter = sentenceDelimiters
-        .map((delimiter) => ({delimiter, index: html.indexOf(delimiter.trim(), anchorEndIndex)}))
-        .filter(({index}) => index !== -1)
-        .sort((first, second) => first.index - second.index)
-        .at(0);
-    if (!sentenceEndDelimiter) {
-        return html;
-    }
-
-    const removeStartIndex = sentenceStartDelimiter.index + sentenceStartDelimiter.delimiter.trim().length;
-    const removeEndIndex = sentenceEndDelimiter.index + sentenceEndDelimiter.delimiter.trim().length;
-    return `${html.slice(0, removeStartIndex)}${html.slice(removeEndIndex)}`;
-}
-
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -895,10 +857,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const importSpreadsheetURL = isQuickSettingsFlow
             ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
             : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`;
-        const dependentTagsSubtitle = translate('workspace.tags.subtitleWithDependentTags', importSpreadsheetURL);
+        const dependentTagsSubtitle = translate('workspace.tags.subtitleWithDependentTags');
         let subtitleHTML = `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`;
         if (hasDependentTags) {
-            subtitleHTML = canWriteTags ? dependentTagsSubtitle : removeSentenceContainingHref(dependentTagsSubtitle, importSpreadsheetURL);
+            subtitleHTML = `<muted-text>${dependentTagsSubtitle}${canWriteTags ? translate('workspace.tags.subtitleWithDependentTagsImport', importSpreadsheetURL) : ''}</muted-text>`;
         }
 
         return (

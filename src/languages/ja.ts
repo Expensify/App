@@ -5912,8 +5912,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             editTags: 'タグを編集',
             findTag: 'タグを検索',
             subtitle: 'タグを使うと、コストをより詳しく分類できます。',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>タグを使うと、コストをより詳しく分類できます。あなたは<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">連動タグ</a>を使用しています。タグを更新するには、<a href="${importSpreadsheetLink}">スプレッドシートを再インポート</a>できます。</muted-text>`,
+            subtitleWithDependentTags: `タグを使うと、コストをより詳しく分類できます。あなたは<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">連動タグ</a>を使用しています。`,
+            subtitleWithDependentTagsImport: (importSpreadsheetLink: string) => `タグを更新するには、<a href="${importSpreadsheetLink}">スプレッドシートを再インポート</a>できます。`,
             emptyTags: {
                 title: 'タグはまだありません',
                 subtitle: 'タグを追加して、プロジェクト、所在地、部署などを追跡しましょう。',
