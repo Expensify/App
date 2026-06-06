@@ -49,7 +49,7 @@ describe('setReportLayout', () => {
         setReportLayout(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, null, CONST.REPORT_LAYOUT.GROUP_BY.TAG);
 
         expect(mockAPI.write).toHaveBeenCalledTimes(1);
-        expect(mockAPI.write.mock.calls[0][0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
         expect(getWrittenNameValuePairs()).toEqual({
             expensify_layoutOption: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
             expensify_groupByOption: '',
@@ -60,7 +60,7 @@ describe('setReportLayout', () => {
         setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.TAG, null, null);
 
         expect(mockAPI.write).toHaveBeenCalledTimes(1);
-        expect(mockAPI.write.mock.calls[0][0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
         expect(getWrittenNameValuePairs()).toEqual({expensify_groupByOption: CONST.REPORT_LAYOUT.GROUP_BY.TAG});
     });
 
@@ -68,7 +68,7 @@ describe('setReportLayout', () => {
         setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY, CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, null);
 
         expect(mockAPI.write).toHaveBeenCalledTimes(1);
-        expect(mockAPI.write.mock.calls[0][0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
         expect(getWrittenNameValuePairs()).toEqual({
             expensify_groupByOption: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
             expensify_layoutOption: '',
