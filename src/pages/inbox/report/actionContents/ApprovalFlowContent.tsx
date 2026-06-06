@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
-import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 import CONST from '@src/CONST';
@@ -18,7 +17,6 @@ type ApprovalFlowContentProps = {
     policyID: string | undefined;
     reportID: string | undefined;
     originalReport: OnyxEntry<OnyxTypes.Report>;
-    isTrackIntentUser: boolean;
 };
 
 function isApprovalFlowAction(action: OnyxTypes.ReportAction): boolean {
@@ -31,7 +29,7 @@ function isApprovalFlowAction(action: OnyxTypes.ReportAction): boolean {
     );
 }
 
-function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrackIntentUser}: ApprovalFlowContentProps) {
+function ApprovalFlowContent({action, policyID, reportID, originalReport}: ApprovalFlowContentProps) {
     const {translate} = useLocalize();
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -41,16 +39,6 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
-
-        if (
-            shouldShowMarkAsDone({
-                isTrackIntentUser,
-                policy,
-                report: originalReport,
-            })
-        ) {
-            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
-        }
 
         if (wasSubmittedViaHarvesting) {
             return (
@@ -77,16 +65,6 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
-
-        if (
-            shouldShowMarkAsDone({
-                isTrackIntentUser,
-                policy,
-                report: originalReport,
-            })
-        ) {
-            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
-        }
 
         if (wasAutoApproved) {
             return (

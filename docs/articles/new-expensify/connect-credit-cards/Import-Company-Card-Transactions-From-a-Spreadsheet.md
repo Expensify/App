@@ -7,7 +7,7 @@ internalScope: Audience is Workspace Admins. Covers how to import, update, and d
 
 # Import Company Card Transactions From a Spreadsheet 
 
-If your bank isn't supported by a direct connection, you can still import company card transactions into Expensify using a CSV, TXT, XLX or XLSX file. This lets you bring your own card (BYOC) and manually upload company card transactions when a direct bank connection is unavailable.
+If your bank isn't supported by a direct connection, you can still import company card transactions into Expensify using a CSV, TXT, XLS, or XLSX file. This lets you bring your own card (BYOC) and manually upload company card transactions when a direct bank connection is unavailable.
 
 If your bank does support a direct connection, you can connect your account to automatically import transactions. [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection). 
 
@@ -26,7 +26,7 @@ Only **Workspace Admins** can import transactions for company cards.
 3. Click on **Add card**.
  - If you already have a company card feed set up, click the feed name to see **Add Card**.
 5. Choose **Import transactions from file**.
-6. Choose the CSV, TXT, XLX or XLSX file you want to upload. 
+6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 7. Enter a name for the card feed.
 8. Set your field mappings (e.g., Card Number, Date, Amount, Merchant).
 9. Assign cards to users based on the transactions in the file.
@@ -50,7 +50,7 @@ Only **Workspace Admins** can import transactions for company cards.
 2. Select the name of the card feed you want to update.
 3. Click **Settings**.
 4. Choose **Import spreadsheet**.
-5. Choose the CSV, TXT, XLX or XLSX file you want to upload. 
+5. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 6. Review and confirm the field mappings.
 7. Click **Import**.
 

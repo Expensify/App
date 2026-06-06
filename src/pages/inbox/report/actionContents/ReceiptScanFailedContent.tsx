@@ -5,6 +5,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,9 +17,10 @@ type ReceiptScanFailedContentProps = {
     parentReportID: string | undefined;
     parentReportActionID: string | undefined;
     reportType: string | undefined;
+    action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED>;
 };
 
-function ReceiptScanFailedContent({reportID, actionReportID, parentReportID, parentReportActionID, reportType}: ReceiptScanFailedContentProps) {
+function ReceiptScanFailedContent({reportID, actionReportID, parentReportID, parentReportActionID, reportType, action}: ReceiptScanFailedContentProps) {
     const {translate} = useLocalize();
     const session = useSession();
     // IOU action lives in the IOU report's actions — `report` itself if it's IOU/Expense/Invoice, else its parent.
@@ -30,11 +32,9 @@ function ReceiptScanFailedContent({reportID, actionReportID, parentReportID, par
     const [receiptScanFailedIOUActionData] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(IOUReportID)}`, {
         selector: receiptScanFailedIOUActionDataSelector,
     });
-    const {transactionID, actorAccountID} = receiptScanFailedIOUActionData ?? {};
+    const {actorAccountID} = receiptScanFailedIOUActionData ?? {};
     const canEdit = !!actorAccountID && actorAccountID === session?.accountID;
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
-    const smartscanFailedViolation = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
-    const missingFields = smartscanFailedViolation?.data?.missingFields ?? [];
+    const missingFields = getOriginalMessage(action)?.missingFields;
 
     return <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit, missingFields})} />;
 }

@@ -4,6 +4,8 @@ import Onyx from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -19,15 +21,14 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let deprecatedPersonalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        deprecatedPersonalDetails = Object.values(val ?? {});
+        const personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
-        emailToPersonalDetailsCache = deprecatedPersonalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
+        emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
                 acc[detail.login.toLowerCase()] = detail;
             }
@@ -182,14 +183,8 @@ function getAccountIDsByLogins(logins: string[]): number[] {
     }, []);
 }
 
-/**
- * Given an accountID, find the associated personal detail and return related login.
- *
- * @param accountID User accountID
- * @returns Login according to passed accountID
- */
-function getLoginByAccountID(accountID: number): string | undefined {
-    return allPersonalDetails?.[accountID]?.login;
+function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string | undefined {
+    return accountID ? personalDetails?.[accountID]?.login : undefined;
 }
 
 /**
@@ -316,6 +311,27 @@ function getCurrentAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDeta
     const {addresses} = privatePersonalDetails ?? {};
     const currentAddress = addresses?.find((address) => address.current);
     return currentAddress ?? addresses?.[addresses.length - 1];
+}
+
+/**
+ * Builds a PersonalDetailsForm snapshot from Onyx private details,
+ * optionally layering draft values on top so in-progress edits win.
+ */
+function getPrivatePersonalDetailsFormValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, draftValues?: PersonalDetailsForm | null): PersonalDetailsForm {
+    const address = getCurrentAddress(privatePersonalDetails);
+    const [street1, street2] = getStreetLines(address?.street);
+    return {
+        [INPUT_IDS.LEGAL_FIRST_NAME]: draftValues?.[INPUT_IDS.LEGAL_FIRST_NAME] ?? privatePersonalDetails?.legalFirstName ?? '',
+        [INPUT_IDS.LEGAL_LAST_NAME]: draftValues?.[INPUT_IDS.LEGAL_LAST_NAME] ?? privatePersonalDetails?.legalLastName ?? '',
+        [INPUT_IDS.DATE_OF_BIRTH]: draftValues?.[INPUT_IDS.DATE_OF_BIRTH] ?? privatePersonalDetails?.dob ?? '',
+        [INPUT_IDS.PHONE_NUMBER]: draftValues?.[INPUT_IDS.PHONE_NUMBER] ?? privatePersonalDetails?.phoneNumber ?? '',
+        [INPUT_IDS.ADDRESS_LINE_1]: draftValues?.[INPUT_IDS.ADDRESS_LINE_1] ?? street1 ?? '',
+        [INPUT_IDS.ADDRESS_LINE_2]: draftValues?.[INPUT_IDS.ADDRESS_LINE_2] ?? address?.street2 ?? street2 ?? '',
+        [INPUT_IDS.CITY]: draftValues?.[INPUT_IDS.CITY] ?? address?.city ?? '',
+        [INPUT_IDS.STATE]: draftValues?.[INPUT_IDS.STATE] ?? address?.state ?? '',
+        [INPUT_IDS.ZIP_POST_CODE]: draftValues?.[INPUT_IDS.ZIP_POST_CODE] ?? address?.zip ?? '',
+        [INPUT_IDS.COUNTRY]: draftValues?.[INPUT_IDS.COUNTRY] ?? address?.country ?? '',
+    };
 }
 
 /**
@@ -487,6 +503,7 @@ export {
     getCurrentAddress,
     getFormattedAddress,
     getFormattedStreet,
+    getPrivatePersonalDetailsFormValues,
     getStreetLines,
     getEffectiveDisplayName,
     createDisplayName,

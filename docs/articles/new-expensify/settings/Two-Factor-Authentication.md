@@ -18,7 +18,7 @@ Anyone can enable Two-Factor Authentication on their own account. Domain Admins 
 
 1. Ensure an authenticator app is installed on your device. 
 2. From the left-hand menu, select **Account > Security**.
-3. Under **Security options**, select **Two-Factor Authentication**.
+3. Under **Security**, select **Two-Factor Authentication**.
 4. Enable **Two-factor authentication**.
 5. Your Recovery Codes will be automatically saved onto the computer or device where two-factor authentication was set up:
    - However, we also recommend copying and storing them in a secure location.
