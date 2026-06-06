@@ -171,7 +171,8 @@ type CopyPolicySettingsOnyxKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
-    | typeof ONYXKEYS.COPY_POLICY_SETTINGS;
+    | typeof ONYXKEYS.COPY_POLICY_SETTINGS
+    | typeof ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS;
 
 function buildCopyPolicySettingsData(
     sourcePolicy: Policy,
@@ -335,12 +336,20 @@ function buildCopyPolicySettingsData(
     });
 
     // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
-    // Success intentionally omits this key — the backend transitions currentStep
-    // to 'complete' via the bulkCopySettings NVP push.
+    // Success intentionally omits this key — the backend transitions the bulk policy
+    // copy NVP state to complete, which the UI uses to show the completion modal.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: 'loading'},
+        value: {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING},
+    });
+
+    // Optimistically set NVP state to 'in-progress' to avoid stale state flash
+    // (e.g., if prior run left it at 'complete', user would briefly see "All Set")
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS,
+        value: {state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.IN_PROGRESS},
     });
 
     failureData.push({
