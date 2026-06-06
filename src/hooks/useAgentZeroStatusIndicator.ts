@@ -21,7 +21,7 @@ type AgentZeroStatusState = {
 
     /** The accountID of the persona handling this chat — the agent the user tagged when one was
      * mentioned, otherwise the chat's default persona. Used to render the thinking-bubble avatar. */
-    personaAccountID: number;
+    personalAccountID: number;
 };
 
 type NewestReportAction = {
@@ -93,12 +93,12 @@ function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): Newe
  * for an AgentZero chat.
  *
  * @param reportID - The report ID to monitor
- * @param personaAccountID - The persona handling this chat (Concierge for Concierge/admin chats;
+ * @param personalAccountID - The persona handling this chat (Concierge for Concierge/admin chats;
  *   the agent's accountID for custom-agent chats). Used to decide when a final reply has
  *   actually landed: the indicator only clears once the newest reportAction's actorAccountID
  *   matches this persona AND the server NVP signals done.
  */
-function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
+function useAgentZeroStatusIndicator(reportID: string, personalAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
     // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
     // Uses selector to only re-render when the specific field changes, not on any NVP change.
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
@@ -159,7 +159,7 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     // activated) and hold it until the cycle ends — the agent's own reply carries no mention, so we
     // can't re-derive it once the reply lands. Falls back to the default persona when nothing was
     // tagged (e.g. Concierge DMs).
-    const [effectivePersonaAccountID, setEffectivePersonaAccountID] = useState<number>(personaAccountID);
+    const [effectivePersonalAccountID, setEffectivePersonalAccountID] = useState<number>(personalAccountID);
 
     /**
      * Clear the safety timer. Called when the indicator clears normally, when a new
@@ -386,13 +386,13 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     useEffect(() => {
         if (isIndicatorActive && !wasIndicatorActiveRef.current) {
             indicatorBaselineActionIDRef.current = newestReportActionRef.current?.reportActionID ?? null;
-            setEffectivePersonaAccountID(newestReportActionRef.current?.mentionedAccountID ?? personaAccountID);
+            setEffectivePersonalAccountID(newestReportActionRef.current?.mentionedAccountID ?? personalAccountID);
         } else if (!isIndicatorActive) {
             indicatorBaselineActionIDRef.current = null;
-            setEffectivePersonaAccountID(personaAccountID);
+            setEffectivePersonalAccountID(personalAccountID);
         }
         wasIndicatorActiveRef.current = isIndicatorActive;
-    }, [isIndicatorActive, personaAccountID]);
+    }, [isIndicatorActive, personalAccountID]);
 
     // Clear the indicator when Concierge has *actually completed* processing. A newer
     // Concierge action alone isn't enough: during processing, Concierge can post
@@ -405,7 +405,7 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     const newestActorAccountID = newestReportAction?.actorAccountID;
     const newestActionID = newestReportAction?.reportActionID;
     useEffect(() => {
-        if (newestActorAccountID !== effectivePersonaAccountID) {
+        if (newestActorAccountID !== effectivePersonalAccountID) {
             return;
         }
         if (pendingOptimisticRequests === 0 && !serverLabel) {
@@ -422,7 +422,7 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
         clearAgentZeroProcessingIndicator(reportID);
         clearSafetyTimer();
         AgentZeroOptimisticStore.clear(reportID);
-    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, effectivePersonaAccountID]);
+    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, effectivePersonalAccountID]);
 
     const isProcessing = !isOffline && isIndicatorActive;
 
@@ -431,7 +431,7 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
         reasoningHistory,
         statusLabel: displayedLabel,
         kickoffWaitingIndicator,
-        personaAccountID: effectivePersonaAccountID,
+        personalAccountID: effectivePersonalAccountID,
     };
 }
 

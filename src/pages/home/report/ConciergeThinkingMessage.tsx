@@ -35,7 +35,7 @@ type ConciergeThinkingMessageProps = {
 };
 
 function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProps) {
-    const {isProcessing, reasoningHistory, statusLabel, personaAccountID} = useAgentZeroStatus();
+    const {isProcessing, reasoningHistory, statusLabel, personalAccountID} = useAgentZeroStatus();
     const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID);
 
     if (!isProcessing || shouldSuppress) {
@@ -48,7 +48,7 @@ function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProp
             action={action}
             reasoningHistory={reasoningHistory}
             statusLabel={statusLabel}
-            personaAccountID={personaAccountID}
+            personalAccountID={personalAccountID}
         />
     );
 }
@@ -58,13 +58,13 @@ function ConciergeThinkingMessageContent({
     action,
     reasoningHistory,
     statusLabel,
-    personaAccountID,
+    personalAccountID,
 }: {
     report: OnyxEntry<Report>;
     action?: OnyxEntry<ReportAction>;
     reasoningHistory: ReasoningEntry[];
     statusLabel: string;
-    personaAccountID: number;
+    personalAccountID: number;
 }) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -119,7 +119,7 @@ function ConciergeThinkingMessageContent({
     }));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const accountID = action?.actorAccountID ?? personaAccountID;
+    const accountID = action?.actorAccountID ?? personalAccountID;
     const displayName = action?.person?.[0]?.text ?? getDisplayNameOrDefault(personalDetails?.[accountID]) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
