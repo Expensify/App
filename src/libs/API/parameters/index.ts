@@ -201,6 +201,7 @@ export type {default as EditTaskParams} from './EditTaskParams';
 export type {default as ReopenTaskParams} from './ReopenTaskParams';
 export type {default as CompleteTaskParams} from './CompleteTaskParams';
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
+export type {default as SetNameValuePairsParams} from './SetNameValuePairsParams';
 export type {default as SetReportFieldParams} from './SetReportFieldParams';
 export type {default as SetReportNameParams} from './SetReportNameParams';
 export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
