@@ -65,6 +65,7 @@ import {
     isScanning,
     isScanningTransaction,
 } from '@libs/TransactionUtils';
+import {isValidAccountRoute} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1314,6 +1315,17 @@ function submitReport({
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    const approvalChain = getApprovalChain(policy, expenseReport);
+    const managerIDFromChain = getAccountIDsByLogins(approvalChain).at(0);
+    const trimmedManagerEmail = managerEmail?.trim();
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDsByLogins([trimmedManagerEmail]).at(0) : undefined;
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport);
+    const managerID = trimmedManagerEmail
+        ? (managerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID)
+        : (submitReportManagerAccountID ?? (submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID));
+    const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
+    const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
         expenseReport?.total ?? 0,
         expenseReport.currency ?? '',
@@ -1338,6 +1350,7 @@ function submitReport({
               hasViolations,
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
+              bypassNextApproverID: optimisticNextStepApproverID,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -1350,17 +1363,8 @@ function submitReport({
               hasViolations,
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
+              bypassNextApproverID: optimisticNextStepApproverID,
           });
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-    const approvalChain = getApprovalChain(policy, expenseReport);
-    const managerIDFromChain = getAccountIDsByLogins(approvalChain).at(0);
-    const trimmedManagerEmail = managerEmail?.trim();
-    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDsByLogins([trimmedManagerEmail]).at(0) : undefined;
-    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport);
-    const managerID = trimmedManagerEmail
-        ? (managerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID)
-        : (submitReportManagerAccountID ?? (submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID));
-    const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
     > = [];

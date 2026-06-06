@@ -20,7 +20,7 @@ function usePolicyFeatureWriteAccess(policy: OnyxInputOrEntry<Policy>, feature: 
         });
     };
 
-    const getReadOnlyDisabledAction = (disabledAction?: () => void | Promise<void>) => {
+    const withReadOnlyFallback = (disabledAction?: () => void | Promise<void>) => {
         if (!canWrite) {
             return showReadOnlyModal;
         }
@@ -28,7 +28,7 @@ function usePolicyFeatureWriteAccess(policy: OnyxInputOrEntry<Policy>, feature: 
         return disabledAction;
     };
 
-    return {canWrite, showReadOnlyModal, getReadOnlyDisabledAction};
+    return {canWrite, showReadOnlyModal, withReadOnlyFallback};
 }
 
 export default usePolicyFeatureWriteAccess;

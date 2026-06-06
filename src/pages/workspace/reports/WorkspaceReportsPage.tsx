@@ -38,7 +38,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
+import {openPolicyReportFieldsPage, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,7 +68,7 @@ function WorkspaceReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {canWrite: canWriteReportFields, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
+    const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -277,7 +277,7 @@ function WorkspaceReportFieldsPage({
                                     setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
                                 }}
                                 disabled={!canWriteReportFields}
-                                disabledAction={showReadOnlyModal}
+                                disabledAction={withReadOnlyFallback()}
                                 showLockIcon={!canWriteReportFields}
                             />
                         </Section>
@@ -319,7 +319,7 @@ function WorkspaceReportFieldsPage({
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
                                 disabled={hasAccountingConnections || !canWriteReportFields}
-                                disabledAction={canWriteReportFields ? onDisabledOrganizeSwitchPress : showReadOnlyModal}
+                                disabledAction={withReadOnlyFallback(onDisabledOrganizeSwitchPress)}
                                 showLockIcon={!canWriteReportFields}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
@@ -334,7 +334,10 @@ function WorkspaceReportFieldsPage({
                                             </View>
                                             {!hasAccountingConnections && canWriteReportFields && (
                                                 <MenuItem
-                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
+                                                    onPress={() => {
+                                                        setInitialCreateReportFieldsForm();
+                                                        Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID));
+                                                    }}
                                                     title={translate('workspace.reportFields.addField')}
                                                     icon={icons.Plus}
                                                     style={[styles.sectionMenuItemTopDescription]}
