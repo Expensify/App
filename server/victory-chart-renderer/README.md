@@ -30,6 +30,8 @@ From the App repository root:
 npm run server:vcr:test
 ```
 
+The suite compiles a standalone binary and runs it from an isolated temp directory (no `node_modules` or App checkout assets on the load path), then compares output against golden PNGs.
+
 To refresh reference PNGs after an intentional rendering change:
 
 ```bash
