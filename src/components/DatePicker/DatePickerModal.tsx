@@ -9,6 +9,7 @@ import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 import type {DatePickerProps} from './types';
+import useIsYearSelectorOpen from './useIsYearSelectorOpen';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -48,6 +49,7 @@ function DatePickerModal({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const shouldHideInPlace = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
+    const isYearSelectorOpen = useIsYearSelectorOpen();
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
@@ -68,11 +70,15 @@ function DatePickerModal({
     return (
         <PopoverWithMeasuredContent
             anchorRef={anchorRef}
-            isVisible={isVisible}
+            // While the year-selector route is focused (wide-screen hide-in-place), hide the whole popover frame —
+            // not just the inner CalendarPicker — so the year-selector RHP isn't painted over the date popover.
+            isVisible={isVisible && !(shouldHideInPlace && isYearSelectorOpen)}
             onClose={onClose}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
-            shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
+            // Suppress the popstate close while the year selector is open; selecting a year does a goBack (history
+            // change) and would otherwise tear this host down instead of returning to it with the new year applied.
+            shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged && !isYearSelectorOpen}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
             anchorAlignment={anchorAlignment}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
@@ -91,7 +97,6 @@ function DatePickerModal({
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
                 pickerContextID={`datePicker-${inputID}`}
                 shouldCloseModalOnYearPickerOpen={!shouldHideInPlace}
-                shouldHideOnYearPickerOpen={shouldHideInPlace}
             />
         </PopoverWithMeasuredContent>
     );

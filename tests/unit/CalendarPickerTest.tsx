@@ -26,13 +26,6 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
 }));
 
-// CalendarPicker reads the root navigation state to hide itself while the year selector is open.
-// This test renders it without a NavigationContainer, so mock the hook to the "navigation not ready" default.
-jest.mock('@hooks/useRootNavigationState', () => ({
-    __esModule: true,
-    default: <T,>(selector: (state: undefined) => T): T => selector(undefined),
-}));
-
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn(),

@@ -1,4 +1,3 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -11,7 +10,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
 import {closeTop} from '@libs/actions/Modal';
@@ -21,7 +19,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import ArrowIcon from './ArrowIcon';
 import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
@@ -67,9 +64,6 @@ type CalendarPickerProps = {
      * Wide-screen popover hosts set this; the full-screen mobile overlay leaves it off.
      */
     shouldCloseModalOnYearPickerOpen?: boolean;
-
-    /** On web wide-screen the host keeps this CalendarPicker mounted while the year-picker RHP is open; when true, hide the calendar (opacity 0 + non-interactive) so the RHP renders on top, then restore on return. */
-    shouldHideOnYearPickerOpen?: boolean;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -104,14 +98,11 @@ function CalendarPicker({
     shouldEnableMonthYearBackdropInNarrowPane = false,
     pickerContextID,
     shouldCloseModalOnYearPickerOpen = false,
-    shouldHideOnYearPickerOpen = false,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const isYearPickerOpen = useRootNavigationState((state) => (state ? findFocusedRoute(state)?.name === SCREENS.SETTINGS.DYNAMIC_YEAR_SELECTOR : false));
-    const isHiddenForYearPicker = shouldHideOnYearPickerOpen && isYearPickerOpen;
     const {translate} = useLocalize();
     const pressableRef = useRef<View>(null);
     const monthPressableRef = useRef<View>(null);
@@ -250,15 +241,7 @@ function CalendarPicker({
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
     return (
-        <View
-            style={[
-                themeStyles.pb4,
-                themeStyles.pt1,
-                isHiddenForYearPicker && themeStyles.opacity0,
-                isHiddenForYearPicker && themeStyles.pointerEventsNone,
-                isHiddenForYearPicker && themeStyles.visibilityHidden,
-            ]}
-        >
+        <View style={[themeStyles.pb4, themeStyles.pt1]}>
             <View
                 style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.gap3, headerPaddingStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

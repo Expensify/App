@@ -156,7 +156,6 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                         onDateValuesChange={updateRangeText}
                         onRangeValidationErrorChange={setShouldShowRangeError}
                         shouldCloseModalOnYearPickerOpen={!shouldHideInPlace}
-                        shouldHideOnYearPickerOpen={shouldHideInPlace}
                     />
                     {shouldShowRangeError && (
                         <FormHelpMessage

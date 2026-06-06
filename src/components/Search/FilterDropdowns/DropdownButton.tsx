@@ -5,6 +5,7 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
+import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
 import Icon from '@components/Icon';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
@@ -17,6 +18,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,6 +86,10 @@ function DropdownButton({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    // While the year-selector route is focused on web wide-screen, hide the whole dropdown popover frame so the
+    // year-selector RHP isn't painted over the still-visible popover (e.g. the search date filter's CalendarPicker).
+    const shouldHideInPlace = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
+    const isYearSelectorOpen = useIsYearSelectorOpen();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const styles = useThemeStyles();
@@ -213,7 +219,9 @@ function DropdownButton({
             <PopoverWithMeasuredContent
                 anchorRef={triggerRef}
                 avoidKeyboard
-                isVisible={isOverlayVisible}
+                // Hide the whole popover frame (not just the inner CalendarPicker) while the year-selector RHP is focused,
+                // so the RHP renders on top; the popover restores when the year selector closes (goBack).
+                isVisible={isOverlayVisible && !(shouldHideInPlace && isYearSelectorOpen)}
                 onClose={toggleOverlay}
                 anchorPosition={popoverTriggerPosition}
                 anchorAlignment={ANCHOR_ORIGIN}
