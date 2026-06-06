@@ -160,7 +160,13 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountIDs: readonly
     // activated) and hold it until the cycle ends — the agent's own reply carries no mention, so we
     // can't re-derive it once the reply lands. Falls back to the default persona when nothing was
     // tagged (e.g. Concierge DMs).
-    const [effectivePersonaAccountID, setEffectivePersonaAccountID] = useState<number>(personaAccountID);
+    //
+    // Seeded from the optimistic store so a remount mid-cycle (chat switch and back) restores the
+    // tagged agent instead of resetting to the default — otherwise the activation latch below never
+    // re-runs (the restored entry makes `wasIndicatorActiveRef` start true), the avatar is wrong,
+    // and the tagged agent's reply fails the actor comparison so the indicator stays up until the
+    // safety timeout.
+    const [effectivePersonaAccountID, setEffectivePersonaAccountID] = useState<number>(initialRestoredEntry?.latchedAgentAccountID ?? personaAccountID);
 
     // Mirror the agent participant list into a ref so the latch effect can read the current value
     // without taking the array (whose identity can change between renders) as a dependency.
@@ -398,13 +404,16 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountIDs: readonly
             // that is an actual agent participant rather than blindly taking the first mention.
             // Falls back to the default persona when nothing agent-like was tagged.
             const taggedAgentAccountID = newestReportActionRef.current?.mentionedAccountIDs?.find((accountID) => agentAccountIDsRef.current.includes(accountID));
-            setEffectivePersonaAccountID(taggedAgentAccountID ?? personaAccountID);
+            const latchedAccountID = taggedAgentAccountID ?? personaAccountID;
+            setEffectivePersonaAccountID(latchedAccountID);
+            // Persist the latch so a remount mid-cycle can restore it (see the state seed above).
+            AgentZeroOptimisticStore.setLatchedAgent(reportID, latchedAccountID);
         } else if (!isIndicatorActive) {
             indicatorBaselineActionIDRef.current = null;
             setEffectivePersonaAccountID(personaAccountID);
         }
         wasIndicatorActiveRef.current = isIndicatorActive;
-    }, [isIndicatorActive, personaAccountID]);
+    }, [isIndicatorActive, personaAccountID, reportID]);
 
     // Clear the indicator when Concierge has *actually completed* processing. A newer
     // Concierge action alone isn't enough: during processing, Concierge can post

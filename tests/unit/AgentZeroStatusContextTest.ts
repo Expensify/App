@@ -1243,6 +1243,46 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.isProcessing).toBe(true);
             expect(result.current.personaAccountID).toBe(DEFAULT_AGENT_ID);
         });
+
+        it('should restore the latched tagged agent across an unmount/remount mid-cycle', async () => {
+            // Regression test: user tags agent B and then switches chats while the indicator is
+            // still active. On remount the optimistic entry is restored, so the activation latch
+            // doesn't re-run. The latched agent must be restored from the store — otherwise the
+            // persona resets to the default (A), the avatar is wrong, and agent B's reply fails
+            // the actor comparison so the indicator stays stuck until the safety timeout.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [userActionID]: buildUserMentionAction(userActionID, '2024-01-01 00:00:00.000', [TAGGED_AGENT_ID]),
+            });
+
+            const {result: firstResult, unmount} = renderHook(() => useAgentZeroStatusIndicator(reportID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
+            await waitForBatchedUpdates();
+
+            act(() => {
+                firstResult.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(firstResult.current.personaAccountID).toBe(TAGGED_AGENT_ID);
+
+            // User navigates away — ReportScreen unmounts mid-cycle.
+            unmount();
+            await waitForBatchedUpdates();
+
+            // User returns — the restored entry carries the latched agent, so the persona is B, not A.
+            const {result: secondResult} = renderHook(() => useAgentZeroStatusIndicator(reportID, [DEFAULT_AGENT_ID, TAGGED_AGENT_ID]));
+            await waitForBatchedUpdates();
+            expect(secondResult.current.isProcessing).toBe(true);
+            expect(secondResult.current.personaAccountID).toBe(TAGGED_AGENT_ID);
+
+            // Agent B's reply still clears the indicator after the remount.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [taggedReplyActionID]: buildAgentReply(taggedReplyActionID, '2024-01-01 00:00:01.000', TAGGED_AGENT_ID),
+            });
+            await waitForBatchedUpdates();
+
+            await waitFor(() => {
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID);
+            });
+        });
     });
 
     describe('NVPIndicatorVersionTracker removal', () => {

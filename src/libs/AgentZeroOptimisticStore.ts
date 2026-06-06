@@ -30,6 +30,15 @@ type OptimisticEntry = {
      * at the *first* kickoff's baseline — any new Concierge action afterwards is a new reply.
      */
     baselineActionID: string | null;
+
+    /**
+     * AccountID of the persona we latched for this processing cycle — the agent the user
+     * tagged when one was mentioned, otherwise the chat's default persona. Persisted so a
+     * remount mid-thinking restores the correct avatar and reply-detection target instead of
+     * resetting to the default. The tagged agent can't be re-derived after a remount (the
+     * agent's own reply carries no mention). Null until the indicator latches it.
+     */
+    latchedAgentAccountID: number | null;
 };
 
 type Listener = (reportID: string) => void;
@@ -78,15 +87,31 @@ function increment(reportID: string, baselineActionID: string | null) {
             count: existing.count + 1,
             startedAt: now,
             baselineActionID: existing.baselineActionID,
+            latchedAgentAccountID: existing.latchedAgentAccountID,
         });
     } else {
         store.set(reportID, {
             count: 1,
             startedAt: now,
             baselineActionID,
+            latchedAgentAccountID: null,
         });
     }
     notifyListeners(reportID);
+}
+
+/**
+ * Record the latched persona on an existing entry without disturbing the count, window, or
+ * baseline. No-op when there's no fresh entry (the cycle already ended). Doesn't notify
+ * listeners: this only affects which avatar a *future* remount restores — the active mount
+ * already holds the latched persona in React state, so re-rendering here would be wasted work.
+ */
+function setLatchedAgent(reportID: string, latchedAgentAccountID: number | null) {
+    const existing = store.get(reportID);
+    if (!existing || !isFresh(existing) || existing.latchedAgentAccountID === latchedAgentAccountID) {
+        return;
+    }
+    store.set(reportID, {...existing, latchedAgentAccountID});
 }
 
 /** Drop all optimistic state for a report. Safe to call when no entry exists. */
@@ -108,6 +133,7 @@ function subscribe(listener: Listener): () => void {
 export default {
     getEntry,
     increment,
+    setLatchedAgent,
     clear,
     subscribe,
 };
