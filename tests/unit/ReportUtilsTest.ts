@@ -825,8 +825,8 @@ describe('ReportUtils', () => {
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
         });
 
-        it('includes avatar and accountID in optimistic Setup Specialist personal detail', async () => {
-            // Reset personal details to remove any Setup Specialist entry added by previous tests,
+        it('includes avatar and accountID in optimistic Account Executive personal detail', async () => {
+            // Reset personal details to remove any Account Executive entry added by previous tests,
             // so the optimistic creation path (else branch) is exercised.
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
             await waitForBatchedUpdates();
@@ -846,13 +846,13 @@ describe('ReportUtils', () => {
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
             const personalDetailsData = personalDetailsCall?.[1] as Record<string, {accountID: number; avatar?: string; login?: string; displayName?: string}>;
-            const setupSpecialistDetail = Object.values(personalDetailsData ?? {}).at(0);
+            const accountExecutiveDetail = Object.values(personalDetailsData ?? {}).at(0);
 
-            expect(setupSpecialistDetail).toBeDefined();
-            expect(setupSpecialistDetail?.accountID).toBeDefined();
-            expect(setupSpecialistDetail?.accountID).toBe(CONST.ACCOUNT_ID.QA_GUIDE);
-            expect(setupSpecialistDetail?.avatar).toBeDefined();
-            expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
+            expect(accountExecutiveDetail).toBeDefined();
+            expect(accountExecutiveDetail?.accountID).toBeDefined();
+            expect(accountExecutiveDetail?.accountID).toBe(CONST.ACCOUNT_ID.QA_GUIDE);
+            expect(accountExecutiveDetail?.avatar).toBeDefined();
+            expect(accountExecutiveDetail?.avatar).toContain('images/avatars/');
 
             mergeSpy.mockRestore();
         });

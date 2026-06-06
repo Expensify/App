@@ -512,12 +512,14 @@ const translations = {
         quarter: 'Quarter',
         restrictions: 'Restrictions',
         concierge: {
-            sidePanelGreeting: 'Hi there, how can I help?',
+            greeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
         },
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
+        goToConcierge: 'Go to Concierge',
+        allSet: 'All Set!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
     },
     socials: {
@@ -2221,7 +2223,7 @@ const translations = {
             partnerManagerDescription: 'Maximize your partnership and drive referrals',
             accountExecutive: 'Account Executive',
             accountExecutiveDescription: 'Get clients setup successfully',
-            guideDescription: 'Your setup specialist',
+            guideDescription: 'Your account executive',
             approvedPartnerTeamTitle: 'Meet your Approved! partner team',
             approvedPartnerTeamDescription: 'A dedicated team focused on helping your firm grow, onboard clients faster, and get expert support whenever you need it.',
             moreResources: 'More resources',
@@ -3168,7 +3170,7 @@ const translations = {
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
-                description: 'Create a workspace and configure the settings with the help of your setup specialist!',
+                description: 'Create a workspace and configure the settings with the help of your account executive!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Create a [workspace](${workspaceSettingsLink})`,
@@ -3399,11 +3401,11 @@ const translations = {
                 isOnboardingFlow
                     ? dedent(`
                         # Your free trial has started! Let's get you set up.
-                        👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!
+                        👋 Hey there, I'm your Expensify account executive. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!
                     `)
                     : dedent(`
                         # Your free trial has started! Let's get you set up.
-                        👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
+                        👋 Hey there, I'm your Expensify account executive. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
                     `),
             onboardingTrackWorkspaceMessage: 'To make the most of your 30-day free trial, follow the remaining steps below:',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
@@ -6194,6 +6196,14 @@ const translations = {
                 continue: 'Continue without members',
                 description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
             },
+            progress: {
+                copyInProgressTitle: 'Copy in progress...',
+                copyInProgressDescription: 'You can either wait for the process to finish or Concierge can let you know when it’s done.',
+                letMeKnowPrompt: 'Let me know when it’s done',
+                conciergeNotificationTitle: 'Concierge will let you know',
+                conciergeNotificationDescription: 'When the process is completed, Concierge will send you a message.',
+                copyCompleted: 'Your workspace settings have been copied.',
+            },
         },
         emptyWorkspace: {
             title: 'No workspaces yet',
@@ -6352,7 +6362,7 @@ const translations = {
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
+            talkYourOnboardingSpecialist: 'Chat with your account executive.',
             talkYourAccountManager: 'Chat with your account manager.',
             talkToConcierge: 'Chat with Concierge.',
             needAnotherAccounting: 'Need another accounting software? ',
@@ -8296,6 +8306,7 @@ const translations = {
         withdrawalType: 'Withdrawal type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
+        serverResults: 'Search results',
         searchIn: 'Search in',
         askConcierge: (message: string) => `Ask Concierge “${message}”`,
         searchPlaceholder: 'Search for something...',
@@ -8805,7 +8816,7 @@ const translations = {
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Chat with your setup specialist in <a href="${href}">${adminReportName}</a> for help`,
+            `Chat with your account executive in <a href="${href}">${adminReportName}</a> for help`,
         default: `Message <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> for help with setup`,
     },
     violations: {
@@ -9463,7 +9474,7 @@ const translations = {
         confirmation: {
             title: 'Confirm call',
             description: "Make sure the details below look good to you. Once you confirm the call, we'll send an invite with more info.",
-            setupSpecialist: 'Your setup specialist',
+            setupSpecialist: 'Your account executive',
             meetingLength: 'Meeting length',
             dateTime: 'Date & time',
             minutes: '30 minutes',
