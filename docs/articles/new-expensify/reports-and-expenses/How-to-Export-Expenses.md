@@ -44,8 +44,6 @@ Expensify offers pre-built export templates, or you can build your own custom ex
    - **All Data - expense level** - One row per expense with all available data fields.
    - **Custom templates** - Any custom template created by you or your Workspace Admin, if available.
 
-**Note:** Currently, it's not possible to build custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting expenses. [Learn how to build a custom export template in Expensify Classic](/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template).
-
 ## Where do I find the exported file?
 
 For the Basic Export template, the file downloads directly to your device. For all other templates, Concierge sends the file to you in a direct message. Open your Concierge chat in the **Inbox** to find it.
