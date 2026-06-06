@@ -136,7 +136,7 @@ function prepareRejectMoneyRequestData(
     const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
     const isUserOnSearchMoneyRequestReport = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
 
-    if (!report || !transaction) {
+    if (!report || !transaction || transaction.reportID !== report.reportID) {
         return undefined;
     }
 
@@ -254,6 +254,9 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: transaction?.reportID ?? reportID,
+                    errorFields: {
+                        partial: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense'),
+                    },
                 },
             });
 
@@ -450,6 +453,15 @@ function prepareRejectMoneyRequestData(
                         parentReportID: transactionThreadReport?.parentReportID,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        errorFields: {
+                            partial: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense'),
+                        },
+                    },
+                }
             );
         } else {
             // When no existing open report is found, use the sharedRejectedToReportID

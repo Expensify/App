@@ -1687,6 +1687,7 @@ const translations = {
             rejectedNextStep: 'This report was rejected. Waiting on you to fix the issues and manually resubmit.',
             selectMemberError: 'Select a member to reject this report back to.',
             couldNotReject: 'The report could not be rejected. Please try again.',
+            couldNotRejectExpense: 'The expense could not be rejected.',
         },
         moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
