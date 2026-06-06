@@ -1,35 +1,23 @@
 import {act, render} from '@testing-library/react-native';
 import React, {useEffect, useMemo, useState} from 'react';
-import {SearchActionsContext, SearchStateContext, useSyncSelectedReports} from '@components/Search/SearchContext';
+import {SearchSelectionActionsContext, SearchSelectionContext} from '@components/Search/SearchContext';
+import {useSyncSelectedReports} from '@components/Search/SearchContextProvider';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchActionsContextValue, SearchStateContextValue, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import CONST from '@src/CONST';
 
 type HookData = TransactionListItemType[] | TransactionReportGroupListItemType[];
 
 const createSetSelectedReportsMock = () => jest.fn<void, [SelectedReports[]]>();
 
-const baseStateContext = {
-    currentSearchKey: undefined,
-    currentSearchQueryJSON: undefined,
-    currentSearchResults: undefined,
+const baseSelectionContext = {
     currentSelectedTransactionReportID: undefined,
     selectedTransactionIDs: [],
     selectedReports: [],
-    isOnSearch: false,
     shouldTurnOffSelectionMode: false,
-    shouldResetSearchQuery: false,
     hasSelectedTransactions: false,
-    currentSearchHash: -1,
-    currentSimilarSearchHash: -1,
-    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
-    sortedReportIDs: CONST.EMPTY_ARRAY,
-    lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
-    shouldShowSelectAllMatchingItems: false,
-    shouldShowFiltersBarLoading: false,
-    shouldUseLiveData: false,
-} satisfies Omit<SearchStateContextValue, 'selectedTransactions'>;
+} satisfies Omit<SearchSelectionContextValue, 'selectedTransactions'>;
 
 function buildTransactionItem(overrides: Partial<TransactionListItemType> & {keyForList: string; transactionID: string}) {
     return {
@@ -78,7 +66,7 @@ function renderHarness({
 }: {
     initialSelected: SelectedTransactions;
     initialData: HookData;
-    setSelectedReports: SearchActionsContextValue['setSelectedReports'];
+    setSelectedReports: SearchSelectionActionsValue['setSelectedReports'];
 }): HarnessHandle {
     const handle: HarnessHandle = {
         setSelected: () => {},
@@ -102,31 +90,26 @@ function renderHarness({
             onReady({setSelected, setData});
         }, [onReady]);
 
-        const stateValue = useMemo<SearchStateContextValue>(() => ({...baseStateContext, selectedTransactions: selected}), [selected]);
+        const selectionValue = useMemo<SearchSelectionContextValue>(() => ({...baseSelectionContext, selectedTransactions: selected}), [selected]);
 
-        const actionsValue = useMemo<SearchActionsContextValue>(
+        const selectionActionsValue = useMemo<SearchSelectionActionsValue>(
             () => ({
-                setLastSearchType: () => {},
                 setCurrentSelectedTransactionReportID: () => {},
                 setSelectedTransactions: () => {},
                 setSelectedReports,
                 removeTransaction: () => {},
                 clearSelectedTransactions: () => {},
-                setShouldShowFiltersBarLoading: () => {},
-                setShouldShowSelectAllMatchingItems: () => {},
                 selectAllMatchingItems: () => {},
-                setShouldResetSearchQuery: () => {},
-                setSortedReportIDs: () => {},
             }),
             [],
         );
 
         return (
-            <SearchStateContext value={stateValue}>
-                <SearchActionsContext value={actionsValue}>
+            <SearchSelectionContext value={selectionValue}>
+                <SearchSelectionActionsContext value={selectionActionsValue}>
                     <HookConsumer data={data} />
-                </SearchActionsContext>
-            </SearchStateContext>
+                </SearchSelectionActionsContext>
+            </SearchSelectionContext>
         );
     }
 

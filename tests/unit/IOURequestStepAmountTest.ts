@@ -61,5 +61,15 @@ describe('IOURequestStepAmount', () => {
 
             expect(isParticipantP2P(participant)).toBe(true);
         });
+
+        it('should return false for self-DM participant', () => {
+            const participant = {
+                accountID: 123,
+                isPolicyExpenseChat: false,
+                isSelfDM: true,
+            };
+
+            expect(isParticipantP2P(participant)).toBe(false);
+        });
     });
 });

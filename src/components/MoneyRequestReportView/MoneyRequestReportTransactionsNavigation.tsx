@@ -125,7 +125,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             backTo = params?.backTo ?? backTo;
         }
         const nextThreadReportID = nextParentReportAction?.childReportID;
-        const navigationParams = {reportID: nextThreadReportID, backTo};
+        const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
         if (nextThreadReportID) {
             markReportIDAsExpense(nextThreadReportID);
@@ -161,7 +161,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             backTo = params?.backTo ?? backTo;
         }
         const prevThreadReportID = prevParentReportAction?.childReportID;
-        const navigationParams = {reportID: prevThreadReportID, backTo};
+        const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 
         if (prevThreadReportID) {
             markReportIDAsExpense(prevThreadReportID);

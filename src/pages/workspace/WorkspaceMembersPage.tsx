@@ -58,6 +58,7 @@ import {
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getConnectedHRProvider} from '@libs/HRUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,12 +68,12 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
-    getConnectedHRProvider,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
 } from '@libs/PolicyUtils';
@@ -161,6 +162,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
+    // Group policies (Collect/Control + Submit) allow member management.
+    const canManageMembers = isGroupPolicy(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
@@ -376,8 +379,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
+            if (!isPolicyAdmin || !canManageMembers) {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
@@ -385,7 +388,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
             });
         },
-        [isPolicyAdmin, policy, policyID, route.params.policyID],
+        [isPolicyAdmin, canManageMembers, policyID, route.params.policyID],
     );
 
     /**
@@ -460,6 +463,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 roleBadgeText = translate('common.admin');
             } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
                 roleBadgeText = translate('common.auditor');
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.EDITOR) {
+                roleBadgeText = translate('common.editor');
             }
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
             const memberEmail = formatPhoneNumber(details?.login ?? '');
@@ -638,7 +643,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchBar = memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const prevMemberCount = usePrevious(memberCount);
+    useEffect(() => {
+        if (prevMemberCount < CONST.STANDARD_LIST_ITEM_LIMIT || memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT) {
+            return;
+        }
+        setInputValue('');
+    }, [memberCount, prevMemberCount, setInputValue]);
     const debouncedFilteredData = useDebouncedValue(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const isFilteringMembers = filteredData?.length < debouncedFilteredData?.length;
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
@@ -1029,6 +1041,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             onBackButtonPress={() => {
                 if (isMobileSelectionModeEnabled) {
                     setSelectedEmployees([]);

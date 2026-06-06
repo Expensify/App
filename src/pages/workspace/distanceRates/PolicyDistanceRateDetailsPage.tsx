@@ -14,9 +14,12 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,12 +41,14 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
+    const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const rateID = route.params.rateID;
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const rate = customUnit?.rates[rateID];
-    const customUnitID = customUnit?.customUnitID;
 
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
@@ -67,8 +72,6 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 if (
                     transaction?.reportID &&
                     policyReports?.has(transaction.reportID) &&
-                    customUnitID &&
-                    transaction?.comment?.customUnit?.customUnitID === customUnitID &&
                     transaction?.comment?.customUnit?.customUnitRateID &&
                     transaction?.comment?.customUnit?.customUnitRateID === rateID
                 ) {
@@ -77,7 +80,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 return transactionIDs;
             }, new Set<string>());
         },
-        [customUnitID, rateID, policyReports],
+        [rateID, policyReports],
     );
 
     const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -118,6 +121,12 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const editTaxRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.getRoute(policyID, rateID));
     };
+    const editStartDate = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_START_DATE_EDIT.getRoute(policyID, rateID));
+    };
+    const editEndDate = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_END_DATE_EDIT.getRoute(policyID, rateID));
+    };
 
     const showWarningModal = () => {
         showConfirmModal({
@@ -154,6 +163,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES}
         >
             <ScreenWrapper
                 testID="PolicyDistanceRateDetailsPage"
@@ -189,7 +199,9 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 isOn={rate?.enabled ?? false}
                                 onToggle={toggleRate}
                                 accessibilityLabel={translate('workspace.distanceRates.enableRate')}
-                                showLockIcon={!canDisableOrDeleteRate}
+                                disabled={!canWriteDistanceRates}
+                                disabledAction={withReadOnlyFallback()}
+                                showLockIcon={!canWriteDistanceRates || !canDisableOrDeleteRate}
                             />
                         </View>
                     </OfflineWithFeedback>
@@ -200,11 +212,12 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('name')}
                     >
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteDistanceRates}
                             title={rate.name}
                             description={translate('common.name')}
                             descriptionTextStyle={styles.textNormal}
                             onPress={editRateName}
+                            interactive={canWriteDistanceRates}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -214,13 +227,48 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('rate')}
                     >
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteDistanceRates}
                             title={`${rateValueToDisplay} / ${unitToDisplay}`}
                             description={translate('workspace.distanceRates.rate')}
                             descriptionTextStyle={styles.textNormal}
                             onPress={editRateValue}
+                            interactive={canWriteDistanceRates}
                         />
                     </OfflineWithFeedback>
+                    {isDateBoundMileageRateEnabled && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(rate ?? {}, 'startDate')}
+                            pendingAction={rate?.pendingFields?.startDate}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('startDate')}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={canWriteDistanceRates}
+                                title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
+                                description={translate('workspace.distanceRates.startDate')}
+                                descriptionTextStyle={styles.textNormal}
+                                onPress={editStartDate}
+                                interactive={canWriteDistanceRates}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    {isDateBoundMileageRateEnabled && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(rate ?? {}, 'endDate')}
+                            pendingAction={rate?.pendingFields?.endDate}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('endDate')}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={canWriteDistanceRates}
+                                title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
+                                description={translate('workspace.distanceRates.endDate')}
+                                descriptionTextStyle={styles.textNormal}
+                                onPress={editEndDate}
+                                interactive={canWriteDistanceRates}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(rate, 'taxRateExternalID')}
@@ -232,8 +280,9 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 <MenuItemWithTopDescription
                                     title={taxRate}
                                     description={translate('workspace.taxes.taxRate')}
-                                    shouldShowRightIcon
+                                    shouldShowRightIcon={canWriteDistanceRates}
                                     onPress={editTaxRateValue}
+                                    interactive={canWriteDistanceRates}
                                 />
                             </View>
                         </OfflineWithFeedback>
@@ -246,34 +295,37 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxClaimablePercentage')}
                         >
                             <MenuItemWithTopDescription
-                                shouldShowRightIcon
+                                shouldShowRightIcon={canWriteDistanceRates}
                                 title={taxClaimableValueToDisplay}
                                 description={translate('workspace.taxes.taxReclaimableOn')}
                                 descriptionTextStyle={styles.textNormal}
                                 onPress={editTaxReclaimableValue}
+                                interactive={canWriteDistanceRates}
                             />
                         </OfflineWithFeedback>
                     )}
-                    <MenuItem
-                        icon={icons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={async () => {
-                            if (!canDisableOrDeleteRate) {
-                                showWarningModal();
-                                return;
-                            }
-                            const {action} = await showConfirmModal({
-                                title: translate('workspace.distanceRates.deleteDistanceRate'),
-                                prompt: translate('workspace.distanceRates.areYouSureDelete', {count: 1}),
-                                confirmText: translate('common.delete'),
-                                cancelText: translate('common.cancel'),
-                                danger: true,
-                            });
-                            if (action === ModalActions.CONFIRM) {
-                                deleteRate();
-                            }
-                        }}
-                    />
+                    {canWriteDistanceRates && (
+                        <MenuItem
+                            icon={icons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={async () => {
+                                if (!canDisableOrDeleteRate) {
+                                    showWarningModal();
+                                    return;
+                                }
+                                const {action} = await showConfirmModal({
+                                    title: translate('workspace.distanceRates.deleteDistanceRate'),
+                                    prompt: translate('workspace.distanceRates.areYouSureDelete', {count: 1}),
+                                    confirmText: translate('common.delete'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                });
+                                if (action === ModalActions.CONFIRM) {
+                                    deleteRate();
+                                }
+                            }}
+                        />
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

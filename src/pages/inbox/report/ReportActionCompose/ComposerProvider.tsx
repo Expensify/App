@@ -80,6 +80,15 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         isEditing: !!editingReportAction,
     });
 
+    // Prime the debounce so flush() returns a valid result for restored drafts.
+    // Initialize to true (skip) when there's no draft, false (run) when there is.
+    const [hasInitialValidationRun, setHasInitialValidationRun] = useState(!draftComment);
+    if (!hasInitialValidationRun && draftComment) {
+        setHasInitialValidationRun(true);
+        debouncedCommentMaxLengthValidation(draftComment);
+        debouncedCommentMaxLengthValidation.flush();
+    }
+
     const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
 
     const {publishDraft, deleteDraft} = useEditMessage({
@@ -115,6 +124,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const composerState = {
+        reportID,
         isFocused,
         isMenuVisible,
         isFullComposerAvailable,
