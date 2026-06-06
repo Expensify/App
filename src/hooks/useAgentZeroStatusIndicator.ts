@@ -93,10 +93,6 @@ function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): Newe
  * for an AgentZero chat.
  *
  * @param reportID - The report ID to monitor
- * @param personaAccountID - The default persona handling this chat (Concierge for Concierge/admin
- *   chats; the agent's accountID for custom-agent chats). Used as the fallback persona and to
- *   decide when a final reply has actually landed: the indicator only clears once the newest
- *   reportAction's actorAccountID matches the latched persona AND the server NVP signals done.
  * @param agentAccountIDs - The agent participants in this chat. When the tagging message mentions
  *   several accounts, the latch picks the first mention that is one of these agents so a regular
  *   member mentioned before the agent doesn't get latched as the persona we're waiting on.
