@@ -2201,10 +2201,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: '不審な行為を報告',
         lockAccount: 'アカウントをロック',
+        lockMyAccount: '自分のアカウントをロック',
         unlockAccount: 'アカウントのロック解除',
-        compromisedDescription:
-            'アカウントにおかしな点がありますか？報告すると、すぐにアカウントがロックされ、新しい Expensify カードの取引がブロックされ、アカウントの変更もできなくなります。',
-        domainAdminsDescription: 'ドメイン管理者向け：これにより、ドメイン全体のすべての Expensify カードの利用と管理者による操作も一時停止されます。',
+        findYourSituation: 'ほとんどの問題はアカウントのロックを必要としません。以下からご自身の状況を見つけてください：',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">カードの紛失または不明な請求</a>：カードをキャンセルし、Conciergeに連絡して不明な取引に異議を申し立ててください。',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">アカウントへの不正アクセス</a>：以下からアカウントをロックしてください。これにより、新しい Expensify カードの取引、カードの注文、アカウントの変更がブロックされます。ドメイン管理者の場合、ドメイン全体のすべてのカード利用と管理者による操作も一時停止されます。',
+        securityTeamFollowUp: '当社のセキュリティチームがロック後に <a href="mailto:risk@expensify.com">risk@expensify.com</a> からご連絡します。',
         areYouSure: 'Expensify アカウントをロックしてもよろしいですか？',
         onceLocked: 'ロックされると、解除リクエストとセキュリティ審査が完了するまでアカウントは制限されます',
         unlockTitle: 'リクエストを受け付けました',

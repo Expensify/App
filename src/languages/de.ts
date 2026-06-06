@@ -2224,10 +2224,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Verdächtige Aktivität melden',
         lockAccount: 'Konto sperren',
+        lockMyAccount: 'Mein Konto sperren',
         unlockAccount: 'Konto entsperren',
-        compromisedDescription:
-            'Ist Ihnen etwas Ungewöhnliches mit Ihrem Konto aufgefallen? Wenn Sie es melden, wird Ihr Konto sofort gesperrt, neue Expensify Karte-Transaktionen werden blockiert und alle Kontenänderungen verhindert.',
-        domainAdminsDescription: 'Für Domain-Admins: Dadurch werden auch alle Aktivitäten der Expensify Karte und alle Administratoraktionen in Ihrer/Ihren Domain(s) pausiert.',
+        findYourSituation: 'Die meisten Probleme erfordern keine Kontosperrung! Finden Sie unten Ihre Situation:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Verlorene Karte oder unbekannte Abbuchungen</a>: Stornieren Sie Ihre Karte und wenden Sie sich an Concierge, um unbekannte Transaktionen anzufechten.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Unbefugter Kontozugriff</a>: Sperren Sie Ihr Konto unten. Dadurch werden neue Expensify Karte-Transaktionen, Kartenbestellungen und Kontenänderungen blockiert. Wenn Sie ein Domain-Admin sind, werden dadurch auch alle domänenweiten Kartenaktivitäten und Administratoraktionen pausiert.',
+        securityTeamFollowUp: 'Unser Sicherheitsteam meldet sich nach der Sperrung von <a href="mailto:risk@expensify.com">risk@expensify.com</a> bei Ihnen.',
         areYouSure: 'Möchtest du dein Expensify-Konto wirklich sperren?',
         onceLocked: 'Sobald Ihr Konto gesperrt ist, wird es eingeschränkt, bis eine Entsperrungsanfrage gestellt und eine Sicherheitsprüfung durchgeführt wurde',
         unlockTitle: 'Wir haben Ihre Anfrage erhalten',

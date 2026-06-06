@@ -2215,10 +2215,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Denunciar atividade suspeita',
         lockAccount: 'Bloquear conta',
+        lockMyAccount: 'Bloquear minha conta',
         unlockAccount: 'Desbloquear conta',
-        compromisedDescription:
-            'Percebeu algo estranho na sua conta? Ao denunciar, sua conta será imediatamente bloqueada, novas transações com o Cartão Expensify serão impedidas e qualquer alteração na conta será bloqueada.',
-        domainAdminsDescription: 'Para admins de domínio: isso também pausa todas as atividades do Cartão Expensify e ações de administração em todo(s) o(s) seu(s) domínio(s).',
+        findYourSituation: 'A maioria dos problemas não exige o bloqueio da sua conta! Encontre a sua situação abaixo:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Cartão perdido ou cobranças desconhecidas</a>: Cancele seu cartão e entre em contato com o Concierge para contestar transações desconhecidas.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Acesso não autorizado à conta</a>: Bloqueie sua conta abaixo. Isso impede novas transações com o Cartão Expensify, pedidos de cartão e alterações na conta. Se você for um admin de domínio, isso também pausa toda a atividade de cartão e ações de administração em todo o domínio.',
+        securityTeamFollowUp: 'Nossa equipe de segurança entrará em contato pelo <a href="mailto:risk@expensify.com">risk@expensify.com</a> após o bloqueio.',
         areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
         onceLocked: 'Depois de bloqueada, sua conta ficará restrita até que seja feita uma solicitação de desbloqueio e uma revisão de segurança',
         unlockTitle: 'Recebemos sua solicitação',

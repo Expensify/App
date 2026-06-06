@@ -2160,9 +2160,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: '举报可疑活动',
         lockAccount: '锁定账户',
+        lockMyAccount: '锁定我的账户',
         unlockAccount: '解锁账户',
-        compromisedDescription: '发现账户有异常？提交报告后将立即锁定账户、阻止新的 Expensify 卡交易，并禁止任何账户更改。',
-        domainAdminsDescription: '针对域管理员：这也会暂停您所有域中的所有 Expensify 卡活动和管理员操作。',
+        findYourSituation: '大多数问题无需锁定账户！请在下方找到您的情况：',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">卡片丢失或陌生扣款</a>：取消您的卡片并联系 Concierge 以对未知交易提出争议。',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">账户未经授权的访问</a>：在下方锁定您的账户。这会阻止新的 Expensify 卡交易、卡片订购和账户更改。如果您是域管理员，这还会暂停整个域中的所有卡活动和管理员操作。',
+        securityTeamFollowUp: '我们的安全团队将在锁定后通过 <a href="mailto:risk@expensify.com">risk@expensify.com</a> 与您联系。',
         areYouSure: '你确定要锁定你的 Expensify 账户吗？',
         onceLocked: '一旦被锁定，您的账户将受到限制，直至提交解锁请求并完成安全审查',
         unlockTitle: '我们已收到您的请求',

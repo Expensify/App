@@ -2230,11 +2230,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Signaler une activité suspecte',
         lockAccount: 'Verrouiller le compte',
+        lockMyAccount: 'Verrouiller mon compte',
         unlockAccount: 'Déverrouiller le compte',
-        compromisedDescription:
-            'Vous remarquez quelque chose d’inhabituel sur votre compte ? Le signaler bloquera immédiatement votre compte, empêchera les nouvelles transactions avec la Carte Expensify et interdira toute modification du compte.',
-        domainAdminsDescription:
-            "Pour les administrateurs de domaine : cela met également en pause toute l'activité de Carte Expensify et toutes les actions d'administration sur l’ensemble de votre (vos) domaine(s).",
+        findYourSituation: 'La plupart des problèmes ne nécessitent pas de verrouiller votre compte ! Trouvez votre situation ci-dessous :',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Carte perdue ou frais inconnus</a> : Annulez votre carte et contactez Concierge pour contester les transactions inconnues.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Accès non autorisé au compte</a> : Verrouillez votre compte ci-dessous. Cela bloque les nouvelles transactions avec la Carte Expensify, les commandes de carte et les modifications du compte. Si vous êtes administrateur de domaine, cela met également en pause toute l’activité de carte et toutes les actions d’administration à l’échelle du domaine.',
+        securityTeamFollowUp: 'Notre équipe de sécurité vous contactera depuis <a href="mailto:risk@expensify.com">risk@expensify.com</a> après le verrouillage.',
         areYouSure: 'Voulez-vous vraiment verrouiller votre compte Expensify ?',
         onceLocked: 'Une fois verrouillé, votre compte sera restreint en attendant une demande de déverrouillage et un contrôle de sécurité',
         unlockTitle: 'Nous avons bien reçu votre demande',
