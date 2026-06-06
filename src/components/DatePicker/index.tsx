@@ -55,8 +55,6 @@ function DatePicker({
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
-    // Whether the initial autoFocus has already opened the picker, so later focuses don't reopen it.
-    const hasAutoOpenedRef = useRef(false);
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
