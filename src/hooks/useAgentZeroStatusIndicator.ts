@@ -5,6 +5,7 @@ import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportRea
 import AgentZeroOptimisticStore, {MAX_AGE_MS as OPTIMISTIC_MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -17,11 +18,18 @@ type AgentZeroStatusState = {
     reasoningHistory: ReasoningEntry[];
     statusLabel: string;
     kickoffWaitingIndicator: () => void;
+
+    /** The accountID of the persona handling this chat — the agent the user tagged when one was
+     * mentioned, otherwise the chat's default persona. Used to render the thinking-bubble avatar. */
+    personaAccountID: number;
 };
 
 type NewestReportAction = {
     reportActionID: string;
     actorAccountID?: number;
+
+    /** First account mentioned in the action (the tagged agent for an `@agent` message), if any. */
+    mentionedAccountID?: number;
 };
 
 /**
@@ -65,9 +73,14 @@ function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): Newe
         }
         return a.reportActionID > b.reportActionID ? a : b;
     });
+
+    const originalMessage = getOriginalMessage(newest);
+    const mentionedAccountID = originalMessage && 'mentionedAccountIDs' in originalMessage ? originalMessage.mentionedAccountIDs?.at(0) : undefined;
+
     return {
         reportActionID: newest.reportActionID,
         actorAccountID: newest.actorAccountID,
+        mentionedAccountID,
     };
 }
 
@@ -139,6 +152,14 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     const restoredOptimisticOnMountRef = useRef<ReturnType<typeof AgentZeroOptimisticStore.getEntry>>(initialRestoredEntry);
     const indicatorBaselineActionIDRef = useRef<string | null>(initialRestoredEntry?.baselineActionID ?? null);
     const wasIndicatorActiveRef = useRef<boolean>(!!initialRestoredEntry);
+
+    // The persona we're actually waiting on for this processing cycle. In a multi-agent chat the
+    // user tags a specific agent, so the responder isn't necessarily the chat's default persona.
+    // We latch the tagged agent (the first mention on the action that was newest when the indicator
+    // activated) and hold it until the cycle ends — the agent's own reply carries no mention, so we
+    // can't re-derive it once the reply lands. Falls back to the default persona when nothing was
+    // tagged (e.g. Concierge DMs).
+    const [effectivePersonaAccountID, setEffectivePersonaAccountID] = useState<number>(personaAccountID);
 
     /**
      * Clear the safety timer. Called when the indicator clears normally, when a new
@@ -365,11 +386,13 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     useEffect(() => {
         if (isIndicatorActive && !wasIndicatorActiveRef.current) {
             indicatorBaselineActionIDRef.current = newestReportActionRef.current?.reportActionID ?? null;
+            setEffectivePersonaAccountID(newestReportActionRef.current?.mentionedAccountID ?? personaAccountID);
         } else if (!isIndicatorActive) {
             indicatorBaselineActionIDRef.current = null;
+            setEffectivePersonaAccountID(personaAccountID);
         }
         wasIndicatorActiveRef.current = isIndicatorActive;
-    }, [isIndicatorActive]);
+    }, [isIndicatorActive, personaAccountID]);
 
     // Clear the indicator when Concierge has *actually completed* processing. A newer
     // Concierge action alone isn't enough: during processing, Concierge can post
@@ -382,7 +405,7 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
     const newestActorAccountID = newestReportAction?.actorAccountID;
     const newestActionID = newestReportAction?.reportActionID;
     useEffect(() => {
-        if (newestActorAccountID !== personaAccountID) {
+        if (newestActorAccountID !== effectivePersonaAccountID) {
             return;
         }
         if (pendingOptimisticRequests === 0 && !serverLabel) {
@@ -399,7 +422,7 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
         clearAgentZeroProcessingIndicator(reportID);
         clearSafetyTimer();
         AgentZeroOptimisticStore.clear(reportID);
-    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, personaAccountID]);
+    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, effectivePersonaAccountID]);
 
     const isProcessing = !isOffline && isIndicatorActive;
 
@@ -408,6 +431,7 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
         reasoningHistory,
         statusLabel: displayedLabel,
         kickoffWaitingIndicator,
+        personaAccountID: effectivePersonaAccountID,
     };
 }
 

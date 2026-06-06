@@ -84,7 +84,7 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 
 function AgentZeroStatusGate({reportID, personaAccountID, children}: React.PropsWithChildren<{reportID: string; personaAccountID: number}>) {
     const {kickoffWaitingIndicator, ...indicatorState} = useAgentZeroStatusIndicator(reportID, personaAccountID);
-    const stateValue = {...indicatorState, personaAccountID};
+    const stateValue = indicatorState;
     const actionsValue = {kickoffWaitingIndicator};
 
     // Auto-kickoff "thinking" indicator when opened from search (where kickoffWaitingIndicator isn't accessible)
