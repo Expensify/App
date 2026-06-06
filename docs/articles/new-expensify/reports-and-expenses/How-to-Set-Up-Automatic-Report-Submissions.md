@@ -43,8 +43,6 @@ Only **Workspace Admins** can turn on Submissions and choose a submission freque
 
 ![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_ND.png){:width="100%"}
 
-**To stop expenses from being auto-added to a report entirely**, toggle the **Submissions** setting **off**. With Submissions off, new expenses stay in the **Unreported** state until a member adds them to a report, and reports must be submitted manually. The **Manually** frequency above does not have this effect — it only delays submission, expenses are still auto-added to a report.
-
 ---
 
 ## How to use the By trip submission frequency
@@ -84,6 +82,12 @@ No. Once Submissions is enabled on the Workspace, it overrides any individual su
 ## Can automatic submissions be paused during month-end review?
 
 There’s no pause button, but you can temporarily change the Frequency setting to **Manually** to prevent automatic submissions. Just switch it back after your review period.
+
+## What's the difference between turning off Submissions and setting the submission frequency to Manually?
+
+When **Submissions** is turned off, expenses are not automatically added to reports and remain Unreported until a member adds them to a report manually.
+
+When the submission frequency is set to **Manually**, expenses are still automatically added to reports, but the reports are not automatically submitted.
 
 ## Can employees still submit manually if Submissions is turned on?
 
