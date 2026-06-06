@@ -11,7 +11,6 @@ function getTryNewDot(): Promise<TryNewDot | null> {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.NVP_TRY_NEW_DOT,
-            initWithStoredValues: true,
             callback: (value) => {
                 Onyx.disconnect(connectionID);
                 resolve(value ?? null);

@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getDistanceInMeters, hasRoute as hasRouteUtil} from '@libs/TransactionUtils';
@@ -68,12 +69,15 @@ function useDistanceRequestState({
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
     const defaultRate = defaultMileageRate?.customUnitRateID;
 
+    const personalPolicy = usePersonalPolicy();
+
     const mileageRate = DistanceRequestUtils.getRate({
         transaction,
         policy,
         ...(isMovingTransactionFromTrackExpense && {policyForMovingExpenses}),
         isMovingTransactionFromTrackExpense,
         policyDraft,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distanceRate = mileageRate.rate;
     const distanceUnit = mileageRate.unit;

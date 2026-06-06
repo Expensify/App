@@ -96,12 +96,20 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         setIsDenyingTransaction(true);
         denyTransaction({transactionID}).then(({reason, httpStatusCode, message}) => {
             addBreadcrumb('Deny completed', {transactionID, reason, httpStatusCode, message});
+            // The deny outcome is rendered inside this RHP page (not inside the MFA modal navigator),
+            // so the outcome screen's default CLOSE_MODAL dispatch has no effect here. Override its
+            // close handler to dismiss the RHP instead.
+            const closeRHP = () => {
+                allowNavigatingAwayRef.current = true;
+                Navigation.closeRHPFlow();
+            };
             if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.FLOW_OUTCOMES.TRANSACTION_DENIED) {
-                setDenyOutcomeScreen(<DeniedTransactionSuccessScreen />);
+                setDenyOutcomeScreen(<DeniedTransactionSuccessScreen onClose={closeRHP} />);
                 return;
             }
-            const failureScreen = reason ? authorizeTransactionConfig.failureScreens[reason] : undefined;
-            setDenyOutcomeScreen(failureScreen ?? <DeniedTransactionServerFailureScreen />);
+            const failureElement = reason ? authorizeTransactionConfig.failureScreens[reason] : undefined;
+            const failureWithCloseOverride = failureElement ? React.cloneElement(failureElement, {onClose: closeRHP}) : <DeniedTransactionServerFailureScreen onClose={closeRHP} />;
+            setDenyOutcomeScreen(failureWithCloseOverride);
         });
     };
 

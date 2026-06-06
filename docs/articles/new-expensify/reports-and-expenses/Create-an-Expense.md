@@ -198,7 +198,7 @@ There's no limit to the number of receipts you can attach to an email sent to re
 
 ## Can I attach multiple receipts to one expense?
 
-No. Only one receipt image is allowed per expense. Combine receipts into a single PDF or attach additional files to the report.
+Yes. Each expense has only one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed. [Learn how to attach additional receipts to an expense](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#how-to-add-additional-receipts-to-an-expense). 
 
 ## Can I edit an expense after submission?
 
