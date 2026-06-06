@@ -89,20 +89,42 @@ type WorkspaceTagsPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT>;
 
-function removeAnchorForHref(html: string, href: string) {
+function removeSentenceContainingHref(html: string, href: string) {
     const anchorStart = `<a href="${href}">`;
     const anchorStartIndex = html.indexOf(anchorStart);
     if (anchorStartIndex === -1) {
         return html;
     }
 
-    const contentStartIndex = anchorStartIndex + anchorStart.length;
-    const anchorEndIndex = html.indexOf('</a>', contentStartIndex);
+    const anchorEndIndex = html.indexOf('</a>', anchorStartIndex + anchorStart.length);
     if (anchorEndIndex === -1) {
         return html;
     }
 
-    return `${html.slice(0, anchorStartIndex)}${html.slice(contentStartIndex, anchorEndIndex)}${html.slice(anchorEndIndex + '</a>'.length)}`;
+    const sentenceDelimiters = ['. ', '。'];
+    const sentenceStartDelimiter = sentenceDelimiters.reduce(
+        (latestDelimiter, delimiter) => {
+            const delimiterIndex = html.lastIndexOf(delimiter, anchorStartIndex);
+            return delimiterIndex > latestDelimiter.index ? {delimiter, index: delimiterIndex} : latestDelimiter;
+        },
+        {delimiter: '', index: -1},
+    );
+    if (sentenceStartDelimiter.index === -1) {
+        return html;
+    }
+
+    const sentenceEndDelimiter = sentenceDelimiters
+        .map((delimiter) => ({delimiter, index: html.indexOf(delimiter.trim(), anchorEndIndex)}))
+        .filter(({index}) => index !== -1)
+        .sort((first, second) => first.index - second.index)
+        .at(0);
+    if (!sentenceEndDelimiter) {
+        return html;
+    }
+
+    const removeStartIndex = sentenceStartDelimiter.index + sentenceStartDelimiter.delimiter.trim().length;
+    const removeEndIndex = sentenceEndDelimiter.index + sentenceEndDelimiter.delimiter.trim().length;
+    return `${html.slice(0, removeStartIndex)}${html.slice(removeEndIndex)}`;
 }
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
@@ -876,7 +898,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const dependentTagsSubtitle = translate('workspace.tags.subtitleWithDependentTags', importSpreadsheetURL);
         let subtitleHTML = `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`;
         if (hasDependentTags) {
-            subtitleHTML = canWriteTags ? dependentTagsSubtitle : removeAnchorForHref(dependentTagsSubtitle, importSpreadsheetURL);
+            subtitleHTML = canWriteTags ? dependentTagsSubtitle : removeSentenceContainingHref(dependentTagsSubtitle, importSpreadsheetURL);
         }
 
         return (
