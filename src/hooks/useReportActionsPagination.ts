@@ -26,6 +26,7 @@ type UseReportActionsPaginationResult = {
     parentReportActionForTransactionThread: ReportAction | undefined;
     treatAsNoPaginationAnchor: boolean;
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
+    reportPreviewAction: OnyxEntry<ReportAction> | null;
 };
 
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
@@ -92,6 +93,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
+        reportPreviewAction,
     };
 }
 
