@@ -125,7 +125,6 @@ function DatePicker({
         showDatePickerModal();
     }, [shouldDeferShowUntilPositioned, showDatePickerModal]);
 
-
     const handleInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
             if (!isNumeric(event.nativeEvent.key)) {
