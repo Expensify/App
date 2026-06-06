@@ -649,7 +649,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {
-        // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
+        // If they have an onboarding specialist assigned display the following and link to the #admins room with the account executive.
         if (policy?.chatReportIDAdmins) {
             return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
         }
