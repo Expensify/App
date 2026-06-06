@@ -23,6 +23,8 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
         badgeText = translate('common.owner');
     } else if (role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.CARD_ADMIN) {
         badgeText = translate('workspace.common.roleName', role);
+    } else if (role === CONST.POLICY.ROLE.EDITOR) {
+        badgeText = translate('common.editor');
     }
     if (badgeText) {
         return (
