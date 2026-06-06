@@ -89,6 +89,22 @@ type WorkspaceTagsPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT>;
 
+function removeAnchorForHref(html: string, href: string) {
+    const anchorStart = `<a href="${href}">`;
+    const anchorStartIndex = html.indexOf(anchorStart);
+    if (anchorStartIndex === -1) {
+        return html;
+    }
+
+    const contentStartIndex = anchorStartIndex + anchorStart.length;
+    const anchorEndIndex = html.indexOf('</a>', contentStartIndex);
+    if (anchorEndIndex === -1) {
+        return html;
+    }
+
+    return `${html.slice(0, anchorStartIndex)}${html.slice(contentStartIndex, anchorEndIndex)}${html.slice(anchorEndIndex + '</a>'.length)}`;
+}
+
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -854,20 +870,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             );
         }
 
+        const importSpreadsheetURL = isQuickSettingsFlow
+            ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
+            : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`;
+        const dependentTagsSubtitle = translate('workspace.tags.subtitleWithDependentTags', importSpreadsheetURL);
+        let subtitleHTML = `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`;
+        if (hasDependentTags) {
+            subtitleHTML = canWriteTags ? dependentTagsSubtitle : removeAnchorForHref(dependentTagsSubtitle, importSpreadsheetURL);
+        }
+
         return (
             <View style={[styles.flexRow, styles.renderHTML]}>
-                <RenderHTML
-                    html={
-                        hasDependentTags
-                            ? translate(
-                                  'workspace.tags.subtitleWithDependentTags',
-                                  isQuickSettingsFlow
-                                      ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
-                                      : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
-                              )
-                            : `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`
-                    }
-                />
+                <RenderHTML html={subtitleHTML} />
             </View>
         );
     };
