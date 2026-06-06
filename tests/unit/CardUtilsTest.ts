@@ -4008,7 +4008,7 @@ describe('CardUtils', () => {
             expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
         });
 
-        it('should detect Plaid card assigned in a different workspace with the same feed', () => {
+        it('should not match Plaid card assigned in a different workspace (defers to backend)', () => {
             const workspaceCardFeeds = {
                 [`cards_200_plaid.ins_19`]: {
                     '12345': {
@@ -4021,8 +4021,10 @@ describe('CardUtils', () => {
                 },
             } as unknown as OnyxCollection<WorkspaceCardsList>;
 
-            // Workspace 100 checking, card is assigned in workspace 200 — should be detected
-            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
+            // Workspace 100 checking, card is assigned in workspace 200. The client's only
+            // identifier for a direct-feed card is the masked display name, which is not unique
+            // across accounts, so we no longer block cross-workspace and defer to ASSIGN_COMPANY_CARD.
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
         });
 
         it('should not match Plaid card from a different institution', () => {
@@ -4092,7 +4094,7 @@ describe('CardUtils', () => {
             expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
         });
 
-        it('should detect OAuth card assigned in a different workspace', () => {
+        it('should not match OAuth card assigned in a different workspace (defers to backend)', () => {
             const workspaceCardFeeds = {
                 [`cards_200_oauth.chase.com`]: {
                     '12345': {
@@ -4105,7 +4107,10 @@ describe('CardUtils', () => {
                 },
             } as unknown as OnyxCollection<WorkspaceCardsList>;
 
-            expect(isCardAlreadyAssigned('CREDIT CARD...6607', workspaceCardFeeds, 100, 'oauth.chase.com')).toBe(true);
+            // A masked OAuth display name (e.g. "CREDIT CARD...6607") collides across two genuinely
+            // different cards, so cross-workspace matching produced false positives. We now scope the
+            // check to the current workspace and let the backend reject real cross-account duplicates.
+            expect(isCardAlreadyAssigned('CREDIT CARD...6607', workspaceCardFeeds, 100, 'oauth.chase.com')).toBe(false);
         });
 
         it('should fall back to domain-scoped check when feedName is not provided', () => {

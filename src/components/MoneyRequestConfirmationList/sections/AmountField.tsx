@@ -96,7 +96,9 @@ function AmountField({
     const isP2P = isNewManualExpenseFlowEnabled
         ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
         : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired';
+    // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
+    // amount itself is the missing value.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';

@@ -2648,7 +2648,10 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
-                reimbursementChoice: isTrackOnboardingChoice(engagementChoice) ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimbursementChoice:
+                    isTrackOnboardingChoice(engagementChoice) || type === CONST.POLICY.TYPE.SUBMIT
+                        ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
+                        : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 created: DateUtils.getDBTime(),
                 customUnits,
                 areCategoriesEnabled: true,
@@ -3319,7 +3322,7 @@ function buildOptimisticDuplicatePolicy(
         areInvoicesEnabled: isInvoicesFeatureSelected,
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
-        areReportFieldsEnabled: isReportsFeatureSelected,
+        areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
         arePerDiemRatesEnabled: isPerDiemFeatureSelected,
         isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
