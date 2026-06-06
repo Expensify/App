@@ -58,7 +58,7 @@ for (const fixtureName of FIXTURE_NAMES) {
             copyFileSync(actualPath, goldenPath);
         }
 
-        comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES[fixtureName]);
+        comparePng(actualPath, goldenPath, FIXTURE_EXPECTED_SIZES.get(fixtureName));
     });
 }
 
