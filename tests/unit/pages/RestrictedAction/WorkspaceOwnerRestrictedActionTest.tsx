@@ -10,6 +10,7 @@ const {default: WorkspaceOwnerRestrictedActionWeb} = jest.requireActual<{default
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
+    closeRHPFlow: jest.fn(),
     navigate: jest.fn(),
     getActiveRoute: jest.fn(() => 'r/123'),
     goBack: jest.fn(),
@@ -125,21 +126,14 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
     });
 
-    it('dismisses modal before navigating to subscription route on native', () => {
+    it('uses unchanged native handler to navigate to subscription route', () => {
         render(<WorkspaceOwnerRestrictedActionNative />);
 
         fireEvent.press(screen.getByText('workspace.restrictedAction.goToSubscription'));
 
-        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
-        expect(Navigation.getActiveRoute).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-
-        const options = getDismissModalOptions();
-        expect(typeof options?.afterTransition).toBe('function');
-
-        options?.afterTransition();
-
+        expect(Navigation.closeRHPFlow).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION.getRoute('r/123'));
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
     });
 });
