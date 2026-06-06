@@ -735,10 +735,23 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         return (
             <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
-                <RenderHTML html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`, canWriteCategories)} />
+                <RenderHTML
+                    html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`, canWriteCategories)}
+                />
             </View>
         );
-    }, [policyHasAccountingConnections, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.textSupporting, styles.textNormal, translate, environmentURL, policyId, canWriteCategories]);
+    }, [
+        policyHasAccountingConnections,
+        styles.renderHTML,
+        styles.textAlignCenter,
+        styles.alignItemsCenter,
+        styles.textSupporting,
+        styles.textNormal,
+        translate,
+        environmentURL,
+        policyId,
+        canWriteCategories,
+    ]);
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
