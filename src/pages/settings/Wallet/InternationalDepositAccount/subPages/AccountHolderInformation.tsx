@@ -109,7 +109,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                     shouldAllowChange={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? false : undefined}
                                     optionsList={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? CONST.ALL_COUNTRIES : undefined}
                                     value={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? formValues.bankCountry : undefined}
-                                    shouldSaveDraft={true}
+                                    shouldSaveDraft={!isEditing}
                                     renamedInputKeys={{
                                         street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
                                         street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
