@@ -117,6 +117,14 @@ Onyx.connectWithoutView({
     callback: (value) => (recentAttendees = value),
 });
 
+let searchQueryByHash: Record<string, string> = {};
+Onyx.connect({
+    key: ONYXKEYS.SEARCH_QUERY_BY_HASH,
+    callback: (value) => {
+        searchQueryByHash = value ?? {};
+    },
+});
+
 let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
 let knownSnapshotHashes = new Set<string>();
 Onyx.connect({
@@ -128,7 +136,10 @@ Onyx.connect({
         // when a snapshot disappears, drop its query entry so the map can never outgrow it.
         const snapshotPrefixLength = ONYXKEYS.COLLECTION.SNAPSHOT.length;
         const currentHashes = new Set(Object.keys(allSnapshots).map((k) => k.slice(snapshotPrefixLength)));
-        const removed = [...knownSnapshotHashes].filter((h) => !currentHashes.has(h));
+        // Reconcile against persisted SEARCH_QUERY_BY_HASH too, so entries whose snapshots were evicted
+        // before this JS session get pruned on first sync (not just hashes seen since startup).
+        const candidates = new Set<string>([...knownSnapshotHashes, ...Object.keys(searchQueryByHash)]);
+        const removed = [...candidates].filter((h) => !currentHashes.has(h));
         if (removed.length > 0) {
             const evictions: Record<string, string | null> = {};
             for (const h of removed) {
@@ -137,14 +148,6 @@ Onyx.connect({
             Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, evictions);
         }
         knownSnapshotHashes = currentHashes;
-    },
-});
-
-let searchQueryByHash: Record<string, string> = {};
-Onyx.connect({
-    key: ONYXKEYS.SEARCH_QUERY_BY_HASH,
-    callback: (value) => {
-        searchQueryByHash = value ?? {};
     },
 });
 
