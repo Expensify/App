@@ -73,6 +73,7 @@ const WRITE_COMMANDS = {
     UPDATE_DATE_OF_BIRTH: 'UpdateDateOfBirth',
     UPDATE_PHONE_NUMBER: 'UpdatePhoneNumber',
     UPDATE_HOME_ADDRESS: 'UpdateHomeAddress',
+    UPDATE_PRIVATE_PERSONAL_DETAILS: 'UpdatePrivatePersonalDetails',
     UPDATE_POLICY_ADDRESS: 'SetPolicyAddress',
     UPDATE_AUTOMATIC_TIMEZONE: 'UpdateAutomaticTimezone',
     UPDATE_SELECTED_TIMEZONE: 'UpdateSelectedTimezone',
@@ -674,6 +675,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_PHONE_NUMBER]: Parameters.UpdatePhoneNumberParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ADDRESS]: Parameters.UpdatePolicyAddressParams;
     [WRITE_COMMANDS.UPDATE_HOME_ADDRESS]: Parameters.UpdateHomeAddressParams;
+    [WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS]: Parameters.UpdatePrivatePersonalDetailsParams;
     [WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE]: Parameters.UpdateAutomaticTimezoneParams;
     [WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE]: Parameters.UpdateSelectedTimezoneParams;
     [WRITE_COMMANDS.UPDATE_USER_AVATAR]: Parameters.UpdateUserAvatarParams;
@@ -1074,13 +1076,13 @@ type WriteCommandParameters = {
 
     // Certinia (FinancialForce) parameters
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORTER]: Parameters.UpdateFinancialForceGenericTypeParams<'email', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_DATE]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR]: Parameters.UpdateFinancialForceGenericTypeParams<'vendorID', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'exportStatus', ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_DATE]: Parameters.UpdateFinancialForceGenericTypeParams<'exportDate', ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR]: Parameters.UpdateFinancialForceGenericTypeParams<'vendorAccount', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_TAX]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_AUTO_SYNC]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
@@ -1387,7 +1389,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
     [READ_COMMANDS.SYNC_POLICY_TO_GUSTO]: Parameters.SyncPolicyToGustoParams;
     [READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS]: Parameters.SyncPolicyToZenefitsParams;
-    [READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE]: {policyID: string};
+    [READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE]: Parameters.SyncPolicyToFinancialForceParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
