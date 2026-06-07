@@ -232,7 +232,7 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
         case 'timeTracking':
             return isTimeTrackingEnabled(policy);
         case 'receiptPartners':
-            return !!(policy?.receiptPartners?.enabled || policy?.receiptPartners?.uber?.organizationID);
+            return Boolean(policy?.receiptPartners?.enabled) || Boolean(policy?.receiptPartners?.uber?.organizationID);
         default:
             return false;
     }
