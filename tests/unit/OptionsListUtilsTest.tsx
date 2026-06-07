@@ -7198,6 +7198,36 @@ describe('OptionsListUtils', () => {
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
         });
+
+        it('should set displayName on the optimistic personal detail entry for a new account invited by email', () => {
+            const searchValue = 'newuser@example.com';
+            const result = getUserToInviteOption({
+                searchValue,
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
+
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe(searchValue);
+            expect(result?.displayName).toBe(searchValue);
+            expect(result?.text).toBe(searchValue);
+        });
+
+        it('should set displayName on the optimistic personal detail entry for a new account invited by phone number', () => {
+            const searchValue = '+919789942470';
+            const result = getUserToInviteOption({
+                searchValue,
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
+
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe(searchValue);
+            expect(result?.displayName).toBe(searchValue);
+            expect(result?.text).toBe(searchValue);
+        });
     });
 
     describe('reports parameter functionality', () => {

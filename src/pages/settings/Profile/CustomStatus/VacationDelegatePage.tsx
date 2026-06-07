@@ -1,3 +1,4 @@
+import Str from 'expensify-common/dist/str';
 import React, {useCallback, useEffect, useRef} from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -40,7 +41,7 @@ function VacationDelegatePage() {
         async (delegateLogin: string) => {
             const result = await showConfirmModal({
                 title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin),
+                prompt: translate('statusPage.vacationDelegateWarning', Str.removeSMSDomain(getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin)),
                 confirmText: translate('common.confirm'),
                 cancelText: translate('common.cancel'),
                 shouldShowCancelButton: true,

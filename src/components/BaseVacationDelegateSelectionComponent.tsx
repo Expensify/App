@@ -85,26 +85,28 @@ function BaseVacationDelegateSelectionComponent({
 
     const sectionsList = [];
 
-    if (currentVacationDelegate && delegatePersonalDetails) {
+    if (currentVacationDelegate) {
+        const formattedDelegate = formatPhoneNumber(currentVacationDelegate);
         sectionsList.push({
             title: undefined,
             sectionIndex: 0,
             data: [
                 {
-                    ...delegatePersonalDetails,
-                    text: delegatePersonalDetails?.displayName ?? currentVacationDelegate,
-                    alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
-                    login: delegatePersonalDetails.login ?? currentVacationDelegate,
-                    keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
+                    ...(delegatePersonalDetails ?? {}),
+                    text: delegatePersonalDetails?.displayName ?? formattedDelegate,
+                    alternateText: formatPhoneNumber(delegatePersonalDetails?.login ?? '') ?? formattedDelegate,
+                    login: delegatePersonalDetails?.login ?? currentVacationDelegate,
+                    keyForList: `vacationDelegate-${delegatePersonalDetails?.login}`,
                     isDisabled: false,
                     isSelected: true,
                     shouldShowSubscript: undefined,
+                    accountID: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
                     icons: [
                         {
                             source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
+                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? formattedDelegate),
                             type: CONST.ICON_TYPE_AVATAR,
-                            id: delegatePersonalDetails?.accountID,
+                            id: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
                         },
                     ],
                 },
