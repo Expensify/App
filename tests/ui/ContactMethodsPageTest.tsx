@@ -149,10 +149,12 @@ describe('ContactMethodsPage', () => {
             },
         });
 
+        // Wait for Onyx to notify the component's useOnyx subscriber before asserting
+        await waitForBatchedUpdates();
+
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);
 
-            // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
     });

@@ -65,12 +65,21 @@ import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {getDeviceInfoWithID} from './Device';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
-import {resendValidateCode as sessionResendValidateCode} from './Session';
+import {isAnonymousUser, resendValidateCode as sessionResendValidateCode} from './Session';
 import redirectToSignIn from './SignInRedirect';
 
 function getExpensifyLoginKey(contactMethod: string) {
     return `${CONST.PARTNER_ID.EXPENSIFY}_${contactMethod}`;
 }
+
+// `sessionAccountID` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
+let sessionAccountID: number | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        sessionAccountID = value?.accountID;
+    },
+});
 
 type DomainOnyxUpdate =
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>
@@ -1224,6 +1233,12 @@ function setContactMethodAsDefault(
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
+    // When toggling high contrast from the sign-in page, the user is not signed in. So persist the preference locally only.
+    if (!sessionAccountID || isAnonymousUser()) {
+        Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
+        return;
+    }
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PREFERRED_THEME>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1241,6 +1256,10 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
     if (shouldGoBack) {
         Navigation.goBack();
     }
+}
+
+function setHighContrastIntent(hasIntent: boolean | null) {
+    Onyx.set(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT, hasIntent);
 }
 
 /**
@@ -1924,6 +1943,7 @@ export {
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
+    setHighContrastIntent,
     resetContactMethodValidateCodeSentState,
     updateCustomStatus,
     clearCustomStatus,

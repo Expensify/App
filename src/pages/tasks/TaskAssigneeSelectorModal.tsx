@@ -95,7 +95,7 @@ function TaskAssigneeSelectorModal() {
         const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (reportOnyx && !isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.dismissModalWithReport({reportID: reportOnyx.reportID});
+                Navigation.goBack(taskEditBackPath);
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -190,7 +190,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
             InteractionManager.runAfterInteractions(() => {
-                Navigation.dismissModalWithReport({reportID: report?.reportID});
+                Navigation.goBack(taskEditBackPath);
             });
             // If there's no report, we're creating a new task
         } else if (option.accountID) {

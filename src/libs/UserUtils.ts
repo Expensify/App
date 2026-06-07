@@ -80,7 +80,7 @@ function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefin
     return result;
 }
 
-const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT]);
+const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT, CONST.PARTNER_ID.OAUTH]);
 
 function isDeviceLogin(login: NewLogin) {
     return DEVICE_PARTNER_IDS.has(login.partnerID) && (!login.additionalData?.infiniteLoginRoot || login.additionalData.infiniteLoginRoot === login.partnerUserID);
@@ -92,6 +92,47 @@ function getDeviceLogins(logins: OnyxEntry<Logins>) {
 
 function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
     return Object.values(logins ?? {})?.some((login) => isDeviceLogin(login) && !!login.errorFields?.revoke);
+}
+
+const MCP_PLATFORM_DISPLAY_NAMES: Record<string, string> = {
+    cursor: 'Cursor',
+    claude: 'Claude',
+    claudedesktop: 'Claude Desktop',
+    claudecodeex: 'Claude Code',
+    chatgpt: 'ChatGPT',
+    openai: 'OpenAI',
+};
+
+const MCP_PARTNER_USER_ID_PATTERN = /^mcp-([a-z0-9]+)-/;
+
+/**
+ * Returns a human-readable display name for a device login.
+ *
+ * MCP OAuth logins have a partnerUserID of the form "mcp-<slug>-<hex>". For
+ * those, the platform slug (stored raw in additionalData.deviceName, or parsed
+ * from partnerUserID as a fallback for older logins) is mapped to a friendly
+ * label. Regular device logins show their deviceName + OS string as before.
+ */
+function getDeviceDisplayName(
+    login: NewLogin,
+    deviceName: string | undefined,
+    deviceVersion: string | undefined,
+    os: string | undefined,
+    osVersion: string | undefined,
+    unknownDeviceLabel: string,
+): string {
+    const mcpMatch = login.partnerUserID ? MCP_PARTNER_USER_ID_PATTERN.exec(login.partnerUserID) : null;
+    if (mcpMatch) {
+        const slug = deviceName ?? mcpMatch[1];
+        const platformName = MCP_PLATFORM_DISPLAY_NAMES[slug];
+        return platformName ? `OAuth - MCP (${platformName})` : 'OAuth - MCP';
+    }
+
+    if (deviceName && os) {
+        return `${deviceName} ${deviceVersion ? `${deviceVersion} ` : ''}(${os} ${osVersion})`;
+    }
+
+    return unknownDeviceLabel;
 }
 
 /**
@@ -227,6 +268,7 @@ export {
     getLoginKey,
     getLastLogin,
     getDeviceLogins,
+    getDeviceDisplayName,
     hasDeviceManagementError,
     expensifyLoginsSelector,
 };

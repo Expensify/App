@@ -1,8 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ErrorMessageRow from '@components/ErrorMessageRow';
@@ -38,6 +36,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -199,9 +198,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const turnOnDeleteModal = useCallback(() => {
         const openDeleteModal = async () => {
             const result = await showRemoveContactMethodModal();
-            InteractionManager.runAfterInteractions(() => {
-                validateCodeFormRef.current?.focusLastSelected?.();
-            });
+            validateCodeFormRef.current?.focusLastSelected?.();
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
@@ -316,8 +313,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    validateCodeFormRef.current?.focus?.();
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        validateCodeFormRef.current?.focus?.();
+                    },
                 });
             }}
             testID="ContactMethodDetailsPage"

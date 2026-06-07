@@ -1,10 +1,8 @@
-import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -34,22 +32,12 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-type ShareTabRef = {
-    focus?: () => void;
-};
-
-type ShareTabProps = {
-    /** Reference to the outer element */
-    ref?: Ref<ShareTabRef>;
-};
-
-function ShareTab({ref}: ShareTabProps) {
+function ShareTab() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -62,9 +50,6 @@ function ShareTab({ref}: ShareTabProps) {
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
-    useImperativeHandle(ref, () => ({
-        focus: selectionListRef.current?.focusTextInput,
-    }));
 
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, isLoading} = useFilteredOptions({
@@ -158,7 +143,6 @@ function ShareTab({ref}: ShareTabProps) {
         hint: offlineMessage,
         onChangeText: setTextInputValue,
         headerMessage: header,
-        disableAutoFocus: true,
     };
 
     const customListHeader =
@@ -179,7 +163,6 @@ function ShareTab({ref}: ShareTabProps) {
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}
-            ref={selectionListRef}
         />
     );
 }
