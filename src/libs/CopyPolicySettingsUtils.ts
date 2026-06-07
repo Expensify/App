@@ -239,7 +239,7 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
 function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
     const hourlyRate = policy?.units?.time?.rate;
     if (hourlyRate !== undefined) {
-        return `${translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: ${hourlyRate}`;
+        return `${translate('common.enabled')}, ${translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: ${hourlyRate}`;
     }
     return translate('common.enabled');
 }
