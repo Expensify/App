@@ -6,6 +6,7 @@ import {
     FEATURE_ROWS,
     getAccountingConnectionIdentity,
     getConnectionCompanyID,
+    getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
     isCopyPolicySettingsPartEnabledOnSource,
     isTargetCompatibleForAccountingPart,
@@ -188,6 +189,26 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
         });
 
+        it('shows receipt partners when the feature or Uber connection is enabled on the source', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', baseContext)).toBe(false);
+
+            const enabledOnlyPolicy = createRandomPolicy(9);
+            enabledOnlyPolicy.receiptPartners = {enabled: true};
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', {...baseContext, policy: enabledOnlyPolicy})).toBe(true);
+
+            const connectedUberPolicy = createRandomPolicy(10);
+            connectedUberPolicy.receiptPartners = {uber: {organizationID: 'org-123', organizationName: 'Acme Uber'}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', {...baseContext, policy: connectedUberPolicy})).toBe(true);
+        });
+
+        it('describes receipt partners with the connected Uber organization name', () => {
+            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
+            const policy = createRandomPolicy(11);
+            policy.receiptPartners = {enabled: true, uber: {organizationName: 'Acme Uber Org'}};
+
+            expect(getReceiptPartnersCopySettingsDescription(policy, translate)).toBe('Acme Uber Org');
+        });
+
         it('shows time tracking only when the feature is enabled on the source', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', baseContext)).toBe(false);
 
@@ -319,6 +340,7 @@ describe('CopyPolicySettingsUtils', () => {
             expect(parts).toContain('invoices');
             expect(parts).toContain('travel');
             expect(parts).toContain('timeTracking');
+            expect(parts).toContain('receiptPartners');
         });
     });
 });
