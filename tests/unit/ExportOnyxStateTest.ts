@@ -1,4 +1,4 @@
-import {emailRegex, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
+import {emailRegex, maskFragileData, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -335,6 +335,36 @@ describe('Onyx key export coverage', () => {
         const derivedValues = Object.values(ONYXKEYS.DERIVED);
         for (const derivedKey of derivedValues) {
             expect(onyxKeysToRemove.has(derivedKey)).toBe(true);
+        }
+    });
+
+    it('every safe key must be a no-op when passed through maskFragileData', () => {
+        // safeOnyxKeys are declared safe precisely because their values contain no fragile
+        // data, so maskOnyxState bypasses maskFragileData for them. This guards that the
+        // designation holds: a PII-free payload of the value shapes safe keys hold (booleans,
+        // IDs, counts, ISO timestamps, config strings, nested primitives, arrays of primitives)
+        // must come back unchanged. It catches a safe key whose string collides with a
+        // key-based masking branch (collection prefixes, email-keyed objects), which would
+        // transform otherwise-benign data.
+        const sampleValue = {
+            enabled: true,
+            disabled: false,
+            count: 7,
+            id: 'abc123',
+            timestamp: '2024-01-01T00:00:00.000Z',
+            list: ['one', 'two', 'three'],
+            nested: {flag: true, config: 'value'},
+        };
+
+        const collectionKeys = new Set<string>(Object.values(ONYXKEYS.COLLECTION));
+
+        for (const safeKey of safeOnyxKeys) {
+            // Collection keys are stored with an id suffix in real Onyx state.
+            const fullKey = collectionKeys.has(safeKey) ? `${safeKey}123` : safeKey;
+            const input = {[fullKey]: sampleValue};
+            const result = maskFragileData(input, new Map<string, string>());
+
+            expect(result).toEqual(input);
         }
     });
 
