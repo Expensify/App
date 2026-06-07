@@ -138,8 +138,7 @@ function IOURequestStepDistanceRate({
             : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
         const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate);
-        const baseAlternateText = rate.name ? rateForDisplay : '';
-        const alternateText = dateLabel ? [baseAlternateText, dateLabel].filter(Boolean).join(' • ') : baseAlternateText;
+        const alternateText = dateLabel ? [rateForDisplay, dateLabel].filter(Boolean).join(' • ') : rateForDisplay;
         return {
             text: rate.name ?? rateForDisplay,
             alternateText,

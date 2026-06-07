@@ -1619,7 +1619,7 @@ const translations = {
         removed: 'removed',
         transactionPending: 'Transaction pending.',
         chooseARate: 'Select a workspace reimbursement rate per mile or kilometer',
-        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Valid ${startDate} - ${endDate}`,
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} to ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valid from ${startDate}`,
         rateValidUntil: ({endDate}: {endDate: string}) => `Valid until ${endDate}`,
         unapprove: 'Unapprove',
