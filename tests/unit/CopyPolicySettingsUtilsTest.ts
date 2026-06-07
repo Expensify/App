@@ -201,11 +201,16 @@ describe('CopyPolicySettingsUtils', () => {
         });
 
         it('describes time tracking without currency when a default rate exists', () => {
-            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
+            const translate = ((key: string) => {
+                if (key === 'workspace.moreFeatures.timeTracking.defaultHourlyRate') {
+                    return 'Default hourly rate';
+                }
+                return key;
+            }) as LocalizedTranslate;
             const policy = createRandomPolicy(7);
             policy.units = {time: {enabled: true, rate: 75}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled, 75');
+            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Default hourly rate: 75');
         });
 
         it('describes time tracking as enabled when no default rate is set', () => {
