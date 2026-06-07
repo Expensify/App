@@ -1073,6 +1073,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStartImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEndImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    tripID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1196,6 +1197,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 odometerEnd: 'number',
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
+                tripID: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1332,6 +1334,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 rejectedBy: 'string',
                 rejectReason: 'string',
                 formattedLimit: 'string',
+                amount: 'number',
+                currency: 'string',
                 surcharge: 'number',
                 invoiceMarkup: 'number',
                 maxAge: 'number',

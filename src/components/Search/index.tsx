@@ -23,7 +23,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -81,7 +80,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportAction, SaveSearch, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -307,7 +306,6 @@ function Search({
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const isActionLoadingSet = useActionLoadingReportIDs();
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -328,7 +326,7 @@ function Search({
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
-    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+    const [exportReportActions] = useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
     });
 
@@ -346,7 +344,6 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const reportAttributesDerivedValue = useReportAttributes();
     const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
@@ -568,11 +565,9 @@ function Search({
             isOffline,
             allTransactionViolations: violations,
             customCardNames,
-            allReportMetadata,
             conciergeReportID,
             onyxPersonalDetailsList,
             policyForMovingExpenses,
-            reportAttributesDerivedValue,
             convertToDisplayString,
             optimisticTransactionID: optimisticTrackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, ''),
         });
@@ -605,11 +600,9 @@ function Search({
         bankAccountList,
         violations,
         customCardNames,
-        allReportMetadata,
         conciergeReportID,
         onyxPersonalDetailsList,
         policyForMovingExpenses,
-        reportAttributesDerivedValue,
         convertToDisplayString,
         optimisticTrackingState.optimisticWatchKey,
     ]);
@@ -646,7 +639,6 @@ function Search({
                 formatPhoneNumber,
                 isActionLoadingSet,
                 cardFeeds,
-                allReportMetadata,
                 conciergeReportID,
                 convertToDisplayString,
             });
@@ -670,7 +662,6 @@ function Search({
         isActionLoadingSet,
         cardFeeds,
         bankAccountList,
-        allReportMetadata,
         conciergeReportID,
         convertToDisplayString,
     ]);

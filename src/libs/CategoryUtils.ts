@@ -183,6 +183,12 @@ function processCategoryNameSegments(categoryName: string): string[] {
         }
     }
 
+    // If all segments were empty but the original name is not empty,
+    // treat the whole name as a single segment (e.g., ":" or "::").
+    if (result.length === 0 && categoryName.trim() !== '') {
+        return [categoryName.trim()];
+    }
+
     // If the original name ends with a colon (allowing trailing spaces), append a colon to the last segment.
     const endsWithColon = categoryName.trim().endsWith(CONST.PARENT_CHILD_SEPARATOR);
     if (endsWithColon && result.length > 0) {

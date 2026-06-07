@@ -45,10 +45,11 @@ import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
+    getActionErrorsByTransaction,
     getAddExpenseDropdownOptions,
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
@@ -76,6 +77,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
@@ -113,8 +115,8 @@ function filterTransactionViolations(
 }
 
 type MoneyRequestReportTransactionListProps = {
-    /** The money request report containing the transactions */
-    report: OnyxTypes.Report;
+    /** The money request report containing the transactions (stable projection — read-state churn like lastReadTime won't re-render this subtree) */
+    report: StableReport;
 
     /** The workspace to which the report belongs */
     policy?: OnyxTypes.Policy;
@@ -225,8 +227,20 @@ function MoneyRequestReportTransactionList({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
+                currentUserAccountID: currentUserDetails?.accountID,
             }),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, ownerBillingGracePeriodEnd, draftTransactionIDs],
+        [
+            translate,
+            expensifyIcons,
+            report?.reportID,
+            policy,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            lastDistanceExpenseType,
+            ownerBillingGracePeriodEnd,
+            draftTransactionIDs,
+            currentUserDetails?.accountID,
+        ],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -317,8 +331,27 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
     const isDefaultSort = sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
-    // Convert reportActions array to a record keyed by reportActionID for transactionHasRBR
-    const reportActionsMap = useMemo(() => Object.fromEntries(reportActions.map((ra) => [ra.reportActionID, ra])), [reportActions]);
+    // In a single pass over reportActions, build:
+    // - reportActionsMap: keyed by reportActionID for transactionHasRBR.
+    // - transactionThreadReportIDByTransactionID: transactionID → transaction-thread report ID, so each row can pass it
+    //   to the RBR, letting rows without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx
+    //   subscriptions). Without this, the per-row alternative would re-scan every report action (O(transactions × actions)).
+    const {reportActionsMap, transactionThreadReportIDByTransactionID} = useMemo(() => {
+        const actionsMap: Record<string, OnyxTypes.ReportAction> = {};
+        const threadReportIDByTransactionID = new Map<string, string>();
+        for (const action of reportActions) {
+            actionsMap[action.reportActionID] = action;
+            if (!isMoneyRequestAction(action)) {
+                continue;
+            }
+            const iouTransactionID = getOriginalMessage(action)?.IOUTransactionID;
+            // First match wins to mirror getIOUActionForTransactionID's `.find` semantics (reportActions are sorted newest→oldest).
+            if (iouTransactionID && action.childReportID && !threadReportIDByTransactionID.has(iouTransactionID)) {
+                threadReportIDByTransactionID.set(iouTransactionID, action.childReportID);
+            }
+        }
+        return {reportActionsMap: actionsMap, transactionThreadReportIDByTransactionID: threadReportIDByTransactionID};
+    }, [reportActions]);
 
     // Precompute the set of RBR-flagged transaction IDs
     const rbrTransactionIDs = useMemo(() => {
@@ -327,10 +360,13 @@ function MoneyRequestReportTransactionList({
         }
         const login = currentUserDetails?.login ?? '';
         const accountID = currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        // Precompute report-action errors once so each transaction's RBR check is an O(1) lookup instead of
+        // re-scanning every report action (O(transactions × actions)).
+        const actionErrors = getActionErrorsByTransaction(report?.reportID, reportActionsMap);
         const ids = new Set<string>();
         for (const transaction of transactions) {
             const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-            if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap)) {
+            if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap, actionErrors)) {
                 ids.add(transaction.transactionID);
             }
         }
@@ -684,6 +720,7 @@ function MoneyRequestReportTransactionList({
             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
             isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
             shouldScrollHorizontally={shouldScrollHorizontally}
+            transactionThreadReportID={transactionThreadReportIDByTransactionID.get(transaction.transactionID)}
         />
     );
 

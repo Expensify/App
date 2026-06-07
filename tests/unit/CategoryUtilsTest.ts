@@ -1,5 +1,13 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import {formatRequireItemizedReceiptsOverText, getAvailableNonPersonalPolicyCategories, getCategoryGLCode, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
+import {
+    formatRequireItemizedReceiptsOverText,
+    getAvailableNonPersonalPolicyCategories,
+    getCategoryGLCode,
+    getDecodedLeafCategoryName,
+    isCategoryDescriptionRequired,
+    isCategoryMissing,
+    processCategoryNameSegments,
+} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -206,6 +214,33 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
         expect(Object.keys(result)).toEqual([keyOther]);
         expect(result[keyOther]?.TestCategory2).toBeDefined();
         expect(result[keyOther]?.TestCategory3).toBeDefined();
+    });
+
+    describe('processCategoryNameSegments and getDecodedLeafCategoryName', () => {
+        describe('processCategoryNameSegments', () => {
+            it('returns a single segment for colon‑only names', () => {
+                expect(processCategoryNameSegments(':')).toEqual([':']);
+                expect(processCategoryNameSegments('::')).toEqual(['::']);
+            });
+
+            it('handles normal hierarchical categories unchanged (preserves leading spaces)', () => {
+                expect(processCategoryNameSegments('Food: Meat')).toEqual(['Food', ' Meat']);
+                expect(processCategoryNameSegments('A: B:')).toEqual(['A', ' B:']);
+                expect(processCategoryNameSegments('Parent:Child')).toEqual(['Parent', 'Child']);
+            });
+        });
+
+        describe('getDecodedLeafCategoryName', () => {
+            it('returns the leaf name for colon‑only categories', () => {
+                expect(getDecodedLeafCategoryName(':')).toEqual(':');
+                expect(getDecodedLeafCategoryName('::')).toEqual('::');
+            });
+
+            it('returns the leaf for normal hierarchies (trimmed)', () => {
+                expect(getDecodedLeafCategoryName('Food: Meat')).toEqual('Meat');
+                expect(getDecodedLeafCategoryName('A: B:')).toEqual('B:');
+            });
+        });
     });
 });
 

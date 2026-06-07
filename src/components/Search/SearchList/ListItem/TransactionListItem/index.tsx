@@ -10,6 +10,7 @@ import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
 import type {ListItem} from '@components/SelectionList/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -67,6 +68,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
+    const snapshotData = currentSearchResults?.data;
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
@@ -101,6 +103,15 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem,
     ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
+
+    const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
+        item: transactionItem,
+        reportID: transactionItem.reportID,
+        itemKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`,
+        snapshotData,
+        snapshotActions: exportedReportActions,
+        enabled: !!snapshotData,
+    });
     const transactionPreviewData: TransactionPreviewData = {
         hasParentReport: !!parentReport,
         hasTransaction: !!transaction,
@@ -164,7 +175,7 @@ function TransactionListItem<TItem extends ListItem>({
     };
 
     const sharedProps = {
-        item,
+        item: liveTransactionItem as unknown as TItem,
         isDeletedTransaction,
         isFocused,
         showTooltip,

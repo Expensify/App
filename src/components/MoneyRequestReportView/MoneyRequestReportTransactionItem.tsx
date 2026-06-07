@@ -84,6 +84,10 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether the list is horizontally scrollable */
     shouldScrollHorizontally?: boolean;
+
+    /** Precomputed transaction-thread report ID for this transaction. Lets the RBR row early-return for clean rows
+     * instead of mounting the heavy RBR inner; the parent computes it once so rows don't scan report actions individually. */
+    transactionThreadReportID?: string;
 };
 
 type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionItemProps & {
@@ -115,6 +119,7 @@ function MoneyRequestReportTransactionItemBody({
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
     shouldScrollHorizontally = false,
+    transactionThreadReportID,
     inlineEdit,
     animatedHighlightStyle,
 }: MoneyRequestReportTransactionItemBodyProps) {
@@ -196,6 +201,7 @@ function MoneyRequestReportTransactionItemBody({
                         report={report}
                         policy={policy}
                         policyCategories={policyCategories}
+                        transactionThreadReportID={transactionThreadReportID}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}
