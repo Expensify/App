@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 import MenuItemList from '@components/MenuItemList';
+import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
@@ -26,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import SearchTypeMenuItem from './SearchTypeMenuItem';
 
 type SavedSearchListProps = {
     hash: number | undefined;
@@ -98,6 +100,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -167,6 +170,23 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
               }),
           )
         : [];
+
+    if (isVisuallyCollapsed) {
+        return savedSearchesMenuItems.map((item) => (
+            <SearchTypeMenuItem
+                key={item.key}
+                title={item.title ?? ''}
+                icon={expensifyIcons.Bookmark}
+                focused={item.focused}
+                onPress={(event) => {
+                    if (item.disabled || !item.onPress || !event) {
+                        return;
+                    }
+                    return item.onPress(event);
+                }}
+            />
+        ));
+    }
 
     return (
         <MenuItemList
