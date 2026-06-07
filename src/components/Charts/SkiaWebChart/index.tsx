@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import isSkiaWebSupported from './isSkiaWebSupported';
 
-type SkiaWebChartProps<TProps extends object> = {
+type SkiaWebChartProps<TProps> = {
     /** Lazily imports the Skia-backed chart component to render. */
     getComponent: () => Promise<{default: ComponentType<TProps>}>;
 
@@ -19,12 +19,13 @@ type SkiaWebChartProps<TProps extends object> = {
 };
 
 /**
- * Shared web wrapper around `WithSkiaWeb` for the chart entry points (Pie/Line/Bar charts and the
- * Victory chart renderer). It renders the chart's loading/fallback view instead of mounting
- * `WithSkiaWeb` when the environment cannot provide a usable WebGL/Skia surface, preventing the
- * uncaught `TypeError: Cannot read properties of null (reading 'rangeMin')` thrown by CanvasKit's
- * GL init on incapable devices.
+ * Shared web wrapper around `WithSkiaWeb` for the chart entry points (Pie/Line/Bar and the Victory
+ * renderer). When the environment can't provide a usable WebGL/Skia surface it renders the loading
+ * fallback instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `isSkiaWebSupported`).
  */
+// `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
+// interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
 function SkiaWebChart<TProps extends object>({getComponent, componentProps, reasonContext}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: reasonContext};
