@@ -1,5 +1,5 @@
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
-import React from 'react';
+import React, {useState} from 'react';
 import type {ComponentType} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -30,6 +30,10 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, reas
     const styles = useThemeStyles();
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: reasonContext};
 
+    // Probe once per mount (not per render) so re-rendering doesn't repeatedly create WebGL contexts,
+    // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
+    const [isSupported] = useState(() => isSkiaWebSupported());
+
     const fallback = (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator
@@ -39,7 +43,7 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, reas
         </View>
     );
 
-    if (!isSkiaWebSupported()) {
+    if (!isSupported) {
         return fallback;
     }
 

@@ -4,28 +4,23 @@
  * CanvasKit (loaded by `WithSkiaWeb`) reads `.rangeMin` off `gl.getShaderPrecisionFormat()` without a
  * null check. That call returns `null` per spec on incapable GPUs / lost contexts, so CanvasKit throws
  * an uncaught `TypeError: Cannot read properties of null (reading 'rangeMin')` during its async GL init.
- * Probing up front lets callers skip Skia there. Memoized since device capability is stable per session.
+ * Running the same call up front lets callers skip Skia there. Callers probe once per chart mount
+ * (not memoized for the whole session) so a context lost mid-session is caught too; the throwaway
+ * probe context is released immediately so it can't evict a real chart's context.
  */
-let cachedResult: boolean | undefined;
-
 function isSkiaWebSupported(): boolean {
-    if (cachedResult !== undefined) {
-        return cachedResult;
-    }
-
     try {
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
         if (!gl) {
-            cachedResult = false;
-            return cachedResult;
+            return false;
         }
-        cachedResult = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT) !== null;
+        const supported = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT) !== null;
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+        return supported;
     } catch {
-        cachedResult = false;
+        return false;
     }
-
-    return cachedResult;
 }
 
 export default isSkiaWebSupported;
