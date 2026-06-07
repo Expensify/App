@@ -15,17 +15,21 @@ jest.mock('@src/hooks/useHtmlPaste', (): typeof useHtmlPaste => {
 describe('useHtmlPaste - handlePastePlainText', () => {
     let textInputRef: RefObject<(HTMLDivElement & Partial<TextInput>) | null>;
 
-    const createMockClipboardEvent = (text: string): ClipboardEvent => {
+    const createMockClipboardEvent = (text: string, html = ''): ClipboardEvent => {
         const clipboardData = {
-            getData: (type: string) => (type === 'text/plain' ? text : ''),
+            getData: (type: string) => {
+                if (type === 'text/html') {
+                    return html;
+                }
+                return type === 'text/plain' ? text : '';
+            },
             files: [] as unknown as FileList,
             items: [] as unknown as DataTransferItemList,
-            types: ['text/plain'],
+            types: html ? ['text/html', 'text/plain'] : ['text/plain'],
         };
-        return {
-            clipboardData,
-            preventDefault: jest.fn(),
-        } as unknown as ClipboardEvent;
+        const event = new Event('paste', {bubbles: true, cancelable: true}) as ClipboardEvent;
+        Object.defineProperty(event, 'clipboardData', {value: clipboardData});
+        return event;
     };
 
     const mockWindowSelection = (selectedText: string) => {
@@ -46,6 +50,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         const div = document.createElement('div');
         div.setAttribute('contenteditable', 'true');
         div.textContent = '';
+        Object.defineProperty(div, 'isFocused', {value: () => true});
         document.body.appendChild(div);
         textInputRef = {current: div} as RefObject<HTMLDivElement & Partial<TextInput>>;
 
@@ -147,5 +152,31 @@ describe('useHtmlPaste - handlePastePlainText', () => {
             expect(textInputRef.current?.textContent).toBe(textWithTrailingWhitespace);
             expect(textInputRef.current?.textContent?.endsWith('   ')).toBe(true);
         }
+    });
+
+    it('converts Slack emoji images to Unicode emoji while preserving surrounding HTML formatting', async () => {
+        const html = '<p>Normal Text. <img data-stringify-emoji=":tada:" alt=":tada:" src="https://a.slack-edge.com/emoji.png"> <strong>Bold</strong></p>';
+        const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉 *Bold*');
+    });
+
+    it('converts iOS Safari blob emoji image filenames to Unicode emoji', async () => {
+        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f389@2x.png"> Bold</p>';
+        const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
+        mockWindowSelection('');
+
+        renderHook(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉 Bold');
     });
 });
