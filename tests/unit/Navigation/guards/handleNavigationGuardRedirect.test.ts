@@ -5,6 +5,26 @@ import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFro
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+        shouldUseStaging: jest.fn(),
+        closeReactNativeApp: jest.fn(),
+        completeOnboarding: jest.fn(),
+        switchAccount: jest.fn(),
+        sendAuthToken: jest.fn(),
+        getHybridAppSettings: jest.fn(() => Promise.resolve(null)),
+        getInitialURL: jest.fn(() => Promise.resolve(null)),
+        onURLListenerAdded: jest.fn(),
+        signInToOldDot: jest.fn(),
+        signOutFromOldDot: jest.fn(),
+        startSignOut: jest.fn(),
+        cancelSignOut: jest.fn(),
+        clearOldDotAfterSignOut: jest.fn(),
+    },
+}));
+
 jest.mock('@libs/Navigation/guards', () => ({
     __esModule: true,
     createGuardContext: jest.fn(() => ({
@@ -37,7 +57,9 @@ const routeNames = [
     SCREENS.REPORT,
 ];
 
-function createState(routes: Array<{key: string; name: string}>, index = routes.length - 1): StackNavigationState<ParamListBase> {
+type StackRoute = StackNavigationState<ParamListBase>['routes'][number];
+
+function createState(routes: StackRoute[], index = routes.length - 1): StackNavigationState<ParamListBase> {
     return {
         key: 'root',
         index,
@@ -144,7 +166,6 @@ describe('handleNavigationGuards REDIRECT stack preservation', () => {
                         index: 0,
                         routeNames: [SCREENS.HOME, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR],
                         routes: [{key: 'home', name: SCREENS.HOME}],
-                        stale: false,
                         type: 'tab',
                     },
                 },
