@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getMoneyRequestPolicyTags} from '@libs/actions/IOU';
 import {
     getMoneyRequestParticipantOptions,
     setCustomUnitRateID,
@@ -17,7 +18,7 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
@@ -250,6 +251,16 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
+            const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+            const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+            const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+            // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const policyTagList = getMoneyRequestPolicyTags({
+                moneyRequestReportID,
+                parentChatReport: currentChatReport,
+                participant: participants.at(0) ?? {},
+            });
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
                     // trackExpense is a void action with no navigation params; submitWithDismissFirst owns dismiss/reveal and cleanup runs after.
@@ -375,6 +386,9 @@ function handleMoneyRequestStepDistanceNavigation({
                         recentWaypoints,
                         betas,
                         previousOdometerDraft,
+                        policyParams: {
+                            policyTagList,
+                        },
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,
