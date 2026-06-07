@@ -3351,6 +3351,7 @@ ${amount} pour ${merchant} - ${date}`,
             subtitle: 'Ajoutez votre équipe ou invitez votre comptable. Plus on est de fous, plus on rit !',
         },
         workEmail2FAError: 'Cette connexion est un compte existant avec l’authentification à deux facteurs (2FA) activée.',
+        singleSignOnError: 'Cette connexion correspond à un compte existant avec l’authentification unique (SSO) activée.',
     },
     featureTraining: {
         doNotShowAgain: 'Ne plus m’afficher ceci',

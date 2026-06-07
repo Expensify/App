@@ -3222,6 +3222,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
         workEmail2FAError: 'Este inicio de sesión corresponde a una cuenta existente con la autenticación de dos factores (2FA) habilitada.',
+        singleSignOnError: 'Este inicio de sesión pertenece a una cuenta existente con el inicio de sesión único (SSO) habilitado.',
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',

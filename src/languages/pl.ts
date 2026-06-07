@@ -3323,6 +3323,7 @@ ${amount} dla ${merchant} - ${date}`,
             subtitle: 'Dodaj swój zespół lub zaproś księgowego. Im więcej, tym weselej!',
         },
         workEmail2FAError: 'To logowanie jest istniejącym kontem z włączonym uwierzytelnianiem dwuskładnikowym (2FA).',
+        singleSignOnError: 'Ten login jest powiązany z istniejącym kontem z włączonym logowaniem jednokrotnym (SSO).',
     },
     featureTraining: {
         doNotShowAgain: 'Nie pokazuj mi tego ponownie',
