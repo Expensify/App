@@ -164,6 +164,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
+                            shouldSelectOnPressEnter
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (shouldBreakGrouping && isScreenReaderActive) {
                                     setLocalIsTaskCompleted((prev) => !prev);

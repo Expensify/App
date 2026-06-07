@@ -11,6 +11,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
@@ -177,6 +178,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                             <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <Checkbox
+                                                    shouldSelectOnPressEnter
                                                     onPress={callFunctionIfActionIsAllowed(() => {
                                                         // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                                                         if (isActiveTaskEditRoute(report?.reportID)) {
@@ -201,19 +203,15 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                 />
                                                 {shouldBreakGrouping ? (
-                                                    <View
+                                                    <PressableWithoutFeedback
                                                         accessible
                                                         accessibilityRole={CONST.ROLE.BUTTON}
                                                         accessibilityLabel={taskAccessibilityLabel}
                                                         accessibilityState={{disabled: isDisableInteractive}}
-                                                        accessibilityActions={isDisableInteractive ? [] : [{name: 'activate'}]}
-                                                        onAccessibilityAction={(event) => {
-                                                            if (event.nativeEvent.actionName !== 'activate') {
-                                                                return;
-                                                            }
-                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
-                                                        }}
+                                                        disabled={isDisableInteractive}
+                                                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path))}
                                                         style={[styles.flexRow, styles.flex1]}
+                                                        sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                                     >
                                                         <View style={[styles.flexRow, styles.flex1]}>
                                                             <RenderHTML html={taskTitle} />
@@ -227,7 +225,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                                 />
                                                             </View>
                                                         )}
-                                                    </View>
+                                                    </PressableWithoutFeedback>
                                                 ) : (
                                                     <>
                                                         <View style={[styles.flexRow, styles.flex1]}>

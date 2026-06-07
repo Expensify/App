@@ -138,6 +138,7 @@ function SelectionButton({
             return;
         }
 
+        event.preventDefault();
         onPress(event.nativeEvent);
     };
 
