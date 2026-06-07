@@ -256,15 +256,16 @@ function MoneyRequestConfirmationList({
     const previousTransactionCurrency = usePrevious(transaction?.currency);
     const customUnitRateID = getRateID(transaction);
 
-    const [prevCreatedForTooltip, setPrevCreatedForTooltip] = useState(transaction?.created);
-    const [prevRateIDForTooltip, setPrevRateIDForTooltip] = useState(customUnitRateID);
+    const prevCreated = usePrevious(transaction?.created);
+    const prevRateID = usePrevious(customUnitRateID);
     const [shouldShowRateAutoUpdatedTooltip, setShouldShowRateAutoUpdatedTooltip] = useState(false);
-    if (prevCreatedForTooltip !== transaction?.created || prevRateIDForTooltip !== customUnitRateID) {
-        const dateChanged = prevCreatedForTooltip !== transaction?.created;
-        const rateChanged = prevRateIDForTooltip !== customUnitRateID;
-        setShouldShowRateAutoUpdatedTooltip(isDistanceRequest && dateChanged && rateChanged && !!prevCreatedForTooltip && !!prevRateIDForTooltip);
-        setPrevCreatedForTooltip(transaction?.created);
-        setPrevRateIDForTooltip(customUnitRateID);
+    const dateChanged = prevCreated !== undefined && prevCreated !== transaction?.created;
+    const rateChanged = prevRateID !== undefined && prevRateID !== customUnitRateID;
+    if (dateChanged || rateChanged) {
+        const newShouldShow = isDistanceRequest && dateChanged && rateChanged;
+        if (newShouldShow !== shouldShowRateAutoUpdatedTooltip) {
+            setShouldShowRateAutoUpdatedTooltip(newShouldShow);
+        }
     }
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
