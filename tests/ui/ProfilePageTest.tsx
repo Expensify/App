@@ -324,7 +324,7 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
     });
 
-    it('shows loading state on save button while prompt update is pending', async () => {
+    it('does not show loading state on save button for a pending prompt update that was not user-initiated', async () => {
         const accountID = 123;
         await setupUser('agent_123@expensify.ai');
 
@@ -340,7 +340,104 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
+        expect(saveButtonProps.accessibilityState?.disabled).toBe(false);
+    });
+
+    it('shows loading state on save button while a user-initiated prompt update is pending', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Updated prompt text',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
         expect(saveButtonProps.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('allows re-saving an edited prompt while offline even when a previous save is still pending', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            // Simulate a first offline save that is queued but not yet replayed: pendingAction stays 'update',
+            // so isSaving is true. The button is intentionally not disabled while offline.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'First offline edit.',
+                pendingAction: 'update',
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Second offline edit.');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPrompt).toHaveBeenCalledWith(accountID, 'Second offline edit.', 'First offline edit.');
+    });
+
+    it('clears save loader when network drops mid-save', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+
+        // Optimistic write sets pendingAction='update' so the user-initiated save shows the loader.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Updated prompt text',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const loadingButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
+        expect(loadingButtonProps.accessibilityState?.disabled).toBe(true);
+
+        // Network drops while the request is still in flight: pendingAction stays 'update'.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const offlineButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
+        expect(offlineButtonProps.accessibilityState?.disabled).toBe(false);
     });
 
     it('does not call updateAgentPrompt when saving blank prompt', async () => {
