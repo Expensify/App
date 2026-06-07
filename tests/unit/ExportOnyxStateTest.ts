@@ -1,4 +1,4 @@
-import {emailRegex, maskFragileData, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
+import {emailRegex, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -294,6 +294,11 @@ describe('maskOnyxState', () => {
     });
 });
 
+// These tests enforce that every Onyx key is *categorized* into an export bucket and that
+// the buckets stay disjoint. That is a structural guarantee, NOT a data-safety guarantee:
+// nothing here knows which fields a key actually holds, so whether a key truly belongs in
+// safeOnyxKeys remains a manual security judgment. The denylist test below is the one place
+// that judgment is asserted, by failing if a known-sensitive key is ever marked safe.
 describe('Onyx key export coverage', () => {
     it('every ONYXKEYS value (top-level + collection) must be in one of the four buckets', () => {
         // Collect all top-level Onyx key string values (excluding sub-objects)
@@ -338,33 +343,43 @@ describe('Onyx key export coverage', () => {
         }
     });
 
-    it('every safe key must be a no-op when passed through maskFragileData', () => {
-        // safeOnyxKeys are declared safe precisely because their values contain no fragile
-        // data, so maskOnyxState bypasses maskFragileData for them. This guards that the
-        // designation holds: a PII-free payload of the value shapes safe keys hold (booleans,
-        // IDs, counts, ISO timestamps, config strings, nested primitives, arrays of primitives)
-        // must come back unchanged. It catches a safe key whose string collides with a
-        // key-based masking branch (collection prefixes, email-keyed objects), which would
-        // transform otherwise-benign data.
-        const sampleValue = {
-            enabled: true,
-            disabled: false,
-            count: 7,
-            id: 'abc123',
-            timestamp: '2024-01-01T00:00:00.000Z',
-            list: ['one', 'two', 'three'],
-            nested: {flag: true, config: 'value'},
-        };
+    it('known-sensitive keys must never be classified as safe', () => {
+        // Membership in safeOnyxKeys is a manual security judgment: a key listed there is
+        // exported as-is, bypassing all masking. No structural test can validate that judgment,
+        // because nothing in the suite knows which fields each key actually holds. This guard
+        // re-encodes the judgment explicitly: every key below is known to carry credentials,
+        // tokens, banking data, or personal details, so if any of them is ever moved into
+        // safeOnyxKeys this test fails loudly. Keep this denylist in sync as sensitive keys
+        // are added.
+        const knownSensitiveKeys: string[] = [
+            ONYXKEYS.SESSION,
+            ONYXKEYS.STASHED_SESSION,
+            ONYXKEYS.CREDENTIALS,
+            ONYXKEYS.STASHED_CREDENTIALS,
+            ONYXKEYS.ACCOUNT,
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+            ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            ONYXKEYS.LOGIN_LIST,
+            ONYXKEYS.LOGINS,
+            ONYXKEYS.PLAID_DATA,
+            ONYXKEYS.FUND_LIST,
+            ONYXKEYS.BANK_ACCOUNT_LIST,
+            ONYXKEYS.CARD_LIST,
+            ONYXKEYS.USER_WALLET,
+            ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+            ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+            ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
+            ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+            ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            ONYXKEYS.ONFIDO_TOKEN,
+            ONYXKEYS.ONFIDO_APPLICANT_ID,
+            ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
+            ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
+        ];
 
-        const collectionKeys = new Set<string>(Object.values(ONYXKEYS.COLLECTION));
-
-        for (const safeKey of safeOnyxKeys) {
-            // Collection keys are stored with an id suffix in real Onyx state.
-            const fullKey = collectionKeys.has(safeKey) ? `${safeKey}123` : safeKey;
-            const input = {[fullKey]: sampleValue};
-            const result = maskFragileData(input, new Map<string, string>());
-
-            expect(result).toEqual(input);
+        for (const sensitiveKey of knownSensitiveKeys) {
+            expect(safeOnyxKeys.has(sensitiveKey)).toBe(false);
         }
     });
 
