@@ -24,6 +24,7 @@ import {
     canModifyPlan,
     getDefaultApprover,
     getPerDiemCustomUnit,
+    getUserFriendlyWorkspaceType,
     isControlPolicy,
     isPaidGroupPolicy,
 } from '@libs/PolicyUtils';
@@ -364,6 +365,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     <UpgradeConfirmation
                         afterUpgradeAcknowledged={goBack}
                         policyName={policy.name}
+                        planName={getUserFriendlyWorkspaceType(policy.type, translate)}
                     />
                 )}
                 {!isUpgraded && (
