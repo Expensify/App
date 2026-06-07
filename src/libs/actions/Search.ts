@@ -1237,7 +1237,7 @@ function getPayOption(
         selectedReports.length > 0
             ? selectedReports.every(
                   (report) =>
-                      report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) &&
+                      report.canPay &&
                       getReportType(report.reportID) === getReportType(firstReport?.reportID) &&
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )

@@ -96,7 +96,9 @@ function AmountField({
     const isP2P = isNewManualExpenseFlowEnabled
         ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
         : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired';
+    // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
+    // amount itself is the missing value.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -114,7 +116,7 @@ function AmountField({
     // amount programmatically and never set isAmountSet.
     const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes

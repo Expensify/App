@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -114,6 +115,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const {isSelected} = useRowSelection(reportItem.keyForList);
 
     let total = reportItem.total ?? 0;
     if (total) {
@@ -180,7 +182,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                     <ActionCell
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
-                        isSelected={reportItem.isSelected}
+                        isSelected={isSelected}
                         isLoading={isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
@@ -231,9 +233,9 @@ function ReportListItemHeader<TItem extends ListItem>({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const {isSelected} = useRowSelection(reportItem.keyForList);
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
@@ -262,7 +264,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 containerStyles={[styles.pr3, styles.mb2]}
                 stateNum={reportItem.stateNum}
                 statusNum={reportItem.statusNum}
-                isSelected={!!reportItem.isSelected}
+                isSelected={isSelected}
             />
             <HeaderFirstRow
                 report={reportItem}
