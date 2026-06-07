@@ -115,15 +115,15 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
 
 // ============================================================
 // 3. SAFE ONYX KEYS — export as-is, no masking needed
-//    Empty by default so behavior matches the `main` branch. Add keys here
+//    Empty by default so the default masking behavior is preserved. Add keys here
 //    to opt them out of maskFragileData once they are confirmed PII-free.
 // ============================================================
 const safeOnyxKeys = new Set<string>([]);
 
 // ============================================================
 // 4. KEYS TO MASK FRAGILE DATA — fallback bucket
-//    Every key listed here is processed by maskFragileData, matching the
-//    `main` branch treatment for keys without an explicit rule. This list is
+//    Every key listed here is processed by maskFragileData, the default
+//    treatment for keys without an explicit rule. This list is
 //    intentionally hardcoded (not derived from ONYXKEYS) so that whenever a new
 //    Onyx key is added it lands in none of the four buckets and the coverage
 //    test in ExportOnyxStateTest fails — forcing it to be categorized on purpose.
