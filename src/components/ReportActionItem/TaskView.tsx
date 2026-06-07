@@ -155,12 +155,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             {(hovered) => (
                                 <PressableWithSecondaryInteraction
                                     accessible={shouldBreakGrouping ? false : undefined}
-                                    onPress={callFunctionIfActionIsAllowed((e) => {
+                                    onPress={callFunctionIfActionIsAllowed(() => {
                                         if (isDisableInteractive) {
                                             return;
-                                        }
-                                        if (e?.type === 'click') {
-                                            (e.currentTarget as HTMLElement).blur();
                                         }
 
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
