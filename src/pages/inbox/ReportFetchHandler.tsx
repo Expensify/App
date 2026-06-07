@@ -285,7 +285,8 @@ function ReportFetchHandler() {
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
         // For each link click, we retrieve the report data again, even though it may already be cached.
-        // There should be only one openReport execution per page start or navigating
+        // Usually this triggers one openReport execution per page start or navigation. If guided setup is deferred while app data loads,
+        // rerun once the defer signal clears so openReport includes the loaded onboarding data.
         fetchReport();
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute, shouldDeferGuidedSetupOpenReport, onboardingSignal]);
 
