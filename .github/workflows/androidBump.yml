@@ -16,8 +16,8 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        # v1.310.0
+        uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f
         with:
           bundler-cache: true
 
@@ -52,19 +52,16 @@ jobs:
 
       - name: Warn deployers if Android rollout percentage could not be updated
         if: ${{ failure() }}
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android rollout percentage could not be updated. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run> 💥`,
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "#DB4545",
+                "pretext": "<!subteam^S4TJJ3PSL>",
+                "text": "💥 Android rollout percentage could not be updated. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run> 💥"
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

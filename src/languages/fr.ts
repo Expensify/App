@@ -487,9 +487,11 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
-        concierge: {sidePanelGreeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
+        concierge: {greeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
+        goToConcierge: 'Aller à Concierge',
+        allSet: 'Tout est prêt !',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `saisir le chiffre ${digitIndex} sur ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copie de ${reportName}`,
         previousMonth: 'Mois précédent',
@@ -497,6 +499,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        editor: 'Éditeur',
         restrictions: 'Restrictions',
     },
     socials: {
@@ -963,6 +966,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portefeuille',
             },
+            enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
         },
         announcements: 'Annonces',
         discoverSection: {
@@ -1530,6 +1534,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
+        keepSelected: 'Garder la sélection',
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprove: 'Confirmer le montant approuvé',
@@ -1985,11 +1990,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: 'Enregistré',
         },
     },
-    securityPage: {
-        title: 'Options de sécurité',
-        subtitle: 'Activez l’authentification à deux facteurs pour sécuriser votre compte.',
-        goToSecurity: 'Revenir à la page de sécurité',
-    },
+    securityPage: {title: 'Sécurité', subtitle: 'Protégez votre compte.', goToSecurity: 'Revenir à la page de sécurité'},
     shareCodePage: {
         title: 'Votre code',
         subtitle: 'Invitez des membres sur Expensify en partageant votre code QR personnel ou votre lien de parrainage.',
@@ -2139,14 +2140,25 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Compte',
         general: 'Général',
         helpPage: {
-            title: 'Des questions ?',
+            title: 'Aide et assistance',
             description: 'Nous sommes là pour vous aider, à toute heure.',
-            helpSite: 'Site d’aide',
+            helpSite: "Site d'aide",
+            helpSiteDescription: 'Articles, tutoriels et plus',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Votre agent IA personnel',
-            accountManagerDescription: 'Votre gestionnaire de compte',
-            partnerManagerDescription: 'Votre gestionnaire partenaire',
-            guideDescription: 'Votre spécialiste de configuration',
+            accountManager: 'Gestionnaire de compte',
+            yourAccountManager: 'Votre chargé de compte',
+            accountManagerDescription: 'Poser des questions et obtenir l’assistance client',
+            partnerManager: 'Gestionnaire Partenaires',
+            yourPartnerManager: 'Votre gestionnaire partenaire',
+            partnerManagerDescription: 'Optimisez votre partenariat et stimulez les recommandations',
+            guideDescription: 'Votre chargé de compte',
+            approvedPartnerTeamTitle: 'Rencontrez l’équipe de votre partenaire Approved!',
+            approvedPartnerTeamDescription:
+                'Une équipe dédiée, centrée sur la croissance de votre cabinet, l’intégration plus rapide de vos clients et un accompagnement d’experts dès que vous en avez besoin.',
+            accountExecutive: 'Responsable de compte',
+            accountExecutiveDescription: 'Configurer les clients avec succès',
+            moreResources: 'Plus de ressources',
         },
     },
     closeAccountPage: {
@@ -2929,6 +2941,8 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Mode contraste élevé',
+        enableHighContrast: 'Activer le contraste élevé',
+        disableHighContrast: 'Désactiver le contraste élevé',
         chooseThemeBelowOrSync: 'Choisissez un thème ci-dessous ou synchronisez avec les réglages de votre appareil.',
     },
     termsOfUse: {
@@ -2976,7 +2990,7 @@ ${amount} pour ${merchant} - ${date}`,
         phoneOrEmail: 'Téléphone ou e-mail',
         error: {
             agentSignInBlocked:
-                'Les comptes d\u2019agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
+                'Les comptes d’agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
         cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
@@ -3092,7 +3106,7 @@ ${amount} pour ${merchant} - ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créer](${workspaceConfirmationLink}) un espace de travail`,
-                description: 'Créez un espace de travail et configurez les paramètres avec l’aide de votre spécialiste de configuration !',
+                description: 'Créez un espace de travail et configurez les paramètres avec l’aide de votre chargé de compte !',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Créer un [espace de travail](${workspaceSettingsLink})`,
@@ -3310,11 +3324,11 @@ ${amount} pour ${merchant} - ${date}`,
                 isOnboardingFlow
                     ? dedent(`
                         # Votre essai gratuit a commencé ! Configurons tout cela.
-                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et les dépenses de votre équipe. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, il vous suffit de suivre les étapes de configuration restantes ci-dessous !
+                        👋 Bonjour, je suis votre chargé de compte Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et les dépenses de votre équipe. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, il vous suffit de suivre les dernières étapes de configuration ci-dessous !
                     `)
                     : dedent(`
                         # Votre essai gratuit a commencé ! Configurons tout cela.
-                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
+                        👋 Bonjour, je suis votre chargé de compte Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de vos 30 jours d’essai gratuit en suivant les étapes ci-dessous !
                     `),
             onboardingTrackWorkspaceMessage: 'Pour tirer le meilleur parti de votre essai gratuit de 30 jours, suivez les étapes restantes ci-dessous :',
             onboardingChatSplitMessage: 'Partager des notes de frais avec des amis est aussi simple que d’envoyer un message. Voici comment faire.',
@@ -3361,6 +3375,7 @@ ${amount} pour ${merchant} - ${date}`,
         enterPhoneNumber: 'Quel est votre numéro de téléphone ?',
         personalDetails: 'Informations personnelles',
         privateDataMessage: 'Ces informations sont utilisées pour les déplacements et les paiements. Elles ne s’affichent jamais sur votre profil public.',
+        basicDetails: 'Détails de base',
         legalName: 'Nom légal',
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
@@ -3438,6 +3453,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Rejoindre',
+        marketingSMSConsent: "J'accepte de recevoir des SMS marketing d'Expensify",
     },
     detailsPage: {
         localTime: 'Heure locale',
@@ -3558,7 +3574,7 @@ ${amount} pour ${merchant} - ${date}`,
             noBankAccountSelected: 'Veuillez choisir un compte',
             taxID: 'Veuillez saisir un numéro d’identification fiscale valide',
             website: 'Veuillez saisir un site web valide',
-            zipCode: `Veuillez saisir un code postal valide au format : ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Veuillez saisir un code postal valide au format : ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Veuillez saisir un numéro de téléphone valide',
             email: 'Veuillez saisir une adresse e-mail valide',
             companyName: 'Veuillez saisir un nom d’entreprise valide',
@@ -4025,7 +4041,7 @@ ${amount} pour ${merchant} - ${date}`,
         selectCountry: 'Sélectionner un pays',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> afin de pouvoir inviter un directeur à signer lors d'une étape ultérieure.`,
+                `Ce compte bancaire doit être lié à un espace de travail. Allez dans <a href="${workspaceRoute}">Espaces de travail</a>, sélectionnez votre espace de travail, puis accédez à Flux de travail > Paiements > Ajouter un compte bancaire.`,
         },
     },
     bankInfoStep: {
@@ -4074,8 +4090,6 @@ ${amount} pour ${merchant} - ${date}`,
             `est en train de connecter un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer des employés en ${currency}. L’étape suivante nécessite les informations de signature d’un directeur.`,
         error: {
             emailsMustBeDifferent: 'Les e-mails doivent être différents',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> pour inviter un directeur à signer.`,
         },
     },
     agreementsStep: {
@@ -4379,6 +4393,8 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Éditeur';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -4424,6 +4440,8 @@ ${amount} pour ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
             peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
+            readOnlyActionTitle: 'Pas si vite...',
+            readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -4881,6 +4899,34 @@ ${amount} pour ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify se synchronisera automatiquement avec Certinia chaque jour.',
+            syncReimbursedReportsDescription:
+                'Lorsque cette option est activée, chaque fois qu’une facture à payer est réglée dans FFA, la note de frais Expensify associée est automatiquement marquée comme remboursée.',
+            exportDescription: 'Configurez comment les données Expensify sont exportées vers Certinia.',
+            payableInvoices: 'Factures à payer',
+            exportStatus: {
+                label: 'Statut de facture à payer',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Terminé',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En cours',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Soumis',
+                },
+            },
+            exportDate: {
+                label: 'Date d’échéance de la facture',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Date de la dernière dépense',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Date de soumission de la note de frais',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Date d’exportation',
+                },
+            },
+            exportReimbursable: {
+                label: 'Exporter les dépenses remboursables en tant que',
+                helperText: 'Les dépenses marquées comme remboursables seront exportées en tant que factures à payer établies au nom de l’employé.',
+            },
+            exportNonReimbursable: {label: 'Exporter les dépenses non remboursables en tant que'},
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez synchroniser à nouveau la connexion après l’ajout des fournisseurs dans Certinia.',
             prerequisites: {
                 title: 'Avant de vous connecter',
                 installBundle: 'Pour les connexions FFA',
@@ -4897,6 +4943,19 @@ ${amount} pour ${merchant} - ${date}`,
                 oauth: 'Se connecter via Salesforce',
                 oauthDescription: 'Pour terminer la configuration, vous devez vous connecter via Salesforce et Certinia.\n\nUtilisez le bouton ci-dessous pour continuer.',
                 connectButton: 'Se connecter à Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Plan comptable',
+                chartOfAccountsDescription: 'Le plan comptable est importé dans Expensify en tant que catégories.',
+                dimensionMapping: ({n}: {n: number}) => `Dimension ${n}`,
+                dimensions: {dimension1: 'Dimension 1', dimension2: 'Dimension 2', dimension3: 'Dimension 3', dimension4: 'Dimension 4'},
+                doNotMap: 'Ne pas mapper',
+                doNotMapSubtitle: 'Utiliser la ressource employé par défaut',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Ne pas mapper',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importé comme tags',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importé en tant que champs de note de frais',
+                },
             },
         },
         netsuite: {
@@ -5646,6 +5705,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             travel: {
                 title: 'Déplacements',
                 subtitle: 'Réservez, gérez et rapprochez tous vos déplacements professionnels.',
+                disableTravelTitle: 'Désactivez d’abord la facturation des déplacements',
+                disableTravelPrompt: 'La facturation de voyage est activée pour cet espace de travail. Désactivez-la avant de pouvoir désactiver Travel.',
+                disableTravelButton: 'Accéder aux paramètres de voyage',
                 getStarted: {
                     title: 'Commencez avec Expensify Travel',
                     subtitle: 'Nous avons simplement besoin de quelques informations supplémentaires sur votre entreprise, puis vous serez prêt à décoller.',
@@ -6112,6 +6174,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 continue: 'Continuer sans membres',
                 description: 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
             },
+            progress: {
+                copyInProgressTitle: 'Copie en cours...',
+                copyInProgressDescription: 'Vous pouvez soit attendre la fin du processus, soit laisser Concierge vous prévenir lorsque ce sera terminé.',
+                letMeKnowPrompt: 'Prévenez-moi quand ce sera fait',
+                conciergeNotificationTitle: 'Concierge vous en informera',
+                conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
+                copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
+            },
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
@@ -6268,7 +6338,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Discutez avec votre spécialiste de configuration.',
+            talkYourOnboardingSpecialist: 'Discutez avec votre chargé de compte.',
             talkYourAccountManager: 'Discuter avec votre gestionnaire de compte.',
             talkToConcierge: 'Discuter avec Concierge.',
             needAnotherAccounting: 'Besoin d’un autre logiciel comptable ?',
@@ -6487,6 +6557,26 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             return 'Importation des dimensions Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importation des données Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Synchronisation des données Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Synchronisation de la connexion Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importation des catégories';
+                        case 'financialForceSyncTags':
+                            return 'Importation des tags';
+                        case 'financialForceSyncVendors':
+                            return 'Importation des fournisseurs';
+                        case 'financialForceSyncContacts':
+                            return 'Importation des contacts';
+                        case 'financialForceSyncCompanies':
+                            return 'Importation des entreprises';
+                        case 'financialForceSyncUsers':
+                            return 'Importation des utilisateurs';
+                        case 'financialForceSyncDimensions':
+                            return 'Importation des dimensions';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marquage des notes de frais comme remboursées';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
                         }
@@ -7871,6 +7961,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `a modifié la catégorie de dépense par défaut pour « ${mccGroupName} » en « ${newCategory} » (auparavant « ${oldCategory} »)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
         expensifyCardRule: {
             actionVerb: {block: 'bloqué', allow: 'autorisé'},
@@ -7976,6 +8068,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             newChat: 'Nouvel écran de discussion',
             copy: 'Copier le commentaire',
             openDebug: 'Ouvrir la boîte de dialogue des préférences de test',
+            expenseReportSearch: 'Rechercher des notes de frais',
+            goToWorkspace: "Aller à l'espace de travail de la note de frais actuelle",
         },
     },
     guides: {
@@ -8183,6 +8277,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
+        serverResults: 'Résultats de recherche',
         searchIn: 'Rechercher dans',
         askConcierge: (message: string) => `Demander à Concierge « ${message} »`,
         searchPlaceholder: 'Rechercher quelque chose...',
@@ -8717,7 +8812,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Discutez avec votre spécialiste de configuration dans <a href="${href}">${adminReportName}</a> pour obtenir de l’aide`,
+            `Discutez avec votre chargé de compte dans <a href="${href}">${adminReportName}</a> pour obtenir de l'aide`,
         default: `Envoyez un message à <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> pour obtenir de l’aide pour la configuration`,
     },
     violations: {
@@ -9366,7 +9461,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         confirmation: {
             title: 'Confirmer l’appel',
             description: 'Assurez-vous que les détails ci-dessous vous conviennent. Une fois que vous aurez confirmé l’appel, nous enverrons une invitation avec plus d’informations.',
-            setupSpecialist: 'Votre spécialiste de configuration',
+            setupSpecialist: 'Votre chargé de compte',
             meetingLength: 'Durée de la réunion',
             dateTime: 'Date et heure',
             minutes: '30 minutes',
