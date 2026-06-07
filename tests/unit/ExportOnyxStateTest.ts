@@ -190,8 +190,8 @@ describe('maskOnyxState', () => {
         });
     });
 
-    describe('wildcard allowList', () => {
-        it('should pass through data as-is for rules with allowList: ["*"]', () => {
+    describe('full pass-through safe collection keys', () => {
+        it('should pass through data as-is for safe collection keys', () => {
             const mockViolations = [
                 {type: 'violation', name: 'missingCategory', data: {errorIndexes: []}},
                 {type: 'warning', name: 'tagOutOfPolicy', data: {tagName: 'Department'}},
@@ -202,7 +202,7 @@ describe('maskOnyxState', () => {
             };
             const result = maskOnyxState(input) as Record<string, unknown>;
 
-            // Wildcard rule should pass through data unchanged
+            // Safe collection key should pass through data unchanged
             expect(result[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}txn123`]).toEqual(mockViolations);
         });
     });

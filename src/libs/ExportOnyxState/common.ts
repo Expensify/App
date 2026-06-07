@@ -7,7 +7,7 @@ import type {MaskOnyxState} from './types';
 const MASKING_PATTERN = '***';
 
 type ExportRule = {
-    /** Fields to keep as-is. Use ['*'] to pass through the entire value without masking. */
+    /** Fields to keep as-is. */
     allowList: string[];
     /** Fields to length-mask (random string of same length). */
     maskList: string[];
@@ -36,7 +36,6 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
 
 // ============================================================
 // 2. KEYS WITH SPECIFIC EXPORT RULES — allow/mask per field
-//    Use allowList: ['*'] to pass through the entire value.
 // ============================================================
 const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     // --- Authentication & credentials ---
@@ -199,10 +198,6 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['transactionID', 'reportID', 'created', 'category', 'tag', 'billable'],
         maskList: ['merchant', 'description', 'comment'],
     },
-    [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {
-        allowList: ['*'],
-        maskList: [],
-    },
 
     // --- Workspace / Policy ---
     [ONYXKEYS.COLLECTION.POLICY]: {
@@ -212,30 +207,6 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: {
         allowList: ['id', 'type', 'role', 'outputCurrency', 'isPolicyExpenseChatEnabled', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
-    },
-    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: {
-        allowList: ['*'],
-        maskList: [],
-    },
-    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: {
-        allowList: ['*'],
-        maskList: [],
-    },
-    [ONYXKEYS.COLLECTION.POLICY_TAGS]: {
-        allowList: ['*'],
-        maskList: [],
-    },
-    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: {
-        allowList: ['*'],
-        maskList: [],
-    },
-    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: {
-        allowList: ['*'],
-        maskList: [],
-    },
-    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS]: {
-        allowList: ['*'],
-        maskList: [],
     },
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: {
         allowList: ['role', 'errors', 'pendingAction'],
@@ -396,6 +367,8 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     ONYXKEYS.NVP_BILLING_FUND_ID,
     ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY,
+    ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID,
+    ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE,
 
     // Boolean flags
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
@@ -439,6 +412,8 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.HAS_NON_PERSONAL_POLICY,
     ONYXKEYS.CONCIERGE_THINKING_KICKOFF,
     ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
+    ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+    ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
 
     // Config / preferences / enums
     ONYXKEYS.NETWORK,
@@ -547,6 +522,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.LAST_EXPORT_METHOD,
     ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE,
     ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
+    ONYXKEYS.NVP_SEARCH_SIDEBAR,
 
     // Tasks / NVPs
     ONYXKEYS.TASK,
@@ -568,6 +544,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES,
     ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
     ONYXKEYS.COPY_POLICY_SETTINGS,
+    ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS,
     ONYXKEYS.DUPLICATE_WORKSPACE,
     ONYXKEYS.ADD_NEW_COMPANY_CARD,
     ONYXKEYS.ADD_NEW_PERSONAL_CARD,
@@ -643,6 +620,15 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
+
+    // Policy config collections — full pass-through, no PII
+    ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT,
+    ONYXKEYS.COLLECTION.POLICY_TAGS,
+    ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
+    ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
+    ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS,
 ]);
 
 // ============================================================
@@ -767,11 +753,6 @@ const getCurrentDate = (): string => {
 
 const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): unknown => {
     if (data === null || data === undefined) {
-        return data;
-    }
-
-    // Wildcard: export everything as-is
-    if (rule.allowList.length === 1 && rule.allowList.at(0) === '*') {
         return data;
     }
 
