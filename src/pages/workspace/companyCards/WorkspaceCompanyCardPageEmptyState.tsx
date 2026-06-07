@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasIssuedExpensifyCard} from '@libs/CardUtils';
@@ -25,9 +26,10 @@ import WorkspaceCompanyCardExpensifyCardPromotionBanner from './WorkspaceCompany
 type WorkspaceCompanyCardPageEmptyStateProps = {
     policyID: string;
     shouldShowGBDisclaimer?: boolean;
+    canWriteCompanyCards?: boolean;
 };
 
-function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: WorkspaceCompanyCardPageEmptyStateProps) {
+function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, canWriteCompanyCards = true}: WorkspaceCompanyCardPageEmptyStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -37,7 +39,8 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const {withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
     const otherFeeds = useOtherFeedsForFeedSelector(policyID);
 
@@ -116,7 +119,9 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
                 subtitle={translate('workspace.moreFeatures.companyCards.feed.subtitle')}
                 ctaText={translate('workspace.companyCards.addCards')}
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
-                onCtaPress={handleCtaPress}
+                onCtaPress={withReadOnlyFallback(handleCtaPress)}
+                buttonInnerStyles={!canWriteCompanyCards ? styles.buttonOpacityDisabled : undefined}
+                buttonHoverStyles={!canWriteCompanyCards ? styles.buttonOpacityDisabled : undefined}
                 illustrationBackgroundColor={colors.blue800}
                 illustration={getCompanyCardIllustration()}
                 illustrationStyle={styles.getEmptyStateCompanyCardsIllustration(shouldUseNarrowLayout)}

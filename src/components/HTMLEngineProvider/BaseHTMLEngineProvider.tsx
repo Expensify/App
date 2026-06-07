@@ -8,6 +8,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
+import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     /** Whether text elements should be selectable */
@@ -200,38 +201,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'sparkles-icon',
                 contentModel: HTMLContentModel.mixed,
             }),
-            victorychart: HTMLElementModel.fromCustomModel({
-                tagName: 'victorychart',
-                contentModel: HTMLContentModel.block,
-            }),
-            victorybar: HTMLElementModel.fromCustomModel({
-                tagName: 'victorybar',
-                contentModel: HTMLContentModel.block,
-            }),
-            victoryline: HTMLElementModel.fromCustomModel({
-                tagName: 'victoryline',
-                contentModel: HTMLContentModel.block,
-            }),
-            victoryaxis: HTMLElementModel.fromCustomModel({
-                tagName: 'victoryaxis',
-                contentModel: HTMLContentModel.block,
-            }),
-            victorylabel: HTMLElementModel.fromCustomModel({
-                tagName: 'victorylabel',
-                contentModel: HTMLContentModel.textual,
-            }),
-            victorylegend: HTMLElementModel.fromCustomModel({
-                tagName: 'victorylegend',
-                contentModel: HTMLContentModel.block,
-            }),
-            victorygroup: HTMLElementModel.fromCustomModel({
-                tagName: 'victorygroup',
-                contentModel: HTMLContentModel.block,
-            }),
-            victorypie: HTMLElementModel.fromCustomModel({
-                tagName: 'victorypie',
-                contentModel: HTMLContentModel.block,
-            }),
+            ...VICTORY_HTML_ELEMENT_MODELS,
         }),
         [
             styles.taskTitleMenuItem,

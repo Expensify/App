@@ -486,9 +486,11 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Kwartaal',
         vacationDelegate: 'Vertegenwoordiger tijdens vakantie',
         expensifyLogo: 'Expensify-logo',
-        concierge: {sidePanelGreeting: 'Hoi, waarmee kan ik je helpen?', showHistory: 'Geschiedenis weergeven'},
+        concierge: {greeting: 'Hoi, waarmee kan ik je helpen?', showHistory: 'Geschiedenis weergeven'},
         duplicateReport: 'Dubbel rapport',
         approver: 'Fiatteur',
+        goToConcierge: 'Ga naar Concierge',
+        allSet: 'Helemaal klaar!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `voer cijfer ${digitIndex} van ${totalDigits} in`,
         copyOfReportName: (reportName: string) => `Kopie van ${reportName}`,
         previousMonth: 'Vorige maand',
@@ -496,6 +498,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        editor: 'Editor',
         restrictions: 'Beperkingen',
     },
     socials: {
@@ -942,7 +945,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Werkruimte',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Bedrijfspassen`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Verbinding met ${integrationName} repareren`,
                 defaultSubtitle: 'Werkruimte',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Boekhouding`,
@@ -959,6 +962,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portemonnee',
             },
+            enterSignerInfo: {title: 'Ondertekenaargegevens vereist', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankrekening ${bankAccountLastFour}`},
         },
         announcements: 'Aankondigingen',
         discoverSection: {
@@ -1520,6 +1524,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
+        keepSelected: 'Selectie behouden',
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprove: 'Bevestig goedkeuringsbedrag',
@@ -1972,11 +1977,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: 'Opgeslagen',
         },
     },
-    securityPage: {
-        title: 'Beveiligingsopties',
-        subtitle: 'Schakel tweeledige verificatie in om je account veilig te houden.',
-        goToSecurity: 'Ga terug naar de beveiligingspagina',
-    },
+    securityPage: {title: 'Beveiliging', subtitle: 'Houd je account veilig.', goToSecurity: 'Ga terug naar de beveiligingspagina'},
     shareCodePage: {
         title: 'Uw code',
         subtitle: 'Nodig leden uit voor Expensify door je persoonlijke QR-code of verwijzingslink te delen.',
@@ -2126,14 +2127,25 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Account',
         general: 'Algemeen',
         helpPage: {
-            title: 'Vragen?',
+            title: 'Hulp en ondersteuning',
             description: 'We zijn er 24/7 om je te helpen.',
-            helpSite: 'Helppagina',
+            helpSite: 'Hulpwebsite',
+            helpSiteDescription: 'Artikelen, handleidingen en meer',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Je persoonlijke AI-agent',
-            accountManagerDescription: 'Je accountmanager',
-            partnerManagerDescription: 'Je partnerbeheerder',
-            guideDescription: 'Je instelspecialist',
+            accountManager: 'Accountmanager',
+            yourAccountManager: 'Je accountmanager',
+            accountManagerDescription: 'Stel vragen en krijg ondersteuning voor klanten',
+            partnerManager: 'Partner Manager',
+            yourPartnerManager: 'Twój opiekun partnerski',
+            partnerManagerDescription: 'Haal het maximale uit je partnership en stimuleer verwijzingen',
+            guideDescription: 'Je accountmanager',
+            approvedPartnerTeamTitle: 'Maak kennis met je Approved!-partnerteam',
+            approvedPartnerTeamDescription:
+                'Een toegewijd team dat zich richt op het laten groeien van je bedrijf, sneller onboarden van klanten en het bieden van deskundige ondersteuning wanneer je die nodig hebt.',
+            accountExecutive: 'Accountmanager',
+            accountExecutiveDescription: 'Klanten succesvol instellen',
+            moreResources: 'Meer bronnen',
         },
     },
     closeAccountPage: {
@@ -2246,9 +2258,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Herstelcodes',
         keepCodesSafe: 'Bewaar deze codes goed!',
         codesLoseAccess: dedent(`
-            Als je de toegang tot je authenticator-app verliest en deze codes niet hebt, verlies je de toegang tot je account.
-
-            <strong>Let op</strong>: Het instellen van twee-factor-authenticatie zal je bij alle andere actieve sessies afmelden.
+            Als je de toegang tot je authenticator-app kwijtraakt en deze codes niet hebt, word je uit je account afgesloten.<br><br>
+            <strong>Let op</strong>: Het inschakelen van 2FA logt je uit in alle andere sessies.
         `),
         errorStepCodes: 'Kopieer of download de codes voordat je verdergaat',
         stepVerify: 'Verifiëren',
@@ -2278,7 +2289,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Nieuw apparaat instellen',
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
         downloadCodes: 'Codes downloaden',
-        screenshotTip: 'Tip: maak een screenshot om dit op te slaan in je fotobibliotheek',
         copyCodes: 'Codes kopiëren',
     },
     recoveryCodeForm: {
@@ -2916,6 +2926,8 @@ ${amount} voor ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Hoog contrast',
+        enableHighContrast: 'Hoog contrast inschakelen',
+        disableHighContrast: 'Hoog contrast uitschakelen',
         chooseThemeBelowOrSync: 'Kies hieronder een thema, of synchroniseer met de instellingen van je apparaat.',
     },
     termsOfUse: {
@@ -2980,8 +2992,9 @@ ${amount} voor ${merchant} - ${date}`,
         },
         getStarted: 'Aan de slag',
         whatsYourName: 'Hoe heet je?',
-        peopleYouMayKnow: 'Mensen die je misschien kent zijn hier al! Verifieer je e-mailadres om je bij hen aan te sluiten.',
-        workspaceYouMayJoin: (domain: string, email: string) => `Iemand van ${domain} heeft al een workspace gemaakt. Voer de magische code in die is verzonden naar ${email}.`,
+        peopleYouMayKnow: 'Kijk of je team al in Expensify zit',
+        workspaceYouMayJoin: (domain: string, email: string) =>
+            `Voer de code in die is verzonden naar ${email} om te controleren of iemand van ${domain} een workspace heeft waar je lid van kunt worden.`,
         joinAWorkspace: 'Lid worden van een workspace',
         listOfWorkspaces: 'Hier is de lijst met werkruimtes waartoe je je kunt aansluiten.',
         skipForNow: 'Voorlopig overslaan',
@@ -3074,7 +3087,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Maak](${workspaceConfirmationLink}) een workspace`,
-                description: 'Maak een workspace aan en configureer de instellingen met hulp van je set-up specialist!',
+                description: 'Maak een workspace aan en stel de instellingen in met hulp van je accountmanager!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Maak een [werkruimte](${workspaceSettingsLink})`,
@@ -3292,11 +3305,11 @@ ${amount} voor ${merchant} - ${date}`,
                 isOnboardingFlow
                     ? dedent(`
                         # Je gratis proefperiode is gestart! Laten we je account instellen.
-                        👋 Hoi, ik ben je Expensify-configuratiespecialist. Ik heb al een workspace aangemaakt om de bonnetjes en uitgaven van je team te beheren. Volg gewoon de resterende configuratiestappen hieronder om het meeste uit je gratis proefperiode van 30 dagen te halen!
+                        👋 Hoi, ik ben je Expensify accountmanager. Ik heb al een workspace aangemaakt om de bonnen en uitgaven van je team te beheren. Volg de resterende configuratiestappen hieronder om het meeste uit je 30 dagen gratis proefperiode te halen!
                     `)
                     : dedent(`
-                        # Je gratis proefperiode is gestart! Laten we je account instellen.
-                        👋 Hallo, ik ben je Expensify-specialist voor de installatie. Nu je een workspace hebt aangemaakt, haal het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
+                        # Je gratis proefperiode is begonnen! Laten we je account instellen.
+                        👋 Hoi, ik ben je Expensify accountmanager. Nu je een workspace hebt aangemaakt, haal alles uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
                     `),
             onboardingTrackWorkspaceMessage: 'Haal het meeste uit je gratis proefperiode van 30 dagen door de volgende stappen te volgen:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo makkelijk als het sturen van een bericht. Zo werkt het.',
@@ -3342,6 +3355,7 @@ ${amount} voor ${merchant} - ${date}`,
         enterPhoneNumber: 'Wat is je telefoonnummer?',
         personalDetails: 'Persoonlijke gegevens',
         privateDataMessage: 'Deze gegevens worden gebruikt voor reizen en betalingen. Ze worden nooit weergegeven op je openbare profiel.',
+        basicDetails: 'Basisgegevens',
         legalName: 'Wettelijke naam',
         legalFirstName: 'Juridische voornaam',
         legalLastName: 'Wettelijke achternaam',
@@ -3419,6 +3433,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Deelnemen',
+        marketingSMSConsent: 'Ik ga akkoord met het ontvangen van marketing-sms van Expensify',
     },
     detailsPage: {
         localTime: 'Lokale tijd',
@@ -3534,7 +3549,7 @@ ${amount} voor ${merchant} - ${date}`,
             noBankAccountSelected: 'Kies een account',
             taxID: 'Voer een geldig btw-identificatienummer in',
             website: 'Voer een geldige website in',
-            zipCode: `Voer een geldige postcode in met het volgende formaat: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Voer een geldige postcode in met het volgende formaat: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Voer een geldig telefoonnummer in',
             email: 'Voer een geldig e-mailadres in',
             companyName: 'Voer een geldige bedrijfsnaam in',
@@ -3997,7 +4012,7 @@ ${amount} voor ${merchant} - ${date}`,
         selectCountry: 'Selecteer land',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Verbind deze bankrekening met een <a href="${workspaceRoute}">werkruimte</a> zodat je in een latere stap een directeur kunt uitnodigen om te ondertekenen.`,
+                `Deze bankrekening moet worden gekoppeld aan een werkruimte. Ga naar <a href="${workspaceRoute}">Werkruimtes</a>, selecteer je werkruimte en navigeer vervolgens naar Workflows > Betalingen > Bankrekening toevoegen.`,
         },
     },
     bankInfoStep: {
@@ -4046,8 +4061,6 @@ ${amount} voor ${merchant} - ${date}`,
             `verbindt een zakelijke ${currency}-bankrekening die eindigt op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarsgegevens van een directeur.`,
         error: {
             emailsMustBeDifferent: 'E-mails moeten verschillend zijn',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Koppel deze bankrekening alstublieft aan een <a href="${workspaceRoute}">werkruimte</a> om een directeur uit te nodigen te ondertekenen.`,
         },
     },
     agreementsStep: {
@@ -4350,6 +4363,8 @@ ${amount} voor ${merchant} - ${date}`,
                         return 'Beheer';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kaartbeheer';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -4391,9 +4406,12 @@ ${amount} voor ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
             rooms: 'Kamers',
+            findDomain: 'Domein zoeken',
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
             peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
             paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
+            readOnlyActionTitle: 'Niet zo snel...',
+            readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -4620,7 +4638,7 @@ ${amount} voor ${merchant} - ${date}`,
             creditCardAccount: 'Creditcardrekening',
             travelInvoicingDescription: 'Reiskosten worden als creditcardkosten geëxporteerd naar het hieronder opgegeven QuickBooks Online-account.',
             companyCardsLocationEnabledDescription:
-                'QuickBooks Online ondersteunt geen locaties bij het exporteren van leveranciersfacturen. Omdat je locaties hebt ingeschakeld in je workspace, is deze exportoptie niet beschikbaar.',
+                'QuickBooks Online ondersteunt geen locaties op leveranciersfactuur-exporten wanneer locaties als tags worden geïmporteerd. Omdat je in je werkruimte locaties als tags hebt geïmporteerd, is deze exportoptie niet beschikbaar.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online ondersteunt geen belastingen op exports van journaalboekingen. Omdat je belastingen hebt ingeschakeld in je workspace, is deze exportoptie niet beschikbaar.',
             outOfPocketTaxEnabledError: 'Boekingen zijn niet beschikbaar wanneer belastingen zijn ingeschakeld. Kies een andere exportoptie.',
@@ -4844,6 +4862,34 @@ ${amount} voor ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            autoSyncDescription: 'Expensify wordt elke dag automatisch met Certinia gesynchroniseerd.',
+            syncReimbursedReportsDescription:
+                'Als deze optie is ingeschakeld, wordt elke keer dat een te betalen factuur in FFA wordt betaald, het bijbehorende Expensify-rapport automatisch als terugbetaald gemarkeerd.',
+            exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Certinia.',
+            payableInvoices: 'Te betalen facturen',
+            exportStatus: {
+                label: 'Status te betalen factuur',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Voltooien',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Bezig',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
+                },
+            },
+            exportDate: {
+                label: 'Vervaldatum factuur',
+                values: {
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Datum van laatste uitgave',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Indiendatum rapport',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Exportdatum',
+                },
+            },
+            exportReimbursable: {
+                label: 'Terugbetaalbare declaraties exporteren als',
+                helperText: 'Declarabele uitgaven worden geëxporteerd als te betalen facturen op naam van de werknemer.',
+            },
+            exportNonReimbursable: {label: 'Niet-declarabele uitgaven exporteren als'},
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Synchroniseer de verbinding opnieuw nadat leveranciers zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Voor FFA-verbindingen',
@@ -4860,6 +4906,19 @@ ${amount} voor ${merchant} - ${date}`,
                 oauth: 'Log in via Salesforce',
                 oauthDescription: 'Om de installatie te voltooien, moet je je aanmelden via Salesforce en Certinia.\n\nGebruik de knop hieronder om door te gaan.',
                 connectButton: 'Verbind met Certinia',
+            },
+            import: {
+                chartOfAccounts: 'Rekeningschema',
+                chartOfAccountsDescription: 'Het grootboekschema wordt in Expensify geïmporteerd als categorieën.',
+                dimensionMapping: ({n}: {n: number}) => `Dimensie ${n}`,
+                dimensions: {dimension1: 'Dimensie 1', dimension2: 'Dimensie 2', dimension3: 'Dimensie 3', dimension4: 'Dimensie 4'},
+                doNotMap: 'Niet toewijzen',
+                doNotMapSubtitle: 'Standaard werknemersbron gebruiken',
+                mappingTypes: {
+                    [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Niet toewijzen',
+                    [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Geïmporteerd als labels',
+                    [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Geïmporteerd als rapportvelden',
+                },
             },
         },
         netsuite: {
@@ -5604,6 +5663,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             travel: {
                 title: 'Reizen',
                 subtitle: 'Boek, beheer en reconcilieer al je zakelijke reizen.',
+                disableTravelTitle: 'Schakel eerst Reisfacturatie uit',
+                disableTravelPrompt: 'Reisfacturatie is ingeschakeld voor deze workspace. Schakel dit uit voordat je Reis kunt uitschakelen.',
+                disableTravelButton: 'Ga naar Reisinstellingen',
                 getStarted: {
                     title: 'Aan de slag met Expensify Travel',
                     subtitle: 'We hebben nog maar een paar extra gegevens over je bedrijf nodig, dan ben je klaar voor vertrek.',
@@ -6033,16 +6095,35 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             error: 'Er is een fout opgetreden bij het dupliceren van je nieuwe werkruimte. Probeer het opnieuw.',
         },
         copyPolicySettings: {
-            error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
             title: 'Instellingen kopiëren',
-            selectWorkspaces: 'Selecteer werkruimtes',
-            description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
-            searchPlaceholder: 'Werkruimtes zoeken',
-            selectFeatures: 'Selecteer functies om te kopiëren',
-            whichFeatures: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
-            workflowsWithoutMembersConfirm: 'Doorgaan zonder leden',
-            workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden kopieert geen goedkeuringsworkflows. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
-            accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+            error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
+            selectWorkspaces: {
+                title: 'Selecteer werkruimtes',
+                description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
+                searchPlaceholder: 'Werkruimtes zoeken',
+            },
+            selectSettings: {
+                title: 'Selecteer functies om te kopiëren',
+                description: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
+                accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+            },
+            confirmSettings: {
+                title: 'Laten we controleren of alles er goed uitziet.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
+            },
+            confirmWorkflows: {
+                continue: 'Doorgaan zonder leden',
+                description: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
+            },
+            progress: {
+                copyInProgressTitle: 'Kopie wordt gemaakt...',
+                copyInProgressDescription: 'Je kunt wachten tot het proces is voltooid, of Concierge kan je laten weten wanneer het klaar is.',
+                letMeKnowPrompt: 'Laat het me weten als het klaar is',
+                conciergeNotificationTitle: 'Concierge laat je het weten',
+                conciergeNotificationDescription: 'Wanneer het proces is afgerond, stuurt Concierge je een bericht.',
+                copyCompleted: 'Je werkruimte-instellingen zijn gekopieerd.',
+            },
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -6198,7 +6279,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chat met je installatiespecialist.',
+            talkYourOnboardingSpecialist: 'Chat met je accountmanager.',
             talkYourAccountManager: 'Chat met je accountmanager.',
             talkToConcierge: 'Chat met Concierge.',
             needAnotherAccounting: 'Nog een boekhoudprogramma nodig?',
@@ -6416,6 +6497,26 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             return 'Sage Intacct-dimensies importeren';
                         case 'intacctImportTitle':
                             return 'Sage Intacct-gegevens importeren';
+                        case 'financialForceSyncTitle':
+                            return 'Certinia-gegevens synchroniseren';
+                        case 'financialForceSyncStep':
+                            return 'Certinia-verbinding synchroniseren';
+                        case 'financialForceSyncCategories':
+                            return 'Categorieen importeren';
+                        case 'financialForceSyncTags':
+                            return 'Tags importeren';
+                        case 'financialForceSyncVendors':
+                            return 'Leveranciers importeren';
+                        case 'financialForceSyncContacts':
+                            return 'Contacten importeren';
+                        case 'financialForceSyncCompanies':
+                            return 'Bedrijven importeren';
+                        case 'financialForceSyncUsers':
+                            return 'Gebruikers importeren';
+                        case 'financialForceSyncDimensions':
+                            return 'Dimensies importeren';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Rapporten als vergoed markeren';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
                         }
@@ -7261,6 +7362,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
             syncing: 'Werknemers synchroniseren',
         },
+        emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
     },
     getAssistancePage: {
         title: 'Hulp krijgen',
@@ -7782,6 +7884,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de einddag van de afrekenperiode van kaartfeed "${feedName}" gewijzigd${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (voorheen "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `heeft de standaarduitgavencategorie voor ‘${mccGroupName}’ gewijzigd in ‘${newCategory}’ (voorheen ‘${oldCategory}’)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `vereiste ${enabled ? 'ingeschakeld' : 'uitgeschakeld'} voor bedrijfskaarttransacties`,
         expensifyCardRule: {
             actionVerb: {block: 'geblokkeerd', allow: 'toegestaan'},
@@ -7887,6 +7991,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             newChat: 'Nieuw chatscherm',
             copy: 'Opmerking kopiëren',
             openDebug: 'Dialoogvenster testvoorkeuren openen',
+            expenseReportSearch: 'Onkostendeclaraties zoeken',
+            goToWorkspace: 'Ga naar de werkruimte van het huidige rapport',
         },
     },
     guides: {
@@ -8082,6 +8188,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         withdrawalType: 'Type opname',
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
+        serverResults: 'Zoekresultaten',
         searchIn: 'Zoeken in',
         askConcierge: (message: string) => `Vraag Concierge: “${message}”`,
         searchPlaceholder: 'Zoek iets...',
@@ -8359,6 +8466,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         workspaceName: 'Naam werkruimte',
         chatUserDisplayNames: 'Weergavenamen van chatleden',
         scrollToNewestMessages: 'Scroll naar nieuwste berichten',
+        scrollToActionBadgeTarget: 'Scroll naar actie die aandacht vereist',
         preStyledText: 'Vooraf opgemaakte tekst',
         viewAttachment: 'Bijlage bekijken',
         contextMenuAvailable: 'Contextmenu beschikbaar. Druk op Shift+F10 om het te openen.',
@@ -8626,7 +8734,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Chat met je setupspecificus in <a href="${href}">${adminReportName}</a> voor hulp`,
+            `Chat met je accountmanager in <a href="${href}">${adminReportName}</a> voor hulp`,
         default: `Stuur een bericht naar <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> voor hulp bij de installatie`,
     },
     violations: {
@@ -9276,7 +9384,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         confirmation: {
             title: 'Gesprek bevestigen',
             description: 'Controleer of de onderstaande gegevens er goed uitzien. Zodra je het gesprek bevestigt, sturen we een uitnodiging met meer informatie.',
-            setupSpecialist: 'Je configuratiespecialist',
+            setupSpecialist: 'Je accountmanager',
             meetingLength: 'Vergaderduur',
             dateTime: 'Datum en tijd',
             minutes: '30 minuten',
@@ -9323,7 +9431,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
-        currentView: 'Huidige weergave exporteren',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
