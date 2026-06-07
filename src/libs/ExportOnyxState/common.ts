@@ -115,8 +115,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
 
 // ============================================================
 // 3. SAFE ONYX KEYS — export as-is, no masking needed
-//    Empty by default so the default masking behavior is preserved. Add keys here
-//    to opt them out of maskFragileData once they are confirmed PII-free.
+//    Add keys here to opt them out of maskFragileData once they are confirmed PII-free.
 // ============================================================
 const safeOnyxKeys = new Set<string>([]);
 
