@@ -177,7 +177,19 @@ function DistanceRequestController({
             return;
         }
 
-        setCustomUnitRateID(transactionID, lastSelectedRate, transaction, policy);
+        let rateToUse = lastSelectedRate;
+        const expenseDate = transaction?.created;
+        if (expenseDate) {
+            const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+            const lastRate = lastSelectedRate ? mileageRates[lastSelectedRate] : undefined;
+            if (lastRate && !DistanceRequestUtils.isRateEligibleForDate(lastRate, expenseDate)) {
+                const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate);
+                if (bestRate?.customUnitRateID) {
+                    rateToUse = bestRate.customUnitRateID;
+                }
+            }
+        }
+        setCustomUnitRateID(transactionID, rateToUse, transaction, policy);
     }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
 
     useEffect(() => {

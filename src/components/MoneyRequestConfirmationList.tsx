@@ -256,6 +256,17 @@ function MoneyRequestConfirmationList({
     const previousTransactionCurrency = usePrevious(transaction?.currency);
     const customUnitRateID = getRateID(transaction);
 
+    const [prevCreatedForTooltip, setPrevCreatedForTooltip] = useState(transaction?.created);
+    const [prevRateIDForTooltip, setPrevRateIDForTooltip] = useState(customUnitRateID);
+    const [shouldShowRateAutoUpdatedTooltip, setShouldShowRateAutoUpdatedTooltip] = useState(false);
+    if (prevCreatedForTooltip !== transaction?.created || prevRateIDForTooltip !== customUnitRateID) {
+        const dateChanged = prevCreatedForTooltip !== transaction?.created;
+        const rateChanged = prevRateIDForTooltip !== customUnitRateID;
+        setShouldShowRateAutoUpdatedTooltip(isDistanceRequest && dateChanged && rateChanged && !!prevCreatedForTooltip && !!prevRateIDForTooltip);
+        setPrevCreatedForTooltip(transaction?.created);
+        setPrevRateIDForTooltip(customUnitRateID);
+    }
+
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const prevSubRates = usePrevious(subRates);
 
@@ -545,7 +556,7 @@ function MoneyRequestConfirmationList({
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
                 distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
-                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency}}
+                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency, shouldShowRateAutoUpdatedTooltip}}
                 amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
                 requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
                 visibilityFlags={{

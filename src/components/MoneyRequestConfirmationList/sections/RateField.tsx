@@ -1,6 +1,9 @@
-import React from 'react';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Text from '@components/Text';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,6 +33,7 @@ type RateFieldProps = {
     formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
+    shouldShowRateAutoUpdatedTooltip?: boolean;
 };
 
 function RateField({
@@ -49,6 +53,7 @@ function RateField({
     formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
+    shouldShowRateAutoUpdatedTooltip,
 }: RateFieldProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -59,47 +64,68 @@ function RateField({
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
-    return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={isRateInteractive}
-            // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
-            // confirmation screen where a rate violation is not applicable yet.
-            title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, distanceRateCurrency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
-            description={translate('common.rate')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
+    const renderTooltipContent = useCallback(
+        () => (
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.pv2, styles.ph2]}>
+                <Text style={styles.textWhite}>{translate('iou.rateAutoUpdatedTooltip')}</Text>
+            </View>
+        ),
+        [styles, translate],
+    );
 
-                if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action,
-                            iouType,
-                            transactionID,
-                            reportID,
-                            upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                            backTo: Navigation.getActiveRoute(),
-                            shouldSubmitExpense: !isTrackExpense,
-                        }),
-                    );
-                } else if (!policy && shouldSelectPolicy && isTrackExpense) {
-                    Navigation.navigate(
-                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                        ),
-                    );
-                } else {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                }
+    return (
+        <EducationalTooltip
+            shouldRender={!!shouldShowRateAutoUpdatedTooltip}
+            renderTooltipContent={renderTooltipContent}
+            anchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            disabled={didConfirm}
-            interactive={isRateInteractive}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
-        />
+            wrapperStyle={styles.productTrainingTooltipWrapper}
+            shouldHideOnNavigate
+            shiftVertical={-8}
+        >
+            <View>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={isRateInteractive}
+                    title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, distanceRateCurrency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
+                    description={translate('common.rate')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action,
+                                    iouType,
+                                    transactionID,
+                                    reportID,
+                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                    backTo: Navigation.getActiveRoute(),
+                                    shouldSubmitExpense: !isTrackExpense,
+                                }),
+                            );
+                        } else if (!policy && shouldSelectPolicy && isTrackExpense) {
+                            Navigation.navigate(
+                                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                    ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                ),
+                            );
+                        } else {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                        }
+                    }}
+                    brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    disabled={didConfirm}
+                    interactive={isRateInteractive}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
+                />
+            </View>
+        </EducationalTooltip>
     );
 }
 

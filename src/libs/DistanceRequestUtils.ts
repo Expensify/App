@@ -1,3 +1,4 @@
+import {format, parseISO} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
@@ -633,6 +634,29 @@ function prepareTextForDisplay(text: string): string {
     return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
+function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate']): string {
+    const dateFormat = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT;
+
+    try {
+        if (rate.startDate && rate.endDate) {
+            return translate('iou.rateValidDateRange', {
+                startDate: format(parseISO(rate.startDate), dateFormat),
+                endDate: format(parseISO(rate.endDate), dateFormat),
+            });
+        }
+        if (rate.startDate) {
+            return translate('iou.rateValidFrom', {startDate: format(parseISO(rate.startDate), dateFormat)});
+        }
+        if (rate.endDate) {
+            return translate('iou.rateValidUntil', {endDate: format(parseISO(rate.endDate), dateFormat)});
+        }
+    } catch {
+        return '';
+    }
+
+    return '';
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -657,6 +681,7 @@ export default {
     prepareTextForDisplay,
     isRateEligibleForDate,
     getBestEligibleRate,
+    getRateDateLabel,
 };
 
 export type {MileageRate};
