@@ -172,11 +172,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (canAccessSubmitWorkspaceFeatures) {
-            const isCorporateUpgrade =
-                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id ||
-                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id ||
-                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id;
-            const targetType = isCorporateUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+            const targetType = (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
             return;
         }
