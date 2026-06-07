@@ -182,15 +182,13 @@ function DistanceRequestController({
         if (expenseDate) {
             const mileageRates = DistanceRequestUtils.getMileageRates(policy);
             const lastRate = lastSelectedRate ? mileageRates[lastSelectedRate] : undefined;
-            if (lastRate && !DistanceRequestUtils.isRateEligibleForDate(lastRate, expenseDate)) {
+            if (!lastRate || !DistanceRequestUtils.isRateEligibleForDate(lastRate, expenseDate)) {
                 const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate);
-                if (bestRate?.customUnitRateID) {
-                    rateToUse = bestRate.customUnitRateID;
-                }
+                rateToUse = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID ?? lastSelectedRate;
             }
         }
         setCustomUnitRateID(transactionID, rateToUse, transaction, policy);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
+    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants, defaultMileageRateCustomUnitRateID]);
 
     useEffect(() => {
         if (!isDistanceRequest || !transactionID || isReadOnly) {
