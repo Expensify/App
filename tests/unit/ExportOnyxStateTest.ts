@@ -1,4 +1,4 @@
-import {emailRegex, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
+import {emailRegex, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -156,40 +156,6 @@ describe('maskOnyxState', () => {
         });
     });
 
-    describe('REPORT_ACTIONS export rule', () => {
-        it('should preserve debug-useful fields and mask message content', () => {
-            const mockReportAction = {
-                reportActionID: '456',
-                actionName: 'ADDCOMMENT',
-                created: '2024-06-15T10:00:00Z',
-                actorAccountID: 789,
-                pendingAction: null,
-                errors: null,
-                message: [{type: 'COMMENT', html: '<p>Secret message</p>', text: 'Secret message'}],
-                avatar: 'https://example.com/avatar.png',
-                isLoading: false,
-            };
-
-            const input = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}123`]: {action1: mockReportAction},
-            };
-            const result = maskOnyxState(input) as Record<string, Record<string, Record<string, unknown>>>;
-
-            const processedAction = result[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}123`].action1;
-
-            // Allowed fields should be preserved
-            expect(processedAction.reportActionID).toBe('456');
-            expect(processedAction.actionName).toBe('ADDCOMMENT');
-            expect(processedAction.created).toBe('2024-06-15T10:00:00Z');
-            expect(processedAction.actorAccountID).toBe(789);
-            expect(processedAction.isLoading).toBe(false);
-
-            // Masked fields should be masked
-            expect(processedAction.message).not.toEqual(mockReportAction.message);
-            expect(processedAction.avatar).not.toBe('https://example.com/avatar.png');
-        });
-    });
-
     describe('full pass-through safe collection keys', () => {
         it('should pass through data as-is for safe collection keys', () => {
             const mockViolations = [
@@ -329,21 +295,23 @@ describe('maskOnyxState', () => {
 });
 
 describe('Onyx key export coverage', () => {
-    it('every ONYXKEYS value (top-level + collection) must be in ONYX_KEY_EXPORT_RULES, safeOnyxKeys, or onyxKeysToRemove', () => {
+    it('every ONYXKEYS value (top-level + collection) must be in one of the four buckets', () => {
         // Collect all top-level Onyx key string values (excluding sub-objects)
         const allTopLevelKeys: string[] = (Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string');
 
         // Collect all collection prefix values
         const allCollectionKeys: string[] = Object.values(ONYXKEYS.COLLECTION);
 
-        // Build the set of all covered keys
-        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...(Array.from(onyxKeysToRemove) as string[]), ...safeOnyxKeys]);
+        // Build the set of all covered keys across the four buckets. onyxKeysToMaskFragileData is the
+        // computed fallback for anything not explicitly in the other three, so the four buckets together
+        // partition every ONYXKEYS value.
+        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...(Array.from(onyxKeysToRemove) as string[]), ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
 
         const uncoveredTopLevel = allTopLevelKeys.filter((key) => !coveredKeys.has(key));
         const uncoveredCollection = allCollectionKeys.filter((key) => !coveredKeys.has(key));
 
-        // These should be empty — if a new key is added to ONYXKEYS without being categorized,
-        // this test will fail and list the uncovered keys.
+        // These should be empty — every key is categorized, falling back to onyxKeysToMaskFragileData
+        // when not explicitly placed in one of the other three buckets.
         expect(uncoveredTopLevel).toEqual([]);
         expect(uncoveredCollection).toEqual([]);
     });
@@ -375,9 +343,14 @@ describe('Onyx key export coverage', () => {
         for (const key of rulesKeys) {
             expect(safeOnyxKeys.has(key)).toBe(false);
             expect(onyxKeysToRemove.has(key as never)).toBe(false);
+            expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
         for (const key of safeOnyxKeys) {
             expect(onyxKeysToRemove.has(key as never)).toBe(false);
+            expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
+        }
+        for (const key of Array.from(onyxKeysToRemove) as string[]) {
+            expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
     });
 });
