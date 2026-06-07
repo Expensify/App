@@ -450,11 +450,36 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
                 comment: {
                     vendor: newVendorOptimisticValue,
                 },
+                pendingFields: {
+                    vendor: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
             },
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
+            value: {
+                pendingFields: {
+                    vendor: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
+            value: {
+                pendingFields: {
+                    vendor: null,
+                },
+            },
+        },
+    ];
 
     // Only roll back the vendor when we have a known prior snapshot. If the transaction isn't passed
     // in AND isn't cached in Onyx yet, we don't know what to restore — writing null here would silently
@@ -501,7 +526,7 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
             vendorID,
             isManuallySet: true,
         },
-        {optimisticData, failureData},
+        {optimisticData, successData, failureData},
     );
 }
 

@@ -1167,7 +1167,7 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowVendor && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
                         <MenuItemWithTopDescription
                             description={translate('common.vendor')}
                             title={transactionVendorName}
