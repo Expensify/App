@@ -1,3 +1,4 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
@@ -200,7 +201,7 @@ describe('CopyPolicySettingsUtils', () => {
         });
 
         it('describes time tracking without currency when a default rate exists', () => {
-            const translate = (key: string) => (key === 'common.enabled' ? 'Enabled' : key);
+            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
             const policy = createRandomPolicy(7);
             policy.units = {time: {enabled: true, rate: 75}};
 
@@ -208,7 +209,7 @@ describe('CopyPolicySettingsUtils', () => {
         });
 
         it('describes time tracking as enabled when no default rate is set', () => {
-            const translate = (key: string) => (key === 'common.enabled' ? 'Enabled' : key);
+            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
             const policy = createRandomPolicy(8);
             policy.units = {time: {enabled: true}};
 
