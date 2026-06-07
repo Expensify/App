@@ -8,6 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -109,6 +110,8 @@ function RateField({
             renderTooltipContent={renderProductTrainingTooltip}
             tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
             tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+            tooltipShiftHorizontal={variables.mileageRateTooltipShiftHorizontal}
+            tooltipShiftVertical={variables.mileageRateTooltipShiftVertical}
         />
     );
 }
