@@ -1,8 +1,10 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -287,15 +289,34 @@ function CopyPolicySettingsSelectFeaturesPage() {
                     <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.selectSettings.description')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
+                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>
+                        <Checkbox
+                            accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
+                            isChecked={selectableFeatures.length > 0 && selectableFeatures.every((part) => selectedAvailableFeatures.includes(part))}
+                            isIndeterminate={selectedAvailableFeatures.length > 0 && selectedAvailableFeatures.length < selectableFeatures.length}
+                            onPress={toggleAll}
+                            disabled={selectableFeatures.length === 0}
+                            shouldSelectOnPressEnter
+                        />
+                        <PressableWithFeedback
+                            style={[styles.userSelectNone, styles.alignItemsCenter]}
+                            onPress={toggleAll}
+                            accessible={false}
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                            tabIndex={-1}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL}
+                        >
+                            <Text style={[styles.textLabelSupporting, styles.ph3]}>{translate('workspace.common.selectAll')}</Text>
+                        </PressableWithFeedback>
+                    </View>
                     <SelectionList
                         data={listItems}
-                        ListItem={MultiSelectListItem}
-                        canSelectMultiple
-                        alternateNumberOfSupportedLines={2}
-                        onSelectRow={toggleFeature}
-                        onSelectAll={selectableFeatures.length > 0 ? toggleAll : undefined}
-                        selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.RIGHT}
                         shouldSingleExecuteRowSelect
+                        ListItem={MultiSelectListItem}
+                        onSelectRow={toggleFeature}
+                        alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
                     />
