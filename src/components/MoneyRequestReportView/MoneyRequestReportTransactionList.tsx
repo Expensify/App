@@ -347,9 +347,16 @@ function MoneyRequestReportTransactionList({
                     return aHasRBR ? -1 : 1;
                 }
             }
-            return compareValues(getTransactionSortValue(a, sortBy, report, policy), getTransactionSortValue(b, sortBy, report, policy), sortOrder, sortBy, localeCompare, true);
+            return compareValues(
+                getTransactionSortValue(a, sortBy, report, policy, policyCategories),
+                getTransactionSortValue(b, sortBy, report, policy, policyCategories),
+                sortOrder,
+                sortBy,
+                localeCompare,
+                true,
+            );
         });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, rbrTransactionIDs]);
+    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, rbrTransactionIDs]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
 
