@@ -469,6 +469,9 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
         },
     ];
 
+    // Only roll back the vendor when we have a known prior snapshot. If the transaction isn't passed
+    // in AND isn't cached in Onyx yet, we don't know what to restore — writing null here would silently
+    // clear a vendor we don't know about. The next server sync will reconcile.
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -477,24 +480,14 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
                 pendingFields: {
                     vendor: null,
                 },
+                ...(resolvedTransaction && {
+                    comment: {
+                        vendor: previousVendor ?? null,
+                    },
+                }),
             },
         },
     ];
-
-    // Only roll back the vendor when we have a known prior snapshot. If the transaction isn't passed
-    // in AND isn't cached in Onyx yet, we don't know what to restore — writing null here would silently
-    // clear a vendor we don't know about. The next server sync will reconcile.
-    if (resolvedTransaction) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
-            value: {
-                comment: {
-                    vendor: previousVendor ?? null,
-                },
-            },
-        });
-    }
 
     // Optimistically clear any existing inactive-vendor violation. This is the user-driven write
     // path: the vendor selector RHP only offers vendors from `getQBOVendors(policy)`, so a user

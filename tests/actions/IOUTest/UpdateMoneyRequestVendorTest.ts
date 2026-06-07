@@ -46,7 +46,11 @@ describe('updateMoneyRequestVendor', () => {
         await Onyx.clear();
     });
 
-    type OnyxDataArg = {optimisticData: Array<{key: string; value: unknown}>; failureData: Array<{key: string; value: unknown}>};
+    type OnyxDataArg = {
+        optimisticData: Array<{key: string; value: unknown}>;
+        successData: Array<{key: string; value: unknown}>;
+        failureData: Array<{key: string; value: unknown}>;
+    };
     const getOnyxDataArg = (): OnyxDataArg | undefined => {
         const firstCall = writeSpy.mock.calls.at(0) as unknown[] | undefined;
         return firstCall?.at(2) as OnyxDataArg | undefined;
@@ -110,17 +114,50 @@ describe('updateMoneyRequestVendor', () => {
         updateMoneyRequestVendor(TRANSACTION_ID, 'v-new');
 
         const onyxData = getOnyxDataArg();
-        const vendorRollback = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
-        expect(vendorRollback?.value).toEqual({comment: {vendor: previousVendor}});
+        const transactionFailure = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect(transactionFailure?.value).toEqual({
+            pendingFields: {vendor: null},
+            comment: {vendor: previousVendor},
+        });
     });
 
     it('omits vendor rollback from failureData when no prior transaction snapshot exists', async () => {
         // No transaction arg + nothing in Onyx — the prior vendor is unknown, so we must not
-        // write `vendor: null` and silently clear whatever the server actually has.
+        // write `vendor: null` and silently clear whatever the server actually has. The
+        // pendingFields-clear entry still runs (so the offline indicator clears on rejection).
         updateMoneyRequestVendor(TRANSACTION_ID, 'v-new');
 
         const onyxData = getOnyxDataArg();
-        const vendorRollback = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
-        expect(vendorRollback).toBeUndefined();
+        const transactionFailure = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect(transactionFailure?.value).toEqual({pendingFields: {vendor: null}});
+    });
+
+    it('writes pendingFields.vendor = UPDATE in optimisticData so the offline indicator surfaces', () => {
+        updateMoneyRequestVendor(TRANSACTION_ID, 'v-new', baseTransaction);
+
+        const onyxData = getOnyxDataArg();
+        const transactionOptimistic = onyxData?.optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect(transactionOptimistic?.value).toEqual({
+            comment: {vendor: {externalID: 'v-new', isManuallySet: true}},
+            pendingFields: {vendor: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        });
+    });
+
+    it('clears pendingFields.vendor in successData when the server confirms the write', () => {
+        updateMoneyRequestVendor(TRANSACTION_ID, 'v-new', baseTransaction);
+
+        const onyxData = getOnyxDataArg();
+        const transactionSuccess = onyxData?.successData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect(transactionSuccess?.value).toEqual({pendingFields: {vendor: null}});
+    });
+
+    it('clears pendingFields.vendor in failureData when the server rejects the write', () => {
+        // Even without a prior snapshot to roll the vendor itself back, the pending indicator must
+        // clear on failure — otherwise the row stays stuck in "pending" forever after a server reject.
+        updateMoneyRequestVendor(TRANSACTION_ID, 'v-new');
+
+        const onyxData = getOnyxDataArg();
+        const transactionFailure = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect((transactionFailure?.value as {pendingFields?: {vendor: null | string}})?.pendingFields).toEqual({vendor: null});
     });
 });
