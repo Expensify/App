@@ -5,6 +5,7 @@ import {
     FEATURE_ROWS,
     getAccountingConnectionIdentity,
     getConnectionCompanyID,
+    getTimeTrackingCopySettingsDescription,
     isCopyPolicySettingsPartEnabledOnSource,
     isTargetCompatibleForAccountingPart,
 } from '@libs/CopyPolicySettingsUtils';
@@ -186,16 +187,32 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
         });
 
-        it('shows time tracking when enabled or a default rate is configured', () => {
+        it('shows time tracking only when the feature is enabled on the source', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', baseContext)).toBe(false);
 
             const timeTrackingPolicy = createRandomPolicy(5);
             timeTrackingPolicy.units = {time: {enabled: true, rate: 75}};
             expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: timeTrackingPolicy})).toBe(true);
 
-            const rateOnlyPolicy = createRandomPolicy(6);
-            rateOnlyPolicy.units = {time: {enabled: false, rate: 50}};
-            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: rateOnlyPolicy})).toBe(true);
+            const disabledWithRatePolicy = createRandomPolicy(6);
+            disabledWithRatePolicy.units = {time: {enabled: false, rate: 50}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: disabledWithRatePolicy})).toBe(false);
+        });
+
+        it('describes time tracking without currency when a default rate exists', () => {
+            const translate = (key: string) => (key === 'common.enabled' ? 'Enabled' : key);
+            const policy = createRandomPolicy(7);
+            policy.units = {time: {enabled: true, rate: 75}};
+
+            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled, 75');
+        });
+
+        it('describes time tracking as enabled when no default rate is set', () => {
+            const translate = (key: string) => (key === 'common.enabled' ? 'Enabled' : key);
+            const policy = createRandomPolicy(8);
+            policy.units = {time: {enabled: true}};
+
+            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled');
         });
 
         it('hides distance rates when the feature flag is off even if rates exist', () => {

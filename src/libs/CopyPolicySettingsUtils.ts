@@ -1,3 +1,4 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
@@ -228,10 +229,19 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
         case 'travel':
             return !!policy?.isTravelEnabled;
         case 'timeTracking':
-            return isTimeTrackingEnabled(policy) || policy?.units?.time?.rate !== undefined;
+            return isTimeTrackingEnabled(policy);
         default:
             return false;
     }
+}
+
+/** Subtitle for the time tracking row; rate is shown without currency because targets may use a different output currency. */
+function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
+    const hourlyRate = policy?.units?.time?.rate;
+    if (hourlyRate !== undefined) {
+        return `${translate('common.enabled')}, ${hourlyRate}`;
+    }
+    return translate('common.enabled');
 }
 
 export {
@@ -242,6 +252,7 @@ export {
     isTargetCompatibleForAccountingPart,
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
+    getTimeTrackingCopySettingsDescription,
     FEATURE_ROWS,
 };
 export type {CopyPolicySettingsSourceFeatureContext};

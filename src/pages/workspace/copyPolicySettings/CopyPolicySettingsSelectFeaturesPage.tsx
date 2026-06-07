@@ -11,21 +11,26 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {openDuplicatePolicyPage} from '@libs/actions/Policy/Policy';
-import {areAllTargetsAccountingCompatible, areAllTargetsCompatibleForAccountingPart, FEATURE_ROWS, isCopyPolicySettingsPartEnabledOnSource} from '@libs/CopyPolicySettingsUtils';
+import {
+    areAllTargetsAccountingCompatible,
+    areAllTargetsCompatibleForAccountingPart,
+    FEATURE_ROWS,
+    getTimeTrackingCopySettingsDescription,
+    isCopyPolicySettingsPartEnabledOnSource,
+} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultTimeTrackingRate, getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
-import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from '@pages/workspace/duplicate/utils';
 import CONST from '@src/CONST';
@@ -48,14 +53,13 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettings?.targetPolicyIDs ?? [];
@@ -65,7 +69,13 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const isCodingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
     const isAccountingPartCompatible = areAllTargetsCompatibleForAccountingPart(sourcePolicy, targetPolicies);
 
-    const memberCount = Object.keys(getMemberAccountIDsForWorkspace(sourcePolicy?.employeeList, false, false)).length;
+    const [memberCount = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login),
+    });
+    const invoiceCompany = [sourcePolicy?.invoice?.companyName, sourcePolicy?.invoice?.companyWebsite].filter(Boolean).join(', ');
+    const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: createInvoiceConfigurationTextSelector(translate, invoiceCompany),
+    });
     const categoriesCount = Object.values(policyCategories ?? {}).filter((c) => c?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const totalTags = policyTags
         ? Object.values(policyTags).reduce(
@@ -83,9 +93,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
     const rules = getWorkspaceRules(sourcePolicy, translate);
-    const invoiceCompany = [sourcePolicy?.invoice?.companyName, sourcePolicy?.invoice?.companyWebsite].filter(Boolean).join(', ');
-
-    const workspaceBankAccountsCount = getEligibleExistingBusinessBankAccounts(bankAccountList, sourcePolicy?.outputCurrency).length;
 
     const sourceFeatureContext = {
         policy: sourcePolicy,
@@ -100,7 +107,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
         codingRulesCount,
-        hasInvoiceConfiguration: (!!sourcePolicy?.areInvoicesEnabled && workspaceBankAccountsCount > 0) || !!invoiceCompany,
+        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && !!invoiceConfigurationText,
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
@@ -165,21 +172,10 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return distanceRatesCount > 0 ? `${distanceRatesCount} ${translate('iou.rates').toLowerCase()}` : undefined;
             case 'perDiem':
                 return perDiemCount > 0 ? `${perDiemCount} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined;
-            case 'timeTracking': {
-                const defaultRate = getDefaultTimeTrackingRate(sourcePolicy);
-                const enabledText = isTimeTrackingEnabled(sourcePolicy) ? translate('common.enabled') : translate('common.disabled');
-                if (defaultRate !== undefined && sourcePolicy?.outputCurrency) {
-                    return `${enabledText}, ${convertToDisplayString(defaultRate, sourcePolicy.outputCurrency)}`;
-                }
-                return enabledText;
-            }
-            case 'invoices': {
-                const bankAccountsText = workspaceBankAccountsCount > 0 ? `${workspaceBankAccountsCount} ${translate('common.bankAccounts').toLowerCase()}` : '';
-                if (bankAccountsText && invoiceCompany) {
-                    return `${bankAccountsText}, ${invoiceCompany}`;
-                }
-                return bankAccountsText || invoiceCompany || undefined;
-            }
+            case 'timeTracking':
+                return getTimeTrackingCopySettingsDescription(sourcePolicy, translate);
+            case 'invoices':
+                return invoiceConfigurationText || undefined;
             default:
                 return undefined;
         }
