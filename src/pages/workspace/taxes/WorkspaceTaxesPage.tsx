@@ -73,7 +73,7 @@ function WorkspaceTaxesPage({
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const {showConfirmModal} = useConfirmModal();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const {canWrite: canWriteTaxes, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
+    const {canWrite: canWriteTaxes, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -184,7 +184,7 @@ function WorkspaceTaxesPage({
                     <Switch
                         isOn={!value.isDisabled}
                         disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                        disabledAction={!canWriteTaxes ? showReadOnlyModal : undefined}
+                        disabledAction={withReadOnlyFallback()}
                         showLockIcon={!canEditTaxRate}
                         accessibilityLabel={translate('workspace.taxes.actions.enable')}
                         onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
@@ -192,7 +192,7 @@ function WorkspaceTaxesPage({
                 ),
             };
         });
-    }, [canWriteTaxes, policy, showReadOnlyModal, textForDefault, translate, updateWorkspaceTaxEnabled]);
+    }, [canWriteTaxes, withReadOnlyFallback, policy, textForDefault, translate, updateWorkspaceTaxEnabled]);
 
     const filterTax = useCallback((tax: ListItem, searchInput: string) => {
         const results = tokenizedSearch([tax], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
@@ -248,7 +248,7 @@ function WorkspaceTaxesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightCaret={canWriteTaxes}
+                shouldShowRightCaret
             />
         );
     };
@@ -277,10 +277,7 @@ function WorkspaceTaxesPage({
         if (!taxRate.keyForList) {
             return;
         }
-        if (!canWriteTaxes) {
-            return;
-        }
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (canWriteTaxes && isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleTax(taxRate);
             return;
         }
@@ -495,7 +492,7 @@ function WorkspaceTaxesPage({
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress={canWriteTaxes}
                     shouldHeaderBeInsideList
-                    shouldShowRightCaret={canWriteTaxes}
+                    shouldShowRightCaret
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
