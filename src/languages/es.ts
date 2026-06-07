@@ -6057,6 +6057,7 @@ ${amount} para ${merchant} - ${date}`,
             allMembers: 'Todos los miembros',
             admins: 'Administradores del espacio de trabajo',
             cardAdmins: 'Administradores de tarjetas',
+            peopleAdmins: 'Administradores de personas',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
             emptyRoleFilter: {

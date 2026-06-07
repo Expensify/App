@@ -6273,6 +6273,7 @@ const translations = {
             allMembers: 'All members',
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
+            peopleAdmins: 'People Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
             emptyRoleFilter: {

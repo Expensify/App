@@ -6036,6 +6036,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             allMembers: '所有成员',
             admins: '工作区管理员',
             cardAdmins: '卡管理员',
+            peopleAdmins: '人员管理员',
             approvers: '审批人',
             auditors: '审计员',
             emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},

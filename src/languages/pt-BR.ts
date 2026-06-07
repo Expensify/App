@@ -6199,6 +6199,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             allMembers: 'Todos os membros',
             admins: 'Administradores do workspace',
             cardAdmins: 'Administradores de cartões',
+            peopleAdmins: 'Administradores de pessoas',
             approvers: 'Aprovadores',
             auditors: 'Auditores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},

@@ -6258,6 +6258,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             allMembers: 'Tous les membres',
             admins: 'Administrateurs de l’espace de travail',
             cardAdmins: 'Administrateurs de cartes',
+            peopleAdmins: 'Administrateurs des personnes',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},

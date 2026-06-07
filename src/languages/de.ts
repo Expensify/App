@@ -6233,6 +6233,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             allMembers: 'Alle Mitglieder',
             admins: 'Workspace-Administratoren',
             cardAdmins: 'Kartenadministratoren',
+            peopleAdmins: 'Personaladministratoren',
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
             emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},

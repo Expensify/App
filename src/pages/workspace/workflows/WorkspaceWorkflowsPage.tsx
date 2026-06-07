@@ -528,7 +528,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         }
                                         clearPendingAgentFromApprovalWorkflow(route.params.policyID, workflow.routingFirstApproverEmail, approver.accountID);
                                     }}
-                                    canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin}
+                                    canAddAgent={!shouldBlockApprovalWorkflowEditing && canWriteApprovals}
                                     currency={policy?.outputCurrency}
                                     isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
                                     hrProviderName={isHRConnected ? hrProviderName : undefined}

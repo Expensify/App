@@ -39,7 +39,8 @@ function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspace
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper

@@ -11,6 +11,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberWrite, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,10 +39,13 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [role = CONST.POLICY.ROLE.USER] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
+    const [roleFromOnyx = CONST.POLICY.ROLE.USER] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const canAssignElevatedRoles = canMemberWrite(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
+    const role = canAssignElevatedRoles ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
     const {isOffline} = useNetwork();
 
@@ -147,7 +151,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                         <MenuItemWithTopDescription
                             title={translate(`workspace.common.roleName`, role)}
                             description={translate('common.role')}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canAssignElevatedRoles}
+                            interactive={canAssignElevatedRoles}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path))}
                         />
                     </View>

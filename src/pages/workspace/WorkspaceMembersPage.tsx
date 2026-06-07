@@ -68,6 +68,7 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
+    canMemberWrite,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
@@ -76,7 +77,6 @@ import {
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
-    isPolicyAdmin as isStrictPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -117,6 +117,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     ALL: 'all',
     ADMINS: 'admins',
     CARD_ADMINS: 'cardAdmins',
+    PEOPLE_ADMINS: 'peopleAdmins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
 } as const;
@@ -163,7 +164,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const isPolicyAdmin = canEditWorkspaceSettings(policy);
+    const currentUserLogin = currentUserPersonalDetails.login;
+    const isPolicyAdmin = canEditWorkspaceSettings(policy, currentUserLogin);
+    const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     // Group policies (Collect/Control + Submit) allow member management.
     const canManageMembers = isGroupPolicy(policy);
     const isLoading = useMemo(
@@ -191,7 +195,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         [personalDetails, policy, localeCompare],
     );
 
-    const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
+    const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
         const approverEmail = selectedEmployees.find((selectedEmployee) => isPolicyApprover(policy, selectedEmployee));
@@ -381,7 +385,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (!isPolicyAdmin || !canManageMembers) {
+            if (!canWriteMembers || !canManageMembers) {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
                 return;
             }
@@ -390,7 +394,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
             });
         },
-        [isPolicyAdmin, canManageMembers, policyID, route.params.policyID],
+        [canWriteMembers, canManageMembers, policyID, route.params.policyID],
     );
 
     /**
@@ -414,8 +418,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     const policyOwner = policy?.owner;
-    const currentUserLogin = currentUserPersonalDetails.login;
-    const canAssignElevatedRoles = isStrictPolicyAdmin(policy, currentUserLogin);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
@@ -462,7 +464,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             let roleBadgeText = '';
             if (policy?.owner === details.login) {
                 roleBadgeText = translate('common.owner');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN || policyEmployee.role === CONST.POLICY.ROLE.AUDITOR || policyEmployee.role === CONST.POLICY.ROLE.CARD_ADMIN) {
+            } else if (
+                policyEmployee.role === CONST.POLICY.ROLE.ADMIN ||
+                policyEmployee.role === CONST.POLICY.ROLE.AUDITOR ||
+                policyEmployee.role === CONST.POLICY.ROLE.CARD_ADMIN ||
+                policyEmployee.role === CONST.POLICY.ROLE.PEOPLE_ADMIN
+            ) {
                 roleBadgeText = translate('workspace.common.roleName', policyEmployee.role);
             } else if (policyEmployee.role === CONST.POLICY.ROLE.EDITOR) {
                 roleBadgeText = translate('common.editor');
@@ -477,7 +484,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 login: details.login ?? '',
                 customField1: policyEmployee.employeeUserID,
                 customField2: policyEmployee.employeePayrollID,
-                isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
+                isDisabledCheckbox:
+                    !canWriteMembers ||
+                    accountID === policy?.ownerAccountID ||
+                    accountID === session?.accountID ||
+                    (!canAssignElevatedRoles && policyEmployee.role === CONST.POLICY.ROLE.ADMIN),
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
@@ -541,6 +552,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policy?.ownerAccountID,
         policy?.owner,
         isPolicyAdmin,
+        canWriteMembers,
+        canAssignElevatedRoles,
         session?.accountID,
         styles.cursorDefault,
         styles.flex1,
@@ -575,6 +588,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
 
         roleFilterOptions.push({
+            text: translate('workspace.people.peopleAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS,
+        });
+
+        roleFilterOptions.push({
             text: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
@@ -605,6 +623,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return isPolicyApprover(policy, member.login);
             case WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS:
                 return employee?.role === CONST.POLICY.ROLE.CARD_ADMIN;
+            case WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS:
+                return employee?.role === CONST.POLICY.ROLE.PEOPLE_ADMIN;
             case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
                 return employee?.role === CONST.POLICY.ROLE.AUDITOR;
             default:
@@ -880,7 +900,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, [showConfirmModal, translate]);
 
     const secondaryActions = useMemo(() => {
-        if (!isPolicyAdmin) {
+        if (!canWriteMembers) {
             return [];
         }
 
@@ -961,7 +981,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
-        if (!isPolicyAdmin) {
+        if (!canWriteMembers) {
             return null;
         }
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
@@ -1090,7 +1110,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         selectedItems={selectedEmployees}
                         canSelectMultiple={canSelectMultiple}
                         selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
-                        turnOnSelectionModeOnLongPress={isPolicyAdmin}
+                        turnOnSelectionModeOnLongPress={canWriteMembers}
                         onSelectAll={displayedFilteredData.length > 0 ? () => toggleAllUsers(displayedFilteredData) : undefined}
                         style={{
                             listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
@@ -1100,7 +1120,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onSelectionButtonPress={(item) => toggleUser(item.login)}
-                        shouldSingleExecuteRowSelect={!isPolicyAdmin}
+                        shouldSingleExecuteRowSelect={!canWriteMembers}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         textInputOptions={textInputOptions}

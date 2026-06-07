@@ -25,7 +25,8 @@ function DynamicImportedMembersRoleSelectionPage({route}: DynamicImportedMembers
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="DynamicImportedMembersRoleSelectionPage"

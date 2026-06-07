@@ -6200,6 +6200,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             allMembers: 'Alle leden',
             admins: 'Werkruimtebeheerders',
             cardAdmins: 'Kaartbeheerders',
+            peopleAdmins: 'People-beheerders',
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},

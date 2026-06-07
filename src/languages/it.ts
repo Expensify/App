@@ -6221,6 +6221,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             allMembers: 'Tutti i membri',
             admins: 'Amministratori workspace',
             cardAdmins: 'Amministratori carte',
+            peopleAdmins: 'Amministratori persone',
             approvers: 'Approvatori',
             auditors: 'Revisori',
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},

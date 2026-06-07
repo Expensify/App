@@ -6149,6 +6149,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             allMembers: 'すべてのメンバー',
             admins: 'ワークスペース管理者',
             cardAdmins: 'カード管理者',
+            peopleAdmins: 'People 管理者',
             approvers: '承認者',
             auditors: '監査担当者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
