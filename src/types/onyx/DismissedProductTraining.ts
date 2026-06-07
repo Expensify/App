@@ -1,7 +1,16 @@
 import CONST from '@src/CONST';
 
-const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, MULTI_SCAN_EDUCATIONAL_MODAL, GPS_TOOLTIP, HAS_FILTER_NEGATION} =
-    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {
+    CONCIERGE_LHN_GBR,
+    RENAME_SAVED_SEARCH,
+    OUTSTANDING_FILTER,
+    ACCOUNT_SWITCHER,
+    SCAN_TEST_DRIVE_CONFIRMATION,
+    MULTI_SCAN_EDUCATIONAL_MODAL,
+    GPS_TOOLTIP,
+    HAS_FILTER_NEGATION,
+    MILEAGE_RATE_AUTO_UPDATED,
+} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -78,6 +87,11 @@ type DismissedProductTraining = {
      * When user dismisses the Has filter negation tooltip, we store the timestamp here.
      */
     [HAS_FILTER_NEGATION]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the mileage rate auto-updated tooltip, we store the timestamp here.
+     */
+    [MILEAGE_RATE_AUTO_UPDATED]: DismissedProductTrainingElement;
 };
 
 export default DismissedProductTraining;

@@ -1619,7 +1619,6 @@ const translations = {
         removed: 'removed',
         transactionPending: 'Transaction pending.',
         chooseARate: 'Select a workspace reimbursement rate per mile or kilometer',
-        rateAutoUpdatedTooltip: 'We updated the rate based on your travel date.',
         rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Valid ${startDate} - ${endDate}`,
         rateValidFrom: ({startDate}: {startDate: string}) => `Valid from ${startDate}`,
         rateValidUntil: ({endDate}: {endDate: string}) => `Valid until ${endDate}`,
@@ -9463,6 +9462,7 @@ const translations = {
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
         hasFilterNegation: '<tooltip>Search for expenses without receipts using <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>We updated the rate based on your travel date.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
