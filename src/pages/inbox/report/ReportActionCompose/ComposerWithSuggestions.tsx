@@ -11,8 +11,7 @@ import type {
     TextInputKeyPressEvent,
     TextInputScrollEvent,
 } from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -42,6 +41,7 @@ import type {Selection} from '@libs/focusComposerWithDelay/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
@@ -310,9 +310,9 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(initialText);
 
-    const {superWideRHPRouteKeys} = useWideRHPState();
-    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
-    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
+    // When SearchReport is stacked above another RHP (wide or super-wide), delay autofocus until after the transition completes to avoid animation jank
+    const shouldDelayAutoFocus = (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
@@ -328,7 +328,23 @@ function ComposerWithSuggestions({
         focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
-    const handleEditFocus = useCallback(() => focus(true, undefined, true), [focus]);
+    const shouldIgnoreEditSelectionResetRef = useRef(false);
+    const ignoreEditSelectionResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    const handleEditFocus = useCallback(() => {
+        focus(true, undefined, true);
+        onFocus();
+
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
+            shouldIgnoreEditSelectionResetRef.current = true;
+            clearTimeout(ignoreEditSelectionResetTimeoutRef.current);
+            ignoreEditSelectionResetTimeoutRef.current = setTimeout(() => {
+                shouldIgnoreEditSelectionResetRef.current = false;
+            }, CONST.COMPOSER_FOCUS_DELAY);
+        }
+    }, [focus, onFocus, editingState]);
+
+    useEffect(() => () => clearTimeout(ignoreEditSelectionResetTimeoutRef.current), []);
 
     const handleEditValueChange = useCallback(
         (nextValue: string) => {
@@ -694,6 +710,18 @@ function ComposerWithSuggestions({
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
             const newSelection = {...e.nativeEvent.selection};
+
+            if (shouldIgnoreEditSelectionResetRef.current && newSelection.start === 0 && newSelection.end === 0) {
+                const savedSelection = currentEditMessageSelection ?? selection;
+                if ((savedSelection.start ?? 0) > 0 || (savedSelection.end ?? 0) > 0) {
+                    const restoredStart = savedSelection.start ?? 0;
+                    const restoredEnd = savedSelection.end ?? restoredStart;
+                    setSelection({start: restoredStart, end: restoredEnd});
+                    ReportActionComposeUtils.updateNativeSelectionValue(composerRef, restoredStart, restoredEnd);
+                    return;
+                }
+            }
+
             setSelection(newSelection);
             setCurrentEditMessageSelection((prevSelection) => ({
                 ...prevSelection,
@@ -705,7 +733,7 @@ function ComposerWithSuggestions({
             }
             suggestionsRef.current?.onSelectionChange?.(e);
         },
-        [setCurrentEditMessageSelection, suggestionsRef],
+        [setCurrentEditMessageSelection, suggestionsRef, currentEditMessageSelection, selection],
     );
 
     const hideSuggestionMenu = useCallback(
@@ -747,12 +775,10 @@ function ComposerWithSuggestions({
         }
         delayedAutoFocusRouteKeyRef.current = route.key;
 
-        const task = InteractionManager.runAfterInteractions(() => {
-            focus(true);
-        });
+        const handle = TransitionTracker.runAfterTransitions({callback: () => focus(true)});
 
         return () => {
-            task?.cancel?.();
+            handle.cancel();
         };
     }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 

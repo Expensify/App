@@ -21,6 +21,8 @@ To enable approvals on a workspace you manage:
 
 Enabling **Approvals** will reveal an option to set a default approval workflow for the workspace.
 
+**Note:** If your workspace is connected to Gusto, approval workflows managed through the Gusto integration appear on the **Workflows** tab with a Gusto indicator. To manage Gusto approval settings, go to the **HR** tab in your workspace settings. [Learn about connecting Gusto to Expensify](/articles/new-expensify/connections/Connect-Gusto-to-Expensify).
+
 ---
 
 # Configure Approval Workflows

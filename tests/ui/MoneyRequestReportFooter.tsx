@@ -68,69 +68,51 @@ const FAKE_ACCOUNT_ID = 1;
 
 const FAKE_UNREPORTED_REPORT_ID = CONST.REPORT.UNREPORTED_REPORT_ID;
 
-const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
+const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction) => {
+    // ConfirmationFieldList reads transaction from Onyx; seed it so child fields receive the same value the test sets up.
+    await act(async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    });
     const defaultProps = {
         action: CONST.IOU.ACTION.CREATE,
-        distanceRateCurrency: 'USD',
-        didConfirm: false,
-        distance: 0,
-        amount: 10000,
-        formattedAmount: '100',
-        formattedAmountPerAttendee: '50',
-        formError: '',
-        hasRoute: false,
-        iouAttendees: [],
-        iouCategory: '',
-        iouComment: '',
-        iouCreated: new Date().toISOString(),
-        iouCurrencyCode: 'USD',
-        iouIsBillable: false,
-        iouMerchant: '',
         iouType: CONST.IOU.TYPE.TRACK,
-        isCategoryRequired: false,
-        isDistanceRequest: false,
-        isManualDistanceRequest: false,
-        isGPSDistanceRequest: false,
-        isPerDiemRequest: false,
-        isMerchantEmpty: false,
-        isMerchantRequired: false,
-        isPolicyExpenseChat: true,
-        isReadOnly: false,
-        isTypeInvoice: false,
+        transactionID: transaction.transactionID,
+        reportID: '123',
+        reportActionID: '',
+        transaction,
+        policyID: FAKE_POLICY_ID,
         policy: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
         policyTags: {},
-        policyTagLists: [],
-        rate: undefined,
-        distanceRateName: undefined,
-        receiptFilename: '',
-        receiptPath: '',
-        reportActionID: '',
-        reportID: '123',
         selectedParticipants: [
             {
                 policyID: FAKE_POLICY_ID,
                 ownerAccountID: FAKE_ACCOUNT_ID,
             },
         ],
-        shouldDisplayFieldError: false,
-        shouldDisplayReceipt: false,
-        shouldShowCategories: false,
-        shouldShowMerchant: false,
-        shouldShowSmartScanFields: false,
-        shouldShowTax: false,
-        transaction,
-        transactionID: transaction.transactionID,
-        unit: undefined,
-        iouIsReimbursable: false,
-        isReceiptEditable: false,
-        isDescriptionRequired: false,
-        iouTimeCount: undefined,
-        iouTimeRate: undefined,
-        isTimeRequest: false,
-        showMoreFields: false,
-        setShowMoreFields: jest.fn(),
-        clearFormErrors: jest.fn(),
-        setFormError: jest.fn(),
+        isReadOnly: false,
+        didConfirm: false,
+        isPolicyExpenseChat: true,
+        expenseMode: {isDistance: false, isTime: false, isInvoice: false, isPerDiem: false},
+        distanceFlags: {isManualDistanceRequest: false, isOdometerDistanceRequest: false, isGPSDistanceRequest: false},
+        distanceData: {distance: 0, hasRoute: false, unit: undefined, rate: undefined, distanceRateName: undefined, distanceRateCurrency: 'USD'},
+        amountDisplay: {amount: 10000, formattedAmount: '100', formattedAmountPerAttendee: '50'},
+        requiredFlags: {isCategoryRequired: false, isMerchantRequired: false, isDescriptionRequired: false},
+        visibilityFlags: {
+            shouldShowSmartScanFields: false,
+            shouldShowAmountField: true,
+            shouldShowMerchant: false,
+            shouldShowCategories: false,
+            shouldShowTax: false,
+            isParticipantPickerVisible: false,
+        },
+        errorState: {shouldDisplayFieldError: false, formError: '', clearFormErrors: jest.fn(), setFormError: jest.fn()},
+        receiptOptions: {
+            receiptFilename: '',
+            receiptPath: '',
+            shouldDisplayReceipt: false,
+            isReceiptEditable: false,
+        },
+        compactControls: {showMoreFields: false, setShowMoreFields: jest.fn()},
     };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
@@ -190,7 +172,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -222,7 +204,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -245,7 +227,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -277,7 +259,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -309,7 +291,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 

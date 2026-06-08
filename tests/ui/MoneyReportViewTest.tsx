@@ -47,7 +47,7 @@ const buildExpenseReport = (overrides: Partial<OnyxTypes.Report> = {}): OnyxType
     ...overrides,
 });
 
-const buildTransaction = (id: string, amount: number, reimbursable: boolean | undefined): OnyxTypes.Transaction =>
+const buildTransaction = (id: string, amount: number, reimbursable: boolean | undefined, billable = false, taxAmount = 0): OnyxTypes.Transaction =>
     ({
         transactionID: id,
         reportID,
@@ -57,6 +57,8 @@ const buildTransaction = (id: string, amount: number, reimbursable: boolean | un
         merchant: 'Merchant',
         comment: {},
         reimbursable,
+        billable,
+        taxAmount,
     }) as OnyxTypes.Transaction;
 
 const seedReportAndTransactions = async (transactions: OnyxTypes.Transaction[], reportOverrides: Partial<OnyxTypes.Report> = {}) => {
@@ -76,12 +78,12 @@ const seedReportAndTransactions = async (transactions: OnyxTypes.Transaction[], 
     await waitForBatchedUpdatesWithAct();
 };
 
-const renderMoneyReportView = (report: OnyxTypes.Report) =>
+const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Policy | undefined = undefined) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyReportView
                 report={report}
-                policy={undefined}
+                policy={policy}
                 shouldHideThreadDividerLine={false}
                 shouldShowAnimatedBackground={false}
             />
@@ -125,11 +127,82 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
         });
     });
 
+    it('shows the billable row but still hides the redundant rows for a single non-reimbursable billable expense', async () => {
+        const transactions = [buildTransaction('t1', 5000, false, true)];
+        await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
+
+        renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText('common.billable')).toBeOnTheScreen();
+            expect(screen.queryByText('cardTransactions.outOfPocket')).not.toBeOnTheScreen();
+            expect(screen.queryByText('cardTransactions.companySpend')).not.toBeOnTheScreen();
+        });
+    });
+
+    it('shows the tax row but still hides the redundant rows for a single non-reimbursable taxed expense', async () => {
+        const policy = {
+            id: policyID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            name: 'Policy',
+            outputCurrency: CONST.CURRENCY.USD,
+            tax: {trackingEnabled: true},
+        } as OnyxTypes.Policy;
+        const transactions = [buildTransaction('t1', 5000, false, false, 500)];
+        await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
+
+        renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}), policy);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText('common.tax')).toBeOnTheScreen();
+            expect(screen.queryByText('cardTransactions.outOfPocket')).not.toBeOnTheScreen();
+            expect(screen.queryByText('cardTransactions.companySpend')).not.toBeOnTheScreen();
+        });
+    });
+
     it('still shows both breakdown rows when reimbursable expenses + credits net to zero alongside non-reimbursable spend', async () => {
         const transactions = [buildTransaction('t1', 5000, true), buildTransaction('t2', -5000, true), buildTransaction('t3', 3000, false)];
         await seedReportAndTransactions(transactions, {nonReimbursableTotal: -3000, unheldNonReimbursableTotal: -3000, unheldTotal: -3000, total: -3000});
 
         renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -3000, unheldNonReimbursableTotal: -3000, unheldTotal: -3000, total: -3000}));
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText('cardTransactions.outOfPocket')).toBeOnTheScreen();
+            expect(screen.getByText('cardTransactions.companySpend')).toBeOnTheScreen();
+        });
+    });
+
+    it('treats the report as a single non-reimbursable expense (hides redundant rows) while the deleted expense is still pending removal', async () => {
+        const transactions = [
+            buildTransaction('t1', 5000, false),
+            {...buildTransaction('t2', 3000, false), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as OnyxTypes.Transaction,
+        ];
+        await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
+
+        renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByText('cardTransactions.outOfPocket')).not.toBeOnTheScreen();
+            expect(screen.queryByText('cardTransactions.companySpend')).not.toBeOnTheScreen();
+        });
+    });
+
+    it('keeps the breakdown rows while offline because the pending-deleted expense is still rendered', async () => {
+        const transactions = [
+            buildTransaction('t1', 5000, false),
+            {...buildTransaction('t2', 3000, false), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as OnyxTypes.Transaction,
+        ];
+        await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+
+        renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {

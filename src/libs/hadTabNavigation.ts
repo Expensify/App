@@ -1,9 +1,6 @@
-/** True when the user is keyboard-navigating; false when using a mouse. Tab + named nav keys set true; printable typing on body clears; printable typing inside editable fields preserves (data entry is not a modality switch). */
+/** True when the user is keyboard-navigating; false when typing or using a mouse. Only Tab sets true; printable/typing keys clear it. */
 let hadTabNavigation = false;
 let teardown: (() => void) | null = null;
-
-// Named keys that are unambiguously keyboard navigation intent — pressing any of these should restore keyboard modality even if typing had cleared it.
-const KEYBOARD_NAV_KEYS = new Set(['Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown']);
 
 function setup(): void {
     if (teardown || typeof document === 'undefined') {
@@ -15,7 +12,7 @@ function setup(): void {
         if (typeof e.key !== 'string') {
             return;
         }
-        if (e.key === 'Tab' || KEYBOARD_NAV_KEYS.has(e.key)) {
+        if (e.key === 'Tab') {
             hadTabNavigation = true;
             return;
         }

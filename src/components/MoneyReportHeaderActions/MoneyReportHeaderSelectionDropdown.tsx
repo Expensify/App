@@ -16,12 +16,13 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useExportActions from '@hooks/useExportActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -62,6 +63,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 const PAYMENT_ICONS = ['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const;
@@ -88,13 +90,16 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const {selectedTransactionIDs, currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs} = useSearchSelectionContext();
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -133,7 +138,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const singleTransaction = nonPendingDeleteTransactions.length === 1 ? nonPendingDeleteTransactions.at(0) : undefined;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);
 
-    const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
@@ -157,8 +162,17 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const {confirmApproval, handleSubmitReport, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval} = useLifecycleActions({
         reportID,
         startApprovedAnimation,
+        startAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType) => openHoldMenu({requestType, onConfirm: () => clearSelectedTransactions(true)}),
+        onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
+            openHoldMenu({
+                requestType,
+                onConfirm: () => {
+                    onConfirm?.();
+                    clearSelectedTransactions(true);
+                },
+                paymentType,
+            }),
     });
 
     const {
@@ -181,10 +195,13 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         isOnSearch: !!isReportInSearch,
     });
 
+    const {isProduction} = useEnvironment();
+
     const computedSecondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
+              submitterLogin,
               report: moneyRequestReport,
               chatReport,
               reportTransactions: nonPendingDeleteTransactions,
@@ -198,6 +215,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               policies: allPolicies,
               outstandingReportsByPolicyID,
               isChatReportArchived,
+              isProduction,
           })
         : [];
 
@@ -257,6 +275,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,
@@ -409,6 +428,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
+            if (option.shouldSkipDeleteModal) {
+                return option;
+            }
             return {...option, onSelected: showDeleteModal};
         }
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {

@@ -5,6 +5,7 @@ import useHasTextAncestor from '@hooks/useHasTextAncestor';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Parser from '@libs/Parser';
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
+import OLRenderer from './HTMLEngineProvider/HTMLRenderers/OLRenderer';
 import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
 import ULRenderer from './HTMLEngineProvider/HTMLRenderers/ULRenderer';
 
@@ -14,8 +15,8 @@ type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 const RE_BRACKET_ESCAPE = /&amp;#9[13];/g;
 // Matches consecutive duplicate <emoji> or </emoji> tags, keeping only the outermost one.
 const RE_EMOJI_OPEN_OR_CLOSE = /(<emoji[^>]*>)(?:<emoji[^>]*>)+|(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g;
-// Strips orphaned <br/> tags inside <ul> that would render as extra empty bullets.
-const RE_BR_CLEANUP = /<br\s*\/?>\s*(<\/ul>)|(<\/li>)\s*<br\s*\/?>\s*(?=<(?:li|\/ul)>)/gi;
+// Strips one or more orphaned <br/> tags inside <ul> and <ol> that would render as extra empty items.
+const RE_BR_CLEANUP = /(?:\s*<br\s*\/?>)+\s*(<\/(?:ul|ol)>)|(<\/li>)(?:\s*<br\s*\/?>)+\s*(?=<(?:li|\/(?:ul|ol))>)/gi;
 
 type RenderHTMLProps = {
     /** HTML string to render */
@@ -46,7 +47,7 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
                 .replaceAll(RE_BRACKET_ESCAPE, (m) => (m.at(7) === '1' ? '[' : ']'))
                 // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
                 .replaceAll(RE_EMOJI_OPEN_OR_CLOSE, '$1$2')
-                // Strip orphaned <br/> tags inside <ul> that would render as extra empty bullets
+                // Strip orphaned <br/> tags inside <ul> and <ol> that would render as extra empty items
                 .replaceAll(RE_BR_CLEANUP, '$1$2')
         );
     }, [htmlParam]);
@@ -63,6 +64,7 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
         /* eslint-disable @typescript-eslint/naming-convention */
         'bullet-item': BulletItemRenderer,
         'sparkles-icon': SparklesIconRenderer,
+        ol: OLRenderer,
         ul: ULRenderer,
     };
 

@@ -1,4 +1,4 @@
-import type {IOURequestType} from '@libs/actions/IOU';
+import type {IOURequestType} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {Attendee} from './IOU';
 import type Transaction from './Transaction';
@@ -8,6 +8,9 @@ import type {Comment, Receipt, Routes, TransactionCustomUnit, WaypointCollection
 type MergeTransaction = {
     /** Transaction ID we're keeping */
     targetTransactionID: string;
+
+    /** The report ID of the target transaction thread */
+    targetTransactionThreadReportID?: string;
 
     /** ID of the transaction we're merging into that will be deleted */
     sourceTransactionID: string;

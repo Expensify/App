@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDependentTags} from '@libs/PolicyUtils';
+import {getDecodedTagName} from '@libs/TagUtils';
 import {getTagForDisplay} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type TransactionDataCellProps from './TransactionDataCellProps';
@@ -32,7 +33,8 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
         onSave,
     });
 
-    const tagForDisplay = getTagForDisplay(transactionItem);
+    // Decode HTML entities so tags stored with encoding are displayed properly (e.g. `uno &amp; dos` display as `uno & dos`)
+    const tagForDisplay = getDecodedTagName(getTagForDisplay(transactionItem));
 
     const displayContent = shouldUseNarrowLayout ? (
         <TextWithIconCell

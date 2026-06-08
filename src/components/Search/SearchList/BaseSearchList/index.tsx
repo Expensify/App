@@ -1,7 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -9,12 +10,34 @@ import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
+
+type CellRendererComponentProps = ViewProps & {
+    ref?: React.Ref<View>;
+    style?: StyleProp<ViewStyle>;
+};
+
+function CellRendererComponent({children, ref, style, ...props}: CellRendererComponentProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View
+            ref={ref}
+            {...props}
+            // Keep the FlashList cell itself tracking the animated search pane width.
+            style={[style, styles.w100]}
+        >
+            {children}
+        </View>
+    );
+}
 
 function BaseSearchList({
     data,
@@ -57,12 +80,19 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
+        onArrowUpDownCallback: () => {
+            ref?.current?.announceProgrammaticScroll();
+        },
         setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+        // The focus-return restore shouldn't move the keyboard cursor here, or the row gets highlighted and scrolled into view on back nav. The .focus() still restores DOM focus for screen readers.
+        if (isFocusRestoreInProgress()) {
+            return;
+        }
         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
         if (isMobileChrome() && event.nativeEvent) {
             if (!event.nativeEvent.sourceCapabilities) {
@@ -143,6 +173,7 @@ function BaseSearchList({
             ListFooterComponent={ListFooterComponent}
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}
+            CellRendererComponent={CellRendererComponent}
             removeClippedSubviews
             drawDistance={250}
             contentContainerStyle={contentContainerStyle}

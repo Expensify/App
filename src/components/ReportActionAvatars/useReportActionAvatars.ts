@@ -6,13 +6,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
     getOriginalMessage,
-    getReportAction,
     getReportActionActorAccountID,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
@@ -31,6 +31,7 @@ import {
 import {getDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import useReportPreviewSenderID from './useReportPreviewSenderID';
@@ -77,15 +78,13 @@ function useReportActionAvatars({
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
 
-    let action;
+    const derivedActionReportID = iouReport?.parentReportActionID ? (chatReport?.reportID ?? iouReport?.chatReportID) : reportChatReport?.reportID;
+    const derivedActionID = iouReport?.parentReportActionID ?? (!iouReport ? chatReport?.parentReportActionID : undefined);
+    const [derivedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(!passedAction ? derivedActionReportID : undefined)}`, {
+        selector: (actions) => getReportActionByIDSelector(actions, derivedActionID),
+    });
 
-    if (passedAction) {
-        action = passedAction;
-    } else if (iouReport?.parentReportActionID) {
-        action = getReportAction(chatReport?.reportID ?? iouReport?.chatReportID, iouReport?.parentReportActionID);
-    } else if (!!reportChatReport && !!chatReport?.parentReportActionID && !iouReport) {
-        action = getReportAction(reportChatReport?.reportID, chatReport.parentReportActionID);
-    }
+    const action = passedAction ?? derivedAction;
 
     const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 
@@ -114,7 +113,7 @@ function useReportActionAvatars({
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
 
-    const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
+    const {chatReportIDAdmins, chatReportIDAnnounce, policyAccountID} = policy ?? {};
 
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`);
 
@@ -156,12 +155,12 @@ function useReportActionAvatars({
             avatars: firstAccountAvatar ? [policyChatReportAvatar, firstAccountAvatar] : [policyChatReportAvatar],
             avatarType: firstAccountAvatar ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE,
             details: {
-                ...(personalDetails?.[workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                ...(personalDetails?.[policyAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
 
                 actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
-                accountID: workspaceAccountID,
+                accountID: policyAccountID,
                 delegateAccountID: undefined,
             },
             source: {
