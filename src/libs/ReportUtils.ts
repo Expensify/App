@@ -4262,7 +4262,7 @@ function getReasonAndReportActionThatRequiresAttention(
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
-        allReportActionsParam,
+        reportActions,
     );
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
