@@ -182,27 +182,18 @@ function useReportActionsScroll({
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
 
-    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = sortedVisibleReportActions.reduce((actions, action) => {
-        Object.assign(actions, {[action.reportActionID]: action});
-        return actions;
-    }, {});
+    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = Object.fromEntries(sortedVisibleReportActions.map((action) => [action.reportActionID, action]));
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const shouldBeAlignedToTop = isTransactionThreadReport || isMoneyRequestOrInvoiceReport;
-    const initialScrollKey = (() => {
-        const actionID = linkedReportActionID ?? unreadMarkerReportActionID;
-        if (!actionID) {
-            return undefined;
-        }
-
-        // The correct scroll behavior in this case will be handled by shouldFocusToTopOnMount logic
-        if (shouldBeAlignedToTop && sortedVisibleReportActionsObjects[actionID]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return undefined;
-        }
-        return actionID;
-    })();
+    const initialScrollActionID = linkedReportActionID ?? unreadMarkerReportActionID;
+    // The CREATED-action case is intentionally excluded here; its scroll behavior is handled by shouldFocusToTopOnMount logic instead.
+    const initialScrollKey =
+        initialScrollActionID && !(shouldBeAlignedToTop && sortedVisibleReportActionsObjects[initialScrollActionID]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
+            ? initialScrollActionID
+            : undefined;
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
 
