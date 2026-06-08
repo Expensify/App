@@ -65,7 +65,7 @@ function InboxTabButton({selectedTab, isWideLayout, statusIndicatorColor, chatTa
 
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
 
-    // useMemo factory: the selector needs lastReportRouteReportActionID from closure, so parameterless is not feasible
+    // Wrap factory in useMemo so the selector identity is stable per actionID
     const doesLastReportActionExistSelector = useMemo(() => makeDoesLastReportActionExistSelector(lastReportRouteReportActionID), [lastReportRouteReportActionID]);
     const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector}, [lastReportRouteReportID]);
 
