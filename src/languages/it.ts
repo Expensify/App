@@ -6887,8 +6887,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             upgradeToUnlock: 'Sblocca questa funzionalità',
             completed: {
                 headline: `Hai aggiornato il tuo spazio di lavoro!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Hai effettuato l'upgrade di ${policyName} al piano Control! <a href="${subscriptionLink}">Visualizza il tuo abbonamento</a> per maggiori dettagli.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Hai effettuato l'upgrade di ${policyName} al piano ${planName}! <a href="${subscriptionLink}">Visualizza il tuo abbonamento</a> per maggiori dettagli.</centered-text>`,
                 categorizeMessage: `Hai eseguito l’upgrade al piano Collect. Ora puoi categorizzare le tue spese!`,
                 travelMessage: `Hai eseguito correttamente l’upgrade al piano Collect. Ora puoi iniziare a prenotare e gestire i viaggi!`,
                 distanceRateMessage: `Hai eseguito correttamente l’upgrade al piano Collect. Ora puoi modificare il rimborso chilometrico!`,
@@ -8232,6 +8232,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         withdrawalType: 'Tipo di prelievo',
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
+        serverResults: 'Risultati di ricerca',
         searchIn: 'Cerca in',
         askConcierge: (message: string) => `Chiedi a Concierge “${message}”`,
         searchPlaceholder: 'Cerca qualcosa...',

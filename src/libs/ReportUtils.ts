@@ -4262,7 +4262,7 @@ function getReasonAndReportActionThatRequiresAttention(
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
-        allReportActionsParam,
+        reportActions,
     );
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
@@ -4569,12 +4569,12 @@ function getReportFieldKey(reportFieldId: string | undefined) {
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string | undefined): Policy['fieldList'] {
+function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList'] {
+    const policyID = policy?.id;
     if (!policyID) {
         return {};
     }
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const fieldList = (policy ?? policyDraft)?.fieldList;
 
@@ -5113,11 +5113,10 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     );
 }
 
-function canModifyHoldStatus(report: Report, reportAction: ReportAction, currentUserAccountID: number | undefined): boolean {
+function canModifyHoldStatus(report: Report, reportAction: ReportAction, currentUserAccountID: number | undefined, isAdmin: boolean): boolean {
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
-    const isAdmin = isPolicyAdmin(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]);
     const isActionOwner = isActionCreator(reportAction);
     const isManager = isMoneyRequestReport(report) && report?.managerID !== null && currentUserAccountID === report?.managerID;
 
@@ -5160,7 +5159,7 @@ function canHoldUnholdReportAction(
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isClosed = isClosedReport(report);
 
-    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID);
+    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID, isAdmin);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
@@ -5624,7 +5623,12 @@ function getModifiedExpenseOriginalMessage(
     // to match how we handle the modified expense action in oldDot
     const didAmountOrCurrencyChange = 'amount' in transactionChanges || 'currency' in transactionChanges;
     if (didAmountOrCurrencyChange) {
-        originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, allowNegative);
+        // When the receipt is still being scanned and has no amount yet, omit oldAmount so that
+        // buildMessageFragmentForValue() treats this as a first-time "set" (generating "set the amount to X")
+        // rather than an "update" (generating "changed the amount from $0 to X").
+        if (!(isReceiptBeingScanned(oldTransaction) && !getTransactionDetails(oldTransaction)?.amount)) {
+            originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, allowNegative);
+        }
         originalMessage.amount = transactionChanges?.amount ?? transactionChanges.oldAmount;
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.currency = transactionChanges?.currency ?? transactionChanges.oldCurrency;
@@ -6731,7 +6735,7 @@ function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, 
         return null;
     }
 
-    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy) ?? {});
     const formulaContext: FormulaContext = {
         report,
         policy,
@@ -8926,8 +8930,8 @@ function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | undef
 function hasEmptyReportsForPolicy(
     reports: OnyxCollection<Report> | undefined,
     policyID: string | undefined,
+    reportIDsWithActiveTransactions: Record<string, boolean>,
     accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions,
 ): boolean {
     if (!accountID || !policyID) {
         return false;
@@ -8940,7 +8944,6 @@ function hasEmptyReportsForPolicy(
             return false;
         }
 
-        // Exclude reports that are being deleted or have errors
         if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
             return false;
         }
@@ -8953,11 +8956,7 @@ function hasEmptyReportsForPolicy(
             return false;
         }
 
-        // Ignore transactions that are already pending deletion so we treat the report as empty once the removal is queued.
-        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam).filter(
-            (transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-        return transactions.length === 0;
+        return !reportIDsWithActiveTransactions[report.reportID];
     });
 }
 
@@ -13629,6 +13628,7 @@ export {
     isSortableColumnName,
     getLinkedIOUTransaction,
     hasHeldExpensesFromTransactions,
+    canModifyHoldStatus,
 };
 
 export type {

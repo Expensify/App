@@ -6860,8 +6860,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             upgradeToUnlock: 'Odblokuj tę funkcję',
             completed: {
                 headline: `Zaktualizowano Twoją przestrzeń roboczą!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Udało Ci się uaktualnić ${policyName} do planu Control! <a href="${subscriptionLink}">Wyświetl swoją subskrypcję</a>, aby uzyskać więcej szczegółów.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Udało Ci się uaktualnić ${policyName} do planu ${planName}! <a href="${subscriptionLink}">Wyświetl swoją subskrypcję</a>, aby uzyskać więcej szczegółów.</centered-text>`,
                 categorizeMessage: `Pomyślnie uaktualniono do planu Collect. Teraz możesz kategoryzować swoje wydatki!`,
                 travelMessage: `Pomyślnie uaktualniono do planu Collect. Teraz możesz zacząć rezerwować i zarządzać podróżami!`,
                 distanceRateMessage: `Pomyślnie zmieniono plan na Collect. Teraz możesz zmienić stawkę za przejazd!`,
@@ -8192,6 +8192,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         withdrawalType: 'Typ wypłaty',
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
+        serverResults: 'Wyniki wyszukiwania',
         searchIn: 'Szukaj w',
         askConcierge: (message: string) => `Zapytaj Concierge: „${message}”`,
         searchPlaceholder: 'Wyszukaj coś...',

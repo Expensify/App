@@ -6930,8 +6930,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             upgradeToUnlock: 'Débloquer cette fonctionnalité',
             completed: {
                 headline: `Vous avez mis à niveau votre espace de travail !`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Vous avez réussi à passer ${policyName} au plan Control ! <a href="${subscriptionLink}">Afficher votre abonnement</a> pour plus de détails.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Vous avez réussi à passer ${policyName} au plan ${planName} ! <a href="${subscriptionLink}">Afficher votre abonnement</a> pour plus de détails.</centered-text>`,
                 categorizeMessage: `Vous êtes passé avec succès au forfait Collect. Vous pouvez maintenant catégoriser vos dépenses !`,
                 travelMessage: `Vous êtes passé avec succès au plan Collect. Vous pouvez maintenant commencer à réserver et gérer vos voyages !`,
                 distanceRateMessage: `Vous êtes passé avec succès au forfait Collect. Vous pouvez maintenant modifier le taux de distance !`,
@@ -8277,6 +8277,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
+        serverResults: 'Résultats de recherche',
         searchIn: 'Rechercher dans',
         askConcierge: (message: string) => `Demander à Concierge « ${message} »`,
         searchPlaceholder: 'Rechercher quelque chose...',

@@ -6866,8 +6866,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             upgradeToUnlock: 'Deze functie ontgrendelen',
             completed: {
                 headline: `Je hebt je workspace geüpgraded!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Je hebt ${policyName} succesvol geüpgraded naar het Control-abonnement! <a href="${subscriptionLink}">Bekijk je abonnement</a> voor meer details.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Je hebt ${policyName} succesvol geüpgraded naar het ${planName}-abonnement! <a href="${subscriptionLink}">Bekijk je abonnement</a> voor meer details.</centered-text>`,
                 categorizeMessage: `Je bent succesvol overgestapt naar het Collect-abonnement. Nu kun je je uitgaven categoriseren!`,
                 travelMessage: `Je bent succesvol geüpgraded naar het Collect-abonnement. Je kunt nu beginnen met het boeken en beheren van reizen!`,
                 distanceRateMessage: `Je bent succesvol geüpgraded naar het Collect-abonnement. Nu kun je het kilometertarief wijzigen!`,
@@ -8188,6 +8188,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         withdrawalType: 'Type opname',
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
+        serverResults: 'Zoekresultaten',
         searchIn: 'Zoeken in',
         askConcierge: (message: string) => `Vraag Concierge: “${message}”`,
         searchPlaceholder: 'Zoek iets...',
