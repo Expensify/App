@@ -222,7 +222,7 @@ type SearchSelectionActionsValue = {
      */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data?: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+        (selectedTransactions: SelectedTransactions, data?: SearchData): void;
     };
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
@@ -235,13 +235,16 @@ type SearchSelectionActionsValue = {
     selectAllMatchingItems: (on: boolean) => void;
 };
 
+/** The displayed (filtered, grouped) search rows. A homogeneous list of one of the four list-item kinds. */
+type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[];
+
 /**
  * Screen-derived inputs that the row selection write actions read at call time. Populated by
  * `SearchSelectionController` (a child of `<Search>`) and read by `toggle`/`toggleAll`/`reconcileSelection`,
  * so those actions can keep a stable identity instead of closing over high-churn screen state.
  */
 type SearchSelectionScreenContext = {
-    filteredData: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[];
+    filteredData: SearchData;
     transactions: OnyxCollection<Transaction>;
     searchResultsData: SearchResults['data'] | undefined;
     currentUserLogin: string;
@@ -266,7 +269,7 @@ type SearchRowSelectionActionsValue = {
     /** Clear the entire selection. */
     clearAll: () => void;
     /** Atomically rebuild the selection from freshly-loaded data (used by the reconcile-with-data effect). */
-    reconcileSelection: (newList: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]) => void;
+    reconcileSelection: (newList: SelectedTransactions, data: SearchData) => void;
     /** Mutable screen-context populated by `SearchSelectionController`; read by the write actions at call time. */
     screenContextRef: RefObject<SearchSelectionScreenContext>;
 };
@@ -470,6 +473,7 @@ export type {
     SearchResultsActionsValue,
     SearchSelectionContextValue,
     SearchSelectionActionsValue,
+    SearchData,
     SearchSelectionScreenContext,
     SearchRowSelectionActionsValue,
     ASTNode,

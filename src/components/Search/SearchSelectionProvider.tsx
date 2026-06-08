@@ -8,9 +8,10 @@ import type {Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchQueryContext, useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {defaultSearchSelectionScreenContext, SearchRowSelectionActionsContext, SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
+import type {TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import {deriveSelectedReports, mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
 import type {
+    SearchData,
     SearchRowSelectionActionsValue,
     SearchSelectionActionsValue,
     SearchSelectionContextValue,
@@ -452,7 +453,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
  * Without that, a `data` change (e.g. Onyx push) would fire this effect with a stale
  * `selectedTransactions` from closure and clobber any atomic update made in the same commit.
  */
-function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]) {
+function useSyncSelectedReports(data: SearchData) {
     const {selectedTransactions} = useSearchSelectionContext();
     const {setSelectedReports} = useSearchSelectionActions();
 

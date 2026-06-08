@@ -5,8 +5,8 @@ import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, Transaction} from '@src/types/onyx';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
-import type {SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -155,10 +155,7 @@ function prepareTransactionsList(
  * Setting or clearing one of them does not influence the other.
  * IDs should be used if transaction details are not required.
  */
-function deriveSelectedReports(
-    transactionIDs: SelectedTransactions,
-    data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[],
-): SelectedReports[] {
+function deriveSelectedReports(transactionIDs: SelectedTransactions, data: SearchData): SelectedReports[] {
     if (data.length && data.every(isTransactionReportGroupListItemType)) {
         return data
             .filter((item) => {

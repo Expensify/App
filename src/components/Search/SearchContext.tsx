@@ -49,7 +49,6 @@ export {
     SearchResultsActionsContext,
     SearchSelectionContext,
     SearchSelectionActionsContext,
-    SearchRowSelectionActionsContext,
     useSearchQueryContext,
     useSearchQueryActions,
     useSearchResultsContext,

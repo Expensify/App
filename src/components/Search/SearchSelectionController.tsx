@@ -17,12 +17,9 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Report, SearchResults, Tr
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from './SearchContext';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {mapEmptyReportToSelectedEntry} from './selectionBuilders';
-import type {SelectedTransactions} from './types';
-
-type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[];
+import type {SearchData, SelectedTransactions} from './types';
 
 type SearchSelectionControllerProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the controller cannot recompute it. */
@@ -356,7 +353,7 @@ function useSyncMobileSelectionModeWithScreenSize({
 }
 
 /**
- * Renderless coordinator for Search selection. Owns the selection-only Onyx subscriptions and the effects
+ * Coordinator for Search selection. Owns the selection-only Onyx subscriptions and the effects
  * that keep selection in sync with data and mobile selection mode, and publishes the screen-derived inputs the
  * provider's stable write actions read at call time. Returns null, so its per-press re-renders are free — and
  * keep `<Search>` itself out of the selection read/write path entirely.
