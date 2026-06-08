@@ -66,7 +66,6 @@ import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
-import {setPendingWorkspaceUpgradeIntent} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -173,18 +172,7 @@ function handleActionButtonPress({
                     const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias;
                     const backTo = Navigation.getActiveRoute() ?? ROUTES.SEARCH_ROOT;
 
-                    setPendingWorkspaceUpgradeIntent({
-                        type: CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST_ON_SEARCH,
-                        policyID: policyToUpgrade.id,
-                        reportID: item.reportID,
-                        searchHash: hash,
-                        currentSearchKey,
-                        upgradeFeatureAlias,
-                        backTo,
-                        created: new Date().toISOString(),
-                    });
-
-                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo));
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, item.reportID));
                     return;
                 }
             }

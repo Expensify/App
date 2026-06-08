@@ -77,7 +77,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type PendingWorkspaceUpgradeIntent from '@src/types/onyx/PendingWorkspaceUpgradeIntent';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -416,23 +415,12 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     // If this is a Submit workspace, approving requires upgrading first.
     // IMPORTANT: gate by the workspace that owns the expense report (`expenseReportPolicy`) instead of `policy`,
     // since some call sites pass `policy` as the active/personal policy rather than the report's workspace policy.
-    // Persist a one-shot intent so we can seamlessly retry once the upgrade completes.
     const policyToUpgrade = expenseReportPolicy ?? policy;
     if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id) {
         const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias;
         const backTo = Navigation.getActiveRoute() ?? ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID);
 
-        setPendingWorkspaceUpgradeIntent({
-            type: CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST,
-            policyID: policyToUpgrade.id,
-            reportID: expenseReport.reportID,
-            full: full ?? false,
-            upgradeFeatureAlias,
-            backTo,
-            created: new Date().toISOString(),
-        });
-
-        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo));
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, expenseReport.reportID));
         return;
     }
 
@@ -793,14 +781,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     return optimisticHoldReportID;
-}
-
-function setPendingWorkspaceUpgradeIntent(intent: Exclude<PendingWorkspaceUpgradeIntent, null>) {
-    Onyx.set(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT, intent);
-}
-
-function clearPendingWorkspaceUpgradeIntent() {
-    Onyx.set(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT, null);
 }
 
 function determineIouReportID(chatReport: OnyxEntry<OnyxTypes.Report>, expenseReport: OnyxEntry<OnyxTypes.Report>): string | undefined {
@@ -1842,7 +1822,6 @@ function addReportApprover(
 export {
     addReportApprover,
     approveMoneyRequest,
-    clearPendingWorkspaceUpgradeIntent,
     assignReportToMe,
     canApproveIOU,
     canCancelPayment,
@@ -1854,7 +1833,6 @@ export {
     getReportOriginalCreationTimestamp,
     reopenReport,
     retractReport,
-    setPendingWorkspaceUpgradeIntent,
     submitReport,
     unapproveExpenseReport,
 };

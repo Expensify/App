@@ -38,13 +38,13 @@ type Props = {
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
+    reportID?: string;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, reportID}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [pendingWorkspaceUpgradeIntent] = useOnyx(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isSubmitPolicy = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
@@ -55,10 +55,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const isSubmitFeature = isSubmitPolicy && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
-    const isApproveReportUpgrade =
-        feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id &&
-        (pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST ||
-            pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST_ON_SEARCH);
+    const isApproveReportUpgrade = feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id && !!reportID;
 
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;

@@ -126,9 +126,6 @@ const ONYXKEYS = {
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
-    /** Stores a one-shot user intent to retry an action after workspace upgrade */
-    PENDING_WORKSPACE_UPGRADE_INTENT: 'pendingWorkspaceUpgradeIntent',
-
     /** Store the information of magic code */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
@@ -1475,7 +1472,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LOGINS]: OnyxTypes.Logins;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
-    [ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT]: OnyxTypes.PendingWorkspaceUpgradeIntent;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
     [ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE]: OnyxTypes.ValidateDomainTwoFactorCode;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
