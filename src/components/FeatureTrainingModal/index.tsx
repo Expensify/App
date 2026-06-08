@@ -363,7 +363,7 @@ function FeatureTrainingModal({
             return;
         }
         scrollViewRef.current?.scrollToEnd({animated: false});
-    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView]);
+    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView, isCarousel]);
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 

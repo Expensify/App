@@ -56,11 +56,15 @@ beforeAll(() => {
     Onyx.init({keys: ONYXKEYS});
 });
 
-// Pre-dismiss the AI features promo modal in every test. The AIFeaturesPromoGuard proactively
-// redirects any authenticated session to the modal unless this NVP records a dismissal, which
-// would otherwise intercept navigation in unrelated UI tests (e.g. SessionTest, PaginationTest).
-// Tests that specifically exercise the guard can override this fixture locally.
+// The AIFeaturesPromoGuard proactively redirects any authenticated session to the AI promo modal
+// unless this NVP records a dismissal, which would otherwise intercept navigation in unrelated UI
+// tests. We seed the dismissal in beforeEach AND patch Onyx.clear so that tests calling
+// `Onyx.clear()` in their own beforeEach (e.g. GroupChatNameTests) keep the fixture in place.
+const originalOnyxClear = Onyx.clear;
+Onyx.clear = (keysToPreserve = []) => originalOnyxClear([ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, ...keysToPreserve]);
+
 beforeEach(async () => {
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data
     await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
         [CONST.AI_FEATURES_PROMO_MODAL]: {
             timestamp: new Date().toISOString(),

@@ -4,7 +4,6 @@ import type {FeatureTrainingModalPageProps} from '@components/FeatureTrainingMod
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
@@ -14,7 +13,6 @@ import CONST from '@src/CONST';
 function AIFeaturesPromoModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {isBetaEnabled} = usePermissions();
     const canUseCustomAgent = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
 
