@@ -47,6 +47,4 @@ function HoveredDistanceEReceipt({transaction}: HoveredDistanceEReceiptProps) {
     );
 }
 
-HoveredDistanceEReceipt.displayName = 'HoveredDistanceEReceipt';
-
 export default HoveredDistanceEReceipt;

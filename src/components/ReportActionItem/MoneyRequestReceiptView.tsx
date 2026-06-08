@@ -175,6 +175,7 @@ function MoneyRequestReceiptView({
 
     const displayedTransaction = updatedTransaction ?? transaction;
     const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
+
     // A merged distance expense can be typed `distance-manual` while still carrying the map waypoints/route from the
     // expense it was merged with, so fall back to the presence of waypoints to still surface the distance e-receipt.
     const hasDistanceWaypoints = Object.keys(getWaypoints(displayedTransaction) ?? {}).length > 0;
