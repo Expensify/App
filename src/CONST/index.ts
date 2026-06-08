@@ -1253,6 +1253,7 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     FORMATTED_EXAMPLE_PHONE_NUMBER: '+1-(201)-867-5309',
     CONCIERGE_CHAT_NAME: 'Concierge',
+    CONCIERGE_SESSION_EXPIRATION_MS: 2 * 3600 * 1000, // 2 hours
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
@@ -2791,7 +2792,7 @@ const CONST = {
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
-    CONCIERGE_GREETING_ACTION_ID: 'concierge-side-panel-greeting',
+    CONCIERGE_GREETING_ACTION_ID: 'concierge-greeting',
 
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
@@ -3830,6 +3831,15 @@ const CONST = {
         POLICY_FEATURE_ACCESS: {
             READ: 'read',
             WRITE: 'write',
+        },
+        COPY_SETTINGS_MODAL_STEP: {
+            LOADING: 'loading',
+            COMPLETE: 'complete',
+        },
+        COPY_SETTINGS_NVP_STATE: {
+            IN_PROGRESS: 'in-progress',
+            COMPLETE: 'complete',
+            FAILED: 'failed',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
 
@@ -7840,6 +7850,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             autoApproveCompliantReports: {
                 id: 'autoApproveCompliantReports' as const,
@@ -7848,6 +7859,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             autoPayApprovedReports: {
                 id: 'autoPayApprovedReports' as const,
@@ -7856,6 +7868,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             categories: {
                 id: 'categories' as const,
@@ -7961,6 +7974,7 @@ const CONST = {
                 title: 'workspace.upgrade.rules.title' as const,
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
                 id: 'perDiem' as const,
@@ -7969,6 +7983,7 @@ const CONST = {
                 title: 'workspace.upgrade.perDiem.title' as const,
                 description: 'workspace.upgrade.perDiem.description' as const,
                 icon: 'PerDiem',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             hr: {
                 id: 'hr' as const,
@@ -7977,6 +7992,7 @@ const CONST = {
                 title: 'workspace.upgrade.hr.title' as const,
                 description: 'workspace.upgrade.hr.description' as const,
                 icon: 'Members',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             travel: {
                 id: 'travel' as const,
@@ -8383,7 +8399,9 @@ const CONST = {
         INVOICE: 'invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
-    SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    ACCOUNT_EXECUTIVE_LOGIN: 'Account Executive',
+    // Legacy fallback login kept so personal details persisted in Onyx before the "Setup Specialist" → "Account Executive" rename are still excluded after users upgrade
+    ACCOUNT_EXECUTIVE_LEGACY_LOGIN: 'Setup Specialist',
 
     CALENDAR_PICKER_DAY_HEIGHT: 45,
     MAX_CALENDAR_PICKER_ROWS: 6,
@@ -8945,6 +8963,7 @@ const CONST = {
             APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
+            COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL: 'WorkspaceCopySettings-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',

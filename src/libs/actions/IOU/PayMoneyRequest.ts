@@ -104,7 +104,6 @@ type PayMoneyRequestFunctionParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
-    conciergeReportID: string | undefined;
     onPaid?: () => void;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
@@ -152,7 +151,6 @@ function getPayMoneyRequestParams({
     isSelfTourViewed,
     defaultWorkspaceName,
     currentUserLocalCurrency,
-    conciergeReportID,
     delegateAccountID,
 }: {
     initialChatReport: OnyxTypes.Report;
@@ -175,8 +173,6 @@ function getPayMoneyRequestParams({
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
-    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 }): PayMoneyRequestData {
@@ -489,7 +485,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, conciergeReportID, delegateAccountID});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, delegateAccountID});
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
         onyxData.successData?.push(...holdReportOnyxData.successData);
@@ -798,7 +794,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         amountOwed,
         ownerBillingGracePeriodEnd,
         methodID,
-        conciergeReportID,
         onPaid,
         additionalOnyxData,
         shouldPlaySuccessSound = true,
@@ -835,7 +830,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-        conciergeReportID,
         delegateAccountID,
     });
 
