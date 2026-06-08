@@ -662,5 +662,4 @@ function ReportActionItem({
     );
 }
 
-export type {ReportActionItemProps};
 export default ReportActionItem;
