@@ -381,7 +381,8 @@ function PrivatePersonalDetailsPage() {
                                 label={translate('common.stateOrProvince')}
                                 aria-label={translate('common.stateOrProvince')}
                                 role={CONST.ROLE.PRESENTATION}
-                                defaultValue={state}
+                                value={selectedState}
+                                onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
                                 shouldSaveDraft
                                 spellCheck={false}
                             />
@@ -407,13 +408,20 @@ function PrivatePersonalDetailsPage() {
                             value={selectedCountry}
                             onValueChange={(value: unknown) => {
                                 const newCountry = (value ?? '') as Country | '';
+                                if (newCountry === selectedCountry) {
+                                    return;
+                                }
                                 setSelectedCountry(newCountry);
                                 if (newCountry === CONST.COUNTRY.US) {
                                     const resolved = resolveStateCode(selectedState);
                                     if (resolved !== selectedState) {
                                         setSelectedState(resolved);
                                     }
+                                    return;
                                 }
+                                // A previously selected US state (or another country's value) does not apply to the new country.
+                                setSelectedState('');
+                                setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: ''});
                             }}
                             shouldSaveDraft
                         />
