@@ -4,6 +4,7 @@ import {getReportChannelName} from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
+import Visibility from '@libs/Visibility';
 import type {ConciergeDraft} from './conciergeDraftState';
 import {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft} from './conciergeDraftState';
 
@@ -13,6 +14,7 @@ type MutableRef<T> = {
 
 type PusherDraftPaceRefs = {
     completedPusherDraftEventRef: MutableRef<ConciergeDraftEvent | null>;
+    lastPaceTickTimeRef: MutableRef<number>;
     latestPusherDraftEventRef: MutableRef<ConciergeDraftEvent | null>;
     pusherPaceIntervalRef: MutableRef<ReturnType<typeof setInterval> | null>;
     queuedPusherDraftEventsRef: MutableRef<ConciergeDraftEvent[]>;
@@ -66,7 +68,15 @@ function stopPusherDraftPace(runtime: PusherDraftPaceRefs) {
 }
 
 function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
-    const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {
+        completedPusherDraftEventRef,
+        lastPaceTickTimeRef,
+        latestPusherDraftEventRef,
+        queuedPusherDraftEventsRef,
+        visibleBodyMarkdownRef,
+        visibleSourceMarkdownRef,
+        visibleSourceOffsetRef,
+    } = runtime;
 
     stopPusherDraftPace(runtime);
     latestPusherDraftEventRef.current = null;
@@ -75,6 +85,7 @@ function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
     visibleBodyMarkdownRef.current = '';
     visibleSourceMarkdownRef.current = '';
     visibleSourceOffsetRef.current = 0;
+    lastPaceTickTimeRef.current = 0;
 }
 
 function clearCachedPusherDraft(runtime: PusherDraftPacingRuntime) {
@@ -150,7 +161,15 @@ function publishVisibleEvent(
 }
 
 function tickPacing(runtime: PusherDraftPacingRuntime) {
-    const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {
+        completedPusherDraftEventRef,
+        lastPaceTickTimeRef,
+        latestPusherDraftEventRef,
+        queuedPusherDraftEventsRef,
+        visibleBodyMarkdownRef,
+        visibleSourceMarkdownRef,
+        visibleSourceOffsetRef,
+    } = runtime;
     const latestEvent = latestPusherDraftEventRef.current;
     const targetBodyMarkdown = latestEvent?.bodyMarkdown ?? '';
 
@@ -161,11 +180,39 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
 
     const completedEvent = completedPusherDraftEventRef.current;
     const hasQueuedTarget = queuedPusherDraftEventsRef.current.length > 0;
-    const nextVisibleMarkdown = getNextVisibleConciergeDraftMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown, visibleSourceOffsetRef.current, visibleSourceMarkdownRef.current);
+    const now = Date.now();
+    const elapsed = lastPaceTickTimeRef.current ? Math.max(0, now - lastPaceTickTimeRef.current) : PUSHER_DRAFT_PACE_INTERVAL_MS;
+    const elapsedIntervals = Math.floor(elapsed / PUSHER_DRAFT_PACE_INTERVAL_MS);
+    const unitsToReveal = Math.max(1, elapsedIntervals);
+    let revealedUnits = 0;
+    let nextVisibleMarkdown = {
+        bodyMarkdown: visibleBodyMarkdownRef.current,
+        sourceMarkdown: visibleSourceMarkdownRef.current,
+        sourceOffset: visibleSourceOffsetRef.current,
+    };
+
+    while (revealedUnits < unitsToReveal && nextVisibleMarkdown.sourceOffset < targetBodyMarkdown.length) {
+        const advancedVisibleMarkdown = getNextVisibleConciergeDraftMarkdown(
+            nextVisibleMarkdown.bodyMarkdown,
+            targetBodyMarkdown,
+            nextVisibleMarkdown.sourceOffset,
+            nextVisibleMarkdown.sourceMarkdown,
+        );
+
+        if (advancedVisibleMarkdown.sourceOffset <= nextVisibleMarkdown.sourceOffset) {
+            nextVisibleMarkdown = advancedVisibleMarkdown;
+            break;
+        }
+
+        nextVisibleMarkdown = advancedVisibleMarkdown;
+        revealedUnits += 1;
+    }
 
     if (nextVisibleMarkdown.bodyMarkdown !== visibleBodyMarkdownRef.current || nextVisibleMarkdown.sourceOffset !== visibleSourceOffsetRef.current) {
         const isTargetFullyVisible = nextVisibleMarkdown.sourceOffset >= targetBodyMarkdown.length;
         const status = completedEvent && !hasQueuedTarget && isTargetFullyVisible ? 'completed' : 'updated';
+        lastPaceTickTimeRef.current =
+            isTargetFullyVisible || elapsedIntervals === 0 || revealedUnits < unitsToReveal ? now : lastPaceTickTimeRef.current + unitsToReveal * PUSHER_DRAFT_PACE_INTERVAL_MS;
         publishVisibleEvent(runtime, status === 'completed' && completedEvent ? completedEvent : latestEvent, nextVisibleMarkdown, status);
 
         if (status === 'completed') {
@@ -174,6 +221,8 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
         }
         return;
     }
+
+    lastPaceTickTimeRef.current = now;
 
     if (promoteQueuedPusherDraftTarget(runtime)) {
         startPusherDraftPace(runtime);
@@ -189,17 +238,50 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
 }
 
 function startPusherDraftPace(runtime: PusherDraftPacingRuntime) {
-    const {pusherPaceIntervalRef} = runtime;
+    const {lastPaceTickTimeRef, pusherPaceIntervalRef} = runtime;
 
     if (pusherPaceIntervalRef.current) {
         return;
     }
 
+    lastPaceTickTimeRef.current = Date.now();
     pusherPaceIntervalRef.current = setInterval(() => tickPacing(runtime), PUSHER_DRAFT_PACE_INTERVAL_MS);
 }
 
 function getNewestPusherDraftTarget(runtime: PusherDraftPacingRuntime): ConciergeDraftEvent | null {
     return runtime.queuedPusherDraftEventsRef.current.at(-1) ?? runtime.latestPusherDraftEventRef.current;
+}
+
+function revealFullPusherDraftTarget(runtime: PusherDraftPacingRuntime) {
+    const {completedPusherDraftEventRef, lastPaceTickTimeRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef} = runtime;
+    const newestTarget = getNewestPusherDraftTarget(runtime);
+    const completedEvent = completedPusherDraftEventRef.current;
+
+    lastPaceTickTimeRef.current = Date.now();
+    stopPusherDraftPace(runtime);
+
+    if (!newestTarget?.bodyMarkdown) {
+        if (completedEvent) {
+            publishVisibleEvent(runtime, completedEvent, undefined, 'completed');
+            completedPusherDraftEventRef.current = null;
+        }
+        return;
+    }
+
+    const targetBodyMarkdown = newestTarget.bodyMarkdown;
+    latestPusherDraftEventRef.current = newestTarget;
+    queuedPusherDraftEventsRef.current = [];
+
+    publishVisibleEvent(
+        runtime,
+        completedEvent ?? newestTarget,
+        {bodyMarkdown: targetBodyMarkdown, sourceMarkdown: targetBodyMarkdown, sourceOffset: targetBodyMarkdown.length},
+        completedEvent ? 'completed' : 'updated',
+    );
+
+    if (completedEvent) {
+        completedPusherDraftEventRef.current = null;
+    }
 }
 
 function queuePusherDraftTargets(runtime: PusherDraftPacingRuntime, events: ConciergeDraftEvent[]) {
@@ -449,12 +531,14 @@ function usePusherDraftPacing(reportID: string) {
     const latestPusherDraftEventRef = useRef<ConciergeDraftEvent | null>(buildPusherDraftEventFromCachedDraft(reportID, draft));
     const queuedPusherDraftEventsRef = useRef<ConciergeDraftEvent[]>(draft?.pusherQueuedTargetEvents ?? []);
     const completedPusherDraftEventRef = useRef<ConciergeDraftEvent | null>(draft?.pusherPendingCompletionEvent ?? null);
+    const lastPaceTickTimeRef = useRef(0);
     const pusherPaceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const clearDraft = () => {
         clearCachedPusherDraft({
             completedPusherDraftEventRef,
             currentDraftRef,
+            lastPaceTickTimeRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
             queuedPusherDraftEventsRef,
@@ -470,6 +554,7 @@ function usePusherDraftPacing(reportID: string) {
     const dispatchLocalDraftEvent = (event: ConciergeDraftEvent) => {
         resetPusherDraftPace({
             completedPusherDraftEventRef,
+            lastPaceTickTimeRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
             queuedPusherDraftEventsRef,
@@ -489,6 +574,7 @@ function usePusherDraftPacing(reportID: string) {
         const runtime = {
             completedPusherDraftEventRef,
             currentDraftRef,
+            lastPaceTickTimeRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
             queuedPusherDraftEventsRef,
@@ -530,8 +616,21 @@ function usePusherDraftPacing(reportID: string) {
         });
 
         resumeCachedPusherDraftPace(runtime);
+        const unsubscribeVisibility = Visibility.onVisibilityChange(() => {
+            if (completedPusherDraftEventRef.current) {
+                revealFullPusherDraftTarget(runtime);
+                return;
+            }
+
+            if (!Visibility.isVisible() || !pusherPaceIntervalRef.current) {
+                return;
+            }
+
+            tickPacing(runtime);
+        });
 
         return () => {
+            unsubscribeVisibility();
             stopPusherDraftPace(runtime);
             for (const subscription of subscriptions) {
                 subscription.unsubscribe();
