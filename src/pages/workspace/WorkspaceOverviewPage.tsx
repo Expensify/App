@@ -401,7 +401,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         const policyLastErrorMessagePrompt = (
             <RenderHTML
                 html={policyLastErrorMessage}
-                onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
+                onConciergeLinkPress={() => {
+                    closeModal();
+                    hideDeleteWorkspaceErrorModal();
+                }}
             />
         );
 

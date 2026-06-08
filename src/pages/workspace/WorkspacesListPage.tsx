@@ -295,7 +295,10 @@ function WorkspacesListPage() {
         const policyToDeleteLatestErrorMessagePrompt = (
             <RenderHTML
                 html={policyToDeleteLatestErrorMessage}
-                onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
+                onConciergeLinkPress={() => {
+                    closeModal();
+                    hideDeleteWorkspaceErrorModal();
+                }}
             />
         );
 
