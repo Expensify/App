@@ -33,9 +33,10 @@ import ROUTES from '@src/ROUTES';
 type SpendRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
+    showReadOnlyModal: () => void;
 };
 
-function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
+function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -159,8 +160,7 @@ function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
                 accessibilityLabel={`${descriptionLabel}. ${blockLabel} ${defaultRuleTitle}`}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
                 onPress={showBuiltInProtectionModal}
-                shouldShowRightIcon={canWriteRules}
-                interactive={canWriteRules}
+                shouldShowRightIcon
             />
             {isLoadingCardRules ? (
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
@@ -182,10 +182,9 @@ function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
                         <MenuItem
                             accessibilityLabel={rule.accessibilityLabel}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                            shouldShowRightIcon={canWriteRules}
+                            shouldShowRightIcon
                             disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
-                            interactive={canWriteRules}
                             wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
                             titleComponent={
                                 <View>
@@ -221,15 +220,21 @@ function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
                     </OfflineWithFeedback>
                 ))
             )}
-            {!isProduction && canWriteRules && (
+            {!isProduction && (
                 <MenuItem
                     title={translate('workspace.rules.spendRules.addSpendRule')}
                     titleStyle={styles.textStrong}
                     icon={expensifyIcons.Plus}
                     iconHeight={20}
                     iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                    onPress={() => {
+                        if (!canWriteRules) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+                    }}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
                 />
             )}

@@ -181,7 +181,7 @@ function isControlPolicyOnlyRole(role: string | undefined): boolean {
 }
 
 function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
-    const role = getPolicyRole(policy, login, !login);
+    const role = (login ? policy?.employeeList?.[login]?.role : undefined) ?? getPolicyRole(policy, login);
     if (isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy))) {
         return false;
     }
@@ -609,6 +609,41 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /** Whether Expensify team members should be hidden from the given policy/user combination. */
 function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserLogin: string | undefined): boolean {
     return !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+}
+
+/**
+ * Creates a selector for useOnyx that computes the filtered member count.
+ * Returns a primitive number to prevent unnecessary re-renders when unrelated personal details change.
+ */
+function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
+    return (personalDetails: PersonalDetailsList | undefined): number => {
+        const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
+
+        return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
+            const accountID = policyMemberEmailsToAccountIDs[email];
+            const details = personalDetails?.[accountID];
+
+            if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
+                return count;
+            }
+
+            return count + 1;
+        }, 0);
+    };
+}
+
+/**
+ * Creates a selector for useOnyx that returns formatted text for invoice configuration.
+ * Returns a primitive string to prevent unnecessary re-renders when unrelated bank account data changes.
+ * This matches the filtering logic used by PaymentMethodList with filterType=BUSINESS on the invoices page.
+ */
+function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['translate'], invoiceCompany: string) {
+    return (bankAccountList: OnyxEntry<Record<string, {accountData?: {type?: string}}>>): string => {
+        const count = Object.values(bankAccountList ?? {}).filter((account) => account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS).length;
+        const bankAccountsText = count > 0 ? `${count} ${translate('common.bankAccounts').toLowerCase()}` : '';
+        return [bankAccountsText, invoiceCompany].filter(Boolean).join(', ');
+    };
 }
 
 /**
@@ -1098,11 +1133,13 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
  * @returns true if upgrade navigation was performed; false otherwise
  */
-function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, backTo?: string): boolean {
     if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
         return false;
     }
-    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
+    // Default the upgrade page's back destination to More Features (the source of most upgrade-gated toggles).
+    // Entry points outside More Features (e.g. the Roles flow) pass their own backTo so the user returns there.
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
     return true;
 }
 
@@ -2112,6 +2149,27 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
 }
 
 /**
+ * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
+ * plus Submit workspaces when the SUBMIT_2026 beta is enabled. Submit workspaces are free but still
+ * support report creation, so they belong here even though they're excluded from
+ * `getGroupPaidPoliciesWithExpenseChatEnabled`.
+ *
+ * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
+ */
+function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy> | null, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string) {
+    if (isEmptyObject(policies)) {
+        return CONST.EMPTY_ARRAY;
+    }
+    return Object.values(policies).filter(
+        (policy): policy is Policy =>
+            !!policy?.isPolicyExpenseChatEnabled &&
+            !policy?.isJoinRequestPending &&
+            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) &&
+            shouldShowPolicy(policy, false, currentUserLogin),
+    );
+}
+
+/**
  * This method checks if the active policy has expense chat enabled and is a paid group policy.
  * If true, it returns the active policy itself, else it returns the first policy from groupPoliciesWithChatEnabled.
  *
@@ -2119,7 +2177,7 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
  * and the user would be taken to the workspace selection page.
  */
 function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
-    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isGroupPolicy(activePolicy)) {
         return activePolicy;
     }
 
@@ -2410,6 +2468,8 @@ export {
     shouldShowTaxRateError,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
+    createFilteredMemberCountSelector,
+    createInvoiceConfigurationTextSelector,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,
@@ -2493,6 +2553,7 @@ export {
     areSettingsInErrorFields,
     settingsPendingAction,
     getGroupPaidPoliciesWithExpenseChatEnabled,
+    getGroupPoliciesWhereReportCanBeCreated,
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,

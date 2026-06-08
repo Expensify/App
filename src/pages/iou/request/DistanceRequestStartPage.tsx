@@ -84,6 +84,7 @@ function DistanceRequestStartPage({
         transaction,
         isLoadingSelectedTab,
         transactionRequestType,
+        iouType,
         policy,
         isTrackDistanceExpense,
     });

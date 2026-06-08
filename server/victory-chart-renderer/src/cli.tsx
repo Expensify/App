@@ -2,6 +2,7 @@ import {drawOffscreen, makeOffscreenSurface} from '@shopify/react-native-skia/li
 import {JsiSkApi} from '@shopify/react-native-skia/lib/module/skia/web';
 import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web/LoadSkiaWeb';
 import CLI from '@scripts/utils/CLI';
+import getCanvaskitInitOptions from './canvaskit';
 
 const cli = new CLI({
     namedArgs: {
@@ -17,7 +18,7 @@ const cli = new CLI({
     },
 });
 
-await LoadSkiaWeb();
+await LoadSkiaWeb(getCanvaskitInitOptions());
 
 // The `Skia` named export from `@shopify/react-native-skia` is captured at
 // module load time from `globalThis.SkiaApi` (the native bridge on iOS/Android).
