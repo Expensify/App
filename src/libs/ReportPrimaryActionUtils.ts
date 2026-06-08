@@ -9,6 +9,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
@@ -123,7 +124,7 @@ function isSubmitAction(
         return false;
     }
 
-    if (!isPaidGroupPolicy(policy)) {
+    if (!isGroupPolicy(policy)) {
         return false;
     }
 
