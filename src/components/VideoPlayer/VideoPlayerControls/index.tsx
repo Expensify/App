@@ -4,6 +4,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import {Trigger as PopoverMenuTrigger} from '@components/PopoverMenu/v2';
 import Text from '@components/Text';
@@ -42,7 +43,7 @@ type VideoPlayerControlsProps = {
     small?: boolean;
 
     /** Style of video player controls. */
-    style?: StyleProp<ViewStyle>;
+    style?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Function to play and pause the video.  */
     togglePlayCurrentVideo: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;

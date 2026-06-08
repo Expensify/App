@@ -1,6 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {HrSyncResult} from '@libs/API/HrSyncResult';
+import type HrSyncResult from '@libs/API/HrSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -1630,6 +1630,9 @@ type QBDExportConfig = {
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
 
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
+
     /** Accounting method for QBD */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
@@ -2345,10 +2348,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Policy MCC Group settings */
         mccGroup?: Record<string, MccGroup>;
 
-        /** Workspace account ID configured for Expensify Card */
-        workspaceAccountID?: number;
+        /** Policy account ID configured for Expensify Card */
+        policyAccountID?: number;
 
-        /** Setup specialist guide assigned for the policy */
+        /** Account executive guide assigned for the policy */
         assignedGuide?: {
             /** The guide's email */
             email: string;
@@ -2428,7 +2431,6 @@ export type {
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
-    MergeHRConnectionLastSync,
     QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,
@@ -2446,7 +2448,6 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     FinancialForceConnectionConfig,
-    FinancialForceConnectionData,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
@@ -2458,10 +2459,8 @@ export type {
     Subrate,
     ProhibitedExpenses,
     NetSuiteConnectionData,
-    HRConnectionConfigBase,
     MergeHRConnectionConfig,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
-    MergeHRConnectionData,
     Vendor,
 };

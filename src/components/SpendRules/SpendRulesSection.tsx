@@ -32,9 +32,11 @@ import ROUTES from '@src/ROUTES';
 
 type SpendRulesSectionProps = {
     policyID: string;
+    canWriteRules: boolean;
+    showReadOnlyModal: () => void;
 };
 
-function SpendRulesSection({policyID}: SpendRulesSectionProps) {
+function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -178,9 +180,9 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                         pendingAction={rule.pendingAction}
                     >
                         <MenuItem
-                            shouldShowRightIcon
                             accessibilityLabel={rule.accessibilityLabel}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                            shouldShowRightIcon
                             disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
                             wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
@@ -225,8 +227,14 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     icon={expensifyIcons.Plus}
                     iconHeight={20}
                     iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                    onPress={() => {
+                        if (!canWriteRules) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+                    }}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
                 />
             )}

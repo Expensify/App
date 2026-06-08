@@ -776,6 +776,10 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                    [duplicate2ID]: childReportID2,
+                },
             };
 
             // When: Call resolveDuplicates
@@ -867,6 +871,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID: 'report123',
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates with undefined transactionID
@@ -909,6 +914,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates with empty duplicate list
@@ -965,6 +971,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates without IOU actions
@@ -1041,6 +1048,9 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID: reportA,
+                transactionThreadReportIDMap: {
+                    [crossReportDuplicateID]: childReportIDCross,
+                },
             };
 
             // When: Call resolveDuplicates with cross-report duplicates
@@ -1159,7 +1169,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
@@ -1224,7 +1233,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
@@ -1281,7 +1289,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
@@ -1331,7 +1338,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: undefined,
                 targetReport: undefined,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
@@ -1381,7 +1387,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
@@ -1434,7 +1439,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 isSelfTourViewed: false,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
@@ -1497,7 +1501,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 isSelfTourViewed: false,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
@@ -1545,7 +1548,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
@@ -1586,7 +1588,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: undefined,
                 targetReport: undefined,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
@@ -1630,7 +1631,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
@@ -1643,6 +1643,7 @@ describe('actions/Duplicate', () => {
 
             // Verify API was called with CREATE_DISTANCE_REQUEST
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, expect.objectContaining({}), expect.objectContaining({}));
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should not corrupt modifiedCreated or leak top-level Transaction fields when duplicating a distance expense', async () => {
@@ -1679,7 +1680,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
@@ -1745,7 +1745,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
@@ -1758,6 +1757,7 @@ describe('actions/Duplicate', () => {
 
             // Verify API was called with CREATE_PER_DIEM_REQUEST
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, expect.objectContaining({}), expect.objectContaining({}));
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should not pass linkedTrackedExpenseReportAction.childReportID as transactionThreadReportID to the API', async () => {
@@ -1810,7 +1810,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
@@ -1860,7 +1859,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: undefined,
                 targetReport: undefined,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
@@ -1921,7 +1919,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
@@ -2008,6 +2005,9 @@ describe('actions/Duplicate', () => {
                         reimbursable: true,
                         tag: '',
                         transactionIDList: [transaction2.transactionID],
+                        transactionThreadReportIDMap: {
+                            [transaction2.transactionID]: 'transactionThread-2',
+                        },
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2089,7 +2089,6 @@ describe('actions/Duplicate', () => {
             personalDetails: mockPersonalDetails,
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             transactionViolations: {},
             translate: mockTranslate,
@@ -2212,6 +2211,7 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should route per diem transactions through submitPerDiemExpense', async () => {
@@ -2236,6 +2236,7 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should duplicate a scan expense as a manual expense', async () => {
@@ -2660,7 +2661,6 @@ describe('actions/Duplicate', () => {
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
                 transactionDrafts: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
                 conciergeReportID: undefined,
@@ -2750,7 +2750,10 @@ describe('actions/Duplicate', () => {
                 reportID: id,
                 policyID: undefined,
                 action: CONST.SEARCH.ACTION_TYPES.DONE,
-                allActions: [CONST.SEARCH.ACTION_TYPES.DONE],
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
                 total: 0,
                 chatReportID: undefined,
             })),
@@ -2773,7 +2776,6 @@ describe('actions/Duplicate', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'}},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             transactionViolations: {},
             translate: mockTranslate,

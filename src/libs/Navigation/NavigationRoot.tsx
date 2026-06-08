@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
@@ -16,7 +16,6 @@ import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/N
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
-import {getBaseTheme} from '@styles/theme/utils';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -29,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getNavigationBaseTheme from './getNavigationBaseTheme';
 import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
@@ -162,7 +162,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = getBaseTheme(themePreference) === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+        const defaultNavigationTheme = getNavigationBaseTheme(themePreference);
 
         return {
             ...defaultNavigationTheme,
