@@ -12809,32 +12809,20 @@ describe('ReportUtils', () => {
                 return acc;
             }, {});
 
-        const createTransactionForReport = (reportID: string, index = 0): Transaction => ({
-            ...createRandomTransaction(index),
-            reportID,
-            transactionID: `${reportID}-transaction-${index}`,
-        });
-
         it('returns false when policyID is missing or accountID invalid', () => {
             const reportID = 'report-1';
             const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, undefined, accountID, transactions)).toBe(false);
-            expect(hasEmptyReportsForPolicy(reports, policyID, Number.NaN, transactions)).toBe(false);
-            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, undefined, {}, accountID)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, Number.NaN)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('returns true when an owned open expense report has no transactions', () => {
             const reportID = 'empty-report';
             const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(true);
         });
 
         it('returns true when an owned submitted expense report has no transactions', () => {
@@ -12846,46 +12834,28 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 }),
             );
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(true);
         });
 
         it('returns false when an owned expense report already has transactions', () => {
             const reportID = 'with-transaction';
             const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [createTransactionForReport(reportID)],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {[reportID]: true}, accountID)).toBe(false);
         });
 
-        it('treats transactions pending deletion as removed when checking emptiness', () => {
+        it('treats a report as empty when its only transactions are pending deletion', () => {
             const reportID = 'pending-delete-report';
             const reports = toCollection(buildReport({reportID}));
-            const transactions: Record<string, Transaction[]> = {
-                [reportID]: [
-                    {
-                        ...createTransactionForReport(reportID),
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
-                ],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(true);
         });
 
         it('ignores reports owned by other users or policies', () => {
             const reports = toCollection(buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}), buildReport({reportID: 'other-policy', policyID: otherPolicyID}));
-            const transactions: Record<string, Transaction[]> = {
-                'other-owner': [],
-                'other-policy': [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(false);
         });
 
         it('ignores reports that are not open expense reports even if they have no transactions', () => {
@@ -12894,13 +12864,8 @@ describe('ReportUtils', () => {
                 buildReport({reportID: 'approved', stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
                 buildReport({reportID: 'chat', type: CONST.REPORT.TYPE.CHAT}),
             );
-            const transactions: Record<string, Transaction[]> = {
-                closed: [],
-                approved: [],
-                chat: [],
-            };
 
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(false);
         });
 
         it('ignores reports flagged for deletion or with errors', () => {
@@ -12909,44 +12874,27 @@ describe('ReportUtils', () => {
                 buildReport({reportID: 'with-errors', errors: {test: 'error'}}),
             );
 
-            const transactions: Record<string, Transaction[]> = {
-                'pending-delete': [],
-                'with-errors': [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(false);
         });
 
         it('returns true when at least one qualifying report exists among mixed data', () => {
             const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
 
-            const transactions: Record<string, Transaction[]> = {
-                'valid-empty': [],
-                'with-transaction': [createTransactionForReport('with-transaction')],
-                other: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {'with-transaction': true}, accountID)).toBe(true);
         });
 
         it('returns false when accountID is the default one', () => {
             const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
 
-            const transactions: Record<string, Transaction[]> = {
-                'valid-empty': [],
-                'with-transaction': [createTransactionForReport('with-transaction')],
-                other: [],
-            };
-
-            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID, transactions)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, {'with-transaction': true}, CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('handles undefined reports', () => {
-            expect(hasEmptyReportsForPolicy(undefined, policyID, accountID, {})).toBe(false);
+            expect(hasEmptyReportsForPolicy(undefined, policyID, {}, accountID)).toBe(false);
         });
 
         it('handles empty collection', () => {
-            expect(hasEmptyReportsForPolicy({}, policyID, accountID, {})).toBe(false);
+            expect(hasEmptyReportsForPolicy({}, policyID, {}, accountID)).toBe(false);
         });
     });
 
