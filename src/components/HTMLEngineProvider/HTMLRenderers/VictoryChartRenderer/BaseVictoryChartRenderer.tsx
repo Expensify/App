@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {ChartFontsProvider} from '@components/Charts/hooks';
 import useChartFonts from '@components/Charts/hooks/useChartFonts';
+import VictoryChartFullscreenModal from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartFullscreenModal';
 import Log from '@libs/Log';
 import VictoryChartContainer from './components/VictoryChartContainer';
 import VictoryChartContent from './components/VictoryChartContent';
@@ -11,6 +12,7 @@ import resolveVictoryChartType from './utils/resolveVictoryChartType';
 
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     const fonts = useChartFonts();
+    const [isFullscreenVisible, setIsFullscreenVisible] = useState(false);
 
     let processedResult;
     try {
@@ -34,9 +36,13 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                 processedResult={processedResult}
                 type={type}
             >
-                <VictoryChartContainer>
+                <VictoryChartContainer onExpandPress={() => setIsFullscreenVisible(true)}>
                     <VictoryChartContent />
                 </VictoryChartContainer>
+                <VictoryChartFullscreenModal
+                    isVisible={isFullscreenVisible}
+                    onClose={() => setIsFullscreenVisible(false)}
+                />
             </VictoryChartProvider>
         </ChartFontsProvider>
     );
