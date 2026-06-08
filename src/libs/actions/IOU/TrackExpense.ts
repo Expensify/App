@@ -2101,14 +2101,8 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
-    const {
-        actionableWhisperReportActionID,
-        moneyRequestReportID,
-        linkedTrackedExpenseReportAction,
-        linkedTrackedExpenseReportID,
-        transactionThreadReportID,
-        isLinkedTrackedExpenseReportArchived,
-    } = reportInformation;
+    const {actionableWhisperReportActionID, linkedTrackedExpenseReportAction, linkedTrackedExpenseReportID, transactionThreadReportID, isLinkedTrackedExpenseReportArchived} =
+        reportInformation;
     const {
         optimisticData: moveTransactionOptimisticData,
         successData: moveTransactionSuccessData,
