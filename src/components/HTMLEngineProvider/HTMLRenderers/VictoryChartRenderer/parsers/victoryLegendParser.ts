@@ -1,9 +1,8 @@
 import type {TNode} from 'react-native-render-html';
 import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
 import type {LegendItem, LegendItemEntry, PartialProcessNodeResult, RawLegendData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import isNonNullObject from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/isNonNullObject';
-import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseArrayAttribute';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseRawLegendData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawLegendData';
 import praseRawLegendStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/praseRawLegendStyle';
 
 /**
@@ -20,8 +19,8 @@ function parseVictoryLegendNode(tnode: TNode): PartialProcessNodeResult {
     const fontWeight = style?.labels?.fontWeight !== undefined ? normalizeChartFontWeight(style.labels.fontWeight) : undefined;
     const fontFamily = style?.labels?.fontFamily;
     const fontStyle = style?.labels?.fontStyle;
-    const rawData = parseArrayAttribute<RawLegendData>(tnode.attributes.data);
-    const entries: LegendItemEntry[] = rawData.filter(isNonNullObject<RawLegendData>).map((entry) => {
+    const rawData = parseRawLegendData(tnode.attributes.data);
+    const entries: LegendItemEntry[] = rawData.map((entry) => {
         const text = entry.name;
         const symbolColor = entry.symbol?.fill;
         const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : undefined;
