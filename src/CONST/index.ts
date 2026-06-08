@@ -1204,6 +1204,28 @@ const CONST = {
                 DEFAULT: {input: keyInputSpace},
             },
         },
+        EXPENSE_REPORT_SEARCH: {
+            descriptionKey: 'expenseReportSearch',
+            shortcutKey: 'U',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'u', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'u', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'u', modifierFlags: keyModifierCommand},
+            },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+        },
+        GO_TO_WORKSPACE: {
+            descriptionKey: 'goToWorkspace',
+            shortcutKey: 'B',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'b', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'b', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'b', modifierFlags: keyModifierCommand},
+            },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1231,6 +1253,7 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     FORMATTED_EXAMPLE_PHONE_NUMBER: '+1-(201)-867-5309',
     CONCIERGE_CHAT_NAME: 'Concierge',
+    CONCIERGE_SESSION_EXPIRATION_MS: 2 * 3600 * 1000, // 2 hours
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
@@ -2346,9 +2369,6 @@ const CONST = {
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
     },
-    HTTP_HEADER_NAMES: {
-        AUTH_TOKEN: 'authToken',
-    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
         THROTTLED: 'throttled',
@@ -2772,7 +2792,7 @@ const CONST = {
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
-    CONCIERGE_GREETING_ACTION_ID: 'concierge-side-panel-greeting',
+    CONCIERGE_GREETING_ACTION_ID: 'concierge-greeting',
 
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
@@ -3812,6 +3832,15 @@ const CONST = {
             READ: 'read',
             WRITE: 'write',
         },
+        COPY_SETTINGS_MODAL_STEP: {
+            LOADING: 'loading',
+            COMPLETE: 'complete',
+        },
+        COPY_SETTINGS_NVP_STATE: {
+            IN_PROGRESS: 'in-progress',
+            COMPLETE: 'complete',
+            FAILED: 'failed',
+        },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
 
         // Auto-reimbursement and auto-approval defaults are 0, but when enabled will use the suggested limit
@@ -4114,7 +4143,16 @@ const CONST = {
                 ZENEFITS_SYNC_TITLE: 'zenefitsSyncTitle',
                 ZENEFITS_SYNC_LOAD_DATA: 'zenefitsSyncLoadData',
                 ZENEFITS_SYNC_PROVISIONING: 'zenefitsSyncProvisioning',
-                FINANCIAL_FORCE_SYNC_CONNECTION: 'financialForceSyncConnection',
+                FINANCIAL_FORCE_SYNC_TITLE: 'financialForceSyncTitle',
+                FINANCIAL_FORCE_SYNC_STEP: 'financialForceSyncStep',
+                FINANCIAL_FORCE_SYNC_CATEGORIES: 'financialForceSyncCategories',
+                FINANCIAL_FORCE_SYNC_TAGS: 'financialForceSyncTags',
+                FINANCIAL_FORCE_SYNC_VENDORS: 'financialForceSyncVendors',
+                FINANCIAL_FORCE_SYNC_CONTACTS: 'financialForceSyncContacts',
+                FINANCIAL_FORCE_SYNC_COMPANIES: 'financialForceSyncCompanies',
+                FINANCIAL_FORCE_SYNC_USERS: 'financialForceSyncUsers',
+                FINANCIAL_FORCE_SYNC_DIMENSIONS: 'financialForceSyncDimensions',
+                FINANCIAL_FORCE_SYNC_MARK_REIMBURSED: 'financialForceMarkAsReimbursed',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -5564,827 +5602,6 @@ const CONST = {
         RON: 'RO',
         SEK: 'SE',
     } as Record<string, string>,
-
-    // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
-    // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810
-    COUNTRY_ZIP_REGEX_DATA: {
-        AC: {
-            regex: /^ASCN 1ZZ$/,
-            samples: 'ASCN 1ZZ',
-        },
-        AD: {
-            regex: /^AD[1-7]0\d$/,
-            samples: 'AD206, AD403, AD106, AD406',
-        },
-
-        // We have kept the empty object for the countries which do not have any zip code validation
-        // to ensure consistency so that the amount of countries displayed and in this object are same
-        AE: {},
-        AF: {
-            regex: /^\d{4}$/,
-            samples: '9536, 1476, 3842, 7975',
-        },
-        AG: {},
-        AI: {
-            regex: /^AI-2640$/,
-            samples: 'AI-2640',
-        },
-        AL: {
-            regex: /^\d{4}$/,
-            samples: '1631, 9721, 2360, 5574',
-        },
-        AM: {
-            regex: /^\d{4}$/,
-            samples: '5581, 7585, 8434, 2492',
-        },
-        AO: {},
-        AQ: {},
-        AR: {
-            regex: /^((?:[A-HJ-NP-Z])?\d{4})([A-Z]{3})?$/,
-            samples: 'Q7040GFQ, K2178ZHR, P6240EJG, J6070IAE',
-        },
-        AS: {
-            regex: /^96799$/,
-            samples: '96799',
-        },
-        AT: {
-            regex: /^\d{4}$/,
-            samples: '4223, 2052, 3544, 5488',
-        },
-        AU: {
-            regex: /^\d{4}$/,
-            samples: '7181, 7735, 9169, 8780',
-        },
-        AW: {},
-        AX: {
-            regex: /^22\d{3}$/,
-            samples: '22270, 22889, 22906, 22284',
-        },
-        AZ: {
-            regex: /^(AZ) (\d{4})$/,
-            samples: 'AZ 6704, AZ 5332, AZ 3907, AZ 6892',
-        },
-        BA: {
-            regex: /^\d{5}$/,
-            samples: '62722, 80420, 44595, 74614',
-        },
-        BB: {
-            regex: /^BB\d{5}$/,
-            samples: 'BB64089, BB17494, BB73163, BB25752',
-        },
-        BD: {
-            regex: /^\d{4}$/,
-            samples: '8585, 8175, 7381, 0154',
-        },
-        BE: {
-            regex: /^\d{4}$/,
-            samples: '7944, 5303, 6746, 7921',
-        },
-        BF: {},
-        BG: {
-            regex: /^\d{4}$/,
-            samples: '6409, 7657, 1206, 7908',
-        },
-        BH: {
-            regex: /^\d{3}\d?$/,
-            samples: '047, 1116, 490, 631',
-        },
-        BI: {},
-        BJ: {},
-        BL: {
-            regex: /^97133$/,
-            samples: '97133',
-        },
-        BM: {
-            regex: /^[A-Z]{2} ?[A-Z0-9]{2}$/,
-            samples: 'QV9P, OSJ1, PZ 3D, GR YK',
-        },
-        BN: {
-            regex: /^[A-Z]{2} ?\d{4}$/,
-            samples: 'PF 9925, TH1970, SC 4619, NF0781',
-        },
-        BO: {},
-        BQ: {},
-        BR: {
-            regex: /^\d{5}-?\d{3}$/,
-            samples: '18816-403, 95177-465, 43447-782, 39403-136',
-        },
-        BS: {},
-        BT: {
-            regex: /^\d{5}$/,
-            samples: '28256, 52484, 30608, 93524',
-        },
-        BW: {},
-        BY: {
-            regex: /^\d{6}$/,
-            samples: '504154, 360246, 741167, 895047',
-        },
-        BZ: {},
-        CA: {
-            regex: /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJ-NPRSTV-Z] ?\d[ABCEGHJ-NPRSTV-Z]\d$/,
-            samples: 'S1A7K8, Y5H 4G6, H9V0P2, H1A1B5',
-        },
-        CC: {
-            regex: /^6799$/,
-            samples: '6799',
-        },
-        CD: {},
-        CF: {},
-        CG: {},
-        CH: {
-            regex: /^\d{4}$/,
-            samples: '6370, 5271, 7873, 8220',
-        },
-        CI: {},
-        CK: {},
-        CL: {
-            regex: /^\d{7}$/,
-            samples: '7565829, 8702008, 3161669, 1607703',
-        },
-        CM: {},
-        CN: {
-            regex: /^\d{6}$/,
-            samples: '240543, 870138, 295528, 861683',
-        },
-        CO: {
-            regex: /^\d{6}$/,
-            samples: '678978, 775145, 823943, 913970',
-        },
-        CR: {
-            regex: /^\d{5}$/,
-            samples: '28256, 52484, 30608, 93524',
-        },
-        CU: {
-            regex: /^(?:CP)?(\d{5})$/,
-            samples: '28256, 52484, 30608, 93524',
-        },
-        CV: {
-            regex: /^\d{4}$/,
-            samples: '9056, 8085, 0491, 4627',
-        },
-        CW: {},
-        CX: {
-            regex: /^6798$/,
-            samples: '6798',
-        },
-        CY: {
-            regex: /^\d{4}$/,
-            samples: '9301, 2478, 1981, 6162',
-        },
-        CZ: {
-            regex: /^\d{3} ?\d{2}$/,
-            samples: '150 56, 50694, 229 08, 82811',
-        },
-        DE: {
-            regex: /^\d{5}$/,
-            samples: '33185, 37198, 81711, 44262',
-        },
-        DJ: {},
-        DK: {
-            regex: /^\d{4}$/,
-            samples: '1429, 2457, 0637, 5764',
-        },
-        DM: {},
-        DO: {
-            regex: /^\d{5}$/,
-            samples: '11877, 95773, 93875, 98032',
-        },
-        DZ: {
-            regex: /^\d{5}$/,
-            samples: '26581, 64621, 57550, 72201',
-        },
-        EC: {
-            regex: /^\d{6}$/,
-            samples: '541124, 873848, 011495, 334509',
-        },
-        EE: {
-            regex: /^\d{5}$/,
-            samples: '87173, 01127, 73214, 52381',
-        },
-        EG: {
-            regex: /^\d{5}$/,
-            samples: '98394, 05129, 91463, 77359',
-        },
-        EH: {
-            regex: /^\d{5}$/,
-            samples: '30577, 60264, 16487, 38593',
-        },
-        ER: {},
-        ES: {
-            regex: /^\d{5}$/,
-            samples: '03315, 00413, 23179, 89324',
-        },
-        ET: {
-            regex: /^\d{4}$/,
-            samples: '6269, 8498, 4514, 7820',
-        },
-        FI: {
-            regex: /^\d{5}$/,
-            samples: '21859, 72086, 22422, 03774',
-        },
-        FJ: {},
-        FK: {
-            regex: /^FIQQ 1ZZ$/,
-            samples: 'FIQQ 1ZZ',
-        },
-        FM: {
-            regex: /^(9694[1-4])(?:[ -](\d{4}))?$/,
-            samples: '96942-9352, 96944-4935, 96941 9065, 96943-5369',
-        },
-        FO: {
-            regex: /^\d{3}$/,
-            samples: '334, 068, 741, 787',
-        },
-        FR: {
-            regex: /^\d{2} ?\d{3}$/,
-            samples: '25822, 53 637, 55354, 82522',
-        },
-        GA: {},
-        GB: {
-            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*([0-9][ABD-HJLNP-UW-Z]{2})?$/,
-            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH, W1U',
-        },
-        GD: {},
-        GE: {
-            regex: /^\d{4}$/,
-            samples: '1232, 9831, 4717, 9428',
-        },
-        GF: {
-            regex: /^9[78]3\d{2}$/,
-            samples: '98380, 97335, 98344, 97300',
-        },
-        GG: {
-            regex: /^GY\d[\dA-Z]? ?\d[ABD-HJLN-UW-Z]{2}$/,
-            samples: 'GY757LD, GY6D 6XL, GY3Y2BU, GY85 1YO',
-        },
-        GH: {},
-        GI: {
-            regex: /^GX11 1AA$/,
-            samples: 'GX11 1AA',
-        },
-        GL: {
-            regex: /^39\d{2}$/,
-            samples: '3964, 3915, 3963, 3956',
-        },
-        GM: {},
-        GN: {
-            regex: /^\d{3}$/,
-            samples: '465, 994, 333, 078',
-        },
-        GP: {
-            regex: /^9[78][01]\d{2}$/,
-            samples: '98069, 97007, 97147, 97106',
-        },
-        GQ: {},
-        GR: {
-            regex: /^\d{3} ?\d{2}$/,
-            samples: '98654, 319 78, 127 09, 590 52',
-        },
-        GS: {
-            regex: /^SIQQ 1ZZ$/,
-            samples: 'SIQQ 1ZZ',
-        },
-        GT: {
-            regex: /^\d{5}$/,
-            samples: '30553, 69925, 09376, 83719',
-        },
-        GU: {
-            regex: /^((969)[1-3][0-2])$/,
-            samples: '96922, 96932, 96921, 96911',
-        },
-        GW: {
-            regex: /^\d{4}$/,
-            samples: '1742, 7941, 4437, 7728',
-        },
-        GY: {},
-        HK: {
-            regex: /^999077$|^$/,
-            samples: '999077',
-        },
-        HN: {
-            regex: /^\d{5}$/,
-            samples: '86238, 78999, 03594, 30406',
-        },
-        HR: {
-            regex: /^\d{5}$/,
-            samples: '85240, 80710, 78235, 98766',
-        },
-        HT: {
-            regex: /^(?:HT)?(\d{4})$/,
-            samples: '5101, HT6991, HT3871, 1126',
-        },
-        HU: {
-            regex: /^\d{4}$/,
-            samples: '0360, 2604, 3362, 4775',
-        },
-        ID: {
-            regex: /^\d{5}$/,
-            samples: '60993, 52656, 16521, 34931',
-        },
-        IE: {},
-        IL: {
-            regex: /^\d{5}(?:\d{2})?$/,
-            samples: '74213, 6978354, 2441689, 4971551',
-        },
-        IM: {
-            regex: /^IM\d[\dA-Z]? ?\d[ABD-HJLN-UW-Z]{2}$/,
-            samples: 'IM2X1JP, IM4V 9JU, IM3B1UP, IM8E 5XF',
-        },
-        IN: {
-            regex: /^\d{6}$/,
-            samples: '946956, 143659, 243258, 938385',
-        },
-        IO: {
-            regex: /^BBND 1ZZ$/,
-            samples: 'BBND 1ZZ',
-        },
-        IQ: {
-            regex: /^\d{5}$/,
-            samples: '63282, 87817, 38580, 47725',
-        },
-        IR: {
-            regex: /^\d{5}-?\d{5}$/,
-            samples: '0666174250, 6052682188, 02360-81920, 25102-08646',
-        },
-        IS: {
-            regex: /^\d{3}$/,
-            samples: '408, 013, 001, 936',
-        },
-        IT: {
-            regex: /^\d{5}$/,
-            samples: '31701, 61341, 92781, 45609',
-        },
-        JE: {
-            regex: /^JE\d[\dA-Z]? ?\d[ABD-HJLN-UW-Z]{2}$/,
-            samples: 'JE0D 2EX, JE59 2OF, JE1X1ZW, JE0V 1SO',
-        },
-        JM: {},
-        JO: {
-            regex: /^\d{5}$/,
-            samples: '20789, 02128, 52170, 40284',
-        },
-        JP: {
-            regex: /^\d{3}-?\d{4}$/,
-            samples: '5429642, 046-1544, 6463599, 368-5362',
-        },
-        KE: {
-            regex: /^\d{5}$/,
-            samples: '33043, 98830, 59324, 42876',
-        },
-        KG: {
-            regex: /^\d{6}$/,
-            samples: '500371, 176592, 184133, 225279',
-        },
-        KH: {
-            regex: /^\d{5,6}$/,
-            samples: '220281, 18824, 35379, 09570',
-        },
-        KI: {
-            regex: /^KI\d{4}$/,
-            samples: 'KI0104, KI0109, KI0112, KI0306',
-        },
-        KM: {},
-        KN: {
-            regex: /^KN\d{4}(-\d{4})?$/,
-            samples: 'KN2522, KN2560-3032, KN3507, KN4440',
-        },
-        KP: {},
-        KR: {
-            regex: /^\d{5}$/,
-            samples: '67417, 66648, 08359, 93750',
-        },
-        KW: {
-            regex: /^\d{5}$/,
-            samples: '74840, 53309, 71276, 59262',
-        },
-        KY: {
-            regex: /^KY\d-\d{4}$/,
-            samples: 'KY0-3078, KY1-7812, KY8-3729, KY3-4664',
-        },
-        KZ: {
-            regex: /^\d{6}$/,
-            samples: '129113, 976562, 226811, 933781',
-        },
-        LA: {
-            regex: /^\d{5}$/,
-            samples: '08875, 50779, 87756, 75932',
-        },
-        LB: {
-            regex: /^(?:\d{4})(?: ?(?:\d{4}))?$/,
-            samples: '5436 1302, 9830 7470, 76911911, 9453 1306',
-        },
-        LC: {
-            regex: /^(LC)?\d{2} ?\d{3}$/,
-            samples: '21080, LC99127, LC24 258, 51 740',
-        },
-        LI: {
-            regex: /^\d{4}$/,
-            samples: '6644, 2852, 4630, 4541',
-        },
-        LK: {
-            regex: /^\d{5}$/,
-            samples: '44605, 27721, 90695, 65514',
-        },
-        LR: {
-            regex: /^\d{4}$/,
-            samples: '6644, 2852, 4630, 4541',
-        },
-        LS: {
-            regex: /^\d{3}$/,
-            samples: '779, 803, 104, 897',
-        },
-        LT: {
-            regex: /^((LT)[-])?(\d{5})$/,
-            samples: 'LT-22248, LT-12796, 69822, 37280',
-        },
-        LU: {
-            regex: /^((L)[-])?(\d{4})$/,
-            samples: '5469, L-4476, 6304, 9739',
-        },
-        LV: {
-            regex: /^((LV)[-])?\d{4}$/,
-            samples: '9344, LV-5030, LV-0132, 8097',
-        },
-        LY: {},
-        MA: {
-            regex: /^\d{5}$/,
-            samples: '50219, 95871, 80907, 79804',
-        },
-        MC: {
-            regex: /^980\d{2}$/,
-            samples: '98084, 98041, 98070, 98062',
-        },
-        MD: {
-            regex: /^(MD[-]?)?(\d{4})$/,
-            samples: '6250, MD-9681, MD3282, MD-0652',
-        },
-        ME: {
-            regex: /^\d{5}$/,
-            samples: '87622, 92688, 23129, 59566',
-        },
-        MF: {
-            regex: /^9[78][01]\d{2}$/,
-            samples: '97169, 98180, 98067, 98043',
-        },
-        MG: {
-            regex: /^\d{3}$/,
-            samples: '854, 084, 524, 064',
-        },
-        MH: {
-            regex: /^((969)[6-7][0-9])(-\d{4})?/,
-            samples: '96962, 96969, 96970-8530, 96960-3226',
-        },
-        MK: {
-            regex: /^\d{4}$/,
-            samples: '8299, 6904, 6144, 9753',
-        },
-        ML: {},
-        MM: {
-            regex: /^\d{5}$/,
-            samples: '59188, 93943, 40829, 69981',
-        },
-        MN: {
-            regex: /^\d{5}$/,
-            samples: '94129, 29906, 53374, 80141',
-        },
-        MO: {},
-        MP: {
-            regex: /^(9695[012])(?:[ -](\d{4}))?$/,
-            samples: '96952 3162, 96950 1567, 96951 2994, 96950 8745',
-        },
-        MQ: {
-            regex: /^9[78]2\d{2}$/,
-            samples: '98297, 97273, 97261, 98282',
-        },
-        MR: {},
-        MS: {
-            regex: /^[Mm][Ss][Rr]\s{0,1}\d{4}$/,
-            samples: 'MSR1110, MSR1230, MSR1250, MSR1330',
-        },
-        MT: {
-            regex: /^[A-Z]{3} [0-9]{4}|[A-Z]{2}[0-9]{2}|[A-Z]{2} [0-9]{2}|[A-Z]{3}[0-9]{4}|[A-Z]{3}[0-9]{2}|[A-Z]{3} [0-9]{2}$/,
-            samples: 'DKV 8196, KSU9264, QII0259, HKH 1020',
-        },
-        MU: {
-            regex: /^([0-9A-R]\d{4})$/,
-            samples: 'H8310, 52591, M9826, F5810',
-        },
-        MV: {
-            regex: /^\d{5}$/,
-            samples: '16354, 20857, 50991, 72527',
-        },
-        MW: {},
-        MX: {
-            regex: /^\d{5}$/,
-            samples: '71530, 76424, 73811, 50503',
-        },
-        MY: {
-            regex: /^\d{5}$/,
-            samples: '75958, 15826, 86715, 37081',
-        },
-        MZ: {
-            regex: /^\d{4}$/,
-            samples: '0902, 6258, 7826, 7150',
-        },
-        NA: {
-            regex: /^\d{5}$/,
-            samples: '68338, 63392, 21820, 61211',
-        },
-        NC: {
-            regex: /^988\d{2}$/,
-            samples: '98865, 98813, 98820, 98855',
-        },
-        NE: {
-            regex: /^\d{4}$/,
-            samples: '9790, 3270, 2239, 0400',
-        },
-        NF: {
-            regex: /^2899$/,
-            samples: '2899',
-        },
-        NG: {
-            regex: /^\d{6}$/,
-            samples: '289096, 223817, 199970, 840648',
-        },
-        NI: {
-            regex: /^\d{5}$/,
-            samples: '86308, 60956, 49945, 15470',
-        },
-        NL: {
-            regex: /^\d{4} ?[A-Z]{2}$/,
-            samples: '6998 VY, 5390 CK, 2476 PS, 8873OX',
-        },
-        NO: {
-            regex: /^\d{4}$/,
-            samples: '0711, 4104, 2683, 5015',
-        },
-        NP: {
-            regex: /^\d{5}$/,
-            samples: '42438, 73964, 66400, 33976',
-        },
-        NR: {
-            regex: /^(NRU68)$/,
-            samples: 'NRU68',
-        },
-        NU: {
-            regex: /^(9974)$/,
-            samples: '9974',
-        },
-        NZ: {
-            regex: /^\d{4}$/,
-            samples: '7015, 0780, 4109, 1422',
-        },
-        OM: {
-            regex: /^(?:PC )?\d{3}$/,
-            samples: 'PC 851, PC 362, PC 598, PC 499',
-        },
-        PA: {
-            regex: /^\d{4}$/,
-            samples: '0711, 4104, 2683, 5015',
-        },
-        PE: {
-            regex: /^\d{5}$/,
-            samples: '10013, 12081, 14833, 24615',
-        },
-        PF: {
-            regex: /^987\d{2}$/,
-            samples: '98755, 98710, 98748, 98791',
-        },
-        PG: {
-            regex: /^\d{3}$/,
-            samples: '193, 166, 880, 553',
-        },
-        PH: {
-            regex: /^\d{4}$/,
-            samples: '0137, 8216, 2876, 0876',
-        },
-        PK: {
-            regex: /^\d{5}$/,
-            samples: '78219, 84497, 62102, 12564',
-        },
-        PL: {
-            regex: /^\d{2}-\d{3}$/,
-            samples: '63-825, 26-714, 05-505, 15-200',
-        },
-        PM: {
-            regex: /^(97500)$/,
-            samples: '97500',
-        },
-        PN: {
-            regex: /^PCRN 1ZZ$/,
-            samples: 'PCRN 1ZZ',
-        },
-        PR: {
-            regex: /^(00[679]\d{2})(?:[ -](\d{4}))?$/,
-            samples: '00989 3603, 00639 0720, 00707-9803, 00610 7362',
-        },
-        PS: {
-            regex: /^(00[679]\d{2})(?:[ -](\d{4}))?$/,
-            samples: '00748, 00663, 00779-4433, 00934 1559',
-        },
-        PT: {
-            regex: /^\d{4}-\d{3}$/,
-            samples: '0060-917, 4391-979, 5551-657, 9961-093',
-        },
-        PW: {
-            regex: /^(969(?:39|40))(?:[ -](\d{4}))?$/,
-            samples: '96940, 96939, 96939 6004, 96940-1871',
-        },
-        PY: {
-            regex: /^\d{4}$/,
-            samples: '7895, 5835, 8783, 5887',
-        },
-        QA: {},
-        RE: {
-            regex: /^9[78]4\d{2}$/,
-            samples: '98445, 97404, 98421, 98434',
-        },
-        RO: {
-            regex: /^\d{6}$/,
-            samples: '935929, 407608, 637434, 174574',
-        },
-        RS: {
-            regex: /^\d{5,6}$/,
-            samples: '929863, 259131, 687739, 07011',
-        },
-        RU: {
-            regex: /^\d{6}$/,
-            samples: '138294, 617323, 307906, 981238',
-        },
-        RW: {},
-        SA: {
-            regex: /^\d{5}(-{1}\d{4})?$/,
-            samples: '86020-1256, 72375, 70280, 96328',
-        },
-        SB: {},
-        SC: {},
-        SD: {
-            regex: /^\d{5}$/,
-            samples: '78219, 84497, 62102, 12564',
-        },
-        SE: {
-            regex: /^\d{3} ?\d{2}$/,
-            samples: '095 39, 41052, 84687, 563 66',
-        },
-        SG: {
-            regex: /^\d{6}$/,
-            samples: '606542, 233985, 036755, 265255',
-        },
-        SH: {
-            regex: /^(?:ASCN|TDCU|STHL) 1ZZ$/,
-            samples: 'STHL 1ZZ, ASCN 1ZZ, TDCU 1ZZ',
-        },
-        SI: {
-            regex: /^\d{4}$/,
-            samples: '6898, 3413, 2031, 5732',
-        },
-        SJ: {
-            regex: /^\d{4}$/,
-            samples: '7616, 3163, 5769, 0237',
-        },
-        SK: {
-            regex: /^\d{3} ?\d{2}$/,
-            samples: '594 52, 813 34, 867 67, 41814',
-        },
-        SL: {},
-        SM: {
-            regex: /^4789\d$/,
-            samples: '47894, 47895, 47893, 47899',
-        },
-        SN: {
-            regex: /^[1-8]\d{4}$/,
-            samples: '48336, 23224, 33261, 82430',
-        },
-        SO: {},
-        SR: {},
-        SS: {
-            regex: /^[A-Z]{2} ?\d{5}$/,
-            samples: 'JQ 80186, CU 46474, DE33738, MS 59107',
-        },
-        ST: {},
-        SV: {},
-        SX: {},
-        SY: {},
-        SZ: {
-            regex: /^[HLMS]\d{3}$/,
-            samples: 'H458, L986, M477, S916',
-        },
-        TA: {
-            regex: /^TDCU 1ZZ$/,
-            samples: 'TDCU 1ZZ',
-        },
-        TC: {
-            regex: /^TKCA 1ZZ$/,
-            samples: 'TKCA 1ZZ',
-        },
-        TD: {},
-        TF: {},
-        TG: {},
-        TH: {
-            regex: /^\d{5}$/,
-            samples: '30706, 18695, 21044, 42496',
-        },
-        TJ: {
-            regex: /^\d{6}$/,
-            samples: '381098, 961344, 519925, 667883',
-        },
-        TK: {},
-        TL: {},
-        TM: {
-            regex: /^\d{6}$/,
-            samples: '544985, 164362, 425224, 374603',
-        },
-        TN: {
-            regex: /^\d{4}$/,
-            samples: '6075, 7340, 2574, 8988',
-        },
-        TO: {},
-        TR: {
-            regex: /^\d{5}$/,
-            samples: '42524, 81057, 50859, 42677',
-        },
-        TT: {
-            regex: /^\d{6}$/,
-            samples: '041238, 033990, 763476, 981118',
-        },
-        TV: {},
-        TW: {
-            regex: /^\d{3}(?:\d{2})?$/,
-            samples: '21577, 76068, 68698, 08912',
-        },
-        TZ: {},
-        UA: {
-            regex: /^\d{5}$/,
-            samples: '10629, 81138, 15668, 30055',
-        },
-        UG: {},
-        UM: {},
-        US: {
-            regex: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
-            samples: '12345, 12345-1234, 12345 1234',
-        },
-        UY: {
-            regex: /^\d{5}$/,
-            samples: '40073, 30136, 06583, 00021',
-        },
-        UZ: {
-            regex: /^\d{6}$/,
-            samples: '205122, 219713, 441699, 287471',
-        },
-        VA: {
-            regex: /^(00120)$/,
-            samples: '00120',
-        },
-        VC: {
-            regex: /^VC\d{4}$/,
-            samples: 'VC0600, VC0176, VC0616, VC4094',
-        },
-        VE: {
-            regex: /^\d{4}$/,
-            samples: '9692, 1953, 6680, 8302',
-        },
-        VG: {
-            regex: /^VG\d{4}$/,
-            samples: 'VG1204, VG7387, VG3431, VG6021',
-        },
-        VI: {
-            regex: /^(008(?:(?:[0-4]\d)|(?:5[01])))(?:[ -](\d{4}))?$/,
-            samples: '00820, 00804 2036, 00825 3344, 00811-5900',
-        },
-        VN: {
-            regex: /^\d{6}$/,
-            samples: '133836, 748243, 894060, 020597',
-        },
-        VU: {},
-        WF: {
-            regex: /^986\d{2}$/,
-            samples: '98692, 98697, 98698, 98671',
-        },
-        WS: {
-            regex: /^WS[1-2]\d{3}$/,
-            samples: 'WS1349, WS2798, WS1751, WS2090',
-        },
-        XK: {
-            regex: /^[1-7]\d{4}$/,
-            samples: '56509, 15863, 46644, 21896',
-        },
-        YE: {},
-        YT: {
-            regex: /^976\d{2}$/,
-            samples: '97698, 97697, 97632, 97609',
-        },
-        ZA: {
-            regex: /^\d{4}$/,
-            samples: '6855, 5179, 6956, 7147',
-        },
-        ZM: {
-            regex: /^\d{5}$/,
-            samples: '77603, 97367, 80454, 94484',
-        },
-        ZW: {},
-    },
-
-    GENERIC_ZIP_CODE_REGEX: /^(?:(?![\s-])[\w -]{0,9}[\w])?$/,
 
     // Values for checking if polyfill is required on a platform
     POLYFILL_TEST: {
@@ -8633,6 +7850,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             autoApproveCompliantReports: {
                 id: 'autoApproveCompliantReports' as const,
@@ -8641,6 +7859,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             autoPayApprovedReports: {
                 id: 'autoPayApprovedReports' as const,
@@ -8649,6 +7868,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             categories: {
                 id: 'categories' as const,
@@ -8754,6 +7974,7 @@ const CONST = {
                 title: 'workspace.upgrade.rules.title' as const,
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
                 id: 'perDiem' as const,
@@ -8762,6 +7983,7 @@ const CONST = {
                 title: 'workspace.upgrade.perDiem.title' as const,
                 description: 'workspace.upgrade.perDiem.description' as const,
                 icon: 'PerDiem',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             hr: {
                 id: 'hr' as const,
@@ -8770,6 +7992,7 @@ const CONST = {
                 title: 'workspace.upgrade.hr.title' as const,
                 description: 'workspace.upgrade.hr.description' as const,
                 icon: 'Members',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             travel: {
                 id: 'travel' as const,
@@ -9176,7 +8399,9 @@ const CONST = {
         INVOICE: 'invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
-    SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    ACCOUNT_EXECUTIVE_LOGIN: 'Account Executive',
+    // Legacy fallback login kept so personal details persisted in Onyx before the "Setup Specialist" → "Account Executive" rename are still excluded after users upgrade
+    ACCOUNT_EXECUTIVE_LEGACY_LOGIN: 'Setup Specialist',
 
     CALENDAR_PICKER_DAY_HEIGHT: 45,
     MAX_CALENDAR_PICKER_ROWS: 6,
@@ -9247,6 +8472,9 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        HIGH_CONTRAST_MODE_SWITCHER: {
+            TOGGLE: 'HighContrastModeSwitcher-Toggle',
         },
         AGENTS_WORKFLOWS_BANNER: {
             DISMISS: 'AgentsWorkflowsBanner-Dismiss',
@@ -9391,6 +8619,7 @@ const CONST = {
             TRANSACTION_LIST_ITEM_CHECKBOX: 'Search-TransactionListItemCheckbox',
             EXPANDED_TRANSACTION_ROW: 'Search-ExpandedTransactionRow',
             EXPANDED_TRANSACTION_ROW_CHECKBOX: 'Search-ExpandedTransactionRowCheckbox',
+            SIDEBAR_TOGGLE: 'Search-SidebarToggle',
             TYPE_MENU_ITEM: 'Search-TypeMenuItem',
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             ADVANCED_FILTER_ITEM: 'Search-AdvancedFilterItem',
@@ -9734,6 +8963,7 @@ const CONST = {
             APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
+            COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL: 'WorkspaceCopySettings-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',

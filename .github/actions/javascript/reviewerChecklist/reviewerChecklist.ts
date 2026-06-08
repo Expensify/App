@@ -8,6 +8,12 @@ const reviewerChecklistContains = '# Reviewer Checklist';
 const issue: number = github.context.payload.issue?.number ?? github.context.payload.pull_request?.number ?? -1;
 const combinedComments: string[] = [];
 
+// Org members and owners are internal Expensify engineers; external contributors (including C+) are not.
+const INTERNAL_EXPENSIFY_ASSOCIATIONS = new Set(['MEMBER', 'OWNER']);
+
+// A reviewer's standing is their latest review in one of these states; plain "commented" reviews don't change it.
+const DECISIVE_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
+
 function getNumberOfItemsFromReviewerChecklist() {
     console.log('Getting the number of items in the reviewer checklist...');
     return new Promise<number>((resolve, reject) => {
@@ -87,8 +93,47 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
         });
 }
 
-getNumberOfItemsFromReviewerChecklist()
-    .then(checkIssueForCompletedChecklist)
+// An approval from an internal Expensify engineer means we've decided this PR doesn't need a C+ checklist, so let the check pass.
+// This workflow re-runs on every pull_request_review event, so we scan the whole review history: once an internal approval
+// stands, a later "commented" or "changes requested" review from anyone must not re-require the checklist.
+async function hasStandingInternalApproval(): Promise<boolean> {
+    const {owner, repo} = github.context.repo;
+    const reviews = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listReviews, {
+        owner,
+        repo,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        pull_number: issue,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    });
+
+    // GitHub treats a reviewer's latest decisive review as their standing, so keep only that per internal engineer.
+    const latestStateByInternalReviewer = new Map<string, string>();
+    for (const review of reviews) {
+        const login = review.user?.login;
+        const state = review.state ?? '';
+        if (!login || !INTERNAL_EXPENSIFY_ASSOCIATIONS.has(review.author_association ?? '') || !DECISIVE_REVIEW_STATES.has(state)) {
+            continue;
+        }
+        latestStateByInternalReviewer.set(login, state);
+    }
+
+    for (const state of latestStateByInternalReviewer.values()) {
+        if (state === 'APPROVED') {
+            return true;
+        }
+    }
+    return false;
+}
+
+hasStandingInternalApproval()
+    .then((isApproved) => {
+        if (isApproved) {
+            console.log('PR has a standing approval from an internal Expensify engineer, so the reviewer checklist is not required 🎉');
+            return;
+        }
+        return getNumberOfItemsFromReviewerChecklist().then(checkIssueForCompletedChecklist);
+    })
     .catch((err: string | Error) => {
         console.error(err);
         core.setFailed(err);
