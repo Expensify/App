@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,11 +45,17 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
+function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
+    const {processedData: filteredAndSortedData, activeSearchString, listProps, listRef, shouldUseNarrowTableLayout, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+
+    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
+    });
 
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
@@ -78,16 +85,18 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
 
     return (
         <View
-            style={styles.flex1}
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            style={[styles.flex1, styles.mnh0, style]}
             {...props}
         >
             <FlashList<T>
+                ref={listRef}
                 data={filteredAndSortedData}
+                style={[styles.flex1, styles.mnh0]}
+                showsVerticalScrollIndicator={false}
+                maintainVisibleContentPosition={{disabled: true}}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
+                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restListProps}
             />
         </View>

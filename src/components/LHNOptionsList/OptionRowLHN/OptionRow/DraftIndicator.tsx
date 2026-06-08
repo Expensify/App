@@ -8,7 +8,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 type DraftIndicatorProps = {
+    /** Whether the report has an unsent draft comment. Required for the pencil icon to render. */
     hasDraftComment: boolean;
+
+    /** Whether the current user can comment in the report. The icon is hidden in read-only rows even when a draft exists. */
     isAllowedToComment: boolean | null | undefined;
 };
 

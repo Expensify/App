@@ -27,7 +27,7 @@ To comply with financial regulations, the following documents are needed:
 
 * Government-issued photo ID
 * Utility bill or bank statement (for proof of address)
-* File types: PDF, PNG, JPEG
+* File types: PDF, PNG, JPEG (each file must be 2 MB or less)
 
 ---
 
@@ -57,7 +57,7 @@ To comply with financial regulations, the following documents are needed:
 4. **Add Director Information**: Expensify must verify that the signer is a Director or Senior Officer.
    - If **you are** a Director/Senior Officer:
      - Provide your full legal name, address, and ID.
-     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
+     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only, 2 MB max per file).
    - If **you are not** a Director/Senior Officer:
      - Enter details for someone who is.
      - Expensify will send a message to the Director/Senior Officer outlining what's required.

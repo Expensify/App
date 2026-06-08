@@ -60,10 +60,7 @@ const renderWorkspacePageWithSections = (props = {}) => {
 
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <WorkspacePageWithSections
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            >
+            <WorkspacePageWithSections {...defaultProps}>
                 <View />
             </WorkspacePageWithSections>
         </ComposeProviders>,

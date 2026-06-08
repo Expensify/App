@@ -4,9 +4,9 @@ import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {setSidebarLoaded} from '@libs/actions/App';
+import {subscribeToUserEvents} from '@libs/actions/User';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
-import {setSidebarLoaded} from '@userActions/App';
-import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -229,57 +229,56 @@ async function signInAndGetApp(): Promise<void> {
     subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
     await waitForBatchedUpdates();
 
-    await act(async () => {
-        await Promise.all([
-            Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
-            // Simulate setting an unread report and personal details
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                reportID: REPORT_ID,
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                lastMessageText: 'Test',
-                participants: {
-                    [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-                lastActorAccountID: USER_B_ACCOUNT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-            }),
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
-            }),
+    await Promise.all([
+        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
+        // Simulate setting an unread report and personal details
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            reportID: REPORT_ID,
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+            lastMessageText: 'Test',
+            lastReadTime: format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING),
+            participants: {
+                [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            lastActorAccountID: USER_B_ACCOUNT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+        }),
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+        }),
 
-            // Setup a 2nd report to test comment linking.
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${COMMENT_LINKING_REPORT_ID}`, {
-                reportID: COMMENT_LINKING_REPORT_ID,
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                lastMessageText: 'Test',
-                participants: {[USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
-                lastActorAccountID: USER_A_ACCOUNT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-            }),
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${COMMENT_LINKING_REPORT_ID}`, {
-                '100': buildCreatedAction('100', format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING)),
-                '101': {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
-                    created: format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING),
-                    message: [
-                        {
-                            type: 'COMMENT',
-                            html: '<a href="https://dev.new.expensify.com:8082/r/1/5">Link 1</a>',
-                            text: 'Link 1',
-                        },
-                    ],
-                    reportActionID: '101',
-                    actorAccountID: USER_A_ACCOUNT_ID,
-                },
-            }),
-        ]);
+        // Setup a 2nd report to test comment linking.
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${COMMENT_LINKING_REPORT_ID}`, {
+            reportID: COMMENT_LINKING_REPORT_ID,
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+            lastMessageText: 'Test',
+            lastReadTime: format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING),
+            participants: {[USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            lastActorAccountID: USER_A_ACCOUNT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+        }),
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${COMMENT_LINKING_REPORT_ID}`, {
+            '100': buildCreatedAction('100', format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING)),
+            '101': {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
+                created: format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '<a href="https://dev.new.expensify.com:8082/r/1/5">Link 1</a>',
+                        text: 'Link 1',
+                    },
+                ],
+                reportActionID: '101',
+                actorAccountID: USER_A_ACCOUNT_ID,
+            },
+        }),
+    ]);
 
-        // Manually mark the sidebar as loaded since onLayout does not fire in tests.
-        setSidebarLoaded();
-    });
-
+    // Manually mark the sidebar as loaded since onLayout does not fire in tests.
+    setSidebarLoaded();
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -381,6 +380,9 @@ describe('Pagination', () => {
         mockGetNewerActions(0);
 
         // There is 1 extra call here because of the comment linking report.
+
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
@@ -392,12 +394,12 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
+        // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
+        expect(getReportActions()).toHaveLength(10);
+
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
-
-        // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
-        expect(getReportActions()).toHaveLength(10);
 
         scrollToOffset(500);
         await waitForBatchedUpdatesWithAct();
@@ -409,7 +411,7 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
-        // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
+        // We still have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
     });
 });

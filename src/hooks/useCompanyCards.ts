@@ -207,4 +207,4 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
 }
 
 export default useCompanyCards;
-export type {CompanyCardEntry, UseCompanyCardsResult};
+export type {UseCompanyCardsResult};

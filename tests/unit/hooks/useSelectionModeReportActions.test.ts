@@ -138,13 +138,17 @@ jest.mock('@components/KYCWall/KYCWallContext', () => ({
 
 jest.mock('@components/Search/SearchContext', () => ({
     __esModule: true,
-    useSearchStateContext: jest.fn(() => ({
+    useSearchQueryContext: jest.fn(() => ({
         currentSearchQueryJSON: null,
         currentSearchKey: '',
+    })),
+    useSearchResultsContext: jest.fn(() => ({
         currentSearchResults: null,
+    })),
+    useSearchSelectionContext: jest.fn(() => ({
         selectedTransactionIDs: [],
     })),
-    useSearchActionsContext: jest.fn(() => ({
+    useSearchSelectionActions: jest.fn(() => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         setSelectedTransactions: jest.fn(),
     })),
@@ -231,6 +235,8 @@ jest.mock('@libs/PaymentUtils', () => ({
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     hasAnyPendingRTERViolation: jest.fn(() => false),
+    hasOnlyPendingCardTransactions: jest.fn(() => false),
+    showPendingCardTransactionsBlockModal: jest.fn(),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),

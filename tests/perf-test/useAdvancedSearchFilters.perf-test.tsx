@@ -31,6 +31,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getTopmostReportId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({

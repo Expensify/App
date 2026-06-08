@@ -38,7 +38,7 @@ When this setting is turned on, expenses must include a **tag** or **category** 
 
 # Default Spend Categories
 
-Expensify learns how you categorize expenses by merchant and automatically applies those preferences going forward. You can always update or override a category, and Expensify will learn your changes over time.
+Expensify can automatically assign categories based on the merchant's MCC (Merchant Category Code). For example, airline expenses can default to a "Flights" category. Expensify also learns how you categorize expenses by merchant and applies those preferences going forward. You can always update or override a category, and Expensify will learn your changes over time.
 
 ## Manage Default Spend Categories
 

@@ -1,7 +1,7 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useDeferredValue, useEffect, useEffectEvent, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,11 +15,12 @@ import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,7 +32,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
 import {
@@ -57,7 +57,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
-import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {getCreated, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -86,10 +86,8 @@ function MoneyRequestReportPreviewContent({
     chatReportID,
     action,
     containerStyles,
-    contextMenuAnchor,
     isHovered = false,
     isWhisper = false,
-    checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     chatReport,
@@ -104,12 +102,12 @@ function MoneyRequestReportPreviewContent({
     onWrapperLayout,
     currentWidth,
     reportPreviewStyles,
-    shouldDisplayContextMenu = true,
     shouldShowBorder = false,
     onPress,
     forwardedFSClass,
-    originalReportID,
 }: MoneyRequestReportPreviewContentProps) {
+    const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
+    const {checkIfContextMenuActive} = useShowContextMenuActions();
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
     const [chatReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`);
 
@@ -162,7 +160,7 @@ function MoneyRequestReportPreviewContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -187,7 +185,7 @@ function MoneyRequestReportPreviewContent({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
 
     const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean) => {
         setRequestType(holdRequestType as ActionHandledType);
@@ -359,11 +357,16 @@ function MoneyRequestReportPreviewContent({
         if (shouldShowAccessPlaceHolder) {
             return [];
         }
-        const sorted = [...transactions].sort((a, b) =>
-            compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, iouReport, policy),
-        );
+        const sorted = [...transactions].sort((a, b) => {
+            const rbrComparison = compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, iouReport, policy);
+            if (rbrComparison !== 0) {
+                return rbrComparison;
+            }
+            // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
+            return localeCompare(getCreated(a), getCreated(b));
+        });
         return sorted.slice(0, 11);
-    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy]);
+    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy, localeCompare]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -411,10 +414,7 @@ function MoneyRequestReportPreviewContent({
         carouselTransactionsRef.current = carouselTransactions;
     }, [carouselTransactions]);
 
-    const isFocused = useIsFocused();
-    const getIsFocused = useEffectEvent(() => {
-        return isFocused;
-    });
+    const isFocusedRef = useIsFocusedRef();
 
     useEffect(() => {
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
@@ -424,7 +424,7 @@ function MoneyRequestReportPreviewContent({
         }
         const newTransaction = carouselTransactions.at(index);
         setTimeout(() => {
-            if (!getIsFocused()) {
+            if (!isFocusedRef.current) {
                 return;
             }
 
@@ -439,7 +439,7 @@ function MoneyRequestReportPreviewContent({
                 viewOffset: -2 * styles.gap2.gap,
                 animated: true,
             });
-        }, CONST.ANIMATED_TRANSITION);
+        }, CONST.PENDING_TRANSACTION_SCROLL_DELAY);
 
         // We only want to scroll to a new transaction when the set of new transaction IDs changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -635,7 +635,7 @@ function MoneyRequestReportPreviewContent({
                             if (!shouldDisplayContextMenu) {
                                 return;
                             }
-                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                            showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
                         }}
                         shouldUseHapticsOnLongPress
                         style={[
@@ -777,7 +777,7 @@ function MoneyRequestReportPreviewContent({
                     !!iouReport &&
                     !!requestType &&
                     (() => {
-                        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
+                        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton, transactions);
                         return (
                             <ProcessMoneyReportHoldMenu
                                 nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}

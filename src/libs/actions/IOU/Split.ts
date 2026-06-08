@@ -66,8 +66,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags, getPolicyTagsData, getUserAccountID} from './index';
-import type {StartSplitBilActionParams} from './index';
+import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -108,6 +107,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
 };
 
 type CreateDistanceRequestInformation = {
@@ -128,12 +128,15 @@ type CreateDistanceRequestInformation = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
     shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
     shouldPlaySound?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
+    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -156,6 +159,34 @@ type CreateSplitsAndOnyxDataParams = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
+};
+
+type StartSplitBilActionParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    comment: string;
+    receipt: Receipt;
+    existingSplitChatReportID?: string;
+    billable?: boolean;
+    reimbursable?: boolean;
+    category: string | undefined;
+    tag: string | undefined;
+    currency: string;
+    taxCode: string;
+    taxAmount: number;
+    taxValue?: string;
+    shouldPlaySound?: boolean;
+    shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
 };
 
 type SplitBillActionsParams = {
@@ -186,6 +217,10 @@ type SplitBillActionsParams = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
+    // TODO: delegateAccountID will be made required in PR 11 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 /**
@@ -219,6 +254,9 @@ function splitBill({
     policyRecentlyUsedTags,
     betas,
     personalDetails,
+    shouldHandleNavigation = true,
+    shouldDeferForSearch = false,
+    delegateAccountID,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -250,6 +288,9 @@ function splitBill({
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        participantsPolicyTags: buildParticipantsPolicyTags(participants),
+        delegateAccountID,
     });
 
     const parameters: SplitBillParams = {
@@ -275,10 +316,21 @@ function splitBill({
     };
 
     playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
+    deferOrExecuteWrite(
+        () => {
+            API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
+        },
+        {
+            shouldDeferForSearch,
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        },
+    );
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+    if (shouldHandleNavigation) {
+        dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+    }
 
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
@@ -313,6 +365,9 @@ function splitBillAndOpenReport({
     policyRecentlyUsedCurrencies,
     betas,
     personalDetails,
+    shouldHandleNavigation = true,
+    shouldDeferForSearch = false,
+    delegateAccountID,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -344,6 +399,9 @@ function splitBillAndOpenReport({
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        participantsPolicyTags: buildParticipantsPolicyTags(participants),
+        delegateAccountID,
     });
 
     const parameters: SplitBillParams = {
@@ -369,10 +427,21 @@ function splitBillAndOpenReport({
     };
 
     playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
+    deferOrExecuteWrite(
+        () => {
+            API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
+        },
+        {
+            shouldDeferForSearch,
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        },
+    );
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
+    if (shouldHandleNavigation) {
+        dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
+    }
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
@@ -402,6 +471,8 @@ function startSplitBill({
     quickAction,
     policyRecentlyUsedCurrencies,
     participantsPolicyTags,
+    shouldHandleNavigation = true,
+    shouldDeferForSearch = false,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -428,6 +499,8 @@ function startSplitBill({
         },
     });
 
+    splitTransaction.iouRequestType = receipt?.source ? CONST.IOU.REQUEST_TYPE.SCAN : CONST.IOU.REQUEST_TYPE.MANUAL;
+
     const filename = splitTransaction.receipt?.filename;
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -440,6 +513,8 @@ function startSplitBill({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        delegateAccountIDParam: undefined,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -746,10 +821,21 @@ function startSplitBill({
         playSound(SOUNDS.DONE);
     }
 
-    API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
+    deferOrExecuteWrite(
+        () => {
+            API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
+        },
+        {
+            shouldDeferForSearch,
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        },
+    );
 
-    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, splitChatReport.reportID);
-    Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
+    if (shouldHandleNavigation) {
+        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, splitChatReport.reportID);
+        Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
+    }
     notifyNewAction(splitChatReport.reportID, undefined, true);
 
     // Return the split transactionID for testing purpose
@@ -967,13 +1053,16 @@ function completeSplitBill(
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
                 currentUserAccountID: sessionAccountID,
+                // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+                delegateAccountIDParam: undefined,
             });
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
+            // delegateAccountID: will be threaded in PR 11; buildOptimisticReportPreview falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, undefined, undefined);
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1009,6 +1098,8 @@ function completeSplitBill(
             },
             quickAction,
             personalDetails,
+            // delegateAccountID: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            delegateAccountID: undefined,
         });
 
         splits.push({
@@ -1072,15 +1163,17 @@ function completeSplitBill(
 /**
  * Sets the `splitShares` map that holds individual shares of a split bill
  */
-function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[]) {
+function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[], currentUserAccountID: number, isDraft = true) {
     if (!transaction) {
         return;
     }
 
+    const collectionKey = isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION;
+
     // For pending split distance requests, we don't want to set split shares to zero amount
     // instead we will reset it which would mean splitting the amount equally when the pending distance is resolved.
     if (isDistanceRequestTransactionUtils(transaction) && !amount) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares: null});
+        Onyx.merge(`${collectionKey}${transaction.transactionID}`, {splitShares: null});
         return;
     }
 
@@ -1089,20 +1182,20 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     // Create an array containing unique IDs of the current transaction participants and the new ones
     // The current userAccountID might not be included in newAccountIDs if this is called from the participants step using Global Create
     // If this is called from an existing group chat, it'll be included. So we manually add them to account for both cases.
-    const accountIDs = [...new Set<number>([getUserAccountID(), ...newAccountIDs, ...oldAccountIDs])];
+    const accountIDs = [...new Set<number>([currentUserAccountID, ...newAccountIDs, ...oldAccountIDs])];
 
     const splitShares: SplitShares = accountIDs.reduce((acc: SplitShares, accountID): SplitShares => {
         // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
         // In the case of going back to the participants page and removing a participant
         // a simple merge will have the previous participant still present in the splitShares object
         // So we manually set their entry to null
-        if (!newAccountIDs.includes(accountID) && accountID !== getUserAccountID()) {
+        if (!newAccountIDs.includes(accountID) && accountID !== currentUserAccountID) {
             acc[accountID] = null;
             return acc;
         }
 
-        const isPayer = accountID === getUserAccountID();
-        const participantsLength = newAccountIDs.includes(getUserAccountID()) ? newAccountIDs.length - 1 : newAccountIDs.length;
+        const isPayer = accountID === currentUserAccountID;
+        const participantsLength = newAccountIDs.includes(currentUserAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
         const splitAmount = calculateIOUAmount(participantsLength, amount, currency, isPayer);
         acc[accountID] = {
             amount: splitAmount,
@@ -1111,18 +1204,18 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
         return acc;
     }, {});
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
+    Onyx.merge(`${collectionKey}${transaction.transactionID}`, {splitShares});
 }
 
-function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount?: number, currency?: string) {
+function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount: number | undefined, currency: string | undefined, currentUserAccountID: number, isDraft = true) {
     if (!transaction) {
         return;
     }
     const accountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
-    if (!accountIDs) {
+    if (accountIDs.length === 0) {
         return;
     }
-    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs);
+    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, currentUserAccountID, isDraft);
 }
 
 function setDraftSplitTransaction(
@@ -1285,6 +1378,8 @@ function createSplitsAndOnyxData({
     policyRecentlyUsedCurrencies,
     betas,
     personalDetails,
+    participantsPolicyTags,
+    delegateAccountID,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1335,6 +1430,7 @@ function createSplitsAndOnyxData({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -1510,6 +1606,7 @@ function createSplitsAndOnyxData({
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
         const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
         const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
+        const participantPolicyTags = participant.policyID ? participantsPolicyTags?.[participant.policyID] : {};
 
         if (isPendingDistanceSplitBill) {
             const individualSplit = {
@@ -1646,6 +1743,7 @@ function createSplitsAndOnyxData({
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
                 currentUserAccountID,
+                delegateAccountIDParam: delegateAccountID,
             });
 
         // Add optimistic personal details for new participants
@@ -1671,7 +1769,7 @@ function createSplitsAndOnyxData({
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, undefined, delegateAccountID);
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
@@ -1680,8 +1778,7 @@ function createSplitsAndOnyxData({
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
             ? buildOptimisticPolicyRecentlyUsedTags({
-                  // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-                  policyTags: getPolicyTagsData(participant.policyID),
+                  policyTags: participantPolicyTags,
                   policyRecentlyUsedTags,
                   transactionTags: tag,
               })
@@ -1726,6 +1823,7 @@ function createSplitsAndOnyxData({
             hasViolations,
             quickAction,
             personalDetails,
+            delegateAccountID,
         });
 
         const individualSplit = {
@@ -1800,14 +1898,16 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         recentWaypoints = [],
         customUnitPolicyID,
         shouldHandleNavigation = true,
+        shouldDeferForSearch = false,
         shouldPlaySound: shouldPlaySoundParam = true,
         personalDetails,
         betas,
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
         previousOdometerDraft,
+        delegateAccountID,
     } = distanceRequestInformation;
-    const {policy, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+    const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
     const {
@@ -1834,6 +1934,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         odometerEnd,
         isFromGlobalCreate,
         gpsCoordinates,
+        distanceRequestType,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -1893,6 +1994,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            participantsPolicyTags: buildParticipantsPolicyTags(participants),
+            delegateAccountID,
         });
         onyxData = splitOnyxData;
 
@@ -1921,6 +2025,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             odometerStart,
             odometerEnd,
             gpsCoordinates,
+            distanceRequestType,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -1949,7 +2054,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyParams: {
                 policy,
                 policyCategories,
-                policyTagList: getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport: currentChatReport, participant}),
+                policyTagList,
                 policyRecentlyUsedCategories,
                 policyRecentlyUsedTags,
             },
@@ -1982,6 +2087,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             personalDetails,
             betas,
             optimisticReportPreviewActionID,
+            delegateAccountID,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -2035,6 +2141,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             description: parsedComment,
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             gpsCoordinates,
+            distanceRequestType,
             shouldDeferAutoSubmit,
         };
     }
@@ -2068,7 +2175,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     };
 
     deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+        shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
@@ -2077,8 +2184,14 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
     if (shouldHandleNavigation) {
+        const navigationActiveReportID = backToReport ?? activeReportID;
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
+        handleNavigateAfterExpenseCreate({
+            activeReportID: navigationActiveReportID,
+            isFromGlobalCreate,
+            transactionID: parameters.transactionID,
+            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
+        });
     }
 
     if (!isMoneyRequestReport) {
@@ -2091,6 +2204,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 export {
     completeSplitBill,
     createDistanceRequest,
+    createSplitsAndOnyxData,
     splitBill,
     splitBillAndOpenReport,
     startSplitBill,
@@ -2101,4 +2215,4 @@ export {
     resetSplitShares,
 };
 
-export type {CreateDistanceRequestInformation, SplitBillActionsParams};
+export type {CreateDistanceRequestInformation, StartSplitBilActionParams};

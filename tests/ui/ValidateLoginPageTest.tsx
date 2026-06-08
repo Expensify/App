@@ -4,7 +4,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
-import ValidateLoginPage from '@pages/ValidateLoginPage/index.website';
+import ValidateLoginPage from '@pages/ValidateLoginPage/index.web';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';

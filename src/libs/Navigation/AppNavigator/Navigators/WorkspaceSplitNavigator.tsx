@@ -4,6 +4,7 @@ import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -19,6 +20,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.WORKFLOWS]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default,
     [SCREENS.WORKSPACE.INVOICES]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default,
     [SCREENS.WORKSPACE.MEMBERS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceMembersPage').default,
+    [SCREENS.WORKSPACE.ROOMS]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
     [SCREENS.WORKSPACE.HR]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/WorkspaceHRPage').default,
     [SCREENS.WORKSPACE.CATEGORIES]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/WorkspaceCategoriesPage').default,
@@ -38,9 +40,20 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
+function hasNoEnterAnimationFlag(params: unknown): boolean {
+    return !!(params as {noEnterAnimation?: boolean} | undefined)?.noEnterAnimation;
+}
+
 function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const styles = useThemeStyles();
+
+    const buildSidebarScreenOptions = ({route: screenRoute}: {route: {params?: unknown}}) => {
+        if (hasNoEnterAnimationFlag(screenRoute.params)) {
+            return {...splitNavigatorScreenOptions.sidebarScreen, animation: Animations.NONE};
+        }
+        return splitNavigatorScreenOptions.sidebarScreen;
+    };
 
     return (
         <FocusTrapForScreens>
@@ -55,7 +68,7 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
                     <Split.Screen
                         name={SCREENS.WORKSPACE.INITIAL}
                         getComponent={loadWorkspaceInitialPage}
-                        options={splitNavigatorScreenOptions.sidebarScreen}
+                        options={buildSidebarScreenOptions}
                     />
                     {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
                         <Split.Screen

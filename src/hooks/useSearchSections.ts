@@ -1,30 +1,14 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {isReportPendingDelete, selectFilteredReportActions} from '@libs/ReportUtils';
+import type {OnyxEntry} from 'react-native-onyx';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useFilterPendingDeleteReports from './useFilterPendingDeleteReports';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-
-/**
- * Returns sorted keys of reports pending deletion.
- * Sorted string[] keeps Onyx comparison cheap (PERF-11).
- */
-const selectPendingDeleteReportKeys = (reports: OnyxCollection<Report>): string[] => {
-    const keys: string[] = [];
-    for (const [key, report] of Object.entries(reports ?? {})) {
-        if (isReportPendingDelete(report)) {
-            keys.push(key);
-        }
-    }
-    return keys.sort();
-};
 
 type UseSearchSectionsResult = {
     allReports: Array<string | undefined>;
@@ -35,20 +19,14 @@ type UseSearchSectionsResult = {
 function useSearchSections(): UseSearchSectionsResult {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
-    const [pendingDeleteReportKeys = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selectPendingDeleteReportKeys});
-    const pendingDeleteReportKeysSet = new Set(pendingDeleteReportKeys);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: selectFilteredReportActions,
-    });
-
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -71,27 +49,18 @@ function useSearchSections(): UseSearchSectionsResult {
             formatPhoneNumber,
             bankAccountList,
             groupBy,
-            reportActions: exportReportActions,
             currentSearch: searchKey,
             archivedReportsIDList: archivedReportsIdSet,
             isActionLoadingSet,
             cardFeeds,
-            allReportMetadata,
+            cardList: nonPersonalAndWorkspaceCards,
             conciergeReportID,
             convertToDisplayString,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
 
-    const allReports = results.filter((id) => {
-        if (!id) {
-            return false;
-        }
-        return !pendingDeleteReportKeysSet.has(`${ONYXKEYS.COLLECTION.REPORT}${id}`);
-    });
-
-    return {allReports, isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};
+    return {allReports: useFilterPendingDeleteReports(results), isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};
 }
 
-export {selectPendingDeleteReportKeys};
 export default useSearchSections;

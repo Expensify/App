@@ -17,6 +17,7 @@ import type {
     RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
+    ToggleMfaModalNavigatorWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
 
@@ -41,7 +42,7 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.TRANSACTION_RECEIPT,
     SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
     SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW,
-    SCREENS.PROFILE_AVATAR,
+    SCREENS.DYNAMIC_PROFILE_AVATAR,
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.WORKSPACE_DOCUMENT,
     SCREENS.REPORT_AVATAR,
@@ -50,6 +51,43 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
 ]);
 
 const screensWithEnteringAnimation = new Set<string>();
+
+// Bumped each time the workspace tab is collapsed to a freshly-created workspace so the tab route gets
+// a unique key and remounts (see handleReplaceFullscreenUnderRHP).
+let workspaceTabRevealKey = 0;
+
+// RN's deep-link initial-state hint keys, per `getStateFromParams` in
+// @react-navigation/core/src/useNavigationBuilder.tsx. Stripped only when `params.screen` is
+// set so legitimate user keys (e.g. `path`, `initial`) on non-hydrated routes survive.
+const STALE_DEEP_LINK_PARAM_KEYS = new Set(['state', 'screen', 'params', 'path', 'initial']);
+
+/** Removes the RN deep-link hint chain from `route.params` when triggered by `params.screen`. */
+function withSanitizedDeepLinkParams<R extends {params?: unknown}>(route: R, focusParams: Record<string, unknown> | undefined): R {
+    const rParamsRecord = route.params as Record<string, unknown> | undefined;
+
+    // RN stores nested deep-link instructions under params.screen/params.params.
+    const looksLikeDeepLinkInitialState = !!rParamsRecord && typeof rParamsRecord.screen === 'string';
+    const shouldSanitizeExistingParams = looksLikeDeepLinkInitialState && !!rParamsRecord;
+
+    // Remove only RN's hint keys; keep any real params that were stored next to them.
+    const sanitizedExistingParams = shouldSanitizeExistingParams ? Object.fromEntries(Object.entries(rParamsRecord).filter(([key]) => !STALE_DEEP_LINK_PARAM_KEYS.has(key))) : rParamsRecord;
+    const hasSanitizedExistingParams = !!sanitizedExistingParams && Object.keys(sanitizedExistingParams).length > 0;
+    const fallbackParams = hasSanitizedExistingParams ? sanitizedExistingParams : undefined;
+
+    // The new focused tab params win; otherwise keep the cleaned existing params.
+    const nextParams = focusParams ?? fallbackParams;
+
+    if (nextParams !== undefined) {
+        return {...route, params: nextParams};
+    }
+    if (looksLikeDeepLinkInitialState) {
+        // If params only contained stale RN hints, remove params entirely.
+        const routeWithoutParams = {...route};
+        delete (routeWithoutParams as {params?: unknown}).params;
+        return routeWithoutParams;
+    }
+    return {...route};
+}
 
 /**
  * Stores the original TAB_NAVIGATOR route before a tab-switch pre-insertion
@@ -144,6 +182,23 @@ function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialSt
             : // Partial states from linking should include `index`; fall back to first route.
               0;
     return navState.routes[idx] as NavigationPartialRoute;
+}
+
+/**
+ * Recursively tags a route and its focused-path descendants with `noEnterAnimation: true`, so each
+ * navigator along the focused path reads the flag synchronously and mounts with animation: NONE.
+ */
+function tagFocusedPathWithNoEnterAnimation<R extends {params?: unknown; state?: PartialState<NavigationState> | NavigationState | undefined}>(route: R): R {
+    const params = {...((route.params as Record<string, unknown> | undefined) ?? {}), noEnterAnimation: true};
+    const innerState = route.state as (PartialState<NavigationState> & {index?: number}) | NavigationState | undefined;
+    if (!innerState?.routes?.length) {
+        return {...route, params} as R;
+    }
+    const innerIdx = typeof innerState.index === 'number' && innerState.routes[innerState.index] !== undefined ? innerState.index : innerState.routes.length - 1;
+    const innerRoutes = innerState.routes.map((r, i) =>
+        i === innerIdx ? tagFocusedPathWithNoEnterAnimation(r as {params?: unknown; state?: PartialState<NavigationState> | NavigationState | undefined}) : r,
+    );
+    return {...route, params, state: {...innerState, routes: innerRoutes} as typeof route.state} as R;
 }
 
 /**
@@ -363,26 +418,54 @@ function handleReplaceFullscreenUnderRHP(
             if (i !== targetTabIndex) {
                 return r;
             }
-            // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
-            // it starts with a different screen, so back navigation from the new screen
-            // lands on the sidebar. When the existing tab doesn't have nested
-            // routes (e.g. cold-start through a deep link that opens straight into a modal),
-            // fall back to the split navigator's default sidebar route so there is still
-            // something to pop back to.
-            let mergedNestedState = focusedTargetTab.state;
-            const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
             const newNestedRoutes = focusedTargetTab.state?.routes;
-            const existingFirstRoute = existingNestedRoutes?.at(0);
-            const newFirstRoute = newNestedRoutes?.at(0);
-            const defaultSidebarRouteName = r.name in SPLIT_TO_SIDEBAR ? SPLIT_TO_SIDEBAR[r.name as keyof typeof SPLIT_TO_SIDEBAR] : undefined;
-            const sidebarRoute: NavigationPartialRoute | undefined = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
-            if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
-                const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
-                mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
+            let mergedNestedState = focusedTargetTab.state;
+            if (action.payload.collapseTabToLeaf) {
+                // Rebuild the tab's nested stack as [sidebar, leaf] so the dismissing modal reveals only the
+                // leaf and swipe-back lands on the sidebar (e.g. WorkspacesList). The leaf and its focused
+                // descendants are tagged with `noEnterAnimation` so the focused path mounts with animation: NONE.
+                const leafRoute = newNestedRoutes?.at(-1);
+                if (leafRoute && focusedTargetTab.state) {
+                    const taggedLeaf = tagFocusedPathWithNoEnterAnimation(leafRoute);
+                    const sidebarBackName = r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? SCREENS.WORKSPACES_LIST : undefined;
+                    const collapsedRoutes: NavigationPartialRoute[] = sidebarBackName ? [{name: sidebarBackName}, taggedLeaf] : [taggedLeaf];
+                    mergedNestedState = {...focusedTargetTab.state, routes: collapsedRoutes, index: collapsedRoutes.length - 1};
+                } else {
+                    Log.hmmm('[Navigation] handleReplace: collapseTabToLeaf set but leaf or state missing', {
+                        hasLeafRoute: !!leafRoute,
+                        hasFocusedTargetTabState: !!focusedTargetTab.state,
+                    });
+                }
+            } else {
+                // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
+                // it starts with a different screen, so back navigation from the new screen
+                // lands on the sidebar. When the existing tab doesn't have nested routes
+                // (e.g. cold-start through a deep link that opens straight into a modal), fall
+                // back to the split navigator's default sidebar route so there is still
+                // something to pop back to.
+                const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
+                const existingFirstRoute = existingNestedRoutes?.at(0);
+                const newFirstRoute = newNestedRoutes?.at(0);
+                const defaultSidebarRouteName = r.name in SPLIT_TO_SIDEBAR ? SPLIT_TO_SIDEBAR[r.name as keyof typeof SPLIT_TO_SIDEBAR] : undefined;
+                const sidebarRoute: NavigationPartialRoute | undefined = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
+                if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
+                    const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
+                    mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
+                }
+            }
+            // Strip any RN deep-link hint chain from `r.params`; otherwise RN would run a
+            // follow-up NAVIGATE from it and override the `state` we splice below.
+            const sanitizedRoute = withSanitizedDeepLinkParams(r, focusedTargetTab.params as Record<string, unknown> | undefined);
+            // A fresh key remounts the workspace tab so react-native-screens builds a new native view that is
+            // drawn before the RHP dismiss reveals it, instead of repainting the existing tree a frame late.
+            let remountKey: {key?: string} = {};
+            if (action.payload.collapseTabToLeaf) {
+                workspaceTabRevealKey += 1;
+                remountKey = {key: `${r.name}-${workspaceTabRevealKey}`};
             }
             return {
-                ...r,
-                ...(focusedTargetTab.params !== undefined ? {params: focusedTargetTab.params} : {}),
+                ...sanitizedRoute,
+                ...remountKey,
                 ...(mergedNestedState !== undefined ? {state: mergedNestedState as typeof r.state} : {}),
             };
         });
@@ -529,6 +612,30 @@ function handleToggleSidePanelWithHistoryAction(state: StackNavigationState<Para
     return state;
 }
 
+/**
+ * Push or pop the MFA modal navigator marker on the root history.
+ *
+ * Idempotent: appends only if the marker is not already on top; removes by filter so
+ * multiple removals are safe. useLinking mirrors these history changes to synthetic
+ * browser entries that share the underlying screen's URL, giving the overlay a
+ * back-button target without exposing it through routing.
+ */
+function handleToggleMfaModalNavigatorWithHistoryAction(state: StackNavigationState<ParamListBase>, action: ToggleMfaModalNavigatorWithHistoryActionType) {
+    if (!state?.history) {
+        return state;
+    }
+
+    if (action.payload.isVisible && state.history.at(-1) !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR) {
+        return {...state, history: [...state.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR]};
+    }
+
+    if (!action.payload.isVisible) {
+        return {...state, history: state.history.filter((entry) => entry !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR)};
+    }
+
+    return state;
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
@@ -540,6 +647,9 @@ export {
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
+    handleToggleMfaModalNavigatorWithHistoryAction,
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
+    // Exported for unit-test access; not used outside of testing.
+    withSanitizedDeepLinkParams,
 };

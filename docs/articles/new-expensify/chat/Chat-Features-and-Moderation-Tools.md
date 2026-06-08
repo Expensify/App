@@ -46,11 +46,17 @@ You can send messages, attach files, and add emojis from the message bar at the 
 
 # Edit or Delete Messages
 
-**To edit or delete a message:**
-
+**Desktop:**
 1. Open a chat.
 2. Right-click a message.
 3. Select **Edit comment** or **Delete comment**.
+4. If editing, modify the message inline and press **Enter** to save.
+
+**Mobile:**
+1. Open a chat.
+2. Long-press a message.
+3. Select **Edit comment** or **Delete comment**.
+4. If editing, the message text appears in the composer at the bottom of the screen. Edit the text and tap the **Send** icon to save.
 
 ✏️ **Note:** You can only edit or delete your own messages. Deleted messages are permanently removed.
 
@@ -97,10 +103,10 @@ You can invite others in three ways:
 
 # Leave a Chat Room
 
-**To remove a room from your inbox:**
+**To remove a chat room from your inbox:**
 
-1. Open the room.
-2. Click the 3-dot menu in the top right.
+1. Open the chat room.
+2. Click the chat room header.
 3. Select **Leave**.
 
 ---

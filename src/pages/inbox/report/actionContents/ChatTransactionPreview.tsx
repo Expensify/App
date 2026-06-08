@@ -21,9 +21,6 @@ type ChatTransactionPreviewProps = {
     /** The ID of the current report where the preview is rendered */
     reportID: string | undefined;
 
-    /** ID of the original report from which the given report action was first created */
-    originalReportID: string;
-
     /** The ID of the associated chat report, used when navigating to split bill details */
     chatReportID: string | undefined;
 
@@ -33,14 +30,11 @@ type ChatTransactionPreviewProps = {
     /** Whether the preview should navigate to the split bill details screen on press */
     shouldShowSplitPreview: boolean;
 
-    /** Whether the context menu should be shown on press */
-    shouldDisplayContextMenu: boolean;
-
     /** The ID of the transaction to preview */
     transactionID: string | undefined;
 };
 
-function ChatTransactionPreview({action, reportID, originalReportID, chatReportID, iouReport, shouldShowSplitPreview, shouldDisplayContextMenu, transactionID}: ChatTransactionPreviewProps) {
+function ChatTransactionPreview({action, reportID, chatReportID, iouReport, shouldShowSplitPreview, transactionID}: ChatTransactionPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -57,7 +51,6 @@ function ChatTransactionPreview({action, reportID, originalReportID, chatReportI
                 chatReportID={reportID}
                 reportID={reportID}
                 action={action}
-                shouldDisplayContextMenu={shouldDisplayContextMenu}
                 isBillSplit={isSplitBillAction(action)}
                 transactionID={transactionID}
                 containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, styles.mt1]}
@@ -70,7 +63,14 @@ function ChatTransactionPreview({action, reportID, originalReportID, chatReportI
 
                     // If no childReportID exists, create transaction thread on-demand
                     if (!action.childReportID) {
-                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, personalDetail.email ?? '', personalDetail.accountID, betas, iouReport, action);
+                        const createdTransactionThreadReport = createTransactionThreadReport({
+                            introSelected,
+                            currentUserLogin: personalDetail.email ?? '',
+                            currentUserAccountID: personalDetail.accountID,
+                            betas,
+                            iouReport,
+                            iouReportAction: action,
+                        });
                         if (createdTransactionThreadReport?.reportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
                             return;
@@ -81,7 +81,6 @@ function ChatTransactionPreview({action, reportID, originalReportID, chatReportI
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
                 }}
                 isTrackExpense={isTrackExpenseAction(action)}
-                originalReportID={originalReportID}
             />
         </View>
     );

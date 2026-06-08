@@ -371,7 +371,6 @@ export {
     getFakeReportAction,
     MockedSidebarLinks,
     getDefaultRenderedReportActionItemSingle,
-    MockedReportActionItemSingle,
     getFakeReportWithPolicy,
     getFakePolicy,
     getFakeAdvancedReportAction,

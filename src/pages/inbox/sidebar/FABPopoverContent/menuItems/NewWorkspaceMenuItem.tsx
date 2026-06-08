@@ -50,6 +50,7 @@ function NewWorkspaceMenuItem() {
             description={translate('workspace.new.getTheExpensifyCardAndMore')}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
             shouldCallAfterModalHide={shouldUseNarrowLayout}
+            shouldIgnoreCompactStyle
         />
     );
 }

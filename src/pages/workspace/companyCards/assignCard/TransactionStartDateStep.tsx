@@ -1,4 +1,4 @@
-import {format, subDays} from 'date-fns';
+import {format} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -57,12 +57,10 @@ function TransactionStartDateStep() {
             return;
         }
 
-        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
-
         setAssignCardStepAndData({
             cardToAssign: {
                 dateOption: dateOptionSelected,
-                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
+                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate,
             },
             isEditing: false,
         });

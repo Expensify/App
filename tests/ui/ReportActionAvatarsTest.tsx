@@ -276,7 +276,6 @@ const onyxState = {
 function renderAvatar(props: Parameters<typeof ReportActionAvatars>[0]) {
     return render(
         <OnyxListItemProvider>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <ReportActionAvatars {...props} />
         </OnyxListItemProvider>,
     );

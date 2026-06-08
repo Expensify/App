@@ -71,7 +71,7 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
             testID="WorkspaceTravelInvoicingSettlementFrequencyPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
+                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList<FrequencyItem>
@@ -81,7 +81,7 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
                 initiallyFocusedItemKey={currentFrequency}
                 customListHeaderContent={
                     <Text style={[styles.mh5, styles.mv3]}>
-                        {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyDescription')}
+                        {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyDescription')}
                     </Text>
                 }
             />

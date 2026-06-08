@@ -1,12 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getCurrency, isFetchingWaypointsFromServer, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type UseFooterDerivedFlagsParams = {
     /** Action being performed (create / edit / submit / etc.) */
@@ -33,12 +33,6 @@ type UseFooterDerivedFlagsParams = {
     /** Whether the active transaction is a distance request */
     isDistanceRequest: boolean;
 
-    /** Whether the active transaction is a manual distance request */
-    isManualDistanceRequest: boolean;
-
-    /** Whether the active transaction is an odometer-driven distance request */
-    isOdometerDistanceRequest: boolean;
-
     /** Whether the active transaction is a per-diem request */
     isPerDiemRequest: boolean;
 
@@ -61,8 +55,6 @@ function useFooterDerivedFlags({
     isPolicyExpenseChat,
     isReadOnly,
     isDistanceRequest,
-    isManualDistanceRequest,
-    isOdometerDistanceRequest,
     isPerDiemRequest,
     isTimeRequest,
     isTypeInvoice,
@@ -81,11 +73,6 @@ function useFooterDerivedFlags({
     const shouldShowTags = (isPolicyExpenseChat || isUnreported || isCreatingTrackExpense) && hasEnabledTags(policyTagLists);
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
-    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
-    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    const shouldShowMap =
-        isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && [hasErrors, hasPendingWaypoints, iouType !== CONST.IOU.TYPE.SPLIT, !isReadOnly].some(Boolean);
-
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited.
     // For distance requests, don't show the merchant as there's already another "Distance" menu item.
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
@@ -96,7 +83,7 @@ function useFooterDerivedFlags({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
 
     // A flag for showing the billable field
-    const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
+    const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
@@ -110,9 +97,6 @@ function useFooterDerivedFlags({
         isCreatingTrackExpense,
         shouldShowTags,
         shouldShowAttendees,
-        hasPendingWaypoints,
-        hasErrors,
-        shouldShowMap,
         shouldShowDate,
         canModifyTaxFields,
         shouldShowBillable,

@@ -1,22 +1,30 @@
-import lodashDebounce from 'lodash/debounce';
 import React, {useRef, useState} from 'react';
 import type {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
-import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
-import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useOnyx from '@hooks/useOnyx';
+import useOriginalReportID from '@hooks/useOriginalReportID';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
-import {setIsComposerFullSize} from '@userActions/Report';
+import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {ComposerActionsContext, ComposerMetaContext, ComposerSendActionsContext, ComposerSendStateContext, ComposerStateContext, ComposerTextContext} from './ComposerContext';
+import {
+    ComposerActionsContext,
+    ComposerEditActionsContext,
+    ComposerEditStateContext,
+    ComposerMetaContext,
+    ComposerSendStateContext,
+    ComposerStateContext,
+    ComposerTextContext,
+} from './ComposerContext';
 import type {SuggestionsRef} from './ComposerContext';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import useComposerFocus from './useComposerFocus';
+import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
+import useEditMessage from './useEditMessage';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
@@ -26,64 +34,77 @@ type ComposerProviderProps = {
 };
 
 function ComposerProvider({children, reportID}: ComposerProviderProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
-    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
-
-    const initialFocused = shouldFocusComposerOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
-
-    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
-    const [isMenuVisible, setMenuVisibility] = useState(false);
-
-    const [text, setText] = useState(() => {
-        return draftComment ?? '';
-    });
-
-    const isEmpty = !text || !!text.match(CONST.REGEX.EMPTY_COMMENT);
+    const initialFocused = shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
     const isBlockedFromConcierge = includesConcierge && userBlockedFromConcierge;
 
-    const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
-    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
-
-    let exceededMaxLength: number | null = null;
-    if (hasExceededMaxTaskTitleLength) {
-        exceededMaxLength = CONST.TITLE_CHARACTER_LIMIT;
-    } else if (hasExceededMaxCommentLength) {
-        exceededMaxLength = CONST.MAX_COMMENT_LENGTH;
-    }
-
-    const isSendDisabled = isEmpty || isBlockedFromConcierge || !!exceededMaxLength;
-
-    const validateMaxLength = (v: string) => {
-        const taskCommentMatch = v?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-        if (taskCommentMatch) {
-            const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
-            setHasExceededMaxCommentLength(false);
-            return validateTaskTitleMaxLength(title);
-        }
-        setHasExceededMaxTitleLength(false);
-        return validateCommentMaxLength(v, {reportID});
+    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
+    const [isMenuVisible, setMenuVisibility] = useState(false);
+    const getInitialText = () => {
+        return draftComment ?? '';
     };
+    const textRef = useRef<string>(getInitialText());
+    const [text, setTextState] = useState(getInitialText);
 
-    const debouncedValidate = lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true});
+    const setText = (v: string) => {
+        setTextState(v);
+        textRef.current = v;
+    };
 
     const containerRef = useRef<View>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef | null>(null);
+    const composerRef = useRef<ComposerWithSuggestionsRef | null>(null);
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
 
-    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
+    const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
 
-    const {isFocused, onBlur, onFocus, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, isNextModalWillOpenRef} = useComposerFocus({
+    const [didResetComposerHeightWhileEditing, setDidResetComposerHeightWhileEditing] = useState(false);
+
+    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeightWhileEditing;
+    const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
+
+    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({
+        reportID,
+        isEditing: !!editingReportAction,
+    });
+
+    // Prime the debounce so flush() returns a valid result for restored drafts.
+    // Initialize to true (skip) when there's no draft, false (run) when there is.
+    const [hasInitialValidationRun, setHasInitialValidationRun] = useState(!draftComment);
+    if (!hasInitialValidationRun && draftComment) {
+        setHasInitialValidationRun(true);
+        debouncedCommentMaxLengthValidation(draftComment);
+        debouncedCommentMaxLengthValidation.flush();
+    }
+
+    const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
+
+    const {publishDraft, deleteDraft} = useEditMessage({
+        reportID: editingReportID ?? undefined,
+        originalReportID,
+        reportAction: editingReportAction,
+        shouldScrollToLastMessage: false,
+        debouncedCommentMaxLengthValidation,
+        composerRef,
+    });
+
+    const isDraftCommentEmpty = !text || !!text.match(CONST.REGEX.EMPTY_COMMENT);
+    const isSubmittingDraftCommentDisabled = isBlockedFromConcierge || isExceedingMaxLength || isDraftCommentEmpty;
+    const isSendDisabled = !isEditingInComposer && isSubmittingDraftCommentDisabled;
+
+    const {isFocused, onBlur, onFocus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, isNextModalWillOpenRef} = useComposerFocus({
         composerRef,
         suggestionsRef,
         actionButtonRef,
@@ -98,53 +119,37 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         scheduleOnUI(clearWorklet);
     };
 
-    const handleSendMessage = () => {
-        if (isSendDisabled || !debouncedValidate.flush()) {
-            return;
-        }
-
-        composerRef.current?.resetHeight();
-        if (isComposerFullSize) {
-            setIsComposerFullSize(reportID, false);
-        }
-
-        scheduleOnUI(() => {
-            const {clearWorklet} = composerRefShared.get();
-
-            if (!clearWorklet) {
-                throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
-            }
-
-            clearWorklet?.();
-        });
-    };
-
-    const setComposerRef = (ref: ComposerRef | null) => {
+    const setComposerRef = (ref: ComposerWithSuggestionsRef | null) => {
         composerRef.current = ref;
-        composerRefShared.set({
-            clearWorklet: ref?.clearWorklet,
-        });
-    };
-
-    const onValueChange = (v: string) => {
-        setText(v);
-        if (v.length === 0 && isComposerFullSize) {
-            setIsComposerFullSize(reportID, false);
-        }
-        debouncedValidate(v);
     };
 
     const composerState = {
+        reportID,
         isFocused,
         isMenuVisible,
         isFullComposerAvailable,
     };
 
+    const composerEditState = {
+        editingState,
+        isEditingInComposer,
+        editingReportID,
+        editingReportActionID,
+        editingReportAction,
+        editingMessage,
+        draftComment,
+        effectiveDraft,
+        currentEditMessageSelection,
+        didResetComposerHeightWhileEditing,
+    };
+
     const composerSendState = {
         isSendDisabled,
+        debouncedCommentMaxLengthValidation,
+        isExceedingMaxLength,
         exceededMaxLength,
-        hasExceededMaxTaskTitleLength,
         isBlockedFromConcierge,
+        isTaskTitle,
     };
 
     const composerActions = {
@@ -152,7 +157,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         setMenuVisibility,
         setIsFullComposerAvailable,
         setComposerRef,
-        focus,
         onBlur,
         onFocus,
         onAddActionPressed,
@@ -161,9 +165,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         clearComposer,
     };
 
-    const composerSendActions = {
-        handleSendMessage,
-        onValueChange,
+    const composerEditActions = {
+        publishDraft,
+        deleteDraft,
+        setDidResetComposerHeightWhileEditing,
     };
 
     const composerMeta = {
@@ -173,17 +178,20 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         actionButtonRef,
         isNextModalWillOpenRef,
         attachmentFileRef,
+        textRef,
     };
 
     return (
         <ComposerTextContext.Provider value={text}>
             <ComposerStateContext.Provider value={composerState}>
                 <ComposerSendStateContext.Provider value={composerSendState}>
-                    <ComposerActionsContext.Provider value={composerActions}>
-                        <ComposerSendActionsContext.Provider value={composerSendActions}>
-                            <ComposerMetaContext.Provider value={composerMeta}>{children}</ComposerMetaContext.Provider>
-                        </ComposerSendActionsContext.Provider>
-                    </ComposerActionsContext.Provider>
+                    <ComposerEditStateContext.Provider value={composerEditState}>
+                        <ComposerActionsContext.Provider value={composerActions}>
+                            <ComposerEditActionsContext.Provider value={composerEditActions}>
+                                <ComposerMetaContext.Provider value={composerMeta}>{children}</ComposerMetaContext.Provider>
+                            </ComposerEditActionsContext.Provider>
+                        </ComposerActionsContext.Provider>
+                    </ComposerEditStateContext.Provider>
                 </ComposerSendStateContext.Provider>
             </ComposerStateContext.Provider>
         </ComposerTextContext.Provider>
@@ -191,4 +199,3 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 }
 
 export default ComposerProvider;
-export type {ComposerProviderProps};

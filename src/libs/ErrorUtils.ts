@@ -105,8 +105,18 @@ function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxDa
     if (isEmptyValueObject(errors)) {
         return {};
     }
+    // Receipt errors are handled separately by MoneyRequestReceiptView and DotIndicatorMessage
+    // and should never surface as a generic text error via this utility.
+    const filteredKeys = Object.keys(errors)
+        .filter((k) => !isReceiptError(errors[k]))
+        .sort()
+        .reverse();
 
-    const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    const key = filteredKeys.at(0) ?? '';
+    if (!key) {
+        return {};
+    }
+
     const currentLocale = IntlStore.getCurrentLocale();
 
     if (errors[key] === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
@@ -208,6 +218,9 @@ function addErrorMessage(errors: Errors, inputID?: string | null, message?: stri
  * Check if the error includes a receipt.
  */
 function isReceiptError(message: unknown): message is ReceiptError {
+    if (message == null) {
+        return false;
+    }
     if (typeof message === 'string') {
         return false;
     }

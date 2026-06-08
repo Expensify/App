@@ -65,6 +65,4 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
     );
 }
 
-FraudAlertContent.displayName = 'FraudAlertContent';
-
 export default FraudAlertContent;

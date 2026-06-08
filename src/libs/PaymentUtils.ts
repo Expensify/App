@@ -155,10 +155,18 @@ function isAccountData(data: unknown): data is AccountData {
 }
 
 /**
+ * Returns whether a payment method's bank currency matches the given currency.
+ * When no currency is provided, all methods are considered a match.
+ */
+function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
+    return !currency || ('bankCurrency' in method && method.bankCurrency === currency);
+}
+
+/**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[]): BusinessBankAccountOption[] {
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string): BusinessBankAccountOption[] {
     return formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
@@ -170,7 +178,8 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[])
                 accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
-                !isPartiallySetup
+                !isPartiallySetup &&
+                matchesCurrency(method, currency)
             );
         })
         .map((formattedPaymentMethod) => ({
@@ -189,6 +198,29 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
     const calculateFee = Math.ceil(currentBalance * (transferMethodTypeFeeStructure.RATE / 100));
     return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
 }
+
+/**
+ * Navigates the user to the appropriate account verification page based on the current route context.
+ */
+const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
+    const activeRoute = Navigation.getActiveRoute();
+    const reportID = iouReport?.reportID;
+    if (!reportID) {
+        // Technically possible but should never happen in real life
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        return;
+    }
+
+    if (activeRoute.includes(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else if (activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    }
+};
 
 /**
  * Determines the appropriate payment action based on user validation and policy restrictions.
@@ -217,7 +249,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         ownerBillingGracePeriodEnd,
         delegateEmail,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -340,6 +372,7 @@ export {
     getPaymentMethodDescription,
     formatPaymentMethods,
     getBusinessBankAccountOptions,
+    matchesCurrency,
     calculateWalletTransferBalanceFee,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
@@ -347,4 +380,4 @@ export {
     getActivePaymentType,
     getBankAccountLastFourDigits,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption, WorkspacePolicyPaymentOption};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, SelectPaymentTypeParams, WorkspacePolicyPaymentOption};

@@ -88,7 +88,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const personalDetails = listOptions?.personalDetails ?? [];
     useGroupChatDraftParticipantSync(personalDetails, !isLoading, allPersonalDetails, loginList, currentUserEmail, currentUserAccountID, selectedOptions, setSelectedOptions);
 
-    const defaultOptions = getValidOptions(
+    const {options: defaultOptions} = getValidOptions(
         {
             reports,
             personalDetails: personalDetails.concat(contacts),

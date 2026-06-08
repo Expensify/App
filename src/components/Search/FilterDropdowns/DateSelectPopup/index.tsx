@@ -241,5 +241,4 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     );
 }
 
-export type {DateSelectPopupProps};
 export default DateSelectPopup;

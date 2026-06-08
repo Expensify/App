@@ -163,5 +163,4 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
 }
 
 export {validateLegalName};
-export type {BaseLegalNamePageProps};
 export default BaseLegalNamePage;

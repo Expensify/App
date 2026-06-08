@@ -1,7 +1,7 @@
 ---
 title: Manage Domain Members
 description: Learn how to manage domain members in New Expensify.
-internalScope: Audience is Domain Admins. Covers inviting/adding domain members, closing accounts, promoting members to Domain Admin, and moving a member between domain groups. Does not cover domain verification, SAML setup, Domain Groups configuration, or account access troubleshooting.
+internalScope: Audience is Domain Admins. Covers inviting/adding domain members, closing accounts, promoting members to Domain Admin, and moving a member between domain groups (including Workspace Admin restrictions). Does not cover domain verification, SAML setup, Domain Groups configuration, or account access troubleshooting.
 keywords: [New Expensify, Workspaces, Domains, domain members, verify domain, domain admin, domain control, remove domain member, deactivate domain user, invite domain user, promote to domain admin, workspace admins, move member to group, domain group]
 ---
 
@@ -41,7 +41,7 @@ If a member has multiple contact methods, the primary contact method takes prece
 
 ## How to manually invite a Domain Member
 
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Click **Domain Members**.
 4. Enter the member’s email address, then click **Invite**.
@@ -52,7 +52,7 @@ If a member has multiple contact methods, the primary contact method takes prece
 
 Domain Admins can close a member’s account when they leave the company.
 
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Click **Domain Members**.
 4. Select the member.
@@ -66,7 +66,7 @@ Domain Admins can close a member’s account when they leave the company.
 
 You can give any member permission to manage domain settings by promoting them to a Domain Admin.
 
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Open **Domain Admins**.
 4. Add the member’s email address or phone number.
@@ -75,7 +75,9 @@ You can give any member permission to manage domain settings by promoting them t
 
 Domain Admins can move a member from one domain group to another to change which domain-level rules apply to them.
 
-1. Go to **Workspaces > Domains**.
+**Note:** You must be a Workspace Admin for the target domain group's **Preferred Workspace**. See the FAQ below for details.
+
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Click **Domain Members**.
 4. Select the member.
@@ -90,6 +92,10 @@ Domain Admins can move a member from one domain group to another to change which
 ## What happens if a member removes their domain email?
 
 If a member removes their domain email from their contact methods, they’ll no longer be listed as a Domain Member.
+
+## Why can't I move a member to a domain group?
+
+You must be a Workspace Admin for the **Preferred Workspace** set on the target domain group. If you're not a Workspace Admin for that workspace, the move will be blocked. Contact a Workspace Admin for the relevant workspace to get admin access, or ask them to move the member for you.
 
 ## Can Domain Admins be outside the company domain?
 

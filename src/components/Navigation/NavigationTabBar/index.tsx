@@ -81,8 +81,6 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     const StyleUtils = useStyleUtils();
 
-    const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled;
-
     let inboxStatusIndicatorColor: string | undefined;
     if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
         inboxStatusIndicatorColor = theme.iconSuccessFill;
@@ -132,15 +130,14 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         });
     };
 
+    // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
+    // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
+    const shouldShowDebugTabView = !!isDebugModeEnabled && shouldShowFloatingButtons;
+
     if (!shouldUseNarrowLayout) {
         return (
             <>
-                {shouldRenderDebugTabViewOnWideLayout && (
-                    <DebugTabView
-                        selectedTab={selectedTab}
-                        chatTabBrickRoad={chatTabBrickRoad}
-                    />
-                )}
+                {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
                 <View
                     style={styles.leftNavigationTabBarContainer}
                     testID="NavigationTabBar"
@@ -219,12 +216,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     return (
         <>
-            {!!isDebugModeEnabled && (
-                <DebugTabView
-                    selectedTab={selectedTab}
-                    chatTabBrickRoad={chatTabBrickRoad}
-                />
-            )}
+            {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
             <View
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"

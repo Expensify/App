@@ -35,6 +35,51 @@ describe('PaymentUtils', () => {
     it('Test rounding wallet transfer instant fee', () => {
         expect(calculateWalletTransferBalanceFee(2100, CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT)).toBe(32);
     });
+    describe('handleUnvalidatedAccount', () => {
+        const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
+        const mockGetActiveRoute = Navigation.getActiveRoute as jest.MockedFunction<typeof Navigation.getActiveRoute>;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it.each([
+            {
+                description: 'search money request report route',
+                reportID: '123',
+                activeRoute: 'search/r/123',
+                expectedRoute: 'search/r/123/verify-account',
+            },
+            {
+                description: 'search report route',
+                reportID: '456',
+                activeRoute: 'search/view/456',
+                expectedRoute: 'search/view/456/verify-account',
+            },
+            {
+                description: 'regular report route',
+                reportID: '789',
+                activeRoute: 'r/789',
+                expectedRoute: 'r/789/verify-account',
+            },
+            {
+                description: 'non-search route defaults to regular report verification',
+                reportID: undefined,
+                activeRoute: 'r',
+                expectedRoute: 'r/verify-account',
+            },
+        ])('should navigate to $expectedRoute when on $description', ({reportID, activeRoute, expectedRoute}) => {
+            mockGetActiveRoute.mockReturnValue(activeRoute);
+
+            const iouReport: OnyxEntry<Report> = {reportID} as Report;
+
+            handleUnvalidatedAccount(iouReport);
+
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(expectedRoute);
+        });
+    });
+
     describe('getActivePaymentType', () => {
         const randomPolicyA = createRandomPolicy(1);
         const randomPolicyB = createRandomPolicy(2);
@@ -185,7 +230,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicy, 999, params.userBillingGracePeriodEnds, 42);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicy, 999, params.userBillingGracePeriodEnds, 42, params.currentAccountID);
         });
 
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
@@ -285,7 +330,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicy, undefined, params.userBillingGracePeriodEnds, undefined);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicy, undefined, params.userBillingGracePeriodEnds, undefined, params.currentAccountID);
         });
     });
 
@@ -358,6 +403,31 @@ describe('PaymentUtils', () => {
             expect(result.at(0)?.methodID).toBe(1);
             expect(result.at(1)?.text).toBe('Account B');
             expect(result.at(1)?.methodID).toBe(2);
+        });
+
+        it('returns all valid accounts when no currency is specified', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD}),
+                createMockPaymentMethod({title: 'EUR Account', bankCurrency: 'EUR', methodID: 789}),
+            ];
+            const result = getBusinessBankAccountOptions(methods);
+            expect(result).toHaveLength(2);
+        });
+
+        it('filters accounts by matching currency', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD}),
+                createMockPaymentMethod({title: 'EUR Account', bankCurrency: 'EUR', methodID: 789}),
+            ];
+            const result = getBusinessBankAccountOptions(methods, 'EUR');
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.text).toBe('EUR Account');
+        });
+
+        it('excludes accounts with non-matching currency', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD})];
+            const result = getBusinessBankAccountOptions(methods, 'GBP');
+            expect(result).toHaveLength(0);
         });
 
         it('filters to only valid BUSINESS OPEN or LOCKED with methodID and maps rest correctly', () => {

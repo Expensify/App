@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
@@ -11,8 +12,10 @@ import type {OnboardingAccounting} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
+import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
 import type {OnboardingCompanySize} from './OnboardingFlow';
 
 let isLoadingReportData = true;
@@ -65,6 +68,10 @@ function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
 }
 
+function setOnboardingRHPVariant(value?: OnboardingRHPVariant) {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, value ?? null);
+}
+
 function updateOnboardingLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, path);
 }
@@ -113,6 +120,23 @@ function completeHybridAppOnboarding() {
         // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
         HybridAppModule.completeOnboarding({status: true});
+    });
+}
+
+function addWorkEmailFormError(error: string, isLoading = false) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+        errors: getMicroSecondOnyxErrorWithMessage(error),
+        errorFields: {
+            [INPUT_IDS.ONBOARDING_WORK_EMAIL]: getMicroSecondOnyxErrorWithMessage(error),
+        },
+        isLoading,
+    });
+}
+function clearWorkEmailFormErrors(isLoading = false) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+        errors: null,
+        errorFields: null,
+        isLoading,
     });
 }
 
@@ -186,6 +210,7 @@ export {
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
+    setOnboardingRHPVariant,
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
@@ -194,4 +219,6 @@ export {
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
     setOnboardingTestDriveModalDismissed,
+    addWorkEmailFormError,
+    clearWorkEmailFormErrors,
 };
