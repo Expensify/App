@@ -552,6 +552,7 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
 
 /**
  * Checks if a specific user is a member of the policy.
+ * Note that employeeList can be blank when the policy is not the user's default/active policy
  */
 function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined): boolean {
     return !!policy && !!userLogin && (!!policy.employeeList?.[userLogin] || policy.owner === userLogin);
