@@ -1,20 +1,17 @@
 import React, {useState} from 'react';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
-import Navigation from '@src/Navigation/Navigation';
 
 type SpendRulesCurrencyBaseProps = {
     currencies: string[];
@@ -115,16 +112,6 @@ export default function SpendRulesCurrencyBase({currencies, onCurrenciesChange}:
                     listHeaderWrapperStyle: [styles.pt5, styles.pb2],
                     listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
                 }}
-                listEmptyContent={
-                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                        <BlockingView
-                            icon={illustrations.Telescope}
-                            iconWidth={variables.emptyListIconWidth}
-                            iconHeight={variables.emptyListIconHeight}
-                            title={translate('common.noResultsFound')}
-                        />
-                    </ScrollView>
-                }
                 footerContent={
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}

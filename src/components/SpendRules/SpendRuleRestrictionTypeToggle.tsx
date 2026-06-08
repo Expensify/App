@@ -29,6 +29,16 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRule
                     <Button
                         text={translate('workspace.rules.spendRules.allow')}
                         onPress={() => onSelect(CONST.SPEND_RULES.ACTION.ALLOW)}
+                        small
+                        style={styles.ph0}
+                        innerStyles={!isAllowSelected ? styles.bgTransparent : undefined}
+                        textStyles={[styles.alignSelfCenter, !isAllowSelected ? styles.textSupporting : undefined]}
+                        accessibilityLabel={translate('workspace.rules.spendRules.allow')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
+                    />
+                    <Button
+                        text={translate('workspace.rules.spendRules.allow')}
+                        onPress={() => onSelect(CONST.SPEND_RULES.ACTION.ALLOW)}
                         success={isAllowSelected}
                         small
                         style={styles.ph0}
