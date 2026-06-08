@@ -36,5 +36,4 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
     return paymentMethods;
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export {useSettlementButtonPaymentMethods};
+export default useSettlementButtonPaymentMethods;

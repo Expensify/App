@@ -260,6 +260,7 @@
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/ShortcutsOverviewHandler.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/Overlay/BaseOverlay.tsx"	"no-restricted-syntax"	2
 "../../src/libs/Navigation/AppNavigator/Navigators/ReportsSplitNavigator.tsx"	"no-restricted-syntax"	1
+"../../src/libs/Navigation/AppNavigator/Navigators/RightModalNavigator.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/libs/Navigation/AppNavigator/Navigators/RightModalNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/SearchFullscreenNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator.tsx"	"no-restricted-syntax"	1

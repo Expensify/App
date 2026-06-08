@@ -44,7 +44,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport,
 } from '@libs/ReportUtils';
-import {useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
