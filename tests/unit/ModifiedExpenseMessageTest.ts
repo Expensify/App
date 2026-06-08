@@ -319,6 +319,60 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the amount is set for the first time (oldAmount absent, e.g. receipt still scanning)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of "changed the amount"', () => {
+                const expectedResult = 'set the amount to $18.00';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time and the merchant is also set', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    oldMerchant: '',
+                    merchant: 'Taco Bell',
+                },
+            };
+
+            it('returns "set" for both amount and merchant', () => {
+                const expectedResult = 'set the amount to $18.00 and the merchant to "Taco Bell"';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the amount is changed and the description is removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -1178,6 +1232,30 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
+            it('does not throw when tax override is missing field_id_TAX', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            tax: {},
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                const expectedResult = `set the tax rate to "" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+                expect(result).toEqual(expectedResult);
+            });
+
             it('returns the correct text message with two overrides', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
@@ -1383,6 +1461,79 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time (oldAmount absent, e.g. receipt still scanning)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of "changed the amount"', () => {
+                const expectedResult = 'set the amount to $18.00';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time and then changed', () => {
+            it('returns "set" for the first edit (oldAmount absent)', () => {
+                const firstEditAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        amount: 1800,
+                        currency: CONST.CURRENCY.USD,
+                        oldCurrency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction: firstEditAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('set the amount to $18.00');
+            });
+
+            it('returns "changed" for the second edit (oldAmount present)', () => {
+                const secondEditAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        amount: 2500,
+                        currency: CONST.CURRENCY.USD,
+                        oldAmount: 1800,
+                        oldCurrency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction: secondEditAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('changed the amount to $25.00 (previously $18.00)');
             });
         });
 
