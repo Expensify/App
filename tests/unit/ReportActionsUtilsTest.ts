@@ -440,6 +440,15 @@ describe('ReportActionsUtils', () => {
             childReportID: undefined,
         };
 
+        // A deleted IOU action that is still pending deletion (e.g. deleted while offline).
+        const pendingDeleteLinkedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...mockIOUAction,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            message: [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}],
+            originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
+            childReportID: 'pendingDeleteChildReportID',
+        };
+
         const unlinkedAction = {
             ...mockIOUAction,
             originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
@@ -498,6 +507,29 @@ describe('ReportActionsUtils', () => {
                 mockedReports[IOUReportID],
                 mockedReports[mockChatReportID],
                 [linkedActionWithChildReportID, deletedLinkedActionWithChildReportID],
+                false,
+            );
+            expect(result).toEqual(linkedActionWithChildReportID);
+        });
+
+        it('should count a pending-delete IOU action when offline so the report is no longer treated as a one-transaction report', () => {
+            // When offline, a pending-delete IOU action is still counted alongside the valid action,
+            // so there are effectively two transactions and the report is not a one-transaction report.
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, pendingDeleteLinkedAction],
+                true,
+            );
+            expect(result).toBeUndefined();
+        });
+
+        it('should ignore a pending-delete IOU action when online and return the single valid action', () => {
+            // When online, a pending-delete IOU action is excluded, leaving exactly one valid action.
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, pendingDeleteLinkedAction],
                 false,
             );
             expect(result).toEqual(linkedActionWithChildReportID);
@@ -563,6 +595,14 @@ describe('ReportActionsUtils', () => {
             },
         };
 
+        // A deleted IOU action that is still pending deletion (e.g. deleted while offline).
+        const pendingDeleteAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...mockIOUAction,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            message: [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}],
+            originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
+        };
+
         it('should return the childReportID for a valid single IOU action', () => {
             const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toEqual(linkedCreateAction.childReportID);
@@ -598,6 +638,15 @@ describe('ReportActionsUtils', () => {
                 IOUTransactionID,
             ]);
             expect(result).toBeUndefined();
+        });
+
+        it('should respect the offline argument for a pending-delete IOU action', () => {
+            // Offline: the pending-delete action is counted, so there are two transactions and this is not a one-transaction report.
+            expect(getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction, pendingDeleteAction], true)).toBeUndefined();
+            // Online: the pending-delete action is excluded, leaving a single valid action.
+            expect(getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction, pendingDeleteAction], false)).toEqual(
+                linkedCreateAction.childReportID,
+            );
         });
     });
 
