@@ -1,10 +1,11 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {NavigationAction, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -12,7 +13,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining, Onboarding, Session} from '@src/types/onyx';
+import type {DismissedProductTraining, Session} from '@src/types/onyx';
 import type {GuardResult, NavigationGuard} from './types';
 
 let session: OnyxEntry<Session>;
@@ -25,36 +26,72 @@ let hasBeenAddedToNudgeMigration = false;
 let isHybridAppOnboardingCompleted: boolean | undefined;
 let isTryNewDotLoaded = false;
 
-let onboarding: OnyxEntry<Onboarding>;
-let isOnboardingLoaded = false;
-
 let hasRedirectedToAIFeaturesPromoModal = false;
 
 /**
- * Same-session protection.
- *
- * Per the issue requirements, the AI features promo modal must not appear in the same
- * session as the migration welcome modal, the onboarding flow, or the HybridApp
- * explanation modal. These flags trip when we observe any of those modals being
- * "active" (pending dismissal / not yet completed) at any point during this process
- * lifetime, and suppress the AI promo for the rest of the session.
+ * This modal must not appear in the same session as the migration welcome modal, the onboarding flow,
+ * or the HybridApp explanation modal. These flags trip when we observe any of those navigators mounting
+ * during this process lifetime, and suppress the AI promo for the rest of the session.
  */
 let observedActiveMigrationModalThisSession = false;
 let observedActiveOnboardingThisSession = false;
 let observedActiveExplanationModalThisSession = false;
+
+function containsNavigator(state: NavigationState | PartialState<NavigationState> | undefined, navigatorName: string): boolean {
+    if (!state?.routes) {
+        return false;
+    }
+    return state.routes.some((route) => route.name === navigatorName || containsNavigator(route.state, navigatorName));
+}
+
+function snapshotActiveModalsFromNavigationState() {
+    if (!navigationRef.isReady?.()) {
+        return;
+    }
+    const rootState = navigationRef.getRootState?.();
+    if (!rootState) {
+        return;
+    }
+    if (containsNavigator(rootState, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR)) {
+        observedActiveOnboardingThisSession = true;
+    }
+    if (containsNavigator(rootState, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR)) {
+        observedActiveMigrationModalThisSession = true;
+    }
+    if (containsNavigator(rootState, NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR)) {
+        observedActiveExplanationModalThisSession = true;
+    }
+}
+
+// Attach lazily — the listener can only be added once react-navigation's ref is ready,
+// which generally happens after this module is loaded.
+let isStateListenerAttached = false;
+function attachNavigationStateListener() {
+    if (isStateListenerAttached || !navigationRef.isReady?.()) {
+        return;
+    }
+    isStateListenerAttached = true;
+    snapshotActiveModalsFromNavigationState();
+    navigationRef.addListener('state', snapshotActiveModalsFromNavigationState);
+}
 
 /**
  * Proactively navigate to the AI features promo modal when all conditions are met.
  * Waits for the gating NVPs to load to avoid racing with the migration / onboarding guards.
  */
 function navigateToAIFeaturesPromoModalIfReady() {
+    // Sync the modal-active flags from the current navigation state (and attach a listener
+    // for future state changes) before checking, so a freshly-mounted onboarding navigator
+    // is reflected immediately.
+    attachNavigationStateListener();
+    snapshotActiveModalsFromNavigationState();
+
     if (
         !session?.authToken ||
         isLoadingApp ||
         hasRedirectedToAIFeaturesPromoModal ||
         !isDismissedProductTrainingLoaded ||
         !isTryNewDotLoaded ||
-        !isOnboardingLoaded ||
         isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) ||
         observedActiveMigrationModalThisSession ||
         observedActiveOnboardingThisSession ||
@@ -107,18 +144,6 @@ Onyx.connectWithoutView({
         // The HybridApp explanation modal shows when the user is transitioning from OldDot to NewDot.
         if (CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false) {
             observedActiveExplanationModalThisSession = true;
-        }
-        navigateToAIFeaturesPromoModalIfReady();
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => {
-        onboarding = value;
-        isOnboardingLoaded = true;
-        if (!hasCompletedGuidedSetupFlowSelector(onboarding)) {
-            observedActiveOnboardingThisSession = true;
         }
         navigateToAIFeaturesPromoModalIfReady();
     },
