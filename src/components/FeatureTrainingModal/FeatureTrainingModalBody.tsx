@@ -55,6 +55,9 @@ type FeatureTrainingModalBodyProps = BaseFeatureTrainingModalProps &
 
         /** A callback to call when we want to navigate back to the previous page in carousel mode */
         onBack?: () => void;
+
+        /** Pagination dot nodes overlaid on the bottom of the illustration in carousel mode */
+        paginationDots?: React.ReactNode;
     };
 
 function FeatureTrainingModalBody({
@@ -95,6 +98,7 @@ function FeatureTrainingModalBody({
     confirmModal,
     shouldShowBackButton = false,
     onBack,
+    paginationDots,
 }: FeatureTrainingModalBodyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -188,6 +192,14 @@ function FeatureTrainingModalBody({
                                 loop
                             />
                         )}
+                    </View>
+                )}
+                {!!paginationDots && (
+                    <View
+                        pointerEvents="none"
+                        style={[styles.pAbsolute, styles.flexRow, styles.justifyContentCenter, styles.w100, styles.l0, styles.r0, {bottom: 12}]}
+                    >
+                        {paginationDots}
                     </View>
                 )}
             </View>

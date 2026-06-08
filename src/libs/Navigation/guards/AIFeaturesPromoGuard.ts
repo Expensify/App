@@ -43,13 +43,6 @@ let observedActiveMigrationModalThisSession = false;
 let observedActiveOnboardingThisSession = false;
 let observedActiveExplanationModalThisSession = false;
 
-function resetSessionFlag() {
-    hasRedirectedToAIFeaturesPromoModal = false;
-    observedActiveMigrationModalThisSession = false;
-    observedActiveOnboardingThisSession = false;
-    observedActiveExplanationModalThisSession = false;
-}
-
 /**
  * Proactively navigate to the AI features promo modal when all conditions are met.
  * Waits for the gating NVPs to load to avoid racing with the migration / onboarding guards.
@@ -181,4 +174,4 @@ const AIFeaturesPromoGuard: NavigationGuard = {
 };
 
 export default AIFeaturesPromoGuard;
-export {resetSessionFlag, onSessionOrLoadingAppChanged};
+export {onSessionOrLoadingAppChanged};
