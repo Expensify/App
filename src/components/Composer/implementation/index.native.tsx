@@ -42,12 +42,19 @@ function Composer({
     const textInputRef = useRef<MarkdownTextInput | null>(null);
     // Native may still emit the raw text change after paste, so keep the converted value ready for that next change.
     const pendingPastedTextRef = useRef<{rawText: string; convertedText: string} | null>(null);
+    const valueRef = useRef(value);
+    const selectionRef = useRef(selection);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const isInLandscapeMode = useIsInLandscapeMode();
+
+    useEffect(() => {
+        valueRef.current = value;
+        selectionRef.current = selection;
+    }, [selection, value]);
 
     useEffect(() => {
         if (!textInputRef.current?.setSelection || !selection || isComposerFullSize) {
@@ -110,9 +117,10 @@ function Composer({
 
                 e.preventDefault();
 
-                const currentValue = value ?? '';
-                const selectionStart = selection?.start ?? currentValue.length;
-                const selectionEnd = selection?.end ?? selectionStart;
+                const currentValue = valueRef.current ?? '';
+                const currentSelection = selectionRef.current;
+                const selectionStart = currentSelection?.start ?? currentValue.length;
+                const selectionEnd = currentSelection?.end ?? selectionStart;
                 const textBeforeSelection = currentValue.slice(0, selectionStart);
                 const textAfterSelection = currentValue.slice(selectionEnd);
                 const rawPastedText = `${textBeforeSelection}${clipboardContent.data}${textAfterSelection}`;
@@ -133,7 +141,7 @@ function Composer({
                 .then((size) => (file = {...file, size}))
                 .finally(() => onPasteFile(file));
         },
-        [onChangeText, onPasteFile, selection?.end, selection?.start, value],
+        [onChangeText, onPasteFile],
     );
 
     const handleChangeText = useCallback(
