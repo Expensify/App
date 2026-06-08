@@ -485,6 +485,7 @@ function ReportActionsList({
     // the badge target advances to the next report preview that requires action. Follow it by scrolling down to it.
     const actionTargetReportActionID = reportAttributes?.actionTargetReportActionID;
     const prevActionTargetReportActionID = usePrevious(actionTargetReportActionID);
+    const prevActionBadge = usePrevious(reportAttributes?.actionBadge);
     useEffect(() => {
         if (isProduction || !actionTargetReportActionID || !prevActionTargetReportActionID || actionTargetReportActionID === prevActionTargetReportActionID || actionBadgeTargetIndex < 0) {
             return;
@@ -495,8 +496,15 @@ function ReportActionsList({
         if (prevActionTargetIndex < 0 || actionBadgeTargetIndex >= prevActionTargetIndex) {
             return;
         }
-        // The submit/approve/pay button plays a success animation (hide delay -> button exit -> height collapse) on the resolved
-        // preview. Wait for it to finish before scrolling to the next actionable preview so the list doesn't move mid-animation.
+        // Only the submit/approve/pay buttons play a success animation (hide delay -> button exit -> height collapse) on the
+        // resolved preview, so wait for it to finish before scrolling there so the list doesn't move mid-animation. Other badges
+        // (e.g. task) don't animate, so scroll on the next frame instead of forcing an unnecessary delay.
+        const isAnimatedBadge =
+            prevActionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT || prevActionBadge === CONST.REPORT.ACTION_BADGE.APPROVE || prevActionBadge === CONST.REPORT.ACTION_BADGE.PAY;
+        if (!isAnimatedBadge) {
+            const animationFrameID = requestAnimationFrame(scrollToActionBadgeTarget);
+            return () => cancelAnimationFrame(animationFrameID);
+        }
         const scrollTimeoutID = setTimeout(scrollToActionBadgeTarget, CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY + CONST.ANIMATION_THUMBS_UP_DURATION * 2);
         return () => clearTimeout(scrollTimeoutID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
