@@ -1,7 +1,7 @@
 ---
 title: How to Find and Resolve Flagged Duplicate Expenses
 description: Learn how Expensify detects duplicate expenses and how to resolve them when they are flagged and placed on hold.
-keywords: [New Expensify, duplicate expense, review duplicates, expense on hold, resolve duplicate, flagged expense, red dot, duplicate detection, keep all, keep this one, held expense, Inbox red dot, find duplicate expenses, where to find duplicates]
+keywords: [New Expensify, duplicate expense, review duplicates, expense on hold, resolve duplicate, flagged expense, red dot, duplicate detection, keep all, keep selected, held expense, Inbox red dot, find duplicate expenses, where to find duplicates]
 internalScope: Audience is members and approvers on Collect or Control plans. Covers how to locate reports with duplicate expense violations and resolve flagged duplicates. Does not cover manually merging expenses or preventing duplicates.
 ---
 
@@ -35,10 +35,7 @@ Within the report, duplicate expenses will show the label **Potential duplicate*
 
 ---
 
-<!-- SCREENSHOT:
-Suggestion: Show Inbox > Chat with red dot 
-Design request:https://github.com/Expensify/Expensify/issues/614048
--->
+![Inbox > Chat with red dot]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_03.png){:width="100%"}
 
 ---
 
@@ -48,34 +45,36 @@ Design request:https://github.com/Expensify/Expensify/issues/614048
 2. Click the expense labeled **Potential duplicate**.
 3. Click **Review duplicates**. 
 4. Review the list of matched expenses flagged as duplicates.
-5. Choose how to proceed:
+5. Select the expense you want to keep using the radio button next to it.
+6. Choose how to proceed:
    - **Keep all** retains all matched expenses and removes the hold.
-   - **Keep this one** keeps the current expense and discards the duplicates.
-6. If there are differences between the expenses (such as categories or tags), choose which values to keep.
-7. Click **Confirm** to save your selection and remove the hold on your expense.
+   - **Keep selected** keeps the selected expense and discards the duplicates.
+7. If there are differences between the expenses (such as categories or tags), choose which values to keep.
+8. Click **Confirm** to save your selection and remove the hold on your expense.
 
 ---
 
-<!-- SCREENSHOT:
-Suggestion: Show expense with Review Duplicates at the top 
-Design request:https://github.com/Expensify/Expensify/issues/614048
--->
+![expense with Review Duplicates at the top]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_04.png){:width="100%"}
+
+---
 
 ## What happens after you resolve a flagged duplicate
 
 The hold is removed from the expense. Depending on your choice:
 
 - If you selected **Keep all**, all matched expenses remain on the report as separate entries.
-- If you selected **Keep this one**, the current expense is kept and the duplicates are discarded.
+- If you selected **Keep selected**, the selected expense is kept and the duplicates are discarded.
 
 ---
 
 # FAQ
 
 ## Can I edit a duplicate expense after resolving it?
+
 Yes, you can edit a duplicate expense as long as it is in the Unreported, Draft or Outstanding state. 
 
 ## Will two SmartScanned receipts from the same day with the same amount be flagged?
+
 Yes, unless:
 - The expenses were split from a single expense.
 - They were imported from a credit card.

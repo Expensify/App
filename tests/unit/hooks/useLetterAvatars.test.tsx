@@ -2,7 +2,6 @@ import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import type {SvgProps} from 'react-native-svg';
 import useLetterAvatars from '@hooks/useLetterAvatars';
-// eslint-disable-next-line no-restricted-syntax -- For mocking
 import * as PresetAvatarCatalog from '@libs/Avatars/PresetAvatarCatalog';
 
 const mockAvatarComponent: React.FC<SvgProps> = React.memo((props: SvgProps) =>

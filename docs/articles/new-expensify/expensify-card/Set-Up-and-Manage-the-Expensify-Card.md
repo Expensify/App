@@ -2,6 +2,7 @@
 title: Set Up and Manage Expensify Cards
 description: Learn how Workspace Admins can enable, issue, and manage Expensify Cards for employees, including spending limits, bank connections, and virtual card setup.
 keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin]
+internalScope: Applies to Workspace Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
 ---
 
 Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manage company spending with real-time controls and flexibility across employees and subscriptions.
@@ -15,7 +16,9 @@ Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manag
 - Spend restrictions by employee and merchant
 - Real-time visibility and cash back rewards
 
-**Prerequisites:** You must be a workspace admin and have a U.S. business bank account connected to Expensify. See this guide on [connecting a business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
+**Prerequisites:** 
+1. Your primary login must be an email associated with your company's domain. See this guide on [updating your login](/articles/new-expensify/settings/Update-Email-Address). 
+2. You must be a Workspace Admin and have a U.S. business bank account connected to Expensify. See this guide on [connecting a business bank account](/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
 
 ---
 
@@ -37,6 +40,8 @@ Link a U.S. business bank account to pay the card balance:
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Issue new card**
 3. Choose an existing account or [add a new bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account) as the settlement account.
+
+If you already have an Expensify Card feed on another workspace, you can select that existing feed instead of connecting a new bank account. This links the same card feed to the current workspace, so you can manage cards across multiple workspaces with a single settlement account.
 
 ![Click the issue card button]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_02.png){:width="100%"}
 
@@ -81,7 +86,7 @@ You can issue virtual or physical cards to employees:
    - Limit type
    - Card name
    - Deactivation
-4. To change the linked bank account or update settlement frequency, click **Settings**.
+4. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
 
 ![Click Expensify Card in the left menu to see a list of cards]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_05.png){:width="100%"}
 
@@ -89,8 +94,62 @@ You can issue virtual or physical cards to employees:
 
 ![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
 
+---
+
+## How to apply Expensify Card cash back to your Expensify bill
+
+Workspace Admins with a US Expensify Card program can choose whether their Expensify Card cash back is applied toward their Expensify bill or sent to their settlement account. This setting is enabled by default.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Expensify Card**.
+2. Click **Settings**.
+3. Toggle **Apply cash back to my Expensify bill** on or off.
+
+When enabled, cash back earned from the Expensify Card is automatically applied toward payment for your Expensify bill. When disabled, cash back is sent to your settlement account instead.
+
+**Note:** This setting is only available for US card programs and is not shown for workspaces on an invoiced subscription.
+
+---
+
 If a Single-use card completes its first successful transaction, it automatically deactivates.
 If a card reaches its expiration date, it automatically deactivates and declines new transactions.
+
+---
+
+## How to export Expensify Card data as CSV
+
+You can bulk-select cards and export their details to a CSV file for reporting or reconciliation.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Select the checkboxes next to the cards you want to export. Use the checkbox in the header row to select all cards at once.
+3. Click the **selected** dropdown that appears.
+4. Select **Export as CSV**.
+
+The downloaded CSV file includes the following columns for each selected card: email, name, last four digits, type (virtual or physical), limit type, and limit amount.
+
+---
+
+# How to freeze or unfreeze an Expensify Card
+
+As a Workspace Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
+
+Freezing a card is helpful if:
+- You suspect misuse or a policy violation
+- You want to temporarily pause employee spending
+- You're enforcing a department-wide budget freeze
+
+To freeze or unfreeze a card:
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Expensify Card**.
+2. Click a card from the list to open its details pane.
+3. Click **Freeze card** or **Unfreeze card**.
+4. Confirm the action in the popup modal.
+
+Once frozen:
+- The card immediately stops working for purchases
+- You'll see a note below the card indicating who froze the card and when
+- The employee sees the same message and cannot unfreeze the card themselves
+
+All freeze/unfreeze actions are automatically posted to the workspace chat.
 
 ---
 
@@ -102,7 +161,7 @@ You’ll need a U.S. business bank account registered to a U.S.-incorporated bus
 
 ## Can I use Expensify Cards across multiple workspaces?
 
-Yes, but each workspace must have its **own settlement account**. For example, using the card in three workspaces requires three separate bank accounts.
+Yes. You can link a single Expensify Card feed to multiple workspaces using the same settlement account. When issuing cards on a new workspace, select an existing feed that is already connected to another workspace. Each workspace shows only its own members in the card list, but all workspaces share the same card feed and settlement account.
 
 ## Can an employee have multiple cards?
 

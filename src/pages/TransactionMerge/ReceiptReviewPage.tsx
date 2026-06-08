@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ type ReceiptReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigator
 function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {transactionID, isOnSearch, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -48,7 +50,15 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
             return;
         }
 
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, [], targetTransactionPolicy, sourceTransactionPolicy);
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(
+            targetTransaction,
+            sourceTransaction,
+            localeCompare,
+            getCurrencyDecimals,
+            [],
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        );
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(transactionID, mergeableData);

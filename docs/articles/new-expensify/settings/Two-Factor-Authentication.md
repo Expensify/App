@@ -18,17 +18,16 @@ Anyone can enable Two-Factor Authentication on their own account. Domain Admins 
 
 1. Ensure an authenticator app is installed on your device. 
 2. From the left-hand menu, select **Account > Security**.
-3. Under **Security options**, select **Two-Factor Authentication**.
+3. Under **Security**, select **Two-Factor Authentication**.
 4. Enable **Two-factor authentication**.
-4. Save a copy of your backup codes:
-   - Click **Download** to save them to your computer.
-   - Click **Copy** to store them in a secure location.
-5. Click **Continue**.
-6. Open your authenticator app and either:
+5. Your Recovery Codes will be automatically saved onto the computer or device where two-factor authentication was set up:
+   - However, we also recommend copying and storing them in a secure location.
+6. Click **Continue**.
+7. Open your authenticator app and either:
    - Scan the QR code displayed on your screen.
    - Enter the 6-digit code from your authenticator app into Expensify and then click **Verify**.
 
-**Important:** If you lose access to your authenticator app and didn’t save your recovery codes, you may permanently lose access to your account. Consider adding 2FA on multiple devices (e.g., phone and tablet) for backup.  
+**Important:** If you lose access to your authenticator app and didn’t copy or save your recovery codes, you may permanently lose access to your account. Consider adding 2FA on multiple devices (e.g., phone and tablet) for backup.  
 
 ---
 
@@ -83,7 +82,9 @@ Expensify's 2FA is implemented via a Time-based One-Time Password (TOTP) algorit
 
 ## What can I do if I can't access my authenticator app? 
 
-When you enable 2FA, you are prompted to either copy or download backup codes which you can use in lieu of the 6-digit authenticator code. If you downloaded the codes they will be saved with the file name `two-factor-auth-codes`. 
+When you enable 2FA, Expensify will automatically download a set of Recovery Codes, which you can use in lieu of the 6-digit authenticator code to regain access to your account.
+
+As long as you set up 2FA after May 2026, the codes will be automatically added to your device's Downloads folder under the file name `DO-NOT-DELETE_Expensify-2FA-RecoveryCodes`.
 
 ## What authenticator apps does Expensify recommend? 
 

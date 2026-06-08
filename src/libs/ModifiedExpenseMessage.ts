@@ -63,7 +63,7 @@ function buildMessageFragmentForValue(
         const fragment = translate('iou.removedTheRequest', displayValueName, oldValueToDisplay);
         removalFragments.push(fragment);
     } else {
-        const fragment = translate('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+        const fragment = translate('iou.updatedTheRequest', displayValueName, newValueToDisplay, oldValueToDisplay);
         changeFragments.push(fragment);
     }
 }
@@ -121,16 +121,10 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     if (!oldMerchant.length) {
         return translate('iou.setTheDistanceMerchant', translatedChangedField, newMerchant, newAmount);
     }
-    return translate('iou.updatedTheDistanceMerchant', {
-        translatedChangedField,
-        newMerchant,
-        oldMerchant,
-        newAmountToDisplay: newAmount,
-        oldAmountToDisplay: oldAmount,
-    });
+    return translate('iou.updatedTheDistanceMerchant', translatedChangedField, newMerchant, oldMerchant, newAmount, oldAmount);
 }
 
-function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string) {
+function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string, policy: OnyxEntry<Policy>) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -143,7 +137,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
-    const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true});
+    const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true, policy});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
         return translate('iou.changedTheExpense');
@@ -165,15 +159,16 @@ function getMovedFromOrToReportMessage(
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
+    policy: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin);
+        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin, policy);
     }
 
     if (movedFromReport) {
         const originReportName = getReportName(movedFromReport, reportAttributes);
-        return translate('iou.movedFromReport', originReportName ?? '');
+        return originReportName ? translate('iou.movedFromReport', originReportName) : translate('iou.movedFromReportNoName');
     }
 }
 
@@ -210,7 +205,7 @@ function getRulesModifiedMessage(
 
         if (key === 'tax') {
             const taxEntry = value as PolicyRulesModifiedFields['tax'];
-            const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+            const taxRateName = taxEntry?.field_id_TAX?.name ?? '';
             return translate('iou.rulesModifiedFields.tax', taxRateName, isFirst);
         }
 
@@ -255,7 +250,7 @@ function getForReportAction({
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
-    policy?: OnyxEntry<Policy>;
+    policy: OnyxEntry<Policy>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     // Optional because the deprecated getReportName in ReportUtils.ts calls this without policyTags.
@@ -269,7 +264,7 @@ function getForReportAction({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, reportAttributes);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
@@ -282,11 +277,7 @@ function getForReportAction({
 
     const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
     const hasModifiedAmount =
-        isReportActionOriginalMessageAnObject &&
-        'oldAmount' in reportActionOriginalMessage &&
-        'oldCurrency' in reportActionOriginalMessage &&
-        'amount' in reportActionOriginalMessage &&
-        'currency' in reportActionOriginalMessage;
+        isReportActionOriginalMessageAnObject && 'oldCurrency' in reportActionOriginalMessage && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
 
@@ -303,7 +294,16 @@ function getForReportAction({
         if (hasModifiedMerchant && (reportActionOriginalMessage?.merchant ?? '').includes('@')) {
             return getForDistanceRequest(translate, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
         }
-        buildMessageFragmentForValue(translate, amount, oldAmount, translate('iou.amount'), false, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(
+            translate,
+            amount,
+            reportActionOriginalMessage?.oldAmount !== undefined ? oldAmount : '',
+            translate('iou.amount'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;

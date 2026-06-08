@@ -118,6 +118,7 @@ function Avatar({
         >
             {typeof avatarSource === 'string' ? (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: avatarSource}}
                         style={imageStyle}

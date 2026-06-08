@@ -8,6 +8,7 @@ import Icon from '@components/Icon';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -72,6 +73,7 @@ function AnimatedCollapsible({
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const contentHeight = useSharedValue(0);
     const descriptionHeight = useSharedValue(0);
@@ -182,7 +184,7 @@ function AnimatedCollapsible({
                             }
                         }}
                     >
-                        <View style={[styles.pv2, styles.ph3, styles.pb1]}>
+                        <View style={isLargeScreenWidth ? [styles.pv2, styles.ph3, styles.pb1] : styles.ph3}>
                             <View style={[styles.borderBottom, borderBottomStyle]} />
                         </View>
                         {children}

@@ -1,11 +1,6 @@
 import type {Base64URLString} from '@src/utils/Base64URL';
 
 /**
- * Bitmask flag describing user presence and verification state for a challenge.
- */
-type ChallengeFlags = number;
-
-/**
  * Signed multifactor authentication challenge.
  * Common response shape for different authenticator types —
  * the actual signature algorithm (e.g. ED25519, ES256) depends on the credential.
@@ -55,10 +50,11 @@ type AuthenticationChallenge = {
     allowCredentials: Array<{
         type: string;
         id: string;
+        transports?: string[];
     }>;
     userVerification: UserVerificationRequirement;
     timeout: number;
     expires?: string;
 };
 
-export type {MultifactorAuthenticationChallengeObject, ChallengeFlags, SignedChallenge, AuthenticationChallenge, RegistrationChallenge};
+export type {MultifactorAuthenticationChallengeObject, SignedChallenge, AuthenticationChallenge, RegistrationChallenge};

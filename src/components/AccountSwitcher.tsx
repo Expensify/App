@@ -15,7 +15,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
-import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
@@ -42,7 +42,7 @@ type AccountSwitcherProps = {
 };
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -58,6 +58,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
@@ -98,7 +99,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             return;
         }
 
-        await stopGpsTrip(false, true);
+        await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
 
         switchAccount();
     };
@@ -137,12 +138,13 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     ): PopoverMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
-            text: personalDetails?.displayName ?? personalDetails?.login ?? '',
+            text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
+            shouldIgnoreCompactStyle: true,
             numberOfLinesDescription: 1,
             errorText: error ?? '',
             shouldShowRedDotIndicator: !!error,
@@ -152,12 +154,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     };
 
     const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
-            shouldShowRightIcon: true,
-            iconRight: icons.Checkmark,
-            success: true,
-            isSelected: true,
-        });
+        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
 
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
@@ -226,7 +223,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     return (
         <>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <TooltipToRender {...tooltipProps}>
                 <PressableWithFeedback
                     accessible
@@ -312,6 +308,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     scrollContainerStyle={styles.pb4}
                     shouldUseScrollView
                     shouldUpdateFocusedIndex={false}
+                    shouldShowRadioButton
                 />
             )}
         </>

@@ -19,7 +19,12 @@ function getTopmostReportParams(state: State): ReportsSplitNavigatorParamList[ty
         return;
     }
 
-    const topmostReportsSplitNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    let topmostReportsSplitNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
+    if (!topmostReportsSplitNavigator) {
+        const rootTab = state.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        topmostReportsSplitNavigator = rootTab?.state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    }
 
     if (!topmostReportsSplitNavigator) {
         return;

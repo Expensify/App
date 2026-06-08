@@ -1,7 +1,6 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
@@ -46,45 +45,6 @@ type SubscriptionPlanInfo = {
     src: IconAsset;
     description: string;
 };
-
-type SubscriptionPlanIllustrations = {
-    Mailbox: IconAsset;
-    ShieldYellow: IconAsset;
-};
-
-let currentUserAccountID = -1;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-let privateAmountOwed: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-    callback: (value) => (privateAmountOwed = value),
-});
-
-let ownerBillingGraceEndPeriodDeprecated: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (ownerBillingGraceEndPeriodDeprecated = value),
-});
-
-let deprecatedUserBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (deprecatedUserBillingGraceEndPeriods = value),
-    waitForCollectionCallback: true,
-});
-
-let deprecatedAllPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (value) => (deprecatedAllPolicies = value),
-    waitForCollectionCallback: true,
-});
 
 /**
  * @returns Whether the workspace owner's grace period is overdue.
@@ -160,7 +120,11 @@ function hasCardExpiringSoon(fundList: OnyxEntry<FundList>, billingStatus: OnyxE
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
+/**
+ * @param currentUserAccountID — Session account ID of the current user (used to detect owned paid policies).
+ */
 function shouldShowDiscountBanner(
+    currentUserAccountID: number | undefined,
     hasTeam2025Pricing: boolean,
     subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
     firstDayFreeTrial: string | undefined,
@@ -252,12 +216,12 @@ function getSubscriptionStatus(
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
 ): SubscriptionStatus | undefined {
-    if (ownerBillingGraceEndPeriod) {
+    if (ownerBillingGracePeriodEnd) {
         if (amountOwed !== 0) {
             // 1. Policy owner with amount owed, within grace period
-            if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
+            if (!hasGracePeriodOverdue(ownerBillingGracePeriodEnd)) {
                 return {
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                     isError: true,
@@ -265,7 +229,7 @@ function getSubscriptionStatus(
             }
 
             // 2. Policy owner with amount owed, overdue (past grace period)
-            if (hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
+            if (hasGracePeriodOverdue(ownerBillingGracePeriodEnd)) {
                 return {
                     isError: true,
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
@@ -273,7 +237,7 @@ function getSubscriptionStatus(
             }
         } else {
             // 3. Owner of policy under invoicing, within grace period
-            if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
+            if (!hasGracePeriodOverdue(ownerBillingGracePeriodEnd)) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                     isError: true,
@@ -281,7 +245,7 @@ function getSubscriptionStatus(
             }
 
             // 4. Owner of policy under invoicing, overdue (past grace period)
-            if (hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
+            if (hasGracePeriodOverdue(ownerBillingGracePeriodEnd)) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                     isError: true,
@@ -358,10 +322,10 @@ function hasSubscriptionRedDotError(
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGraceEndPeriod)
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGracePeriodEnd)
             ?.isError ?? false
     );
 }
@@ -377,10 +341,10 @@ function hasSubscriptionGreenDotInfo(
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGraceEndPeriod)
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGracePeriodEnd)
             ?.isError === false
     );
 }
@@ -406,6 +370,7 @@ function calculateRemainingFreeTrialDays(lastDayFreeTrial: string | undefined): 
  * @returns The free trial badge text .
  */
 function getFreeTrialText(
+    currentUserAccountID: number | undefined,
     translate: LocalizedTranslate,
     policies: OnyxCollection<Policy> | null,
     introSelected: OnyxEntry<IntroSelected>,
@@ -466,22 +431,55 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 }
 
 /**
+ * Whether the user is eligible to cancel their subscription.
+ * Annual subscribers who have committed to a subscription can cancel.
+ * Excludes: non-annual users, active trial users, pre-trial users, and expired trial users who never subscribed.
+ */
+function canCancelSubscription(
+    subscriptionType: SubscriptionType | undefined,
+    firstDayFreeTrial: string | undefined,
+    lastDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+    hasPurchases: boolean | undefined,
+): boolean {
+    if (subscriptionType !== CONST.SUBSCRIPTION.TYPE.ANNUAL) {
+        return false;
+    }
+
+    // User is currently on a free trial
+    if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
+        return false;
+    }
+
+    // User is in pre-trial state (trial dates exist but trial hasn't started yet)
+    if (firstDayFreeTrial && !hasUserFreeTrialEnded(lastDayFreeTrial)) {
+        return false;
+    }
+
+    // User's trial ended — only allow cancellation if they have a card or have been billed before
+    if (hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID) && !hasPurchases) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
-    policyID: string,
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriods,
-    amountOwed: OnyxEntry<number> = privateAmountOwed,
-    ownerBillingGraceEndPeriod: OnyxEntry<number> = ownerBillingGraceEndPeriodDeprecated,
+    policy: OnyxEntry<Policy>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
+    amountOwed: OnyxEntry<number>,
+    currentUserAccountID: number | undefined,
 ): boolean {
     const currentDate = new Date();
-
-    const policy = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
     // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
     // past due and is past its grace period end.
-    for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGraceEndPeriods ?? {})) {
+    for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGracePeriodEnds ?? {})) {
         const [entryKey, userBillingGracePeriodEnd] = userBillingGraceEndPeriodEntry;
 
         if (userBillingGracePeriodEnd && isAfter(currentDate, fromUnixTime(userBillingGracePeriodEnd.value))) {
@@ -498,10 +496,10 @@ function shouldRestrictUserBillableActions(
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
     if (
         isPolicyOwner(policy, currentUserAccountID) &&
-        ownerBillingGraceEndPeriod &&
+        ownerBillingGracePeriodEnd &&
         amountOwed !== undefined &&
         amountOwed > 0 &&
-        isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))
+        isAfter(currentDate, fromUnixTime(ownerBillingGracePeriodEnd))
     ) {
         return true;
     }
@@ -509,7 +507,7 @@ function shouldRestrictUserBillableActions(
     return false;
 }
 
-function shouldCalculateBillNewDot(canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
+function shouldCalculateBillNewDot(currentUserAccountID: number, canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
     return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
 }
 
@@ -519,7 +517,8 @@ function getSubscriptionPrice(
     privateSubscriptionType: SubscriptionType | undefined,
     hasTeam2025Pricing: boolean,
 ): number {
-    if (!privateSubscriptionType || !plan) {
+    // Submit is a free plan — no subscription price to look up.
+    if (!privateSubscriptionType || !plan || plan === CONST.POLICY.TYPE.SUBMIT) {
         return 0;
     }
 
@@ -528,6 +527,10 @@ function getSubscriptionPrice(
     }
 
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
+}
+
+function shouldUseSimplifiedCollectSubscriptionUI(plan: PersonalPolicyTypeExcludedProps | null, hasTeam2025Pricing: boolean): boolean {
+    return plan === CONST.POLICY.TYPE.TEAM && hasTeam2025Pricing;
 }
 
 function getSubscriptionPlanInfo(
@@ -595,6 +598,7 @@ function getSubscriptionPlanInfo(
 }
 
 function shouldShowTrialEndedUI(
+    currentUserAccountID: number | undefined,
     lastDayFreeTrial: string | undefined,
     userBillingFundID: number | undefined,
     policies: OnyxCollection<Policy>,
@@ -623,6 +627,7 @@ function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType
 
 export {
     calculateRemainingFreeTrialDays,
+    canCancelSubscription,
     doesUserHavePaymentCardAdded,
     getCardForSubscriptionBilling,
     getFreeTrialText,
@@ -630,7 +635,6 @@ export {
     hasCardAuthenticatedError,
     hasCardExpiredError,
     hasGracePeriodOverdue,
-    hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
     hasUserFreeTrialEnded,
@@ -643,9 +647,10 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    shouldUseSimplifiedCollectSubscriptionUI,
     shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
     hasInsufficientFundsError,
 };
 
-export type {SubscriptionPlanIllustrations};
+export type {DiscountInfo};

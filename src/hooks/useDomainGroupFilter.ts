@@ -1,7 +1,7 @@
 import {groupsSelector} from '@selectors/Domain';
 import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 import {useEffect, useState} from 'react';
-import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
@@ -20,7 +20,7 @@ type UseDomainGroupFilterResult = {
     selectedGroup: SingleSelectItem<string> | null;
 
     /** Handler for when the user picks a different group in the dropdown. */
-    handleGroupChange: (item: SingleSelectItem<string> | null) => void;
+    handleGroupChange: (item: SingleSelectItem<string> | undefined) => void;
 
     /** Display label for the dropdown button. */
     dropdownLabel: string;
@@ -69,7 +69,7 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
 
     const groupPreFilter = (item: MemberOption) => !selectedGroupMemberIDs || selectedGroupMemberIDs.has(item.accountID);
 
-    const handleGroupChange = (item: SingleSelectItem<string> | null) => {
+    const handleGroupChange = (item: SingleSelectItem<string> | undefined) => {
         if (!item || item.value === ALL_MEMBERS_VALUE) {
             setSelectedGroup(null);
         } else {

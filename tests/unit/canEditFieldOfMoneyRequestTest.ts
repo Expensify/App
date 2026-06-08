@@ -25,6 +25,7 @@ const policy: Policy = {
     outputCurrency: '',
     isPolicyExpenseChatEnabled: false,
 };
+
 describe('canEditFieldOfMoneyRequest', () => {
     describe('move expense', () => {
         beforeAll(() => {
@@ -68,7 +69,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 originalMessage: {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -129,6 +129,22 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 expect(canEditReportField).toBe(true);
             });
+
+            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
+                expect(canEditBillable).toBe(false);
+            });
+
+            it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
+                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
+                expect(canEditBillable).toBe(true);
+            });
         });
 
         describe('type is expense', () => {
@@ -146,7 +162,12 @@ describe('canEditFieldOfMoneyRequest', () => {
             const randomReportAction = createRandomReportAction(reportActionID);
             const policyID = '11';
 
-            const expensePolicy = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
+            const expensePolicy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+            };
 
             // Create outstanding expense reports in the same policy (different IDs than our main expense report)
             const outstandingExpenseReport1 = {
@@ -163,6 +184,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
             };
 
             const reportAction = {
@@ -172,7 +194,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 originalMessage: {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -196,6 +217,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 ownerAccountID: currentUserAccountID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
             };
 
             beforeEach(() => {
@@ -232,6 +254,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
                 await waitForBatchedUpdates();
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
@@ -530,6 +559,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 transactionID: PER_DIEM_IOU_TRANSACTION_ID,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 amount: 100,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -623,7 +653,6 @@ describe('canEditFieldOfMoneyRequest', () => {
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
             originalMessage: {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ...randomReportAction.originalMessage,
                 IOUReportID: RECEIPT_IOU_REPORT_ID,
                 IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,

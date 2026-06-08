@@ -37,5 +37,3 @@ function LoadingIndicator({style, iconSize, reasonAttributes}: LoadingIndicatorP
 LoadingIndicator.displayName = 'LoadingIndicator';
 
 export default LoadingIndicator;
-
-export type {LoadingIndicatorIconSize};

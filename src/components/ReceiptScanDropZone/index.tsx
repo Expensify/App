@@ -23,7 +23,7 @@ function ReceiptScanDropZone({targetRef, dropWrapperStyle}: ReceiptScanDropZoneP
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan']);
     const {initScanRequest, auxiliaryUI, isDragDisabled} = useReceiptScanDrop();
 
     const {isDraggingOver} = useDragAndDrop({

@@ -1,4 +1,5 @@
 import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
+import {execSync} from 'child_process';
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
@@ -13,6 +14,7 @@ import {fileURLToPath} from 'url';
 import webpack from 'webpack';
 import type {Configuration, WebpackPluginInstance} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
+import {GenerateSW} from 'workbox-webpack-plugin';
 // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions
@@ -28,6 +30,16 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 dotenv.config();
+
+function getCurrentBranchName(): string {
+    try {
+        return execSync('git rev-parse --abbrev-ref HEAD', {encoding: 'utf-8'}).trim();
+    } catch {
+        return '';
+    }
+}
+
+const localBranchName = getCurrentBranchName();
 
 type Options = {
     rel: string;
@@ -99,7 +111,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         mode: isDevelopment ? 'development' : 'production',
         devtool: 'source-map',
         entry: {
-            main: ['babel-polyfill', './index.js'],
+            main: './index.js',
         },
         output: {
             // Use simple filenames in development to prevent memory leaks from contenthash changes
@@ -114,6 +126,40 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         },
         plugins: [
             new CleanWebpackPlugin(),
+            // Only emit the SW for non-development builds. In dev, webpack-dev-server's HMR
+            // and the SW's caching behavior fight each other and confuse hot reloads.
+            // Remove this guard locally if you want to actually exercise the SW.
+            ...(isDevelopment
+                ? []
+                : [
+                      new GenerateSW({
+                          clientsClaim: true,
+                          skipWaiting: true,
+                          // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
+                          // authScreens.prefetch (~6.3 MiB) chunks and canvaskit.wasm (~7.6 MiB) are
+                          // all critical for offline boot, so we precache the lot. Everything in the
+                          // App build is content-hashed, so growth here only costs first-install bytes.
+                          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+                          // Single-page app: any unmatched navigation should serve the cached app shell.
+                          navigateFallback: '/index.html',
+                          // Don't fall back for asset-like or .well-known requests.
+                          navigateFallbackDenylist: [/^\/_/, /^\/\.well-known/, /\/[^/?]+\.[^/]+$/],
+                          runtimeCaching: [
+                              {
+                                  // Same-origin user media (receipts, chat attachments) — cache opportunistically
+                                  // so they're viewable on offline refresh. The function below is serialized into
+                                  // the generated service worker, so it executes in the SW context where
+                                  // `sameOrigin` is the appropriate Workbox match (no need to read `self.location`).
+                                  urlPattern: ({sameOrigin, url, request}) => sameOrigin && (request.destination === 'image' || /\/(receipts|chat-attachments)\//.test(url.pathname)),
+                                  handler: 'StaleWhileRevalidate',
+                                  options: {
+                                      cacheName: 'user-media',
+                                      expiration: {maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60},
+                                  },
+                              },
+                          ],
+                      }),
+                  ]),
             new HtmlWebpackPlugin({
                 template: 'web/index.html',
                 filename: 'index.html',
@@ -135,7 +181,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             new PreloadWebpackPlugin({
                 rel: 'preload',
                 as: 'font',
-                fileWhitelist: [/\.woff2$/],
+                fileWhitelist: [/^(?!.*seguiemj).*\.(woff2|ttf)$/],
                 include: 'allAssets',
             }),
             new PreloadWebpackPlugin({
@@ -162,8 +208,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     {from: 'assets/fonts/web', to: 'fonts'},
                     {from: 'assets/sounds', to: 'sounds'},
                     {from: 'assets/pdfs', to: 'pdfs'},
-                    {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
-                    {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
+                    {from: 'node_modules/react-pdf/dist/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                    {from: 'node_modules/react-pdf/dist/Page/TextLayer.css', to: 'css/TextLayer.css'},
                     {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                     {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
@@ -202,6 +248,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // react-native-render-html uses variable to log exclusively during development.
                 // See https://reactnative.dev/docs/javascript-environment
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
+                // Expose the current git branch so the debug menu can display it in the browser tab title.
+                // Empty string in non-development builds.
+                __GIT_BRANCH__: JSON.stringify(isDevelopment ? localBranchName : ''),
             }),
             ...(isDevelopment ? [] : [new MiniCssExtractPlugin()]),
 
@@ -209,7 +258,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             ...(isDevelopment
                 ? []
                 : ([
-                      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                       sentryWebpackPlugin({
                           authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
                           org: 'expensify',
@@ -260,7 +308,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
                 // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
                 {
-                    test: new RegExp('node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
+                    test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
                     type: 'asset/source',
                 },
 
@@ -299,7 +347,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     use: isDevelopment ? ['style-loader', 'css-loader'] : [MiniCssExtractPlugin.loader, 'css-loader'],
                 },
                 {
-                    test: /\.(woff|woff2)$/i,
+                    test: /\.(woff|woff2|ttf)$/i,
                     type: 'asset',
                 },
                 {
@@ -330,6 +378,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
                 // Required for @shopify/react-native-skia web support
                 'react-native/Libraries/Image/AssetRegistry': false,
+                // Use legacy build of pdfjs-dist to support older browsers
+                'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
                 // Module alias for web
                 // https://webpack.js.org/configuration/resolve/#resolvealias
                 '@assets': path.resolve(dirname, '../../assets'),
@@ -346,10 +396,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 '@selectors': path.resolve(dirname, '../../src/selectors/'),
             },
 
-            // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
-            // without this, web will try to use native implementations and break in not very obvious ways.
-            // This is also why we have to use .website.js for our own web-specific files...
-            extensions: ['.web.js', '.website.js', '.js', '.jsx', '.web.ts', '.website.ts', '.website.tsx', '.ts', '.web.tsx', '.tsx'],
+            // Resolve web-specific implementations (`.web.*`) before bare files so React Native
+            // libraries and our own app-level overrides both pick up their browser variants.
+            extensions: ['.web.js', '.js', '.jsx', '.web.ts', '.web.tsx', '.ts', '.tsx'],
             fallback: {
                 'process/browser': require.resolve('process/browser'),
                 crypto: false,

@@ -1,4 +1,5 @@
 import {format, isValid, parse} from 'date-fns';
+import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
@@ -9,23 +10,24 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
+import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
     getTaxByID,
+    isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isInstantSubmitEnabled,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
@@ -39,22 +41,22 @@ import {
     isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
-    isReportApproved,
     isReportIDApproved,
-    isReportManuallyReimbursed,
+    isSelfDM,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
-import type {IOURequestType, UpdateMoneyRequestDataKeys} from '@userActions/IOU';
+import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
     OnyxInputOrEntry,
+    PersonalDetails,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -68,9 +70,8 @@ import type {
     TransactionViolations,
     ViolationName,
 } from '@src/types/onyx';
-import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {
     Comment,
@@ -137,140 +138,66 @@ type BuildOptimisticTransactionParams = {
     isDemoTransactionParam?: boolean;
 };
 
-function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+function isDeletedTransaction(transaction: {reportID?: string}): boolean {
+    return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
 }
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return (
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
-        );
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
+    const requestType = transaction?.iouRequestType;
+    return requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || isDistanceExpenseType(requestType);
 }
 
 function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
 }
 
 /**
- * todo: Currently there is no way to tell server map transaction object from
- * server GPS transaction object, this will be discussed and updated later.
- * To fix this temporarily we set keyForList of GPS waypoints to 'gps_start' and 'gps_end'
- * and use that to determine if it's a GPS or Map transaction. This should be changed before
- * the first GPS release.
+ * Compare two waypoint collections by their addresses only (ignoring coordinates/names), which is
+ * the meaningful signal for "did the user change the route?". Numeric fields like lat/lng can drift
+ * due to rounding in transaction backups, so they're excluded.
  */
-function hasGPSWaypoints(transaction: OnyxEntry<Transaction>) {
-    const waypoints = transaction?.comment?.waypoints;
-
-    if (!waypoints) {
-        return false;
-    }
-
-    const waypoint = Object.values(waypoints).at(0);
-
-    return !!waypoint?.keyForList?.startsWith('gps');
+function haveWaypointAddressesChanged(oldWaypoints: WaypointCollection | undefined, newWaypoints: WaypointCollection | undefined): boolean {
+    const toAddresses = (collection: WaypointCollection | undefined) =>
+        Object.fromEntries(Object.entries(collection ?? {}).map(([key, waypoint]) => [key, waypoint && 'address' in waypoint ? waypoint.address : undefined]));
+    return !deepEqual(toAddresses(oldWaypoints), toAddresses(newWaypoints));
 }
 
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction) && !hasGPSWaypoints(transaction);
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
 }
 
 function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasGPSWaypoints(transaction);
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 }
 
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    // Exclude odometer requests which also have no waypoints but have odometer readings
-    return (
-        hasDistanceCustomUnit(transaction) &&
-        isEmptyObject(transaction?.comment?.waypoints) &&
-        transaction?.comment?.odometerStart === undefined &&
-        transaction?.comment?.odometerEnd === undefined
-    );
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
 }
 
 function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    // Odometer requests have odometerStart and odometerEnd in comment, and no waypoints
-    return (
-        hasDistanceCustomUnit(transaction) &&
-        isEmptyObject(transaction?.comment?.waypoints) &&
-        (transaction?.comment?.odometerStart !== undefined || transaction?.comment?.odometerEnd !== undefined)
-    );
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
-function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
-    }
-
-    // Distance requests can have a receipt source (for the map), so we need to exclude them
-    if (hasDistanceCustomUnit(transaction)) {
-        return false;
-    }
-
-    return !!transaction?.receipt?.source && transaction?.amount === 0;
+function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
 }
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
-    }
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
+}
 
-    // This is the case for transaction objects once they have been saved to the server
-    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
+function isDistanceExpenseType(requestType: IOURequestType | undefined): requestType is DistanceExpenseType {
+    return (
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
+    );
 }
 
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -278,52 +205,7 @@ function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
-    if (isOdometerDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
-    }
-    if (isManualDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-    }
-    if (isMapDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    }
-    if (isDistanceTypeRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-    if (isScanRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.SCAN;
-    }
-    if (isPerDiemRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    }
-    if (isTimeRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.TIME;
-    }
-    if (isGPSDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
-    }
-
-    return CONST.IOU.REQUEST_TYPE.MANUAL;
-}
-
-/**
- * Determines the expense type of a given transaction.
- */
-function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.EXPENSE_TYPE> | undefined {
-    if (!transaction) {
-        return undefined;
-    }
-
-    if (isExpensifyCardTransaction(transaction)) {
-        if (isPending(transaction)) {
-            return CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD;
-        }
-
-        return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
-    }
-
-    const requestType = getRequestType(transaction);
-    return requestType as ValueOf<typeof CONST.IOU.EXPENSE_TYPE>;
+    return transaction?.iouRequestType ?? CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 /**
@@ -383,15 +265,6 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function isManualRequest(transaction: Transaction): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-    }
-
-    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
-}
-
 function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
     const merchant = getMerchant(transaction);
 
@@ -406,12 +279,8 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return false;
 }
 
-function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (
-        (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
-        (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) ||
-        (isScanRequest(transaction) && isScanning(transaction))
-    );
+function isScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) || (isScanRequest(transaction) && isScanning(transaction));
 }
 
 /**
@@ -434,7 +303,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created = '',
         merchant = '',
         receipt,
-        category = '',
+        // Prevent RBR flip and transaction jump: initialize category to 'Uncategorized' instead of
+        // empty string so optimistic missing category violation isn't added then removed during backend sync
+        category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
         tag = '',
         taxCode = '',
         taxAmount = 0,
@@ -561,7 +432,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         cardID: existingTransaction?.cardID,
         cardName: existingTransaction?.cardName,
         cardNumber: existingTransaction?.cardNumber,
-        // Use conditional spread to avoid creating the key if it's undefined, which would break lodashHas checks.
         ...(existingTransaction?.iouRequestType ? {iouRequestType: existingTransaction.iouRequestType} : {}),
         routes,
     };
@@ -617,9 +487,7 @@ function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boole
         return false;
     }
 
-    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
-    // Control policies if the policy does not contain the attribute
-    return policy?.isAttendeeTrackingEnabled ?? true;
+    return isAttendeeTrackingEnabledForPolicy(policy);
 }
 
 /**
@@ -629,8 +497,11 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
+    if (isFromExpenseReport) {
+        return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+    }
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
@@ -638,6 +509,22 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
         return false;
     }
     return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
+}
+
+/**
+ * Builds the optimistic transaction used when an IOU report is converted to an expense report.
+ *
+ * Expense reports store amounts with the opposite sign of IOU reports (see `getAmount`/`getConvertedAmount`),
+ * so `amount`, `modifiedAmount` and `convertedAmount` are negated to match the expense-report convention.
+ * Absent converted values are not added so they keep being derived from the amount.
+ */
+function getNegatedAmountTransaction(transaction: Transaction): Transaction {
+    return {
+        ...transaction,
+        amount: -transaction.amount,
+        modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+        ...(transaction.convertedAmount != null && {convertedAmount: -transaction.convertedAmount}),
+    };
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
@@ -733,17 +620,22 @@ function getUpdatedTransaction({
         }
         shouldStopSmartscan = true;
 
-        if (!transactionChanges.routes?.route0?.geometry?.coordinates) {
+        // A manual-distance edit re-sends unchanged waypoints; when they truly didn't change, leave
+        // `amount`/`modifiedAmount` to the sibling `distance` branch instead of zeroing them here.
+        const waypointsActuallyChanged = !deepEqual(transactionChanges.waypoints, transaction?.comment?.waypoints);
+
+        if (waypointsActuallyChanged && !transactionChanges.routes?.route0?.geometry?.coordinates) {
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
-        } else {
+        } else if (transactionChanges.routes?.route0?.geometry?.coordinates) {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
             const {unit, rate} = mileageRate;
 
-            const distanceInMeters = getDistanceInMeters(transaction, unit);
+            // Use route distance directly since waypoints changed and the route was recalculated.
+            // getDistanceInMeters prefers quantity which may hold a stale manually-edited value.
+            const distanceInMeters = transactionChanges.routes?.route0?.distance ?? getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
@@ -752,7 +644,6 @@ function getUpdatedTransaction({
                 unit,
                 rate,
                 transaction.currency,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
@@ -762,6 +653,13 @@ function getUpdatedTransaction({
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
+
+            // Sync `customUnit.quantity` to the new route distance. Without this the prior manual
+            // quantity (set when the user edited distance manually before changing waypoints) would
+            // linger and drive `getDistanceInMeters`, since that helper prefers quantity over routes.
+            if (unit) {
+                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
+            }
         }
     }
 
@@ -809,7 +707,6 @@ function getUpdatedTransaction({
                 unit,
                 rate,
                 updatedCurrency,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
@@ -845,10 +742,11 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy);
-        if (categoryTaxCode && categoryTaxAmount !== undefined) {
+        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy);
+        if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
+            updatedTransaction.taxValue = categoryTaxValue;
         }
     }
 
@@ -877,12 +775,23 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'distance') && typeof transactionChanges.distance === 'number') {
         const distance = roundToTwoDecimalPlaces(transactionChanges.distance ?? 0);
+        // Capture before mutating quantity below; needed by the fallback amount computation.
+        const previousDistanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit);
 
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+        lodashSet(updatedTransaction, 'routes.route0.distance', null);
         shouldStopSmartscan = true;
 
         const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
         const {unit, rate} = updatedMileageRate;
+
+        // Sync the stored distanceUnit to the policy's current unit. The user's input on the Manual
+        // tab is already in this unit; without writing it back, the optimistic state carries a stale
+        // unit (e.g. "miles" when the workspace switched to km) and the display stays wrong until the
+        // BE response — which never lands offline.
+        if (unit) {
+            lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', unit);
+        }
 
         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
         let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
@@ -894,16 +803,26 @@ function getUpdatedTransaction({
             unit,
             rate,
             updatedCurrency,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal,
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             getCurrencySymbol,
             isManualDistanceRequest(transaction),
         );
 
-        updatedTransaction.modifiedAmount = amount;
-        updatedTransaction.modifiedMerchant = updatedMerchant;
-        updatedTransaction.modifiedCurrency = updatedCurrency;
+        // No locally resolvable rate (e.g. track expense without policy loaded) → scale the previous
+        // amount by the distance ratio so the optimistic value isn't 0. `modifiedAmount` is `""` for
+        // unedited transactions, so coerce via Number() and fall through to `amount`.
+        const previousAmount = Number(transaction?.modifiedAmount) || transaction?.amount || 0;
+        const useFallback = !rate && !!previousDistanceInMeters && !!previousAmount && !!distanceInMeters;
+        if (useFallback) {
+            updatedTransaction.modifiedAmount = Math.round(previousAmount * (distanceInMeters / previousDistanceInMeters));
+            updatedTransaction.modifiedMerchant = updatedMerchant;
+            // Leave currency alone — without a resolvable rate we don't know the target currency.
+        } else {
+            updatedTransaction.modifiedAmount = amount;
+            updatedTransaction.modifiedMerchant = updatedMerchant;
+            updatedTransaction.modifiedCurrency = updatedCurrency;
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'odometerStart') && typeof transactionChanges.odometerStart === 'number') {
@@ -912,6 +831,10 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'odometerEnd') && typeof transactionChanges.odometerEnd === 'number') {
         lodashSet(updatedTransaction, 'comment.odometerEnd', transactionChanges.odometerEnd);
+    }
+
+    if (Object.hasOwn(transactionChanges, 'reportID')) {
+        updatedTransaction.reportID = transactionChanges.reportID;
     }
 
     // For distance split requests, if the amount is changed, we need to update the amount and merchant based on the new distance which we calculate before and save in transactionChanges
@@ -1053,14 +976,16 @@ function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
  * Transactions that match the destination currency can keep their convertedAmount since no conversion is needed.
  */
 function shouldClearConvertedAmount(transaction: OnyxInputOrEntry<Transaction>, sourceCurrency: string | undefined, destinationCurrency: string | undefined): boolean {
-    if (!sourceCurrency || !destinationCurrency || sourceCurrency === destinationCurrency) {
+    if (!destinationCurrency) {
         return false;
     }
 
     const transactionCurrency = getCurrency(transaction);
-    const transactionMatchesDestination = transactionCurrency === destinationCurrency;
+    // sourceCurrency is undefined for unreported expenses (e.g. Self DM) since there's no source report.
+    // Fall back to the transaction's own currency so cross-currency detection still works.
+    const effectiveSourceCurrency = sourceCurrency ?? transactionCurrency;
 
-    return !transactionMatchesDestination;
+    return effectiveSourceCurrency !== destinationCurrency && transactionCurrency !== destinationCurrency;
 }
 
 /**
@@ -1134,22 +1059,6 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 }
 
 /**
- * Verify that the transaction is in Self DM or is an original split transaction and that its distance rate is invalid.
- */
-function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policy: OnyxEntry<Policy>) {
-    if (transaction && isDistanceRequest(transaction)) {
-        const {rate} = DistanceRequestUtils.getRate({transaction, policy});
-        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || String(transaction.reportID) === CONST.REPORT.SPLIT_REPORT_ID;
-
-        if (isUnreportedExpense && !rate) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -1160,12 +1069,31 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
     return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
 }
 
+function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
+
+    if (!creatorLogin) {
+        return;
+    }
+
+    const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
+    return {
+        email: creatorLogin,
+        login: creatorLogin,
+        displayName: creatorDisplayName,
+        accountID: creatorDetails?.accountID,
+        text: creatorDisplayName,
+        searchText: creatorDisplayName,
+        avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
+        selected: true,
+    };
+}
+
 /**
  * Return report owner as default attendee
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user - needed for unreported expenses to return current user as default attendee
  */
-function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee | undefined {
+function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined) {
     if (transaction?.reportID === undefined) {
         return;
     }
@@ -1173,39 +1101,16 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
     // Get the creator of the transaction by looking at the owner of the report linked to the transaction
     const report = getReportOrDraftReport(transaction?.reportID);
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
-    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserPersonalDetails?.accountID : report?.ownerAccountID;
-
-    if (creatorAccountID) {
-        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
-
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
-        const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
-
-        if (creatorLogin) {
-            return {
-                email: creatorLogin,
-                login: creatorLogin,
-                displayName: creatorDisplayName,
-                accountID: creatorAccountID,
-                text: creatorDisplayName,
-                searchText: creatorDisplayName,
-                avatarUrl: creatorDetails?.avatarThumbnail ?? '',
-                selected: true,
-            };
-        }
-    }
+    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserAccountID : report?.ownerAccountID;
+    return creatorAccountID;
 }
 
 /**
  * Return the list of attendees present on the transaction, if it's empty return report owner as default attendee
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
  */
-function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
+function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsAttendee: Attendee | undefined): Attendee[] {
     const rawAttendees = transaction?.comment?.attendees;
-    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
-    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+    const attendees = normalizeAttendees(convertAttendeesToArray(rawAttendees));
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
     }
@@ -1214,13 +1119,10 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
 
 /**
  * Return the list of modified attendees if present otherwise list of attendees
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
  */
-function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsAttendee?: Attendee): Attendee[] {
     const rawAttendees = transaction?.modifiedAttendees ?? transaction?.comment?.attendees;
-    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
-    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+    const attendees = normalizeAttendees(convertAttendeesToArray(rawAttendees));
 
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
@@ -1229,19 +1131,26 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPer
 }
 
 /**
- * Return the list of attendees as a string of display names/logins.
+ * Returns attendees joined as a display string. Pass `localeCompare` to sort alphabetically (matches the pill sort);
+ * omit it to keep insertion order — used by non-React callers that don't want to thread the comparator.
+ * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
-function getAttendeesListDisplayString(attendees: Attendee[]): string {
-    return attendees.map((item) => item.displayName ?? item.login).join(', ');
+function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
+    const ordered = localeCompare
+        ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
+          [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
+        : attendees;
+    return ordered.map(getName).join(', ');
 }
 
 /**
  * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
-function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
+function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
     const newAttendees = attendees ?? [];
-    return [getAttendeesListDisplayString(oldAttendees), getAttendeesListDisplayString(newAttendees)];
+    return [getAttendeesListDisplayString(oldAttendees, localeCompare), getAttendeesListDisplayString(newAttendees, localeCompare)];
 }
 
 /**
@@ -1314,21 +1223,39 @@ function getTagArrayFromName(tagName: string): string[] {
 }
 
 /**
- * Returns the exchange rate for a transaction, based on its group
+ * Returns the exchange rate for a transaction, based on its group or currencyConversionRate
  */
-function getExchangeRate(transaction: TransactionWithOptionalSearchFields) {
+function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string) {
     const fromCurrency = getCurrency(transaction);
-    const toCurrency = transaction.groupCurrency ?? fromCurrency;
 
-    if (!transaction.groupExchangeRate) {
+    // On the report view, "unconverted" means the transaction currency matches the report currency.
+    // groupCurrency reflects the user's default workspace and is unrelated to the report being viewed,
+    // so we must gate on reportCurrency here to match Expensify Classic behavior.
+    if (reportCurrency && fromCurrency === reportCurrency) {
         return '';
     }
 
-    if (Number(transaction.groupExchangeRate) === 1) {
-        return '';
+    // groupExchangeRate: search-page rate (fromCurrency → groupCurrency).
+    if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
+        const groupRate = Number(transaction.groupExchangeRate);
+        if (groupRate !== 1) {
+            return `${transaction.groupExchangeRate} ${fromCurrency}/${transaction.groupCurrency}`;
+        }
     }
 
-    return transaction.groupExchangeRate ? `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
+    // currencyConversionRate: report-layout rate (fromCurrency → reportCurrency).
+    // When no reportCurrency is provided (e.g. search sort), fall back to groupCurrency so we can still
+    // surface a meaningful rate. We intentionally do not use transaction.currency here, since it reflects
+    // the pre-modification currency and is almost never the correct conversion target.
+    const conversionToCurrency = reportCurrency ?? transaction.groupCurrency;
+    if (conversionToCurrency && transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
+        const conversionRate = Number(transaction.currencyConversionRate);
+        if (conversionRate !== 1) {
+            return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
+        }
+    }
+
+    return '';
 }
 
 /**
@@ -1424,13 +1351,25 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Check if the transaction status is set to Posted.
+ * Check if all transactions are pending Expensify card transactions.
  */
-function isPosted(transaction: Transaction): boolean {
-    if (!transaction.status) {
-        return false;
-    }
-    return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
+function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transaction>>): boolean {
+    return transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+}
+
+/**
+ * Show a confirm modal explaining that pending card transactions cannot be submitted.
+ */
+function showPendingCardTransactionsBlockModal(
+    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
+    translate: LocaleContextProps['translate'],
+) {
+    showConfirmModal({
+        title: translate('iou.error.unableToSubmitReport'),
+        prompt: translate('iou.error.allTransactionsPendingDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
 }
 
 /**
@@ -1681,9 +1620,32 @@ function mergeProhibitedViolations(transactionViolations: TransactionViolations)
             prohibitedExpenseRule: prohibitedExpenses,
         },
         type: CONST.VIOLATION_TYPES.VIOLATION,
+        showInReview: prohibitedViolations.some((v) => v.showInReview),
     };
 
     return [...transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
+}
+
+/**
+ * Returns transaction violations visible to the current user after applying dismiss/show filters
+ * and merging prohibited-expense violations.
+ */
+function getVisibleTransactionViolations(
+    transaction: OnyxEntry<Transaction>,
+    transactionViolations: TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    shouldShowRterForSettledReport = true,
+): TransactionViolations {
+    return mergeProhibitedViolations(
+        transactionViolations.filter(
+            (violation) =>
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+        ),
+    );
 }
 
 /**
@@ -1700,8 +1662,6 @@ function shouldShowViolation(
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
-
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
     }
@@ -1719,7 +1679,7 @@ function shouldShowViolation(
     }
 
     if (violationName === CONST.VIOLATIONS.MISSING_ATTENDEES) {
-        return isAttendeeTrackingEnabled;
+        return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
     if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
@@ -1754,13 +1714,6 @@ function allHavePendingRTERViolation(
         return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
-}
-
-function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    if (hasRTERPendingViolation) {
-        return true;
-    }
-    return shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report);
 }
 
 /**
@@ -1894,6 +1847,7 @@ function isDuplicate(
     if (!transaction) {
         return false;
     }
+
     const duplicatedTransactionViolation = transactionViolation?.find((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
     const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, currentUserAccountID, iouReport, policy);
@@ -2125,9 +2079,13 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
  * If it is distance request, then returns the tax code corresponding to the custom unit rate
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined): string | undefined {
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined, newCustomUnitRateID?: string): string | undefined {
     if (isDistanceRequest(transaction)) {
-        const customUnitRateID = getRateID(transaction) ?? '';
+        // When editing a distance rate, the draft transaction's customUnitRateID
+        // does not reflect the newly selected rate until setMoneyRequestDistanceRate is called, and the draft transaction's is updated.
+        // Therefore, to correctly determine the tax code for the selected rate, we must use the newly selected distance rate's customUnitRateID (newCustomUnitRateID)
+        // instead of relying on the transaction's current customUnitRateID.
+        const customUnitRateID = newCustomUnitRateID ?? getRateID(transaction) ?? '';
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
         const customUnit = getDistanceRateCustomUnit(policy);
         if (!customUnitRate?.attributes?.taxRateExternalID && customUnit?.attributes?.taxEnabled) {
@@ -2157,7 +2115,6 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 
         return policy && getDefaultTaxCode(policy, transaction);
     };
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
@@ -2168,6 +2125,18 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
  */
 function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+}
+
+/**
+ * Returns the maximum allowed tax amount (in the smallest currency units) for a transaction,
+ * i.e. the tax computed from the selected tax rate (or the policy default) and the expense amount.
+ * Used to validate manually entered tax amounts so they can't exceed the calculated tax.
+ */
+function getCalculatedTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency: string, decimals: number): number {
+    const taxableAmount = Math.abs(getAmount(transaction));
+    const taxCode = transaction?.taxCode ?? getDefaultTaxCode(policy, transaction, currency) ?? '';
+    const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+    return convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, decimals));
 }
 
 /**
@@ -2183,9 +2152,13 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
 
-    // transaction?.taxCode may be an empty string
+    // Only fall back to the default tax code when tax tracking is enabled on the policy.
+    // When taxes are disabled and the user deletes a tax, taxCode becomes undefined (the API returns null, which Onyx strips).
+    // Without this check, getTaxName would fall back to defaultTaxCode and display the default tax rate instead of showing empty.
+    // We use || instead of ?? because taxCode may be an empty string, which should also trigger the fallback.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode || defaultTaxCode));
+    const effectiveTaxCode = transaction?.taxCode || (policy?.tax?.trackingEnabled ? defaultTaxCode : undefined);
+    const taxRate = effectiveTaxCode ? Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === effectiveTaxCode) : undefined;
 
     if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
         return transaction?.taxValue;
@@ -2366,7 +2339,7 @@ function removeTransactionFromDuplicateTransactionViolation(
             continue;
         }
 
-        const optimisticViolations = duplicateTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        const optimisticViolations = duplicateViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
         if (duplicateTransactionIDs.length > 0) {
             optimisticViolations.push({
@@ -2378,10 +2351,21 @@ function removeTransactionFromDuplicateTransactionViolation(
             });
         }
 
+        const cleanedValue = optimisticViolations.length > 0 ? optimisticViolations : null;
+
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-            value: optimisticViolations.length > 0 ? optimisticViolations : null,
+            value: cleanedValue,
+        });
+
+        // Re-apply the cleaned violations on success so that stale data from a
+        // queued command (e.g. OpenReport resolving between optimistic apply and
+        // the server response) doesn't re-introduce one-sided duplicate violations.
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+            value: cleanedValue,
         });
 
         onyxData.failureData?.push({
@@ -2456,7 +2440,6 @@ function compareDuplicateTransactionFields(
                     .map((item) => {
                         // Prioritize modifiedMerchant over merchant
                         if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             return getMerchant(item);
                         }
                         return keys.map((key) => item?.[key]);
@@ -2579,7 +2562,8 @@ function getTransactionID(report?: OnyxEntry<Report>): string | undefined {
 }
 
 function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>, duplicatedTransaction: OnyxEntry<Transaction>): Partial<Transaction> {
-    const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+    const {duplicates, taxAmount, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+    const hasUpdatedTaxCode = reviewDuplicateTransaction?.taxCode !== undefined && reviewDuplicateTransaction?.taxCode !== duplicatedTransaction?.taxCode;
 
     return {
         ...duplicatedTransaction,
@@ -2587,6 +2571,8 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
         comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
+        // If the taxCode changes, apply the reviewed tax amount and clear stale taxName/taxValue so MoneyRequestView derives them fresh from the policy.
+        ...(hasUpdatedTaxCode && {taxAmount, taxName: undefined, taxValue: undefined}),
     };
 }
 
@@ -2612,10 +2598,10 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
-        return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
+        return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
     }
 
     const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
@@ -2627,7 +2613,7 @@ function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Tr
         categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))));
     }
 
-    return {categoryTaxCode, categoryTaxAmount};
+    return {categoryTaxCode, categoryTaxAmount, categoryTaxValue: categoryTaxPercentage};
 }
 
 /**
@@ -2661,12 +2647,19 @@ function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction
 
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if ((splits && splits.length > 0) || !originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return false;
     }
 
     return !originalTransaction?.comment?.splits;
+}
+
+function isSplitChildTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
+    return transaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
+}
+
+function hasSplitExpenseInSelection(transactions: Transaction[]): boolean {
+    return transactions.some(isSplitChildTransaction);
 }
 
 const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>) => {
@@ -2685,6 +2678,27 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: isExpenseSplit(transaction, originalTransaction), originalTransaction: originalTransaction ?? transaction};
 };
 
+function shouldRedirectDeleteToSplitExpenseEdit(
+    transaction: OnyxEntry<Transaction>,
+    originalTransaction: OnyxEntry<Transaction>,
+    isSelfDMSplit: boolean | undefined,
+    isProduction: boolean,
+): boolean {
+    const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+    if (isProduction) {
+        return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
+    }
+
+    if (!isExpenseSplitTransaction || !isPerDiemRequest(sourceTransaction)) {
+        return false;
+    }
+    if (isSelfDMSplit) {
+        return true;
+    }
+    return !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined);
+}
+
 /**
  * Return transactions pending action.
  */
@@ -2702,31 +2716,18 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 
 /**
  * Retrieves all "child" transactions associated with a given original transaction.
- * By default excludes orphaned transactions (reportID '0'). Use includeOrphaned=true for counting.
  */
-function getChildTransactions(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined, includeOrphaned = false) {
+function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined, isProduction: boolean) {
     return Object.values(transactions ?? {}).filter((currentTransaction) => {
         const isSplitChild = currentTransaction?.comment?.originalTransactionID === originalTransactionID;
         if (!isSplitChild || currentTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return false;
         }
-        const isOrphaned = currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        if (isOrphaned) {
-            return includeOrphaned;
+        if (isProduction && (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || isSelfDM(getReportOrDraftReport(currentTransaction?.reportID)))) {
+            return false;
         }
-        const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-        return !!currentReport || currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
+        return currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
     });
-}
-
-/**
- * Checks if a split transaction has more than one child transaction.
- */
-function hasMultipleSplitChildren(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined): boolean {
-    if (!originalTransactionID) {
-        return false;
-    }
-    return getChildTransactions(transactions, reports, originalTransactionID).length > 1;
 }
 
 /**
@@ -2776,6 +2777,44 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
 }
 
 /**
+ * Returns true if the violation should block report submission.
+ */
+function isSubmissionBlockingViolation(violation: TransactionViolation): boolean {
+    return violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED || violation.name === CONST.VIOLATIONS.NO_ROUTE;
+}
+
+/**
+ * Returns true if the transaction has at least one violation that should block report submission.
+ */
+function hasSubmissionBlockingViolationInList(violations: TransactionViolation[] | null | undefined): boolean {
+    return !!violations?.some(isSubmissionBlockingViolation);
+}
+
+/**
+ * Returns true if any report transaction has a violation that should block report submission.
+ * Allows callers to use an optimistic violation list for one transaction before it is written to Onyx.
+ */
+function hasSubmissionBlockingViolationInReport(
+    transactions: Array<OnyxEntry<Transaction>>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    optimisticTransactionID?: string,
+    optimisticViolations?: TransactionViolations | null,
+): boolean {
+    return transactions.some((transaction) => {
+        if (!transaction) {
+            return false;
+        }
+
+        const violations =
+            transaction.transactionID === optimisticTransactionID
+                ? optimisticViolations
+                : transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+
+        return hasSubmissionBlockingViolationInList(violations);
+    });
+}
+
+/**
  * Returns true if a transaction have violations that should block report submission.
  */
 function hasSubmissionBlockingViolations(
@@ -2787,7 +2826,7 @@ function hasSubmissionBlockingViolations(
     policy: OnyxEntry<Policy>,
 ): boolean {
     const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
-    return !!violations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED || violation.name === CONST.VIOLATIONS.NO_ROUTE);
+    return hasSubmissionBlockingViolationInList(violations);
 }
 
 /**
@@ -2817,54 +2856,14 @@ function shouldReuseInitialTransaction(
 
 /**
  * A utility that ensures unreported transactions are unheld.
- * For distance expenses, it also updates the `customUnit` and recalculates the transaction's `amount`, `merchant`, and `currency`
  */
-function recalculateUnreportedTransactionDetails(
-    transaction: OnyxEntry<Transaction>,
-    destinationCurrency: string | undefined,
-    translateParam: LocaleContextProps['translate'],
-    toLocaleDigitParam: LocaleContextProps['toLocaleDigit'],
-) {
+function recalculateUnreportedTransactionDetails() {
     // If the transaction is on hold, we need to unhold it because unreported transactions (on selfDM) should never remain on hold.
     const comment: NullishDeep<Comment> = {
         hold: null,
     };
-    let modifiedAmount: number | undefined;
-    let modifiedCurrency: string | undefined;
-    let modifiedMerchant: string | undefined;
 
-    // For distance requests we need to update its custom unit ID to `_FAKE_P2P_ID_` so it's no longer tied to the policy's rate which would cause the "Rate out of policy" violation to appear.
-    // Let's also set the defaultP2PRate and update the distanceUnit, the quantity, the amount, the currency and the merchant to match the P2P rate.
-    if (isDistanceRequest(transaction)) {
-        const currency = destinationCurrency && CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[destinationCurrency] ? destinationCurrency : CONST.CURRENCY.USD;
-        const {rate, unit} = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency];
-        const distance = parseFloat(
-            DistanceRequestUtils.getRoundedDistanceInUnits(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES), unit),
-        );
-        const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-        comment.customUnit = {
-            customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-            defaultP2PRate: rate,
-            distanceUnit: unit,
-            quantity: distance,
-        };
-        modifiedAmount = -DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-        modifiedCurrency = currency;
-        modifiedMerchant = DistanceRequestUtils.getDistanceMerchant(
-            true,
-            distanceInMeters,
-            unit,
-            rate,
-            currency,
-            translateParam,
-            toLocaleDigitParam,
-            getCurrencySymbol,
-            isManualDistanceRequest(transaction),
-        );
-    }
-
-    return {comment, modifiedAmount, modifiedCurrency, modifiedMerchant};
+    return {comment};
 }
 
 /**
@@ -2876,6 +2875,15 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
+function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
+    const requestType = getRequestType(transaction);
+    return isDistanceExpenseType(requestType) ? requestType : undefined;
+}
+
+function getIsFromGlobalCreate(transaction: OnyxEntry<Transaction> | Partial<Transaction> | undefined): boolean | undefined {
+    return transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2883,6 +2891,7 @@ export {
     getDefaultTaxCode,
     transformedTaxRates,
     getTaxValue,
+    getCalculatedTaxAmount,
     getTaxName,
     getTaxRateTitle,
     hasTaxRateWithMatchingValue,
@@ -2891,9 +2900,7 @@ export {
     getClearedPendingFields,
     getDescription,
     getRequestType,
-    getExpenseType,
     getTransactionType,
-    isManualRequest,
     isScanRequest,
     getAmount,
     getAttendees,
@@ -2914,6 +2921,7 @@ export {
     getFormattedCreated,
     getCategory,
     getBillable,
+    getIsFromGlobalCreate,
     getTag,
     getTagArrayFromName,
     getTagForDisplay,
@@ -2924,29 +2932,31 @@ export {
     isReceiptBeingScanned,
     didReceiptScanSucceed,
     getValidWaypoints,
-    getValidDuplicateTransactionIDs,
+    haveWaypointAddressesChanged,
     isDistanceRequest,
     isMapDistanceRequest,
     isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isDistanceExpenseType,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
     isDuplicate,
     isPending,
-    isPosted,
+    hasOnlyPendingCardTransactions,
+    showPendingCardTransactionsBlockModal,
     isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
-    isPartialMerchant,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
+    getNegatedAmountTransaction,
     allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
@@ -2956,7 +2966,8 @@ export {
     hasReservationList,
     hasViolation,
     hasDuplicateTransactions,
-    hasBrokenConnectionViolation,
+    hasSubmissionBlockingViolationInList,
+    hasSubmissionBlockingViolationInReport,
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
@@ -2979,32 +2990,33 @@ export {
     shouldShowAttendees,
     getAllSortedTransactions,
     getFormattedPostedDate,
-    getCategoryTaxCodeAndAmount,
+    getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,
-    isBrokenConnectionViolation,
     isPartialTransaction,
-    isPendingCardOrScanningTransaction,
+    isScanningTransaction,
     isScanning,
     isCategoryBeingAnalyzed,
-    checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,
+    shouldRedirectDeleteToSplitExpenseEdit,
     getTransactionPendingAction,
     isTransactionPendingDelete,
     getChildTransactions,
-    hasMultipleSplitChildren,
     createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     hasTransactionBeenRejected,
     isExpenseSplit,
+    hasSplitExpenseInSelection,
+    isSplitChildTransaction,
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
     isExpenseUnreported,
     mergeProhibitedViolations,
+    getVisibleTransactionViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
+    getReportOwnerAccountIDAsAttendee,
     isFromCreditCardImport,
     getExchangeRate,
     shouldReuseInitialTransaction,
@@ -3018,6 +3030,6 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isDeletedTransaction,
+    getDistanceRequestType,
 };
-
-export type {TransactionChanges};

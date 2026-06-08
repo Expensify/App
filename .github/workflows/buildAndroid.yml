@@ -67,8 +67,7 @@ jobs:
       PROGUARD_MAPPING_FILENAME: mapping.txt
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: true
           ref: ${{ inputs.ref }}
@@ -117,15 +116,15 @@ jobs:
         uses: ./.github/actions/composite/getJavaVersion
 
       - name: Setup Java
-        # v4
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        # v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
         with:
           distribution: oracle
           java-version: ${{ steps.get-java-version.outputs.version }}
 
+      # v6.1.0
       - name: Setup Gradle
-        # v4
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e
 
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
@@ -143,8 +142,8 @@ jobs:
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
-        # v3
-        uses: 1password/load-secrets-action@8d0d610af187e78a2772c2d18d627f4c52d3fbfb
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -178,6 +177,8 @@ jobs:
           sign: true
           re-sign: true
           ad-hoc: ${{ inputs.variant == 'Adhoc' }}
+          # We don't need Rock to setup java, because we already ran the setup-java action above
+          setup-java: false
           keystore-file: './upload-key.keystore'
           keystore-store-file: 'upload-key.keystore'
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}

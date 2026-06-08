@@ -1,10 +1,8 @@
-import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -13,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
@@ -32,44 +31,33 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-type ShareTabRef = {
-    focus?: () => void;
-};
-
-type ShareTabProps = {
-    /** Reference to the outer element */
-    ref?: Ref<ShareTabRef>;
-};
-
-function ShareTab({ref}: ShareTabProps) {
+function ShareTab() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
+    const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const sortedActions = useSortedActions();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
-    useImperativeHandle(ref, () => ({
-        focus: selectionListRef.current?.focusTextInput,
-    }));
 
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, isLoading} = useFilteredOptions({
         enabled: didScreenTransitionEnd,
         betas: betas ?? [],
-        searchTerm: debouncedTextInputValue,
+        isSearching: !!debouncedTextInputValue.trim(),
     });
     const areOptionsInitialized = !isLoading;
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
@@ -78,7 +66,6 @@ function ShareTab({ref}: ShareTabProps) {
         ? getSearchOptions({
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
-              nvpDismissedProductTraining,
               betas: betas ?? [],
               isUsedInChatFinder: false,
               includeReadOnly: false,
@@ -92,12 +79,14 @@ function ShareTab({ref}: ShareTabProps) {
               currentUserEmail,
               policyCollection: allPolicies,
               personalDetails,
-          })
+              sortedActions,
+              conciergeReportID,
+          }).options
         : defaultListOptions;
 
     let recentReportsOptions: OptionData[];
     if (textInputValue.trim() === '') {
-        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
+        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20).options;
     } else {
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
             sortByReportTypeInSearch: true,
@@ -122,6 +111,8 @@ function ShareTab({ref}: ShareTabProps) {
         text: StringUtils.lineBreaksToSpaces(item.text),
         wrapperStyle: [styles.pr3, styles.pl3],
         keyForList: `${item.reportID}-${index}`,
+        isSelected: item.reportID === selectedReportID,
+        canShowSeveralIndicators: true,
     }));
 
     const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
@@ -134,11 +125,13 @@ function ShareTab({ref}: ShareTabProps) {
             const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
             reportID = optimisticReport.reportID;
 
+            setSelectedReportID(reportID);
             saveReportDraft(reportID, optimisticReport).then(() => {
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
             });
         } else {
             clearUnknownUserDetails();
+            setSelectedReportID(reportID);
             Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
         }
     };
@@ -149,7 +142,6 @@ function ShareTab({ref}: ShareTabProps) {
         hint: offlineMessage,
         onChangeText: setTextInputValue,
         headerMessage: header,
-        disableAutoFocus: true,
     };
 
     const customListHeader =
@@ -170,7 +162,6 @@ function ShareTab({ref}: ShareTabProps) {
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}
-            ref={selectionListRef}
         />
     );
 }

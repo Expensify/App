@@ -80,6 +80,8 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 assigneeEmail: task?.assignee ?? '',
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
+                currentUserDisplayName: currentUserPersonalDetails.displayName,
+                currentUserAvatar: currentUserPersonalDetails.avatar,
                 assigneeAccountID: task.assigneeAccountID,
                 assigneeChatReport: task.assigneeChatReport,
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,

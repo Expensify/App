@@ -1,15 +1,17 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteReportFieldsListValue, removeReportFieldListValue, setReportFieldsListValueEnabled, updateReportFieldListValueEnabled} from '@libs/actions/Policy/ReportField';
@@ -38,8 +40,8 @@ function ReportFieldsValueSettingsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
-
-    const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
+    const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
     const [currentValueName, currentValueDisabled] = useMemo(() => {
         let reportFieldValue: string;
@@ -60,12 +62,25 @@ function ReportFieldsValueSettingsPage({
 
     const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
     const oldValueName = usePrevious(currentValueName);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     if (!currentValueName && !oldValueName) {
         return <NotFoundPage />;
     }
-    const deleteListValueAndHideModal = () => {
+    const confirmAndDeleteListValue = async () => {
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate('workspace.reportFields.deleteValue'),
+            prompt: translate('workspace.reportFields.deleteValuePrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldSetModalVisibility: false,
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
         if (reportFieldID) {
             removeReportFieldListValue({policy, reportFieldID, valueIndexes: [valueIndex]});
         } else {
@@ -75,7 +90,6 @@ function ReportFieldsValueSettingsPage({
                 disabledListValues: formDraft?.disabledListValues ?? [],
             });
         }
-        setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
@@ -101,6 +115,7 @@ function ReportFieldsValueSettingsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -110,17 +125,6 @@ function ReportFieldsValueSettingsPage({
                 <HeaderWithBackButton
                     title={currentValueName ?? oldValueName}
                     shouldSetModalVisibility={false}
-                />
-                <ConfirmModal
-                    title={translate('workspace.reportFields.deleteValue')}
-                    isVisible={isDeleteTagModalOpen && !hasAccountingConnections}
-                    onConfirm={deleteListValueAndHideModal}
-                    onCancel={() => setIsDeleteTagModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.reportFields.deleteValuePrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
                 <View style={styles.flexGrow1}>
                     <View style={[styles.mt2, styles.mh5]}>
@@ -135,21 +139,24 @@ function ReportFieldsValueSettingsPage({
                                 isOn={!currentValueDisabled}
                                 accessibilityLabel={translate('workspace.reportFields.enableValue')}
                                 onToggle={updateListValueEnabled}
+                                disabled={!canWriteReportFields}
+                                disabledAction={withReadOnlyFallback()}
+                                showLockIcon={!canWriteReportFields}
                             />
                         </View>
                     </View>
                     <MenuItemWithTopDescription
                         title={currentValueName ?? oldValueName}
                         description={translate('common.value')}
-                        shouldShowRightIcon={!reportFieldID}
-                        interactive={!reportFieldID}
+                        shouldShowRightIcon={canWriteReportFields && !reportFieldID}
+                        interactive={canWriteReportFields && !reportFieldID}
                         onPress={navigateToEditValue}
                     />
-                    {!hasAccountingConnections && (
+                    {canWriteReportFields && !hasAccountingConnections && (
                         <MenuItem
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setIsDeleteTagModalOpen(true)}
+                            onPress={confirmAndDeleteListValue}
                         />
                     )}
                 </View>

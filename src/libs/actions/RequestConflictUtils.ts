@@ -26,6 +26,7 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+    WRITE_COMMANDS.ENABLE_POLICY_HR,
     WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
     WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
     WRITE_COMMANDS.ENABLE_POLICY_TAGS,
@@ -74,9 +75,26 @@ function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], reque
 function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
     for (let index = 0; index < persistedRequests.length; index++) {
         const request = persistedRequests.at(index);
-        if (request && request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
+        if (request?.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
             // If the previous request had guided setup data, we can safely ignore the new request
             if (request.data.guidedSetupData) {
+                return {
+                    conflictAction: {
+                        type: 'noAction',
+                    },
+                };
+            }
+
+            // The queued request carries the participants needed to create the optimistic chat on the
+            // server (e.g. from navigateToAndOpenReportWithAccountIDs). A follow-up OpenReport fired by
+            // ReportFetchHandler when the screen mounts has no participants. Replacing would drop the
+            // accountIDList, leaving the server with no way to resolve the optimistic reportID — Auth
+            // returns NIL reportSummary and PHP throws "Report not found" (da7984df).
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const queuedHasParticipants = !!(request.data?.emailList || request.data?.accountIDList);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const newHasParticipants = !!(parameters.emailList || parameters.accountIDList);
+            if (queuedHasParticipants && !newHasParticipants) {
                 return {
                     conflictAction: {
                         type: 'noAction',

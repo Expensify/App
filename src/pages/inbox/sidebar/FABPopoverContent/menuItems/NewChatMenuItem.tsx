@@ -12,7 +12,7 @@ const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.NEW_CHAT;
 function NewChatMenuItem() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble']);
 
     return (
         <FABFocusableMenuItem

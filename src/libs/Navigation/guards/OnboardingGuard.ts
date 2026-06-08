@@ -110,6 +110,7 @@ function getOnboardingRoute(): Route {
         currentOnboardingPurposeSelected: onboardingPurposeSelected,
         onboardingInitialPath,
         onboardingValues: onboarding,
+        isAccountValidated: !!account?.validated,
     }) as Route;
 }
 
@@ -170,7 +171,7 @@ const OnboardingGuard: NavigationGuard = {
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
+        const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
@@ -189,12 +190,20 @@ const OnboardingGuard: NavigationGuard = {
             isTransitioning ||
             isOnboardingCompleted ||
             isMigratedUser ||
+            isInvitedOrGroupMember ||
             isSingleEntry ||
             needsExplanationModal ||
-            isInvitedOrGroupMember ||
             isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
+            return {type: 'ALLOW'};
+        }
+
+        // If the OnboardingModalNavigator is the currently focused route, the user is already
+        // on the onboarding flow. Redirecting again would produce a redundant state reset that
+        // triggers further actions, creating an infinite navigation loop (APP-7FR).
+        const isOnboardingFocused = state.routes[state.index]?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+        if (isOnboardingFocused) {
             return {type: 'ALLOW'};
         }
 

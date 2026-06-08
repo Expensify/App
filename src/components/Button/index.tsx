@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import type {ButtonSizeValue} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -40,6 +41,9 @@ type ButtonProps = Partial<ChildrenProps> &
 
         /** The icon asset to display to the left of the text */
         icon?: IconAsset | null;
+
+        /** Accessibility label applied to the left icon. When set, the icon is exposed to assistive tech with this label. */
+        iconAccessibilityLabel?: string;
 
         /** The fill color to pass into the icon. */
         iconFill?: string;
@@ -149,14 +153,14 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Accessibility label for the component */
         accessibilityLabel?: string;
 
+        /** Accessibility state to pass to the pressable */
+        accessibilityState?: AccessibilityState;
+
         /** The text for the button label */
         text?: string;
 
         /** Boolean whether to display the right icon */
         shouldShowRightIcon?: boolean;
-
-        /** Whether button's content should be centered */
-        isContentCentered?: boolean;
 
         /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
         isPressOnEnterActive?: boolean;
@@ -238,6 +242,7 @@ function Button({
     iconRightFill,
     iconRightHoverFill,
     icon = null,
+    iconAccessibilityLabel,
     iconFill,
     iconHoverFill,
     iconStyles = [],
@@ -285,12 +290,12 @@ function Button({
     testID = undefined,
     accessibilityLabel = '',
     link = false,
-    isContentCentered = false,
     isPressOnEnterActive,
     isNested = false,
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
+    accessibilityState,
     sentryLabel,
     ref,
     ...rest
@@ -363,10 +368,9 @@ function Button({
 
         const defaultFill = success || danger ? theme.textLight : theme.buttonIcon;
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
+                <View style={[styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
                             <View style={[extraSmall || small ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles, isLoading && styles.opacity0]}>
@@ -378,6 +382,7 @@ function Button({
                                     medium={medium}
                                     large={large}
                                     isButtonIcon
+                                    accessibilityLabel={iconAccessibilityLabel}
                                 />
                             </View>
                         )}
@@ -403,10 +408,21 @@ function Button({
         return textComponent;
     };
 
+    let buttonSize: ButtonSizeValue;
+    if (extraSmall) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
+    } else if (small) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.SMALL;
+    } else if (medium) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM;
+    } else {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    }
+
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, extraSmall, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+            StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
             success ? styles.buttonSuccess : undefined,
             danger ? styles.buttonDanger : undefined,
             isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
@@ -423,14 +439,11 @@ function Button({
             icon,
             innerStyles,
             isDisabled,
-            large,
+            buttonSize,
             link,
-            medium,
             shouldRemoveLeftBorderRadius,
             shouldRemoveRightBorderRadius,
             shouldShowRightIcon,
-            small,
-            extraSmall,
             styles,
             success,
             text,
@@ -527,6 +540,7 @@ function Button({
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityState={accessibilityState}
                 role={getButtonRole(isNested)}
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}

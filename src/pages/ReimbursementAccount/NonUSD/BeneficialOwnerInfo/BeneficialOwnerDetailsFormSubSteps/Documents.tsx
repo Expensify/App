@@ -1,8 +1,8 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
@@ -11,11 +11,11 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
-import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
+import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SafeString from '@src/utils/SafeString';
 
@@ -28,23 +28,24 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[countryStepCountryValue] ?? '';
+    const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
     const proofOfOwnershipInputID = `${PREFIX}_${ownerBeingModifiedID}_${PROOF_OF_OWNERSHIP}` as const;
     const copyOfIDInputID = `${PREFIX}_${ownerBeingModifiedID}_${COPY_OF_ID}` as const;
     const addressProofInputID = `${PREFIX}_${ownerBeingModifiedID}_${ADDRESS_PROOF}` as const;
     const codiceFiscaleInputID = `${PREFIX}_${ownerBeingModifiedID}_${CODICE_FISCALE}` as const;
     const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
     const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
-    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerNationality);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, country, beneficialOwnerNationality);
     const defaultValues: Record<string, FileObject[]> = {
         [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? (reimbursementAccountDraft?.[proofOfOwnershipInputID] ?? []) : [],
         [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] ?? []) : [],
         [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID] ?? []) : [],
         [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID] ?? []) : [],
     };
+
+    const formRef = useRef<FormRef | null>(null);
 
     const [uploadedProofOfOwnership, setUploadedProofOfOwnership] = useState<FileObject[]>(defaultValues[proofOfOwnershipInputID]);
     const [uploadedCopyOfID, setUploadedCopyOfID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
@@ -79,6 +80,8 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
             return;
         }
 
+        formRef.current?.resetFormFieldError(inputID);
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
     };
 
@@ -98,6 +101,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
 
     return (
         <FormProvider
+            ref={formRef}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
@@ -125,8 +129,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, proofOfOwnershipInputID);
                         }}
-                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={defaultValues[proofOfOwnershipInputID]}
                         inputID={proofOfOwnershipInputID}
                     />
@@ -153,8 +158,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, copyOfIDInputID);
                         }}
-                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={defaultValues[copyOfIDInputID]}
                         inputID={copyOfIDInputID}
                     />
@@ -179,8 +185,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, addressProofInputID);
                         }}
-                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={defaultValues[addressProofInputID]}
                         inputID={addressProofInputID}
                     />
@@ -205,8 +212,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, codiceFiscaleInputID);
                         }}
-                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={defaultValues[codiceFiscaleInputID]}
                         inputID={codiceFiscaleInputID}
                     />

@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useMultifactorAuthenticationState} from './State';
+import {useMultifactorAuthenticationState} from './MultifactorAuthenticationStateContext';
 
 type PromptContent = {
     illustration: DotLottieAnimation | IconAsset;
@@ -47,7 +47,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
         }
         checkCredentials();
         return () => {
-            // Guard against race condition in case where multifactorAuthenticationPublicKeyIDs gets updated in onyx while a KeyStore.get call is in-flight
+            // Guard against race condition in case where multifactorAuthenticationPublicKeyIDs gets updated in onyx while the call to retrieve the key from device is in-flight
             ignore = true;
         };
     }, [areLocalCredentialsKnownToServer]);

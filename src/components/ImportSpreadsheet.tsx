@@ -35,11 +35,14 @@ type ImportSpreadsheetProps = {
     // The route to navigate to after the file import is completed.
     goTo: Routes;
 
+    // If true, replace the current route after import instead of pushing on top.
+    shouldForceReplaceNavigation?: boolean;
+
     /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags?: boolean;
 };
 
-function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
@@ -145,7 +148,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                         );
                     })
                     .then(() => {
-                        Navigation.navigate(goTo);
+                        Navigation.navigate(goTo, {forceReplace: shouldForceReplaceNavigation});
                     })
                     .catch(() => {
                         showUploadFileError('spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
@@ -188,7 +191,6 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>

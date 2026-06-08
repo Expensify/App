@@ -45,18 +45,5 @@ type ValidateCodeActionContentProps = {
     isPageModal?: boolean;
 };
 
-type ValidateCodeActionModalProps = ValidateCodeActionContentProps & {
-    /** Whether the modal is visible */
-    isVisible: boolean;
-
-    /** Whether handle navigation back when modal show. */
-    shouldHandleNavigationBack?: boolean;
-
-    /** Whether disable the animations */
-    disableAnimation?: boolean;
-
-    /** Callback method fired when the modal is hidden */
-    onModalHide?: () => void;
-};
-
-export type {ValidateCodeActionContentProps, ValidateCodeActionModalProps};
+// eslint-disable-next-line import/prefer-default-export
+export type {ValidateCodeActionContentProps};

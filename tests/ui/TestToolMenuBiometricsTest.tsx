@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import TestToolMenu from '@components/TestToolMenu';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
+import CONST from '@src/CONST';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
@@ -18,7 +18,6 @@ let mockBiometricStatus = {
 jest.mock('@hooks/useBiometricRegistrationStatus', () => {
     const actual = require('@libs/MultifactorAuthentication/shared/VALUES') as {default: {REGISTRATION_STATUS: Record<string, string>}};
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: () => mockBiometricStatus,
         REGISTRATION_STATUS: actual.default.REGISTRATION_STATUS,
@@ -26,13 +25,11 @@ jest.mock('@hooks/useBiometricRegistrationStatus', () => {
 });
 
 jest.mock('@hooks/useIsAuthenticated', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => true,
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         translate: (key: string, params?: Record<string, string | number>) => {
@@ -48,7 +45,6 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => [undefined],
 }));
@@ -57,14 +53,7 @@ jest.mock('@hooks/useSidebarOrderedReports', () => ({
     useSidebarOrderedReportsActions: () => ({clearLHNCache: jest.fn()}),
 }));
 
-jest.mock('@hooks/useSingleExecution', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: () => ({singleExecution: (fn: () => void) => fn}),
-}));
-
 jest.mock('@hooks/useThemeStyles', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () =>
         new Proxy(
@@ -75,12 +64,6 @@ jest.mock('@hooks/useThemeStyles', () => ({
         ),
 }));
 
-jest.mock('@hooks/useWaitForNavigation', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: () => (fn: () => void) => fn,
-}));
-
 const mockRevokeCredentials = jest.fn().mockResolvedValue({httpStatusCode: 200});
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
     revokeMultifactorAuthenticationCredentials: (...args: unknown[]): Promise<{httpStatusCode: number}> => mockRevokeCredentials(...args) as Promise<{httpStatusCode: number}>,
@@ -88,10 +71,18 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
 
 jest.mock('@libs/ApiUtils', () => ({
     isUsingStagingApi: () => false,
+    getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
+const mockExecuteScenario = jest.fn().mockResolvedValue(undefined);
+jest.mock('@components/MultifactorAuthentication/Context', () => ({
+    useMultifactorAuthentication: () => ({
+        executeScenario: mockExecuteScenario,
+        cancel: jest.fn(),
+        requestCancel: jest.fn(),
+        hideCancelConfirm: jest.fn(),
+        confirmCancel: jest.fn(),
+    }),
 }));
 
 jest.mock('@userActions/Network', () => ({
@@ -113,6 +104,9 @@ jest.mock('@userActions/User', () => ({
 
 jest.mock('@src/CONFIG', () => ({
     IS_USING_LOCAL_WEB: false,
+    EXPENSIFY: {
+        DEFAULT_API_ROOT: 'https://www.expensify.com.dev/',
+    },
 }));
 
 jest.mock('@components/Button', () => {
@@ -259,11 +253,14 @@ describe('TestToolMenu biometrics', () => {
         expect(mockRevokeCredentials).toHaveBeenCalledWith({onlyKeyID: 'key-abc'});
     });
 
-    it('always shows the Test button', () => {
+    it('always shows the Test button and invokes executeScenario with BIOMETRICS_TEST when pressed', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
         render(<TestToolMenu />);
 
-        screen.getByText('multifactorAuthentication.biometricsTest.test');
+        const testButton = screen.getByText('multifactorAuthentication.biometricsTest.test');
+        fireEvent.press(testButton);
+
+        expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
     });
 });

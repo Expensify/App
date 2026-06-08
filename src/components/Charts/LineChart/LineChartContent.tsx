@@ -1,34 +1,35 @@
-import {useFont} from '@shopify/react-native-skia';
 import React, {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
-import {useSharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
+import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
+import type {HitTestArgs} from '@components/Charts/hooks';
 import {
-    AXIS_LABEL_GAP,
-    CHART_CONTENT_MIN_HEIGHT,
-    CHART_PADDING,
-    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
-    X_AXIS_LINE_WIDTH,
-    Y_AXIS_LINE_WIDTH,
-    Y_AXIS_TICK_COUNT,
-} from '@components/Charts/constants';
-import fontSource from '@components/Charts/font';
-import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
-import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+    ChartFontsProvider,
+    useChartFontManager,
+    useChartInteractions,
+    useChartLabelFormats,
+    useChartLabelLayout,
+    useChartLabelMeasurements,
+    useDynamicYDomain,
+    useLabelHitTesting,
+    useYAxisLabelWidth,
+} from '@components/Charts/hooks';
+import {calculateMinDomainPadding} from '@components/Charts/utils';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
+import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Inner dot radius for line chart data points */
 const DOT_RADIUS = 6;
@@ -42,40 +43,15 @@ const MIN_SAFE_PADDING = DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
-/**
- * Line chart geometry for label hit-testing.
- * Labels are start-anchored at the tick: the 45° parallelogram's upper-right corner is
- * offset by (iconSize/3 * sinA) left and down, placing the box just below the axis line.
- */
-const computeLineLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angleRad, labelWidths, padding}) => {
-    const iconThirdSin = (variables.iconSizeExtraSmall / 3) * sinA;
-    let additionalOffset = 0;
-    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
-        additionalOffset = variables.iconSizeExtraSmall / 1.5;
-    } else if (angleRad > 1) {
-        additionalOffset = variables.iconSizeExtraSmall / 3;
-    }
-    return {
-        labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - additionalOffset,
-        iconSin: variables.iconSizeExtraSmall * sinA,
-        labelSins: labelWidths.map((w) => w * sinA),
-        halfWidths: labelWidths.map((w) => w / 2),
-        cornerAnchorDX: labelWidths.map(() => -iconThirdSin),
-        cornerAnchorDY: labelWidths.map(() => iconThirdSin),
-        yMin90Offsets: labelWidths.map(() => padding),
-        yMax90Offsets: labelWidths.map((w) => w + padding),
-    };
-};
-
 type LineChartProps = CartesianChartProps & {
     /** Callback when a data point is pressed */
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
-function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const font = useFont(fontSource, variables.iconSizeExtraSmall);
+    const fontMgr = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
@@ -103,6 +79,8 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const chartBottom = useSharedValue(0);
 
+    const measurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
+
     const domainPadding = (() => {
         if (chartWidth === 0 || data.length === 0) {
             return BASE_DOMAIN_PADDING;
@@ -110,15 +88,12 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
         const geometricPadding = calculateMinDomainPadding(chartWidth, data.length);
 
-        if (!font) {
+        if (!measurements.firstLabelWidth || !measurements.lastLabelWidth) {
             return {...BASE_DOMAIN_PADDING, left: geometricPadding, right: geometricPadding};
         }
 
-        const firstLabelWidth = measureTextWidth(data.at(0)?.label ?? '', font);
-        const lastLabelWidth = measureTextWidth(data.at(-1)?.label ?? '', font);
-
-        const firstLabelNeeds = firstLabelWidth / 2;
-        const lastLabelNeeds = lastLabelWidth / 2;
+        const firstLabelNeeds = measurements.firstLabelWidth / 2;
+        const lastLabelNeeds = measurements.lastLabelWidth / 2;
 
         const wastedLeft = geometricPadding - firstLabelNeeds;
         const wastedRight = geometricPadding - lastLabelNeeds;
@@ -137,37 +112,38 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
         data,
-        font,
+        fontMgr,
+        fontSize: variables.iconSizeExtraSmall,
         tickSpacing,
         labelAreaWidth: plotAreaWidth,
         firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
         lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
-        allowTightDiagonalPacking: true,
+        measurements,
     });
+
+    const originalLabels = data.map((p) => p.label);
 
     const {formatValue} = useChartLabelFormats({
         data,
-        font,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
     });
 
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
-        font,
-        truncatedLabels,
+        fontMgr,
+        fontSize: variables.iconSizeExtraSmall,
+        truncatedLabelWidths,
         labelRotation,
         labelSkipInterval,
         chartBottom,
-        computeGeometry: computeLineLabelGeometry,
     });
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         setPlotAreaWidth(bounds.right - bounds.left);
         setBoundsLeft(bounds.left);
         setBoundsRight(bounds.right);
-        chartBottom.set(bounds.bottom);
     };
 
     const checkIsOverDot = (args: HitTestArgs) => {
@@ -178,7 +154,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
     };
 
-    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, isOverClickableTarget, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
         isCursorOverLabel,
@@ -194,9 +170,13 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
         );
     };
 
-    const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
+    const cursorStyle = useAnimatedStyle(() => ({
+        cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
+    }));
 
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+        const chartBoundsBottom = args.yScale(Math.min(...args.yTicks));
+        chartBottom.set(chartBoundsBottom);
         return (
             <>
                 <LeftFrameLine
@@ -208,29 +188,55 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                 <ScatterPoints
                     points={args.points.y}
                     radius={DOT_RADIUS}
-                    color={DEFAULT_CHART_COLOR}
+                    color={VictoryTheme.colors.default}
                 />
-                {!!font && xAxisLabelHeight !== undefined && (
+                {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
-                        labels={truncatedLabels}
+                        labels={originalLabels}
+                        labelWidths={measurements.labelWidths}
+                        regularLabelMaxWidth={regularLabelMaxWidth}
+                        firstLabelMaxWidth={firstLabelMaxWidth}
+                        lastLabelMaxWidth={lastLabelMaxWidth}
+                        ellipsisWidth={ellipsisWidth}
                         labelRotation={labelRotation}
                         labelSkipInterval={labelSkipInterval}
-                        font={font}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontMgr={fontMgr}
                         labelColor={theme.textSupporting}
                         xScale={args.xScale}
-                        chartBoundsBottom={args.chartBounds.bottom}
+                        chartBoundsBottom={chartBoundsBottom}
+                    />
+                )}
+                {!!fontMgr && (
+                    <ChartYAxisLabels
+                        yTicks={args.yTicks}
+                        yScale={args.yScale}
+                        chartBounds={args.chartBounds}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontMgr={fontMgr}
+                        labelColor={theme.textSupporting}
+                        formatValue={formatValue}
+                        leftAlign
                     />
                 )}
             </>
         );
     };
 
-    const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
+    const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom};
+    const yAxisLabelWidth = useYAxisLabelWidth(
+        Math.max(...data.map((p) => p.total), 0),
+        Math.min(...data.map((p) => p.total), 0),
+        VictoryTheme.axis.tickCount,
+        formatValue,
+        fontMgr,
+        variables.iconSizeExtraSmall,
+    );
+    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
-    if (isLoading || !font) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !font};
+    if (isLoading || !fontMgr) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !fontMgr};
         return (
             <View style={styles.chartActivityIndicator}>
                 <ActivityIndicator
@@ -247,8 +253,8 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     return (
         <GestureDetector gesture={customGestures}>
-            <View
-                style={[styles.chartContent, dynamicChartStyle, isOverClickableTarget && styles.cursorPointer]}
+            <Animated.View
+                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
@@ -262,17 +268,14 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                         renderOutside={renderOutside}
                         xAxis={{
                             tickCount: data.length,
-                            lineWidth: X_AXIS_LINE_WIDTH,
+                            lineWidth: VictoryTheme.axis.xLineWidth,
                         }}
                         yAxis={[
                             {
-                                font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
-                                tickCount: Y_AXIS_TICK_COUNT,
-                                lineWidth: Y_AXIS_LINE_WIDTH,
+                                tickCount: VictoryTheme.axis.tickCount,
+                                lineWidth: VictoryTheme.axis.yLineWidth,
                                 lineColor: theme.border,
-                                labelOffset: AXIS_LABEL_GAP,
+                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}
@@ -282,24 +285,31 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                         {({points}) => (
                             <Line
                                 points={points.y}
-                                color={DEFAULT_CHART_COLOR}
+                                color={VictoryTheme.colors.default}
                                 strokeWidth={2}
                                 curveType="linear"
                             />
                         )}
                     </CartesianChart>
                 )}
-                {isTooltipActive && !!tooltipData && (
-                    <ChartTooltip
-                        label={tooltipData.label}
-                        amount={tooltipData.amount}
-                        percentage={tooltipData.percentage}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                )}
-            </View>
+                <ChartTooltipLayer
+                    matchedIndex={matchedIndex}
+                    isTooltipActive={isTooltipActive}
+                    data={data}
+                    formatValue={formatValue}
+                    chartWidth={chartWidth}
+                    initialTooltipPosition={initialTooltipPosition}
+                />
+            </Animated.View>
         </GestureDetector>
+    );
+}
+
+function LineChartContent(props: LineChartProps) {
+    return (
+        <ChartFontsProvider>
+            <LineChartContentBody {...props} />
+        </ChartFontsProvider>
     );
 }
 

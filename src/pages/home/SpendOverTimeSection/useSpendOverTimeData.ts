@@ -1,5 +1,9 @@
+import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent} from 'react';
-import type {GroupedItem} from '@components/Search/types';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -8,6 +12,40 @@ import {search} from '@libs/actions/Search';
 import {getSections, getSortedSections, getSuggestedSearches, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SearchResults from '@src/types/onyx/SearchResults';
+
+const SPEND_OVER_TIME_STATE = {
+    OFFLINE: 'offline',
+    ERROR: 'error',
+    LOADING: 'loading',
+    HIDDEN: 'hidden',
+    READY: 'ready',
+} as const;
+
+type SpendOverTimeState = ValueOf<typeof SPEND_OVER_TIME_STATE>;
+
+function getSpendOverTimeState(
+    isOffline: boolean,
+    searchResults: OnyxEntry<SearchResults>,
+    queryJSON: SearchQueryJSON | undefined,
+    sortedData: GroupedItem[] | undefined,
+): SpendOverTimeState {
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+
+    if (isOffline && !isDataLoaded) {
+        return SPEND_OVER_TIME_STATE.OFFLINE;
+    }
+    if (!isOffline && Object.keys(searchResults?.errors ?? {}).length > 0) {
+        return SPEND_OVER_TIME_STATE.ERROR;
+    }
+    if (!isDataLoaded) {
+        return SPEND_OVER_TIME_STATE.LOADING;
+    }
+    if ((sortedData?.length ?? 0) < 2) {
+        return SPEND_OVER_TIME_STATE.HIDDEN;
+    }
+    return SPEND_OVER_TIME_STATE.READY;
+}
 
 function useSpendOverTimeData() {
     const config = getSuggestedSearches()[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
@@ -15,31 +53,35 @@ function useSpendOverTimeData() {
     const {groupBy, view} = queryJSON ?? {};
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const isSearchLoading = !!searchResults?.search?.isLoading;
 
-    const fetchData = () => {
-        if (!queryJSON || isSearchLoading) {
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
+
+    const onConfigChanged = useEffectEvent(() => {
+        if (!queryJSON || isSearchLoading || isOffline) {
             return;
         }
+
         search({
             queryJSON,
             searchKey,
             offset: 0,
-            isOffline: false,
+            isOffline,
             isLoading: false,
             shouldUpdateLastSearchParams: false,
         });
-    };
-
-    const onConfigChanged = useEffectEvent(fetchData);
+    });
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         onConfigChanged();
-    }, [config.hash]);
-
-    const {isOffline} = useNetwork({onReconnect: fetchData});
+    }, [config.hash, isOffline, isFocused]);
 
     const sortedData =
         searchResults?.data && queryJSON && groupBy && login
@@ -56,8 +98,8 @@ function useSpendOverTimeData() {
                       translate,
                       formatPhoneNumber,
                       bankAccountList: undefined,
-                      allReportMetadata: undefined,
                       conciergeReportID: undefined,
+                      convertToDisplayString,
                   })[0],
                   localeCompare,
                   translate,
@@ -67,9 +109,7 @@ function useSpendOverTimeData() {
               ) as GroupedItem[])
             : undefined;
 
-    const shouldShowOfflineIndicator = isOffline && !sortedData;
-    const shouldShowErrorIndicator = !shouldShowOfflineIndicator && Object.keys(searchResults?.errors ?? {}).length > 0;
-    const shouldShowLoadingIndicator = !shouldShowOfflineIndicator && !shouldShowErrorIndicator && !isSearchDataLoaded(searchResults, queryJSON);
+    const state = getSpendOverTimeState(isOffline, searchResults, queryJSON, sortedData);
 
     return {
         query,
@@ -77,10 +117,9 @@ function useSpendOverTimeData() {
         groupBy,
         view,
         sortedData,
-        shouldShowOfflineIndicator,
-        shouldShowErrorIndicator,
-        shouldShowLoadingIndicator,
+        state,
     };
 }
 
+export {SPEND_OVER_TIME_STATE, getSpendOverTimeState};
 export default useSpendOverTimeData;

@@ -4,6 +4,8 @@
 type PasskeyRegistrationKeyInfo = {
     rawId: string;
     type: 'public-key';
+    transports?: string[];
+    aaguid?: string;
     response: {
         clientDataJSON: string;
         attestationObject: string;

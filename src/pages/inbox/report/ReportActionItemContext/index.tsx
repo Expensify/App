@@ -14,4 +14,3 @@ function useReportActionItemActions(): ReportActionItemActionsContextType {
 }
 
 export {ReportActionItemStateContext, ReportActionItemActionsContext, useReportActionItemState, useReportActionItemActions};
-export type {ReportActionItemActionsContextType, ReportActionItemStateContextType} from './types';

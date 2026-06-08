@@ -2,7 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {trackExpense} from '@libs/actions/IOU';
+import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -22,41 +22,45 @@ jest.mock('@libs/Navigation/AppNavigator/Navigators/Overlay');
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 // Mock navigation ref to prevent navigation errors
-jest.mock('@libs/Navigation/navigationRef', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: {
-        getRootState: jest.fn(() => ({
-            routes: [
-                {
-                    name: 'Main',
-                    state: {
-                        routes: [
-                            {
-                                name: 'Home',
-                                params: {},
-                            },
-                        ],
-                        index: 0,
-                    },
+jest.mock('@libs/Navigation/navigationRef', () => {
+    const mockState = {
+        routes: [
+            {
+                name: 'Main',
+                state: {
+                    routes: [
+                        {
+                            name: 'Home',
+                            params: {},
+                        },
+                    ],
+                    index: 0,
                 },
-            ],
-            index: 0,
-        })),
-        resetRoot: jest.fn(),
-        navigate: jest.fn(),
-        addListener: jest.fn(),
-        isReady: jest.fn(() => true),
-        getCurrentRoute: jest.fn(() => ({name: 'Home'})),
-    },
-}));
+            },
+        ],
+        index: 0,
+    };
+    return {
+        __esModule: true,
+        default: {
+            getRootState: jest.fn(() => mockState),
+            getState: jest.fn(() => mockState),
+            resetRoot: jest.fn(),
+            navigate: jest.fn(),
+            dispatch: jest.fn(),
+            addListener: jest.fn(),
+            // isReady=false prevents dismissModal/dismissModalWithReport from executing
+            // real navigation side effects during GTM-focused tests.
+            isReady: jest.fn(() => false),
+            getCurrentRoute: jest.fn(() => ({name: 'Home'})),
+        },
+    };
+});
 
 // Mock react-navigation/native to prevent navigation errors
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ...actualNav,
         useNavigationState: () => true,
         useRoute: jest.fn(),
@@ -117,12 +121,13 @@ const FUND_LIST: FundList = {
 
 describe('GoogleTagManagerTest', () => {
     const accountID = 123456;
+    const email = 'test@test.com';
 
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                session: {accountID},
+                session: {accountID, email},
             },
         });
     });
@@ -152,45 +157,58 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish the sign_up event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.SIGN_UP.NAME, accountID, email);
     });
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
         createWorkspace({
+            policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
+            currency: undefined,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            policyName: '',
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
+            currency: undefined,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: true,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            policyName: '',
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
+            currency: undefined,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: true,
         });
         await waitForBatchedUpdatesWithAct();
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, 123456);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, 123456, email);
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID, email});
+        });
+
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         trackExpense({
@@ -216,14 +234,11 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
             isASAPSubmitBetaEnabled: false,
-            currentUserAccountIDParam: accountID,
-            currentUserEmailParam: 'test@test.com',
+            currentUser: {accountID, email: 'test@test.com'},
             introSelected: undefined,
-            activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
         });
 
@@ -231,7 +246,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith('workspace_created', accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, accountID, email);
     });
 
     test('paid_adoption - addPaymentCard', async () => {
@@ -248,7 +263,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a paid_adoption event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, email);
     });
 
     test('paid_adoption - addSubscriptionPaymentCard', async () => {
@@ -271,7 +286,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a paid_adoption event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, email);
     });
 
     it('addSubscriptionPaymentCard when changing payment card, will not publish event paid_adoption', async () => {

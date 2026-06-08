@@ -7,7 +7,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -44,6 +43,9 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** The visible columns for the header */
     columns?: SearchColumnType[];
+
+    /** Whether the screen is large */
+    isLargeScreenWidth?: boolean;
 };
 
 function MemberListItemHeader<TItem extends ListItem>({
@@ -56,21 +58,39 @@ function MemberListItemHeader<TItem extends ListItem>({
     isExpanded,
     onDownArrowClick,
     columns,
+    isLargeScreenWidth,
 }: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
     const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(memberItem));
     const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
 
     const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
+            >
+                <UserDetailsTooltip accountID={memberItem.accountID}>
+                    <View>
+                        <Avatar
+                            source={memberItem.avatar}
+                            type={CONST.ICON_TYPE_AVATAR}
+                            name={formattedDisplayName}
+                            avatarID={memberItem.accountID}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)}
             >
-                <View style={[styles.gap1, styles.flexShrink1]}>
+                <View style={styles.flexShrink1}>
                     <TextWithTooltip
                         text={formattedDisplayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
@@ -93,7 +113,7 @@ function MemberListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
                     total={memberItem.total}
@@ -105,7 +125,7 @@ function MemberListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pl3, styles.pv1, styles.gap3] : [styles.p4, styles.gap3]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -114,7 +134,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            style={isLargeScreenWidth && styles.mr1}
+                            containerStyle={styles.m0}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -141,27 +161,10 @@ function MemberListItemHeader<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && (
-                        <>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
-                                <UserDetailsTooltip accountID={memberItem.accountID}>
-                                    <View>
-                                        <Avatar
-                                            source={memberItem.avatar}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                            name={formattedDisplayName}
-                                            avatarID={memberItem.accountID}
-                                        />
-                                    </View>
-                                </UserDetailsTooltip>
-                            </View>
-
-                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
-                        </>
-                    )}
+                    {!!isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
-                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                    <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
                             total={memberItem.total}
                             currency={memberItem.currency}

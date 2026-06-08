@@ -1,10 +1,10 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {ForwardedRef} from 'react';
+import type {RefObject} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import type {Transaction} from '@src/types/onyx';
+import type {CardList, Transaction} from '@src/types/onyx';
 
 type BaseSearchListProps = Pick<
     FlashListProps<SearchListItem>,
@@ -37,7 +37,7 @@ type BaseSearchListProps = Pick<
     onSelectRow: (item: SearchListItem) => void;
 
     /** The ref to the list */
-    ref: ForwardedRef<FlashListRef<SearchListItem>>;
+    ref: RefObject<FlashListRef<SearchListItem> | null>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;
@@ -45,8 +45,11 @@ type BaseSearchListProps = Pick<
     /** Selected transactions for triggering re-render via extraData */
     selectedTransactions?: SelectedTransactions;
 
-    /** Custom card names for triggering re-render via extraData */
-    customCardNames?: Record<number, string>;
+    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
+    isAttendeesEnabledForMovingPolicy?: boolean;
+
+    /** Non-personal and workspace cards for triggering re-render via extraData */
+    nonPersonalAndWorkspaceCards?: CardList;
 };
 
 export default BaseSearchListProps;

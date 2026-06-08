@@ -1,7 +1,6 @@
 import MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG from '@components/MultifactorAuthentication/config/scenarios';
 import type {MultifactorAuthenticationScenarioConfigRecord} from '@components/MultifactorAuthentication/config/types';
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 
 describe('MultifactorAuthentication Scenarios Config', () => {
     it('should have all required properties for every scenario config', () => {
@@ -31,8 +30,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const biometricsTestScenario = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
         expect(biometricsTestScenario).toBeDefined();
-        expect(biometricsTestScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
-        expect(biometricsTestScenario.screen).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST);
+        expect(biometricsTestScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
         expect(biometricsTestScenario.pure).toBe(true);
         expect(biometricsTestScenario.action).toBeDefined();
     });
@@ -41,8 +39,8 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
         const biometricsTestConfig = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
-        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS);
-        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE);
+        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED);
+        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED);
     });
 
     /**
@@ -67,19 +65,16 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
         const biometricsTestConfig = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
-        // Invoke the callback with successful authentication and valid response data
         const callbackResult = await biometricsTestConfig.callback?.(
             true,
             {
                 httpStatusCode: 200,
-                message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+                message: undefined,
                 body: {},
             },
             undefined,
         );
 
-        // Verify that the callback returns SHOW_OUTCOME_SCREEN, indicating
-        // the MFA flow should navigate to the outcome screen
         expect(callbackResult).toBe(CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
     });
 
@@ -97,7 +92,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             addressStreet2: '',
             addressZip: 'SW1A 1AA',
             addressCountry: 'GB',
-            addressState: '',
+            addressProvince: '',
             dob: '1990-01-15',
             pin: '5739',
             cardID: '12345',
@@ -108,7 +103,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             const setPinScenario = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD];
 
             expect(setPinScenario).toBeDefined();
-            expect(setPinScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
+            expect(setPinScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
             expect(setPinScenario.action).toBeDefined();
             expect(setPinScenario.callback).toBeDefined();
             expect(typeof setPinScenario.callback).toBe('function');
@@ -120,8 +115,8 @@ describe('MultifactorAuthentication Scenarios Config', () => {
 
             expect(setPinScenario.defaultClientFailureScreen).toBeDefined();
             expect(setPinScenario.defaultServerFailureScreen).toBeDefined();
-            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS);
-            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE);
+            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED);
+            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED);
         });
 
         it('should return SHOW_OUTCOME_SCREEN on authentication failure', async () => {
@@ -133,7 +128,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
                 false,
                 {
                     httpStatusCode: 401,
-                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNHANDLED_ERROR,
+                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
                     body: {},
                 },
                 validPayload,
@@ -150,7 +145,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
                 true,
                 {
                     httpStatusCode: 200,
-                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+                    message: undefined,
                     body: {},
                 },
                 undefined,

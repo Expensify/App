@@ -8,8 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import {getWorkspaceTaxesSettingsName} from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -31,10 +31,10 @@ function WorkspaceTaxesSettingsForeignCurrency({
 
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault ?? '';
 
-    const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
+    const selectedTaxRate = getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
 
-    const submit = (taxes: TaxOptionsListUtils.TaxRatesOption) => {
-        setForeignCurrencyDefault(policyID, taxes.code ?? '');
+    const submit = (taxes: TaxRatesOption) => {
+        setForeignCurrencyDefault(policyID, taxes.code ?? '', foreignTaxDefault);
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 

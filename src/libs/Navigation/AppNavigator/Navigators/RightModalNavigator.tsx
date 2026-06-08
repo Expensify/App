@@ -3,8 +3,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import {
     animatedWideRHPWidth,
     expandedRHPProgress,
@@ -29,9 +29,9 @@ import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateRece
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import createRightModalNavigator from '@navigation/AppNavigator/createRightModalNavigator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import variables from '@styles/variables';
@@ -44,7 +44,7 @@ import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
-const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
+const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
@@ -52,10 +52,7 @@ const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calcul
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
         <PINContextProvider>
-            <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...props}
-            />
+            <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator {...props} />
         </PINContextProvider>
     );
 }
@@ -99,22 +96,40 @@ function SecondaryOverlay() {
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
+const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const containerRef = useRef(null);
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();
 
+    // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
+    // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
+    // (user backs out without submitting), restore the default animation for that session.
+    useEffect(() => {
+        const disableSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.NONE});
+        });
+        const restoreSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
+        });
+        return () => {
+            disableSub.remove();
+            restoreSub.remove();
+        };
+    }, [navigation]);
+
     // Animation should be disabled when we open the wide rhp from the narrow one.
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
-    const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || isSmallScreenWidth;
+    const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
 
     const animatedWidth = expandedRHPProgress.interpolate({
         inputRange: [0, 1, 2],
@@ -141,7 +156,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 }
                 // Delay clearing review duplicate data till the RHP is completely closed
                 // to avoid not found showing briefly in confirmation page when RHP is closing
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     abandonReviewDuplicateTransactions();
                 });
@@ -155,10 +169,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             return;
         }
         isExecutingRef.current = true;
-        navigation.goBack();
-        setTimeout(() => {
+        const currentState = navigationRef.getRootState();
+
+        // There is a brief moment when the RHP is not in the state anymore but the overlay is still visible (closing RHP animation)
+        // We need to block overlay press function in such case because it would go back from the currently active full screen.
+        // Without this, the bug described in https://github.com/Expensify/App/issues/78440 would occur.
+        if (currentState.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            navigation.goBack();
+            setTimeout(() => {
+                isExecutingRef.current = false;
+            }, CONST.ANIMATED_TRANSITION);
+        } else {
             isExecutingRef.current = false;
-        }, CONST.ANIMATED_TRANSITION);
+        }
     }, [navigation]);
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
@@ -181,30 +204,30 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
 
-    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
-
     return (
         <NarrowPaneContextProvider>
-            <MultifactorAuthenticationContextProviders>
-                <NoDropZone>
-                    {!shouldUseNarrowLayout && (
-                        <Overlay
-                            positionLeftValue={overlayPositionLeft}
-                            onPress={handleOverlayPress}
-                        />
-                    )}
-                    {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
-                    {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                    <Animated.View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}>
+            <NoDropZone>
+                {!shouldUseNarrowLayout && (
+                    <Overlay
+                        positionLeftValue={overlayPositionLeft}
+                        onPress={handleOverlayPress}
+                    />
+                )}
+                {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
+                {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
+                <Animated.View
+                    ref={containerRef}
+                    role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
+                    aria-modal={isSmallScreenWidth ? undefined : true}
+                    style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                >
+                    <DialogLabelProvider containerRef={containerRef}>
                         <Stack.Navigator
+                            parentRoute={route}
                             screenOptions={screenOptions}
                             screenListeners={screenListeners}
                             id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         >
-                            <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.SEARCH_ROUTER}
-                                component={ModalStackNavigators.SearchRouterModalStackNavigator}
-                            />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SETTINGS}
                                 component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -214,7 +237,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                                 listeners={{
                                     beforeRemove: () => {
-                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         InteractionManager.runAfterInteractions(() => clearTwoFactorAuthData(true));
                                     },
                                 }}
@@ -260,6 +282,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
+                                component={ModalStackNavigators.ChronosScheduleOOOModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT}
                                 component={ModalStackNavigators.ReportVerifyAccountModalStackNavigator}
                             />
@@ -298,6 +324,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE}
                                 component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.POLICY_COPY_SETTINGS}
+                                component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.NEW_TASK}
@@ -369,6 +399,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.RestrictedActionModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
+                                getComponent={loadSearchSavePage}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
                                 component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
                             />
@@ -381,8 +415,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={MissingPersonalDetailsWithPINContext}
                             />
                             <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
-                                component={ModalStackNavigators.AddUnreportedExpenseModalStackNavigator}
+                                name={SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE}
+                                component={ModalStackNavigators.AddExistingExpenseModalStackNavigator}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
@@ -425,20 +459,20 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
                             />
                         </Stack.Navigator>
-                    </Animated.View>
-                    {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
-                    {/* Clicking on these overlays redirects you to the RHP screen below them. */}
-                    {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
-                    {!shouldUseNarrowLayout && <SecondaryOverlay />}
-                    {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
-                        <Overlay
-                            progress={thirdOverlayProgress}
-                            positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                            onPress={Navigation.dismissToPreviousRHP}
-                        />
-                    )}
-                </NoDropZone>
-            </MultifactorAuthenticationContextProviders>
+                    </DialogLabelProvider>
+                </Animated.View>
+                {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
+                {/* Clicking on these overlays redirects you to the RHP screen below them. */}
+                {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
+                {!shouldUseNarrowLayout && <SecondaryOverlay />}
+                {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
+                    <Overlay
+                        progress={thirdOverlayProgress}
+                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                        onPress={Navigation.dismissToPreviousRHP}
+                    />
+                )}
+            </NoDropZone>
         </NarrowPaneContextProvider>
     );
 }

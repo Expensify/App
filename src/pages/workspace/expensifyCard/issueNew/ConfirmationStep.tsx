@@ -7,6 +7,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,39 +20,39 @@ import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
+import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ConfirmationStepProps = {
     /** ID of the policy that the card will be issued under */
-    policyID: string | undefined;
+    policyID: string;
 
     /** Array of step names */
     stepNames: readonly string[];
 
     /** Start from step index */
     startStepIndex: number;
-
-    /** Back to route to pass to confirm magic code page */
-    backTo?: Route;
 };
 
-function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const defaultFundID = useDefaultFundID(policyID);
     const {isBetaEnabled} = usePermissions();
+    const {cardRules} = useExpensifyCardRules(policyID);
+
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
+    const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
     const personalDetails = usePersonalDetails();
@@ -86,7 +87,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
             // Redirect to the magic code page when there is an error with the user's validateCode authentication
             if (errorMessage.toLowerCase().includes('request a new code')) {
                 clearIssueNewCardError(policyID);
-                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path));
             }
         }
     }, [issueNewCard, isSuccessful, policyID]);
@@ -102,9 +103,9 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
             issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
         } else {
             // Navigate to magic code page
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled, backTo, assigneeTimeZone]);
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
@@ -125,6 +126,33 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
         data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
 
     const shouldShowExpirationDate = !isPhysicalCard;
+
+    const cardRuleRestrictionsTitle = (() => {
+        if (!data?.spendRuleEnabled) {
+            return '';
+        }
+
+        const fields: string[] = [];
+        const spendRuleOption = data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
+        const isCopyingExistingRule = spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
+        const spendRuleForm = isCopyingExistingRule ? cardRules.find((rule) => rule.ruleID === data.spendRuleID)?.formValues : data?.spendRuleValue;
+
+        if (spendRuleForm?.categories?.length) {
+            fields.push(translate('workspace.rules.spendRules.categories'));
+        }
+
+        if (spendRuleForm?.maxAmount) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.maxAmount') : translate('workspace.rules.spendRules.maxAmount').toLowerCase();
+            fields.push(translation);
+        }
+
+        if (spendRuleForm?.merchantNames?.length) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.merchants') : translate('workspace.rules.spendRules.merchants').toLowerCase();
+            fields.push(translation);
+        }
+
+        return fields.join(', ');
+    })();
 
     return (
         <InteractiveStepWrapper
@@ -175,7 +203,15 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                         description={translate('workspace.card.issueNewCard.expirationDate')}
                         title={expirationDateTitle}
                         shouldShowRightIcon
-                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS)}
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
+                    />
+                )}
+                {isSpendRuleApplied && (
+                    <MenuItemWithTopDescription
+                        description={translate('common.restrictions')}
+                        title={cardRuleRestrictionsTitle}
+                        shouldShowRightIcon
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                     />
                 )}
                 <MenuItemWithTopDescription

@@ -98,12 +98,12 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     key={key ?? menuItemProps.title}
                     wrapperStyle={wrapperStyle}
                     onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                    shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
                     ref={mergeRefs(ref, popoverAnchor)}
                     shouldBlockSelection={!!menuItemProps.link}
                     icon={icon}
                     iconWidth={iconWidth}
                     iconHeight={iconHeight}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
                     disabled={!!menuItemProps.disabled || isExecuting}
                     onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}

@@ -82,7 +82,6 @@ function TextPicker({
                 required={required}
                 customValidate={customValidate}
                 shouldUseStrictHtmlTagValidation={shouldUseStrictHtmlTagValidation}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
         </View>

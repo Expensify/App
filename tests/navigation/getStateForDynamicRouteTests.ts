@@ -141,4 +141,37 @@ describe('getStateForDynamicRoute', () => {
         const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
         expect(leafRoute?.params).toEqual({reportID: '12345', country: 'US'});
     });
+
+    describe('undefined params are filtered out (optional path params absent)', () => {
+        it('does not include the key when an optional path param is undefined', () => {
+            const path = '/r/12345/test-path';
+            const parentParams = {reportID: '12345', accountID: undefined};
+            const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+
+            const rootRoute = result.routes.at(0) as NestedRoute | undefined;
+            const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
+            expect(leafRoute?.params).toEqual({reportID: '12345'});
+            expect(leafRoute?.params).not.toHaveProperty('accountID');
+        });
+
+        it('returns no params when all parent params are undefined and there are no query params', () => {
+            const path = '/r/12345/test-path';
+            const parentParams = {accountID: undefined as unknown as string};
+            const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+
+            const rootRoute = result.routes.at(0) as NestedRoute | undefined;
+            const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
+            expect(leafRoute?.params).toBeUndefined();
+        });
+
+        it('keeps defined params and drops undefined ones in mixed scenario', () => {
+            const path = '/r/12345/test-path?country=US';
+            const parentParams = {reportID: '12345', extraneous: undefined};
+            const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+
+            const rootRoute = result.routes.at(0) as NestedRoute | undefined;
+            const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
+            expect(leafRoute?.params).toEqual({reportID: '12345', country: 'US'});
+        });
+    });
 });

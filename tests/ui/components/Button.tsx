@@ -13,7 +13,6 @@ describe('Button Component', () => {
         render(
             <Button
                 text={buttonText}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />,
         );

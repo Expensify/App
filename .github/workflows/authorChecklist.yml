@@ -9,28 +9,33 @@ on:
     paths-ignore: ['docs/articles/**/*.md', 'docs/redirects.csv', 'docs/assets/images/**']
 
 jobs:
-  validate:
-    uses: ./.github/workflows/contributorValidationGate.yml
-    with:
-      PR_NUMBER: ${{ github.event.pull_request.number }}
-      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
-
   # Note: PHP specifically looks for the name of this job, "checklist", so if the name of the job is changed,
   # then you also need to go into PHP and update the name of this job in the GH_JOB_NAME_CHECKLIST constant
   checklist:
-    needs: [validate]
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: |
-      needs.validate.outputs.IS_AUTHORIZED == 'true'
-      && github.actor != 'OSBotify'
+      github.actor != 'OSBotify'
       && github.actor != 'imgbot[bot]'
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Check contributor authorization
+        id: gate
+        uses: ./.github/actions/javascript/isAuthorizedContributor
+        with:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
+          ACTOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          GITHUB_TOKEN: ${{ github.token }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: authorChecklist.ts
+        # Internal Expensify engineers (org members/owners) skip the author checklist; external contributors still fill it out.
+        if: |
+          steps.gate.outputs.IS_AUTHORIZED == 'true'
+          && github.event.pull_request.author_association != 'MEMBER'
+          && github.event.pull_request.author_association != 'OWNER'
         uses: ./.github/actions/javascript/authorChecklist
         with:
           GITHUB_TOKEN: ${{ github.token }}

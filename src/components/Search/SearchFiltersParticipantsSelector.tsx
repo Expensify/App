@@ -1,16 +1,17 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatSectionsFromSearchTerm, getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
+import {getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -20,9 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
-/**
- * Creates an OptionData object from a name-only attendee (attendee without a real accountID in personalDetails)
- */
+// Builds an OptionData row for a name-only attendee — one without a real accountID in personalDetails.
 function getOptionDataFromAttendee(attendee: Attendee): OptionData {
     return {
         text: attendee.displayName,
@@ -32,7 +31,7 @@ function getOptionDataFromAttendee(attendee: Attendee): OptionData {
         login: attendee.email || attendee.displayName,
         displayName: attendee.displayName,
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        // eslint-disable-next-line rulesdir/no-default-id-values
+
         reportID: '-1',
         keyForList: `${attendee.accountID ?? attendee.email}`,
         selected: true,
@@ -61,160 +60,139 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const reportAttributesDerived = useReportAttributes();
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
-    const recentAttendeeLists = useMemo(
-        () => (shouldAllowNameOnlyOptions ? getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? [], currentUserEmail, currentUserAccountID) : []),
-        [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
+    // Only the attendee filter feeds recentAttendees into the picker; other filters use empty list.
+    const recentAttendeeLists = shouldAllowNameOnlyOptions ? getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? [], currentUserEmail, currentUserAccountID) : [];
+
+    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, allPolicies, currentUserEmail);
+
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            includeUserToInvite: true,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            excludeFromSuggestionsOnly: expensifyTeamExclusions,
+            includeRecentReports: true,
+            shouldInitialize: didScreenTransitionEnd,
+            includeCurrentUser: true,
+            recentAttendees: recentAttendeeLists,
+            shouldAllowNameOnlyOptions,
+            shouldKeepSelectedInAvailableOptions: true,
+        });
+
+    // Flip to true once the hydration effect runs. Without this, a stale `initialAccountIDs` could let
+    // the pinning snapshot fire on the first toggled row and pin it by mistake.
+    const [hasAttemptedHydration, setHasAttemptedHydration] = useState(initialAccountIDs.length === 0);
+
+    const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+    const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
+
+    const currentUserOption = areOptionsInitialized ? availableOptions.currentUserOption : null;
+    const isCurrentUserSelected = !!currentUserAccountID && selectedOptions.some((option) => option.accountID === currentUserAccountID);
+
+    // Hide the current user from Recents / Contacts — they get their own row (or get pinned at the top).
+    const recentReportsWithoutCurrentUser =
+        areOptionsInitialized && currentUserOption?.accountID
+            ? availableOptions.recentReports.filter((report) => report.accountID !== currentUserOption.accountID)
+            : (availableOptions.recentReports ?? []);
+    const personalDetailsWithoutCurrentUser =
+        areOptionsInitialized && currentUserOption?.accountID
+            ? availableOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID)
+            : (availableOptions.personalDetails ?? []);
+
+    // Selected items not visible in Recents / Contacts and not the current user — show them in a section above, but only if they match the search term.
+    // Dedupe by accountID for real users and by login for name-only attendees (which all share DEFAULT_NUMBER_ID).
+    const visibleAccountIDs = new Set<number>(
+        [...personalDetailsWithoutCurrentUser, ...recentReportsWithoutCurrentUser].map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID),
+    );
+    const visibleLogins = new Set([...personalDetailsWithoutCurrentUser.map((detail) => detail.login), ...recentReportsWithoutCurrentUser.map((report) => report.login)].filter(Boolean));
+    const extraSelectedOptions = selectedOptions.filter(
+        (option) =>
+            option.accountID !== currentUserAccountID &&
+            !(!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && visibleAccountIDs.has(option.accountID)) &&
+            !(!!option.login && visibleLogins.has(option.login)) &&
+            matchesSearchTerm(option),
     );
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        includeUserToInvite: true,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
-        shouldInitialize: didScreenTransitionEnd,
-        includeCurrentUser: true,
-        recentAttendees: recentAttendeeLists,
-        shouldAllowNameOnlyOptions,
+    // Current user row with the "(you)" suffix. Falls back to personalDetails when pagination drops them from availableOptions.
+    let currentUserRow: OptionData | undefined;
+    if (areOptionsInitialized) {
+        let candidate = currentUserOption ?? undefined;
+        if (!candidate && currentUserAccountID && personalDetails?.[currentUserAccountID]) {
+            candidate = getParticipantsOption(personalDetails[currentUserAccountID], personalDetails) as OptionData;
+        }
+        if (candidate && matchesSearchTerm(candidate)) {
+            currentUserRow = {
+                ...candidate,
+                text: getDisplayNameForParticipant({
+                    accountID: candidate.accountID,
+                    shouldAddCurrentUserPostfix: true,
+                    personalDetailsData: personalDetails,
+                    formatPhoneNumber,
+                }),
+                isSelected: isCurrentUserSelected,
+            };
+        }
+    }
+
+    const baseSections: Array<{title: string; data: OptionData[]; sectionIndex: number}> = [];
+    if (areOptionsInitialized) {
+        if (extraSelectedOptions.length > 0) {
+            baseSections.push({title: '', data: extraSelectedOptions, sectionIndex: 1});
+        }
+        if (currentUserRow) {
+            baseSections.push({title: '', data: [currentUserRow], sectionIndex: 2});
+        }
+        baseSections.push({title: '', data: recentReportsWithoutCurrentUser, sectionIndex: 3});
+        baseSections.push({title: '', data: personalDetailsWithoutCurrentUser, sectionIndex: 4});
+    }
+
+    // `initialAccountIDs` holds accountIDs (or displayName / login for name-only attendees), but for any
+    // contact with a 1:1 DM, the default `keyForList` is the reportID. Use an explicit getKey so the hook
+    // matches on the right identifier.
+    const getKey = (option: OptionData) => {
+        if (shouldAllowNameOnlyOptions) {
+            if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
+                return option.accountID.toString();
+            }
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
+            return option.displayName || option.login;
+        }
+        return option.accountID ? option.accountID.toString() : undefined;
+    };
+
+    // The list is lazy-loaded, so pinned rows aren't always present in baseSections — the hook keeps them
+    // from the snapshot. Pass `matchesSearchTerm` so the pinned section still respects the search term.
+    const sections = useFrozenPreSelection<OptionData>(baseSections, {
+        initialSelectedValues: initialAccountIDs,
+        // Wait for hydration so a toggled row isn't mistaken for a pre-selection.
+        canCapture: areOptionsInitialized && hasAttemptedHydration,
+        shouldRenderPinned: matchesSearchTerm,
+        getKey,
     });
 
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections = [];
-        if (!areOptionsInitialized) {
-            return {sections: [], headerMessage: undefined};
-        }
+    const noResultsFound = areOptionsInitialized && sections.every((section) => section.data.length === 0);
+    const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
 
-        const chatOptions = {...availableOptions};
-        const currentUserOption = chatOptions.currentUserOption;
-
-        // Ensure current user is not in personalDetails when they should be excluded
-        if (currentUserOption) {
-            chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID);
-        }
-
-        const formattedResults = formatSectionsFromSearchTerm(
-            searchTerm.trim().toLowerCase(),
-            selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            privateIsArchivedMap,
-            currentUserAccountID,
-            allPolicies,
-            personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
-        );
-        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
-
-        // If the current user is already selected, remove them from the recent reports and personal details
-        if (selectedCurrentUser) {
-            chatOptions.recentReports = chatOptions.recentReports.filter((report) => report.accountID !== selectedCurrentUser.accountID);
-            chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== selectedCurrentUser.accountID);
-        }
-
-        // If the current user is not selected, add them to the top of the list
-        if (!selectedCurrentUser && chatOptions.currentUserOption) {
-            const formattedName = getDisplayNameForParticipant({
-                accountID: chatOptions.currentUserOption.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-                formatPhoneNumber,
-            });
-            chatOptions.currentUserOption.text = formattedName;
-
-            newSections.push({
-                title: '',
-                data: [chatOptions.currentUserOption],
-                sectionIndex: 0,
-            });
-        }
-
-        newSections.push({
-            ...formattedResults.section,
-            data: formattedResults.section.data.map((option) => ({...option, isSelected: true})) as OptionData[],
-        });
-
-        // Filter current user from recentReports to avoid duplicate with currentUserOption section
-        // Only filter if both the report and currentUserOption have valid accountIDs to avoid
-        // accidentally filtering out name-only attendees (which have accountID: undefined)
-        const filteredRecentReports = chatOptions.recentReports.filter(
-            (report) => !report.accountID || !chatOptions.currentUserOption?.accountID || report.accountID !== chatOptions.currentUserOption.accountID,
-        );
-
-        newSections.push({
-            title: '',
-            data: filteredRecentReports,
-            sectionIndex: 1,
-        });
-
-        newSections.push({
-            title: '',
-            data: chatOptions.personalDetails,
-            sectionIndex: 2,
-        });
-
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
-    }, [
-        areOptionsInitialized,
-        availableOptions,
-        searchTerm,
-        selectedOptions,
-        privateIsArchivedMap,
-        currentUserAccountID,
-        personalDetails,
-        allPolicies,
-        reportAttributesDerived,
-        translate,
-        formatPhoneNumber,
-    ]);
-
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         setSelectedOptions([]);
-    }, [setSelectedOptions]);
+    };
 
-    const applyChanges = useCallback(() => {
-        let selectedIdentifiers: string[];
-
-        if (shouldAllowNameOnlyOptions) {
-            selectedIdentifiers = selectedOptions
-                .map((option) => {
-                    // For real users (with valid accountID in personalDetails), use accountID
-                    if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
-                        return option.accountID.toString();
-                    }
-
-                    // For name-only attendees, use displayName or login as identifier
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
-                    return option.displayName || option.login;
-                })
-                .filter(Boolean) as string[];
-        } else {
-            selectedIdentifiers = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
-        }
-
+    const applyChanges = () => {
+        const selectedIdentifiers = selectedOptions.map(getKey).filter(Boolean) as string[];
         onFiltersUpdate(selectedIdentifiers);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onFiltersUpdate, selectedOptions, personalDetails, shouldAllowNameOnlyOptions]);
+    };
 
-    // This effect handles setting initial selectedOptions based on accountIDs (or displayNames for attendee filter)
+    // Hydrate selectedOptions from initialAccountIDs (or displayNames for the attendee filter).
     useEffect(() => {
         if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
             return;
@@ -225,7 +203,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         if (shouldAllowNameOnlyOptions) {
             preSelectedOptions = initialAccountIDs
                 .map((identifier) => {
-                    // First, try to look up as accountID in personalDetails
+                    // Look up the identifier as an accountID first.
                     const participant = personalDetails[identifier];
                     if (participant) {
                         const optionData = {
@@ -235,22 +213,21 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         return optionData as OptionData;
                     }
 
-                    // If not found in personalDetails, this might be a name-only attendee
-                    // Search in recentAttendees by displayName or email
+                    // Fall back to a name-only attendee match (by displayName or email).
                     const attendee = recentAttendees?.find((recentAttendee) => recentAttendee.displayName === identifier || recentAttendee.email === identifier);
                     if (attendee) {
                         return getOptionDataFromAttendee(attendee);
                     }
 
-                    // Fallback: construct a minimal option from the identifier string to preserve
-                    // name-only filters across sessions (e.g., after cache clear or on another device)
+                    // Last resort: build a minimal option from the identifier so name-only filters survive
+                    // a cache clear or a switch to another device.
                     return {
                         text: identifier,
                         alternateText: identifier,
                         login: identifier,
                         displayName: identifier,
                         accountID: CONST.DEFAULT_NUMBER_ID,
-                        // eslint-disable-next-line rulesdir/no-default-id-values
+
                         reportID: '-1',
                         selected: true,
                         icons: [],
@@ -275,38 +252,31 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         setSelectedOptions(preSelectedOptions);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot flag the pinning snapshot waits on; derivable state doesn't work because hydration can resolve to an empty array.
+        setHasAttemptedHydration(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
 
-    const handleParticipantSelection = useCallback(
-        (option: OptionData) => {
-            toggleSelection(option);
-        },
-        [toggleSelection],
-    );
+    const handleParticipantSelection = (option: OptionData) => {
+        toggleSelection(option);
+    };
 
-    const footerContent = useMemo(
-        () => (
-            <SearchFilterPageFooterButtons
-                applyChanges={applyChanges}
-                resetChanges={resetChanges}
-            />
-        ),
-        [applyChanges, resetChanges],
+    const footerContent = (
+        <SearchFilterPageFooterButtons
+            applyChanges={applyChanges}
+            resetChanges={resetChanges}
+        />
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
     const shouldShowLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchTerm,
-            label: translate('selectionList.nameEmailOrPhoneNumber'),
-            onChangeText: setSearchTerm,
-            headerMessage,
-        }),
-        [searchTerm, translate, setSearchTerm, headerMessage],
-    );
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
 
     return (
         <SelectionListWithSections
@@ -316,6 +286,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldShowTextInput
             footerContent={footerContent}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            shouldUpdateFocusedIndex
+            shouldPreventAutoScrollOnSelect
+            shouldClearInputOnSelect={false}
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}

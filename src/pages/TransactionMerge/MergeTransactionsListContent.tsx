@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,7 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -31,11 +32,12 @@ import MergeTransactionItem from './MergeTransactionItem';
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
+    isOnSearch?: boolean;
 };
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
-function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
+function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSearch}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -45,6 +47,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const {isOffline} = useNetwork();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
@@ -120,6 +123,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         // Clear the merge transaction data when select a new source transaction to merge
         setupMergeTransactionData(transactionID, {
             targetTransactionID: transactionID,
+            targetTransactionThreadReportID: mergeTransaction?.targetTransactionThreadReportID,
             sourceTransactionID: item.transactionID,
             eligibleTransactions: mergeTransaction?.eligibleTransactions,
         });
@@ -156,10 +160,23 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, true, undefined, [
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-        ]);
+        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = mergeTransaction?.targetTransactionThreadReportID
+            ? {
+                  transactionID: mergeTransaction?.targetTransactionID ?? transactionID,
+                  threadReportID: mergeTransaction.targetTransactionThreadReportID,
+              }
+            : undefined;
+        setupMergeTransactionDataAndNavigate(
+            transactionID,
+            [targetTransaction, sourceTransaction],
+            localeCompare,
+            getCurrencyDecimals,
+            reports,
+            true,
+            isOnSearch,
+            [targetTransactionPolicy, sourceTransactionPolicy],
+            targetTransactionThreadReportCandidate,
+        );
     };
 
     const confirmButtonOptions = {
@@ -211,6 +228,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             shouldShowLoadingPlaceholder={!eligibleTransactions}
             textInputOptions={textInputOptions}
             shouldShowTextInput={shouldShowTextInput}
+            style={{
+                listStyle: [styles.mh5, styles.tableTopRadius, styles.tableBottomRadius, styles.mb4, styles.overflowHidden],
+                contentContainerStyle: [styles.pb0, styles.tableBottomRadius, styles.overflowHidden],
+            }}
         />
     );
 }

@@ -1,22 +1,28 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import useActivePolicy from '@hooks/useActivePolicy';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
+import {openAgentsPage} from '@userActions/Agent';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
+import {clearStaleExportDownloads} from '@userActions/Export';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -26,13 +32,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-function initializePusher(currentUserAccountID?: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function initializePusher(currentUserAccountID?: number, currentUserEmail?: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getReportAttributes);
     });
 }
 
@@ -48,6 +54,8 @@ function initializePusher(currentUserAccountID?: number, getReportAttributes?: (
 function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
+    const ownerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail');
+    const {translate} = useLocalize();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -56,38 +64,25 @@ function AuthScreensInitHandler() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
-    const isLoadingAppRef = useRef(isLoadingApp);
-
-    lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-    isLoadingAppRef.current = isLoadingApp;
+    const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
+    const activePolicy = useActivePolicy();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const reportAttributes = useReportAttributes();
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
 
-    const handleNetworkReconnect = () => {
-        if (isLoadingAppRef.current) {
-            App.openApp();
-        } else {
-            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
-            App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
-        }
-    };
+    useReconcileHighContrastIntent();
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, () => reportAttributesRef.current);
-    }, [session?.accountID]);
+        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current);
+    }, [session?.accountID, session?.email]);
 
     useEffect(() => {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
@@ -96,11 +91,10 @@ function AuthScreensInitHandler() {
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
-            return;
+            return () => {
+                Session.cleanupSession();
+            };
         }
-
-        NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect());
 
         // Pusher initialization span
         startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {
@@ -110,7 +104,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -138,9 +132,25 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, hasActiveAdminPolicies);
+        // Hydrate the user's custom-agent prompts so AgentZeroStatusProvider can recognize
+        // custom-agent chats opened directly from a deep link or right after sign-in, without
+        // requiring a prior visit to Settings > Agents.
+        openAgentsPage();
+
+        App.setUpPoliciesAndNavigate(
+            session,
+            introSelected,
+            currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            activePolicy,
+            isSelfTourViewed,
+            betas,
+            hasActiveAdminPolicies,
+            lastWorkspaceNumber,
+            translate,
+        );
 
         Download.clearDownloads();
+        clearStaleExportDownloads();
 
         return () => {
             Session.cleanupSession();

@@ -1,9 +1,11 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import {getCurrencySymbol, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
@@ -14,7 +16,7 @@ import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQuer
 
 type SearchChartViewProps = {
     /** The current search query JSON */
-    queryJSON: SearchQueryJSON;
+    queryJSON: Readonly<SearchQueryJSON>;
 
     /** The view type (bar, etc.) */
     view: ChartView;
@@ -50,32 +52,37 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
 
     const handleItemPress = (filterQuery: string) => {
         const currentQueryString = buildSearchQueryString(queryJSON);
-        const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
+        const parsedQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
 
-        if (!newQueryJSON) {
+        if (!parsedQueryJSON) {
             Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
             return;
         }
-        newQueryJSON.groupBy = undefined;
-        newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
+        const newQueryJSON: SearchQueryJSON = {
+            ...parsedQueryJSON,
+            groupBy: undefined,
+            view: CONST.SEARCH.VIEW.TABLE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        };
 
         const newQueryString = buildSearchQueryString(newQueryJSON);
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
     };
 
     const firstItem = data.at(0);
-    const currency = firstItem?.currency ?? 'USD';
+    const currency = sanitizeCurrencyCode(firstItem?.currency ?? CONST.CURRENCY.USD);
     const parts = formatToParts(preferredLocale, 0, {style: 'currency', currency});
-    const currencyPart = parts.find((p) => p.type === 'currency');
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');
-    const unit = {value: currencyPart?.value ?? currency, fallback: currency};
+    const intlSymbol = parts.find((p) => p.type === 'currency')?.value;
+    const unit = {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     return (
         <ChartComponent
             data={data}
-            getLabel={getLabel}
+            getLabel={(item) => StringUtils.normalize(getLabel(item))}
             getFilterQuery={getFilterQuery}
             onItemPress={handleItemPress}
             isLoading={isLoading}

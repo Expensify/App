@@ -113,6 +113,7 @@ function AddressSearch({
         lng: 'addressLng',
     },
     autoComplete = 'off',
+    autoFocus = false,
     resultTypes = 'address',
     shouldSaveDraft = false,
     value,
@@ -129,7 +130,7 @@ function AddressSearch({
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
@@ -357,7 +358,6 @@ function AddressSearch({
         </>
     );
 
-    // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         return () => {
             // If the component unmounts we don't want any of the callback for geolocation to run.
@@ -470,6 +470,7 @@ function AddressSearch({
                                 onBlur?.();
                             },
                             autoComplete,
+                            autoFocus,
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);

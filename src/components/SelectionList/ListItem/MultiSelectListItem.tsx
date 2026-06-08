@@ -1,19 +1,20 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import RadioListItem from './RadioListItem';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
 /**
- * MultiSelectListItem extends RadioListItem with multi-selection support.
- * Renders an avatar when icons are provided.
+ * A compact row with a checkbox and optional avatar, used in multi-choice picker lists
+ * (e.g. search filters, feature toggles, category selection).
  */
 function MultiSelectListItem<TItem extends ListItem>({
     item,
     isFocused,
+    isFocusVisible,
     showTooltip,
     isDisabled,
     onSelectRow,
@@ -26,56 +27,26 @@ function MultiSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    shouldHighlightSelectedItem,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
-    const checkboxComponent = useCallback(() => {
-        return (
-            <Checkbox
-                shouldSelectOnPressEnter
-                isChecked={item.isSelected}
-                accessibilityLabel={item.text ?? ''}
-                onPress={() => onSelectRow(item)}
-            />
-        );
-    }, [item, onSelectRow]);
-
-    const {itemWithAvatar, computedWrapperStyle} = useMemo(() => {
-        if (!icon) {
-            return {
-                itemWithAvatar: item,
-                computedWrapperStyle: [wrapperStyle, styles.optionRowCompact],
-            };
-        }
-
-        const avatarElement = (
-            <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
-                <Avatar
-                    source={icon.source}
-                    size={CONST.AVATAR_SIZE.SMALLER}
-                    name={icon.name}
-                    avatarID={icon.id}
-                    type={icon.type ?? CONST.ICON_TYPE_AVATAR}
-                    fallbackIcon={icon.fallbackIcon}
-                />
-            </View>
-        );
-
-        return {
-            itemWithAvatar: {...item, leftElement: avatarElement},
-            computedWrapperStyle: [wrapperStyle, styles.pv0, styles.mnh13],
-        };
-    }, [icon, item, wrapperStyle, styles.mentionSuggestionsAvatarContainer, styles.mr3, styles.optionRowCompact, styles.pv0, styles.mnh13]);
+    const itemWithAvatar = {
+        ...item,
+        leftElement: icon ? <AvatarLeftElement icon={icon} /> : item.leftElement,
+    };
+    const computedWrapperStyle = [wrapperStyle, icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact];
 
     return (
-        <RadioListItem
+        <BaseSelectListItem
             item={itemWithAvatar}
             keyForList={item.keyForList}
             isFocused={isFocused}
+            isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={checkboxComponent}
+            canSelectMultiple
             onSelectRow={onSelectRow}
             accessibilityRole={CONST.ROLE.CHECKBOX}
             onDismissError={onDismissError}
@@ -87,7 +58,25 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={computedWrapperStyle}
             titleStyles={titleStyles}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         />
+    );
+}
+
+function AvatarLeftElement({icon}: {icon: Icon}) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
+            <Avatar
+                source={icon.source}
+                size={CONST.AVATAR_SIZE.SMALLER}
+                name={icon.name}
+                avatarID={icon.id}
+                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
+                fallbackIcon={icon.fallbackIcon}
+            />
+        </View>
     );
 }
 

@@ -1,25 +1,35 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {
+    getIOURequestPolicyID,
+    setLastSelectedDistanceRate,
+    setMoneyRequestDistanceRate,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+    setMoneyRequestTaxValue,
+} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
+import {updateMoneyRequestDistanceRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isReportInGroupPolicy} from '@libs/ReportUtils';
 import {
     calculateTaxAmount,
@@ -29,6 +39,7 @@ import {
     getRateID,
     getTaxValue,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpenseUnreported,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,32 +64,49 @@ function IOURequestStepDistanceRate({
     transaction,
 }: IOURequestStepDistanceRateProps) {
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
+    const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+
+    // When editing a distance split from self-DM, policyForTransaction may be undefined because the self-DM
+    // report has no policyID. In that case, find the correct policy by searching for the one that contains
+    // the transaction's customUnitID. If customUnitID is not available (e.g. optimistic transaction before
+    // server response), fall back to searching by customUnitRateID.
+    // Skip both lookups when the rate is P2P — the expense has no workspace policy to resolve.
+    const distanceCustomUnitID = currentTransaction?.comment?.customUnit?.customUnitID;
+    const distanceCustomUnitRateID = currentTransaction?.comment?.customUnit?.customUnitRateID;
+    const isP2PRate = distanceCustomUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    const policyByCustomUnitID =
+        isEditingSplit && !isP2PRate && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
+    const policyByCustomUnitRateID =
+        isEditingSplit && !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+            ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
+            : undefined;
+    const availablePaidPolicies = isEditingSplit ? getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}) : [];
+    const fallbackAvailablePolicy = isEditingSplit && !isP2PRate && !policyForTransaction && !policyByCustomUnitID && !policyByCustomUnitRateID ? availablePaidPolicies.at(0) : undefined;
+    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackAvailablePolicy;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
 
     const currentRateID = getRateID(currentTransaction);
     const transactionCurrency = getCurrency(currentTransaction);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
@@ -90,16 +118,24 @@ function IOURequestStepDistanceRate({
     const [pendingRateID, setPendingRateID] = useState<string | undefined>();
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
-    const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
+    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const sortedRates = [...Object.values(rates)].sort((a, b) => localeCompare(a.name ?? '', b.name ?? ''));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
     const options = sortedRates.map((rate) => {
-        const unit = currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate) : rate.unit;
+        const hasUnitMismatchForMovingTrackExpense = isMovingTransactionFromTrackExpense && transactionUnit !== rate.unit;
+        const unit =
+            currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
+                ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate)
+                : rate.unit;
         const effectiveRateID = pendingRateID ?? currentRateID;
-        const isSelected = effectiveRateID ? effectiveRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
+        const isSelected = effectiveRateID
+            ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
+            : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
         return {
             text: rate.name ?? rateForDisplay,
@@ -110,7 +146,7 @@ function IOURequestStepDistanceRate({
             isSelected,
         };
     });
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
     const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
@@ -140,19 +176,23 @@ function IOURequestStepDistanceRate({
 
         let taxAmount;
         let taxRateExternalID;
+        let taxValue;
         if (shouldShowTax) {
             const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
+            const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, undefined, customUnitRateID) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, currentUnit));
-            const taxPercentage = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
-            taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
-            setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
-            setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
+            taxValue = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
+            taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
+            if (!isEditing || !taxRateExternalID) {
+                setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
+                setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
+                setMoneyRequestTaxValue(transactionID, taxValue ?? null, shouldUseTransactionDraft(action));
+            }
         }
 
-        if (currentRateID !== customUnitRateID) {
+        if (currentRateID !== customUnitRateID || (isMovingTransactionFromTrackExpense && transactionUnit !== selectedRateUnit)) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
                 setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy);
@@ -160,11 +200,11 @@ function IOURequestStepDistanceRate({
                 return;
             }
 
-            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
-
             if (isEditing && transaction?.transactionID) {
+                // Persist preference so the default stays in sync across the workspace (the same way as in the setMoneyRequestDistanceRate)
+                setLastSelectedDistanceRate(policy, customUnitRateID);
                 updateMoneyRequestDistanceRate({
-                    transactionID: transaction.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     parentReportNextStep,
@@ -177,7 +217,11 @@ function IOURequestStepDistanceRate({
                     isASAPSubmitBetaEnabled,
                     updatedTaxAmount: taxAmount,
                     updatedTaxCode: taxRateExternalID,
+                    updatedTaxValue: taxValue,
+                    delegateAccountID,
                 });
+            } else {
+                setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
             }
         }
 
@@ -204,7 +248,7 @@ function IOURequestStepDistanceRate({
 
             <SelectionList
                 data={options}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={initiallyFocusedOption}
@@ -213,9 +257,8 @@ function IOURequestStepDistanceRate({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRate);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceRateWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceRateWithFullTransactionOrNotFound;

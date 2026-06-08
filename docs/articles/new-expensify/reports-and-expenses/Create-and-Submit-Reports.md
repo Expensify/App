@@ -1,7 +1,7 @@
 ---
 title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
-keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report]
+keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report]
 internalScope: Audience is members and Workspace Admins. Covers creating, submitting, editing, and retracting expense reports, including admin-created reports. Does not cover approvals, reimbursements, or exports.
 ---
 
@@ -14,7 +14,7 @@ Follow these steps to build an expense report manually.
 1. In the navigation tabs (on the left on Web, on the bottom on Mobile), select **+ Create**.
 2. Select **Create report** to open a draft report on your default workspace.
   - Reports are opened on your default workspace. To switch workspaces select **More > Change workspace**.
-3. Select **Add expense** to add the first expense. You can create a new expense or add an existing unreported expense.
+3. Select **Add expense** to add the first expense. You can create a new expense or add an existing expense.
  
 **Note:** To add additional expenses to an existing report, select **More > Add** expense. 
 
@@ -25,9 +25,9 @@ Follow these steps to build an expense report manually.
 1. Open an expense report that includes at least one expense.
 2. Select **Submit**.
 
-After submitting, the report status updates and a **“submitted”** entry appears in the activity at the bottom of the report. For details on what each report status means, see [Understanding Report Statuses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
+After submitting, the report status updates and a **”submitted”** entry appears in the activity at the bottom of the report. For details on what each report status means, see [Understanding Report Statuses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
-**Note:** If your workspace uses automatic submission, you’ll see **“Waiting for your expenses to automatically submit”** at the top of the report instead of a Submit button.
+**Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**. 
 
 ---
 
@@ -177,7 +177,11 @@ Unsubmitted reports will remain in your Open reports section. You can go back an
 
 ## Why don’t I see the “Submit” button?
 
-The Submit button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible.
+The **Submit** button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**.
+
+## Why can’t I submit a report with pending Expensify Card transactions?
+
+If all transactions on your report are pending Expensify Card transactions, you'll see the **Submit** button but clicking it will display an **Unable to submit report** error. Pending transactions may take a few days to post. After at least one transaction has posted, you can submit the report.
 
 ## Can I remove an expense after submitting?
 

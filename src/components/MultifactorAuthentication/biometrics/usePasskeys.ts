@@ -8,11 +8,13 @@ import {
     buildPublicKeyCredentialRequestOptions,
     createPasskeyCredential,
     decodeWebAuthnError,
+    extractAAGUID,
     isSupportedTransport,
     isWebAuthnSupported,
     PASSKEY_AUTH_TYPE,
 } from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
 import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
 import CONST from '@src/CONST';
@@ -25,7 +27,7 @@ function usePasskeys(): UseBiometricsReturn {
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
     const [localPasskeyCredentials] = useOnyx(getPasskeyOnyxKey(userId));
 
-    const doesDeviceSupportAuthenticationMethod = () => isWebAuthnSupported();
+    const doesDeviceSupportAuthenticationMethod = async () => isWebAuthnSupported();
 
     const getLocalCredentialID = async (): Promise<string | undefined> => {
         return (localPasskeyCredentials ?? []).at(0)?.id;
@@ -57,7 +59,7 @@ function usePasskeys(): UseBiometricsReturn {
         } catch (error) {
             await onResult({
                 success: false,
-                reason: decodeWebAuthnError(error),
+                error: decodeWebAuthnError(error),
             });
             return;
         }
@@ -65,7 +67,7 @@ function usePasskeys(): UseBiometricsReturn {
         if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+                error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE, 'Registration credential response is not AuthenticatorAttestationResponse'),
             });
             return;
         }
@@ -76,30 +78,32 @@ function usePasskeys(): UseBiometricsReturn {
 
         const transports = attestationResponse.getTransports?.().filter(isSupportedTransport);
 
+        // getAuthenticatorData() is a WebAuthn Level 2 method — not available in older browsers.
+        // NOTE: A value of "00000000-0000-0000-0000-000000000000" is expected for Apple iCloud Keychain
+        const aaguid = attestationResponse.getAuthenticatorData ? extractAAGUID(attestationResponse.getAuthenticatorData()) : undefined;
+
         addLocalPasskeyCredential({
             userId,
             credential: {
                 id: credentialId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
                 transports,
+                aaguid,
             },
             existingCredentials: localPasskeyCredentials ?? null,
         });
 
         await onResult({
             success: true,
-            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
             keyInfo: {
                 rawId: credentialId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
+                transports,
+                aaguid,
                 response: {
                     clientDataJSON,
                     attestationObject,
                 },
-            },
-            authenticationMethod: {
-                name: PASSKEY_AUTH_TYPE.NAME,
-                marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE,
             },
         });
     };
@@ -115,9 +119,13 @@ function usePasskeys(): UseBiometricsReturn {
         });
 
         if (reconciled.length === 0) {
+            await deleteLocalKeysForAccount();
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.REGISTRATION_REQUIRED,
+                error: createLocalMFAError(
+                    VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
+                    'No local passkey credentials match challenge allowCredentials, credentials cleared',
+                ),
             });
             return;
         }
@@ -131,7 +139,7 @@ function usePasskeys(): UseBiometricsReturn {
         } catch (error) {
             await onResult({
                 success: false,
-                reason: decodeWebAuthnError(error),
+                error: decodeWebAuthnError(error),
             });
             return;
         }
@@ -139,7 +147,7 @@ function usePasskeys(): UseBiometricsReturn {
         if (!(assertion.response instanceof AuthenticatorAssertionResponse)) {
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+                error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE, 'Authentication assertion response is not AuthenticatorAssertionResponse'),
             });
             return;
         }
@@ -151,7 +159,6 @@ function usePasskeys(): UseBiometricsReturn {
 
         await onResult({
             success: true,
-            reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
             signedChallenge: {
                 rawId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
@@ -174,6 +181,7 @@ function usePasskeys(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
+        deviceCheckFailureReason: VALUES.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

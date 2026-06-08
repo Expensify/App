@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -12,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLetterAvatars', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (name?: string) => {
         if (!name) {
@@ -54,7 +52,6 @@ describe('AvatarSelector', () => {
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <AvatarSelector
                     onSelect={onSelectMock}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </ComposeProviders>,

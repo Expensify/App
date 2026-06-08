@@ -26,7 +26,7 @@ function UpdateRequiredView() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['UpgradeRocket'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['UpgradeRocket']);
     const {isProduction} = useEnvironment();
     const isStandaloneNewAppProduction = isProduction && !CONFIG.IS_HYBRID_APP;
 

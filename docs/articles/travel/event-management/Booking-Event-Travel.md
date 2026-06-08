@@ -24,7 +24,7 @@ Before booking travel, make sure:
 
 To get started:
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner, then select **Book travel**.  
+- **In New Expensify:** Click the **+** button in the bottom-left corner, then select **Book travel**.  
 - **In Classic Expensify:** Go to **Travel** in the left-hand menu, then choose **Book or manage travel**.  
 
 **Haven’t enabled travel yet?**  

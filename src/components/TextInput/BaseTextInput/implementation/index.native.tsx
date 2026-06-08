@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -19,12 +19,15 @@ import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 import useHtmlPaste from '@hooks/useHtmlPaste';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -58,6 +61,7 @@ function BaseTextInput({
     hideFocusedState = false,
     maxLength = undefined,
     hint = '',
+    shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
     autoCorrect = true,
@@ -78,10 +82,12 @@ function BaseTextInput({
     placeholderTextColor,
     onClearInput,
     iconContainerStyle,
+    clearButtonStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
     rightHandSideComponent,
+    shouldAllowFocusInLandscapeMode = false,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -94,6 +100,7 @@ function BaseTextInput({
     const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -201,7 +208,7 @@ function BaseTextInput({
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
-    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
     const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
@@ -260,7 +267,7 @@ function BaseTextInput({
     const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
@@ -290,7 +297,8 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
-    const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
+    const resolvedAccessibilityLabel = inputProps.accessibilityLabel ?? accessibilityLabel;
+    const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, resolvedAccessibilityLabel);
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
@@ -339,6 +347,7 @@ function BaseTextInput({
                                 isMultiline={isMultiline}
                             />
                         ) : null}
+                        {hiddenLabel}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
@@ -370,8 +379,9 @@ function BaseTextInput({
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
-                                    const baseTextInputRef = element as BaseTextInputRef | null;
+                                ref={(element: BaseTextInputRef | null): void => {
+                                    const baseTextInputRef = isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? getLandscapeTextInputRefProxy(element) : element;
+
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
@@ -384,7 +394,9 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
+                                accessibilityLabel={resolvedAccessibilityLabel}
+                                accessibilityLabelledBy={accessibilityLabelledBy}
                                 accessibilityValue={accessibilityValue}
                                 accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
@@ -427,6 +439,7 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                disableFullscreenUI
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -445,7 +458,7 @@ function BaseTextInput({
                                         setValue('');
                                         onClearInput?.();
                                     }}
-                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                 />
                             )}
                             {!!inputProps.isLoading && !shouldShowClearButton && (
@@ -496,6 +509,7 @@ function BaseTextInput({
                     <FormHelpMessage
                         isError={!!errorText}
                         message={inputHelpText}
+                        shouldRenderMessageAsHTML={!errorText && shouldRenderHintAsHTML}
                     />
                 )}
             </View>

@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -7,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
@@ -17,24 +16,18 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank} from '@libs/CardUtils';
-import Navigation from '@navigation/Navigation';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 
 function SelectBankStep() {
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardBankIcons = useCompanyCardBankIcons();
     const {isOffline} = useNetwork();
-
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [localBankSelected, setLocalBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
@@ -59,10 +52,6 @@ function SelectBankStep() {
     }, [bankSelected, isOtherBankSelected]);
 
     const handleBackButtonPress = () => {
-        if (route?.params?.backTo) {
-            Navigation.navigate(route.params.backTo);
-            return;
-        }
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE, data: {selectedBank: null}});
     };
 
@@ -72,22 +61,30 @@ function SelectBankStep() {
             if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
                 return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
             }
+            if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
+                return false;
+            }
             return true;
         })
-        .map((bank) => ({
-            value: bank,
-            text: bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
-            keyForList: bank,
-            isSelected: bankSelected === bank,
-            leftElement: (
-                <Icon
-                    src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                    height={variables.iconSizeExtraLarge}
-                    width={variables.iconSizeExtraLarge}
-                    additionalStyles={styles.mr3}
-                />
-            ),
-        }));
+        .map((bank) => {
+            const bankText = bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank;
+
+            return {
+                value: bank,
+                text: bankText,
+                keyForList: bank,
+                isSelected: bankSelected === bank,
+                leftElement: (
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mr3, styles.selectBankStepIconSize]}>
+                        <Icon
+                            src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+                            height={variables.iconSizeExtraLarge}
+                            width={variables.iconSizeExtraLarge}
+                        />
+                    </View>
+                ),
+            };
+        });
 
     const confirmButtonOptions = useMemo(
         () => ({
@@ -114,7 +111,7 @@ function SelectBankStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
             <SelectionList
                 data={data}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
                     setLocalBankSelected(value);
                     setHasError(false);

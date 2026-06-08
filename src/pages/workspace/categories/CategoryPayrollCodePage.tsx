@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,25 +17,26 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyCategoryPayrollCode} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
 
 type EditCategoryPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_PAYROLL_CODE>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_PAYROLL_CODE>;
 
 function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
+    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const categoryName = route.params.categoryName;
     const payrollCode = policyCategories?.[categoryName]?.['Payroll Code'];
     const {inputCallbackRef} = useAutoFocusInput();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_PAYROLL_CODE;
+    const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path);
 
     const editPayrollCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -42,11 +44,9 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             if (newPayrollCode !== payrollCode) {
                 setPolicyCategoryPayrollCode(policyID, categoryName, newPayrollCode, policyCategories);
             }
-            Navigation.goBack(
-                isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),
-            );
+            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : workspaceBackPath);
         },
-        [payrollCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories],
+        [payrollCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories, workspaceBackPath],
     );
 
     const validate = useCallback(
@@ -78,11 +78,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.categories.payrollCode')}
                     onBackButtonPress={() =>
-                        Navigation.goBack(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
-                                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
-                        )
+                        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo) : workspaceBackPath)
                     }
                 />
                 <FormProvider

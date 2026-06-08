@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -8,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteProvincialTaxPostingAccount} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUseProvincialTaxNetSuite, getNetSuiteTaxAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -15,7 +15,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -23,6 +23,12 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
+    const netSuiteExportBackPath = useMemo(() => {
+        if (!policyID) {
+            return ROUTES.HOME;
+        }
+        return createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+    }, [policyID]);
 
     const config = policy?.connections?.netsuite?.options.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
@@ -40,9 +46,9 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
             if (config?.provincialTaxPostingAccount !== value && policyID) {
                 updateNetSuiteProvincialTaxPostingAccount(policyID, value, config?.provincialTaxPostingAccount);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+            Navigation.goBack(netSuiteExportBackPath);
         },
-        [policyID, config?.provincialTaxPostingAccount],
+        [netSuiteExportBackPath, policyID, config?.provincialTaxPostingAccount],
     );
 
     const listEmptyContent = useMemo(
@@ -66,10 +72,9 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteProvincialTaxPostingAccountSelectPage"
             data={netsuiteTaxAccountOptions}
-            listItem={RadioListItem}
             onSelectRow={updateTaxAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(netSuiteExportBackPath)}
             title="workspace.netsuite.journalEntriesProvTaxPostingAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

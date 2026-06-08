@@ -8,6 +8,7 @@ import type {
     AddPaymentCardParams,
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
+    OpenPaymentsPageParams,
     PaymentCardParams,
     SetInvoicingTransferBankAccountParams,
     TransferWalletBalanceParams,
@@ -18,6 +19,7 @@ import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {isPolicyUser} from '@libs/PolicyUtils';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -45,7 +47,7 @@ function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?:
     kycWallRef.current.continueAction({goBackRoute: fallbackRoute});
 }
 
-function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
+function getPaymentMethods(params?: OpenPaymentsPageParams) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_PAYMENT_METHODS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -70,7 +72,10 @@ function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
 
     return API.read(
         READ_COMMANDS.OPEN_PAYMENTS_PAGE,
-        {includePartiallySetupBankAccounts},
+        {
+            includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+            includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+        },
         {
             optimisticData,
             successData,
@@ -92,7 +97,6 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                       // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
@@ -103,7 +107,6 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                   },
@@ -202,7 +205,7 @@ function addPaymentCard(accountID: number, params: PaymentCardParams) {
         failureData,
     });
 
-    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, getCurrentUserEmail() ?? '');
 }
 
 /**
@@ -263,7 +266,6 @@ function addSubscriptionPaymentCard(
     if (CONST.SCA_CURRENCIES.has(currency)) {
         addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
     } else {
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
             optimisticData,
             successData,
@@ -271,9 +273,9 @@ function addSubscriptionPaymentCard(
         });
     }
     if (getCardForSubscriptionBilling(fundList)) {
-        Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
+        Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME} because a card was already added`);
     } else {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, getCurrentUserEmail() ?? '');
     }
 }
 
@@ -434,7 +436,7 @@ function hasPaymentMethodError(
             return true;
         }
         const workspaceAccountID = Number(card?.fundID);
-        const policy = policyList.find((p) => p?.workspaceAccountID === workspaceAccountID);
+        const policy = policyList.find((p) => p?.policyAccountID === workspaceAccountID);
         return !!policy && isPolicyUser(policy, currentUserLogin);
     });
     // If there is card with errors, we should display the RBR if user is a member of the workspace.

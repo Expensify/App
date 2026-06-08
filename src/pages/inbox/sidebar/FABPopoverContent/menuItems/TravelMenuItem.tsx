@@ -20,7 +20,7 @@ const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
 function TravelMenuItem() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Suitcase', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Suitcase', 'NewWindow']);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});

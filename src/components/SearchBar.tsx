@@ -19,11 +19,12 @@ type SearchBarProps = {
     onSubmitEditing?: (text: string) => void;
     style?: StyleProp<ViewStyle>;
     shouldShowEmptyState?: boolean;
+    emptyStateContainerStyle?: StyleProp<ViewStyle>;
 };
 
-function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState}: SearchBarProps) {
+function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
@@ -33,7 +34,7 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
 
     return (
         <>
-            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout), style]}>
+            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout && !isInLandscapeMode), style]}>
                 <TextInput
                     label={label}
                     accessibilityLabel={label}
@@ -51,7 +52,7 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
                 />
             </View>
             {shouldAnnounceNoResults && (
-                <View style={[styles.ph5, styles.pt3, styles.pb5]}>
+                <View style={[styles.ph5, styles.pt3, styles.pb5, emptyStateContainerStyle]}>
                     <Text
                         style={[styles.textNormal, styles.colorMuted]}
                         aria-hidden

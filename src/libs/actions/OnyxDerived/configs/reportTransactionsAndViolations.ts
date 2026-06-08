@@ -29,7 +29,23 @@ export default createOnyxDerivedValueConfig({
             );
         }
 
-        const reportTransactionsAndViolations = currentValue ?? {};
+        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
+
+        // Track which reportID entries have been cloned so we only clone once per reportID.
+        // This avoids mutating nested objects that are still referenced by the cached value.
+        const clonedReportIDs = new Set<string>();
+        const ensureCloned = (id: string) => {
+            if (clonedReportIDs.has(id) || !reportTransactionsAndViolations[id]) {
+                return;
+            }
+
+            reportTransactionsAndViolations[id] = {
+                transactions: {...reportTransactionsAndViolations[id].transactions},
+                violations: {...reportTransactionsAndViolations[id].violations},
+            };
+            clonedReportIDs.add(id);
+        };
+
         for (const transactionKey of transactionsToProcess) {
             const transaction = transactions[transactionKey];
             const reportID = transaction?.reportID;
@@ -38,6 +54,7 @@ export default createOnyxDerivedValueConfig({
             const previousReportID = transactionReportIDMapping[transactionKey];
 
             if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
+                ensureCloned(previousReportID);
                 delete reportTransactionsAndViolations[previousReportID].transactions[transactionKey];
                 const transactionID = transactionKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
                 if (transactionID) {
@@ -59,6 +76,9 @@ export default createOnyxDerivedValueConfig({
                     transactions: {},
                     violations: {},
                 };
+                clonedReportIDs.add(reportID);
+            } else {
+                ensureCloned(reportID);
             }
 
             const transactionID = transaction.transactionID;

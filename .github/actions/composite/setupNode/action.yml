@@ -49,7 +49,7 @@ runs:
 
     - name: Install root project node packages
       if:  steps.cache-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true')
-      uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
       with:
         timeout_minutes: 30
         max_attempts: 3

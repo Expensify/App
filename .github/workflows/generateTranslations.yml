@@ -41,9 +41,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      # v4
       - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ steps.pr-data.outputs.HEAD_SHA }}
 
@@ -52,7 +51,7 @@ jobs:
 
       - name: Setup tmate
         if: runner.debug == '1'
-        uses: mxschmitt/action-tmate@e5c7151931ca95bad1c6f4190c730ecf8c7dde48
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3.24
         timeout-minutes: 60
         with:
           limit-access-to-actor: true

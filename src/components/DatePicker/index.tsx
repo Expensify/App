@@ -1,8 +1,11 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +35,7 @@ function DatePicker({
     shouldHideClearButton = false,
     autoComplete = 'off',
     forwardedFSClass,
+    shouldDeferShowUntilPositioned = false,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -39,47 +43,97 @@ function DatePicker({
     const {translate} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
+    const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
+    useAccessibilityAnnouncement(announcementMessage, isModalVisible, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
+    const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
-    const textInputRef = useRef<BaseTextInputRef>(null);
+    const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
-    const isAutoFocused = useRef(false);
+    // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
+    // picker was dismissed before it resolved.
+    const openIntentRef = useRef(false);
+    // Whether the initial autoFocus has already opened the picker, so later focuses don't reopen it.
+    const hasAutoOpenedRef = useRef(false);
+
+    const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
+    const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
+    autoFocusCallbackRefRef.current = autoFocusCallbackRef;
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
             setDraftValues(formID, {[inputID]: selectedDate});
         }
-        if (selectedDate === value || !value) {
+        if (selectedDate === value) {
+            return;
+        }
+        if (value === undefined) {
             return;
         }
 
         setSelectedDate(value);
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const calculatePopoverPosition = useCallback(() => {
-        anchorRef.current?.measureInWindow((x, y, width, height) => {
-            const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
-            setIsInverted(wouldExceedBottom);
+    const calculatePopoverPosition = useCallback(
+        (onMeasured?: () => void) => {
+            anchorRef.current?.measureInWindow((x, y, width, height) => {
+                const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
+                setIsInverted(wouldExceedBottom);
 
-            setPopoverPosition({
-                horizontal: x + width,
-                vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
+                setPopoverPosition({
+                    horizontal: x + width,
+                    vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
+                });
+
+                onMeasured?.();
             });
-        });
-    }, [windowHeight]);
+        },
+        [windowHeight],
+    );
 
     const showDatePickerModal = useCallback(() => {
+        cancelAutoFocus();
         // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
         textInputRef.current?.blur();
-        calculatePopoverPosition();
-        setIsModalVisible(true);
-    }, [calculatePopoverPosition]);
+
+        if (!shouldDeferShowUntilPositioned) {
+            calculatePopoverPosition();
+            setIsModalVisible(true);
+            return;
+        }
+
+        openIntentRef.current = true;
+        calculatePopoverPosition(() => {
+            if (!openIntentRef.current) {
+                return;
+            }
+            setIsModalVisible(true);
+        });
+    }, [shouldDeferShowUntilPositioned, calculatePopoverPosition, cancelAutoFocus]);
 
     const closeDatePicker = useCallback(() => {
+        openIntentRef.current = false;
         setIsModalVisible(false);
     }, []);
+
+    const openDatePickerOnPress = useCallback(() => {
+        if (!shouldDeferShowUntilPositioned) {
+            return;
+        }
+        showDatePickerModal();
+    }, [shouldDeferShowUntilPositioned, showDatePickerModal]);
+
+    const handleInputFocus = useCallback(() => {
+        if (!shouldDeferShowUntilPositioned) {
+            showDatePickerModal();
+            return;
+        }
+        if (!autoFocus || hasAutoOpenedRef.current) {
+            return;
+        }
+        hasAutoOpenedRef.current = true;
+        showDatePickerModal();
+    }, [shouldDeferShowUntilPositioned, autoFocus, showDatePickerModal]);
 
     const handleDateSelected = (newDate: string) => {
         onTouched?.();
@@ -95,22 +149,25 @@ function DatePicker({
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             calculatePopoverPosition();
         });
     }, [calculatePopoverPosition, windowWidth]);
 
-    useEffect(() => {
-        if (!autoFocus || isAutoFocused.current) {
-            return;
-        }
-        isAutoFocused.current = true;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            textInputRef.current?.focus();
-        });
-    }, [autoFocus]);
+    // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects
+    // autoFocusCallbackRef only when autoFocus=true so useAutoFocusInput's useFocusEffect cleanup
+    // can cancel any pending focus task when the screen starts closing.
+    const combinedTextInputRef = useCallback(
+        (ref: BaseTextInputRef | null) => {
+            textInputRef.current = ref;
+            if (autoFocus) {
+                (autoFocusCallbackRefRef.current as unknown as (ref: BaseTextInputRef | null) => void)(ref);
+            }
+        },
+        // autoFocusCallbackRefRef is a stable ref — its identity never changes, so it's not a dep
+
+        [autoFocus],
+    );
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
@@ -127,7 +184,7 @@ function DatePicker({
                 style={styles.mv2}
             >
                 <TextInput
-                    ref={textInputRef}
+                    ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
                     icon={selectedDate ? null : icons.Calendar}
@@ -140,7 +197,8 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    onFocus={showDatePickerModal}
+                    onPress={openDatePickerOnPress}
+                    onFocus={handleInputFocus}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
@@ -161,6 +219,7 @@ function DatePicker({
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
+                shouldCloseWhenBrowserNavigationChanged
             />
         </>
     );

@@ -17,6 +17,8 @@ type GpsLiveActivityState = {
     buttonText: string;
     subtitle: string;
     distanceInMeters: number;
+    lockScreenBadgeText: string;
+    lockScreenTrackingText: string;
 };
 
 let liveActivityState: GpsLiveActivityState | null = null;
@@ -36,6 +38,8 @@ function getLiveActivityUpdateState(distance: number, state: GpsLiveActivityStat
         distanceUnitLong: state.distanceUnitFull,
         subtitle: state.subtitle,
         buttonText: state.buttonText,
+        lockScreenBadgeText: state.lockScreenBadgeText,
+        lockScreenTrackingText: state.lockScreenTrackingText,
     };
 }
 
@@ -43,6 +47,8 @@ function startGpsTripNotification(translate: LocalizedTranslate, reportID: strin
     liveActivityState = {
         subtitle: translate('gps.liveActivity.subtitle'),
         buttonText: translate('gps.liveActivity.button'),
+        lockScreenBadgeText: translate('gps.liveActivity.lockScreenBadgeText'),
+        lockScreenTrackingText: translate('gps.liveActivity.lockScreenTrackingText'),
         distanceUnit: unit,
         distanceUnitFull: getDistanceUnitFull(translate, unit),
         distanceUnitAbbreviated: getDistanceUnitAbbreviated(translate, unit),
@@ -126,6 +132,8 @@ function updateGpsTripNotificationLanguage(translate: LocalizedTranslate) {
     liveActivityState.distanceUnitFull = getDistanceUnitFull(translate, unit);
     liveActivityState.subtitle = translate('gps.liveActivity.subtitle');
     liveActivityState.buttonText = translate('gps.liveActivity.button');
+    liveActivityState.lockScreenBadgeText = translate('gps.liveActivity.lockScreenBadgeText');
+    liveActivityState.lockScreenTrackingText = translate('gps.liveActivity.lockScreenTrackingText');
 
     const distance = DistanceRequestUtils.convertDistanceUnit(liveActivityState.distanceInMeters, unit);
 

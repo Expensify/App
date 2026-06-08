@@ -6,6 +6,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,8 @@ function WorkspaceTimeTrackingDefaultRatePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+
     const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyTimeTrackingSelector});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -71,7 +74,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.RATE}
                         currency={currency}
-                        defaultValue={convertToFrontendAmountAsString(getDefaultTimeTrackingRate(policy), currency)}
+                        defaultValue={convertToFrontendAmountAsString(getDefaultTimeTrackingRate(policy), getCurrencyDecimals(currency))}
                         isCurrencyPressable={false}
                         ref={inputCallbackRef}
                         displayAsTextInput

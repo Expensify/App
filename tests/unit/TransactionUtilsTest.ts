@@ -1,15 +1,14 @@
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
+import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -84,40 +83,7 @@ const reportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_CHAT_REPORT_ID}`]: chatReport,
 } as OnyxCollection<Report>;
-const defaultDistanceRatePolicyID1: Record<string, Rate> = {
-    customUnitRateID1: {
-        currency: 'USD',
-        customUnitRateID: 'customUnitRateID1',
-        enabled: true,
-        name: 'Default Rate',
-        rate: 70,
-        subRates: [],
-    },
-};
-const distanceRateTransactionID1: TransactionCustomUnit = {
-    customUnitID: 'customUnitID1',
-    customUnitRateID: 'customUnitRateID1',
-    distanceUnit: 'mi',
-    name: 'Distance',
-};
-const distanceRateTransactionID2: TransactionCustomUnit = {
-    customUnitID: 'customUnitID2',
-    customUnitRateID: 'customUnitRateID2',
-    distanceUnit: 'mi',
-    name: 'Distance',
-};
-const defaultCustomUnitPolicyID1: Record<string, CustomUnit> = {
-    customUnitID1: {
-        attributes: {
-            unit: 'mi',
-        },
-        customUnitID: 'customUnitID1',
-        defaultCategory: 'Car',
-        enabled: true,
-        name: 'Distance',
-        rates: defaultDistanceRatePolicyID1,
-    },
-};
+
 const currentUserPersonalDetails = {
     accountID: CURRENT_USER_ID,
     login: CURRENT_USER_EMAIL,
@@ -147,6 +113,67 @@ describe('TransactionUtils', () => {
         });
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
+    });
+
+    describe('hasSubmissionBlockingViolationInReport', () => {
+        it('returns true when another report transaction has a submission-blocking violation and the optimistic transaction only has non-blocking violations', () => {
+            const transactionWithBlockingViolation = generateTransaction({
+                transactionID: 'transaction-with-blocking-violation',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const optimisticTransaction = generateTransaction({
+                transactionID: 'optimistic-transaction',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionWithBlockingViolation.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+            const optimisticViolations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.MISSING_TAG,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = TransactionUtils.hasSubmissionBlockingViolationInReport(
+                [transactionWithBlockingViolation, optimisticTransaction],
+                transactionViolations,
+                optimisticTransaction.transactionID,
+                optimisticViolations,
+            );
+
+            expect(result).toBe(true);
+        });
+
+        it('uses optimistic violations for the updated transaction instead of stale Onyx violations', () => {
+            const optimisticTransaction = generateTransaction({
+                transactionID: 'optimistic-transaction',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${optimisticTransaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.NO_ROUTE,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+            const optimisticViolations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.MISSING_TAG,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = TransactionUtils.hasSubmissionBlockingViolationInReport([optimisticTransaction], transactionViolations, optimisticTransaction.transactionID, optimisticViolations);
+
+            expect(result).toBe(false);
+        });
     });
 
     describe('getCreated', () => {
@@ -227,7 +254,29 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('getCategoryTaxCodeAndAmount', () => {
+    describe('getIsFromGlobalCreate', () => {
+        it('returns true when isFromFloatingActionButton is true', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate({isFromFloatingActionButton: true} as Transaction)).toBe(true);
+        });
+
+        it('returns false when isFromFloatingActionButton is explicitly false (FAB takes precedence over isFromGlobalCreate via ?? semantics)', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate({isFromFloatingActionButton: false, isFromGlobalCreate: true} as Transaction)).toBe(false);
+        });
+
+        it('falls back to isFromGlobalCreate when isFromFloatingActionButton is undefined', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate({isFromGlobalCreate: true} as Transaction)).toBe(true);
+        });
+
+        it('returns undefined when both flags are absent', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate({} as Transaction)).toBeUndefined();
+        });
+
+        it('returns undefined when the transaction is undefined', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getCategoryTaxDetails', () => {
         it('should return the associated tax when the category matches the tax expense rules', () => {
             // Given a policy with tax expense rules associated with a category
             const category = 'Advertising';
@@ -239,11 +288,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from the associated category
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-            // Then it should return the associated tax code and amount
+            // Then it should return the associated tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
             expect(categoryTaxAmount).toBe(5);
+            expect(categoryTaxValue).toBe('5%');
         });
 
         it("should return the default tax when the category doesn't match the tax expense rules", () => {
@@ -258,11 +308,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
 
-            // Then it should return the default tax code and amount
+            // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
             expect(categoryTaxAmount).toBe(0);
+            expect(categoryTaxValue).toBe('0%');
         });
 
         it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
@@ -289,11 +340,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
 
-            // Then it should return the default tax code and amount
+            // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_2');
             expect(categoryTaxAmount).toBe(9);
+            expect(categoryTaxValue).toBe('10%');
         });
 
         describe('should return undefined tax', () => {
@@ -311,11 +363,12 @@ describe('TransactionUtils', () => {
                 };
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-                // Then it should return undefined for both the tax code and the tax amount
+                // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
             });
 
             it('if there are no policy tax expense rules', () => {
@@ -329,11 +382,12 @@ describe('TransactionUtils', () => {
                 const transaction = generateTransaction();
 
                 // When retrieving the tax from a category
-                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-                // Then it should return undefined for both the tax code and the tax amount
+                // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
             });
         });
     });
@@ -362,6 +416,7 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.category).toBe(category);
             expect(updatedTransaction.taxCode).toBe(taxCode);
             expect(updatedTransaction.taxAmount).toBe(5);
+            expect(updatedTransaction.taxValue).toBe('5%');
         });
 
         it('should update transaction when distance is changed', () => {
@@ -524,28 +579,18 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
-        it('returns distance when the transaction has a distance custom unit', () => {
+        it('returns distance when the transaction iouRequestType is a distance type', () => {
             const transaction = generateTransaction({
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                    },
-                },
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 merchant: '(none)',
             });
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
         });
 
-        it('returns per diem when the transaction has an international per diem custom unit', () => {
+        it('returns per diem when the transaction iouRequestType is per-diem', () => {
             const transaction = generateTransaction({
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                    },
-                },
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
             });
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM);
@@ -570,10 +615,10 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
-        it('returns time when the transaction has a comment with time type', () => {
+        it('returns time when the transaction iouRequestType is time', () => {
             const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
                 comment: {
-                    type: 'time',
                     units: {
                         count: 2,
                         unit: 'h',
@@ -847,96 +892,6 @@ describe('TransactionUtils', () => {
                 },
             });
             expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
-        });
-    });
-
-    describe('isUnreportedAndHasInvalidDistanceRateTransaction', () => {
-        it('should be false when transaction is null', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(null, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is not distance type transaction', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is reported', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '1',
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is unreported and has valid rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID1,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is unreported, has invalid rate but policy has default rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID2,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be true when transaction is unreported, has invalid rate and policy has no default rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: {},
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID2,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(true);
         });
     });
 
@@ -1241,12 +1196,48 @@ describe('TransactionUtils', () => {
     });
 
     describe('getReportOwnerAsAttendee', () => {
+        it('should return undefined when details has no login and display name', () => {
+            const result = TransactionUtils.getReportOwnerAsAttendee({accountID: 1});
+            expect(result).toBeUndefined();
+        });
+
+        it('should return report owner as attendee for reported expense', () => {
+            const avatar = 'test';
+            const result = TransactionUtils.getReportOwnerAsAttendee({accountID: SECOND_USER_ID, login: OTHER_USER_EMAIL, avatar});
+
+            expect(result).toBeDefined();
+            expect(result?.email).toBe(OTHER_USER_EMAIL);
+            expect(result?.login).toBe(OTHER_USER_EMAIL);
+            expect(result?.displayName).toBe(OTHER_USER_EMAIL);
+            expect(result?.accountID).toBe(SECOND_USER_ID);
+            expect(result?.text).toBe(OTHER_USER_EMAIL);
+            expect(result?.searchText).toBe(OTHER_USER_EMAIL);
+            expect(result?.avatarUrl).toBe(avatar);
+            expect(result?.selected).toBe(true);
+        });
+
+        it('should return current user as attendee for unreported expense', () => {
+            const result = TransactionUtils.getReportOwnerAsAttendee(currentUserPersonalDetails);
+
+            expect(result).toBeDefined();
+            expect(result?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result?.login).toBe(CURRENT_USER_EMAIL);
+            expect(result?.displayName).toBe(currentUserPersonalDetails.displayName);
+            expect(result?.accountID).toBe(CURRENT_USER_ID);
+            expect(result?.text).toBe(currentUserPersonalDetails.displayName);
+            expect(result?.searchText).toBe(currentUserPersonalDetails.displayName);
+            expect(result?.avatarUrl).toBe('');
+            expect(result?.selected).toBe(true);
+        });
+    });
+
+    describe('getReportOwnerAccountIDAsAttendee', () => {
         it('should return undefined when transaction has no reportID', () => {
             const transaction = generateTransaction({
                 reportID: undefined,
             });
 
-            const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
 
             expect(result).toBeUndefined();
         });
@@ -1256,13 +1247,9 @@ describe('TransactionUtils', () => {
                 reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
 
-            expect(result).toBeDefined();
-            expect(result?.accountID).toBe(SECOND_USER_ID);
-            expect(result?.email).toBe(OTHER_USER_EMAIL);
-            expect(result?.login).toBe(OTHER_USER_EMAIL);
-            expect(result?.selected).toBe(true);
+            expect(result).toBe(SECOND_USER_ID);
         });
 
         it('should return current user as attendee for unreported expense', () => {
@@ -1270,14 +1257,9 @@ describe('TransactionUtils', () => {
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
 
-            expect(result).toBeDefined();
-            expect(result?.accountID).toBe(CURRENT_USER_ID);
-            expect(result?.email).toBe(CURRENT_USER_EMAIL);
-            expect(result?.login).toBe(CURRENT_USER_EMAIL);
-            expect(result?.displayName).toBe('Current User');
-            expect(result?.selected).toBe(true);
+            expect(result).toBe(CURRENT_USER_ID);
         });
     });
 
@@ -1290,7 +1272,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
 
             expect(result).toEqual([]);
         });
@@ -1321,7 +1303,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
 
             expect(result).toEqual(attendees);
             expect(result.length).toBe(2);
@@ -1335,26 +1317,43 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getOriginalAttendees(transaction, {accountID: CURRENT_USER_ID, displayName: '', avatarUrl: '', selected: true});
 
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
             expect(result.at(0)?.selected).toBe(true);
         });
 
-        it('should return current user as default attendee for unreported expense with no attendees', () => {
+        it('should normalize login-only attendees from comment', () => {
             const transaction = generateTransaction({
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: [],
+                    attendees: [{displayName: '   ', login: '  login-only@example.com  ', avatarUrl: ''}],
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
 
-            expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result).toEqual([{displayName: 'login-only@example.com', login: 'login-only@example.com', avatarUrl: ''}]);
+        });
+
+        it('should handle attendees stored as a plain object', () => {
+            const attendeesArray: Attendee[] = [
+                {email: 'attendee1@example.com', login: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: '', accountID: 3, selected: true},
+                {email: 'attendee2@example.com', login: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: '', accountID: 4, selected: false},
+            ];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: Object.fromEntries(attendeesArray.entries()) as unknown as Attendee[],
+                },
+            });
+
+            const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
+
+            expect(result.length).toBe(2);
+            expect(result.at(0)?.email).toBe('attendee1@example.com');
+            expect(result.at(1)?.email).toBe('attendee2@example.com');
         });
     });
 
@@ -1388,7 +1387,7 @@ describe('TransactionUtils', () => {
                 modifiedAttendees,
             });
 
-            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getAttendees(transaction);
 
             expect(result).toEqual(modifiedAttendees);
             expect(result.length).toBe(1);
@@ -1413,7 +1412,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getAttendees(transaction);
 
             expect(result).toEqual(attendees);
         });
@@ -1426,26 +1425,11 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: '', selected: true});
 
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
             expect(result.at(0)?.selected).toBe(true);
-        });
-
-        it('should return current user as default attendee for unreported expense with no attendees', () => {
-            const transaction = generateTransaction({
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                comment: {
-                    attendees: [],
-                },
-            });
-
-            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
-
-            expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
-            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
         it('should return empty array when transaction has no reportID and no attendees', () => {
@@ -1456,7 +1440,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getAttendees(transaction);
 
             expect(result).toEqual([]);
         });
@@ -1481,11 +1465,145 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: [],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
 
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+        });
+
+        it('should normalize modified attendees with undefined email', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+                modifiedAttendees: [{displayName: '   ', login: '  edited@example.com  ', avatarUrl: ''}],
+            });
+
+            const result = TransactionUtils.getAttendees(transaction);
+
+            expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
+        });
+
+        it('should handle comment attendees stored as a plain object', () => {
+            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', login: 'attendee@example.com', displayName: 'Attendee', avatarUrl: '', accountID: 7, selected: true}];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: Object.fromEntries(attendeesArray.entries()) as unknown as Attendee[],
+                },
+            });
+
+            const result = TransactionUtils.getAttendees(transaction);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.email).toBe('attendee@example.com');
+        });
+
+        it('should handle modifiedAttendees stored as a plain object', () => {
+            const modifiedAttendeesArray: Attendee[] = [
+                {email: 'modified@example.com', login: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: '', accountID: 6, selected: true},
+            ];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+                modifiedAttendees: Object.fromEntries(modifiedAttendeesArray.entries()) as unknown as Attendee[],
+            });
+
+            const result = TransactionUtils.getAttendees(transaction);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.email).toBe('modified@example.com');
+        });
+
+        it('should fall back to report owner when comment attendees is an empty plain object', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: {} as unknown as Attendee[],
+                },
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+        });
+
+        it('should fall back to report owner when modifiedAttendees is an empty plain object', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+                modifiedAttendees: {} as unknown as Attendee[],
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+        });
+    });
+
+    describe('getAttendeesListDisplayString', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'variant', caseFirst: 'upper'});
+
+        it('preserves insertion order when no localeCompare is provided', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
+        });
+
+        it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
+        });
+
+        it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
+            const attendees: Attendee[] = [
+                {email: '10@x.com', displayName: 'User 10', avatarUrl: '', login: '10@x.com'},
+                {email: '9@x.com', displayName: 'User 9', avatarUrl: '', login: '9@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
+        });
+
+        it('compares case-insensitively so the joined string matches pill order', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'Bob', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'alice', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
+        });
+
+        it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
+            const attendees: Attendee[] = [
+                {displayName: '+15551234567@expensify.sms', avatarUrl: '', login: '+15551234567@expensify.sms'},
+                {displayName: 'Alice', avatarUrl: '', login: 'alice@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
+        });
+
+        it('returns empty string for empty array', () => {
+            expect(TransactionUtils.getAttendeesListDisplayString([], localeCompare)).toBe('');
+        });
+
+        it('does not mutate the input array', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            const snapshot = [...attendees];
+            TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);
+            expect(attendees).toEqual(snapshot);
         });
     });
 
@@ -1709,7 +1827,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}child-1`]: childTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-1');
@@ -1730,30 +1848,10 @@ describe('TransactionUtils', () => {
             };
 
             // Report doesn't exist in reportCollectionDataSet
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-2');
-        });
-
-        it('should exclude orphaned transactions with reportID "0" from processing', () => {
-            const orphanedTransaction = generateTransaction({
-                transactionID: 'orphaned-1',
-                reportID: '0',
-                comment: {
-                    originalTransactionID,
-                    source: CONST.IOU.TYPE.SPLIT,
-                },
-            });
-
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
-            };
-
-            // Orphaned split children should be excluded from getChildTransactions for processing
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
-
-            expect(result).toHaveLength(0);
         });
 
         it('should exclude transactions with pendingAction DELETE', () => {
@@ -1771,7 +1869,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}deleting-1`]: deletingTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
 
             expect(result).toHaveLength(0);
         });
@@ -1800,7 +1898,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}non-matching-1`]: nonMatchingChild,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('matching-1');
@@ -1820,7 +1918,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID, true);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('orphaned-1');
@@ -1927,6 +2025,7 @@ describe('TransactionUtils', () => {
     describe('getTaxRateTitle', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
+            tax: {trackingEnabled: true},
             taxRates: CONST.DEFAULT_TAX,
         };
 
@@ -1988,6 +2087,22 @@ describe('TransactionUtils', () => {
             const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
 
             expect(result).toBe('Tax exempt (0%) • Default');
+        });
+
+        it('should return empty string when trackingEnabled is false and transaction has no taxCode', () => {
+            const policyWithTrackingDisabled: Policy = {
+                ...createRandomPolicy(0),
+                tax: {trackingEnabled: false},
+                taxRates: CONST.DEFAULT_TAX,
+            };
+            const transaction = generateTransaction({
+                taxCode: undefined,
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policyWithTrackingDisabled, transaction, false, undefined);
+
+            expect(result).toBe('');
         });
 
         it('should return empty string when policy is undefined', () => {
@@ -2920,6 +3035,39 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
+            const duplicatedTransaction = generateTransaction({
+                transactionID: 'transaction1',
+                reportID: 'report1',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: -500,
+                taxValue: '5%',
+            });
+
+            const reviewDuplicates = {
+                duplicates: [],
+                transactionID: 'transaction1',
+                reportID: 'report1',
+                merchant: 'Updated Merchant',
+                category: 'Travel',
+                tag: 'Project',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: 900,
+                description: 'Updated comment',
+                comment: duplicatedTransaction.comment ?? {},
+                reimbursable: false,
+                billable: true,
+            };
+
+            const updatedTransaction = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
+
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxAmount).toBe(-500);
+            expect(updatedTransaction.taxValue).toBe('5%');
+        });
+    });
+
     describe('getTagArrayFromName', () => {
         it('splits simple tag by colon', () => {
             expect(TransactionUtils.getTagArrayFromName('tag1:tag2:tag3')).toEqual(['tag1', 'tag2', 'tag3']);
@@ -2944,6 +3092,408 @@ describe('TransactionUtils', () => {
 
         it('returns empty string array for empty string', () => {
             expect(TransactionUtils.getTagArrayFromName('')).toEqual(['']);
+        });
+    });
+
+    describe('getExchangeRate', () => {
+        it('returns groupExchangeRate string when groupExchangeRate is set and not 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+                amount: -100,
+                convertedAmount: -125,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+
+        it('returns empty string when groupExchangeRate is 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1,
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when groupExchangeRate is undefined and no reportCurrency', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: undefined,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns currencyConversionRate string when groupExchangeRate is missing but currencyConversionRate is set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
+                amount: -100,
+                convertedAmount: -85,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('0.85 USD/EUR');
+        });
+
+        it('returns empty string when currencyConversionRate is 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '1',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when currencyConversionRate is undefined and groupExchangeRate is missing', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: undefined,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when groupCurrency is not set (no conversion context)', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 2.5,
+                groupCurrency: undefined,
+            });
+
+            // Without a different groupCurrency there is no conversion to show.
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('prefers groupExchangeRate over currencyConversionRate when both are set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1.25,
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
+                amount: -100,
+                convertedAmount: -125,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+
+        it('returns empty string when groupExchangeRate is 0 and currencies are the same', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 0,
+                groupCurrency: 'USD',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('shows groupExchangeRate even when rate is 0 if currencies differ and conversion happened', () => {
+            const transaction = generateTransaction({
+                currency: 'UZS',
+                groupExchangeRate: 0,
+                groupCurrency: 'USD',
+                amount: -5000,
+                convertedAmount: -1,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('0 UZS/USD');
+        });
+
+        it('shows currencyConversionRate even when rate is 0 if report currency differs and conversion happened', () => {
+            const transaction = generateTransaction({
+                currency: 'UZS',
+                currencyConversionRate: '0.0',
+                amount: -5000,
+                convertedAmount: -1,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('0.0 UZS/USD');
+        });
+
+        it('shows currencyConversionRate when modified currency differs from report currency even if convertedAmount rounds to amount', () => {
+            // Repro: user modified an expense from USD to NZ$16.95. The NZD→USD conversion
+            // (1695 * 0.5897 ≈ 999.5) rounds back to the original 1000 cents, so `convertedAmount`
+            // and `amount` happen to match even though a real conversion occurred.
+            const transaction = generateTransaction({
+                currency: 'USD',
+                modifiedCurrency: 'NZD',
+                modifiedAmount: -1695,
+                amount: -1000,
+                convertedAmount: -1000,
+                currencyConversionRate: '0.5897',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('0.5897 NZD/USD');
+        });
+
+        it('returns empty string when currencyConversionRate is set but fromCurrency equals reportCurrency', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '0.85',
+            });
+
+            // Same currency — no meaningful conversion to show.
+            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('');
+        });
+
+        it('returns empty string on report view when fromCurrency equals reportCurrency even if groupCurrency differs', () => {
+            // Repro: expense in a workspace whose currency (EUR) differs from the user's default workspace currency (USD).
+            // Transaction is unconverted relative to the report, but groupExchangeRate targets groupCurrency (USD).
+            const transaction = generateTransaction({
+                currency: 'EUR',
+                amount: -1000,
+                convertedAmount: -1000,
+                groupCurrency: 'USD',
+                groupExchangeRate: 1.1,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
+        });
+    });
+
+    describe('mergeProhibitedViolations', () => {
+        it('should preserve showInReview as true when at least one source violation has showInReview: true', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'alcohol'},
+                    showInReview: true,
+                },
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'gambling'},
+                    showInReview: false,
+                },
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'tobacco'},
+                },
+            ];
+
+            const result = TransactionUtils.mergeProhibitedViolations(violations);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.name).toBe(CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+            expect(result.at(0)?.data?.prohibitedExpenseRule).toEqual(['alcohol', 'gambling', 'tobacco']);
+            expect(result.at(0)?.showInReview).toBe(true);
+        });
+
+        it('should set showInReview to false when no source violation has showInReview: true', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'alcohol'},
+                    showInReview: false,
+                },
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'gambling'},
+                },
+            ];
+
+            const result = TransactionUtils.mergeProhibitedViolations(violations);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.showInReview).toBeFalsy();
+        });
+
+        it('should not modify non-prohibited violations', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'alcohol'},
+                    showInReview: true,
+                },
+            ];
+
+            const result = TransactionUtils.mergeProhibitedViolations(violations);
+
+            expect(result).toHaveLength(2);
+            const duplicateViolation = result.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            const prohibitedViolation = result.find((v) => v.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+            expect(duplicateViolation).toBeDefined();
+            expect(prohibitedViolation?.showInReview).toBe(true);
+            expect(prohibitedViolation?.data?.prohibitedExpenseRule).toEqual(['alcohol']);
+        });
+
+        it('should return violations unchanged when there are no prohibited violations', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = TransactionUtils.mergeProhibitedViolations(violations);
+
+            expect(result).toEqual(violations);
+        });
+    });
+
+    describe('shouldClearConvertedAmount', () => {
+        it('returns false when destinationCurrency is undefined', () => {
+            const transaction = generateTransaction({currency: 'USD'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'EUR', undefined)).toBe(false);
+        });
+
+        it('returns false when sourceCurrency equals destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'USD'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'EUR', 'EUR')).toBe(false);
+        });
+
+        it('returns false when transactionCurrency equals destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'EUR'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'USD', 'EUR')).toBe(false);
+        });
+
+        it('returns true when both sourceCurrency and transactionCurrency differ from destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'GBP'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'USD', 'EUR')).toBe(true);
+        });
+
+        it('falls back to transactionCurrency when sourceCurrency is undefined and currencies differ', () => {
+            const transaction = generateTransaction({currency: 'GBP'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, undefined, 'EUR')).toBe(true);
+        });
+
+        it('returns false when sourceCurrency is undefined and transactionCurrency matches destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'EUR'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, undefined, 'EUR')).toBe(false);
+        });
+    });
+
+    describe('isDistanceRequest', () => {
+        describe.each([
+            CONST.IOU.REQUEST_TYPE.DISTANCE,
+            CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+            CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+        ])('when iouRequestType is "%s"', (iouRequestType) => {
+            it('returns true', () => {
+                const transaction = generateTransaction({iouRequestType});
+                expect(TransactionUtils.isDistanceRequest(transaction)).toBe(true);
+            });
+        });
+
+        describe('when iouRequestType is a non-distance type', () => {
+            it('returns false', () => {
+                const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+                expect(TransactionUtils.isDistanceRequest(transaction)).toBe(false);
+            });
+        });
+
+        describe('when iouRequestType is null', () => {
+            it('returns false', () => {
+                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                expect(TransactionUtils.isDistanceRequest(transaction)).toBe(false);
+            });
+        });
+
+        describe('when iouRequestType is undefined', () => {
+            it('returns false', () => {
+                const transaction = generateTransaction({iouRequestType: undefined});
+                expect(TransactionUtils.isDistanceRequest(transaction)).toBe(false);
+            });
+        });
+
+        describe('when the transaction is undefined', () => {
+            it('returns false', () => {
+                expect(TransactionUtils.isDistanceRequest(undefined)).toBe(false);
+            });
+        });
+    });
+
+    describe.each([
+        {fn: 'isDistanceTypeRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {fn: 'isMapDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, other: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS},
+        {fn: 'isGPSDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {fn: 'isManualDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {fn: 'isOdometerDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {fn: 'isScanRequest', match: CONST.IOU.REQUEST_TYPE.SCAN, other: CONST.IOU.REQUEST_TYPE.MANUAL},
+        {fn: 'isPerDiemRequest', match: CONST.IOU.REQUEST_TYPE.PER_DIEM, other: CONST.IOU.REQUEST_TYPE.TIME},
+        {fn: 'isTimeRequest', match: CONST.IOU.REQUEST_TYPE.TIME, other: CONST.IOU.REQUEST_TYPE.PER_DIEM},
+    ] as const)('$fn', ({fn, match, other}) => {
+        describe(`when iouRequestType matches`, () => {
+            it('returns true', () => {
+                const transaction = generateTransaction({iouRequestType: match});
+                expect(TransactionUtils[fn](transaction)).toBe(true);
+            });
+        });
+
+        describe('when iouRequestType is a different request type', () => {
+            it('returns false', () => {
+                const transaction = generateTransaction({iouRequestType: other});
+                expect(TransactionUtils[fn](transaction)).toBe(false);
+            });
+        });
+
+        describe('when iouRequestType is null', () => {
+            it('returns false', () => {
+                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                expect(TransactionUtils[fn](transaction)).toBe(false);
+            });
+        });
+
+        describe('when iouRequestType is undefined', () => {
+            it('returns false', () => {
+                const transaction = generateTransaction({iouRequestType: undefined});
+                expect(TransactionUtils[fn](transaction)).toBe(false);
+            });
+        });
+    });
+
+    describe('getRequestType', () => {
+        describe.each([
+            CONST.IOU.REQUEST_TYPE.DISTANCE,
+            CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+            CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+            CONST.IOU.REQUEST_TYPE.SCAN,
+            CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            CONST.IOU.REQUEST_TYPE.TIME,
+            CONST.IOU.REQUEST_TYPE.MANUAL,
+        ])('when iouRequestType is "%s"', (iouRequestType) => {
+            it('returns the iouRequestType value', () => {
+                const transaction = generateTransaction({iouRequestType});
+                expect(TransactionUtils.getRequestType(transaction)).toBe(iouRequestType);
+            });
+        });
+
+        describe('when iouRequestType is null', () => {
+            it('returns manual as the fallback', () => {
+                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                expect(TransactionUtils.getRequestType(transaction)).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+            });
+        });
+
+        describe('when iouRequestType is undefined', () => {
+            it('returns manual as the fallback', () => {
+                const transaction = generateTransaction({iouRequestType: undefined});
+                expect(TransactionUtils.getRequestType(transaction)).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+            });
+        });
+
+        describe('when the transaction is undefined', () => {
+            it('returns manual as the fallback', () => {
+                expect(TransactionUtils.getRequestType(undefined)).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+            });
         });
     });
 });

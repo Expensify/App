@@ -4,12 +4,10 @@ import {DefaultSuccessScreen} from '@components/MultifactorAuthentication/compon
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {troubleshootMultifactorAuthentication} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 
 export default {
-    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
+    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: troubleshootMultifactorAuthentication,
-    screen: SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST,
     pure: true,
     successScreen: <DefaultSuccessScreen customSubtitle={<AuthenticationMethodDescription />} />,
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig;

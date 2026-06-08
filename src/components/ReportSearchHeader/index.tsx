@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type ReportSearchHeaderProps from './types';
 
 function ReportSearchHeader({report, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {
@@ -23,6 +24,7 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableDetailPageNavigation={false}
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
+                size={isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                 customDisplayNameStyle={styles.fontWeightNormal}
                 parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
                 parentNavigationStatusContainerStyles={statusContainerStyle}

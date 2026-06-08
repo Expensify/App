@@ -116,22 +116,21 @@ function useNavigateTo3DSAuthorizationChallenge() {
             return;
         }
 
-        const doesDeviceSupportAnAllowedAuthenticationMethod =
-            doesDeviceSupportAuthenticationMethod() &&
-            (AuthorizeTransaction.allowedAuthenticationMethods as Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>).includes(deviceVerificationType);
-
-        // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
-        if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
-            Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - device does not support an allowed authentication method', undefined, {
-                transactionID: transactionPending3DSReview.transactionID,
-            });
-            addBreadcrumb('Skipped - device unsupported', {transactionID: transactionPending3DSReview.transactionID}, 'warning');
-            return;
-        }
-
         let cancel = false;
 
         async function maybeNavigateTo3DSChallenge() {
+            const doesDeviceSupportAnAllowedAuthenticationMethod =
+                (await doesDeviceSupportAuthenticationMethod()) &&
+                (AuthorizeTransaction.allowedAuthenticationMethods as Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>).includes(deviceVerificationType);
+
+            // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
+            if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
+                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - device does not support an allowed authentication method', undefined, {
+                    transactionID: transactionPending3DSReview?.transactionID,
+                });
+                addBreadcrumb('Skipped - device unsupported', {transactionID: transactionPending3DSReview?.transactionID}, 'warning');
+                return;
+            }
             // It's actually not possible to reach this return. We're using an arrow function for the body of the effect, which captures the value
             // of transactionPending3DSReview. If the transactionID was undefined when we started the effect, we would've returned above, and if
             // it became undefined between then and now, Onyx will return a whole new object reference, so this effect will still be holding onto
@@ -174,7 +173,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return () => {
             cancel = true;
         };
-    }, [transactionPending3DSReview?.transactionID, doesDeviceSupportAuthenticationMethod, deviceVerificationType, isCurrentlyActingOn3DSChallenge]);
+    }, [transactionPending3DSReview?.transactionID, deviceVerificationType, isCurrentlyActingOn3DSChallenge, doesDeviceSupportAuthenticationMethod]);
 }
 
 export default useNavigateTo3DSAuthorizationChallenge;

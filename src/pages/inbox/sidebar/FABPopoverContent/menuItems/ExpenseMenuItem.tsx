@@ -3,11 +3,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
-import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
@@ -21,9 +20,8 @@ type ExpenseMenuItemProps = {
 function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle']);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
 
     return (
         <FABFocusableMenuItem
@@ -33,14 +31,10 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
             title={translate('iou.createExpense')}
             onPress={() =>
                 interceptAnonymousUser(() => {
-                    if (shouldRedirectToExpensifyClassic) {
-                        showRedirectToExpensifyClassicModal();
-                        return;
-                    }
                     startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
                 })
             }
-            shouldCallAfterModalHide={shouldRedirectToExpensifyClassic || shouldUseNarrowLayout}
+            shouldCallAfterModalHide={shouldUseNarrowLayout}
         />
     );
 }

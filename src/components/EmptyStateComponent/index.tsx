@@ -18,6 +18,7 @@ function EmptyStateComponent({
     title,
     titleStyles,
     subtitle,
+    subtitleStyles,
     children,
     headerStyles,
     cardStyles,
@@ -54,16 +55,16 @@ function EmptyStateComponent({
                         {subtitleText ??
                             (doesSubtitleContainCustomEmojiAndMore ? (
                                 <TextWithEmojiFragment
-                                    style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}
+                                    style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, subtitleStyles]}
                                     message={subtitle}
                                 />
                             ) : (
-                                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
+                                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, subtitleStyles]}>{subtitle}</Text>
                             ))}
                         {children}
                         {!isEmpty(buttons) && (
                             <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.flexWrap, styles.justifyContentCenter]}>
-                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
+                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
                                             key={buttonText}
@@ -83,6 +84,8 @@ function EmptyStateComponent({
                                             icon={icon}
                                             isDisabled={isDisabled}
                                             style={style}
+                                            innerStyles={innerStyles}
+                                            hoverStyles={hoverStyles}
                                         />
                                     ),
                                 )}

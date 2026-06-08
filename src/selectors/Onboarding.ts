@@ -68,14 +68,15 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
 }
 
 /**
- * Selector to check if the onboarding flow is loading
- *
- * `undefined` means the value is not loaded yet
- * `true` means the onboarding flow is loading
- * `false` means the onboarding flow is not loading
+ * Combined selector that derives both the self-tour status and the guided-setup
+ * completion flag from a single NVP_ONBOARDING read, avoiding two subscriptions
+ * to the same key from callers that need both.
  */
-function isOnboardingLoadingSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    return !!onboarding?.isLoading;
+function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean | undefined; hasCompletedGuidedSetupFlow: boolean | undefined} {
+    return {
+        isSelfTourViewed: hasSeenTourSelector(onboarding),
+        hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(onboarding),
+    };
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, isOnboardingLoadingSelector};
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, guidedSetupAndTourStatusSelector};

@@ -17,7 +17,7 @@ function AttachmentDeletedIndicator({containerStyles}: AttachmentDeletedIndicato
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     if (!isOffline) {
         return null;

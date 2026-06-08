@@ -9,6 +9,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import Text from '@components/Text';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -16,9 +17,9 @@ import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import {searchUserInServer} from '@libs/actions/Report';
@@ -27,10 +28,10 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusionsForGuideAndAccountManager} from '@libs/PolicyUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -49,7 +50,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const policy = usePolicy(onboardingPolicyID);
     const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -57,7 +57,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACE_INVITE);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -66,6 +66,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const {isBetaEnabled} = usePermissions();
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
     const excludedUsers: Record<string, boolean> = {};
@@ -75,16 +76,14 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
     const softExclusions = getSoftExclusionsForGuideAndAccountManager(policy, account?.accountManagerAccountID, personalDetails);
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, searchOptions} =
-        useSearchSelector({
-            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-            includeUserToInvite: true,
-            excludeLogins: excludedUsers,
-            excludeFromSuggestionsOnly: softExclusions,
-            includeRecentReports: false,
-            shouldInitialize: didScreenTransitionEnd,
-        });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        includeUserToInvite: true,
+        excludeLogins: excludedUsers,
+        excludeFromSuggestionsOnly: softExclusions,
+        includeRecentReports: false,
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
 
@@ -97,9 +96,9 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const sections: Sections = [];
     if (areOptionsInitialized) {
         // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
+        if (availableOptions.selectedOptions.length > 0) {
             sections.push({
-                data: selectedOptionsForDisplay,
+                data: availableOptions.selectedOptions,
                 sectionIndex: 0,
             });
         }
@@ -134,7 +133,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             onboardingPurposeSelected,
             introSelected,
             isSelfTourViewed,
-            betas,
         });
 
         setOnboardingAdminsChatReportID();
@@ -174,20 +172,38 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
-        addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, policy, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber);
+        addMembersToWorkspace(
+            invitedEmailsToAccountIDs,
+            `${welcomeNoteSubject}\n\n${welcomeNote}`,
+            policy,
+            policyMemberAccountIDs,
+            CONST.POLICY.ROLE.USER,
+            formatPhoneNumber,
+            {
+                accountID: currentUserPersonalDetails.accountID,
+                displayName: currentUserPersonalDetails.displayName,
+                email: currentUserPersonalDetails.email,
+                avatar: currentUserPersonalDetails.avatar,
+            },
+            undefined,
+            filteredReportActions,
+        );
         completeOnboarding(true);
     };
 
-    const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    let headerMessage = getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
-    if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
-        headerMessage = translate('messages.errorMessageInvalidEmail');
-    } else if (
-        !availableOptions.userToInvite &&
-        excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
-    ) {
-        headerMessage = translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
-    }
+    const headerMessage = () => {
+        if (sections.length > 0) {
+            return '';
+        }
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        if (CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        if (excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]) {
+            return translate('messages.userIsAlreadyMember', searchValue, policy?.name ?? '');
+        }
+        return getHeaderMessage(translate, searchValue, countryCode);
+    };
 
     const footerContent = (
         <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh3 : undefined]}>
@@ -213,15 +229,13 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     );
 
     const textInputOptions = {
-        headerMessage,
+        headerMessage: headerMessage(),
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         style: {
             containerStyle: onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5,
             headerMessageStyle: [onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5, styles.pb5],
         },
-        onChangeText: (value: string) => {
-            setSearchTerm(value);
-        },
+        onChangeText: setSearchTerm,
         value: searchTerm,
     };
 

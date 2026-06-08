@@ -1,22 +1,11 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Button from '@components/Button';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem, SelectionListStyle} from '@components/SelectionList/types';
-import Text from '@components/Text';
-import useDebouncedState from '@hooks/useDebouncedState';
-import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
+import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+import SingleSelect from '@components/Search/FilterComponents/SingleSelect';
+import type {SelectionListStyle} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
-
-type SingleSelectItem<T> = {
-    text: string;
-    value: T;
-};
+import BasePopup from './BasePopup';
 
 type SingleSelectPopupProps<T> = {
     /** The label to show when in an overlay on mobile */
@@ -26,13 +15,15 @@ type SingleSelectPopupProps<T> = {
     items: Array<SingleSelectItem<T>>;
 
     /** The currently selected item */
-    value: SingleSelectItem<T> | null;
+    value: SingleSelectItem<T> | undefined;
+
+    onBackButtonPress?: () => void;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
 
     /** Function to call when changes are applied */
-    onChange: (item: SingleSelectItem<T> | null) => void;
+    onChange: (item: SingleSelectItem<T> | undefined) => void;
 
     /** Whether the search input should be displayed */
     isSearchable?: boolean;
@@ -47,12 +38,19 @@ type SingleSelectPopupProps<T> = {
 
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
+
+    /** Custom height for each item in the list. Overrides the default row height and adjusts the popover size accordingly. */
+    itemHeight?: number;
+
+    /** Whether SelectionList of popup should stay mounted when popup is not visible. */
+    shouldShowList?: boolean;
 };
 
 function SingleSelectPopup<T extends string>({
     label,
     value,
     items,
+    onBackButtonPress,
     closeOverlay,
     onChange,
     isSearchable,
@@ -60,53 +58,10 @@ function SingleSelectPopup<T extends string>({
     defaultValue,
     style,
     selectionListStyle,
+    itemHeight,
+    shouldShowList = true,
 }: SingleSelectPopupProps<T>) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-
-    const {options, noResultsFound} = useMemo(() => {
-        // If the selection is searchable, we push the initially selected item into its own section and display it at the top
-        if (isSearchable) {
-            const initiallySelectedOption = value?.text.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
-                ? [{text: value.text, keyForList: value.value, isSelected: selectedItem?.value === value.value}]
-                : [];
-            const remainingOptions = items
-                .filter((item) => item?.value !== value?.value && item?.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-                .map((item) => ({
-                    text: item.text,
-                    keyForList: item.value,
-                    isSelected: selectedItem?.value === item.value,
-                }));
-            const allOptions = [...initiallySelectedOption, ...remainingOptions];
-            const isEmpty = allOptions.length === 0;
-            return {
-                options: allOptions,
-                noResultsFound: isEmpty,
-            };
-        }
-
-        return {
-            options: items.map((item) => ({
-                text: item.text,
-                keyForList: item.value,
-                isSelected: item.value === selectedItem?.value,
-            })),
-            noResultsFound: false,
-        };
-    }, [isSearchable, items, value, selectedItem?.value, debouncedSearchTerm]);
-
-    const updateSelectedItem = useCallback(
-        (item: ListItem) => {
-            const newItem = items.find((i) => i.value === item.keyForList) ?? null;
-            setSelectedItem(newItem);
-        },
-        [items],
-    );
 
     const applyChanges = useCallback(() => {
         onChange(selectedItem);
@@ -114,59 +69,36 @@ function SingleSelectPopup<T extends string>({
     }, [closeOverlay, onChange, selectedItem]);
 
     const resetChanges = useCallback(() => {
-        onChange(defaultValue ? (items.find((item) => item.value === defaultValue) ?? null) : null);
+        onChange(items.find((item) => item.value === defaultValue));
         closeOverlay();
     }, [closeOverlay, onChange, defaultValue, items]);
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchTerm,
-            label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
-            onChangeText: setSearchTerm,
-            headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
-        }),
-        [searchTerm, isSearchable, searchPlaceholder, translate, setSearchTerm, noResultsFound],
-    );
-
-    const shouldShowLabel = isSmallScreenWidth && !!label;
-
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
-            {shouldShowLabel && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
-
-            <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false)]}>
-                <SelectionList
-                    data={options}
-                    shouldSingleExecuteRowSelect
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={updateSelectedItem}
-                    textInputOptions={textInputOptions}
-                    style={selectionListStyle}
-                    shouldUpdateFocusedIndex={isSearchable}
-                    initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
-                    shouldShowLoadingPlaceholder={!noResultsFound}
+        <BasePopup
+            label={label}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            onBackButtonPress={onBackButtonPress}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            style={[style]}
+        >
+            <ListFilterHeightContextProvider>
+                <SingleSelect
+                    items={items}
+                    value={value}
+                    onChange={setSelectedItem}
+                    hasHeader={!!onBackButtonPress}
+                    hasTitle={!!label}
+                    isSearchable={isSearchable}
+                    searchPlaceholder={searchPlaceholder}
+                    selectionListStyle={selectionListStyle}
+                    shouldShowList={shouldShowList}
+                    itemHeight={itemHeight}
                 />
-            </View>
-            <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
-                />
-            </View>
-        </View>
+            </ListFilterHeightContextProvider>
+        </BasePopup>
     );
 }
 
-export type {SingleSelectPopupProps, SingleSelectItem};
 export default SingleSelectPopup;

@@ -28,7 +28,6 @@ const ILLUSTRATIONS = [
     'Flash',
     'Sunglasses',
     'F1Flags',
-    'Fireworks',
 ] as const;
 
 type EmptyStateConfig = {

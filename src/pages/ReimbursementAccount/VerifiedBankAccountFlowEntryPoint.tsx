@@ -87,7 +87,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock', 'RotateLeft'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock', 'RotateLeft']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
@@ -123,10 +123,10 @@ function VerifiedBankAccountFlowEntryPoint({
     const prepareNextStep = useCallback(
         (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
             setBankAccountSubStep(setupType);
-            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
         },
-        [setUSDBankAccountStep],
+        [policyID, backTo],
     );
 
     /**
