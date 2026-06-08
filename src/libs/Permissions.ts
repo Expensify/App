@@ -5,7 +5,7 @@ import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
 
 // eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return true//!!betas?.includes(CONST.BETAS.ALL);
+    return !!betas?.includes(CONST.BETAS.ALL);
 }
 
 /**
@@ -50,3 +50,5 @@ export default {
     canUsePrivateNotes,
     isBetaEnabled,
 };
+
+
