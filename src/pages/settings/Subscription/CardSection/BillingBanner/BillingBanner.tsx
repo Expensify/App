@@ -75,7 +75,7 @@ function BillingBanner({
             return onRightIconPress && rightIconAccessibilityLabel ? (
                 <PressableWithoutFeedback
                     onPress={onRightIconPress}
-                    style={[styles.touchableButtonImage]}
+                    style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={rightIconAccessibilityLabel}
                     sentryLabel={rightIconSentryLabel ?? CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON}
@@ -108,6 +108,7 @@ function BillingBanner({
         rightIconAccessibilityLabel,
         rightIconSentryLabel,
         styles.touchableButtonImage,
+        styles.threeDotsMenuIconWidth,
         theme.danger,
         theme.icon,
         theme.success,

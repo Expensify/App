@@ -1,14 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -26,8 +25,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canWriteMoreFeatures = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     return (
         <AccessOrNotFoundWrapper
@@ -40,7 +38,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldUseScrollView
                 headerText={translate('workspace.common.invoices')}
                 shouldShowOfflineIndicatorInWideScreen
-                shouldSkipVBBACall={false}
+                shouldSkipVBBACall={!canWriteMoreFeatures}
                 route={route}
                 icon={illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
@@ -53,6 +51,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                             <WorkspaceInvoiceVBASection
                                 policyID={policyID}
                                 canWriteMoreFeatures={canWriteMoreFeatures}
+                                showReadOnlyModal={showReadOnlyModal}
                             />
                         )}
                         {!!policyID && (
