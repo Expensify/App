@@ -1,8 +1,8 @@
 import type {ImageContentFit} from 'expo-image';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {FlatList, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, FlatList as RNFlatList, ScrollView as RNScrollView, StyleProp, TextStyle, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
 import type {MergeExclusive} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -30,7 +30,10 @@ import FeatureTrainingModalBody from './FeatureTrainingModalBody';
 
 const MODAL_PADDING = variables.spacing2;
 
-const SCROLL_SETTLE_MS = 300;
+// A page is considered "viewable" — and `currentPage` updates — only once it occupies at least
+// 95% of the viewport. The viewability event fires for both user swipes and programmatic
+// scrollToIndex once the scroll has practically settled on a new page.
+const CAROUSEL_VIEWABILITY_CONFIG: ViewabilityConfig = {itemVisiblePercentThreshold: 95};
 
 type BaseFeatureTrainingModalProps = {
     /** The aspect ratio to preserve for the icon, video or animation */
@@ -226,11 +229,31 @@ function FeatureTrainingModal({
 
     const isCarousel = !!pages && pages.length > 1;
     const [currentPage, setCurrentPage] = useState(0);
+    const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
+    const horizontalListRef = useRef<RNFlatList<FeatureTrainingModalPageProps>>(null);
     const lastReportedPage = useRef(0);
 
-    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode || isCarousel;
+    // FlatList's `onViewableItemsChanged` must keep a stable identity (it errors otherwise).
+    // The handler reads the latest `onPageChange` via a ref so the callback identity never changes.
+    const onPageChangeRef = useRef(onPageChange);
+    useEffect(() => {
+        onPageChangeRef.current = onPageChange;
+    }, [onPageChange]);
+    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]}) => {
+        const entry = viewableItems.at(0);
+        if (entry?.index == null || entry.index === lastReportedPage.current) {
+            return;
+        }
+        lastReportedPage.current = entry.index;
+        setCurrentPage(entry.index);
+        onPageChangeRef.current?.(entry.index);
+    }, []);
+
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
     useEffect(() => {
+        // Transition tracker is used directly as we defer the opening of the modal until other animations are finished,
+        // for which there is no higher-level API.
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 if (!isModalDisabled) {
@@ -291,54 +314,26 @@ function FeatureTrainingModal({
         }
     };
 
-    /**
-     * Defer page update until the scroll animation has visually completed.
-     */
-    const scrollToPage = (nextIndex: number) => {
-        scrollViewRef.current?.scrollTo({x: nextIndex * width, y: 0, animated: true});
-        setTimeout(() => {
-            if (nextIndex === lastReportedPage.current) {
-                return;
-            }
-            lastReportedPage.current = nextIndex;
-            setCurrentPage(nextIndex);
-            onPageChange?.(nextIndex);
-        }, SCROLL_SETTLE_MS);
-    };
-
     const advanceCarousel = () => {
         if (!isCarousel) {
             return;
         }
-        scrollToPage(Math.min(currentPage + 1, pages.length - 1));
+        horizontalListRef.current?.scrollToIndex({index: Math.min(currentPage + 1, pages.length - 1), animated: true});
     };
 
     const goBack = () => {
         if (!isCarousel || currentPage <= 0) {
             return;
         }
-        scrollToPage(Math.max(currentPage - 1, 0));
+        horizontalListRef.current?.scrollToIndex({index: Math.max(currentPage - 1, 0), animated: true});
     };
 
     const handleConfirmPress = () => {
-        if (isCarousel && currentPage < pages.length) {
+        if (isCarousel && currentPage < pages.length - 1) {
             advanceCarousel();
             return;
         }
         closeAndConfirmModal();
-    };
-
-    const onCarouselMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        if (!isCarousel || width <= 0) {
-            return;
-        }
-        const nextPage = Math.round(e.nativeEvent.contentOffset.x / width);
-        if (nextPage === lastReportedPage.current) {
-            return;
-        }
-        lastReportedPage.current = nextPage;
-        setCurrentPage(nextPage);
-        onPageChange?.(nextPage);
     };
 
     // Scrolls modal to the bottom when keyboard appears so the action buttons are visible.
@@ -347,7 +342,7 @@ function FeatureTrainingModal({
             return;
         }
         scrollViewRef.current?.scrollToEnd({animated: false});
-    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView, isCarousel]);
+    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView]);
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
@@ -386,28 +381,102 @@ function FeatureTrainingModal({
             shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
         >
-            <Wrapper
-                scrollsToTop={false}
-                style={[
-                    onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
-                    wrapperStyles.style,
-                    isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
-                ]}
-                horizontal={isCarousel}
-                pagingEnabled={isCarousel}
-                showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={isCarousel ? onCarouselMomentumScrollEnd : undefined}
-                scrollEventThrottle={isCarousel ? 16 : undefined}
-                contentContainerStyle={wrapperStyles.containerStyle}
-                keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
-                ref={shouldUseScrollView ? scrollViewRef : undefined}
-                onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
-                onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
-                // Wrapper is either a View or ScrollView, which is also a View.
-                // eslint-disable-next-line react/forbid-component-props
-                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-            >
-                {!isCarousel ? (
+            {isCarousel ? (
+                <View
+                    style={[
+                        onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                        isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
+                    ]}
+                    onLayout={(e: LayoutChangeEvent) => {
+                        const newWidth = e.nativeEvent.layout.width;
+                        if (newWidth === carouselViewportWidth || newWidth <= 0) {
+                            return;
+                        }
+                        setCarouselViewportWidth(newWidth);
+                    }}
+                >
+                    {carouselViewportWidth > 0 && (
+                        <FlatList
+                            ref={horizontalListRef}
+                            data={pages}
+                            keyExtractor={(_page, index) => `FeatureTrainingModalBody-${index}`}
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            viewabilityConfig={CAROUSEL_VIEWABILITY_CONFIG}
+                            onViewableItemsChanged={onViewableItemsChanged}
+                            getItemLayout={(_data, index) => ({length: carouselViewportWidth, offset: index * carouselViewportWidth, index})}
+                            renderItem={({item: page, index}) => {
+                                const body = (
+                                    <FeatureTrainingModalBody
+                                        animation={page.animation}
+                                        animationStyle={page.animationStyle}
+                                        illustrationInnerContainerStyle={illustrationInnerContainerStyle}
+                                        illustrationOuterContainerStyle={illustrationOuterContainerStyle}
+                                        illustrationAspectRatio={illustrationAspectRatioProp}
+                                        width={carouselViewportWidth}
+                                        title={page.title}
+                                        subtitle={page.subtitle}
+                                        description={page.description}
+                                        secondaryDescription={page.secondaryDescription}
+                                        titleStyles={titleStyles}
+                                        shouldShowDismissModalOption={shouldShowDismissModalOption}
+                                        confirmText={page.confirmText}
+                                        helpText={helpText}
+                                        onHelp={onHelp}
+                                        contentInnerContainerStyles={contentInnerContainerStyles}
+                                        contentOuterContainerStyles={contentOuterContainerStyles}
+                                        shouldRenderSVG={shouldRenderSVG}
+                                        shouldRenderHTMLDescription={shouldRenderHTMLDescription}
+                                        shouldShowConfirmationLoader={shouldShowConfirmationLoader}
+                                        canConfirmWhileOffline={canConfirmWhileOffline}
+                                        shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
+                                        helpSentryLabel={helpSentryLabel}
+                                        confirmSentryLabel={confirmSentryLabel}
+                                        modalPadding={MODAL_PADDING}
+                                        willShowAgain={willShowAgain}
+                                        toggleWillShowAgain={toggleWillShowAgain}
+                                        closeModal={closeModal}
+                                        confirmModal={handleConfirmPress}
+                                        shouldShowBackButton={index > 0}
+                                        onBack={goBack}
+                                    />
+                                );
+                                if (!shouldUseScrollView) {
+                                    return body;
+                                }
+                                return (
+                                    <ScrollView
+                                        contentContainerStyle={wrapperStyles.containerStyle}
+                                        keyboardShouldPersistTaps="handled"
+                                        scrollsToTop={false}
+                                        style={[styles.flex1, styles.mh100]}
+                                    >
+                                        {body}
+                                    </ScrollView>
+                                );
+                            }}
+                        />
+                    )}
+                </View>
+            ) : (
+                <Wrapper
+                    scrollsToTop={false}
+                    style={[
+                        onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                        wrapperStyles.style,
+                        isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
+                    ]}
+                    contentContainerStyle={wrapperStyles.containerStyle}
+                    keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
+                    ref={shouldUseScrollView ? scrollViewRef : undefined}
+                    onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
+                    onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
+                    // Wrapper is either a View or ScrollView, which is also a View.
+                    // eslint-disable-next-line react/forbid-component-props
+                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                >
                     <FeatureTrainingModalBody
                         illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                         illustrationOuterContainerStyle={illustrationOuterContainerStyle}
@@ -440,47 +509,8 @@ function FeatureTrainingModal({
                     >
                         {children}
                     </FeatureTrainingModalBody>
-                ) : (
-                    pages.map((page, index) => (
-                        <FeatureTrainingModalBody
-                            // Pages is a small fixed array passed in by the caller; index is stable.
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`FeatureTrainingModalBody-${index}`}
-                            animation={page.animation}
-                            animationStyle={page.animationStyle}
-                            illustrationInnerContainerStyle={illustrationInnerContainerStyle}
-                            illustrationOuterContainerStyle={illustrationOuterContainerStyle}
-                            illustrationAspectRatio={illustrationAspectRatioProp}
-                            width={width}
-                            title={page.title}
-                            subtitle={page.subtitle}
-                            description={page.description}
-                            secondaryDescription={page.secondaryDescription}
-                            titleStyles={titleStyles}
-                            shouldShowDismissModalOption={shouldShowDismissModalOption}
-                            confirmText={page.confirmText}
-                            helpText={helpText}
-                            onHelp={onHelp}
-                            contentInnerContainerStyles={contentInnerContainerStyles}
-                            contentOuterContainerStyles={contentOuterContainerStyles}
-                            shouldRenderSVG={shouldRenderSVG}
-                            shouldRenderHTMLDescription={shouldRenderHTMLDescription}
-                            shouldShowConfirmationLoader={shouldShowConfirmationLoader}
-                            canConfirmWhileOffline={canConfirmWhileOffline}
-                            shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
-                            helpSentryLabel={helpSentryLabel}
-                            confirmSentryLabel={confirmSentryLabel}
-                            modalPadding={MODAL_PADDING}
-                            willShowAgain={willShowAgain}
-                            toggleWillShowAgain={toggleWillShowAgain}
-                            closeModal={closeModal}
-                            confirmModal={handleConfirmPress}
-                            shouldShowBackButton={index > 0}
-                            onBack={goBack}
-                        />
-                    ))
-                )}
-            </Wrapper>
+                </Wrapper>
+            )}
         </Modal>
     );
 }

@@ -66,9 +66,11 @@ function AIFeaturesPromoModal() {
             onClose={onClose}
             width={variables.aiFeaturesPromoModalWidth}
             shouldRenderHTMLDescription
+            shouldUseScrollView
             illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.SpendAnalysis.backgroundColor), styles.cardSectionIllustration]}
             illustrationOuterContainerStyle={styles.p0}
             contentInnerContainerStyles={styles.mb4}
+            modalInnerContainerStyle={styles.pt0}
             titleStyles={styles.mb2}
         />
     );
