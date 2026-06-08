@@ -14352,7 +14352,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction);
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction});
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
@@ -14372,7 +14372,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction);
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction});
 
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
@@ -14388,7 +14388,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage with isCopyAction = true
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction, true);
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true, conciergeReportID: undefined});
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
@@ -14404,11 +14404,17 @@ describe('ReportUtils', () => {
             };
 
             // When called with conciergeReportID undefined, the function should not throw
-            const result1 = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction, true);
+            const result1 = getReportPreviewMessage({
+                reportOrID: report,
+                iouReportAction: reportAction,
+                originalReportAction: reportAction,
+                isCopyAction: true,
+                conciergeReportID: undefined,
+            });
             expect(typeof result1).toBe('string');
 
             // When called with a specific conciergeReportID, the function should not throw
-            const result2 = getReportPreviewMessage(report, '12345', reportAction, false, false, undefined, false, reportAction, true);
+            const result2 = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true, conciergeReportID: '12345'});
             expect(typeof result2).toBe('string');
         });
     });

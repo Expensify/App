@@ -74,7 +74,7 @@ import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BillingGraceEndPeriod, Policy, Report, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useAllPolicyExpenseChatReportActions from './useAllPolicyExpenseChatReportActions';
@@ -499,7 +499,28 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     // Use the split-aware delete hook for bulk transaction deletion so split children trigger
     // updateSplitTransactions (with reverse-split when only one sibling is left), instead of plain
     // deleteMoneyRequest which would just remove the child and break the split state.
-    const flattenedReportActions = useMemo(() => Object.values(allReportActions ?? {}).flatMap((reportActions) => Object.values(reportActions ?? {})), [allReportActions]);
+    const flattenedReportActions = useMemo(() => {
+        const fromOnyx = Object.values(allReportActions ?? {}).flatMap((reportActions) => Object.values(reportActions ?? {}));
+        // Also include actions from the search snapshot. SearchBulkActionsButton is rendered
+        // outside SearchScopeProvider so useOnyx does not redirect to the snapshot automatically.
+        // Without this, IOU actions for unreported expenses (stored in the selfDM report) are
+        // absent from the Onyx collection, causing deleteTransactions to silently skip all deletions.
+        const searchData = currentSearchResults?.data;
+        if (!searchData) {
+            return fromOnyx;
+        }
+        const fromSnapshot = Object.keys(searchData)
+            .filter((key): key is `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` => key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+            .flatMap((key) => Object.values(searchData[key] ?? {}));
+        // Merge — real Onyx wins on conflict (real-time updates take precedence over snapshot)
+        const merged = new Map<string, ReportAction>();
+        for (const action of [...fromSnapshot, ...fromOnyx]) {
+            if (action?.reportActionID) {
+                merged.set(action.reportActionID, action);
+            }
+        }
+        return Array.from(merged.values());
+    }, [allReportActions, currentSearchResults?.data]);
     const {deleteTransactions: deleteTransactionsFromHook, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: selfDMReport,
         reportActions: flattenedReportActions,
