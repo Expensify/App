@@ -17,6 +17,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PDFThumbnail from '@components/PDFThumbnail';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -375,6 +376,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         clearDeleteWorkspaceError(policyID);
     };
 
+    const policyLastErrorMessagePrompt = policyLastErrorMessage ? (
+        <RenderHTML
+            html={policyLastErrorMessage}
+            onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
+        />
+    ) : null;
+
     useEffect(() => {
         if (isLoadingBill) {
             return;
@@ -630,7 +638,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 isVisible={isDeleteWorkspaceErrorModalOpen}
                 onConfirm={hideDeleteWorkspaceErrorModal}
                 onCancel={hideDeleteWorkspaceErrorModal}
-                prompt={policyLastErrorMessage}
+                prompt={policyLastErrorMessagePrompt}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 success={false}

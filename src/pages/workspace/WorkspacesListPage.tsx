@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import RenderHTML from '@components/RenderHTML';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
@@ -233,6 +234,13 @@ function WorkspacesListPage() {
         }
         dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
     };
+
+    const policyToDeleteLatestErrorMessagePrompt = policyToDeleteLatestErrorMessage ? (
+        <RenderHTML
+            html={policyToDeleteLatestErrorMessage}
+            onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
+        />
+    ) : null;
 
     const confirmLeaveAndHideModal = () => {
         if (!policyToLeave) {
@@ -682,7 +690,7 @@ function WorkspacesListPage() {
                 isVisible={isDeleteWorkspaceErrorModalOpen}
                 onConfirm={hideDeleteWorkspaceErrorModal}
                 onCancel={hideDeleteWorkspaceErrorModal}
-                prompt={policyToDeleteLatestErrorMessage}
+                prompt={policyToDeleteLatestErrorMessagePrompt}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 success={false}
