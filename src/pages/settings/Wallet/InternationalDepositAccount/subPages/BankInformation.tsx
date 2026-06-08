@@ -45,7 +45,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION] ?? {}),
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const validate = useCallback(

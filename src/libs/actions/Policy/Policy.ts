@@ -1,4 +1,7 @@
 /* eslint-disable max-lines */
+import {addDays} from 'date-fns/addDays';
+import {formatDate} from 'date-fns/format';
+import {subMinutes} from 'date-fns/subMinutes';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -96,7 +99,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {hasValidModifiedAmount} from '@libs/TransactionUtils';
+import {getNegatedAmountTransaction} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -2671,7 +2674,10 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
-                reimbursementChoice: isTrackOnboardingChoice(engagementChoice) ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimbursementChoice:
+                    isTrackOnboardingChoice(engagementChoice) || type === CONST.POLICY.TYPE.SUBMIT
+                        ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
+                        : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 created: DateUtils.getDBTime(),
                 customUnits,
                 areCategoriesEnabled: true,
@@ -3342,7 +3348,7 @@ function buildOptimisticDuplicatePolicy(
         areInvoicesEnabled: isInvoicesFeatureSelected,
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
-        areReportFieldsEnabled: isReportsFeatureSelected,
+        areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
         arePerDiemRatesEnabled: isPerDiemFeatureSelected,
         isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
@@ -4510,11 +4516,7 @@ function createWorkspaceFromIOUPayment(
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
     for (const transaction of reportTransactions) {
-        transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
-            ...transaction,
-            amount: -transaction.amount,
-            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
-        };
+        transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = getNegatedAmountTransaction(transaction);
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
@@ -5680,12 +5682,45 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string, currentTax
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
+/**
+ * Corporate (Control) upgrade fields shared between `upgradeToCorporate` and `upgradeSubmit`.
+ * Keep in sync with `UpgradeToCorporate` API semantics.
+ */
+function getCorporateUpgradeOnyxFields(policy: OnyxEntry<Policy>) {
+    return {
+        optimistic: {
+            maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
+            maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+            maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+            maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
+            glCodes: true,
+            eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
+            harvesting: {
+                enabled: false,
+            },
+            isAttendeeTrackingEnabled: false,
+        },
+        failure: {
+            maxExpenseAge: policy?.maxExpenseAge ?? null,
+            maxExpenseAmount: policy?.maxExpenseAmount ?? null,
+            maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
+            maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
+            glCodes: policy?.glCodes ?? null,
+            harvesting: policy?.harvesting ?? null,
+            isAttendeeTrackingEnabled: null,
+            eReceipts: policy?.eReceipts,
+        },
+    };
+}
+
 function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
     if (!policy) {
         return;
     }
 
     const policyID = policy.id;
+    const {optimistic: corporateUpgradeOptimistic, failure: corporateUpgradeFailureRevert} = getCorporateUpgradeOnyxFields(policy);
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5693,16 +5728,7 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
             value: {
                 isPendingUpgrade: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
-                maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
-                maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
-                maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
-                maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
-                glCodes: true,
-                eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
-                harvesting: {
-                    enabled: false,
-                },
-                isAttendeeTrackingEnabled: false,
+                ...corporateUpgradeOptimistic,
             },
         },
     ];
@@ -5724,14 +5750,7 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
             value: {
                 isPendingUpgrade: false,
                 type: policy?.type,
-                maxExpenseAge: policy?.maxExpenseAge ?? null,
-                maxExpenseAmount: policy?.maxExpenseAmount ?? null,
-                maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
-                maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
-                glCodes: policy?.glCodes ?? null,
-                harvesting: policy?.harvesting ?? null,
-                isAttendeeTrackingEnabled: null,
-                eReceipts: policy?.eReceipts,
+                ...corporateUpgradeFailureRevert,
             },
         },
     ];
@@ -5739,6 +5758,161 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
     const parameters: UpgradeToCorporateParams = {policyID, ...(featureName ? {featureName} : {})};
 
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Handle the upgrade from submit to corporate or control based on the target type
+ * @param policy - Workspace policy being upgraded
+ * @param targetType - the type to upgrade to, either team or corporate
+ * @param currentUserEmail - Signed-in user's email (login)
+ * @param currentUserAccountID - Signed-in user's account ID
+ * @param priorFirstDayFreeTrial - Prior `ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL` (for rollback); pass `undefined` if unset.
+ * @param priorLastDayFreeTrial - Prior `ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL` (for rollback); pass `undefined` if unset.
+ * @param reportID - Optional report ID related to this upgrade flow
+ */
+function upgradeSubmit(
+    policy: OnyxEntry<Policy>,
+    targetType: Policy['type'],
+    currentUserEmail: string,
+    currentUserAccountID: number | undefined,
+    priorFirstDayFreeTrial: string | undefined,
+    priorLastDayFreeTrial: string | undefined,
+    reportID?: string | undefined,
+) {
+    if (!policy) {
+        return;
+    }
+
+    type UpgradeSubmitOnyxKey = typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL;
+
+    const now = new Date();
+    const optimisticFirstDayFreeTrial = formatDate(subMinutes(now, 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    const optimisticLastDayFreeTrial = formatDate(addDays(now, 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+    const policyID = policy?.id ?? CONST.POLICY.ID_FAKE;
+    const currentUserLogin = currentUserEmail ?? '';
+    const priorOwner = policy?.owner;
+    const priorOwnerAccountID = policy?.ownerAccountID;
+
+    const employeeList = policy?.employeeList ?? {};
+    const memberEmails = Object.keys(employeeList);
+    if (priorOwner && !(priorOwner in employeeList)) {
+        memberEmails.push(priorOwner);
+    }
+    if (currentUserLogin && !(currentUserLogin in employeeList)) {
+        memberEmails.push(currentUserLogin);
+    }
+
+    const optimisticEmployeeList: Record<string, PolicyEmployee> = {};
+
+    for (const email of memberEmails) {
+        const existing = employeeList[email] ?? {};
+        const isCurrentUser = email === currentUserLogin;
+        const nextRole = isCurrentUser ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER;
+        optimisticEmployeeList[email] = {
+            ...existing,
+            ...(existing.email ? {} : {email}),
+            ...(existing.submitsTo === undefined && isCurrentUser ? {submitsTo: email} : {}),
+            role: nextRole,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+    }
+
+    const successEmployeeList = memberEmails.reduce<Record<string, Pick<PolicyEmployee, 'pendingAction'>>>((member, email) => {
+        // eslint-disable-next-line no-param-reassign
+        member[email] = {pendingAction: null};
+        return member;
+    }, {});
+
+    const optimisticOwnerAccountID = currentUserAccountID !== undefined && currentUserLogin ? Number(currentUserAccountID) : priorOwnerAccountID;
+
+    const isCorporateControlUpgrade = targetType === CONST.POLICY.TYPE.CORPORATE;
+    const corporateUpgradeOnyxFields = isCorporateControlUpgrade ? getCorporateUpgradeOnyxFields(policy) : null;
+
+    let newReimbursementChoice;
+    if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    } else {
+        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    }
+    const optimisticData: Array<OnyxUpdate<UpgradeSubmitOnyxKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL,
+            value: optimisticFirstDayFreeTrial,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL,
+            value: optimisticLastDayFreeTrial,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: true,
+                type: targetType,
+                canDowngrade: false,
+                areCompanyCardsEnabled: true,
+                reimbursementChoice: newReimbursementChoice,
+                owner: currentUserLogin,
+                ...(optimisticOwnerAccountID !== undefined ? {ownerAccountID: optimisticOwnerAccountID} : {}),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: optimisticEmployeeList,
+                ...(corporateUpgradeOnyxFields?.optimistic ?? {}),
+                pendingFields: {
+                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<UpgradeSubmitOnyxKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: false,
+                pendingFields: {type: null},
+                errorFields: null,
+                owner: currentUserLogin || priorOwner,
+                ...(optimisticOwnerAccountID !== undefined ? {ownerAccountID: optimisticOwnerAccountID} : {}),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: successEmployeeList,
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<UpgradeSubmitOnyxKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL,
+            value: priorFirstDayFreeTrial ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL,
+            value: priorLastDayFreeTrial ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isPendingUpgrade: false,
+                type: policy?.type,
+                canDowngrade: policy?.canDowngrade ?? null,
+                areCompanyCardsEnabled: policy?.areCompanyCardsEnabled,
+                pendingFields: {type: null},
+                reimbursementChoice: policy?.reimbursementChoice,
+                owner: priorOwner,
+                ...(priorOwnerAccountID !== undefined ? {ownerAccountID: priorOwnerAccountID} : {}),
+                ...(policy?.role !== undefined ? {role: policy.role} : {}),
+                ...(policy?.employeeList ? {employeeList: policy.employeeList} : {}),
+                ...(corporateUpgradeOnyxFields?.failure ?? {}),
+                errorFields: {type: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPGRADE_SUBMIT, {policyID, targetType, reportID}, {optimisticData, successData, failureData});
 }
 
 function downgradeToTeam(policyID: string, currentType: Policy['type'], currentIsAttendeeTrackingEnabled: Policy['isAttendeeTrackingEnabled']) {
@@ -7472,5 +7646,6 @@ export {
     setWorkspaceConfirmationCurrency,
     setPolicyRequireCompanyCardsEnabled,
     setPolicyTimeTrackingDefaultRate,
+    upgradeSubmit,
 };
 export type {BuildPolicyDataKeys, CurrentUser};
