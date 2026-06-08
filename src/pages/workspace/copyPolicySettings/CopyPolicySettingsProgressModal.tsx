@@ -107,7 +107,7 @@ function CopyPolicySettingsProgressModal() {
             cancelText={cancelText}
             shouldShowCancelButton={shouldShowCancelButton}
             isTitleLoading={isTitleLoading}
-            shouldHandleNavigationBack={isVisible}
+            shouldHandleNavigationBack
             success
         />
     );
