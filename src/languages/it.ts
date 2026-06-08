@@ -4105,6 +4105,38 @@ ${amount} per ${merchant} - ${date}`,
         weTake: 'Prendiamo molto sul serio la tua sicurezza. Configura ora l’autenticazione a due fattori (2FA) per aggiungere un ulteriore livello di protezione al tuo account.',
         secure: 'Proteggi il tuo account',
     },
+    documentsStep: {
+        beforeYouGo: 'Prima di continuare, abbiamo bisogno di alcuni documenti per verificare alcune informazioni',
+        subheader: 'Verifica',
+        verificationFailed: 'La verifica non è riuscita, quindi avremo bisogno di documenti aggiuntivi per verificare te e la tua azienda',
+        taxIDVerification: 'Verifica dell’ID fiscale',
+        taxIDVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Lettera di assegnazione TIN/EIN dell’IRS
+        • Conferma della richiesta TIN/EIN dell’IRS (di solito indica "Congratulations! The EIN has been successfully assigned")
+        • Lettera di esenzione fiscale dell’IRS con nome dell’azienda ed EIN`),
+        nameChangeDocument: 'Documento di cambio nome',
+        nameChangeDocumentDescription:
+            'Se il nome della tua azienda è cambiato dopo la richiesta del TIN/EIN, abbiamo bisogno di questo documento per verificare il numero di ID fiscale fornito',
+        companyAddressVerification: 'Verifica dell’indirizzo aziendale',
+        companyAddressVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Bolletta recente con nome e indirizzo dell’azienda
+        • Estratto conto bancario con nome e indirizzo dell’azienda
+        • Contratto di locazione attuale con pagina firme che mostri nome e indirizzo attuale dell’azienda
+        • Documento assicurativo con nome e indirizzo dell’azienda
+        • Documento di assegnazione TIN con nome e indirizzo dell’azienda`),
+        userAddressVerification: 'Verifica dell’indirizzo',
+        userAddressVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Tessera elettorale
+        • Patente di guida
+        • Estratto conto bancario
+        • Bolletta`),
+        userDOBVerification: 'Verifica della data di nascita',
+        userDOBVerificationDescription: 'Carica un documento di identità rilasciato negli Stati Uniti',
+        finishViaChat: 'Completa via chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
         explanationLine: 'Stiamo esaminando le tue informazioni. Potrai procedere con i prossimi passaggi a breve.',
@@ -6887,8 +6919,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             upgradeToUnlock: 'Sblocca questa funzionalità',
             completed: {
                 headline: `Hai aggiornato il tuo spazio di lavoro!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Hai effettuato l'upgrade di ${policyName} al piano Control! <a href="${subscriptionLink}">Visualizza il tuo abbonamento</a> per maggiori dettagli.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Hai effettuato l'upgrade di ${policyName} al piano ${planName}! <a href="${subscriptionLink}">Visualizza il tuo abbonamento</a> per maggiori dettagli.</centered-text>`,
                 categorizeMessage: `Hai eseguito l’upgrade al piano Collect. Ora puoi categorizzare le tue spese!`,
                 travelMessage: `Hai eseguito correttamente l’upgrade al piano Collect. Ora puoi iniziare a prenotare e gestire i viaggi!`,
                 distanceRateMessage: `Hai eseguito correttamente l’upgrade al piano Collect. Ora puoi modificare il rimborso chilometrico!`,
@@ -8236,6 +8268,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         withdrawalType: 'Tipo di prelievo',
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
+        serverResults: 'Risultati di ricerca',
         searchIn: 'Cerca in',
         askConcierge: (message: string) => `Chiedi a Concierge “${message}”`,
         searchPlaceholder: 'Cerca qualcosa...',

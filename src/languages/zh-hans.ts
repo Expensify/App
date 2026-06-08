@@ -4002,6 +4002,37 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         weTake: '我们非常重视您的安全。请立即设置双重验证，为您的账户增加一层额外保护。',
         secure: '保护你的账户',
     },
+    documentsStep: {
+        beforeYouGo: '在继续之前，我们需要一些文件来验证相关信息',
+        subheader: '验证',
+        verificationFailed: '验证失败，因此我们需要额外的文件来验证你及你的企业',
+        taxIDVerification: '税务识别号验证',
+        taxIDVerificationDescription: dedent(`
+        请上传以下任一文件：
+        • IRS TIN/EIN 分配函
+        • IRS TIN/EIN 申请确认函（通常包含“Congratulations! The EIN has been successfully assigned”）
+        • 显示公司名称和 EIN 的 IRS 免税函`),
+        nameChangeDocument: '名称变更文件',
+        nameChangeDocumentDescription: '如果你的公司名称在申请 TIN/EIN 后发生更改，我们需要此文件来验证你提供的税务识别号',
+        companyAddressVerification: '公司地址验证',
+        companyAddressVerificationDescription: dedent(`
+        请上传以下任一文件：
+        • 显示公司名称和地址的近期水电账单
+        • 显示公司名称和地址的银行对账单
+        • 包含签字页的有效租赁协议，显示公司名称和当前地址
+        • 显示公司名称和地址的保险声明
+        • 显示公司名称和地址的 TIN 分配文件`),
+        userAddressVerification: '地址验证',
+        userAddressVerificationDescription: dedent(`
+        请上传以下任一文件：
+        • 选民登记卡
+        • 驾驶证
+        • 银行对账单
+        • 水电账单`),
+        userDOBVerification: '出生日期验证',
+        userDOBVerificationDescription: '请上传美国签发的身份证件',
+        finishViaChat: '通过聊天完成',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: '请稍候',
         explanationLine: '我们正在查看您的信息。您很快就可以继续进行下一步了。',
@@ -6686,8 +6717,8 @@ ${reportName}
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您已升级您的工作区！`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>您已成功将 ${policyName} 升级到 Control 方案！有关更多详情，请<a href="${subscriptionLink}">查看您的订阅</a>。</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>您已成功将 ${policyName} 升级到 ${planName} 方案！有关更多详情，请<a href="${subscriptionLink}">查看您的订阅</a>。</centered-text>`,
                 categorizeMessage: `您已成功升级至 Collect 方案。现在您可以为报销费用分类了！`,
                 travelMessage: `您已成功升级到 Collect 方案。现在可以开始预订和管理行程了！`,
                 distanceRateMessage: `您已成功升级到 Collect 方案。现在您可以修改里程费率了！`,
@@ -7972,6 +8003,7 @@ ${reportName}
         withdrawalType: '提款类型',
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
+        serverResults: '搜索结果',
         searchIn: '搜索范围',
         askConcierge: (message: string) => `询问 Concierge“${message}”`,
         searchPlaceholder: '搜索内容...',

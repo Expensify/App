@@ -1057,7 +1057,8 @@
         "modules/group-ib-fp",
         "web/snippets/gib.js",
         "tests/unit/hooks/useLetterAvatars.test.tsx",
-        "tests/unit/usePersonalDetailSearchSelectorTest.tsx"
+        "tests/unit/usePersonalDetailSearchSelectorTest.tsx",
+        "tests/unit/BankAccountUtilsTest.ts"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true

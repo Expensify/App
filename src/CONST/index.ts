@@ -666,6 +666,7 @@ const CONST = {
             ACH_CONTRACT: 'ACHContractStep',
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
+            KYB_DOCS: 'UploadKYBDocs',
         },
         PAGE_NAMES: {
             COUNTRY: 'currency-and-country',
@@ -677,6 +678,7 @@ const CONST = {
             ACH_CONTRACT: 'ach-contract',
             VALIDATION: 'validation',
             ENABLE: 'enable',
+            KYB_DOCS: 'upload-kyb-documents',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         BANK_INFO_STEP: {
@@ -776,6 +778,33 @@ const CONST = {
         TYPE: {
             BUSINESS: 'BUSINESS',
             PERSONAL: 'PERSONAL',
+        },
+        KYB_STATUS: {
+            PASS: 'pass',
+        },
+        KYB_REQUESTOR_IDENTITY_ERROR: {
+            ADDRESS: [
+                'resultcode.address.does.not.match',
+                'resultcode.street.name.does.not.match',
+                'resultcode.street.number.does.not.match',
+                'resultcode.zip.does.not.match',
+                'resultcode.state.does.not.match',
+                'resultcode.alternate.address.alert',
+                'resultcode.input.address.is.po.box',
+                'resultcode.located.address.is.po.box',
+                'resultcode.warm.address.alert',
+            ],
+            DOB: [
+                'resultcode.coppa.alert',
+                'resultcode.age.below.minimum',
+                'resultcode.dob.does.not.match',
+                'resultcode.yob.does.not.match',
+                'resultcode.yob.within.one.year',
+                'resultcode.mob.does.not.match',
+                'resultcode.no.mob.available',
+                'resultcode.no.dob.available',
+                'resultcode.ssn.issued.prior.to.dob',
+            ],
         },
     },
     CORPAY_DOCUMENT: {
@@ -7850,6 +7879,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             autoApproveCompliantReports: {
                 id: 'autoApproveCompliantReports' as const,
@@ -7858,6 +7888,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             autoPayApprovedReports: {
                 id: 'autoPayApprovedReports' as const,
@@ -7866,6 +7897,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             categories: {
                 id: 'categories' as const,
@@ -7971,6 +8003,7 @@ const CONST = {
                 title: 'workspace.upgrade.rules.title' as const,
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
                 id: 'perDiem' as const,
@@ -7979,6 +8012,7 @@ const CONST = {
                 title: 'workspace.upgrade.perDiem.title' as const,
                 description: 'workspace.upgrade.perDiem.description' as const,
                 icon: 'PerDiem',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             hr: {
                 id: 'hr' as const,
@@ -7987,6 +8021,7 @@ const CONST = {
                 title: 'workspace.upgrade.hr.title' as const,
                 description: 'workspace.upgrade.hr.description' as const,
                 icon: 'Members',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             travel: {
                 id: 'travel' as const,

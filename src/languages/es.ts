@@ -3997,6 +3997,37 @@ ${amount} para ${merchant} - ${date}`,
         weTake: 'Nos tomamos su seguridad en serio. Por favor, configure 2FA ahora para agregar una capa adicional de protección a su cuenta.',
         secure: 'Asegure su cuenta',
     },
+    documentsStep: {
+        beforeYouGo: 'Antes de continuar, necesitamos algunos documentos para verificar cierta información',
+        subheader: 'Verificación',
+        verificationFailed: 'La verificación falló, por lo que necesitaremos documentos adicionales para verificarte a ti y a tu empresa',
+        taxIDVerification: 'Verificación del ID fiscal',
+        taxIDVerificationDescription: dedent(`
+        Por favor, sube uno de los siguientes archivos:
+        • Carta de asignación de TIN/EIN del IRS
+        • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
+        • Carta de exención fiscal del IRS que incluya el nombre de la empresa y el EIN`),
+        nameChangeDocument: 'Documento de cambio de nombre',
+        nameChangeDocumentDescription: 'Si el nombre de tu empresa cambió desde que solicitaste el TIN/EIN, necesitamos este documento para verificar el número de ID fiscal proporcionado',
+        companyAddressVerification: 'Verificación de la dirección de la empresa',
+        companyAddressVerificationDescription: dedent(`
+        Por favor, sube uno de los siguientes archivos:
+        • Factura reciente de servicios públicos con nombre y dirección de la empresa
+        • Estado de cuenta bancario con nombre y dirección de la empresa
+        • Contrato de arrendamiento vigente con página de firmas que muestre el nombre y la dirección actual de la empresa
+        • Estado de seguro con nombre y dirección de la empresa
+        • Documento de asignación de TIN con nombre y dirección de la empresa`),
+        userAddressVerification: 'Verificación de dirección',
+        userAddressVerificationDescription: dedent(`
+        Por favor, sube uno de los siguientes archivos:
+        • Tarjeta de registro de votante
+        • Licencia de conducir
+        • Estado de cuenta bancario
+        • Factura de servicios públicos`),
+        userDOBVerification: 'Verificación de fecha de nacimiento',
+        userDOBVerificationDescription: 'Por favor, sube una identificación emitida en EE. UU.',
+        finishViaChat: 'Finalizar por chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
@@ -6885,8 +6916,8 @@ ${amount} para ${merchant} - ${date}`,
                 headline: 'Has mejorado tu espacio de trabajo.',
                 categorizeMessage: `Has actualizado con éxito al plan Recopilar. ¡Ahora puedes categorizar tus gastos!`,
                 travelMessage: 'Has actualizado con éxito al plan Recopilar. ¡Ahora puedes comenzar a reservar y gestionar viajes!',
-                successMessage: (policyName, subscriptionLink) =>
-                    `<centered-text>Has actualizado con éxito ${policyName} al plan Controlar. <a href="${subscriptionLink}">Ver su suscripción</a> para obtener más información.</centered-text>`,
+                successMessage: (policyName, planName, subscriptionLink) =>
+                    `<centered-text>Has actualizado con éxito ${policyName} al plan ${planName}. <a href="${subscriptionLink}">Ver su suscripción</a> para obtener más información.</centered-text>`,
                 distanceRateMessage: 'Has actualizado correctamente al plan Recopilar. ¡Ahora puedes cambiar la tasa de distancia!',
                 gotIt: 'Entendido, gracias.',
                 createdWorkspace: '¡Has creado un espacio de trabajo!',
@@ -8054,6 +8085,7 @@ ${amount} para ${merchant} - ${date}`,
         withdrawalType: 'Tipo de retiro',
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
+        serverResults: 'Resultados de búsqueda',
         searchIn: 'Buscar en',
         askConcierge: (message: string) => `Pregunta a Concierge “${message}”`,
         searchPlaceholder: 'Busca algo...',

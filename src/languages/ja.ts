@@ -4074,6 +4074,37 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         weTake: 'お客様のセキュリティを重要視しています。アカウントをさらに強固に保護するため、今すぐ2要素認証（2FA）を設定してください。',
         secure: 'アカウントを保護する',
     },
+    documentsStep: {
+        beforeYouGo: '続行する前に、いくつかの情報を確認するための書類が必要です',
+        subheader: '確認',
+        verificationFailed: '確認に失敗したため、追加の書類で本人および事業の確認が必要です',
+        taxIDVerification: '納税者番号の確認',
+        taxIDVerificationDescription: dedent(`
+        以下のいずれかの書類をアップロードしてください：
+        • IRS TIN/EIN 割当通知書
+        • IRS TIN/EIN 申請確認書（通常「Congratulations! The EIN has been successfully assigned」と記載）
+        • 会社名と EIN が記載された IRS の免税通知書`),
+        nameChangeDocument: '名称変更書類',
+        nameChangeDocumentDescription: 'TIN/EIN 申請後に会社名が変更された場合、提供された納税者番号を確認するためにこの書類が必要です',
+        companyAddressVerification: '会社住所の確認',
+        companyAddressVerificationDescription: dedent(`
+        以下のいずれかの書類をアップロードしてください：
+        • 会社名と住所が記載された最近の公共料金請求書
+        • 会社名と住所が記載された銀行取引明細書
+        • 署名ページを含む現行の賃貸契約書（会社名と現住所が記載されたもの）
+        • 会社名と住所が記載された保険証書
+        • 会社名と住所が記載された TIN 割当書類`),
+        userAddressVerification: '住所確認',
+        userAddressVerificationDescription: dedent(`
+        以下のいずれかの書類をアップロードしてください：
+        • 有権者登録カード
+        • 運転免許証
+        • 銀行取引明細書
+        • 公共料金請求書`),
+        userDOBVerification: '生年月日の確認',
+        userDOBVerificationDescription: '米国発行の身分証明書をアップロードしてください',
+        finishViaChat: 'チャットで完了',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: '少々お待ちください',
         explanationLine: '現在、お客様の情報を確認しています。まもなく次のステップに進めるようになります。',
@@ -6811,8 +6842,8 @@ ${reportName}
             upgradeToUnlock: 'この機能を有効にする',
             completed: {
                 headline: `ワークスペースをアップグレードしました！`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>${policyName}をControlプランにアップグレードしました！詳しくは<a href="${subscriptionLink}">サブスクリプションを表示</a>してください。</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>${policyName}を${planName}プランにアップグレードしました！詳しくは<a href="${subscriptionLink}">サブスクリプションを表示</a>してください。</centered-text>`,
                 categorizeMessage: `Collectプランへのアップグレードが完了しました。これで経費をカテゴリー分けできるようになりました！`,
                 travelMessage: `Collectプランへのアップグレードが完了しました。さっそく出張の予約や管理を始めましょう！`,
                 distanceRateMessage: `Collectプランへのアップグレードが完了しました。これで距離単価を変更できるようになりました！`,
@@ -8132,6 +8163,7 @@ ${reportName}
         withdrawalType: '出金の種類',
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
+        serverResults: '検索結果',
         searchIn: '検索対象',
         askConcierge: (message: string) => `Concierge に「${message}」と聞く`,
         searchPlaceholder: '何かを検索...',

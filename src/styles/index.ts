@@ -4228,6 +4228,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        eReceiptHoverFill: {
+            backgroundColor: colors.green800,
+        },
+
         eReceiptBackgroundThumbnail: {
             ...sizing.w100,
             position: 'absolute',

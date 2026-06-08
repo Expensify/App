@@ -4101,6 +4101,37 @@ ${amount} voor ${merchant} - ${date}`,
         weTake: 'We nemen je beveiliging serieus. Stel nu 2FA in om een extra beveiligingslaag aan je account toe te voegen.',
         secure: 'Beveilig je account',
     },
+    documentsStep: {
+        beforeYouGo: 'Voordat je verdergaat, hebben we enkele documenten nodig om bepaalde gegevens te verifiëren',
+        subheader: 'Verificatie',
+        verificationFailed: 'De verificatie is mislukt, daarom hebben we extra documenten nodig om jou en je bedrijf te verifiëren',
+        taxIDVerification: 'Belastingnummerverificatie',
+        taxIDVerificationDescription: dedent(`
+        Upload een van de volgende bestanden:
+        • IRS TIN/EIN-toewijzingsbrief
+        • IRS TIN/EIN-aanvraagbevestiging (bevat meestal "Congratulations! The EIN has been successfully assigned")
+        • IRS-belastingvrijstellingsbrief met bedrijfsnaam en EIN`),
+        nameChangeDocument: 'Document naamswijziging',
+        nameChangeDocumentDescription: 'Als de naam van je bedrijf is gewijzigd sinds de TIN/EIN-aanvraag, hebben we dit document nodig om het opgegeven belastingnummer te verifiëren',
+        companyAddressVerification: 'Verificatie van bedrijfsadres',
+        companyAddressVerificationDescription: dedent(`
+        Upload een van de volgende bestanden:
+        • Recente energierekening met bedrijfsnaam en adres
+        • Bankafschrift met bedrijfsnaam en adres
+        • Huidige huur- of leaseovereenkomst inclusief ondertekeningspagina met bedrijfsnaam en huidig adres
+        • Verzekeringsverklaring met bedrijfsnaam en adres
+        • TIN-toewijzingsdocument met bedrijfsnaam en adres`),
+        userAddressVerification: 'Adresverificatie',
+        userAddressVerificationDescription: dedent(`
+        Upload een van de volgende bestanden:
+        • Kiezersregistratiekaart
+        • Rijbewijs
+        • Bankafschrift
+        • Energierekening`),
+        userDOBVerification: 'Verificatie van geboortedatum',
+        userDOBVerificationDescription: 'Upload een in de VS uitgegeven identiteitsbewijs',
+        finishViaChat: 'Afronden via chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Een ogenblik',
         explanationLine: 'We bekijken je gegevens. Je kunt binnenkort verdergaan met de volgende stappen.',
@@ -6866,8 +6897,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             upgradeToUnlock: 'Deze functie ontgrendelen',
             completed: {
                 headline: `Je hebt je workspace geüpgraded!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Je hebt ${policyName} succesvol geüpgraded naar het Control-abonnement! <a href="${subscriptionLink}">Bekijk je abonnement</a> voor meer details.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Je hebt ${policyName} succesvol geüpgraded naar het ${planName}-abonnement! <a href="${subscriptionLink}">Bekijk je abonnement</a> voor meer details.</centered-text>`,
                 categorizeMessage: `Je bent succesvol overgestapt naar het Collect-abonnement. Nu kun je je uitgaven categoriseren!`,
                 travelMessage: `Je bent succesvol geüpgraded naar het Collect-abonnement. Je kunt nu beginnen met het boeken en beheren van reizen!`,
                 distanceRateMessage: `Je bent succesvol geüpgraded naar het Collect-abonnement. Nu kun je het kilometertarief wijzigen!`,
@@ -8192,6 +8223,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         withdrawalType: 'Type opname',
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
+        serverResults: 'Zoekresultaten',
         searchIn: 'Zoeken in',
         askConcierge: (message: string) => `Vraag Concierge: “${message}”`,
         searchPlaceholder: 'Zoek iets...',

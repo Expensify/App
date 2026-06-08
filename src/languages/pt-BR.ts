@@ -4093,6 +4093,37 @@ ${amount} para ${merchant} - ${date}`,
         weTake: 'Levamos sua segurança a sério. Ative a autenticação em duas etapas (2FA) agora para adicionar uma camada extra de proteção à sua conta.',
         secure: 'Proteja sua conta',
     },
+    documentsStep: {
+        beforeYouGo: 'Antes de continuar, precisamos de alguns documentos para verificar algumas informações',
+        subheader: 'Verificação',
+        verificationFailed: 'A verificação falhou, então precisaremos de documentos adicionais para verificar você e sua empresa',
+        taxIDVerification: 'Verificação de ID fiscal',
+        taxIDVerificationDescription: dedent(`
+        Envie um dos seguintes arquivos:
+        • Carta de atribuição de TIN/EIN do IRS
+        • Confirmação de solicitação de TIN/EIN do IRS (normalmente contém "Congratulations! The EIN has been successfully assigned")
+        • Carta de isenção fiscal do IRS com o nome da empresa e o EIN`),
+        nameChangeDocument: 'Documento de alteração de nome',
+        nameChangeDocumentDescription: 'Se o nome da sua empresa mudou desde a solicitação do TIN/EIN, precisamos deste documento para verificar o número de identificação fiscal informado',
+        companyAddressVerification: 'Verificação de endereço da empresa',
+        companyAddressVerificationDescription: dedent(`
+        Envie um dos seguintes arquivos:
+        • Conta recente de serviços públicos com nome e endereço da empresa
+        • Extrato bancário com nome e endereço da empresa
+        • Contrato de locação atual incluindo a página de assinatura com nome e endereço atual da empresa
+        • Apólice ou declaração de seguro com nome e endereço da empresa
+        • Documento de atribuição de TIN com nome e endereço da empresa`),
+        userAddressVerification: 'Verificação de endereço',
+        userAddressVerificationDescription: dedent(`
+        Envie um dos seguintes arquivos:
+        • Título de eleitor
+        • Carteira de motorista
+        • Extrato bancário
+        • Conta de serviços públicos`),
+        userDOBVerification: 'Verificação de data de nascimento',
+        userDOBVerificationDescription: 'Envie um documento de identidade emitido nos EUA',
+        finishViaChat: 'Finalizar pelo chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Um momento',
         explanationLine: 'Estamos analisando suas informações. Você poderá continuar com as próximas etapas em breve.',
@@ -6864,8 +6895,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             upgradeToUnlock: 'Desbloquear este recurso',
             completed: {
                 headline: `Você atualizou seu workspace!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Você atualizou o plano ${policyName} para o Control com sucesso! <a href="${subscriptionLink}">Veja sua assinatura</a> para mais detalhes.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Você atualizou o plano ${policyName} para o ${planName} com sucesso! <a href="${subscriptionLink}">Veja sua assinatura</a> para mais detalhes.</centered-text>`,
                 categorizeMessage: `Você fez upgrade com sucesso para o plano Collect. Agora você pode categorizar suas despesas!`,
                 travelMessage: `Você fez upgrade com sucesso para o plano Collect. Agora você pode começar a reservar e gerenciar viagens!`,
                 distanceRateMessage: `Você fez upgrade com sucesso para o plano Collect. Agora você pode alterar a taxa de distância!`,
@@ -8182,6 +8213,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         withdrawalType: 'Tipo de saque',
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
+        serverResults: 'Resultados da pesquisa',
         searchIn: 'Pesquisar em',
         askConcierge: (message: string) => `Perguntar ao Concierge “${message}”`,
         searchPlaceholder: 'Pesquisar algo...',
