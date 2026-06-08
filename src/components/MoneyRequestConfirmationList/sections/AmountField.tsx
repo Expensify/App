@@ -15,7 +15,7 @@ import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCur
 import {calculateAmount, isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
-import {calculateTaxAmount, getTaxValue} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import {isParticipantP2P} from '@pages/iou/request/step/IOURequestStepAmount';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
@@ -240,6 +240,15 @@ function AmountField({
 
         buildAndSaveSplitShares(updatedAmount, value);
         persistMainDraftTotal(updatedAmount, value);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const taxCode = getTaxCode(transactionForHandlers);
+            if (taxCode) {
+                const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, updatedAmount, getCurrencyDecimals(value)));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
     };
 
     const handleAmountChange = (newAmount: string) => {
@@ -268,7 +277,8 @@ function AmountField({
 
         if (isMovingTransactionFromTrackExpense(action)) {
             const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(newAmount));
-            const taxCode = effectiveCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            const defaultTaxCode = effectiveCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            const taxCode = getTaxCode(transactionForHandlers) || defaultTaxCode;
             if (taxCode) {
                 setMoneyRequestTaxRate(transactionID, taxCode);
                 const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
