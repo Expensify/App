@@ -135,6 +135,7 @@ function ReportActionItemImage({
                     shouldHaveBorderRadius={shouldMapHaveBorderRadius}
                     interactive={false}
                     requireRouteToDisplayMap
+                    shouldDisplayCompass={false}
                 />
             </View>
         );

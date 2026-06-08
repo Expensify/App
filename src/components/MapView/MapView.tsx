@@ -42,6 +42,7 @@ function MapView({
     unit,
     ref,
     shouldDisplayCurrentLocation = true,
+    shouldDisplayCompass = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -268,7 +269,7 @@ function MapView({
                 scaleBarEnabled={false}
                 // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
                 scaleBarPosition={{...styles.tn8, left: 0}}
-                compassEnabled
+                compassEnabled={shouldDisplayCompass}
                 compassPosition={{...styles.l2, ...styles.t5}}
                 logoPosition={{...styles.l2, ...styles.b2}}
                 {...responder.panHandlers}
