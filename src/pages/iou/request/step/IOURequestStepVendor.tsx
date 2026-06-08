@@ -51,8 +51,9 @@ function IOURequestStepVendor({
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
-    // Vendor is scoped to non-reimbursable expenses; block deep-link / stale-open access if the transaction is reimbursable.
+    // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the QBO CC vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
+    const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const vendors = useMemo(() => getQBOVendors(policy), [policy]);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
 
@@ -82,7 +83,7 @@ function IOURequestStepVendor({
         return [clearRow, ...vendorRows];
     }, [vendors, currentVendorID, searchValue, translate]);
 
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable;
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
     const navigateBack = () => {
         Navigation.goBack();
