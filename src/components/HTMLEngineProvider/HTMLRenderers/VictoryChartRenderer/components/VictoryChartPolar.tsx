@@ -3,6 +3,7 @@ import {PolarChart} from 'victory-native';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartCategories from './VictoryChartCategories';
@@ -19,7 +20,7 @@ type VictoryChartPolarProps = {
  */
 function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
     const {tnode, data, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
-    const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
+    const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
 
     const chartContent = (
         <>
@@ -39,7 +40,7 @@ function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
                 <VictoryChartLegend
                     key={`legend-${legendItem.x}-${legendItem.y}`}
                     {...legendItem}
-                    chartWidth={chartWidth}
+                    chartWidth={designWidth}
                 />
             ))}
         </>

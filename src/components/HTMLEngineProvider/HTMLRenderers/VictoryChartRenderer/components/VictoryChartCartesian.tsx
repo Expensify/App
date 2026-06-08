@@ -3,6 +3,7 @@ import {CartesianChart} from 'victory-native';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
+import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartLabel from './VictoryChartLabel';
@@ -20,7 +21,7 @@ type VictoryChartCartesianProps = {
  */
 function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianProps) {
     const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
-    const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
+    const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
 
     return (
         <CartesianChart
@@ -46,7 +47,7 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                             <VictoryChartLegend
                                 key={`legend-${legendItem.x}-${legendItem.y}`}
                                 {...legendItem}
-                                chartWidth={chartWidth}
+                                chartWidth={designWidth}
                             />
                         ))}
                     </VictoryChartRenderArgsProvider>
