@@ -125,25 +125,34 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         setConciergeHadMessagesAtSessionStart,
     });
 
+    // hasOnceLoadedReportActions is RAM-only and resets to falsy on a page
+    // refresh, but cached report actions persist in Onyx. Gating the session
+    // start on it alone would leave sessionStartTime null until openReport
+    // returns, during which filterActions collapses the cached history down to
+    // just the synthetic CREATED action (an almost-empty chat flash). Start the
+    // session as soon as cached actions exist so messages render immediately on
+    // refresh, matching the skeleton-suppression gate below.
+    const canStartConciergeSession = hasOnceLoadedReportActions || allReportActions.length > 0;
+
     useLayoutEffect(() => {
-        if (!isConciergeMainDM || !hasOnceLoadedReportActions) {
+        if (!isConciergeMainDM || !canStartConciergeSession) {
             return;
         }
         startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession is stable; captured values at mount only
-    }, [isConciergeMainDM, startSession, hasOnceLoadedReportActions]);
+    }, [isConciergeMainDM, startSession, canStartConciergeSession]);
 
     // On native the component stays mounted in the navigation stack, so the
     // effect above never re-fires (its isConciergeMainDM dep is always true).
     // Re-trigger startSession when the globally-focused report matches this
     // report so the session age check runs after navigating away and back.
     useLayoutEffect(() => {
-        if (!isConciergeMainDM || !hasOnceLoadedReportActions || currentReportID !== reportID) {
+        if (!isConciergeMainDM || !canStartConciergeSession || currentReportID !== reportID) {
             return;
         }
         startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to currentReportID returning to this report
-    }, [currentReportID, reportID, isConciergeMainDM, hasOnceLoadedReportActions, startSession]);
+    }, [currentReportID, reportID, isConciergeMainDM, canStartConciergeSession, startSession]);
 
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
