@@ -113,5 +113,4 @@ function useReportPaymentContext({reportID, chatReportPolicyID, invoiceReceiverP
 }
 
 export default usePaymentContext;
-export {PaymentContext, PaymentContextProvider, usePaymentContextValues, useReportPaymentContext};
-export type {PaymentContextValue, ReportPaymentContextValue, UseReportPaymentContextParams};
+export {PaymentContextProvider, useReportPaymentContext};
