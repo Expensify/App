@@ -10,11 +10,8 @@ import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportO
 
 type IOURequestRedirectToStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.START>;
 
-function IOURequestRedirectToStartPage({
-    route: {
-        params: {iouType, iouRequestType},
-    },
-}: IOURequestRedirectToStartPageProps) {
+function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPageProps) {
+    const {iouType, iouRequestType} = route.params ?? {};
     const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouType);
     const isIouRequestTypeValid = Object.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
 
