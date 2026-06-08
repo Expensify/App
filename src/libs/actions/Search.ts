@@ -677,12 +677,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
 }
 
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey) {
-    const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-        >
-    > = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
@@ -695,13 +690,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         },
     ];
 
-    const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
-    > = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
@@ -726,13 +715,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         });
     }
 
-    const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT
-        >
-    > = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
