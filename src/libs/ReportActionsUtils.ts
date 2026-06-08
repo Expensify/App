@@ -321,7 +321,11 @@ function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
 }
 
 function getForwardedReportActionMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>>): string {
-    return translate('iou.forwarded', getOriginalMessage(reportAction)?.message);
+    const originalMessage = getOriginalMessage(reportAction);
+    if (originalMessage?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL && originalMessage?.to) {
+        return translate('iou.forwarded');
+    }
+    return translate('iou.forwarded', originalMessage?.message);
 }
 
 function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> {

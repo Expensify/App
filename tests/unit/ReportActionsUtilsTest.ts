@@ -3357,6 +3357,39 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getForwardedReportActionMessage', () => {
+        const buildForwardedAction = (
+            originalMessage: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>['originalMessage']> = {},
+        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> =>
+            ({
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                originalMessage: {
+                    amount: 10000,
+                    currency: CONST.CURRENCY.USD,
+                    expenseReportID: '1',
+                    ...originalMessage,
+                },
+            }) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>;
+
+        it('should include the memo for a non-DEW forwarded action', () => {
+            const memo = 'Testing approval memo';
+            const action = buildForwardedAction({message: memo});
+
+            expect(ReportActionsUtils.getForwardedReportActionMessage(translateLocal, action)).toBe(translateLocal('iou.forwarded', memo));
+        });
+
+        it('should suppress the memo for a DEW forwarded action with a routed action', () => {
+            const action = buildForwardedAction({
+                message: 'Testing approval memo',
+                to: 'approver@example.com',
+                workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            });
+
+            expect(ReportActionsUtils.getForwardedReportActionMessage(translateLocal, action)).toBe(translateLocal('iou.forwarded'));
+        });
+    });
+
     describe('getPolicyChangeLogMaxExpenseAmountMessage', () => {
         it('should return set message when setting from disabled to a value', () => {
             const action = {
