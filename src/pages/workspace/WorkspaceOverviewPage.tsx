@@ -398,6 +398,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         const prevIsPendingDeleteValue = prevIsPendingDeleteRef.current;
         prevIsPendingDeleteRef.current = isPendingDelete;
 
+        const policyLastErrorMessagePrompt = (
+            <RenderHTML
+                html={policyLastErrorMessage}
+                onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
+            />
+        );
+
         if (isOffline && policyLastErrorMessage && hasExpensifyCard) {
             if (isErrorModalShowingRef.current) {
                 return;
@@ -405,7 +412,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             isErrorModalShowingRef.current = true;
             showConfirmModal({
                 title: translate('workspace.common.delete'),
-                prompt: policyLastErrorMessage,
+                prompt: policyLastErrorMessagePrompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
                 success: false,
@@ -433,13 +440,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
         isErrorModalShowingRef.current = true;
-
-        const policyLastErrorMessagePrompt = (
-            <RenderHTML
-                html={policyLastErrorMessage}
-                // onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
-            />
-        );
 
         showConfirmModal({
             title: translate('workspace.common.delete'),

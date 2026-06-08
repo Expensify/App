@@ -26,7 +26,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const {onPress: onPressFromProps} = useRendererProps('concierge-link') as ConciergeLinkRendererConfig;
+    const {onPress: onPressFromProps} = (useRendererProps('concierge-link') ?? {}) as ConciergeLinkRendererConfig;
 
     /**
      * Simple wrapper to create a stable reference without passing event args to navigation function.

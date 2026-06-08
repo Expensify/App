@@ -292,6 +292,13 @@ function WorkspacesListPage() {
         const prevIsPendingDelete = prevIsPendingDeleteRef.current;
         prevIsPendingDeleteRef.current = isPendingDelete;
 
+        const policyToDeleteLatestErrorMessagePrompt = (
+            <RenderHTML
+                html={policyToDeleteLatestErrorMessage}
+                onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
+            />
+        );
+
         // Handle showing error modal when offline and error occurs
         if (isOffline && policyToDeleteLatestErrorMessage) {
             if (isErrorModalShowingRef.current) {
@@ -300,7 +307,7 @@ function WorkspacesListPage() {
             isErrorModalShowingRef.current = true;
             showConfirmModal({
                 title: translate('workspace.common.delete'),
-                prompt: policyToDeleteLatestErrorMessage,
+                prompt: policyToDeleteLatestErrorMessagePrompt,
                 confirmText: translate('common.buttonConfirm'),
                 cancelText: translate('common.cancel'),
                 success: false,
@@ -325,12 +332,6 @@ function WorkspacesListPage() {
         }
         isErrorModalShowingRef.current = true;
 
-        const policyToDeleteLatestErrorMessagePrompt = (
-            <RenderHTML
-                html={policyToDeleteLatestErrorMessage}
-                // onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
-            />
-        );
         showConfirmModal({
             title: translate('workspace.common.delete'),
             prompt: policyToDeleteLatestErrorMessagePrompt,
