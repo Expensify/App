@@ -263,13 +263,13 @@ function MoneyRequestConfirmationList({
     const dateChanged = prevCreated !== undefined && prevCreated !== transaction?.created;
     const rateChanged = prevRateID !== undefined && prevRateID !== customUnitRateID;
 
-    if (dateChanged && !pendingDateChange) {
+    if (dateChanged && !rateChanged && !pendingDateChange) {
         setPendingDateChange(true);
     }
 
     if (dateChanged || rateChanged) {
         const newShouldShow = isDistanceRequest && rateChanged && (dateChanged || pendingDateChange);
-        if (newShouldShow && pendingDateChange) {
+        if (newShouldShow && pendingDateChange && !dateChanged) {
             setPendingDateChange(false);
         }
         if (newShouldShow !== shouldShowRateAutoUpdatedTooltip) {

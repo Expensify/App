@@ -139,7 +139,10 @@ function IOURequestStepDistanceRate({
         const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
         const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate);
         const alternateTextWithoutDate = rate.name ? rateForDisplay : '';
-        const alternateText = dateLabel ? [rateForDisplay, dateLabel].filter(Boolean).join(' • ') : alternateTextWithoutDate;
+        let alternateText = alternateTextWithoutDate;
+        if (dateLabel) {
+            alternateText = rate.name ? [rateForDisplay, dateLabel].filter(Boolean).join(' • ') : dateLabel;
+        }
         return {
             text: rate.name ?? rateForDisplay,
             alternateText,
