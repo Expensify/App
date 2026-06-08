@@ -76,6 +76,23 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
         transaction: OnyxEntry<Transaction>;
     };
 
+type StandaloneDiscardGuardProps = {
+    getHasUnsavedChanges: () => boolean;
+    onCancel: () => void;
+    onConfirm?: () => Promise<void>;
+    onVisibilityChange: (visible: boolean) => void;
+};
+
+/**
+ * A component (not an inline hook) so the discard hook runs only on the standalone screen — in the
+ * `DISTANCE_CREATE` tab flow `DistanceRequestStartPage` owns discard, and running it here too would
+ * register a second `beforeRemove` listener and show the discard modal twice.
+ */
+function StandaloneDiscardGuard({getHasUnsavedChanges, onCancel, onConfirm, onVisibilityChange}: StandaloneDiscardGuardProps) {
+    useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onConfirm, onVisibilityChange});
+    return null;
+}
+
 function IOURequestStepDistanceOdometer({
     report,
     route: {
@@ -631,21 +648,10 @@ function IOURequestStepDistanceOdometer({
         Navigation.closeRHPFlow();
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
 
-    useDiscardChangesConfirmation({
-        onCancel: () => {
-            InteractionManager.runAfterInteractions(() => {
-                lastFocusedInputRef.current?.focus();
-            });
-        },
-        getHasUnsavedChanges,
-        onConfirm: isEditingConfirmation
-            ? async () => {
-                  await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
-                  backupHandledManually.current = true;
-              }
-            : undefined,
-        onVisibilityChange: setIsDiscardModalVisible,
-    });
+    // The discard hook runs only on the standalone screen (edit / edit-from-confirmation). In the
+    // `DISTANCE_CREATE` tab flow `DistanceRequestStartPage` owns discard; running it here too would show
+    // the discard modal twice on browser back. Rendered as a child because hooks can't be conditional.
+    const isStandaloneScreen = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE;
 
     return (
         <StepScreenWrapper
@@ -656,6 +662,25 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
+            {isStandaloneScreen && (
+                <StandaloneDiscardGuard
+                    getHasUnsavedChanges={getHasUnsavedChanges}
+                    onCancel={() => {
+                        InteractionManager.runAfterInteractions(() => {
+                            lastFocusedInputRef.current?.focus();
+                        });
+                    }}
+                    onConfirm={
+                        isEditingConfirmation
+                            ? async () => {
+                                  await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+                                  backupHandledManually.current = true;
+                              }
+                            : undefined
+                    }
+                    onVisibilityChange={setIsDiscardModalVisible}
+                />
+            )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
                 <View>
                     {/* Start Reading */}
