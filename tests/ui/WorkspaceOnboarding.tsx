@@ -173,6 +173,32 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should skip the join workspace screen automatically when validated and there are no joinable workspaces', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@user.com'});
+            await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+                'test@user.com': {validatedDate: '2023-01-01'},
+            });
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(''));
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should not show the back button on join workspace after Add work email flow', async () => {
         await TestHelper.signInWithTestUser();
 
