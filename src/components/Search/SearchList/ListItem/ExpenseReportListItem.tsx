@@ -142,11 +142,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
         const isInvoice = isInvoiceReport(reportItem) || reportItem.type === CONST.REPORT.TYPE.INVOICE;
         return reportItem?.transactions?.some((transaction) => {
-            const currentUserPersonalDetails = {
-                accountID: currentUserDetails.accountID,
-                email: currentUserDetails.email,
-            };
-
             const relevantViolations = (transaction.violations ?? []).filter(
                 (violation) =>
                     !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
@@ -158,7 +153,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 policyCategories,
                 transaction.category ?? '',
                 transaction.attendees,
-                currentUserPersonalDetails,
+                currentUserDetails,
                 isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
