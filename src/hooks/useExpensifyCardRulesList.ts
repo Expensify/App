@@ -22,7 +22,7 @@ export default function useExpensifyCardRules(policyID: string) {
     const blockLabel = translate('workspace.rules.spendRules.block');
     const allowLabel = translate('workspace.rules.spendRules.allow');
 
-    const cardRuleValues = Object.entries(expensifyCardSettings?.cardRules ?? {});
+    const cardRuleValues = Object.entries(expensifyCardSettings?.cardRules ?? {}).filter(([, cardRule]) => cardRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const isLoadingCardRules = !isOffline && (isLoadingOnyxValue(cardsListResult) || !expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
 
     const cardRules = cardRuleValues
