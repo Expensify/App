@@ -7,6 +7,7 @@ import type {Report, Session, Transaction, TransactionViolations} from '@src/typ
 import {createMockReport} from '../../utils/ReportTestUtils';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
+const CURRENT_USER_EMAIL = 'user@example.com';
 const OTHER_USER_ACCOUNT_ID = 2;
 const POLICY_ID_1 = 'policy1';
 const POLICY_ID_2 = 'policy2';
@@ -59,14 +60,14 @@ function buildViolations(violationsByTransactionID: Record<string, TransactionVi
     return result;
 }
 
-function createSession(accountID: number = CURRENT_USER_ACCOUNT_ID): Session {
-    return {accountID} as Session;
+function createSession(accountID: number = CURRENT_USER_ACCOUNT_ID, email: string = CURRENT_USER_EMAIL): Session {
+    return {accountID, email} as Session;
 }
 
 const {compute} = flaggedExpensesConfig;
 const emptyContext = {} as DerivedValueContext<
     typeof ONYXKEYS.DERIVED.FLAGGED_EXPENSES,
-    [typeof ONYXKEYS.COLLECTION.REPORT, typeof ONYXKEYS.COLLECTION.TRANSACTION, typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, typeof ONYXKEYS.SESSION]
+    [typeof ONYXKEYS.COLLECTION.REPORT, typeof ONYXKEYS.COLLECTION.TRANSACTION, typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, typeof ONYXKEYS.COLLECTION.POLICY, typeof ONYXKEYS.SESSION]
 >;
 
 describe('flaggedExpenses derived value', () => {
@@ -74,7 +75,7 @@ describe('flaggedExpenses derived value', () => {
         it('reports zero flagged expenses and an empty list when no transactions have violations', () => {
             const report = createExpenseReport('r1');
             const transaction = createTransaction('t1', 'r1');
-            const result = compute([buildReports(report), buildTransactions(transaction), {}, createSession()], emptyContext);
+            const result = compute([buildReports(report), buildTransactions(transaction), {}, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toEqual([]);
         });
@@ -89,7 +90,7 @@ describe('flaggedExpenses derived value', () => {
                 t2: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}],
             });
 
-            const result = compute([buildReports(report1, report2), buildTransactions(transaction1, transaction2), violations, createSession()], emptyContext);
+            const result = compute([buildReports(report1, report2), buildTransactions(transaction1, transaction2), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toHaveLength(2);
             const ids = result.flaggedExpenses.map((entry) => entry.transactionID).sort();
@@ -108,7 +109,7 @@ describe('flaggedExpenses derived value', () => {
                 ],
             });
 
-            const result = compute([buildReports(report), buildTransactions(transaction), violations, createSession()], emptyContext);
+            const result = compute([buildReports(report), buildTransactions(transaction), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toHaveLength(1);
             expect(result.flaggedExpenses.at(0)).toEqual({transactionID: 't1', reportID: 'r1'});
@@ -119,11 +120,11 @@ describe('flaggedExpenses derived value', () => {
             const transactions = [createTransaction('tA', 'r1'), createTransaction('tB', 'r1'), createTransaction('tC', 'r1')];
             const violations = buildViolations({
                 tA: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT}],
-                tB: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_ATTENDEES}],
+                tB: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_TAG}],
                 tC: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_COMMENT}],
             });
 
-            const result = compute([buildReports(report), buildTransactions(...transactions), violations, createSession()], emptyContext);
+            const result = compute([buildReports(report), buildTransactions(...transactions), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toHaveLength(3);
             expect(result.flaggedExpenses.map((entry) => entry.transactionID).sort()).toEqual(['tA', 'tB', 'tC']);
@@ -136,7 +137,7 @@ describe('flaggedExpenses derived value', () => {
                 t1: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY, showInReview: false}],
             });
 
-            const result = compute([buildReports(report), buildTransactions(transaction), violations, createSession()], emptyContext);
+            const result = compute([buildReports(report), buildTransactions(transaction), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toEqual([]);
         });
@@ -147,10 +148,10 @@ describe('flaggedExpenses derived value', () => {
             const violations = buildViolations({
                 tWarn: [{type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER}],
                 tNotice: [{type: CONST.VIOLATION_TYPES.NOTICE, name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
-                tShown: [{type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER, showInReview: true}],
+                tShown: [{type: CONST.VIOLATION_TYPES.NOTICE, name: CONST.VIOLATIONS.RECEIPT_REQUIRED, showInReview: true}],
             });
 
-            const result = compute([buildReports(report), buildTransactions(...transactions), violations, createSession()], emptyContext);
+            const result = compute([buildReports(report), buildTransactions(...transactions), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toEqual([{transactionID: 'tShown', reportID: 'r1'}]);
         });
@@ -170,7 +171,7 @@ describe('flaggedExpenses derived value', () => {
                 t2: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}],
             });
 
-            const result = compute([buildReports(draftReport, submittedReport), buildTransactions(draftTransaction, submittedTransaction), violations, createSession()], emptyContext);
+            const result = compute([buildReports(draftReport, submittedReport), buildTransactions(draftTransaction, submittedTransaction), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toHaveLength(1);
             expect(result.flaggedExpenses.at(0)).toEqual({transactionID: 't1', reportID: 'r1'});
@@ -192,7 +193,7 @@ describe('flaggedExpenses derived value', () => {
                 t2: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}],
             });
 
-            const result = compute([buildReports(expenseReport, chatReport), buildTransactions(t1, t2), violations, createSession()], emptyContext);
+            const result = compute([buildReports(expenseReport, chatReport), buildTransactions(t1, t2), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toHaveLength(1);
             expect(result.flaggedExpenses.at(0)).toEqual({transactionID: 't1', reportID: 'r1'});
@@ -205,7 +206,7 @@ describe('flaggedExpenses derived value', () => {
                 t1: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.REPORT_VIOLATIONS.FIELD_REQUIRED} as TransactionViolations[number]],
             });
 
-            const result = compute([buildReports(report), buildTransactions(transaction), violations, createSession()], emptyContext);
+            const result = compute([buildReports(report), buildTransactions(transaction), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toEqual([]);
         });
@@ -217,11 +218,11 @@ describe('flaggedExpenses derived value', () => {
                 t1: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}],
             });
 
-            const flaggedResult = compute([buildReports(report), buildTransactions(transaction), flaggedViolations, createSession()], emptyContext);
+            const flaggedResult = compute([buildReports(report), buildTransactions(transaction), flaggedViolations, {}, createSession()], emptyContext);
             expect(flaggedResult.flaggedExpenses).toHaveLength(1);
 
             const clearedViolations = buildViolations({t1: []});
-            const clearedResult = compute([buildReports(report), buildTransactions(transaction), clearedViolations, createSession()], emptyContext);
+            const clearedResult = compute([buildReports(report), buildTransactions(transaction), clearedViolations, {}, createSession()], emptyContext);
             expect(clearedResult.flaggedExpenses).toEqual([]);
         });
 
@@ -229,7 +230,7 @@ describe('flaggedExpenses derived value', () => {
             const report = createExpenseReport('r1');
             const transaction = createTransaction('t1', 'r1');
 
-            const clearedResult = compute([buildReports(report), buildTransactions(transaction), buildViolations({t1: []}), createSession()], emptyContext);
+            const clearedResult = compute([buildReports(report), buildTransactions(transaction), buildViolations({t1: []}), {}, createSession()], emptyContext);
             expect(clearedResult.flaggedExpenses).toEqual([]);
 
             const reFlaggedResult = compute(
@@ -239,6 +240,7 @@ describe('flaggedExpenses derived value', () => {
                     buildViolations({
                         t1: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}],
                     }),
+                    {},
                     createSession(),
                 ],
                 emptyContext,
@@ -257,7 +259,7 @@ describe('flaggedExpenses derived value', () => {
                 t2: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}],
             });
 
-            const result = compute([buildReports(ownReport, foreignReport), buildTransactions(ownTransaction, foreignTransaction), violations, createSession()], emptyContext);
+            const result = compute([buildReports(ownReport, foreignReport), buildTransactions(ownTransaction, foreignTransaction), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toHaveLength(1);
             expect(result.flaggedExpenses.at(0)).toEqual({transactionID: 't1', reportID: 'r1'});
@@ -270,7 +272,27 @@ describe('flaggedExpenses derived value', () => {
                 t1: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}],
             });
 
-            const result = compute([buildReports(report), buildTransactions(transaction), violations, {} as Session], emptyContext);
+            const result = compute([buildReports(report), buildTransactions(transaction), violations, {}, {} as Session], emptyContext);
+
+            expect(result.flaggedExpenses).toEqual([]);
+        });
+
+        it('excludes transactions when the current user dismissed the only reviewable violation', () => {
+            const report = createExpenseReport('r1');
+            const transaction = createTransaction('t1', 'r1', {
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.MISSING_CATEGORY]: {
+                            [CURRENT_USER_EMAIL]: '2024-01-01',
+                        },
+                    },
+                },
+            });
+            const violations = buildViolations({
+                t1: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+            });
+
+            const result = compute([buildReports(report), buildTransactions(transaction), violations, {}, createSession()], emptyContext);
 
             expect(result.flaggedExpenses).toEqual([]);
         });

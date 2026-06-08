@@ -1,3 +1,4 @@
+import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,14 +29,7 @@ function isCurrentUserOpenExpenseReport(report: Report | null | undefined, curre
     return report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
-/**
- * Returns true when the given violation list has at least one entry that should surface in the
- * `Review X expenses` row: a transaction-level violation that the user can act on. Entries marked
- * `showInReview === false` and report-field violations (`fieldRequired`) are excluded. `notice`/
- * `warning` types only count when `showInReview` is explicitly true (omitting it is not enough),
- * mirroring the review-visibility logic in `SearchUIUtils.hasVisibleViolations`; real `violation`
- * types remain actionable.
- */
+/** Returns true when at least one visible violation should surface in the "Review X expenses" row. */
 function hasReviewableViolation(violations: TransactionViolations | null | undefined): boolean {
     if (!violations || violations.length === 0) {
         return false;
@@ -60,13 +54,14 @@ function hasReviewableViolation(violations: TransactionViolations | null | undef
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.FLAGGED_EXPENSES,
-    dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.SESSION],
-    compute: ([allReports, allTransactions, allTransactionViolations, session]) => {
+    dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.POLICY, ONYXKEYS.SESSION],
+    compute: ([allReports, allTransactions, allTransactionViolations, allPolicies, session]) => {
         if (!allReports || !allTransactions) {
             return EMPTY_VALUE;
         }
 
         const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const currentUserEmail = session?.email ?? '';
         const flaggedExpenses: FlaggedExpenseEntry[] = [];
 
         for (const transactionKey of Object.keys(allTransactions)) {
@@ -81,7 +76,13 @@ export default createOnyxDerivedValueConfig({
             }
 
             const violations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-            if (!hasReviewableViolation(violations)) {
+            if (!violations || violations.length === 0) {
+                continue;
+            }
+
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+            const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
+            if (!hasReviewableViolation(visibleViolations)) {
                 continue;
             }
 
