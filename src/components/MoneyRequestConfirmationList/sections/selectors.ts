@@ -22,7 +22,7 @@ type Transaction = OnyxTypes.Transaction;
 
 // --- DateField ---
 
-type DateState = {iouCreated: string; isMissing: boolean};
+type DateState = {iouCreated: string; isMissing: boolean; hasReceipt: boolean};
 
 const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => {
     if (!t) {
@@ -31,6 +31,7 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
     return {
         iouCreated: getCreated(t),
         isMissing: isCreatedMissing(t),
+        hasReceipt: hasReceipt(t),
     };
 };
 
@@ -194,7 +195,11 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ReportField ---
 
-type ReportFieldTransactionState = {reportID: Transaction['reportID']; isFromGlobalCreate: boolean};
+type ReportFieldTransactionState = {
+    reportID: Transaction['reportID'];
+    isFromGlobalCreate: boolean;
+    participantReportID: string | undefined;
+};
 type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
@@ -204,6 +209,7 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     return {
         reportID: t.reportID,
         isFromGlobalCreate: !!t.isFromGlobalCreate,
+        participantReportID: t.participants?.at(0)?.reportID,
     };
 };
 
