@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 
-type CurrencySelectionPageProps = {
+type WorkspaceCurrencySelectionPageProps = {
     route: {
         params: {
             backTo?: Route;
@@ -22,7 +22,7 @@ type CurrencySelectionPageProps = {
     };
 };
 
-function CurrencySelectionPage({route}: CurrencySelectionPageProps) {
+function WorkspaceCurrencySelectionPage({route}: WorkspaceCurrencySelectionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -45,7 +45,7 @@ function CurrencySelectionPage({route}: CurrencySelectionPageProps) {
     );
 
     return (
-        <ScreenWrapper testID="CurrencySelectionPage">
+        <ScreenWrapper testID="WorkspaceCurrencySelectionPage">
             <HeaderWithBackButton
                 title={translate('workspace.editor.currencyInputLabel')}
                 onBackButtonPress={goBack}
@@ -61,4 +61,4 @@ function CurrencySelectionPage({route}: CurrencySelectionPageProps) {
     );
 }
 
-export default CurrencySelectionPage;
+export default WorkspaceCurrencySelectionPage;
