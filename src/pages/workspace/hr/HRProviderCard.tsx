@@ -185,7 +185,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                         >
                             <MenuItemWithTopDescription
                                 description={translate('workspace.hr.mergeHR.groups.title')}
-                                title={card.groupsSummary}
+                                title={card.groupsLabel}
                                 style={styles.sectionMenuItemTopDescription}
                                 shouldShowRightIcon={canWriteMoreFeatures}
                                 brickRoadIndicator={card.config.errorFields?.groups ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

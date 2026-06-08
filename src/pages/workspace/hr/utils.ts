@@ -52,8 +52,8 @@ type HRCardDescriptor = {
     /** Navigation route to the groups selector RHP. Set whenever the admin can edit their groups selection (Merge HR only). */
     groupsRoute?: Route;
 
-    /** Comma-joined names of the admin's chosen groups, displayed on the Groups row (Merge HR only). */
-    groupsSummary?: string;
+    /** Comma-joined names of the chosen groups to sync, displayed on the Groups row (Merge HR only). */
+    groupsLabel?: string;
 
     /** ISO date string of the last successful sync, used for "last synced" display. */
     successfulDate?: string;
@@ -292,6 +292,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
             const config = state.isConnected ? getCardConfig(policy, mergeConnectionName) : undefined;
             const needsSetup = state.isConnected && !isMergeHRSetupComplete(policy);
+            const groupsRoute = state.isConnected ? ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID) : undefined;
 
             cards.push({
                 key: `merge_${slug}`,
@@ -300,9 +301,9 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                 icon: providerEntry.iconUrl,
                 setupLink: getMergeHRSetupLink(policyID, slug),
                 ...(state.isConnected ? state : disconnectedState),
-                completeSetupRoute: needsSetup ? ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID) : undefined,
-                groupsRoute: state.isConnected ? ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID) : undefined,
-                groupsSummary: state.isConnected ? getMergeHRGroupsSummary(policy, translate) : undefined,
+                completeSetupRoute: needsSetup ? groupsRoute : undefined,
+                groupsRoute,
+                groupsLabel: state.isConnected ? getMergeHRGroupsSummary(policy, translate) : undefined,
                 approvalModeRoute: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
                 finalApproverRoute: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                 config,

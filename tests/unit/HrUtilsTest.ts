@@ -799,7 +799,7 @@ describe('getHRCards', () => {
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bambooCard?.completeSetupRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
         expect(bambooCard?.groupsRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
-        expect(bambooCard?.groupsSummary).toBeUndefined();
+        expect(bambooCard?.groupsLabel).toBeUndefined();
 
         expect(cards.find((c) => c.key === 'merge_workday')?.completeSetupRoute).toBeUndefined();
     });
@@ -818,7 +818,7 @@ describe('getHRCards', () => {
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
 
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
-        expect(bambooCard?.groupsSummary).toBe('Test group');
+        expect(bambooCard?.groupsLabel).toBe('Test group');
         expect(bambooCard?.completeSetupRoute).toBeUndefined();
     });
 
@@ -833,7 +833,7 @@ describe('getHRCards', () => {
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
 
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
-        expect(bambooCard?.groupsSummary).toBe('common.all');
+        expect(bambooCard?.groupsLabel).toBe('common.all');
         expect(bambooCard?.completeSetupRoute).toBeUndefined();
     });
 });
