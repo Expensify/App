@@ -188,7 +188,18 @@ function DistanceRequestController({
             }
         }
         setCustomUnitRateID(transactionID, rateToUse, transaction, policy);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants, defaultMileageRateCustomUnitRateID]);
+    }, [
+        customUnitRateID,
+        transactionID,
+        lastSelectedRate,
+        isDistanceRequest,
+        isPolicyExpenseChat,
+        isMovingTransactionFromTrackExpense,
+        transaction,
+        policy,
+        selectedParticipants,
+        defaultMileageRateCustomUnitRateID,
+    ]);
 
     useEffect(() => {
         if (!isDistanceRequest || !transactionID || isReadOnly) {
