@@ -361,6 +361,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         isASAPSubmitBetaEnabled,
     ]);
 
+    const hasConfirmedApprovalSubmitUpgradeRef = useRef(false);
     const confirmUpgradeOnBlurRef = useRef({
         isUpgraded,
         canPerformUpgrade,
@@ -368,6 +369,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         featureID: feature?.id,
         confirmUpgrade,
     });
+
+    useEffect(() => {
+        hasConfirmedApprovalSubmitUpgradeRef.current = false;
+    }, [policyID]);
 
     useEffect(() => {
         confirmUpgradeOnBlurRef.current = {
@@ -408,6 +413,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
+        if (hasConfirmedApprovalSubmitUpgradeRef.current) {
+            return;
+        }
+
+        hasConfirmedApprovalSubmitUpgradeRef.current = true;
         confirmUpgrade();
     }, [confirmUpgrade, feature?.id, isUpgraded, policy?.isPendingUpgrade]);
 
