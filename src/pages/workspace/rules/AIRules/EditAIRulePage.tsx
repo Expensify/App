@@ -50,7 +50,11 @@ function EditAIRulePage({
     };
 
     const saveRule = (values: FormOnyxValues<EditAIRuleFormID>): void => {
-        updatePolicyAIRule(policyID, ruleID, values[INPUT_IDS.PROMPT], aiRule?.prompt ?? '');
+        const newPrompt = values[INPUT_IDS.PROMPT];
+        const previousPrompt = aiRule?.prompt ?? '';
+        if (newPrompt !== previousPrompt) {
+            updatePolicyAIRule(policyID, ruleID, newPrompt, previousPrompt);
+        }
         Navigation.goBack();
     };
 
