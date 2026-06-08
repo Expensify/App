@@ -463,7 +463,6 @@ const SCREENS = {
         DYNAMIC_EXPENSIFY_CARD_NAME: 'Dynamic_Expensify_Card_Name',
         DYNAMIC_EXPENSIFY_CARD_LIMIT: 'Dynamic_Expensify_Card_Limit',
         DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE: 'Dynamic_Expensify_Card_Limit_Type',
-        EXPENSIFY_CARD_EXPIRY_OPTIONS: 'Expensify_Card_Expiry_Options',
     },
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
@@ -493,7 +492,6 @@ const SCREENS = {
         DYNAMIC_SETTINGS_WRITE_CAPABILITY: 'Dynamic_Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
         DYNAMIC_SETTINGS_VISIBILITY: 'Dynamic_Report_Settings_Visibility',
-        REPORT_LAYOUT: 'Report_Settings_Report_Layout',
         COLUMNS: 'Report_Settings_Columns',
     },
 
@@ -957,10 +955,6 @@ const SCREENS = {
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
-        WORKSPACE_OPTIONAL: 'Onboarding_Workspace_Optional',
-        WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
-        WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
-        WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
     CURRENCY: {

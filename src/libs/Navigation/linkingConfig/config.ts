@@ -121,22 +121,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE.route,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.route,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE_CURRENCY.route,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
-                    exact: true,
-                },
             },
         },
         [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
@@ -1533,9 +1517,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path,
-                        [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
-                            path: ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.route,
-                        },
                         [SCREENS.REPORT_SETTINGS.COLUMNS]: {
                             path: ROUTES.REPORT_SETTINGS_COLUMNS.route,
                         },
@@ -1594,9 +1575,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME]: DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path,
                         [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path,
                         [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path,
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_EXPIRY_OPTIONS]: {
-                            path: ROUTES.EXPENSIFY_CARD_EXPIRY_OPTIONS.route,
-                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: {

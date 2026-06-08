@@ -1447,33 +1447,6 @@ const ROUTES = {
             return `r/${reportID}/avatar` as const;
         },
     },
-    EDIT_CURRENCY_REQUEST: {
-        route: 'r/:threadReportID/edit/currency',
-        getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
-    },
-    EDIT_REPORT_FIELD_REQUEST: {
-        route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
-        getRoute: (reportID: string | undefined, policyID: string | undefined, fieldID: string, backTo?: string) => {
-            if (!policyID || !reportID) {
-                Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route', {
-                    policyID,
-                    reportID,
-                });
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo);
-        },
-    },
-    REPORT_WITH_ID_DETAILS_SHARE_CODE: {
-        route: 'r/:reportID/details/shareCode',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS_SHARE_CODE route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo);
-        },
-    },
     REPORT_VERIFY_ACCOUNT: {
         route: `r/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `r/${reportID}/${VERIFY_ACCOUNT}` as const,
@@ -1510,10 +1483,6 @@ const ROUTES = {
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
-    },
-    REPORT_SETTINGS_REPORT_LAYOUT: {
-        route: 'r/:reportID/settings/report-layout',
-        getRoute: (reportID: string) => `r/${reportID}/settings/report-layout` as const,
     },
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',
@@ -2085,7 +2054,6 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/description', backTo),
     },
 
-    TEACHERS_UNITE: 'settings/teachersunite',
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'settings/teachersunite/i-am-a-teacher',
     INTRO_SCHOOL_PRINCIPAL: 'settings/teachersunite/intro-school-principal',
@@ -2096,7 +2064,6 @@ const ROUTES = {
     },
 
     WORKSPACE_NEW: 'workspace/new',
-    WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
         route: 'workspaces/:policyID',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -2153,16 +2120,6 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT route');
             }
             return `workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select` as const;
-        },
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/card-select',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT route');
-            }
-
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/card-select` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: {
@@ -2314,10 +2271,6 @@ const ROUTES = {
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
         getRoute: (policyID: string, inviterEmail: string) => `workspaces/${policyID}/join?email=${inviterEmail}` as const,
-    },
-    WORKSPACE_SETTINGS_CURRENCY: {
-        route: 'workspaces/:policyID/settings/currency',
-        getRoute: (policyID: string) => `workspaces/${policyID}/settings/currency` as const,
     },
     WORKSPACE_WORKFLOWS: {
         route: 'workspaces/:policyID/workflows',
@@ -2681,14 +2634,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
         getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
     },
-    WORKSPACE_MEMBER_NEW_CARD: {
-        route: 'workspaces/:policyID/members/:accountID/new-card',
-        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/new-card` as const,
-    },
-    WORKSPACE_MEMBER_ROLE_SELECTION: {
-        route: 'workspaces/:policyID/members/:accountID/role-selection',
-        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role-selection` as const,
-    },
     WORKSPACE_OWNER_CHANGE_SUCCESS: {
         route: 'workspaces/:policyID/change-owner/:accountID/success',
 
@@ -2895,16 +2840,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/expensify-card/:cardID',
 
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}`, backTo),
-    },
-    EXPENSIFY_CARD_EXPIRY_OPTIONS: {
-        route: 'settings/:policyID/expensify-card/:cardID/edit/expiry-options',
-
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/expiry-options`, backTo),
-    },
-    WORKSPACE_EXPENSIFY_CARD_EXPIRY_OPTIONS: {
-        route: 'workspaces/:policyID/expensify-card/:cardID/edit/expiry-options',
-
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}/edit/expiry-options`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'workspaces/:policyID/expensify-card/choose-bank-account',
@@ -3389,30 +3324,10 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
     },
-    ONBOARDING_WORKSPACE: {
-        route: 'onboarding/create-workspace',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/create-workspace`, backTo),
-    },
-    ONBOARDING_WORKSPACE_CONFIRMATION: {
-        route: 'onboarding/workspace-confirmation',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-confirmation`, backTo),
-    },
-    ONBOARDING_WORKSPACE_CURRENCY: {
-        route: 'onboarding/workspace-currency',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
-    },
     WORKSPACE_CURRENCY_SELECTION: {
         route: 'workspace/confirmation/currency',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation/currency`, backTo),
-    },
-    ONBOARDING_WORKSPACE_INVITE: {
-        route: 'onboarding/workspace-invite',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
     },
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {
