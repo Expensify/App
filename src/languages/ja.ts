@@ -354,7 +354,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText2: '上のボタン、または次を使って何かを作成する',
             subtitleText3: '下のボタンを押してください。',
             noUnreadChats: '未読のチャットはありません',
-            noTodos: 'タスクはありません',
+            noTodos: 'To-do はありません',
             caughtUp: 'すべて確認済みです。お疲れさまでした！',
             seeAllChats: 'すべてのチャットを表示',
         },
@@ -2870,7 +2870,7 @@ ${date} の ${merchant} への ${amount}`,
     focusModeUpdateModal: {
         title: '#focus モードへようこそ！',
         prompt: (priorityModePageUrl: string) =>
-            `未読のチャットや対応が必要なチャットだけを表示して、状況を常に把握しましょう。<a href="${priorityModePageUrl}">設定</a>から、いつでもこの設定を変更できます。`,
+            `未読のチャットや対応が必要なチャットだけを表示して、状況を常に把握できるようにしましょう。いつでも<a href="${priorityModePageUrl}">設定</a>で変更できます。`,
     },
     inboxTabs: {all: 'すべて', todo: 'To-do リスト', unread: '未読'},
     reportDetailsPage: {

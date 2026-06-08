@@ -2893,11 +2893,11 @@ ${amount} voor ${merchant} - ${date}`,
         },
     },
     focusModeUpdateModal: {
-        title: 'Welkom in de #focus-modus!',
+        title: 'Welkom in #focus-modus!',
         prompt: (priorityModePageUrl: string) =>
-            `Blijf alles bij door alleen ongelezen chats of chats te zien die je aandacht nodig hebben. Geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
+            `Blijf op de hoogte door alleen ongelezen chats of chats te zien die je aandacht nodig hebben. Geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
     },
-    inboxTabs: {all: 'Alles', todo: 'To-do’s', unread: 'Ongelezen'},
+    inboxTabs: {all: 'Alles', todo: 'Te doen', unread: 'Ongelezen'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'PDF genereren',

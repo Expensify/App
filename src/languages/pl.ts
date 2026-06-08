@@ -355,7 +355,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText3: 'przycisk poniżej.',
             noUnreadChats: 'Brak nieprzeczytanych czatów',
             noTodos: 'Brak zadań',
-            caughtUp: 'Masz wszystko na bieżąco. Dobra robota!',
+            caughtUp: 'Ze wszystkim już się uporałeś. Dobra robota!',
             seeAllChats: 'Zobacz wszystkie czaty',
         },
         businessName: 'Nazwa firmy',
@@ -2889,9 +2889,9 @@ ${amount} dla ${merchant} - ${date}`,
     focusModeUpdateModal: {
         title: 'Witaj w trybie #focus!',
         prompt: (priorityModePageUrl: string) =>
-            `Bądź na bieżąco, pokazując tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w każdej chwili w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
+            `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
-    inboxTabs: {all: 'Wszystkie', todo: 'Zadania', unread: 'Nieprzeczytane'},
+    inboxTabs: {all: 'Wszystko', todo: 'Zadania do wykonania', unread: 'Nieprzeczytane'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
         generatingPDF: 'Wygeneruj PDF',

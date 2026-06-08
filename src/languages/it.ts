@@ -355,8 +355,8 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText2: 'pulsante sopra oppure crea qualcosa utilizzando il',
             subtitleText3: 'pulsante qui sotto.',
             noUnreadChats: 'Nessuna chat non letta',
-            noTodos: 'Nessuna attività',
-            caughtUp: 'Sei aggiornato. Ben fatto!',
+            noTodos: 'Nessuna attività da fare',
+            caughtUp: 'Hai gestito tutto. Ben fatto!',
             seeAllChats: 'Vedi tutte le chat',
         },
         businessName: 'Nome azienda',
@@ -2898,9 +2898,9 @@ ${amount} per ${merchant} - ${date}`,
     focusModeUpdateModal: {
         title: 'Benvenuto nella modalità #focus!',
         prompt: (priorityModePageUrl: string) =>
-            `Tieniti sempre aggiornato vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
+            `Tieniti al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
-    inboxTabs: {all: 'Tutto', todo: 'Attività da fare', unread: 'Non letti'},
+    inboxTabs: {all: 'Tutti', todo: 'Attività da fare', unread: 'Non letti'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Genera PDF',
