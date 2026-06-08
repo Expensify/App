@@ -18,6 +18,14 @@ function parseAttribute<T>(attribute: string): T | undefined {
     }
 }
 
+function parseAttributeAsString(attribute: string): string | undefined {
+    const parsedValue = parseAttribute(attribute);
+    if (typeof parsedValue === 'string') {
+        return parsedValue;
+    }
+    return undefined;
+}
+
 function parseAttributeAsStringArray(attribute: string): string[] | undefined {
     const parsedValue = parseAttribute(attribute);
     if (Array.isArray(parsedValue)) {
@@ -37,6 +45,6 @@ function parseAttributeAsNumber(attribute: string): number | undefined {
     return undefined;
 }
 
-export {parseAttributeAsStringArray, parseAttributeAsNumber};
+export {parseAttributeAsString, parseAttributeAsStringArray, parseAttributeAsNumber};
 
 export default parseAttribute;
