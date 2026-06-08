@@ -1018,7 +1018,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
     );
     const importFinalModal = getImportMembersFinalModal(added, updated);
 
-    const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo) && isControlPolicy(policy);
+    const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) && isControlPolicy(policy);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     if (shouldUpdateApprovalMode) {
