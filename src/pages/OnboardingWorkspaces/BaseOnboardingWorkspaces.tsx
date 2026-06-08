@@ -156,6 +156,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         }
 
         getAccessiblePolicies();
+
+        // New code to handle skipping workspaces
+        const filteredJoinablePolicies = Object.values(joinablePolicies ?? {}).filter(
+            (policyInfo) => policyInfo.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026
+        );
+
+        if (filteredJoinablePolicies.length === 0) {
+            skipJoiningWorkspaces();
+        }
     });
 
     const skipJoiningWorkspaces = () => {
