@@ -339,7 +339,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 description={translate('common.role')}
                                 shouldShowRightIcon={!isReimburser}
                                 onPress={() => {
-                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias)) {
+                                    if (
+                                        tryNavigateToSubmitWorkspaceUpgrade(
+                                            policy,
+                                            true,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
+                                            ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
+                                        )
+                                    ) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));

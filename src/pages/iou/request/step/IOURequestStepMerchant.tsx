@@ -21,7 +21,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
-import {setMoneyRequestMerchant} from '@userActions/IOU/MoneyRequest';
+import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
@@ -111,7 +111,13 @@ function IOURequestStepMerchant({
             return;
         }
 
-        if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+        if (newMerchant === '' && isInvalidMerchantValue(merchant)) {
+            setIsSaved(true);
+            shouldNavigateAfterSaveRef.current = true;
+            clearMoneyRequestMerchant(transactionID);
+            return;
+        }
+        if (newMerchant === merchant || (newMerchant === '' && isInvalidMerchantValue(merchant))) {
             setIsSaved(true);
             armNavigateBack();
             return;
@@ -135,8 +141,10 @@ function IOURequestStepMerchant({
                 isOffline,
                 delegateAccountID,
             });
+        } else if (!newMerchant) {
+            clearMoneyRequestMerchant(transactionID);
         } else {
-            setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, true, hasReceipt(transaction));
+            setMoneyRequestMerchant(transactionID, newMerchant, true, hasReceipt(transaction));
         }
         setIsSaved(true);
         armNavigateBack();
