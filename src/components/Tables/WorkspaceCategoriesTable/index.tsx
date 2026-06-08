@@ -133,6 +133,7 @@ export default function WorkspaceCategoriesTable({
         <Table
             ref={ref}
             data={categories}
+            initialSortColumn="name"
             selectionEnabled={selectionEnabled}
             title={translate('workspace.common.categories')}
             columns={categoryTableColumns}

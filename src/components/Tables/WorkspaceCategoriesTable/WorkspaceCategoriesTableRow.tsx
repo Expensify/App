@@ -4,7 +4,6 @@ import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -48,11 +47,12 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
 
     return (
         <Table.Row
+            interactive
             rowIndex={rowIndex}
-            interactive={!item.disabled}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'categoriesTableRow'}}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW}
             onPress={item.action}
             offlineWithFeedback={{
                 errors: item.errors,
@@ -73,7 +73,11 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
 
                     {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text numberOfLines={1}>{item.glCode}</Text>
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.glCode ?? ''}
+                            />
                         </View>
                     )}
 
@@ -88,8 +92,9 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                                         size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                                     />
                                     <TextWithTooltip
-                                        text={item.approverDisplayName ?? ''}
+                                        shouldShowTooltip
                                         numberOfLines={1}
+                                        text={item.approverDisplayName ?? ''}
                                     />
                                 </>
                             )}
@@ -100,6 +105,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         <Switch
                             isOn={item.enabled}
                             showLockIcon={item.isLocked}
+                            disabled={item.disabled}
                             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
                             onToggle={item.onToggleEnabled}
                         />

@@ -15,7 +15,6 @@ import ScrollView from '@components/ScrollView';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
-import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -284,7 +283,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 enabled: value.enabled,
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
-                isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories,
+                isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
@@ -293,8 +292,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return acc;
         }, []);
     }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, canWriteCategories, policy, policyCategories, navigateToCategory, handleCategoryToggle, policyId]);
-
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryRows);
 
     const navigateToCategoriesSettings = useCallback(() => {
         Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));

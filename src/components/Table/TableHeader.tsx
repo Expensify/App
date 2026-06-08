@@ -73,15 +73,16 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
+    const selectableRows = processedData.filter((row) => !row.disabled);
     let isSelectionIndeterminate = false;
-    let isEverySelectableRowSelected = true;
+    let isEverySelectableRowSelected = selectableRows.length > 0;
 
     // We exclude disabled rows from the 'select all' behavior, so if a disabled row is not selected, we still
     // consider all active rows to be selected
     if (isSelectionCheckboxVisible) {
-        for (const row of processedData) {
+        for (const row of selectableRows) {
             isSelectionIndeterminate = row.selected || isSelectionIndeterminate;
-            isEverySelectableRowSelected = !!(row.selected || row.disabled) && isEverySelectableRowSelected;
+            isEverySelectableRowSelected = row.selected && isEverySelectableRowSelected;
         }
     }
 

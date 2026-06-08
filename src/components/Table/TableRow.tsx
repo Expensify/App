@@ -28,6 +28,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** Whether or not the table row is pressable or not */
     interactive: boolean;
 
+    /** Whether or not the table row should be disabled */
+    disabled?: boolean;
+
     /** The index of the row in the table */
     rowIndex: number;
 
@@ -51,6 +54,7 @@ export default function TableRow({
     children,
     accessible,
     rowIndex,
+    disabled,
     sentryLabel,
     interactive,
     isLoading,
@@ -74,7 +78,7 @@ export default function TableRow({
     const rowCount = processedData.length;
     const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
-    const isInteractive = interactive && !isLoading;
+    const isDisabled = !!disabled || !!isLoading;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
 
@@ -95,7 +99,7 @@ export default function TableRow({
     const tableRowPressableStyles = [
         styles.mh5,
         styles.highlightBG,
-        isInteractive && styles.userSelectNone,
+        styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
@@ -124,7 +128,7 @@ export default function TableRow({
     ];
 
     const tableRowPressableHoverStyle = (() => {
-        if (!isInteractive) {
+        if (isDisabled || !interactive) {
             return undefined;
         }
         if (item.selected) {
@@ -151,7 +155,7 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: MouseEvent) => {
-        if (!isInteractive) {
+        if (isDisabled || !interactive) {
             return;
         }
 
@@ -164,7 +168,7 @@ export default function TableRow({
     };
 
     const handleRowLongPress = () => {
-        if (!isInteractive || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout) {
+        if (isDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
             return;
         }
 
@@ -181,12 +185,13 @@ export default function TableRow({
                 accessibilityLabel="row"
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
-                interactive={isInteractive}
+                interactive={interactive}
+                disabled={isDisabled}
                 hoverStyle={tableRowPressableHoverStyle}
-                pressDimmingValue={isInteractive ? undefined : 1}
-                role={isInteractive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-                onLongPress={handleRowLongPress}
+                pressDimmingValue={!interactive ? undefined : 1}
+                role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 onPress={(event) => handleRowPress(event as unknown as MouseEvent)}
+                onLongPress={handleRowLongPress}
                 {...props}
             >
                 {(state) => (
