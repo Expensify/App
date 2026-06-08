@@ -26,8 +26,11 @@ function SelectionListEmptyState({
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context,
             shouldShowLoadingPlaceholder,
-            shouldUseUserSkeletonView,
         };
+        // Only the flat list forwards this; omit it for the sectioned list so its span attributes match those before the extraction.
+        if (shouldUseUserSkeletonView !== undefined) {
+            reasonAttributes.shouldUseUserSkeletonView = shouldUseUserSkeletonView;
+        }
         return (
             customLoadingPlaceholder ?? (
                 <OptionsListSkeletonView

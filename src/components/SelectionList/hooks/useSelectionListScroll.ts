@@ -1,7 +1,6 @@
 import type {FlashListRef} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import useDebounce from '@hooks/useDebounce';
-import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 type ScrollToIndex = (index: number, animated?: boolean) => void;
@@ -23,9 +22,8 @@ function useSelectionListScroll<TData>(listRef: RefObject<FlashListRef<TData> | 
         }
         try {
             listRef.current.scrollToIndex({index, animated});
-        } catch (error) {
-            // FlashList can throw if this index isn't laid out yet (e.g. rapid search filtering); it resolves on the next render.
-            Log.warn('SelectionList: error scrolling to index', {error});
+        } catch {
+            // FlashList can throw if this index isn't laid out yet (e.g. rapid search filtering); it resolves on the next render, so it's safe to ignore.
         }
     };
 
