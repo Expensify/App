@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import RenderHTML from '@components/RenderHTML';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
@@ -173,6 +174,17 @@ function WorkspacesListPage() {
     const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
 
     const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
+    const deleteWorkspaceErrorModalPrompt = useMemo(
+        () =>
+            policyToDeleteLatestErrorMessage === translate('workspace.common.deleteOpenExpensifyCardsError') ? (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={policyToDeleteLatestErrorMessage} />
+                </View>
+            ) : (
+                policyToDeleteLatestErrorMessage
+            ),
+        [policyToDeleteLatestErrorMessage, styles.flexRow, styles.renderHTML, translate],
+    );
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
     const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
@@ -299,7 +311,7 @@ function WorkspacesListPage() {
             isErrorModalShowingRef.current = true;
             showConfirmModal({
                 title: translate('workspace.common.delete'),
-                prompt: policyToDeleteLatestErrorMessage,
+                prompt: deleteWorkspaceErrorModalPrompt,
                 confirmText: translate('common.buttonConfirm'),
                 cancelText: translate('common.cancel'),
                 success: false,
@@ -325,7 +337,7 @@ function WorkspacesListPage() {
         isErrorModalShowingRef.current = true;
         showConfirmModal({
             title: translate('workspace.common.delete'),
-            prompt: policyToDeleteLatestErrorMessage,
+            prompt: deleteWorkspaceErrorModalPrompt,
             confirmText: translate('common.buttonConfirm'),
             cancelText: translate('common.cancel'),
             success: false,
@@ -334,7 +346,7 @@ function WorkspacesListPage() {
             isErrorModalShowingRef.current = false;
             hideDeleteWorkspaceErrorModal();
         });
-    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyToDeleteLatestErrorMessage, isPendingDelete, isFocused, policyIDToDelete, closeModal]);
+    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyToDeleteLatestErrorMessage, deleteWorkspaceErrorModalPrompt, isPendingDelete, isFocused, policyIDToDelete, closeModal]);
 
     const startChangeOwnershipFlow = (policyID: string | undefined) => {
         if (!policyID) {

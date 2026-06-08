@@ -17,6 +17,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PDFThumbnail from '@components/PDFThumbnail';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -56,7 +57,7 @@ import {
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
-import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -272,6 +273,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const prevIsPendingDeleteRef = useRef(isPendingDelete);
     const isErrorModalShowingRef = useRef(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
+    const deleteWorkspaceErrorModalPrompt = useMemo(
+        () =>
+            policyLastErrorMessage === translate('workspace.common.deleteOpenExpensifyCardsError') ? (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={policyLastErrorMessage} />
+                </View>
+            ) : (
+                policyLastErrorMessage
+            ),
+        [policyLastErrorMessage, styles.flexRow, styles.renderHTML, translate],
+    );
 
     const mentionReportContextValue = useMemo(() => ({policyID, currentReportID: undefined, exactlyMatch: true}), [policyID]);
 
@@ -404,7 +416,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             isErrorModalShowingRef.current = true;
             showConfirmModal({
                 title: translate('workspace.common.delete'),
-                prompt: policyLastErrorMessage,
+                prompt: deleteWorkspaceErrorModalPrompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
                 success: false,
@@ -434,7 +446,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         isErrorModalShowingRef.current = true;
         showConfirmModal({
             title: translate('workspace.common.delete'),
-            prompt: policyLastErrorMessage,
+            prompt: deleteWorkspaceErrorModalPrompt,
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
             success: false,
@@ -442,7 +454,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             isErrorModalShowingRef.current = false;
             hideDeleteWorkspaceErrorModal();
         });
-    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLastErrorMessage, isPendingDelete, isFocused, policyID, closeModal, hasExpensifyCard]);
+    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLastErrorMessage, deleteWorkspaceErrorModalPrompt, isPendingDelete, isFocused, policyID, closeModal, hasExpensifyCard]);
 
     const onDeleteWorkspace = () => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
