@@ -6811,8 +6811,8 @@ ${reportName}
             upgradeToUnlock: 'この機能を有効にする',
             completed: {
                 headline: `ワークスペースをアップグレードしました！`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>${policyName}をControlプランにアップグレードしました！詳しくは<a href="${subscriptionLink}">サブスクリプションを表示</a>してください。</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>${policyName}を${planName}プランにアップグレードしました！詳しくは<a href="${subscriptionLink}">サブスクリプションを表示</a>してください。</centered-text>`,
                 categorizeMessage: `Collectプランへのアップグレードが完了しました。これで経費をカテゴリー分けできるようになりました！`,
                 travelMessage: `Collectプランへのアップグレードが完了しました。さっそく出張の予約や管理を始めましょう！`,
                 distanceRateMessage: `Collectプランへのアップグレードが完了しました。これで距離単価を変更できるようになりました！`,
