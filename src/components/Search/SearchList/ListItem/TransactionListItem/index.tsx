@@ -98,12 +98,10 @@ function TransactionListItem<TItem extends ListItem>({
     ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy} = useReportPaymentContext(
-        {
-            reportID: transactionItem.reportID,
-            chatReportPolicyID: parentChatReport?.policyID,
-        },
-    );
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy} = useReportPaymentContext({
+        reportID: transactionItem.reportID,
+        chatReportPolicyID: parentChatReport?.policyID,
+    });
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
         item: transactionItem,
