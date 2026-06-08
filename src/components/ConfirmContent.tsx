@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
@@ -106,6 +107,9 @@ type ConfirmContentProps = {
 
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
+
+    /** Whether to show a loading indicator next to the title */
+    isTitleLoading?: boolean;
 };
 
 function ConfirmContent({
@@ -138,6 +142,7 @@ function ConfirmContent({
     shouldReverseStackedButtons = false,
     isVisible,
     isConfirmLoading,
+    isTitleLoading = false,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -193,11 +198,17 @@ function ConfirmContent({
                             />
                         </View>
                     )}
-                    <View style={[styles.flexRow, isCentered ? {} : styles.mb4, titleContainerStyles]}>
+                    <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
                         <Header
                             title={title}
                             textStyles={titleStyles}
                         />
+                        {isTitleLoading && (
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                                reasonAttributes={{context: 'ConfirmContent-titleLoading'}}
+                            />
+                        )}
                     </View>
                     {typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
                 </View>
