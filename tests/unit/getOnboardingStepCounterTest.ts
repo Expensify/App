@@ -40,22 +40,6 @@ describe('getOnboardingFlow', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual'})).toBeUndefined();
     });
 
-    it('returns [PURPOSE, PERSONAL_DETAILS] for public + individual + EMPLOYER + Submit 2026 beta (no Work Email prefix)', () => {
-        expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, purposeSelected: ONBOARDING_CHOICES.EMPLOYER, canUseSubmit2026: true})).toEqual([
-            SCREENS.ONBOARDING.PURPOSE,
-            SCREENS.ONBOARDING.PERSONAL_DETAILS,
-        ]);
-    });
-
-    it('still includes Work Email prefix for public + individual + EMPLOYER without Submit 2026 beta', () => {
-        expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, purposeSelected: ONBOARDING_CHOICES.EMPLOYER, canUseSubmit2026: false})).toEqual([
-            SCREENS.ONBOARDING.WORK_EMAIL,
-            SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
-            SCREENS.ONBOARDING.PURPOSE,
-            SCREENS.ONBOARDING.PERSONAL_DETAILS,
-        ]);
-    });
-
     it('returns [WORK_EMAIL, WORK_EMAIL_VALIDATION, EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for public + VSB', () => {
         expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true})).toEqual([
             SCREENS.ONBOARDING.WORK_EMAIL,

@@ -9,12 +9,10 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -39,8 +37,6 @@ function useOnboardingFlowRouter() {
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
-    const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const wasInvitedToNewDot = wasInvitedToNewDotSelector(introSelected);
@@ -105,7 +101,6 @@ function useOnboardingFlowRouter() {
                             currentOnboardingPurposeSelected: onboardingPurposeSelected,
                             onboardingInitialPath,
                             onboardingValues,
-                            canUseSubmit2026,
                             isAccountValidated: !!account?.validated,
                         });
                     });
@@ -138,7 +133,6 @@ function useOnboardingFlowRouter() {
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
         isOnboardingCompleted,
-        canUseSubmit2026,
     ]);
 
     return {

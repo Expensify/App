@@ -7,7 +7,6 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
@@ -48,11 +47,8 @@ function OnboardingModalNavigator() {
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
-    const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
@@ -61,7 +57,7 @@ function OnboardingModalNavigator() {
         initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
     }
 
-    if (account?.isFromPublicDomain && !canUseSubmit2026) {
+    if (account?.isFromPublicDomain) {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
     }
 
@@ -111,7 +107,8 @@ function OnboardingModalNavigator() {
         };
     }, [customInterpolator]);
 
-    if (isLoadingOnyxValue(accountMetadata) || isLoadingOnyxValue(betasMetadata)) {
+    // If the account data is not loaded yet, we don't want to show the onboarding modal
+    if (isLoadingOnyxValue(accountMetadata)) {
         return null;
     }
 

@@ -29,7 +29,6 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string> | null;
     onboardingValues: OnyxEntry<Onboarding>;
-    canUseSubmit2026?: boolean;
     isAccountValidated?: boolean;
 };
 
@@ -109,7 +108,6 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingCompanySize,
         onboardingInitialPath,
         onboardingValues,
-        canUseSubmit2026 = false,
         isAccountValidated,
     } = getOnboardingInitialPathParams;
     const initialPath = onboardingInitialPath ?? '';
@@ -131,7 +129,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
     // A validated account has no reason to be on the onboarding "add work email" screen.
-    if (isUserFromPublicDomain && !canUseSubmit2026 && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 

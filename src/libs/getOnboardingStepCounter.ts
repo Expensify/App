@@ -13,7 +13,6 @@ type OnboardingFlowContext = {
     hasAccessibleDomainPolicies?: boolean;
     purposeSelected?: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
     isMergeAccountStepSkipped?: boolean;
-    canUseSubmit2026?: boolean;
 };
 
 type OnboardingStepResult = {
@@ -75,7 +74,7 @@ function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext)
 }
 
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
-    if (context.isFromPublicDomain && !context.canUseSubmit2026) {
+    if (context.isFromPublicDomain) {
         if (context.isMergeAccountStepSkipped === false) {
             return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
         }
