@@ -2225,7 +2225,7 @@ const translations = {
             partnerManagerDescription: 'Maximize your partnership and drive referrals',
             accountExecutive: 'Account Executive',
             accountExecutiveDescription: 'Get clients setup successfully',
-            guideDescription: 'Your setup specialist',
+            guideDescription: 'Your account executive',
             approvedPartnerTeamTitle: 'Meet your Approved! partner team',
             approvedPartnerTeamDescription: 'A dedicated team focused on helping your firm grow, onboard clients faster, and get expert support whenever you need it.',
             moreResources: 'More resources',
@@ -3172,7 +3172,7 @@ const translations = {
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
-                description: 'Create a workspace and configure the settings with the help of your setup specialist!',
+                description: 'Create a workspace and configure the settings with the help of your account executive!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Create a [workspace](${workspaceSettingsLink})`,
@@ -3403,11 +3403,11 @@ const translations = {
                 isOnboardingFlow
                     ? dedent(`
                         # Your free trial has started! Let's get you set up.
-                        👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!
+                        👋 Hey there, I'm your Expensify account executive. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!
                     `)
                     : dedent(`
                         # Your free trial has started! Let's get you set up.
-                        👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
+                        👋 Hey there, I'm your Expensify account executive. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
                     `),
             onboardingTrackWorkspaceMessage: 'To make the most of your 30-day free trial, follow the remaining steps below:',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
@@ -6364,7 +6364,7 @@ const translations = {
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
+            talkYourOnboardingSpecialist: 'Chat with your account executive.',
             talkYourAccountManager: 'Chat with your account manager.',
             talkToConcierge: 'Chat with Concierge.',
             needAnotherAccounting: 'Need another accounting software? ',
@@ -7070,8 +7070,8 @@ const translations = {
             upgradeToUnlock: 'Unlock this feature',
             completed: {
                 headline: `You've upgraded your workspace!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>You've successfully upgraded ${policyName} to the Control plan! <a href="${subscriptionLink}">View your subscription</a> for more details.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>You've successfully upgraded ${policyName} to the ${planName} plan! <a href="${subscriptionLink}">View your subscription</a> for more details.</centered-text>`,
                 categorizeMessage: `You've successfully upgraded to the Collect plan. Now you can categorize your expenses!`,
                 travelMessage: `You've successfully upgraded to the Collect plan. Now you can start booking and managing travel!`,
                 distanceRateMessage: `You've successfully upgraded to the Collect plan. Now you can change the distance rate!`,
@@ -8308,6 +8308,7 @@ const translations = {
         withdrawalType: 'Withdrawal type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
+        serverResults: 'Search results',
         searchIn: 'Search in',
         askConcierge: (message: string) => `Ask Concierge “${message}”`,
         searchPlaceholder: 'Search for something...',
@@ -8817,7 +8818,7 @@ const translations = {
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Chat with your setup specialist in <a href="${href}">${adminReportName}</a> for help`,
+            `Chat with your account executive in <a href="${href}">${adminReportName}</a> for help`,
         default: `Message <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> for help with setup`,
     },
     violations: {
@@ -9475,7 +9476,7 @@ const translations = {
         confirmation: {
             title: 'Confirm call',
             description: "Make sure the details below look good to you. Once you confirm the call, we'll send an invite with more info.",
-            setupSpecialist: 'Your setup specialist',
+            setupSpecialist: 'Your account executive',
             meetingLength: 'Meeting length',
             dateTime: 'Date & time',
             minutes: '30 minutes',

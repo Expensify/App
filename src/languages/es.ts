@@ -2031,7 +2031,7 @@ const translations: TranslationDeepObject<typeof en> = {
             partnerManager: 'Gestor de socios',
             yourPartnerManager: 'Tu gestor de partners',
             partnerManagerDescription: 'Maximiza tu colaboración y genera referencias',
-            guideDescription: 'Tu especialista asignado',
+            guideDescription: 'Tu ejecutivo de cuenta',
             approvedPartnerTeamTitle: 'Conoce a tu equipo de partners de Approved!',
             approvedPartnerTeamDescription: 'Un equipo dedicado centrado en ayudar a que tu firma crezca, incorporar clientes más rápido y obtener soporte experto siempre que lo necesites.',
             accountExecutive: 'Ejecutivo de cuentas',
@@ -2973,7 +2973,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) un espacio de trabajo`,
-                description: 'Crea un espacio de trabajo y configura los ajustes con la ayuda de tu especialista asignado.',
+                description: '¡Crea un espacio de trabajo y configura los ajustes con la ayuda de tu ejecutivo de cuenta!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Crea un [espacio de trabajo](${workspaceSettingsLink})`,
@@ -3198,11 +3198,11 @@ ${amount} para ${merchant} - ${date}`,
                 isOnboardingFlow
                     ? dedent(`
                         # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
-                        👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar los recibos y gastos de tu equipo. Para aprovechar al máximo tu prueba gratuita de 30 días, ¡solo sigue los pasos de configuración restantes que aparecen a continuación!
+                        👋 Hola, soy tu ejecutivo de cuenta de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar los recibos y gastos de tu equipo. Para aprovechar al máximo tu prueba gratuita de 30 días, solo sigue los pasos de configuración restantes a continuación.
                     `)
                     : dedent(`
                         # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
-                        👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ahora que ya has creado un espacio de trabajo, aprovecha al máximo tu prueba gratuita de 30 días siguiendo los pasos que aparecen a continuación.
+                        👋 Hola, soy tu ejecutivo de cuenta de Expensify. Ahora que has creado un espacio de trabajo, aprovecha al máximo tus 30 días de prueba gratuita siguiendo los pasos a continuación.
                     `),
             onboardingTrackWorkspaceMessage: 'Para aprovechar al máximo tu prueba gratuita de 30 días, sigue los pasos restantes que aparecen a continuación:',
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
@@ -6092,7 +6092,7 @@ ${amount} para ${merchant} - ${date}`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
+            talkYourOnboardingSpecialist: 'Chatea con tu ejecutivo de cuenta.',
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
             needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
@@ -6887,8 +6887,8 @@ ${amount} para ${merchant} - ${date}`,
                 headline: 'Has mejorado tu espacio de trabajo.',
                 categorizeMessage: `Has actualizado con éxito al plan Recopilar. ¡Ahora puedes categorizar tus gastos!`,
                 travelMessage: 'Has actualizado con éxito al plan Recopilar. ¡Ahora puedes comenzar a reservar y gestionar viajes!',
-                successMessage: (policyName, subscriptionLink) =>
-                    `<centered-text>Has actualizado con éxito ${policyName} al plan Controlar. <a href="${subscriptionLink}">Ver su suscripción</a> para obtener más información.</centered-text>`,
+                successMessage: (policyName, planName, subscriptionLink) =>
+                    `<centered-text>Has actualizado con éxito ${policyName} al plan ${planName}. <a href="${subscriptionLink}">Ver su suscripción</a> para obtener más información.</centered-text>`,
                 distanceRateMessage: 'Has actualizado correctamente al plan Recopilar. ¡Ahora puedes cambiar la tasa de distancia!',
                 gotIt: 'Entendido, gracias.',
                 createdWorkspace: '¡Has creado un espacio de trabajo!',
@@ -8052,6 +8052,7 @@ ${amount} para ${merchant} - ${date}`,
         withdrawalType: 'Tipo de retiro',
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
+        serverResults: 'Resultados de búsqueda',
         searchIn: 'Buscar en',
         askConcierge: (message: string) => `Pregunta a Concierge “${message}”`,
         searchPlaceholder: 'Busca algo...',
@@ -8952,8 +8953,9 @@ ${amount} para ${merchant} - ${date}`,
         copyReferralLink: 'Copiar enlace de invitación',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}) => `Chatea con tu especialista asignado en <a href="${href}">${adminReportName}</a> para obtener ayuda`,
-        default: `Envía un correo electrónico a <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> para obtener ayuda con la configuración`,
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chatea con tu ejecutivo de cuenta en <a href="${href}">${adminReportName}</a> para obtener ayuda`,
+        default: `Envía un mensaje a <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> para obtener ayuda con la configuración`,
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
@@ -9590,7 +9592,7 @@ ${amount} para ${merchant} - ${date}`,
         confirmation: {
             title: 'Confirmar llamada',
             description: 'Asegúrate de que los detalles a continuación sean correctos. Una vez que confirmes la llamada, enviaremos una invitación con más información.',
-            setupSpecialist: 'Tu especialista asignado',
+            setupSpecialist: 'Tu ejecutivo de cuenta',
             meetingLength: 'Duración de la reunión',
             dateTime: 'Fecha y hora',
             minutes: '30 minutos',

@@ -7851,6 +7851,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             autoApproveCompliantReports: {
                 id: 'autoApproveCompliantReports' as const,
@@ -7859,6 +7860,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             autoPayApprovedReports: {
                 id: 'autoPayApprovedReports' as const,
@@ -7867,6 +7869,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             categories: {
                 id: 'categories' as const,
@@ -7972,6 +7975,7 @@ const CONST = {
                 title: 'workspace.upgrade.rules.title' as const,
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
                 id: 'perDiem' as const,
@@ -7980,6 +7984,7 @@ const CONST = {
                 title: 'workspace.upgrade.perDiem.title' as const,
                 description: 'workspace.upgrade.perDiem.description' as const,
                 icon: 'PerDiem',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             hr: {
                 id: 'hr' as const,
@@ -7988,6 +7993,7 @@ const CONST = {
                 title: 'workspace.upgrade.hr.title' as const,
                 description: 'workspace.upgrade.hr.description' as const,
                 icon: 'Members',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             travel: {
                 id: 'travel' as const,
@@ -8394,7 +8400,9 @@ const CONST = {
         INVOICE: 'invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
-    SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    ACCOUNT_EXECUTIVE_LOGIN: 'Account Executive',
+    // Legacy fallback login kept so personal details persisted in Onyx before the "Setup Specialist" → "Account Executive" rename are still excluded after users upgrade
+    ACCOUNT_EXECUTIVE_LEGACY_LOGIN: 'Setup Specialist',
 
     CALENDAR_PICKER_DAY_HEIGHT: 45,
     MAX_CALENDAR_PICKER_ROWS: 6,
