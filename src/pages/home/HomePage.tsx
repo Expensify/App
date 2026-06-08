@@ -20,6 +20,7 @@ import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
+import HomeTabFocusBoundary from './HomeTabFocusBoundary';
 import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
@@ -70,10 +71,12 @@ function HomePage() {
                                     <FreeTrialSection />
                                     <TimeSensitiveSection />
                                     <GettingStartedSection />
-                                    <ForYouSection />
-                                    <UpcomingTravelSection />
-                                    <YourSpendSection />
-                                    <SpendOverTimeSection />
+                                    <HomeTabFocusBoundary>
+                                        <ForYouSection />
+                                        <UpcomingTravelSection />
+                                        <YourSpendSection />
+                                        <SpendOverTimeSection />
+                                    </HomeTabFocusBoundary>
                                     <DiscoverSection />
                                     <AnnouncementSection />
                                 </>
@@ -81,8 +84,10 @@ function HomePage() {
                                 <>
                                     <View style={styles.homePageLeftColumn}>
                                         <TimeSensitiveSection />
-                                        <ForYouSection />
-                                        <SpendOverTimeSection />
+                                        <HomeTabFocusBoundary>
+                                            <ForYouSection />
+                                            <SpendOverTimeSection />
+                                        </HomeTabFocusBoundary>
                                         <DiscoverSection />
                                     </View>
                                     <View style={styles.homePageRightColumn}>
