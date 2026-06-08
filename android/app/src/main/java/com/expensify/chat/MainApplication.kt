@@ -14,7 +14,6 @@ import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
 import com.expensify.chat.navbar.NavBarManagerPackage
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
-import com.margelo.nitro.nitrofetch.AutoPrefetcher
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -77,14 +76,6 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         // Install certificate pinning for React Native's shared OkHttp client (covers
         // react-native-blob-util). Must run before any networking, including the Nitro prefetch below.
         CertificatePinning.install()
-
-        // This is the entrypoint for prefetching with `react-native-nitro-fetch`.
-        try {
-            AutoPrefetcher.prefetchOnStart(this)
-        } catch (_: Throwable) {
-            System.err.println("Error initializing Nitro `AutoPrefetcher`")
-        }
-
         loadReactNative(this)
 
         // Force the app to LTR mode.

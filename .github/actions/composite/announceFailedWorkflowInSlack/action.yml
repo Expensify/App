@@ -13,20 +13,17 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+    - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
       name: Job failed Slack notification
       with:
-        status: custom
-        fields: workflow, repo
-        custom_payload: |
+        webhook: ${{ inputs.SLACK_WEBHOOK }}
+        webhook-type: incoming-webhook
+        payload: |
           {
-            channel: '${{ inputs.CHANNEL }}',
-            attachments: [{
-              color: "#DB4545",
-              pretext: `<!subteam^S4TJJ3PSL>`,
-              text: `💥 ${process.env.AS_REPO} failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
+            "channel": "${{ inputs.CHANNEL }}",
+            "attachments": [{
+              "color": "#DB4545",
+              "pretext": "<!subteam^S4TJJ3PSL>",
+              "text": "💥 ${{ github.repository }} failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥"
             }]
           }
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-        SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK }}

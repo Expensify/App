@@ -7,11 +7,11 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +21,6 @@ import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
 import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -52,8 +51,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 
     // Dismiss the "Update to USD" modal if the currency changes to USD externally (e.g. from another device)
     const isCurrencyModalOpen = useRef(false);
@@ -132,9 +130,13 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
-                    ctaText={canWriteExpensifyCard ? translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard') : undefined}
+                    ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
+                        if (!canWriteExpensifyCard) {
+                            showReadOnlyModal();
+                            return;
+                        }
                         if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
                             return;
@@ -153,6 +155,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
+                    buttonInnerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+                    buttonHoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
                 />
             </View>
             <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
