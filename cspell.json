@@ -1063,6 +1063,7 @@
         "web/snippets/gib.js",
         "tests/unit/hooks/useLetterAvatars.test.tsx",
         "tests/unit/usePersonalDetailSearchSelectorTest.tsx",
+        "config/eslint/eslint.seatbelt.tsv",
         "tests/unit/BankAccountUtilsTest.ts"
     ],
     "ignoreRegExpList": ["@assets/.*"],
