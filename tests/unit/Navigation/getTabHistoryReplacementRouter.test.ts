@@ -82,9 +82,15 @@ describe('createTabHistoryReplacementRouter', () => {
         const wrapped = buildWrappedRouter();
         const onOdometer = wrapped.getStateForAction(getInitialState(wrapped), TabActions.jumpTo('odometer'), CONFIG_OPTIONS) as TabNavigationState<ParamListBase>;
 
-        const afterBack = wrapped.getStateForAction(onOdometer, {type: 'GO_BACK'} as NavigationAction, CONFIG_OPTIONS);
+        const afterBack = wrapped.getStateForAction(onOdometer, {type: CONST.NAVIGATION.ACTION_TYPE.GO_BACK} as NavigationAction, CONFIG_OPTIONS);
 
         expect(afterBack).toBeNull();
+    });
+
+    it('still matches the React Navigation TabRouter action type for tab switches', () => {
+        // Guards the action-type coupling: the history clamp only fires for actions in TAB_SWITCH_ACTION_TYPES,
+        // so if a RN upgrade renamed JUMP_TO the clamp would silently stop working
+        expect(TabActions.jumpTo('odometer').type).toBe(CONST.NAVIGATION.ACTION_TYPE.JUMP_TO);
     });
 
     it('does not touch state for non-tab-switch actions (passes the stock result through)', () => {

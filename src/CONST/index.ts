@@ -5898,6 +5898,10 @@ const CONST = {
             GO_BACK: 'GO_BACK',
             RESET: 'RESET',
 
+            /** React Navigation TabRouter action types that switch tabs; not exported as constants by the library */
+            JUMP_TO: 'JUMP_TO',
+            NAVIGATE_DEPRECATED: 'NAVIGATE_DEPRECATED',
+
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',

@@ -6,6 +6,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
+import goForwardInBrowserHistory from '@libs/Navigation/goForwardInBrowserHistory';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -124,11 +125,10 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
                 return;
             }
             shouldNavigateBack.current = true;
+            goForwardInBrowserHistory();
             if (closing) {
-                window.history.go(1);
                 return;
             }
-            window.history.go(1);
             navigateAfterInteraction(showDiscardModal);
         });
 

@@ -1,3 +1,7 @@
+/**
+ * Lets the active distance tab register discard callbacks that `DistanceRequestStartPage` reads to show the
+ * "Discard changes?" modal on tab switch / back. Only one guard is active at a time.
+ */
 import {createContext, useContext, useEffect, useRef} from 'react';
 
 type DistanceTabGuard = {

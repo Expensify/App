@@ -18,8 +18,8 @@ type TabRouterOverrideFactory = <Action extends NavigationAction>(original: Rout
 const NAVIGATORS_WITH_REPLACED_TAB_HISTORY = new Set<string>([CONST.TAB.DISTANCE_REQUEST_TYPE]);
 
 // Action types that switch tabs. `NAVIGATE` comes from URL/linking-driven switches; `JUMP_TO` /
-// `NAVIGATE_DEPRECATED` are React Navigation's internal TabRouter action types (no exported constant to use)
-const TAB_SWITCH_ACTION_TYPES = new Set<string>([CONST.NAVIGATION.ACTION_TYPE.NAVIGATE, 'JUMP_TO', 'NAVIGATE_DEPRECATED']);
+// `NAVIGATE_DEPRECATED` are React Navigation's internal TabRouter action types.
+const TAB_SWITCH_ACTION_TYPES = new Set<string>([CONST.NAVIGATION.ACTION_TYPE.NAVIGATE, CONST.NAVIGATION.ACTION_TYPE.JUMP_TO, CONST.NAVIGATION.ACTION_TYPE.NAVIGATE_DEPRECATED]);
 
 /**
  * Builds the `UNSTABLE_router` override that collapses the tab navigator's `history` down to just the
