@@ -86,7 +86,6 @@ function AmountField({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const transactionForHandlers = transactionSlice as OnyxEntry<OnyxTypes.Transaction>;
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
@@ -272,7 +271,7 @@ function AmountField({
             const taxCode = effectiveCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
             if (taxCode) {
                 setMoneyRequestTaxRate(transactionID, taxCode);
-                const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+                const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
                 const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, decimals));
                 setMoneyRequestTaxAmount(transactionID, taxAmount);
             }
