@@ -7,7 +7,6 @@ import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTr
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Pages, Report, ReportAction} from '@src/types/onyx';
-import useIsInSidePanel from './useIsInSidePanel';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -51,14 +50,13 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 
     const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
 
-    const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
     const lastAction = allReportActions?.at(-1);
-    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeSidePanel);
+    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
 
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
 

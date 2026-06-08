@@ -47,7 +47,7 @@ Yes. Domain Admins do not need to use your company’s email domain. You can add
 
 ## How do I revoke Domain Admin access?
 
-Go to **Workspaces**, select the **Domains** tab, open your domain, and select **Domain Admins**. From there, click **Remove** next to the person you want to revoke access for.
+Go to **Workspaces**, then select the **Domains** tab, open your domain, and select **Domain Admins**. From there, click **Remove** next to the person you want to revoke access for.
 
 ## Who can be a Domain Admin
 

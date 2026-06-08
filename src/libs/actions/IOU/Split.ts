@@ -66,7 +66,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags} from './index';
+import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -1907,7 +1907,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         previousOdometerDraft,
         delegateAccountID,
     } = distanceRequestInformation;
-    const {policy, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+    const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
     const {
@@ -2054,7 +2054,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyParams: {
                 policy,
                 policyCategories,
-                policyTagList: getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport: currentChatReport, participant}),
+                policyTagList,
                 policyRecentlyUsedCategories,
                 policyRecentlyUsedTags,
             },
