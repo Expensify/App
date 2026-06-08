@@ -34,7 +34,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists, isGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -118,8 +118,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
-    const [draftTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`);
-    const isPolicyExpenseChat = isGroupPolicy(draftTransactionPolicy);
+    const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {
+        selector: (policyValue) => policyValue?.type,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(draftTransactionPolicyType);
 
     const originalTransactionCategory = transaction?.category ?? '';
     const originalTransactionTag = transaction?.tag ?? '';
