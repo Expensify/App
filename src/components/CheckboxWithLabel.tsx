@@ -93,7 +93,7 @@ function CheckboxWithLabel({
 
     return (
         <View style={style}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.userSelectNone]}>
                 <Checkbox
                     isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}
@@ -109,7 +109,7 @@ function CheckboxWithLabel({
                     pressDimmingValue={variables.checkboxLabelActiveOpacity}
                     // We want to disable hover dimming
                     hoverDimmingValue={variables.checkboxLabelHoverOpacity}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.userSelectNone, styles.w100]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
                     wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
                 >
                     {!!label && <Text style={[styles.ml1]}>{label}</Text>}
