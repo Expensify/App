@@ -101,7 +101,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         </View>
                     )}
 
-                    <View style={[styles.justifyContentCenter]}>
+                    <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
                         <Switch
                             isOn={item.enabled}
                             showLockIcon={item.isLocked}

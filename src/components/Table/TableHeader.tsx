@@ -163,6 +163,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
  */
 function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
+    const toggleCount = useRef(0);
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
 
@@ -170,10 +171,9 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         activeSorting,
         tableMethods: {updateSorting, toggleColumnSorting},
     } = useTableContext<DataType, ColumnKey>();
+
     const isSortingByColumn = column.key === activeSorting.columnKey;
     const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
-
-    const toggleCount = useRef(0);
 
     /**
      * Handles column header press for sorting.
@@ -212,7 +212,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             <Text
                 numberOfLines={1}
                 color={theme.textSupporting}
-                style={[styles.lh16, isSortingByColumn ? styles.textMicroBoldSupporting : [styles.textMicroSupporting, styles.pr1, styles.tableHeaderIconSpacing]]}
+                style={[styles.lh16, isSortingByColumn ? styles.textMicroBoldSupporting : styles.textMicroSupporting]}
             >
                 {column.label}
             </Text>

@@ -4,6 +4,7 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableDat
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
@@ -48,6 +49,7 @@ export default function WorkspaceCategoriesTable({
     shouldShowApproverColumn,
     onRowSelectionChange,
 }: WorkspaceCategoriesTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -80,6 +82,9 @@ export default function WorkspaceCategoriesTable({
             label: translate('common.enabled'),
             sortable: true,
             width: variables.tableSwitchColumnWidth,
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+            },
         },
         {
             key: 'actions',
