@@ -2,7 +2,7 @@ import lodashIsObject from 'lodash/isObject';
 import type {RawLegendStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from './parseAttribute';
 
-function praseRawLegendStyle(attribute: string): RawLegendStyle {
+function parseRawLegendStyle(attribute: string): RawLegendStyle {
     const style: RawLegendStyle = {};
     const parsedValue = parseAttribute(attribute);
 
@@ -30,4 +30,4 @@ function praseRawLegendStyle(attribute: string): RawLegendStyle {
     return style;
 }
 
-export default praseRawLegendStyle;
+export default parseRawLegendStyle;

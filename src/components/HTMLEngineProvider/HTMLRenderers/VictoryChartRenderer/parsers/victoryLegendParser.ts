@@ -3,7 +3,7 @@ import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFon
 import type {LegendItem, LegendItemEntry, PartialProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawLegendData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawLegendData';
-import praseRawLegendStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/praseRawLegendStyle';
+import parseRawLegendStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawLegendStyle';
 
 /**
  * Parse legend config from a `<victorylegend>` node.
@@ -13,7 +13,7 @@ function parseVictoryLegendNode(tnode: TNode): PartialProcessNodeResult {
     const y = parseAttributeAsNumber(tnode.attributes.y) ?? 0;
     const gutter = parseAttributeAsNumber(tnode.attributes.gutter) ?? undefined;
     const symbolSpacer = parseAttributeAsNumber(tnode.attributes.symbolspacer) ?? undefined;
-    const style = praseRawLegendStyle(tnode.attributes.style);
+    const style = parseRawLegendStyle(tnode.attributes.style);
     const color = style?.labels?.fill;
     const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : undefined;
     const fontWeight = style?.labels?.fontWeight !== undefined ? normalizeChartFontWeight(style.labels.fontWeight) : undefined;
