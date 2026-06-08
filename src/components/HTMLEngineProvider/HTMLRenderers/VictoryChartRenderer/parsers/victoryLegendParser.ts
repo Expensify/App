@@ -1,9 +1,10 @@
 import type {TNode} from 'react-native-render-html';
 import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
-import type {LegendItem, LegendItemEntry, PartialProcessNodeResult, RawLegendData, RawLegendStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {LegendItem, LegendItemEntry, PartialProcessNodeResult, RawLegendData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import isNonNullObject from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/isNonNullObject';
 import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseArrayAttribute';
-import parseAttribute, {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import praseRawLegendStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/praseRawLegendStyle';
 
 /**
  * Parse legend config from a `<victorylegend>` node.
@@ -13,7 +14,7 @@ function parseVictoryLegendNode(tnode: TNode): PartialProcessNodeResult {
     const y = parseAttributeAsNumber(tnode.attributes.y) ?? 0;
     const gutter = parseAttributeAsNumber(tnode.attributes.gutter) ?? undefined;
     const symbolSpacer = parseAttributeAsNumber(tnode.attributes.symbolspacer) ?? undefined;
-    const style = parseAttribute<RawLegendStyle>(tnode.attributes.style);
+    const style = praseRawLegendStyle(tnode.attributes.style);
     const color = style?.labels?.fill;
     const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : undefined;
     const fontWeight = style?.labels?.fontWeight !== undefined ? normalizeChartFontWeight(style.labels.fontWeight) : undefined;
