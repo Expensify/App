@@ -50,6 +50,25 @@ type PaymentMethodItem = PaymentMethod & {
     isCardFrozen?: boolean;
     /** Whether the personal bank account is missing required personal info (name, address, phone) */
     isMissingPersonalInfo?: boolean;
+    /**
+     * Pre-resolved status label (Active / Incomplete / Pending / Verifying / Locked / Inactive).
+     * Reserved for the row-status refactor; the row component does not consume this yet.
+     */
+    statusLabel?: string;
+    /** Visual tone for the status badge. */
+    statusTone?: 'success' | 'error';
+    /** Helper copy rendered beneath the row (e.g. "Finish adding bank account"). */
+    helperText?: string;
+    /** Optional link label embedded in the helper copy. */
+    helperLinkText?: string;
+    /** Route navigated to when the helper link is pressed. */
+    helperLinkRoute?: string;
+    /** Formatted "Last synced …" line. */
+    lastSyncText?: string;
+    /** Inline CTA button label (Finish / Confirm / Unlock / Fix). */
+    inlineActionLabel?: string;
+    /** Inline CTA button onPress. */
+    inlineActionOnPress?: () => void;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {

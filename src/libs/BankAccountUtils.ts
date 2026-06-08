@@ -1,6 +1,8 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 
@@ -14,6 +16,25 @@ function getLastFourDigits(bankAccountNumber: string): string {
 
 function isBankAccountPartiallySetup(state: string | undefined) {
     return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
+}
+
+/**
+ * States that should drive an account-level red/info dot.
+ *
+ * Why this is narrower than `isBankAccountPartiallySetup`: the partial-setup predicate is
+ * also used by KYC gating, currency-change blocking, payment-option building, and workflow
+ * filtering — so dropping VERIFYING from it would silently change those flows. The spec
+ * wants VERIFYING to *not* light the indicator, but the rest of the system should keep
+ * treating it as "partially set up". Use this predicate at indicator/display sites only.
+ *
+ * Currently unused; introduced as a building block for the row/indicator refactor.
+ */
+function bankAccountRequiresUserAttention(state: string | undefined): boolean {
+    return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.PENDING || state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+}
+
+function hasBankAccountRequiringUserAttention(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccountRequiresUserAttention(bankAccount?.accountData?.state));
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -98,9 +119,67 @@ function hasPersonalBankAccountMissingInfo(bankAccountList: OnyxEntry<OnyxTypes.
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isPersonalBankAccountMissingInfo(bankAccount?.accountData));
 }
 
+type BankAccountConnectionStatus = {
+    /** Translation key for the user-facing status label (Active / Incomplete / Pending / Verifying / Locked). */
+    labelKey: TranslationPaths;
+    /** Translation key for the helper copy rendered beneath the row. */
+    descriptionKey?: TranslationPaths;
+    /** Translation key for the tooltip displayed on the status label (used for VERIFYING). */
+    tooltipKey?: TranslationPaths;
+    /** Translation key for the inline CTA button label (Finish / Confirm / Unlock). */
+    actionLabelKey?: TranslationPaths;
+    /** Brick-road indicator severity; undefined when no dot should render. */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+};
+
+/**
+ * Maps a bank-account state to the user-facing status + RBR + optional CTA the Wallet
+ * and Workflows rows should render. Returns undefined for unknown states.
+ *
+ * Currently unused; introduced as a building block for the row refactor. The follow-up
+ * PR wires this into PaymentMethodList, WorkspaceWorkflowsPage, and OldDot.
+ */
+function getBankAccountConnectionStatus(state: string | undefined): BankAccountConnectionStatus | undefined {
+    switch (state) {
+        case CONST.BANK_ACCOUNT.STATE.OPEN:
+            return {labelKey: 'walletPage.bankAccountStatus.active'};
+        case CONST.BANK_ACCOUNT.STATE.SETUP:
+            return {
+                labelKey: 'walletPage.bankAccountStatus.incomplete',
+                descriptionKey: 'walletPage.bankAccountStatus.finishAdding',
+                actionLabelKey: 'walletPage.bankAccountStatus.finish',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+            };
+        case CONST.BANK_ACCOUNT.STATE.PENDING:
+            return {
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                descriptionKey: 'walletPage.bankAccountStatus.confirmTestTransactions',
+                actionLabelKey: 'walletPage.bankAccountStatus.confirm',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+            };
+        case CONST.BANK_ACCOUNT.STATE.VERIFYING:
+            return {
+                labelKey: 'walletPage.bankAccountStatus.verifying',
+                tooltipKey: 'walletPage.bankAccountStatus.reviewingDocumentation',
+            };
+        case CONST.BANK_ACCOUNT.STATE.LOCKED:
+            return {
+                labelKey: 'common.locked',
+                descriptionKey: 'walletPage.bankAccountStatus.requiresAttention',
+                actionLabelKey: 'walletPage.bankAccountStatus.unlock',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        default:
+            return undefined;
+    }
+}
+
 export {
+    bankAccountRequiresUserAttention,
+    getBankAccountConnectionStatus,
     getDefaultCompanyWebsite,
     getLastFourDigits,
+    hasBankAccountRequiringUserAttention,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
@@ -109,3 +188,4 @@ export {
     getCompletedStepsForBankAccount,
     PERSONAL_INFO_STEP,
 };
+export type {BankAccountConnectionStatus};
