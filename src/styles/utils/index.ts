@@ -627,12 +627,10 @@ function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
         normal: {
             success: styles.buttonSuccess,
             danger: styles.buttonDanger,
-            link: {},
         },
         disabled: {
             success: [styles.buttonOpacityDisabled],
             danger: [styles.buttonOpacityDisabled],
-            link: [styles.buttonOpacityDisabled, styles.buttonDisabled],
         },
     };
 }
