@@ -110,7 +110,7 @@ function FormAlertWithSubmitButton({
 
     // Press-driven spinner bridge: covers the gap between the click and the parent committing isLoading=true (typically driven by Onyx)
     const [isPressed, setIsPressed] = useState(false);
-    const isSpinning = isPressed || isLoading;
+    const isSpinnerVisible = isPressed || isLoading;
 
     const handlePress = useCallback(() => {
         setIsPressed(true);
@@ -163,7 +163,7 @@ function FormAlertWithSubmitButton({
                             style={style}
                             onPress={handlePress}
                             isDisabled={isDisabled}
-                            isLoading={isSpinning}
+                            isLoading={isSpinnerVisible}
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
