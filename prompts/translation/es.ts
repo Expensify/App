@@ -55,7 +55,7 @@ const spanishGlossary = new Glossary([
     },
     {sourceTerm: 'Unhold', targetTerm: 'Desbloquea', partOfSpeech: 'verb', usage: 'Release a hold'},
     {sourceTerm: 'Account manager', targetTerm: 'gestor de cuenta'},
-    {sourceTerm: 'Setup specialist', targetTerm: 'especialista asignado'},
+    {sourceTerm: 'Account executive', targetTerm: 'ejecutivo de cuenta'},
     {sourceTerm: 'Chat with Concierge.', targetTerm: 'Chatear con Concierge.'},
     {sourceTerm: 'Clear', targetTerm: 'borrar', partOfSpeech: 'verb', usage: 'Clear field or selection'},
     {sourceTerm: 'Upgrade', targetTerm: 'Mejorar', partOfSpeech: 'verb', usage: 'Plan or account upgrade'},
