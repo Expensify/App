@@ -97,6 +97,111 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should display only 1-4 and 5-10 options when the signupQualifier is vsb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+        });
+
+        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.EMPLOYEES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL}`))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM}`))).toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.SMALL}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MEDIUM}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.LARGE}`))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should hide the back button for VSB when employees is the first onboarding step', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+        });
+
+        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.EMPLOYEES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the back button for VSB when employees is not the first onboarding step', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                hasAccessibleDomainPolicies: true,
+            });
+        });
+
+        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.EMPLOYEES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+
+        unmount();
+
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should hide the back button for a public-domain VSB user who skipped the work email step', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                isMergeAccountStepSkipped: true,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+        });
+
+        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.EMPLOYEES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should hide 1-4, 5-10, and legacy 1-10 options when the signupQualifier is smb', async () => {
         await TestHelper.signInWithTestUser();
 

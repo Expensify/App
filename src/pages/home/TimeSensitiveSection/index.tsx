@@ -25,9 +25,11 @@ import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCa
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
+import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
+import EnterSignerInfo from './items/EnterSignerInfo';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
@@ -97,6 +99,7 @@ function TimeSensitiveSection() {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
+    const {shouldShowEnterSignerInfo, pendingSignerInfo} = useTimeSensitiveSignerInfo();
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -140,7 +143,7 @@ function TimeSensitiveSection() {
 
             // Find the policy associated with this card's fundID (workspaceAccountID)
             const cardFundID = Number(card.fundID);
-            const matchingPolicy = adminPolicies.find((policy) => policy.workspaceAccountID === cardFundID);
+            const matchingPolicy = adminPolicies.find((policy) => policy.policyAccountID === cardFundID);
 
             if (!matchingPolicy) {
                 continue;
@@ -176,6 +179,7 @@ function TimeSensitiveSection() {
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
         lockedBankAccounts.length > 0 ||
+        shouldShowEnterSignerInfo ||
         shouldShowValidateAccount ||
         shouldShowFixFailedBilling ||
         shouldShowReviewCardFraud ||
@@ -198,9 +202,10 @@ function TimeSensitiveSection() {
     // 5. Broken bank connections (company cards)
     // 6. Broken bank connections (personal cards)
     // 7. Locked bank accounts (workspace VBAs and personal)
-    // 8. Broken policy connections (accounting + HR)
-    // 9. Expensify card shipping
-    // 10. Expensify card activation
+    // 8. Enter signer info for global bank accounts
+    // 9. Broken policy connections (accounting + HR)
+    // 10. Expensify card shipping
+    // 11. Expensify card activation
     const items: React.ReactNode[] = [];
 
     // Priority 1: Validate account
@@ -267,7 +272,18 @@ function TimeSensitiveSection() {
             />,
         );
     }
-    // Priority 8: Broken policy connections (accounting + HR)
+    // Priority 8: Enter signer info for global bank accounts
+    for (const item of pendingSignerInfo) {
+        items.push(
+            <EnterSignerInfo
+                key={`signer-${item.policyID}-${item.bankAccountID}`}
+                policyID={item.policyID}
+                bankAccountID={item.bankAccountID}
+                bankAccountLastFour={item.bankAccountLastFour}
+            />,
+        );
+    }
+    // Priority 9: Broken policy connections (accounting + HR)
     for (const connection of brokenPolicyConnections) {
         items.push(
             <FixPolicyConnection
@@ -279,7 +295,7 @@ function TimeSensitiveSection() {
             />,
         );
     }
-    // Priority 9: Expensify card shipping
+    // Priority 10: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -290,7 +306,7 @@ function TimeSensitiveSection() {
             );
         }
     }
-    // Priority 10: Expensify card activation
+    // Priority 11: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(

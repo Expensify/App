@@ -232,6 +232,7 @@ function IOURequestStepDistanceMap({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,

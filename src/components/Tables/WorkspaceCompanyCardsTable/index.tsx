@@ -152,18 +152,22 @@ function WorkspaceCompanyCardsTable({
         {
             key: 'member',
             label: translate('common.member'),
+            sortable: true,
         },
         {
             key: 'card',
             label: translate('workspace.companyCards.card'),
+            sortable: true,
         },
         {
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
+            sortable: true,
         },
         {
             key: 'actions',
             label: '',
+            sortable: false,
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
@@ -190,12 +194,6 @@ function WorkspaceCompanyCardsTable({
           });
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
-
-    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
-        addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb4,
-    });
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
@@ -432,7 +430,7 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />}
+            {showCards && <Table.Body />}
         </Table>
     );
 }

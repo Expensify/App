@@ -28,6 +28,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type MerchantRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
+    showReadOnlyModal: () => void;
 };
 
 type FieldLabels = {
@@ -70,7 +71,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     return actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
 }
 
-function MerchantRulesSection({policyID, canWriteRules}: MerchantRulesSectionProps) {
+function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: MerchantRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -172,9 +173,8 @@ function MerchantRulesSection({policyID, canWriteRules}: MerchantRulesSectionPro
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
                                         descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                                        shouldShowRightIcon={canWriteRules}
+                                        shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
-                                        interactive={canWriteRules}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
                                         disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     />
@@ -184,18 +184,22 @@ function MerchantRulesSection({policyID, canWriteRules}: MerchantRulesSectionPro
                     })}
                 </View>
             )}
-            {canWriteRules && (
-                <MenuItem
-                    title={translate('workspace.rules.merchantRules.addRule')}
-                    titleStyle={styles.textStrong}
-                    icon={expensifyIcons.Plus}
-                    iconHeight={20}
-                    iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
-                />
-            )}
+            <MenuItem
+                title={translate('workspace.rules.merchantRules.addRule')}
+                titleStyle={styles.textStrong}
+                icon={expensifyIcons.Plus}
+                iconHeight={20}
+                iconWidth={20}
+                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                onPress={() => {
+                    if (!canWriteRules) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+                }}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
+            />
         </Section>
     );
 }
