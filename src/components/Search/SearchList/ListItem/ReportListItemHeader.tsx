@@ -230,7 +230,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     }, [snapshot, reportItem.policyID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
     const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, conciergeReportID, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext(
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext(
         {
             reportID: reportItem.reportID,
             chatReportPolicyID: parentChatReport?.policyID,
@@ -269,7 +269,6 @@ function ReportListItemHeader<TItem extends ListItem>({
             activePolicy,
             chatReport: parentChatReport,
             chatReportPolicy,
-            conciergeReportID,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: snapshot?.data,
         });

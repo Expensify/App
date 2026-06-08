@@ -169,7 +169,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {showHoldMenu} = useHoldMenuModal();
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, conciergeReportID, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext(
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext(
         {
             reportID: reportItem.reportID,
             chatReportPolicyID: parentChatReport?.policyID ?? snapshotChatReport?.policyID,
@@ -222,7 +222,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
             activePolicy,
             chatReport: parentChatReport ?? snapshotChatReport,
             chatReportPolicy,
-            conciergeReportID,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
         });
@@ -257,7 +256,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
-        conciergeReportID,
         nextStep,
     ]);
 

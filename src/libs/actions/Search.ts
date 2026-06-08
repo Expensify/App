@@ -135,6 +135,15 @@ type ResolvedSearchPayPayment = {
     methodID?: number;
 };
 
+function isStandardIOUPaymentType(rawPaymentMethod: string): rawPaymentMethod is PaymentMethodType {
+    for (const paymentType of Object.values(CONST.IOU.PAYMENT_TYPE)) {
+        if (paymentType === rawPaymentMethod) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /**
  * When the saved payment method is a workspace policy ID (pay via workspace), translate it to VBBA
  * and pass the policy ID separately so PayMoneyRequest receives a valid paymentMethodType.
@@ -148,19 +157,18 @@ function resolveSearchPayPaymentMethod(
         return undefined;
     }
 
-    const isWorkspacePolicyPaymentMethod = !Object.values(CONST.IOU.PAYMENT_TYPE).includes(rawPaymentMethod as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
-    if (isWorkspacePolicyPaymentMethod) {
-        const workspacePolicy = getPolicyFromSearchSnapshot(rawPaymentMethod, searchData, policies);
+    if (isStandardIOUPaymentType(rawPaymentMethod)) {
         return {
-            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
-            paymentPolicyID: rawPaymentMethod,
-            payPolicy: workspacePolicy,
-            methodID: workspacePolicy?.achAccount?.bankAccountID,
+            paymentType: rawPaymentMethod,
         };
     }
 
+    const workspacePolicy = getPolicyFromSearchSnapshot(rawPaymentMethod, searchData, policies);
     return {
-        paymentType: rawPaymentMethod as PaymentMethodType,
+        paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+        paymentPolicyID: rawPaymentMethod,
+        payPolicy: workspacePolicy,
+        methodID: workspacePolicy?.achAccount?.bankAccountID,
     };
 }
 
@@ -190,7 +198,6 @@ type HandleActionButtonPressParams = {
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
     chatReportPolicy?: OnyxEntry<Policy>;
-    conciergeReportID?: string;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     searchData?: SearchResultDataType;
 };
@@ -221,7 +228,6 @@ function handleActionButtonPress({
     activePolicy,
     chatReport,
     chatReportPolicy,
-    conciergeReportID,
     iouReportCurrentNextStepDeprecated,
     searchData,
 }: HandleActionButtonPressParams) {
@@ -267,7 +273,6 @@ function handleActionButtonPress({
                 activePolicy,
                 chatReport,
                 chatReportPolicy,
-                conciergeReportID,
                 iouReportCurrentNextStepDeprecated,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
@@ -433,7 +438,6 @@ type GetPayActionCallbackParams = {
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
     chatReportPolicy?: OnyxEntry<Policy>;
-    conciergeReportID?: string;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
@@ -459,7 +463,6 @@ function getPayActionCallback({
     activePolicy,
     chatReport,
     chatReportPolicy,
-    conciergeReportID,
     iouReportCurrentNextStepDeprecated,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,

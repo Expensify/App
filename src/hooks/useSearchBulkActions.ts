@@ -1127,7 +1127,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             currentUserLogin,
             localCurrencyCode,
             defaultWorkspaceName,
-            translate,
             personalDetails,
             introSelected,
             betas,
@@ -1944,6 +1943,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        accountID,
+        deleteTransactionsFromHook,
+        duplicateTransactionViolations,
+        duplicateTransactions,
+        firstTransactionReport,
+        isProduction,
+        shouldOpenSplitExpenseEditFlowOnDelete,
+        styles.textWrap,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
