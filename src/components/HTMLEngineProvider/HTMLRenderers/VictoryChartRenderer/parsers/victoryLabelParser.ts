@@ -1,22 +1,26 @@
 import type {TNode} from 'react-native-render-html';
 import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
 import type {LabelItem, PartialProcessNodeResult, RawLabelStyle, TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseAttribute, {
+    parseAttributeAsNumber,
+    parseAttributeAsNumberArray,
+    parseAttributeAsString,
+} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 
 /**
  * Parse label config from a `<victorylabel>` node.
  */
 function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
     const labelItem: LabelItem = {
-        x: parseAttribute<number>(tnode.attributes.x) ?? 0,
-        y: parseAttribute<number>(tnode.attributes.y) ?? 0,
-        text: parseAttribute<string>(tnode.attributes.text) ?? '',
+        x: parseAttributeAsNumber(tnode.attributes.x) ?? 0,
+        y: parseAttributeAsNumber(tnode.attributes.y) ?? 0,
+        text: parseAttributeAsString(tnode.attributes.text) ?? '',
         color: {},
         fontSize: {},
         fontWeight: {},
         fontFamily: {},
         fontStyle: {},
-        lineHeight: parseAttribute<number[]>(tnode.attributes.lineheight),
+        lineHeight: parseAttributeAsNumberArray(tnode.attributes.lineheight),
         textAnchor: parseAttribute<TextAnchor>(tnode.attributes.textanchor),
         verticalAnchor: parseAttribute<TextAnchor>(tnode.attributes.verticalanchor),
     };

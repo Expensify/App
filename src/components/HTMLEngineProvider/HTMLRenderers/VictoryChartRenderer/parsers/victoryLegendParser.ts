@@ -3,16 +3,16 @@ import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFon
 import type {LegendItem, LegendItemEntry, PartialProcessNodeResult, RawLegendData, RawLegendStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import isNonNullObject from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/isNonNullObject';
 import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseArrayAttribute';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseAttribute, {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 
 /**
  * Parse legend config from a `<victorylegend>` node.
  */
 function parseVictoryLegendNode(tnode: TNode): PartialProcessNodeResult {
-    const x = parseAttribute<number>(tnode.attributes.x) ?? 0;
-    const y = parseAttribute<number>(tnode.attributes.y) ?? 0;
-    const gutter = parseAttribute<number>(tnode.attributes.gutter) ?? undefined;
-    const symbolSpacer = parseAttribute<number>(tnode.attributes.symbolspacer) ?? undefined;
+    const x = parseAttributeAsNumber(tnode.attributes.x) ?? 0;
+    const y = parseAttributeAsNumber(tnode.attributes.y) ?? 0;
+    const gutter = parseAttributeAsNumber(tnode.attributes.gutter) ?? undefined;
+    const symbolSpacer = parseAttributeAsNumber(tnode.attributes.symbolspacer) ?? undefined;
     const style = parseAttribute<RawLegendStyle>(tnode.attributes.style);
     const color = style?.labels?.fill;
     const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : undefined;
