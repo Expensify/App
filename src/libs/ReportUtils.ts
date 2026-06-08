@@ -8930,8 +8930,8 @@ function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | undef
 function hasEmptyReportsForPolicy(
     reports: OnyxCollection<Report> | undefined,
     policyID: string | undefined,
+    reportIDsWithActiveTransactions: Record<string, boolean>,
     accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions,
 ): boolean {
     if (!accountID || !policyID) {
         return false;
@@ -8944,7 +8944,6 @@ function hasEmptyReportsForPolicy(
             return false;
         }
 
-        // Exclude reports that are being deleted or have errors
         if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
             return false;
         }
@@ -8957,11 +8956,7 @@ function hasEmptyReportsForPolicy(
             return false;
         }
 
-        // Ignore transactions that are already pending deletion so we treat the report as empty once the removal is queued.
-        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam).filter(
-            (transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-        return transactions.length === 0;
+        return !reportIDsWithActiveTransactions[report.reportID];
     });
 }
 
