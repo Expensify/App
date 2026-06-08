@@ -2,7 +2,9 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +20,12 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
     shouldDisplayNarrowVersion: boolean;
+};
+
+type MoneyRequestReportNavigationContentProps = MoneyRequestReportNavigationProps & {
+    allReports: Array<string | undefined>;
+    isSearchLoading: boolean;
+    lastSearchQuery: OnyxEntry<LastSearchParams>;
 };
 
 type SnapshotGuard = {
@@ -71,8 +79,7 @@ const buildSnapshotGuardSelector =
         return {hasMultiple: count > 1, includesReport};
     };
 
-function MoneyRequestReportNavigationInner({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections();
+function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, allReports, isSearchLoading, lastSearchQuery}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
 
     const liveCurrentIndex = allReports.indexOf(reportID);
@@ -140,6 +147,8 @@ function MoneyRequestReportNavigationInner({reportID, shouldDisplayNarrowVersion
         });
         Navigation.setParams({
             reportID: reportId,
+            reportActionID: undefined,
+            referrer: undefined,
         });
     };
 
@@ -192,19 +201,43 @@ function MoneyRequestReportNavigationInner({reportID, shouldDisplayNarrowVersion
     );
 }
 
+// All Onyx subscriptions via useSearchSections. Mounts if there are no sorted report IDs in the context.
+function MoneyRequestReportNavigationStandalone({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
+    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections();
+
+    return (
+        <MoneyRequestReportNavigationContent
+            reportID={reportID}
+            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+            allReports={allReports}
+            isSearchLoading={isSearchLoading}
+            lastSearchQuery={lastSearchQuery}
+        />
+    );
+}
+
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
+    // Guard: only mount inner tree when snapshot confirms multiple expense reports
     const [isExpenseReportSearch] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {selector: selectIsExpenseReportSearch});
     const [hash] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {selector: selectQueryHash});
     const snapshotGuardSelector = buildSnapshotGuardSelector(reportID);
     const [snapshotGuard = EMPTY_GUARD] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {selector: snapshotGuardSelector});
+
+    // Fast-path hooks (always called to satisfy rules of hooks)
+    const {sortedReportIDs} = useSearchResultsContext();
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const searchLoadingSelector = (data: OnyxEntry<SearchResults>) => !!data?.search?.isLoading;
+    const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {
+        selector: searchLoadingSelector,
+    });
+    const allReports = useFilterPendingDeleteReports(sortedReportIDs);
 
     const isLiveGuardSatisfied = isExpenseReportSearch && snapshotGuard.hasMultiple && snapshotGuard.includesReport;
 
     // Once the live snapshot has satisfied the guard during this mount, keep the inner component
     // mounted even if the guard later flips false (e.g. the current report is removed from the
     // snapshot after approving it). The inner component falls back to a cached list so the
-    // carousel stays visible for continued navigation. setState during render is the React-
-    // recommended pattern for storing information from previous renders.
+    // carousel stays visible for continued navigation.
     const [shouldKeepMounted, setShouldKeepMounted] = useState(false);
     if (isLiveGuardSatisfied && !shouldKeepMounted) {
         setShouldKeepMounted(true);
@@ -214,8 +247,22 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         return null;
     }
 
+    // Fast path: use pre-computed IDs from context when available and no pagination is in flight.
+    // During pagination fall back to full subscription so new pages are reflected immediately.
+    if (allReports.length > 0 && !isSearchLoading) {
+        return (
+            <MoneyRequestReportNavigationContent
+                reportID={reportID}
+                shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                allReports={allReports}
+                isSearchLoading={isSearchLoading}
+                lastSearchQuery={lastSearchQuery}
+            />
+        );
+    }
+
     return (
-        <MoneyRequestReportNavigationInner
+        <MoneyRequestReportNavigationStandalone
             reportID={reportID}
             shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
         />

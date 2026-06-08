@@ -32,7 +32,7 @@ function useSearchResults<TValue>(
     const result = sortData(filtered);
 
     useEffect(() => {
-        if (prevData.length <= CONST.SEARCH_ITEM_LIMIT || data.length > CONST.SEARCH_ITEM_LIMIT) {
+        if (prevData.length < CONST.STANDARD_LIST_ITEM_LIMIT || data.length >= CONST.STANDARD_LIST_ITEM_LIMIT) {
             return;
         }
         setInputValue('');

@@ -47,7 +47,6 @@ describe('ValueSelectionList', () => {
         );
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(items.at(-1)?.value);
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBeUndefined();
-        expect(selectionListProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
     });
 

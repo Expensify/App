@@ -28,13 +28,18 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: false,
+    }),
+    useSearchResultsContext: () => ({
         currentSearchResults: undefined,
     }),
-    useSearchActionsContext: () => ({
+    useSearchQueryContext: () => ({
+        currentSearchKey: undefined,
+    }),
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         selectAllMatchingItems: jest.fn(),
     }),
@@ -72,7 +77,10 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         reportID: 'report1',
         policyID: 'policy1',
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
+        canPay: false,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
         total: 100,
         currency: 'USD',
         chatReportID: undefined,

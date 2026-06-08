@@ -1,10 +1,13 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
@@ -37,7 +40,8 @@ function IOURequestStepAttendees({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, currentUserPersonalDetails));
+    const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
+    const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const previousAttendees = usePrevious(attendees);
@@ -46,15 +50,16 @@ function IOURequestStepAttendees({
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {isOffline} = useNetwork();
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
             return;
         }
         if (!deepEqual(previousAttendees, attendees)) {
-            setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
                 updateMoneyRequestAttendees({
                     transactionID,
@@ -69,7 +74,11 @@ function IOURequestStepAttendees({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    isOffline,
+                    delegateAccountID,
                 });
+            } else {
+                setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             }
         }
 
@@ -90,6 +99,8 @@ function IOURequestStepAttendees({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        isOffline,
+        delegateAccountID,
     ]);
 
     const navigateBack = () => {

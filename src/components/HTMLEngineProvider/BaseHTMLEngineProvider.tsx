@@ -8,6 +8,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
+import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     /** Whether text elements should be selectable */
@@ -200,6 +201,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'sparkles-icon',
                 contentModel: HTMLContentModel.mixed,
             }),
+            ...VICTORY_HTML_ELEMENT_MODELS,
         }),
         [
             styles.taskTitleMenuItem,

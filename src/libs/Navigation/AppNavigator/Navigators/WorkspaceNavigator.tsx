@@ -7,6 +7,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TabNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import createWorkspaceNavigator from '@navigation/AppNavigator/createWorkspaceNavigator';
+import DomainsListPage from '@pages/domain/DomainsListPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -42,6 +43,10 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamL
             <Stack.Screen
                 name={SCREENS.WORKSPACES_LIST}
                 component={WorkspacesListPage}
+            />
+            <Stack.Screen
+                name={SCREENS.DOMAINS_LIST}
+                component={DomainsListPage}
             />
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}

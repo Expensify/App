@@ -28,7 +28,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useDebouncedValue from '@hooks/useDebouncedValue';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
+import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -58,13 +58,14 @@ import {
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getConnectedHRProvider} from '@libs/HRUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
     getConnectionExporters,
@@ -72,8 +73,10 @@ import {
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
+    shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -160,6 +163,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
+    // Group policies (Collect/Control + Submit) allow member management.
+    const canManageMembers = isGroupPolicy(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
@@ -168,7 +173,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
@@ -214,9 +218,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
         return translate('workspace.people.removeMembersPrompt', {
             count: selectedEmployees.length,
-            memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], currentUserAccountID}).at(0)?.displayName ?? ''),
+            memberName: formatPhoneNumber(newGetPersonalDetailsByIDs([firstSelectedEmployeeAccountID], personalDetails).at(0)?.displayName ?? ''),
         });
-    }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, currentUserAccountID]);
+    }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
     /**
      * Get members for the current workspace
      */
@@ -376,8 +380,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
+            if (!isPolicyAdmin || !canManageMembers) {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
@@ -385,7 +389,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
             });
         },
-        [isPolicyAdmin, policy, policyID, route.params.policyID],
+        [isPolicyAdmin, canManageMembers, policyID, route.params.policyID],
     );
 
     /**
@@ -414,6 +418,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
     const filteredMembers = useMemo(() => {
+        const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
         const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
 
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
@@ -432,10 +437,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            if (isExpensifyTeam(details?.login ?? details?.displayName)) {
-                if (policyOwner && currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
-                    continue;
-                }
+            if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
+                continue;
             }
 
             result.push({email, policyEmployee, accountID, details});
@@ -460,6 +463,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 roleBadgeText = translate('common.admin');
             } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
                 roleBadgeText = translate('common.auditor');
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.EDITOR) {
+                roleBadgeText = translate('common.editor');
             }
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
             const memberEmail = formatPhoneNumber(details?.login ?? '');
@@ -617,7 +622,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         clearInviteDraft(route.params.policyID);
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
 
-    useGustoSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
 
     const headerMessage = useMemo(() => {
         if (isOfflineAndNoMemberDataAvailable) {
@@ -628,13 +633,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, [isLoading, policy?.employeeList, translate, isOfflineAndNoMemberDataAvailable]);
 
     const memberCount = data.filter((member) => member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
-    const hasGustoConnection = !!policy?.connections?.gusto;
-    const shouldShowGustoSyncLink = isPolicyAdmin && hasGustoConnection;
-    const isGustoSyncInProgress =
-        hasGustoConnection && connectionSyncProgress?.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO && isConnectionInProgress(connectionSyncProgress, policy);
+    const connectedHRProvider = getConnectedHRProvider(policy);
+    const shouldShowHRSyncLink = isPolicyAdmin && !!connectedHRProvider;
+    const isMergeHRSyncInProgress =
+        connectedHRProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR &&
+        policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING;
+    const isHRSyncInProgress =
+        shouldShowHRSyncLink &&
+        (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowSearchBar = memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const prevMemberCount = usePrevious(memberCount);
+    useEffect(() => {
+        if (prevMemberCount < CONST.STANDARD_LIST_ITEM_LIMIT || memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT) {
+            return;
+        }
+        setInputValue('');
+    }, [memberCount, prevMemberCount, setInputValue]);
     const debouncedFilteredData = useDebouncedValue(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const isFilteringMembers = filteredData?.length < debouncedFilteredData?.length;
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
@@ -679,16 +695,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
                 <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
                     {translate('workspace.people.workspaceMembersCount', memberCount)}
-                    {shouldShowGustoSyncLink && '. '}
-                    {shouldShowGustoSyncLink && (
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>{translate('workspace.people.configureGustoSync')}</TextLink>
+                    {shouldShowHRSyncLink && '. '}
+                    {shouldShowHRSyncLink && (
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>
+                            {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
+                        </TextLink>
                     )}
                 </Text>
-                {shouldShowGustoSyncLink && isGustoSyncInProgress && (
+                {shouldShowHRSyncLink && isHRSyncInProgress && (
                     <ActivityIndicator
                         size="small"
                         style={styles.ml2}
-                        reasonAttributes={{context: 'WorkspaceMembersPage.gustoSync'}}
+                        reasonAttributes={{context: 'WorkspaceMembersPage.hrSync'}}
                     />
                 )}
             </View>
@@ -887,20 +905,21 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             },
         ];
 
-        if (hasGustoConnection) {
+        const hrProvider = getConnectedHRProvider(policy);
+        if (hrProvider) {
             menuItems.push({
                 icon: icons.Sync,
-                text: translate('workspace.people.syncWithGusto'),
+                text: translate('workspace.people.syncWithHR', hrProvider.displayName),
                 onSelected: () => {
                     if (isOffline) {
                         close(showRequiresInternetModal);
                         return;
                     }
 
-                    close(() => syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO));
+                    close(() => syncConnection(policy, hrProvider.connectionName));
                 },
-                value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_GUSTO,
-                disabled: isGustoSyncInProgress,
+                value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_HR,
+                disabled: isHRSyncInProgress,
             });
         }
 
@@ -916,8 +935,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policyID,
         showLockedAccountModal,
         showRequiresInternetModal,
-        hasGustoConnection,
-        isGustoSyncInProgress,
+        isHRSyncInProgress,
         policy,
     ]);
 
@@ -1023,6 +1041,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             onBackButtonPress={() => {
                 if (isMobileSelectionModeEnabled) {
                     setSelectedEmployees([]);

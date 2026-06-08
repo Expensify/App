@@ -88,6 +88,9 @@ type SelectedTransactionInfo = {
     reportAction?: ReportAction;
 
     report?: Report;
+
+    /** The group key this transaction belongs to when in a grouped view */
+    groupKey?: string;
 };
 
 /** Model of selected transactions */
@@ -98,7 +101,10 @@ type SelectedReports = {
     reportID: string | undefined;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
-    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
+    canPay: boolean;
+    canApprove: boolean;
+    canSubmit: boolean;
+    canChangeApprover: boolean;
     total: number;
     currency?: string;
     chatReportID: string | undefined;
@@ -166,40 +172,56 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
 
-type SearchContextData = {
+type SearchQueryContextValue = {
     currentSearchHash: number;
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
+    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
+    shouldResetSearchQuery: boolean;
+};
+
+type SearchQueryActionsValue = {
+    setShouldResetSearchQuery: (shouldReset: boolean) => void;
+};
+
+type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
+    /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
+    shouldUseLiveData: boolean;
+    sortedReportIDs: ReadonlyArray<string | undefined>;
+    shouldShowFiltersBarLoading: boolean;
+    lastSearchType: string | undefined;
+};
+
+type SearchResultsActionsValue = {
+    setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;
+    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
+    setLastSearchType: (type: string | undefined) => void;
+};
+
+type SearchSelectionContextValue = {
     currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
-    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
-    isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
-    shouldResetSearchQuery: boolean;
     /** True when at least one transaction is selected. */
     hasSelectedTransactions: boolean;
-};
-
-type SearchStateContextValue = SearchContextData & {
-    currentSearchResults: SearchResults | undefined;
-    /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
-    shouldUseLiveData: boolean;
-    shouldShowFiltersBarLoading: boolean;
-    lastSearchType: string | undefined;
-    shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
 };
 
-type SearchActionsContextValue = {
-    /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
+type SearchSelectionActionsValue = {
+    /**
+     * If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise.
+     * The optional `data` argument lets callers atomically update `selectedReports` in the same commit
+     * to avoid a transient render where the two pieces of state are out of sync.
+     */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+        (selectedTransactions: SelectedTransactions, data?: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
+    setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {
@@ -207,12 +229,14 @@ type SearchActionsContextValue = {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
-    setLastSearchType: (type: string | undefined) => void;
-    setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
-    setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
+
+/** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
+type SearchStateContextValue = SearchQueryContextValue & SearchResultsContextValue & SearchSelectionContextValue;
+
+/** Composed value of all three Search actions contexts. See `SearchStateContextValue`. */
+type SearchActionsContextValue = SearchQueryActionsValue & SearchResultsActionsValue & SearchSelectionActionsValue;
 
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
@@ -401,7 +425,12 @@ export type {
     SortOrder,
     SearchStateContextValue,
     SearchActionsContextValue,
-    SearchContextData,
+    SearchQueryContextValue,
+    SearchQueryActionsValue,
+    SearchResultsContextValue,
+    SearchResultsActionsValue,
+    SearchSelectionContextValue,
+    SearchSelectionActionsValue,
     ASTNode,
     QueryFilter,
     QueryFilters,
