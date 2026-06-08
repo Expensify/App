@@ -7341,6 +7341,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
                 describeRuleTitle: 'Descrivi la tua regola',
                 describeRuleSubtitle: 'Descrivi la tua regola e Concierge la creerà',
+                disclaimer: 'Concierge può commettere errori.',
             },
         },
         planTypePage: {

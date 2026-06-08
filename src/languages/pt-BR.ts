@@ -7314,6 +7314,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 deleteRuleConfirmation: 'Tem certeza de que quer excluir esta regra?',
                 describeRuleTitle: 'Descreva sua regra',
                 describeRuleSubtitle: 'Descreva sua regra e a Concierge vai criá-la',
+                disclaimer: 'A Concierge pode cometer erros.',
             },
         },
         planTypePage: {
