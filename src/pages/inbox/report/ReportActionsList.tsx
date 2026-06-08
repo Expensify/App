@@ -495,9 +495,10 @@ function ReportActionsList({
         if (prevActionTargetIndex < 0 || actionBadgeTargetIndex >= prevActionTargetIndex) {
             return;
         }
-        requestAnimationFrame(() => {
-            scrollToActionBadgeTarget();
-        });
+        // The submit/approve/pay button plays a success animation (hide delay -> button exit -> height collapse) on the resolved
+        // preview. Wait for it to finish before scrolling to the next actionable preview so the list doesn't move mid-animation.
+        const scrollTimeoutID = setTimeout(scrollToActionBadgeTarget, CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY + CONST.ANIMATION_THUMBS_UP_DURATION * 2);
+        return () => clearTimeout(scrollTimeoutID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [actionTargetReportActionID]);
 
