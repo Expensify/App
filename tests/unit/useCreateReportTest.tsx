@@ -30,7 +30,7 @@ jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
 jest.mock('@libs/PolicyUtils', () => ({
     getDefaultChatEnabledPolicy: jest.fn((policies: Array<OnyxEntry<Policy>>, activePolicy: OnyxEntry<Policy>) => {
         // Mirror the real helper: prefer activePolicy if it's a paid group with chat enabled, otherwise the single non-personal candidate.
-        if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && (activePolicy.type === 'team' || activePolicy.type === 'corporate')) {
+        if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && (activePolicy.type === 'team' || activePolicy.type === 'corporate' || activePolicy.type === 'submit2026')) {
             return activePolicy;
         }
         if (policies.length === 1) {
@@ -39,6 +39,7 @@ jest.mock('@libs/PolicyUtils', () => ({
         return undefined;
     }),
     isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate'),
+    isGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate' || policy?.type === 'submit2026'),
 }));
 
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()));
@@ -73,6 +74,13 @@ function makePaidPolicy(id = POLICY_ID): OnyxEntry<Policy> {
         ownerAccountID: 1,
         outputCurrency: 'USD',
         employeeList: {},
+    } as OnyxEntry<Policy>;
+}
+
+function makeSubmitPolicy(id = POLICY_ID): OnyxEntry<Policy> {
+    return {
+        ...makePaidPolicy(id),
+        type: CONST.POLICY.TYPE.SUBMIT,
     } as OnyxEntry<Policy>;
 }
 
@@ -201,6 +209,31 @@ describe('useCreateReport', () => {
             });
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy('p1'), makePaidPolicy('p2'), makePaidPolicy('p3')];
+
+            const {result} = renderHook(() =>
+                useCreateReport({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: policies,
+                }),
+            );
+
+            act(() => {
+                result.current.createReport();
+            });
+
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(onCreateReport).toHaveBeenCalledWith(false);
+        });
+
+        it('does NOT show selector when default is a Submit workspace, even with 2+ Submit workspaces', () => {
+            // Regression: a Submit workspace is a valid non-personal default, so creating a report
+            // should go straight to it instead of opening the workspace selector.
+            setupUseOnyx({
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'p1',
+                [`${ONYXKEYS.COLLECTION.POLICY}p1`]: makeSubmitPolicy('p1'),
+            });
+            const onCreateReport = jest.fn();
+            const policies = [makeSubmitPolicy('p1'), makeSubmitPolicy('p2')];
 
             const {result} = renderHook(() =>
                 useCreateReport({
