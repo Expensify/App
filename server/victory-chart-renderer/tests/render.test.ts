@@ -39,7 +39,7 @@ function runBinary(chartXML: string, outPath: string) {
 }
 
 test('golden fixture suite includes all expected charts', () => {
-    expect(FIXTURE_NAMES.length).toBe(4);
+    expect(FIXTURE_NAMES.length).toBe(5);
 });
 
 for (const fixtureName of FIXTURE_NAMES) {

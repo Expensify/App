@@ -17,6 +17,7 @@ const FIXTURE_NAMES = readdirSync(fixturesDir)
 const FIXTURE_EXPECTED_SIZES = new Map<string, {width: number; height: number}>([
     ['monthly-spend', {width: 680, height: 430}],
     ['top-categories-6', {width: 680, height: 530}],
+    ['top-categories-6-label-indicators', {width: 680, height: 530}],
     ['top-categories-10', {width: 680, height: 610}],
     ['top-employees-by-spend', {width: 680, height: 464}],
 ]);
