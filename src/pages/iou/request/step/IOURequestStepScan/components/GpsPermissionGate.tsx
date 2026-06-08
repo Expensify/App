@@ -31,8 +31,10 @@ function GpsPermissionGate({startLocationPermissionFlow, receiptFiles, resetPerm
             startPermissionFlow={startLocationPermissionFlow}
             resetPermissionFlow={resetPermissionFlow}
             onGrant={() => onComplete(receiptFiles, true)}
-            onDeny={() => {
-                updateLastLocationPermissionPrompt();
+            onDeny={(wasUserInitiated) => {
+                if (wasUserInitiated) {
+                    updateLastLocationPermissionPrompt();
+                }
                 onComplete(receiptFiles, false);
             }}
         />

@@ -230,9 +230,9 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                 shouldHideFixErrorsAlert
                 validate={validate}
             >
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
                 {isSpendRuleVisible && (
                     <>
-                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
                         <ToggleSettingOptionRow
                             title={translate('workspace.card.issueNewCard.addSpendRule')}
                             isActive={spendRuleEnabled}
