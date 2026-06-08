@@ -141,6 +141,8 @@ function IOURequestStepAmount({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(isEditing && transactionID ? [transactionID] : []);
+    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -260,7 +262,7 @@ function IOURequestStepAmount({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participantAccountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 

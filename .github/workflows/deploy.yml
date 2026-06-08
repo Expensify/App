@@ -962,7 +962,6 @@ jobs:
       - name: Upload victory-chart-renderer to GitHub Release
         if: ${{ needs.victoryChartRendererBuild.result == 'success' }}
         run: |
-          test -x ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
           gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
             "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
         env:
