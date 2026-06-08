@@ -49,6 +49,7 @@ import type Report from '@src/types/onyx/Report';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
+import {clearPendingRouterQuery, peekPendingRouterQuery} from './SearchRouterContext';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
@@ -79,11 +80,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
 
+    const initialQuery = peekPendingRouterQuery();
+
     // The actual input text that the user sees
-    const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
+    const [textInputValue, , setTextInputValue] = useDebouncedState(initialQuery, 500);
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(textInputValue);
-    const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
+    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(initialQuery);
+    const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
+
+    useEffect(() => {
+        clearPendingRouterQuery();
+    }, []);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 

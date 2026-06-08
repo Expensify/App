@@ -1,5 +1,6 @@
 import React from 'react';
 import BookTravelButton from '@components/BookTravelButton';
+import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -9,10 +10,11 @@ import CONST from '@src/CONST';
 
 type GetStartedTravelProps = {
     policyID: string;
-    canWriteMoreFeatures: boolean;
+    canWriteTravelFeature: boolean;
+    showReadOnlyModal: () => void;
 };
 
-function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProps) {
+function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: GetStartedTravelProps) {
     const handleCtaPress = () => {};
 
     const {translate} = useLocalize();
@@ -31,7 +33,7 @@ function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProp
             illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
             titleStyles={styles.textHeadlineH1}
             footer={
-                canWriteMoreFeatures ? (
+                canWriteTravelFeature ? (
                     <BookTravelButton
                         text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
                         activePolicyID={policyID}
@@ -39,7 +41,19 @@ function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProp
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
                         large
                     />
-                ) : undefined
+                ) : (
+                    <Button
+                        text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
+                        onPress={showReadOnlyModal}
+                        accessibilityLabel={translate('travel.bookTravel')}
+                        style={styles.w100}
+                        innerStyles={styles.buttonOpacityDisabled}
+                        hoverStyles={styles.buttonOpacityDisabled}
+                        success
+                        large
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
+                    />
+                )
             }
         />
     );

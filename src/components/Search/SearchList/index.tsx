@@ -28,7 +28,7 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
+import {getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -432,8 +432,6 @@ function SearchList({
             const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
             const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
-            // Apply selection lazily per row so we don't rebuild a list-wide wrapper structure on every render.
-            const {itemWithSelection} = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
 
             return (
                 <Animated.View
@@ -449,7 +447,7 @@ function SearchList({
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
-                        item={itemWithSelection}
+                        item={item}
                         columns={columns}
                         isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         isDisabled={isDisabled}
@@ -491,7 +489,6 @@ function SearchList({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,
-            selectedTransactions,
             ListFooterComponent,
             isAttendeesEnabledForMovingPolicy,
             handleUndelete,

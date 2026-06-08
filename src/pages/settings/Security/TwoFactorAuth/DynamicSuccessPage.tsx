@@ -16,7 +16,7 @@ import {openLink} from '@userActions/Link';
 import {clearTwoFactorAuthData, quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SuccessPageBase from './SuccessPageBase';
@@ -31,6 +31,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const baseState = getStateFromPath(dynamicBackPath);
     const focusedRoute = baseState ? findFocusedRoute(baseState) : undefined;
     const isUSDBankAccountFlow = focusedRoute?.name === SCREENS.REIMBURSEMENT_ACCOUNT;
+    const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
@@ -57,6 +58,17 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const onButtonPress = () => {
         if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
             closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
+            return;
+        }
+        // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it
+        // back to the Security screen. The USD bank account and Xero flows fall through to goBack() so they still
+        // return to their own entry points.
+        if (isSecuritySettingsFlow) {
+            Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
+            // Pass clearProgress=true to also reset twoFactorAuthSetupInProgress. Replacing the success screen with the
+            // Enabled page keeps the TWO_FACTOR_AUTH modal mounted, so RightModalNavigator's beforeRemove cleanup never
+            // runs here; without this the require-2FA overlay would persist for users who haven't finished guided setup.
+            clearTwoFactorAuthData(true);
             return;
         }
         goBack();

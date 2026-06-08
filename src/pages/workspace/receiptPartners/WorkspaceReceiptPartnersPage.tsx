@@ -61,7 +61,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {asset: ReceiptPartners} = useMemoizedLazyAsset(() => loadIllustration('ReceiptPartners' as IllustrationName));
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
-    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
@@ -200,15 +200,23 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 />
                             </View>
                         );
-                    } else if (canWriteMoreFeatures) {
+                    } else {
                         rightComponent = (
                             <Button
-                                onPress={() => startIntegrationFlow({name: integration})}
+                                onPress={() => {
+                                    if (!canWriteMoreFeatures) {
+                                        showReadOnlyModal();
+                                        return;
+                                    }
+                                    startIntegrationFlow({name: integration});
+                                }}
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
+                                innerStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
+                                hoverStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                                 small
                                 isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
-                                isDisabled={isOffline}
+                                isDisabled={canWriteMoreFeatures && isOffline}
                             />
                         );
                     }
@@ -258,6 +266,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         policy?.isLoadingReceiptPartners,
         isOffline,
         startIntegrationFlow,
+        showReadOnlyModal,
     ]);
 
     return (
@@ -323,7 +332,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     onToggle={toggleWorkspaceUberAutoInvite}
                                                     isActive={isAutoInvite}
                                                     disabled={!canWriteMoreFeatures}
-                                                    disabledAction={showReadOnlyModal}
+                                                    disabledAction={withReadOnlyFallback()}
                                                     showLockIcon={!canWriteMoreFeatures}
                                                 />
                                             </View>
@@ -337,7 +346,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     onToggle={toggleWorkspaceUberAutoRemove}
                                                     isActive={isAutoRemove}
                                                     disabled={!canWriteMoreFeatures}
-                                                    disabledAction={showReadOnlyModal}
+                                                    disabledAction={withReadOnlyFallback()}
                                                     showLockIcon={!canWriteMoreFeatures}
                                                 />
                                             </View>
