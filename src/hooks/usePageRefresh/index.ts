@@ -23,9 +23,7 @@ const usePageRefresh: UsePageRefresh = () => {
             // not fix the problem. When online, clear the service worker cache so the next load
             // fetches a fresh app shell from the CDN. When offline we must not clear it: the
             // cached shell is the only thing keeping the PWA usable until connectivity returns.
-            clearWorkboxRecoveryCaches()
-                .catch(() => undefined)
-                .then(() => window.location.reload());
+            clearWorkboxRecoveryCaches().then(() => window.location.reload());
         } else {
             window.location.reload();
         }
