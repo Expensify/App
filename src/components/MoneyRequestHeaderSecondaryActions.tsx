@@ -149,7 +149,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -242,7 +241,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
             });
         }
