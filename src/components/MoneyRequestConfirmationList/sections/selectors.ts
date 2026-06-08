@@ -22,7 +22,7 @@ type Transaction = OnyxTypes.Transaction;
 
 // --- DateField ---
 
-type DateState = {iouCreated: string; isMissing: boolean};
+type DateState = {iouCreated: string; isMissing: boolean; hasReceipt: boolean};
 
 const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => {
     if (!t) {
@@ -31,6 +31,7 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
     return {
         iouCreated: getCreated(t),
         isMissing: isCreatedMissing(t),
+        hasReceipt: hasReceipt(t),
     };
 };
 

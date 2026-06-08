@@ -23,7 +23,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -45,7 +44,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -307,7 +306,6 @@ function Search({
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const isActionLoadingSet = useActionLoadingReportIDs();
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -328,10 +326,6 @@ function Search({
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
-    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: selectFilteredReportActions,
-    });
-
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // Only the boolean derived from policyForMovingExpenses is consumed by row components downstream.
     // Drilling the policy object causes ref churn on every unrelated policy update (Pusher pushes).
@@ -346,7 +340,6 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const reportAttributesDerivedValue = useReportAttributes();
     const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
@@ -558,7 +551,6 @@ function Search({
             formatPhoneNumber,
             bankAccountList,
             groupBy: validGroupBy,
-            reportActions: exportReportActions,
             currentSearch: currentSearchKey,
             archivedReportsIDList: archivedReportsIdSet,
             queryJSON,
@@ -568,11 +560,9 @@ function Search({
             isOffline,
             allTransactionViolations: violations,
             customCardNames,
-            allReportMetadata,
             conciergeReportID,
             onyxPersonalDetailsList,
             policyForMovingExpenses,
-            reportAttributesDerivedValue,
             convertToDisplayString,
             optimisticTransactionID: optimisticTrackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, ''),
         });
@@ -585,7 +575,6 @@ function Search({
     }, [
         currentSearchKey,
         isOffline,
-        exportReportActions,
         validGroupBy,
         isDataLoaded,
         shouldDeferHeavySearchWork,
@@ -605,11 +594,9 @@ function Search({
         bankAccountList,
         violations,
         customCardNames,
-        allReportMetadata,
         conciergeReportID,
         onyxPersonalDetailsList,
         policyForMovingExpenses,
-        reportAttributesDerivedValue,
         convertToDisplayString,
         optimisticTrackingState.optimisticWatchKey,
     ]);
@@ -646,7 +633,6 @@ function Search({
                 formatPhoneNumber,
                 isActionLoadingSet,
                 cardFeeds,
-                allReportMetadata,
                 conciergeReportID,
                 convertToDisplayString,
             });
@@ -670,7 +656,6 @@ function Search({
         isActionLoadingSet,
         cardFeeds,
         bankAccountList,
-        allReportMetadata,
         conciergeReportID,
         convertToDisplayString,
     ]);
