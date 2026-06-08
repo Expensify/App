@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -43,6 +44,10 @@ import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/Sear
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
+
+const PROPOSAL_A_FOCUS_GATE = false;
+const PROPOSAL_B_UNMOUNT_ON_BLUR = false;
+const PROPOSAL_C_FREEZE_SECONDARY_ONYX = false;
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
@@ -153,15 +158,17 @@ function SearchAutocompleteList({
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    const isFocused = useIsFocused();
+
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [draftCommentsLive] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [visibleReportActionsDataLive] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedActions = useSortedActions();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -175,7 +182,24 @@ function SearchAutocompleteList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
-    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
+    const [draftCommentsSnapshot, setDraftCommentsSnapshot] = useState(draftCommentsLive);
+    const [visibleReportActionsDataSnapshot, setVisibleReportActionsDataSnapshot] = useState(visibleReportActionsDataLive);
+    if (PROPOSAL_C_FREEZE_SECONDARY_ONYX && isFocused) {
+        if (draftCommentsSnapshot !== draftCommentsLive) {
+            setDraftCommentsSnapshot(draftCommentsLive);
+        }
+        if (visibleReportActionsDataSnapshot !== visibleReportActionsDataLive) {
+            setVisibleReportActionsDataSnapshot(visibleReportActionsDataLive);
+        }
+    }
+    const draftComments = PROPOSAL_C_FREEZE_SECONDARY_ONYX ? draftCommentsSnapshot : draftCommentsLive;
+    const visibleReportActionsData = PROPOSAL_C_FREEZE_SECONDARY_ONYX ? visibleReportActionsDataSnapshot : visibleReportActionsDataLive;
+
+    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({
+        enabled: PROPOSAL_A_FOCUS_GATE ? isFocused : true,
+        isSearching: !!autocompleteQueryValue.trim(),
+        betas: betas ?? [],
+    });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -667,6 +691,14 @@ function SearchAutocompleteList({
 
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
-export default React.memo(SearchAutocompleteList);
+function SearchAutocompleteListWithFocusGate(props: SearchAutocompleteListProps) {
+    const isFocused = useIsFocused();
+    if (PROPOSAL_B_UNMOUNT_ON_BLUR && !isFocused) {
+        return null;
+    }
+    return <SearchAutocompleteList {...props} />;
+}
+
+export default React.memo(SearchAutocompleteListWithFocusGate);
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};
