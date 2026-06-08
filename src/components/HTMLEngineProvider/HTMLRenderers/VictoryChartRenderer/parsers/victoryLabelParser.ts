@@ -6,6 +6,7 @@ import parseAttribute, {
     parseAttributeAsNumberArray,
     parseAttributeAsString,
 } from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseTextAnchor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseTextAnchor';
 
 /**
  * Parse label config from a `<victorylabel>` node.
@@ -21,8 +22,8 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
         fontFamily: {},
         fontStyle: {},
         lineHeight: parseAttributeAsNumberArray(tnode.attributes.lineheight),
-        textAnchor: parseAttribute<TextAnchor>(tnode.attributes.textanchor),
-        verticalAnchor: parseAttribute<TextAnchor>(tnode.attributes.verticalanchor),
+        textAnchor: parseTextAnchor(tnode.attributes.textanchor),
+        verticalAnchor: parseTextAnchor(tnode.attributes.verticalanchor),
     };
 
     const style = parseAttribute(tnode.attributes.style);
