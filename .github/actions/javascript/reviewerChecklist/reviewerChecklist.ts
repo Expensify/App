@@ -99,6 +99,11 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
 // This workflow re-runs on every pull_request_review event, so we scan the whole review history: once an internal approval
 // stands, a later "commented" or "changes requested" review from anyone must not re-require the checklist.
 async function hasStandingInternalApproval(orgToken: string): Promise<boolean> {
+    // Fork-triggered runs don't receive org secrets, so we can't verify engineering-team membership and must fall back to requiring the checklist.
+    if (!orgToken) {
+        return false;
+    }
+
     const {owner, repo} = github.context.repo;
     const reviews = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listReviews, {
         owner,
@@ -135,7 +140,7 @@ async function hasStandingInternalApproval(orgToken: string): Promise<boolean> {
     return false;
 }
 
-hasStandingInternalApproval(core.getInput('OS_BOTIFY_TOKEN', {required: true}))
+hasStandingInternalApproval(core.getInput('OS_BOTIFY_TOKEN'))
     .then((isApproved) => {
         if (isApproved) {
             console.log('PR has a standing approval from an internal Expensify engineer, so the reviewer checklist is not required 🎉');
