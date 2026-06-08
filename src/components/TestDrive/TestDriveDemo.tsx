@@ -105,17 +105,19 @@ function TestDriveDemo() {
     const closeModal = useCallback(() => {
         setIsVisible(false);
         TransitionTracker.runAfterTransitions({
-            callback: () => Navigation.goBack(undefined, {waitForTransition: true}),
+            callback: () => {
+                Navigation.goBack(undefined);
+
+                if (shouldOpenRHPVariant()) {
+                    Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
+                    return;
+                }
+                if (isAdminRoom(onboardingReport)) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
+                }
+            },
             waitForUpcomingTransition: true,
         });
-
-        if (shouldOpenRHPVariant()) {
-            Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
-            return;
-        }
-        if (isAdminRoom(onboardingReport)) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID), {waitForTransition: true});
-        }
     }, [onboardingReport]);
 
     return (
