@@ -3,6 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
@@ -108,10 +109,10 @@ function useAutoCreateTrackWorkspace() {
 
                 if (isSidePanelReportSupported) {
                     rhpVariant = extractRHPVariantFromResponse(response);
-                    // TRACK_PERSONAL should also navigate to concierge in RHP, same as TRACK_BUSINESS.
-                    // The backend only returns trackExpensesWithConcierge for TRACK_WORKSPACE (TRACK_BUSINESS),
-                    // so we fall back to it for TRACK_PERSONAL when the backend doesn't set it.
-                    if (!rhpVariant && onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                    // Every Track onboarding choice should land in the Concierge RHP, but the backend
+                    // doesn't reliably return trackExpensesWithConcierge for all of them, so fall back to it
+                    // whenever the response omits a variant.
+                    if (!rhpVariant && isTrackOnboardingChoice(onboardingPurposeSelected)) {
                         rhpVariant = CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
                     }
                 }
