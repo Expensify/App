@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AnnouncementSection from './AnnouncementSection';
-import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
@@ -24,6 +23,7 @@ import GettingStartedSection from './GettingStartedSection';
 import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
+import YourSpendSection from './YourSpendSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -72,7 +72,7 @@ function HomePage() {
                                     <GettingStartedSection />
                                     <ForYouSection />
                                     <UpcomingTravelSection />
-                                    <AssignedCardsSection />
+                                    <YourSpendSection />
                                     <SpendOverTimeSection />
                                     <DiscoverSection />
                                     <AnnouncementSection />
@@ -89,7 +89,7 @@ function HomePage() {
                                         <FreeTrialSection />
                                         <GettingStartedSection />
                                         <UpcomingTravelSection />
-                                        <AssignedCardsSection />
+                                        <YourSpendSection />
                                         <AnnouncementSection />
                                     </View>
                                 </>

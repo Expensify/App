@@ -23,10 +23,6 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
 
-type ComposerInputProps = {
-    reportID: string;
-};
-
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
 function getRandomPlaceholder(translate: LocalizedTranslate): string {
@@ -34,7 +30,8 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
     return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
 }
 
-function ComposerInput({reportID}: ComposerInputProps) {
+function ComposerInput() {
+    const {reportID} = useComposerState();
     const {translate, preferredLocale} = useLocalize();
     const {isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();

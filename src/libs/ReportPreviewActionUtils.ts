@@ -9,6 +9,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
+    hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
     isClosedReport,
     isCurrentUserSubmitter,
@@ -39,10 +40,6 @@ function canSubmit(
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
-
-    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -122,7 +119,7 @@ function canPay(
     const isReimbursed = isSettled(report);
 
     const isExported = report.isExportedToIntegration ?? false;
-    const hasExportError = report?.hasExportError ?? false;
+    const hasExportError = hasExportErrorUtil(undefined, report);
     const didExportFail = !isExported && hasExportError;
 
     if (
@@ -177,7 +174,7 @@ function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
         return false;
     }
 
-    const hasExportError = report.hasExportError ?? false;
+    const hasExportError = hasExportErrorUtil(undefined, report);
     if (syncEnabled && !hasExportError) {
         return false;
     }

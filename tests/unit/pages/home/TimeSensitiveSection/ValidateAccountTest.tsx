@@ -1,3 +1,4 @@
+import type * as NativeNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
@@ -8,6 +9,11 @@ import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useFocusEffect: jest.fn(),
+}));
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key)})));
 

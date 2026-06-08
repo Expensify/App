@@ -87,7 +87,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterGroup);
 
-    const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const shouldShowEmptySearchMessage = shouldShowSearchBar && inputValue.length > 0 && filteredData.length === 0;
 
     const listHeaderContent = shouldShowSearchBar ? (

@@ -1,11 +1,13 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
 import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import type {ValueOf} from 'type-fest';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import useOnyx from '@hooks/useOnyx';
-import type CONST from '@src/CONST';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletStatementProps} from './types';
 import handleWalletStatementNavigation from './walletNavigationUtils';
@@ -14,9 +16,8 @@ type WebViewMessageType = ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>;
 
 type WebViewNavigationEvent = WebViewNavigation & {type?: WebViewMessageType};
 
-const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={{context: 'WalletStatementModal'}} />;
-
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
+    const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -26,6 +27,15 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const webViewRef = useRef<WebView>(null);
 
     const authToken = session?.authToken ?? null;
+
+    const renderLoading = () => (
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                reasonAttributes={{context: 'WalletStatementModal'}}
+            />
+        </View>
+    );
 
     const onMessage = (event: WebViewMessageEvent) => {
         let parsedData: WebViewNavigationEvent | null = null;

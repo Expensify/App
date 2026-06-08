@@ -12,6 +12,7 @@ import {
     DERIVED_MERGE_FIELDS,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
+    getTransactionThreadReportID,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
@@ -53,6 +54,21 @@ function setMergeTransactionKey(transactionID: string, values: MergeTransactionU
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
+type TargetTransactionThreadReportCandidate = {
+    transactionID: string;
+    threadReportID: string;
+};
+
+function getStoredTargetTransactionThreadReportID(transaction: Transaction | undefined, targetTransactionThreadReportCandidate?: TargetTransactionThreadReportCandidate) {
+    if (!transaction) {
+        return undefined;
+    }
+
+    const candidateThreadReportID = targetTransactionThreadReportCandidate?.transactionID === transaction.transactionID ? targetTransactionThreadReportCandidate.threadReportID : undefined;
+
+    return candidateThreadReportID ?? transaction.transactionThreadReportID ?? getTransactionThreadReportID(transaction);
+}
+
 function setupMergeTransactionDataAndNavigate(
     navigationTransactionID: string,
     transactions: Transaction[],
@@ -62,6 +78,7 @@ function setupMergeTransactionDataAndNavigate(
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
     policies?: Array<OnyxEntry<Policy>>,
+    targetTransactionThreadReportCandidate?: TargetTransactionThreadReportCandidate,
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;
@@ -70,7 +87,11 @@ function setupMergeTransactionDataAndNavigate(
     if (transactions.length === 1) {
         const transaction = transactions.at(0);
         if (transaction) {
-            setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
+            const storedTargetTransactionThreadReportID = getStoredTargetTransactionThreadReportID(transaction, targetTransactionThreadReportCandidate);
+            setupMergeTransactionData(navigationTransactionID, {
+                targetTransactionID: transaction.transactionID,
+                targetTransactionThreadReportID: storedTargetTransactionThreadReportID,
+            });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
             return;
         }
@@ -86,7 +107,12 @@ function setupMergeTransactionDataAndNavigate(
         return;
     }
 
-    const setupData = {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID};
+    const storedTargetTransactionThreadReportID = getStoredTargetTransactionThreadReportID(targetTransaction, targetTransactionThreadReportCandidate);
+    const setupData = {
+        targetTransactionID: targetTransaction?.transactionID,
+        sourceTransactionID: sourceTransaction?.transactionID,
+        targetTransactionThreadReportID: storedTargetTransactionThreadReportID,
+    };
     if (isSelectingSourceTransaction) {
         setMergeTransactionKey(navigationTransactionID, setupData);
     } else {
@@ -221,6 +247,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    delegateAccountID,
 }: {
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
@@ -234,6 +261,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    delegateAccountID: number | undefined;
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -260,6 +288,7 @@ function getOnyxTargetTransactionData({
             targetTransactionThreadReport?.reportID,
             filteredTransactionChanges,
             policy,
+            delegateAccountID,
             undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
         );
@@ -280,6 +309,7 @@ function getOnyxTargetTransactionData({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            delegateAccountID,
         });
     }
 
@@ -309,7 +339,7 @@ function getOnyxTargetTransactionData({
                     ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
                 },
                 routes: mergeTransaction.routes ?? null,
-                iouRequestType: mergeTransaction.iouRequestType ?? null,
+                iouRequestType: mergeTransaction.iouRequestType ?? targetTransaction.iouRequestType ?? null,
             },
         });
     }
@@ -332,6 +362,7 @@ type MergeTransactionRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    delegateAccountID: number | undefined;
     selfDMReport: OnyxEntry<Report>;
 };
 /**
@@ -358,6 +389,7 @@ function mergeTransactionRequest({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    delegateAccountID,
     selfDMReport,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
@@ -407,6 +439,7 @@ function mergeTransactionRequest({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
+        delegateAccountID,
     });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
@@ -620,6 +653,8 @@ function mergeTransactionRequest({
             participants: [],
             transactionID: mergeTransaction.targetTransactionID,
             iouReportID: mergeTransaction.reportID,
+            // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            delegateAccountIDParam: undefined,
         });
 
         // IOU action for the surviving expense on its original report (not on mergeTransaction.reportID yet).
@@ -699,4 +734,5 @@ function mergeTransactionRequest({
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
+export type {TargetTransactionThreadReportCandidate};
 export {areTransactionsEligibleForMerge, setupMergeTransactionData, setupMergeTransactionDataAndNavigate, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};

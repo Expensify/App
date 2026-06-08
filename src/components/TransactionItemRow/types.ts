@@ -1,6 +1,7 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {CardList, PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -10,7 +11,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     action?: SearchTransactionAction;
 
     /** Function passed to the action button, triggered when the button is pressed */
-    onButtonPress?: () => void;
+    onButtonPress?: (event?: ModifiedMouseEvent) => void;
 
     /** The personal details of the user requesting money */
     from?: PersonalDetails;
@@ -66,22 +67,28 @@ type TransactionItemRowProps = {
     onCheckboxPress?: (transactionID: string) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
-    onButtonPress?: () => void;
+    onButtonPress?: (event?: ModifiedMouseEvent) => void;
     style?: StyleProp<ViewStyle>;
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInSingleTransactionReport?: boolean;
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
+    shouldStopRadioButtonMouseDownPropagation?: boolean;
+    radioButtonContainerStyle?: StyleProp<ViewStyle>;
+    radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
-    onArrowRightPress?: () => void;
+    onArrowRightPress?: (event?: ModifiedMouseEvent) => void;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     reportActions?: ReportAction[];
+    /** Precomputed transaction-thread report ID. When provided, skips the per-row report-actions scan used to derive it
+     * (lets callers that already know the thread mapping avoid O(transactions × actions) work). */
+    transactionThreadReportID?: string;
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
     /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses); drilled instead of the policy object
