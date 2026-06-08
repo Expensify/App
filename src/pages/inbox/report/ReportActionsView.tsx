@@ -176,7 +176,14 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     // data has been loaded at least once. Before the first openReport response,
     // hasOlderActions is unreliable, so we can't determine whether to show the
     // greeting or onboarding messages. The skeleton avoids flashing wrong content.
-    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !isOffline;
+    // hasOnceLoadedReportActions is RAM-only and resets on a page refresh, but
+    // cached report actions persist in Onyx. For the main DM, render those cached
+    // actions immediately (matching production) instead of flashing a skeleton on
+    // every refresh; the side panel always opens fresh so it keeps gating on
+    // hasOnceLoadedReportActions only. allReportActions excludes the synthetic
+    // CREATED action that is always injected for Concierge, so it is empty only on
+    // a genuinely cold load with no cached history.
+    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !(isConciergeMainDM && allReportActions.length > 0) && !isOffline;
 
     const shouldShowSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
 
