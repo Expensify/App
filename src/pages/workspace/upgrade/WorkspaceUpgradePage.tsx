@@ -177,7 +177,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
         if (canAccessSubmitWorkspaceFeatures) {
             const targetType = (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
-            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
+            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
 
