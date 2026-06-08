@@ -161,7 +161,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
     // Group policies (Collect/Control + Submit) allow member management.
     const canManageMembers = isGroupPolicy(policy);
@@ -199,8 +199,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
             return translate(
                 'workspace.people.removeMembersWarningPrompt',
-                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
-                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+                getDisplayNameForParticipant({
+                    accountID: approverAccountID,
+                    formatPhoneNumber,
+                }),
+                getDisplayNameForParticipant({
+                    accountID: policy?.ownerAccountID,
+                    formatPhoneNumber,
+                }),
             );
         }
 
@@ -210,8 +216,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (userExporter) {
             const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
             return translate('workspace.people.removeMemberPromptExporter', {
-                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber}),
-                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+                memberName: getDisplayNameForParticipant({
+                    accountID: exporterAccountID,
+                    formatPhoneNumber,
+                }),
+                workspaceOwner: getDisplayNameForParticipant({
+                    accountID: policy?.ownerAccountID,
+                    formatPhoneNumber,
+                }),
             });
         }
 
@@ -301,7 +313,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const askForConfirmationToRemove = useCallback(async () => {
         const result = await showConfirmModal({
             danger: true,
-            title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
+            title: translate('workspace.people.removeMembersTitle', {
+                count: selectedEmployees.length,
+            }),
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
@@ -419,7 +433,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const filteredMembers = useMemo(() => {
         const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-        const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
+        const result: Array<{
+            email: string;
+            policyEmployee: PolicyEmployee;
+            accountID: number;
+            details: PersonalDetails;
+        }> = [];
 
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
@@ -562,9 +581,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, []);
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
     const roleFilterOptions: WorkspaceMemberFilterOption[] = [
-        {text: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
-        {text: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
-        {text: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
+        {
+            text: translate('workspace.people.allMembers'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.ALL,
+        },
+        {
+            text: translate('workspace.people.admins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+        },
+        {
+            text: translate('workspace.people.approvers'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS,
+        },
     ];
 
     if (isControlPolicy(policy)) {
@@ -794,7 +822,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
+                text: translate('workspace.people.removeMembersTitle', {
+                    count: selectedEmployees.length,
+                }),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
                 onSelected: askForConfirmationToRemove,
@@ -810,20 +840,26 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
 
         const memberOption = {
-            text: translate('workspace.people.makeMember', {count: selectedEmployees.length}),
+            text: translate('workspace.people.makeMember', {
+                count: selectedEmployees.length,
+            }),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
             icon: icons.User,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
         };
         const adminOption = {
-            text: translate('workspace.people.makeAdmin', {count: selectedEmployees.length}),
+            text: translate('workspace.people.makeAdmin', {
+                count: selectedEmployees.length,
+            }),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
             icon: icons.MakeAdmin,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
         };
 
         const auditorOption = {
-            text: translate('workspace.people.makeAuditor', {count: selectedEmployees.length}),
+            text: translate('workspace.people.makeAuditor', {
+                count: selectedEmployees.length,
+            }),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
             icon: icons.UserEye,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
@@ -948,7 +984,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 shouldAlwaysShowDropdownMenu
-                customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
+                customText={translate('workspace.common.selected', {
+                    count: selectedEmployees.length,
+                })}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
@@ -1034,7 +1072,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
-            icon={!selectionModeHeader ? illustrations.ReceiptWrangler : undefined}
+            icon={!selectionModeHeader && !isInLandscapeMode ? illustrations.ReceiptWrangler : undefined}
             headerContent={!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
             testID="WorkspaceMembersPage"
             shouldShowLoading={false}

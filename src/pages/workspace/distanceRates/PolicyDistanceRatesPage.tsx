@@ -130,7 +130,10 @@ function PolicyDistanceRatesPage({
                     }
                     return transactionsData;
                 },
-                {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
+                {
+                    transactionIDs: new Set<string>(),
+                    rateIDToTransactionIDsMap: {} as Record<string, string[]>,
+                },
             );
         },
         [customUnit?.customUnitID, rateIDs, policyReports],
@@ -378,7 +381,9 @@ function PolicyDistanceRatesPage({
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>> = [
             {
-                text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
+                text: translate('workspace.distanceRates.deleteRates', {
+                    count: selectedDistanceRates.length,
+                }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 icon: icons.Trashcan,
                 onSelected: async () => {
@@ -388,7 +393,9 @@ function PolicyDistanceRatesPage({
                     }
                     const {action} = await showConfirmModal({
                         title: translate('workspace.distanceRates.deleteDistanceRate'),
-                        prompt: translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length}),
+                        prompt: translate('workspace.distanceRates.areYouSureDelete', {
+                            count: selectedDistanceRates.length,
+                        }),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
@@ -403,7 +410,9 @@ function PolicyDistanceRatesPage({
         const enabledRates = selectedDistanceRates.filter((rateID) => selectableRates[rateID].enabled);
         if (enabledRates.length > 0) {
             options.push({
-                text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
+                text: translate('workspace.distanceRates.disableRates', {
+                    count: enabledRates.length,
+                }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 icon: icons.Close,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : showWarningModal()),
@@ -413,7 +422,9 @@ function PolicyDistanceRatesPage({
         const disabledRates = selectedDistanceRates.filter((rateID) => !selectableRates[rateID].enabled);
         if (disabledRates.length > 0) {
             options.push({
-                text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
+                text: translate('workspace.distanceRates.enableRates', {
+                    count: disabledRates.length,
+                }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 icon: icons.Checkmark,
                 onSelected: enableRates,
@@ -424,7 +435,11 @@ function PolicyDistanceRatesPage({
     };
 
     const isLoading = !isOffline && customUnit === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PolicyDistanceRatesPage', isOffline, isCustomUnitUndefined: customUnit === undefined};
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'PolicyDistanceRatesPage',
+        isOffline,
+        isCustomUnitUndefined: customUnit === undefined,
+    };
 
     const secondaryActions = useMemo(
         () => [
@@ -467,7 +482,9 @@ function PolicyDistanceRatesPage({
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
-                    customText={translate('workspace.common.selected', {count: selectedDistanceRates.length})}
+                    customText={translate('workspace.common.selected', {
+                        count: selectedDistanceRates.length,
+                    })}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
@@ -516,7 +533,7 @@ function PolicyDistanceRatesPage({
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={!selectionModeHeader ? CarIce : undefined}
+                    icon={!selectionModeHeader && !isInLandscapeMode ? CarIce : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
                     shouldShowBackButton={shouldUseNarrowLayout}

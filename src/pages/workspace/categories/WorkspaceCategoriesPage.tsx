@@ -72,7 +72,7 @@ type WorkspaceCategoriesPageProps =
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
@@ -188,7 +188,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             }
             setWorkspaceCategoryEnabled({
                 policyData,
-                categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
+                categoriesToUpdate: {
+                    [categoryName]: {name: categoryName, enabled: value},
+                },
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
@@ -653,7 +655,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedCategories.length})}
+                    customText={translate('workspace.common.selected', {
+                        count: selectedCategories.length,
+                    })}
                     options={options}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
@@ -693,7 +697,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const isLoading = !isOffline && policyCategories === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceCategoriesPage', isOffline, isPolicyCategoriesUndefined: policyCategories === undefined};
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceCategoriesPage',
+        isOffline,
+        isPolicyCategoriesUndefined: policyCategories === undefined,
+    };
 
     useEffect(() => {
         if (isMobileSelectionModeEnabled) {
@@ -757,7 +765,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                    icon={!selectionModeHeader ? illustrations.FolderOpen : undefined}
+                    icon={!selectionModeHeader && !isInLandscapeMode ? illustrations.FolderOpen : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {

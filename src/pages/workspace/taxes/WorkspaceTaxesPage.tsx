@@ -211,7 +211,11 @@ function WorkspaceTaxesPage({
     const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
 
     const isLoading = !isOffline && taxesList === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceTaxesPage', isOffline, isTaxesListUndefined: taxesList === undefined};
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceTaxesPage',
+        isOffline,
+        isTaxesListUndefined: taxesList === undefined,
+    };
 
     const toggleTax = (tax: ListItem) => {
         const key = tax.keyForList;
@@ -314,7 +318,9 @@ function WorkspaceTaxesPage({
         if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
                 icon: icons.Close,
-                text: translate('workspace.taxes.actions.disableTaxRates', {count: enabledRatesCount}),
+                text: translate('workspace.taxes.actions.disableTaxRates', {
+                    count: enabledRatesCount,
+                }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => toggleTaxes(false),
             });
@@ -324,7 +330,9 @@ function WorkspaceTaxesPage({
         if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
                 icon: icons.Checkmark,
-                text: translate('workspace.taxes.actions.enableTaxRates', {count: disabledRatesCount}),
+                text: translate('workspace.taxes.actions.enableTaxRates', {
+                    count: disabledRatesCount,
+                }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => toggleTaxes(true),
             });
@@ -396,7 +404,9 @@ function WorkspaceTaxesPage({
                 onPress={() => {}}
                 options={dropdownMenuOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
+                customText={translate('workspace.common.selected', {
+                    count: selectedTaxesIDs.length,
+                })}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
@@ -450,7 +460,7 @@ function WorkspaceTaxesPage({
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={!selectionModeHeader ? illustrations.Coins : undefined}
+                    icon={!selectionModeHeader && !isInLandscapeMode ? illustrations.Coins : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
