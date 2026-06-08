@@ -2155,6 +2155,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select` as const;
         },
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/credit-card-default-vendor-select',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/credit-card-default-vendor-select` as const;
+        },
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/card-select',
         getRoute: (policyID: string | undefined, backTo?: string) => {

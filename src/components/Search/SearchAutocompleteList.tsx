@@ -87,6 +87,8 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
+const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
+
 const emptyOptionList = {
     reports: [],
     personalDetails: [],
@@ -380,6 +382,35 @@ function SearchAutocompleteList({
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, searchOptions]);
 
+    // Locked rank map (keyForList -> originalIndex) capturing the order of locally-known
+    // results at the moment the query changes. Recomputed only when the query changes, so server
+    // reports merged into Onyx later do not shift the rows already visible in the top section.
+    const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
+    const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
+
+    const buildRankMap = (options: OptionData[]): Map<string, number> => {
+        const rank = new Map<string, number>();
+        for (const [index, option] of options.entries()) {
+            const key = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
+            if (key) {
+                rank.set(key, index);
+            }
+        }
+        return rank;
+    };
+
+    if (prevAutocompleteQuery !== autocompleteQueryValue) {
+        setPrevAutocompleteQuery(autocompleteQueryValue);
+        if (autocompleteQueryValue.trim() === '') {
+            setFrozenLocalRank(EMPTY_RANK_MAP);
+        } else {
+            setFrozenLocalRank(buildRankMap(recentReportsOptions));
+        }
+    } else if (autocompleteQueryValue.trim() !== '' && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
+        // Options hydrated after the rank was snapshotted as empty — recompute.
+        setFrozenLocalRank(buildRankMap(recentReportsOptions));
+    }
+
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
             return;
@@ -442,37 +473,66 @@ function SearchAutocompleteList({
             } as AutocompleteListItem;
         });
 
-        if (!isLoadingOptions) {
-            pushSection({
-                title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
-                data: nextStyledRecentReports,
-                sectionIndex: sectionIndex++,
-            });
-        } else if (autocompleteQueryValue.trim() !== '' && nextStyledRecentReports.length > 0) {
-            // When options aren't fully initialized but we have a search query with available results,
-            // render them immediately so they're selectable instead of hiding the section entirely.
-            pushSection({
-                data: nextStyledRecentReports,
-                sectionIndex: sectionIndex++,
-            });
-        } else if (autocompleteQueryValue.trim() === '') {
-            pushSection({
-                title: translate('search.recentChats'),
-                data: [],
-                sectionIndex: sectionIndex++,
-                customHeader: (
-                    <OptionsListSkeletonView
-                        fixedNumItems={3}
-                        shouldStyleAsTable
-                        speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                        reasonAttributes={{
-                            context: 'SearchAutocompleteList',
-                            isRecentSearchesDataLoaded,
-                            isLoadingOptions,
-                        }}
-                    />
-                ),
-            });
+        const skeletonHeader = (
+            <OptionsListSkeletonView
+                fixedNumItems={3}
+                shouldStyleAsTable
+                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                reasonAttributes={{
+                    context: 'SearchAutocompleteList',
+                    isRecentSearchesDataLoaded,
+                    isLoadingOptions,
+                }}
+            />
+        );
+
+        if (autocompleteQueryValue.trim() === '') {
+            // Empty query: single "Recent chats" section
+            if (!isLoadingOptions) {
+                pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
+            } else {
+                pushSection({
+                    title: translate('search.recentChats'),
+                    data: [],
+                    sectionIndex: sectionIndex++,
+                    customHeader: skeletonHeader,
+                });
+            }
+        } else {
+            // Active search: split rows into local (frozen order) and server sections.
+            const localRows: AutocompleteListItem[] = [];
+            const serverRows: AutocompleteListItem[] = [];
+            for (const item of nextStyledRecentReports) {
+                if (item.keyForList && frozenLocalRank.has(item.keyForList)) {
+                    localRows.push(item);
+                } else {
+                    serverRows.push(item);
+                }
+            }
+            // Sort the local section by the rank captured at query-change time so it cannot
+            // reorder when the API returns.
+            localRows.sort((a, b) => (frozenLocalRank.get(a.keyForList ?? '') ?? 0) - (frozenLocalRank.get(b.keyForList ?? '') ?? 0));
+
+            if (localRows.length > 0 || !isLoadingOptions) {
+                pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
+            } else {
+                // Options are still loading and no local results matched — show a skeleton so the
+                // user sees feedback instead of a bare section header.
+                pushSection({
+                    title: undefined,
+                    data: [],
+                    sectionIndex: sectionIndex++,
+                    customHeader: skeletonHeader,
+                });
+            }
+
+            if (serverRows.length > 0) {
+                pushSection({
+                    title: translate('search.serverResults'),
+                    data: serverRows,
+                    sectionIndex: sectionIndex++,
+                });
+            }
         }
 
         if (autocompleteSuggestions.length > 0) {
@@ -496,6 +556,7 @@ function SearchAutocompleteList({
         autocompleteQueryValue,
         autocompleteSuggestions,
         expensifyIcons,
+        frozenLocalRank,
         getAdditionalSections,
         recentReportsOptions,
         recentSearchesData,

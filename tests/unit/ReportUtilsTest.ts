@@ -65,6 +65,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canModifyHoldStatus,
     canRejectReportAction,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
@@ -107,6 +108,7 @@ import {
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportActionWithSmartscanError,
+    getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportOrDraftReport,
     getReportPreviewMessage,
@@ -825,8 +827,8 @@ describe('ReportUtils', () => {
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
         });
 
-        it('includes avatar and accountID in optimistic Setup Specialist personal detail', async () => {
-            // Reset personal details to remove any Setup Specialist entry added by previous tests,
+        it('includes avatar and accountID in optimistic Account Executive personal detail', async () => {
+            // Reset personal details to remove any Account Executive entry added by previous tests,
             // so the optimistic creation path (else branch) is exercised.
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
             await waitForBatchedUpdates();
@@ -846,13 +848,13 @@ describe('ReportUtils', () => {
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
             const personalDetailsData = personalDetailsCall?.[1] as Record<string, {accountID: number; avatar?: string; login?: string; displayName?: string}>;
-            const setupSpecialistDetail = Object.values(personalDetailsData ?? {}).at(0);
+            const accountExecutiveDetail = Object.values(personalDetailsData ?? {}).at(0);
 
-            expect(setupSpecialistDetail).toBeDefined();
-            expect(setupSpecialistDetail?.accountID).toBeDefined();
-            expect(setupSpecialistDetail?.accountID).toBe(CONST.ACCOUNT_ID.QA_GUIDE);
-            expect(setupSpecialistDetail?.avatar).toBeDefined();
-            expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
+            expect(accountExecutiveDetail).toBeDefined();
+            expect(accountExecutiveDetail?.accountID).toBeDefined();
+            expect(accountExecutiveDetail?.accountID).toBe(CONST.ACCOUNT_ID.QA_GUIDE);
+            expect(accountExecutiveDetail?.avatar).toBeDefined();
+            expect(accountExecutiveDetail?.avatar).toContain('images/avatars/');
 
             mergeSpy.mockRestore();
         });
@@ -18294,6 +18296,157 @@ describe('ReportUtils', () => {
                 },
             ] as ReportAction[];
             expect(hasExportError(reportActions, report)).toBe(true);
+        });
+    });
+
+    describe('getReportFieldsByPolicyID', () => {
+        const mockFieldList = {
+            expensify_title: {
+                fieldID: 'title',
+                name: 'title',
+                type: 'formula',
+                defaultValue: '{report:type}',
+            },
+            expensify_custom: {
+                fieldID: 'custom',
+                name: 'custom field',
+                type: 'text',
+                defaultValue: '',
+            },
+        } as unknown as NonNullable<Policy['fieldList']>;
+
+        it('returns empty object when policy is undefined', () => {
+            expect(getReportFieldsByPolicyID(undefined)).toEqual({});
+        });
+
+        it('returns empty object when policy has no id', () => {
+            const testPolicy = {fieldList: mockFieldList} as unknown as Policy;
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual({});
+        });
+
+        it('returns fieldList from policy when policy has fieldList', () => {
+            const testPolicy = {id: 'policyA', fieldList: mockFieldList} as unknown as Policy;
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual(mockFieldList);
+        });
+
+        it('returns empty object when policy has no fieldList', () => {
+            const testPolicy = {id: 'policyA'} as unknown as Policy;
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual({});
+        });
+
+        it('prefers policy over policyDraft when both exist', async () => {
+            const testPolicyID = 'bothExist';
+            const draftFieldList = {
+                expensify_draft_field: {
+                    fieldID: 'draft_field',
+                    name: 'draft field',
+                    type: 'text',
+                    defaultValue: 'draft',
+                },
+            } as unknown as NonNullable<Policy['fieldList']>;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`, {
+                id: testPolicyID,
+                fieldList: draftFieldList,
+            } as unknown as Policy);
+            await waitForBatchedUpdates();
+
+            const testPolicy = {id: testPolicyID, fieldList: mockFieldList} as unknown as Policy;
+            expect(getReportFieldsByPolicyID(testPolicy)).toEqual(mockFieldList);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`, null);
+        });
+    });
+
+    describe('canModifyHoldStatus', () => {
+        const makeReport = (overrides: Partial<Report> = {}): Report =>
+            ({
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                ...overrides,
+            }) as Report;
+
+        const makeReportAction = (overrides: Partial<ReportAction> = {}): ReportAction =>
+            ({
+                reportActionID: '100',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                ...overrides,
+            }) as ReportAction;
+
+        it('returns false for non-money-request reports', () => {
+            const chatReport = makeReport({type: CONST.REPORT.TYPE.CHAT});
+            expect(canModifyHoldStatus(chatReport, makeReportAction(), currentUserAccountID, true)).toBe(false);
+        });
+
+        it('returns true for IOU report when user is action owner', () => {
+            const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU});
+            const reportAction = makeReportAction({actorAccountID: currentUserAccountID});
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('returns true for IOU report when user is manager', () => {
+            const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU, managerID: currentUserAccountID});
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('returns false for IOU report when user is neither owner nor manager', () => {
+            const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU, managerID: 888});
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false)).toBe(false);
+        });
+
+        it('returns true for open expense report when user is action owner', () => {
+            const openExpenseReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            const reportAction = makeReportAction({actorAccountID: currentUserAccountID});
+            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('returns false for open expense report when user is not action owner', () => {
+            const openExpenseReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false)).toBe(false);
+        });
+
+        it('returns true for admin on processing expense report', () => {
+            const processingReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, true)).toBe(true);
+        });
+
+        it('returns true for manager on processing expense report', () => {
+            const processingReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
+            });
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('returns false for admin on non-processing expense report', () => {
+            const approvedReport = makeReport({
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            });
+            const reportAction = makeReportAction({actorAccountID: 999});
+            expect(canModifyHoldStatus(approvedReport, reportAction, currentUserAccountID, true)).toBe(false);
         });
     });
 
