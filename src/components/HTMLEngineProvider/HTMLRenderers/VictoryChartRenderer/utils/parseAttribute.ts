@@ -18,4 +18,25 @@ function parseAttribute<T>(attribute: string): T | undefined {
     }
 }
 
+function parseAttributeAsStringArray(attribute: string): string[] | undefined {
+    const parsedValue = parseAttribute(attribute);
+    if (Array.isArray(parsedValue)) {
+        return parsedValue.filter((element): element is string => typeof element === 'string');
+    }
+    return undefined;
+}
+
+function parseAttributeAsNumber(attribute: string): number | undefined {
+    const parsedValue = parseAttribute(attribute);
+    if (typeof parsedValue === 'number') {
+        return parsedValue;
+    }
+    if (typeof parsedValue === 'string' && Number.isFinite(Number(parsedValue))) {
+        return Number(parsedValue);
+    }
+    return undefined;
+}
+
+export {parseAttributeAsStringArray, parseAttributeAsNumber};
+
 export default parseAttribute;
