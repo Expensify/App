@@ -299,5 +299,6 @@ export {
     setMergeHRInitialSyncModalShown,
     setMergeHRGroupSelectorAutoShown,
 };
+export type {HRConnectionErrorFieldName};
 
 export default getMergeHRSetupLink;

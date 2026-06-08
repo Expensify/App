@@ -20,7 +20,6 @@ import {clearHRConnectionErrorField} from '@libs/actions/connections/MergeHR';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
-import type {MergeHRConnectionConfig} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {HRCardDescriptor} from './utils';
 
@@ -40,8 +39,6 @@ type HRProviderCardProps = {
     /** Shows the read-only action modal. */
     showReadOnlyModal: () => void;
 };
-
-const isMergeHRConfig = (config: HRCardDescriptor['config']): config is MergeHRConnectionConfig => !!config && 'integration' in config;
 
 function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
@@ -151,8 +148,6 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
 
     const rightComponent = <View style={styles.alignSelfCenter}>{rightInset}</View>;
 
-    const {approvalModeRoute, finalApproverRoute, groupsRoute} = card;
-
     return (
         <>
             <MenuItem
@@ -175,59 +170,26 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !card.isInitialSyncInProgress && !card.completeSetupRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !card.completeSetupRoute && !!card.configRows?.length && (
                 <View style={styles.mt2}>
-                    {!!groupsRoute && isMergeHRConfig(card.config) && (
+                    {card.configRows.map((row) => (
                         <OfflineWithFeedback
-                            pendingAction={card.config.pendingFields?.groups}
-                            errors={card.config.errorFields?.groups}
-                            onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'groups')}
+                            key={row.field}
+                            pendingAction={row.pendingAction}
+                            errors={row.errors}
+                            onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, row.field)}
                         >
                             <MenuItemWithTopDescription
-                                description={translate('workspace.hr.mergeHR.groups.title')}
-                                title={card.groupsLabel}
+                                description={row.description}
+                                title={row.title}
                                 style={styles.sectionMenuItemTopDescription}
                                 shouldShowRightIcon={canWriteMoreFeatures}
-                                brickRoadIndicator={card.config.errorFields?.groups ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                onPress={() => Navigation.navigate(groupsRoute)}
+                                brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                onPress={() => Navigation.navigate(row.route)}
                                 interactive={canWriteMoreFeatures}
                             />
                         </OfflineWithFeedback>
-                    )}
-                    {!!approvalModeRoute && (
-                        <OfflineWithFeedback
-                            pendingAction={card.config?.pendingFields?.approvalMode}
-                            errors={card.config?.errorFields?.approvalMode}
-                            onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'approvalMode')}
-                        >
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.hr.approvalMode')}
-                                title={card.approvalModeLabel}
-                                style={styles.sectionMenuItemTopDescription}
-                                shouldShowRightIcon={canWriteMoreFeatures}
-                                brickRoadIndicator={card.config?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                onPress={() => Navigation.navigate(approvalModeRoute)}
-                                interactive={canWriteMoreFeatures}
-                            />
-                        </OfflineWithFeedback>
-                    )}
-                    {!!finalApproverRoute && (
-                        <OfflineWithFeedback
-                            pendingAction={card.config?.pendingFields?.finalApprover}
-                            errors={card.config?.errorFields?.finalApprover}
-                            onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'finalApprover')}
-                        >
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.hr.finalApprover')}
-                                title={card.finalApproverDisplayName}
-                                style={styles.sectionMenuItemTopDescription}
-                                shouldShowRightIcon={canWriteMoreFeatures}
-                                brickRoadIndicator={card.config?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                onPress={() => Navigation.navigate(finalApproverRoute)}
-                                interactive={canWriteMoreFeatures}
-                            />
-                        </OfflineWithFeedback>
-                    )}
+                    ))}
                 </View>
             )}
         </>

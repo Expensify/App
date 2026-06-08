@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getConnectedHRProvider, getHRApprovalMode, getMergeHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isMergeHRConnected, isMergeHRSetupComplete} from '@libs/HRUtils';
 import {getApprovalModeLabel, getHRCards, getHRCardState} from '@pages/workspace/hr/utils';
+import type {HRCardDescriptor} from '@pages/workspace/hr/utils';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import ROUTES from '@src/ROUTES';
@@ -51,6 +52,10 @@ const stubGetLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime
 const stubTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];
 const allBetasEnabled: GetHRCardsParams['isBetaEnabled'] = () => true;
 const noBetasEnabled: GetHRCardsParams['isBetaEnabled'] = () => false;
+
+function getRow(card: HRCardDescriptor | undefined, field: string) {
+    return card?.configRows?.find((row) => row.field === field);
+}
 
 function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRCardsParams {
     return {
@@ -614,32 +619,35 @@ describe('getHRCards', () => {
         }
     });
 
-    it('sets correct routes for Gusto cards', () => {
-        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled: noBetasEnabled}));
+    it('sets correct routes for a connected Gusto card', () => {
+        const policy = makePolicy({connections: {gusto: {config: {}, data: {}, lastSync: {}}} as unknown as Policy['connections']});
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: noBetasEnabled}));
 
-        expect(cards?.at(0)?.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(POLICY_ID));
-        expect(cards?.at(0)?.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(POLICY_ID));
+        expect(getRow(cards?.at(0), 'approvalMode')?.route).toBe(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(POLICY_ID));
+        expect(getRow(cards?.at(0), 'finalApprover')?.route).toBe(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(POLICY_ID));
     });
 
-    it('sets correct routes for Zenefits cards', () => {
+    it('sets correct routes for a connected Zenefits card', () => {
+        const policy = makePolicy({connections: {zenefits: {config: {}, data: {}, lastSync: {}}} as unknown as Policy['connections']});
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
-        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
         const zenefits = cards.find((c) => c.key === 'zenefits');
 
-        expect(zenefits?.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
-        expect(zenefits?.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(POLICY_ID));
+        expect(getRow(zenefits, 'approvalMode')?.route).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
+        expect(getRow(zenefits, 'finalApprover')?.route).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(POLICY_ID));
     });
 
-    it('sets correct routes for Merge HR cards', () => {
+    it('sets correct routes for a connected Merge HR card', () => {
+        const policy = makePolicy({
+            // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+            connections: {merge_hris: {config: {integration: 'bamboohr'}, data: {}, lastSync: {}}} as unknown as Policy['connections'],
+        });
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
-        const mergeCards = cards.filter((c) => c.key.startsWith('merge_'));
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
+        const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
 
-        expect(mergeCards.length).toBeGreaterThan(0);
-        for (const card of mergeCards) {
-            expect(card.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(POLICY_ID));
-            expect(card.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(POLICY_ID));
-        }
+        expect(getRow(bamboo, 'approvalMode')?.route).toBe(ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(POLICY_ID));
+        expect(getRow(bamboo, 'finalApprover')?.route).toBe(ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(POLICY_ID));
     });
 
     it('returns the connected Zenefits card even when the Zenefits beta is disabled', () => {
@@ -673,7 +681,7 @@ describe('getHRCards', () => {
 
         expect(cards?.at(0)?.isConnected).toBe(true);
         expect(cards?.at(0)?.config).toBeDefined();
-        expect(cards?.at(0)?.approvalModeLabel).toBe('workspace.hr.approvalModes.basic.label');
+        expect(getRow(cards?.at(0), 'approvalMode')?.title).toBe('workspace.hr.approvalModes.basic.label');
     });
 
     it('marks only the matching Merge slug as connected', () => {
@@ -696,7 +704,7 @@ describe('getHRCards', () => {
 
         expect(bamboo?.isConnected).toBe(true);
         expect(bamboo?.config).toBeDefined();
-        expect(bamboo?.approvalModeLabel).toBe('workspace.hr.approvalModes.manager.label');
+        expect(getRow(bamboo, 'approvalMode')?.title).toBe('workspace.hr.approvalModes.manager.label');
 
         expect(workday?.isConnected).toBe(false);
         expect(workday?.config).toBeUndefined();
@@ -787,6 +795,30 @@ describe('getHRCards', () => {
         }
     });
 
+    it('maps each config row to its own pending action and errors', () => {
+        const policy = makePolicy({
+            connections: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+                merge_hris: {
+                    config: {
+                        integration: 'bamboohr',
+                        groups: ['g1'],
+                        pendingFields: {groups: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: {approvalMode: {error: 'Something went wrong'}},
+                    },
+                    data: {groups: [{id: 'g1', name: 'Test group', type: 'Department'}]},
+                    lastSync: {},
+                },
+            } as unknown as Policy['connections'],
+        });
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
+        const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
+
+        expect(getRow(bamboo, 'groups')?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        expect(getRow(bamboo, 'approvalMode')?.errors).toEqual({error: 'Something went wrong'});
+        expect(getRow(bamboo, 'finalApprover')?.errors).toBeUndefined();
+    });
+
     it('connected Merge card needing setup exposes completeSetupRoute and no groups summary', () => {
         const policy = makePolicy({
             connections: {
@@ -798,8 +830,8 @@ describe('getHRCards', () => {
 
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bambooCard?.completeSetupRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
-        expect(bambooCard?.groupsRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
-        expect(bambooCard?.groupsLabel).toBeUndefined();
+        expect(getRow(bambooCard, 'groups')?.route).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
+        expect(getRow(bambooCard, 'groups')?.title).toBeUndefined();
 
         expect(cards.find((c) => c.key === 'merge_workday')?.completeSetupRoute).toBeUndefined();
     });
@@ -818,7 +850,7 @@ describe('getHRCards', () => {
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
 
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
-        expect(bambooCard?.groupsLabel).toBe('Test group');
+        expect(getRow(bambooCard, 'groups')?.title).toBe('Test group');
         expect(bambooCard?.completeSetupRoute).toBeUndefined();
     });
 
@@ -833,7 +865,7 @@ describe('getHRCards', () => {
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
 
         const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
-        expect(bambooCard?.groupsLabel).toBe('common.all');
+        expect(getRow(bambooCard, 'groups')?.title).toBe('common.all');
         expect(bambooCard?.completeSetupRoute).toBeUndefined();
     });
 });
