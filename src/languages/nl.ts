@@ -7315,7 +7315,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
                 describeRuleTitle: 'Beschrijf je regel',
                 describeRuleSubtitle: 'Beschrijf je regel en Concierge maakt hem voor je',
-                disclaimer: 'Concierge kan fouten maken.',
+                disclaimer: 'AI-agents kunnen fouten maken.',
             },
         },
         planTypePage: {

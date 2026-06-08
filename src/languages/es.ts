@@ -7251,7 +7251,7 @@ ${amount} para ${merchant} - ${date}`,
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
-                disclaimer: 'Concierge puede cometer errores.',
+                disclaimer: 'Los agentes de IA pueden cometer errores.',
             },
         },
         emptyDomain: {

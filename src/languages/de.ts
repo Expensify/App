@@ -7356,7 +7356,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
                 describeRuleTitle: 'Beschreiben Sie Ihre Regel',
                 describeRuleSubtitle: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
-                disclaimer: 'Concierge kann Fehler machen.',
+                disclaimer: 'KI-Agenten können Fehler machen.',
             },
         },
         planTypePage: {
