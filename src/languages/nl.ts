@@ -7295,7 +7295,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             aiRules: {
                 title: 'AI-regels',
-                subtitle: 'Beschrijf flexibele runs die je uitvoert wanneer je ze nodig hebt',
+                subtitle: 'Beschrijf flexibele regels die worden uitgevoerd wanneer je ze nodig hebt',
                 addRule: 'AI-regel toevoegen',
                 findRule: 'AI-regel zoeken',
                 addRuleTitle: 'Regel toevoegen',

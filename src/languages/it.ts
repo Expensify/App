@@ -7321,7 +7321,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             aiRules: {
                 title: 'Regole IA',
-                subtitle: 'Descrivi esecuzioni flessibili che partono quando ne hai bisogno',
+                subtitle: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno',
                 addRule: 'Aggiungi regola IA',
                 findRule: 'Trova regola IA',
                 addRuleTitle: 'Aggiungi regola',

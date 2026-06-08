@@ -7294,7 +7294,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             aiRules: {
                 title: 'Regras de IA',
-                subtitle: 'Descreva execuções flexíveis que rodam quando você precisa',
+                subtitle: 'Descreva regras flexíveis que rodam quando você precisa',
                 addRule: 'Adicionar regra de IA',
                 findRule: 'Encontrar regra de IA',
                 addRuleTitle: 'Adicionar regra',

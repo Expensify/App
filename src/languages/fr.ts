@@ -7364,7 +7364,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             aiRules: {
                 title: 'Règles IA',
-                subtitle: 'Décrivez des exécutions flexibles qui s’exécutent quand vous en avez besoin',
+                subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin',
                 addRule: 'Ajouter une règle IA',
                 findRule: 'Rechercher une règle d’IA',
                 addRuleTitle: 'Ajouter une règle',

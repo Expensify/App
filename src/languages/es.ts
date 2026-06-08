@@ -7228,7 +7228,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             aiRules: {
                 title: 'Reglas de IA',
-                subtitle: 'Describe ejecuciones flexibles que se ejecutan cuando las necesitas',
+                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas',
                 addRule: 'Añadir regla de IA',
                 findRule: 'Buscar regla de IA',
                 addRuleTitle: 'Añadir regla',

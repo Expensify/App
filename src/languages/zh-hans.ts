@@ -7102,7 +7102,7 @@ ${reportName}
             },
             aiRules: {
                 title: 'AI 规则',
-                subtitle: '描述在你需要时运行的灵活执行方案',
+                subtitle: '描述在你需要时运行的灵活规则',
                 addRule: '添加 AI 规则',
                 findRule: '查找 AI 规则',
                 addRuleTitle: '添加规则',

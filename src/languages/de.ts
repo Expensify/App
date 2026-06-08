@@ -7336,7 +7336,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             aiRules: {
                 title: 'KI-Regeln',
-                subtitle: 'Beschreiben Sie flexible Läufe, die ausgeführt werden, wenn Sie sie benötigen',
+                subtitle: 'Beschreiben Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen',
                 addRule: 'KI-Regel hinzufügen',
                 findRule: 'KI-Regel finden',
                 addRuleTitle: 'Regel hinzufügen',

@@ -23,7 +23,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAIRuleForm';
 
 type AddAIRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AI_NEW>;
-type AddAIRuleFormID = 'addAIRuleForm';
+type AddAIRuleFormID = typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM;
 
 function AddAIRulePage({
     route: {

@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAIRuleForm';
 
 type EditAIRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AI_EDIT>;
-type EditAIRuleFormID = 'editAIRuleForm';
+type EditAIRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AI_RULE_FORM;
 
 function EditAIRulePage({
     route: {

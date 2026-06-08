@@ -7288,7 +7288,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             aiRules: {
                 title: 'Zasady AI',
-                subtitle: 'Opisz elastyczne uruchomienia, które działają wtedy, gdy ich potrzebujesz',
+                subtitle: 'Opisz elastyczne reguły, które działają wtedy, gdy ich potrzebujesz',
                 addRule: 'Dodaj regułę AI',
                 findRule: 'Znajdź regułę AI',
                 addRuleTitle: 'Dodaj regułę',

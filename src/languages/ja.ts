@@ -7236,7 +7236,7 @@ ${reportName}
             },
             aiRules: {
                 title: 'AI ルール',
-                subtitle: '必要なときに実行できる柔軟な実行設定について説明します',
+                subtitle: '必要なときに実行される柔軟なルールを記述します',
                 addRule: 'AI ルールを追加',
                 findRule: 'AI ルールを検索',
                 addRuleTitle: 'ルールを追加',

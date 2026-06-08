@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,10 +31,8 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {isBetaEnabled} = usePermissions();
     const aiRules = policy?.rules?.aiRules;
     const hasRules = !isEmptyObject(aiRules);
-    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
 
     const sortedRules = Object.entries(aiRules ?? {})
         .filter(([, rule]) => !!rule)
@@ -61,10 +58,6 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
             />
         </View>
     );
-
-    if (!isCustomAgentEnabled) {
-        return null;
-    }
 
     return (
         <Section

@@ -7431,7 +7431,7 @@ const translations = {
             },
             aiRules: {
                 title: 'AI Rules',
-                subtitle: 'Describe flexible runs that runs when you need',
+                subtitle: 'Describe flexible rules that run when you need them',
                 addRule: 'Add AI rule',
                 findRule: 'Find AI rule',
                 addRuleTitle: 'Add rule',
