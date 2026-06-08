@@ -13,6 +13,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
+    isSubmitPolicy,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -153,6 +154,10 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
+    if (isSubmitPolicy(policy)) {
+        return false;
+    }
+
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {

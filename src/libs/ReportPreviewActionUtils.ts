@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {BankAccountList, Policy, Report, ReportMetadata, Transaction, TransactionViolation} from '@src/types/onyx';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, hasIntegrationAutoSync, isPreferredExporter, isSubmitPolicy} from './PolicyUtils';
 import {hasPendingDEWApprove} from './ReportActionsUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
@@ -61,6 +61,10 @@ function canSubmit(
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
+    if (isSubmitPolicy(policy)) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;

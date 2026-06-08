@@ -428,6 +428,30 @@ describe('getPrimaryAction', () => {
         expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, {}, policy)).toBe(true);
     });
 
+    it('should return false from isApproveAction for Submit workspace even when approvalMode is ADVANCED', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            type: CONST.POLICY.TYPE.SUBMIT,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+        } as unknown as Policy;
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, {}, policy)).toBe(false);
+    });
+
     it('should return false from isApproveAction for DEW policy report with pending approval', async () => {
         // Given a submitted expense report on a DEW policy with a pending approval action
         const report = {
