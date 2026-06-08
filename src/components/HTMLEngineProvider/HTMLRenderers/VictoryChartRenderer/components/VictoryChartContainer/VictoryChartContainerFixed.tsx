@@ -20,6 +20,7 @@ function VictoryChartContainerFixed({children, layout, themeStyles, onExpandPres
     const fixedHeight = layout.kind === 'fixed' ? layout.height : undefined;
     const scaledDesignHeight = layout.kind === 'scaled' ? layout.designHeight : undefined;
     const scaledScale = layout.kind === 'scaled' ? layout.scale : undefined;
+    const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
 
     const containerStyleBase: ViewStyle[] = [themeStyles?.mw100, themeStyles?.container, layoutContainerStyles].filter((style): style is ViewStyle => !!style);
     let containerStyle: ViewStyle[] = containerStyleBase;
@@ -27,7 +28,16 @@ function VictoryChartContainerFixed({children, layout, themeStyles, onExpandPres
     if (layoutKind === 'fixed' && fixedWidth !== undefined && fixedHeight !== undefined) {
         containerStyle = [...containerStyleBase, {width: fixedWidth, height: fixedHeight, borderRadius: 0, overflow: 'hidden'}];
     } else if (layoutKind === 'scaled' && scaledDesignHeight !== undefined && scaledScale !== undefined) {
-        containerStyle = [...containerStyleBase, {borderRadius: 0, height: scaledDesignHeight * scaledScale, overflow: 'hidden'}];
+        containerStyle = [
+            ...containerStyleBase,
+            {
+                borderRadius: 0,
+                width: designWidth !== undefined ? designWidth * scaledScale : undefined,
+                height: scaledDesignHeight * scaledScale,
+                alignSelf: 'flex-start',
+                overflow: 'hidden',
+            },
+        ];
     }
 
     const contentStyle: ViewStyle[] = [];

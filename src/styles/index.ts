@@ -5394,6 +5394,11 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 8,
         },
 
+        chartExpandButton: {
+            zIndex: 10,
+            elevation: 10,
+        },
+
         videoPlayerTimeComponentWidth: {
             width: 40,
         },

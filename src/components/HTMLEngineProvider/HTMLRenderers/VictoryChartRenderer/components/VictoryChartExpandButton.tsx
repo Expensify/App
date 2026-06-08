@@ -17,7 +17,7 @@ function VictoryChartExpandButton({onPress}: VictoryChartExpandButtonProps) {
     return (
         <IconButton
             src={icons.Expand}
-            style={styles.videoExpandButton}
+            style={[styles.videoExpandButton, styles.chartExpandButton]}
             tooltipText={translate('videoPlayer.expand')}
             onPress={onPress}
             small
