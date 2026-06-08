@@ -400,8 +400,8 @@
 "../../src/libs/actions/TaxRate.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TeachersUnite.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Transaction.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
-"../../src/libs/actions/Transaction.ts"	"no-restricted-syntax"	3
-"../../src/libs/actions/Transaction.ts"	"rulesdir/no-onyx-connect"	3
+"../../src/libs/actions/Transaction.ts"	"no-restricted-syntax"	2
+"../../src/libs/actions/Transaction.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/actions/Travel.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TravelInvoicing.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/UnreportedExpenses.tsx"	"no-restricted-syntax"	1
