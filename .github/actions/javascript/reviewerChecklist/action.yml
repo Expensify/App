@@ -4,6 +4,9 @@ inputs:
   GITHUB_TOKEN:
     description: Auth token for New Expensify Github
     required: true
+  OS_BOTIFY_TOKEN:
+    description: OSBotify token for org team membership (read:org)
+    required: true
 runs:
   using: 'node24'
   main: './index.js'
