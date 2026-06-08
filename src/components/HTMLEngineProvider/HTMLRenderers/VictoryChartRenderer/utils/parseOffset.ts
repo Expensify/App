@@ -1,5 +1,5 @@
 import type {ChartBounds} from 'victory-native';
-import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import {parseAttributeAsNumber} from './parseAttribute';
 
 /**
  * Translate VictoryChart's `offset` attribute into victory-native's `betweenGroupPadding` percentage.
