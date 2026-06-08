@@ -21,7 +21,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const availableWidth = windowWidth - NATIVE_HORIZONTAL_INSET;
     const scale = hasExplicitDimensions ? computeChartScale(designWidth, availableWidth) : 1;
 
-    const {backgroundColor, borderRadius, width: containerWidth, maxWidth: containerMaxWidth, ...cleanContainerStyles} = chartContainerStyles;
+    const {backgroundColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
 
     const contentStyle = hasExplicitDimensions
         ? [chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const, transform: [{scale}], transformOrigin: 'top left' as const}]
@@ -29,8 +29,8 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
 
     const containerStyle =
         hasExplicitDimensions && designHeight && designWidth
-            ? [cleanContainerStyles, {width: designWidth * scale, height: designHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const}]
-            : [styles.chartContainer, styles.mw100, chartContainerStyles];
+            ? [{width: designWidth * scale, height: designHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const}]
+            : [styles.chartContainer, styles.mw100, layoutContainerStyles];
 
     return (
         <View style={containerStyle}>

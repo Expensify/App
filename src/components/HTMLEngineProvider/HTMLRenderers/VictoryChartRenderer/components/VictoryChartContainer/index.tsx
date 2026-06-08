@@ -29,7 +29,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const containerStyle =
         hasExplicitDimensions && designHeight
             ? [styles.chartContainer, styles.mw100, layoutContainerStyles, {borderRadius: 0, height: designHeight * scale, overflow: 'hidden' as const}]
-            : [styles.chartContainer, styles.mw100, chartContainerStyles];
+            : [styles.chartContainer, styles.mw100, layoutContainerStyles];
 
     return (
         <View
