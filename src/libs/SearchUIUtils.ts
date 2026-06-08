@@ -4229,6 +4229,8 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'iou.totalPerAttendee';
         case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
             return 'common.receipt';
+        case CONST.SEARCH.TABLE_COLUMNS.TYPE:
+            return 'common.type';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
@@ -4239,6 +4241,12 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.billable';
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
+        case CONST.SEARCH.TABLE_COLUMNS.IN:
+            return 'common.sharedIn';
+        case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+            return 'common.assignee';
+        case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
+            return 'common.comments';
         case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
