@@ -45,8 +45,8 @@ import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
