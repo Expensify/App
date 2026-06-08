@@ -5615,7 +5615,8 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        originalMessage.oldAttendees = getAttendees(oldTransaction);
+        const hasBeenEditedBefore = (oldTransaction?.modifiedAttendees?.length ?? 0) > 0;
+        originalMessage.oldAttendees = hasBeenEditedBefore ? getAttendees(oldTransaction) : [];
         originalMessage.newAttendees = transactionChanges?.attendees;
     }
 
