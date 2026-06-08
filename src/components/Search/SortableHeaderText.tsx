@@ -57,7 +57,11 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
     const displayIcon = isActive;
     const activeColumnStyle = isSortable && isActive && styles.searchTableHeaderActive;
 
-    const nextSortOrder = isActive && sortOrder === CONST.SEARCH.SORT_ORDER.DESC ? CONST.SEARCH.SORT_ORDER.ASC : CONST.SEARCH.SORT_ORDER.DESC;
+    const nextSortOrder = isActive
+        ? sortOrder === CONST.SEARCH.SORT_ORDER.DESC
+            ? CONST.SEARCH.SORT_ORDER.ASC
+            : CONST.SEARCH.SORT_ORDER.DESC
+        : CONST.SEARCH.SORT_ORDER.ASC;
 
     return (
         <View style={containerStyle}>
