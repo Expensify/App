@@ -252,10 +252,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePolicyHR(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
-                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                if (reportID) {
+                if (reportID && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id) {
                     break;
                 }
                 setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
