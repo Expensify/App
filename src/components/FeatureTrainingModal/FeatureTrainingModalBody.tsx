@@ -1,12 +1,10 @@
 import type {SourceLoadEventPayload} from 'expo-video';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Image, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
 import type {ImageResizeMode, ImageSourcePropType} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import type {BaseFeatureTrainingModalProps, FeatureTrainingModalPageProps} from '@components/FeatureTrainingModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
@@ -25,6 +23,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Accessibility from '@libs/Accessibility';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import CONST from '@src/CONST';
+import type {BaseFeatureTrainingModalProps, FeatureTrainingModalPageProps} from './index';
 
 // Aspect ratio and height of the video.
 // Useful before video loads to reserve space.
@@ -104,25 +103,18 @@ function FeatureTrainingModalBody({
     const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
-    const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
-    useEffect(() => {
-        if (isVideoStatusLocked) {
-            return;
-        }
-
-        if (isOffline) {
-            setVideoStatus('animation');
-        } else if (!isOffline) {
-            setVideoStatus('video');
-            setIsVideoStatusLocked(true);
-        }
-    }, [isOffline, isVideoStatusLocked]);
+    // Once we've been online at any point in this mount we keep showing the video, even if the
+    // network drops later. The first online tick promotes us out of the offline fallback for good.
+    const [hasBeenOnline, setHasBeenOnline] = useState(!isOffline);
+    if (!isOffline && !hasBeenOnline) {
+        setHasBeenOnline(true);
+    }
+    const videoStatus: VideoStatus = hasBeenOnline ? 'video' : 'animation';
 
     const setAspectRatio = (event: SourceLoadEventPayload) => {
         const track = event.availableVideoTracks.at(0);
@@ -216,7 +208,7 @@ function FeatureTrainingModalBody({
             <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                 {!!title && !!description && (
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [shouldRenderHTMLDescription ? styles.mb5 : styles.mb10], contentInnerContainerStyles]}>
-                        {subtitle && <Text style={[styles.textLabel, styles.textBold, styles.textSuccess]}>{subtitle}</Text>}
+                        {!!subtitle && <Text style={[styles.textLabel, styles.textBold, styles.textSuccess]}>{subtitle}</Text>}
                         {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
                         {shouldRenderHTMLDescription ? (
                             <View style={styles.mb2}>
