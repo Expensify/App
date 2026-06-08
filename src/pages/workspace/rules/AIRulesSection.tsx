@@ -83,7 +83,8 @@ function AIRulesSection({policyID}: AIRulesSectionProps) {
                                     onClose={() => clearPolicyAIRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription
-                                        title={rule.prompt}
+                                        title={rule.prompt.replace(/\s+/g, ' ').trim()}
+                                        numberOfLinesTitle={1}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_AI_EDIT.getRoute(policyID, rule.ruleID))}
