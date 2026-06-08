@@ -733,12 +733,16 @@ describe('PerDiem', () => {
             const onyxData = createPerDiemRequestCall?.[2];
             expect(parameters?.actionableWhisperReportActionID).toBe(actionableWhisperReportActionID);
             expect(typeof parameters?.modifiedExpenseReportActionID).toBe('string');
+            const modifiedExpenseReportActionID = parameters?.modifiedExpenseReportActionID;
+            if (!modifiedExpenseReportActionID) {
+                throw new Error('Expected modifiedExpenseReportActionID to be defined');
+            }
             expect(onyxData?.optimisticData).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportAction.childReportID}`,
                         value: expect.objectContaining({
-                            [parameters?.modifiedExpenseReportActionID ?? '']: expect.objectContaining({
+                            [modifiedExpenseReportActionID]: expect.objectContaining({
                                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                             }),
                         }),
