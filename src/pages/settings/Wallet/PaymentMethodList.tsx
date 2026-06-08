@@ -84,6 +84,9 @@ type PaymentMethodListProps = {
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
+    /** Additional style for the add bank account item */
+    addBankAccountItemStyle?: StyleProp<ViewStyle>;
+
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
@@ -157,6 +160,7 @@ function PaymentMethodList({
     listHeaderComponent,
     onPress,
     shouldShowAddBankAccount = true,
+    addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
@@ -499,7 +503,7 @@ function PaymentMethodList({
             onPress={onPressItem}
             title={translate('bankAccount.addBankAccount')}
             icon={expensifyIcons.Plus}
-            wrapperStyle={[styles.paymentMethod, listItemStyle]}
+            wrapperStyle={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
         />
     );
