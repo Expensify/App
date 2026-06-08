@@ -6902,6 +6902,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 description: 'Configureer centraal naar wie alle leden indienen door goedkeuringen in te schakelen.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Goedkeuringen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                approveReport: {title: 'Rapporten goedkeuren', description: 'Keur rapporten goed en vergoed werknemers door te upgraden naar het Collect‑abonnement.'},
             },
             companyCardSubmit: {
                 title: 'Bedrijfskaarten',

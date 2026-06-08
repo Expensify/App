@@ -6740,6 +6740,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: 'Configura de forma centralizada a quién envían todos los miembros sus gastos al activar las aprobaciones.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las aprobaciones están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                approveReport: {title: 'Aprobar informes', description: 'Aprueba informes y reembolsa a empleados mejorando al plan Recopilar.'},
             },
             categories: {
                 title: 'Categorías',

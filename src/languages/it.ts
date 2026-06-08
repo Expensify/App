@@ -6923,6 +6923,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 description: 'Configura centralmente a chi tutti i membri inviano le note spese abilitando le approvazioni.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Le approvazioni sono disponibili nei piani Collect e Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+                approveReport: {title: 'Approva rendiconti', description: 'Approva i report e rimborsa i dipendenti effettuando l’upgrade al piano Collect.'},
             },
             companyCardSubmit: {
                 title: 'Carte aziendali',

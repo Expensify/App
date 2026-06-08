@@ -6940,6 +6940,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 description: 'Konfigurieren Sie zentral, an wen alle Mitglieder einreichen, indem Sie Genehmigungen aktivieren.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Genehmigungen sind in den Collect- und Control-Tarifen verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                approveReport: {title: 'Berichte genehmigen', description: 'Genehmigen Sie Berichte und erstatten Sie Mitarbeitenden Auslagen, indem Sie auf den Collect‑Tarif upgraden.'},
             },
             companyCardSubmit: {
                 title: 'Firmenkarten',

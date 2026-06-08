@@ -2539,6 +2539,107 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(iouReportID).toBe(expenseReport.reportID);
         });
     });
+
+    describe('approveMoneyRequest Submit workspace upgrade', () => {
+        const submitPolicyID = 'submit-policy-id';
+        const teamPolicyID = 'team-policy-id';
+        const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias;
+
+        const submitPolicy: Policy = {
+            ...createRandomPolicy(Number(submitPolicyID), CONST.POLICY.TYPE.SUBMIT),
+            id: submitPolicyID,
+        };
+
+        const teamPolicy: Policy = {
+            ...createRandomPolicy(Number(teamPolicyID), CONST.POLICY.TYPE.TEAM),
+            id: teamPolicyID,
+        };
+
+        const createSubmittedExpenseReport = (policyID = submitPolicyID): Report => ({
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            total: 10000,
+            currency: CONST.CURRENCY.USD,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            policyID,
+        });
+
+        const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: Policy, policy: Policy = teamPolicy) => ({
+            expenseReport,
+            expenseReportPolicy,
+            policy,
+            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+            currentUserEmailParam: CARLOS_EMAIL,
+            hasViolations: false,
+            isASAPSubmitBetaEnabled: false,
+            expenseReportCurrentNextStepDeprecated: undefined,
+            betas: [CONST.BETAS.ALL],
+            userBillingGracePeriodEnds: undefined,
+            amountOwed: 0,
+            ownerBillingGracePeriodEnd: undefined,
+            delegateEmail: undefined,
+        });
+
+        beforeEach(() => {
+            jest.mocked(Navigation.navigate).mockClear();
+            (Navigation.getActiveRoute as jest.Mock).mockReturnValue(undefined);
+        });
+
+        it('navigates to workspace upgrade instead of approving when expenseReportPolicy is a Submit workspace', () => {
+            const expenseReport = createSubmittedExpenseReport();
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
+
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy));
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+
+        it('gates upgrade by expenseReportPolicy instead of the policy param', () => {
+            const expenseReport = createSubmittedExpenseReport();
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
+
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy, teamPolicy));
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+
+        it('falls back to policy when expenseReportPolicy is undefined', () => {
+            const expenseReport = createSubmittedExpenseReport(submitPolicyID);
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
+
+            approveMoneyRequest({
+                ...createApproveMoneyRequestParams(expenseReport, submitPolicy),
+                expenseReportPolicy: undefined,
+                policy: submitPolicy,
+            });
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+
+        it('uses Navigation.getActiveRoute as backTo when available', () => {
+            const expenseReport = createSubmittedExpenseReport();
+            const activeRoute = `search?q=reportID%3A${expenseReport.reportID}`;
+            jest.mocked(Navigation.getActiveRoute).mockReturnValue(activeRoute);
+
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, activeRoute, expenseReport.reportID);
+
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy));
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+
+        it('does not navigate to workspace upgrade when expenseReportPolicy is not a Submit workspace', () => {
+            const expenseReport = createSubmittedExpenseReport(teamPolicyID);
+
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, teamPolicy));
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+    });
+
     describe('approveMoneyRequest with take control', () => {
         const adminAccountID = 1;
         const managerAccountID = 2;

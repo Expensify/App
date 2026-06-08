@@ -6721,6 +6721,7 @@ ${reportName}
                 description: '启用审批功能，以集中配置所有成员向谁提交。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>审批功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                approveReport: {title: '审批报销报告', description: '升级到 Collect 方案以审批报表并报销员工费用。'},
             },
             companyCardSubmit: {
                 title: '公司卡枚',
