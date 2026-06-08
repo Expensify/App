@@ -169,12 +169,14 @@ function PolicyDistanceRatesPage({
                 return;
             }
 
-            if (customUnitRates[item.value].errors) {
-                clearDeleteDistanceRateError(policyID, customUnit.customUnitID, item.value);
+            // A failed create leaves the rate with a pending ADD action, so dismissing the error should remove the phantom rate entirely.
+            if (customUnitRates[item.value].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, item.value);
                 return;
             }
 
-            clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, item.value);
+            // A failed delete should just clear the error and keep the rate.
+            clearDeleteDistanceRateError(policyID, customUnit.customUnitID, item.value);
         },
         [customUnit?.customUnitID, customUnitRates, policyID],
     );
