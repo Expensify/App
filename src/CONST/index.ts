@@ -8606,6 +8606,9 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
         },
+        VICTORY_CHART: {
+            EXPAND_BUTTON: 'VictoryChart-ExpandButton',
+        },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
             ENLARGE_BUTTON: 'Receipt-EnlargeButton',
