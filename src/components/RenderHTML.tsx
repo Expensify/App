@@ -62,6 +62,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
             a: {
                 onPress: onLinkPress,
             },
+            /* eslint-disable @typescript-eslint/naming-convention */
             'concierge-link': {
                 onPress: onConciergeLinkPress,
             },
