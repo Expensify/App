@@ -116,13 +116,6 @@ function DatePicker({
         setIsModalVisible(false);
     }, []);
 
-    const openDatePickerOnPress = useCallback(() => {
-        if (!shouldDeferShowUntilPositioned) {
-            return;
-        }
-        showDatePickerModal();
-    }, [shouldDeferShowUntilPositioned, showDatePickerModal]);
-
     const handleInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
             if (!isNumeric(event.nativeEvent.key)) {
@@ -196,7 +189,7 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    onPress={openDatePickerOnPress}
+                    onPress={() => showDatePickerModal()}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
