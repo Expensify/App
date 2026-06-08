@@ -83,7 +83,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 
 **Constant**: `CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD`
 **Sentry Name**: `ManualNavigateToReportsContentLoad`
-**Threshold**: No fixed threshold (runs longer than First Paint - skips the skeleton and waits for the real content)
+**Threshold**: 1000ms (P90)
 **What's Measured**: Time from clicking the reports tab to the real content paint (list or chart), ignoring any skeleton shown in between. Runs alongside the legacy `ManualNavigateToReports` span ([`src/libs/telemetry/navigateToReportsSpans.ts`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/libs/telemetry/navigateToReportsSpans.ts))
 **Start**: User clicks search/reports tab, started via `startNavigateToReportsSpans()` ([`src/libs/telemetry/navigateToReportsSpans.ts`](https://github.com/Expensify/App/blob/c6476c33675cc5620c090234869cd04125878e48/src/libs/telemetry/navigateToReportsSpans.ts#L42))
 **End**:
