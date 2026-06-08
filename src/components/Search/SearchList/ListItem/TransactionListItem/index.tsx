@@ -16,7 +16,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
@@ -33,7 +33,6 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
@@ -73,17 +72,13 @@ function TransactionListItem<TItem extends ListItem>({
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
-
-    // Use active policy (user's current workspace) as fallback for self DM tracking expenses
-    // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [activePolicyIDFromOnyx] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use active policy as final fallback for SelfDM (tracking expenses)
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
+    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyIDFromOnyx;
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
@@ -103,13 +98,12 @@ function TransactionListItem<TItem extends ListItem>({
     ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const activePolicy = usePolicy(activePolicyID);
-    const chatReportPolicy = usePolicy(parentChatReport?.policyID);
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, conciergeReportID, nextStep, chatReportPolicy} = useReportPaymentContext(
+        {
+            reportID: transactionItem.reportID,
+            chatReportPolicyID: parentChatReport?.policyID,
+        },
+    );
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
         item: transactionItem,
@@ -178,8 +172,8 @@ function TransactionListItem<TItem extends ListItem>({
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
-            currentUserAccountID: currentUserDetails.accountID,
-            currentUserLogin: currentUserDetails.login,
+            currentUserAccountID,
+            currentUserLogin,
             introSelected,
             betas,
             isSelfTourViewed,

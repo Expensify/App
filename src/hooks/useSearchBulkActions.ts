@@ -14,7 +14,6 @@ import type {BulkPaySelectionData, PaymentData, SearchFilterKey, SearchQueryJSON
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -80,7 +79,6 @@ import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -94,13 +92,12 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useEnvironment from './useEnvironment';
-import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
-import usePolicy from './usePolicy';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -335,7 +332,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
-    const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const {introSelected, betas, isSelfTourViewed, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
@@ -351,16 +348,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const activePolicy = usePolicy(activePolicyID);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const undeleteTransactions = useUndeleteTransactions();
@@ -1073,7 +1062,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         activePolicy,
                         betas,
                         isSelfTourViewed,
-                        defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                        defaultWorkspaceName,
                         additionalOnyxData,
                         shouldPlaySuccessSound: false,
                     });
@@ -1137,7 +1126,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             email,
             currentUserLogin,
             localCurrencyCode,
-            lastWorkspaceNumber,
+            defaultWorkspaceName,
             translate,
             personalDetails,
             introSelected,

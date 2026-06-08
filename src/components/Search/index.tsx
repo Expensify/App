@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {PaymentContextProvider} from '@hooks/usePaymentContext';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -1798,72 +1799,74 @@ function Search({
 
     return (
         <SearchScopeProvider>
-            <Animated.View style={[styles.flex1, animatedStyle]}>
-                <SearchList
-                    ref={searchListRef}
-                    data={stableSortedData}
-                    ListItem={ListItem}
-                    onSelectRow={isMobileSelectionModeEnabled ? onSelectRowInMobileSelectionMode : onSelectRow}
-                    onCheckboxPress={toggleTransaction}
-                    onAllCheckboxPress={toggleAllTransactions}
-                    canSelectMultiple={canSelectMultiple}
-                    selectedTransactions={selectedTransactions}
-                    shouldPreventLongPressRow={isChat || isTask}
-                    SearchTableHeader={
-                        !shouldShowTableHeader ? undefined : (
-                            <View style={[!isTask && styles.pr9, styles.flex1]}>
-                                <SearchTableHeader
-                                    canSelectMultiple={canSelectMultiple}
-                                    columns={columnsToShow}
-                                    type={type}
-                                    onSortPress={onSortPress}
-                                    sortOrder={sortOrder}
-                                    sortBy={sortBy}
-                                    shouldShowYear={shouldShowYearCreated}
-                                    shouldShowYearSubmitted={shouldShowYearSubmitted}
-                                    shouldShowYearApproved={shouldShowYearApproved}
-                                    shouldShowYearPosted={shouldShowYearPosted}
-                                    shouldShowYearExported={shouldShowYearExported}
-                                    shouldShowYearWithdrawn={shouldShowYearWithdrawn}
-                                    isAmountColumnWide={shouldShowAmountInWideColumn}
-                                    isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                    shouldShowSorting
-                                    groupBy={validGroupBy}
-                                    isExpenseReportView={isExpenseReportType}
-                                    isActionColumnWide={isTask || hasDeletedTransaction}
+            <PaymentContextProvider>
+                <Animated.View style={[styles.flex1, animatedStyle]}>
+                    <SearchList
+                        ref={searchListRef}
+                        data={stableSortedData}
+                        ListItem={ListItem}
+                        onSelectRow={isMobileSelectionModeEnabled ? onSelectRowInMobileSelectionMode : onSelectRow}
+                        onCheckboxPress={toggleTransaction}
+                        onAllCheckboxPress={toggleAllTransactions}
+                        canSelectMultiple={canSelectMultiple}
+                        selectedTransactions={selectedTransactions}
+                        shouldPreventLongPressRow={isChat || isTask}
+                        SearchTableHeader={
+                            !shouldShowTableHeader ? undefined : (
+                                <View style={[!isTask && styles.pr9, styles.flex1]}>
+                                    <SearchTableHeader
+                                        canSelectMultiple={canSelectMultiple}
+                                        columns={columnsToShow}
+                                        type={type}
+                                        onSortPress={onSortPress}
+                                        sortOrder={sortOrder}
+                                        sortBy={sortBy}
+                                        shouldShowYear={shouldShowYearCreated}
+                                        shouldShowYearSubmitted={shouldShowYearSubmitted}
+                                        shouldShowYearApproved={shouldShowYearApproved}
+                                        shouldShowYearPosted={shouldShowYearPosted}
+                                        shouldShowYearExported={shouldShowYearExported}
+                                        shouldShowYearWithdrawn={shouldShowYearWithdrawn}
+                                        isAmountColumnWide={shouldShowAmountInWideColumn}
+                                        isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                        shouldShowSorting
+                                        groupBy={validGroupBy}
+                                        isExpenseReportView={isExpenseReportType}
+                                        isActionColumnWide={isTask || hasDeletedTransaction}
+                                    />
+                                </View>
+                            )
+                        }
+                        contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                        containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                        onScroll={onSearchListScroll}
+                        onEndReachedThreshold={0.75}
+                        onEndReached={fetchMoreResults}
+                        // Single-row skeleton while the deferred write's optimistic data hasn't
+                        // appeared in sortedData yet; 5-row skeleton for paginated loading.
+                        ListFooterComponent={
+                            shouldShowLoadingMoreItems || showPendingExpensePlaceholder ? (
+                                <SearchRowSkeleton
+                                    shouldAnimate
+                                    fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
+                                    reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
+                                    isLoadMore
                                 />
-                            </View>
-                        )
-                    }
-                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
-                    onScroll={onSearchListScroll}
-                    onEndReachedThreshold={0.75}
-                    onEndReached={fetchMoreResults}
-                    // Single-row skeleton while the deferred write's optimistic data hasn't
-                    // appeared in sortedData yet; 5-row skeleton for paginated loading.
-                    ListFooterComponent={
-                        shouldShowLoadingMoreItems || showPendingExpensePlaceholder ? (
-                            <SearchRowSkeleton
-                                shouldAnimate
-                                fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
-                                reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
-                                isLoadMore
-                            />
-                        ) : undefined
-                    }
-                    queryJSON={queryJSON}
-                    columns={columnsToShow}
-                    onLayout={onLayout}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                    newTransactions={newTransactions}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                    isActionColumnWide={isTask || hasDeletedTransaction}
-                />
-            </Animated.View>
+                            ) : undefined
+                        }
+                        queryJSON={queryJSON}
+                        columns={columnsToShow}
+                        onLayout={onLayout}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                        newTransactions={newTransactions}
+                        hasLoadedAllTransactions={hasLoadedAllTransactions}
+                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        isActionColumnWide={isTask || hasDeletedTransaction}
+                    />
+                </Animated.View>
+            </PaymentContextProvider>
         </SearchScopeProvider>
     );
 }

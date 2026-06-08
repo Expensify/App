@@ -19,7 +19,7 @@ import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -34,7 +34,6 @@ import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTran
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
@@ -166,19 +165,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {showConfirmModal} = useConfirmModal();
     const {showHoldMenu} = useHoldMenuModal();
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const activePolicy = usePolicy(activePolicyID);
-    const chatReportPolicy = usePolicy(parentChatReport?.policyID);
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, conciergeReportID, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext(
+        {
+            reportID: reportItem.reportID,
+            chatReportPolicyID: parentChatReport?.policyID ?? snapshotChatReport?.policyID,
+        },
+    );
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -218,8 +214,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
-            currentUserAccountID: currentUserDetails.accountID,
-            currentUserLogin: currentUserDetails.login,
+            currentUserAccountID,
+            currentUserLogin,
             introSelected,
             betas,
             isSelfTourViewed,
@@ -254,8 +250,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         amountOwed,
         showConfirmModal,
         translate,
-        currentUserDetails.accountID,
-        currentUserDetails.login,
+        currentUserAccountID,
+        currentUserLogin,
         introSelected,
         betas,
         isSelfTourViewed,
