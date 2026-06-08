@@ -2,12 +2,13 @@ import {Skia} from '@shopify/react-native-skia';
 import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
 import type {PartialProcessNodeResult, ProcessNodeResult, RawAxisStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import parseAttribute, {
+import {
     parseAttributeAsNumber,
     parseAttributeAsNumberArray,
     parseAttributeAsString,
     parseAttributeAsStringArray,
 } from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseRawAxisStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawAxisStyle';
 
 /**
  * Parse axis config from a `<victoryaxis>` node.
@@ -23,7 +24,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const rawTickFormat = parseAttributeAsStringArray(tnode.attributes.tickformat);
     const tickFormat = Array.isArray(rawTickFormat) ? rawTickFormat : undefined;
     const formatLabel = (label: string | number) => tickFormat?.[tickValues?.indexOf(Number(label)) ?? -1] ?? String(label);
-    const style = parseAttribute<RawAxisStyle>(tnode.attributes.style);
+    const style = parseRawAxisStyle(tnode.attributes.style);
     const lineColor = style?.grid?.stroke;
     // 0 width intentionally avoids drawing grid lines, preserving VictoryChart compatibility
     const lineWidth = style?.grid?.strokeWidth !== undefined ? Number(style.grid.strokeWidth) : 0;
