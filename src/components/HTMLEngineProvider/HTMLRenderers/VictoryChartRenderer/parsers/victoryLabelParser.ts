@@ -4,6 +4,7 @@ import type {LabelItem, PartialProcessNodeResult} from '@components/HTMLEnginePr
 import {parseAttributeAsNumber, parseAttributeAsNumberArray, parseAttributeAsString} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawLabelStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawLabelStyle';
 import parseTextAnchor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseTextAnchor';
+import unescapeVictoryChartText from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/unescapeVictoryChartText';
 
 /**
  * Parse label config from a `<victorylabel>` node.
@@ -12,7 +13,7 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
     const labelItem: LabelItem = {
         x: parseAttributeAsNumber(tnode.attributes.x) ?? 0,
         y: parseAttributeAsNumber(tnode.attributes.y) ?? 0,
-        text: parseAttributeAsString(tnode.attributes.text) ?? '',
+        text: unescapeVictoryChartText(parseAttributeAsString(tnode.attributes.text) ?? ''),
         color: {},
         fontSize: {},
         fontWeight: {},

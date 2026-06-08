@@ -78,6 +78,7 @@ type CreateTaskAndNavigateParams = {
     ancestors?: ReportUtils.Ancestor[];
     currentUserDisplayName: string | undefined;
     currentUserAvatar: AvatarSource | undefined;
+    taskCreatorAndAssigneeDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 /**
@@ -122,6 +123,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         isCreatedUsingMarkdown = false,
         quickAction = {},
         ancestors = [],
+        taskCreatorAndAssigneeDetails,
     } = params;
     const parentReportID = parentReport?.reportID;
     if (!parentReportID) {
@@ -204,13 +206,6 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction},
         },
     ];
-
-    // We need the personal details of the task creator and assignee so that the "From" and "Assignee" columns wil be rendered in "Reports > Task" while offline.
-    const personalDetailsList = PersonalDetailsUtils.createPersonalDetailsLookupByAccountID(
-        PersonalDetailsUtils.getPersonalDetailsByIDs({
-            accountIDs: [currentUserAccountID, assigneeAccountID],
-        }),
-    );
 
     // FOR TASK REPORT
     const successData: Array<
@@ -300,7 +295,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] = {
         [optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction,
     };
-    snapshotDataToStore[ONYXKEYS.PERSONAL_DETAILS_LIST] = personalDetailsList;
+    // We need the personal details of the task creator and assignee so that the "From" and "Assignee" columns wil be rendered in "Reports > Task" while offline.
+    snapshotDataToStore[ONYXKEYS.PERSONAL_DETAILS_LIST] = taskCreatorAndAssigneeDetails;
 
     // We push the optimistic task data into chat and task snapshot hashes so it appears immediately in "Reports > Chats" and "Reports > Task" while offline.
     for (const type of searchDataTypes) {
