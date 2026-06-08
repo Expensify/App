@@ -2,7 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -176,12 +176,9 @@ function ReportActionItem({
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
-    const getLinkedTransactionRouteError = useCallback(
-        (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
-            return linkedTransactionRouteErrorProp ?? transaction?.errorFields?.route;
-        },
-        [linkedTransactionRouteErrorProp],
-    );
+    const getLinkedTransactionRouteError = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
+        return linkedTransactionRouteErrorProp ?? transaction?.errorFields?.route;
+    };
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
