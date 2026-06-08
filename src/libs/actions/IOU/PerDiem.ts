@@ -1008,12 +1008,13 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     const sourceTransactionID = getExistingTransactionID(linkedTrackedExpenseReportAction);
 
     if (sourceTransactionID && linkedTrackedExpenseReportAction && linkedTrackedExpenseReportID) {
+        const linkedTrackedExpenseThreadReportID = linkedTrackedExpenseReportAction.childReportID ?? transactionThreadReportID;
         const moveTrackedExpenseInformation = getMoveTrackedExpenseInformation(
             sourceTransactionID,
             actionableWhisperReportActionID,
             linkedTrackedExpenseReportAction,
             linkedTrackedExpenseReportID,
-            transactionThreadReportID,
+            linkedTrackedExpenseThreadReportID,
             CONST.IOU.ACTION.SUBMIT,
             isLinkedTrackedExpenseReportArchived,
             currentUserAccountIDParam,

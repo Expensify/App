@@ -736,6 +736,18 @@ describe('PerDiem', () => {
             expect(onyxData?.optimisticData).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportAction.childReportID}`,
+                        value: expect.objectContaining({
+                            [parameters?.modifiedExpenseReportActionID ?? '']: expect.objectContaining({
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                            }),
+                        }),
+                    }),
+                ]),
+            );
+            expect(onyxData?.optimisticData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                         value: expect.objectContaining({
                             [linkedTrackedExpenseReportAction.reportActionID]: expect.objectContaining({
