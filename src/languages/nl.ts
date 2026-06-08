@@ -9658,22 +9658,22 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
     aiFeaturesPromoModal: {
-        title: 'Maak kennis met Concierge AI',
-        description: 'Je nieuwe door AI aangestuurde Expensify-assistent.',
-        letsGo: 'Laten we gaan',
-        learnMore: 'Meer informatie',
-        next: 'Volgende',
-        back: 'Terug',
-        screens: {
-            spendAnalysis: {
-                title: 'Interactieve uitgavenanalyse',
-                description: 'Vraag Concierge om je uitgaven op elke gewenste manier op te splitsen — per categorie, persoon, project of tijd.',
-            },
-            expenseAssistant: {
-                title: 'Maak kennis met je nieuwe onkostenassistent',
-                description: 'Concierge kan uitgaven categoriseren, details invullen en ontbrekende bonnen voor je opvolgen.',
-            },
-            buildAgents: {title: 'Bouw je eigen agents', description: 'Maak aangepaste AI-agents om de workflows te automatiseren die het belangrijkst zijn voor je team.'},
+        subtitle: 'Nieuw bij Concierge AI',
+        confirmText: 'Laten we gaan!',
+        spendAnalysis: {
+            title: 'Interactieve uitgavenanalyse',
+            description:
+                '<muted-text>Concierge toont maandelijkse uitgaveninzichten en laat je inzoomen op de details achter elk bedrag. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Meer informatie</a>.</muted-text>',
+        },
+        expenseAssistant: {
+            title: 'Maak kennis met je nieuwe onkostenassistent',
+            description:
+                '<muted-text>Chat met Concierge om uitgaven te maken en bij te werken, direct in de app of via e-mail of sms. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Meer informatie</a>.</muted-text>',
+        },
+        customAgents: {
+            title: 'Bouw je eigen agents',
+            description:
+                '<muted-text>Maak aangepaste agents om uitgaven te controleren, goed te keuren en door te sturen op basis van regels die je instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>',
         },
     },
 };

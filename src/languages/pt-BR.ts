@@ -9650,19 +9650,22 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     },
     monthPickerPage: {month: 'Mês', selectMonth: 'Selecione um mês por favor'},
     aiFeaturesPromoModal: {
-        title: 'Conheça a Concierge AI',
-        description: 'Seu novo assistente Expensify com tecnologia de IA.',
-        letsGo: 'Vamos lá',
-        learnMore: 'Saiba mais',
-        next: 'Próximo',
-        back: 'Voltar',
-        screens: {
-            spendAnalysis: {title: 'Análise interativa de gastos', description: 'Peça ao Concierge para detalhar seus gastos como você quiser — por categoria, pessoa, projeto ou período.'},
-            expenseAssistant: {
-                title: 'Conheça seu novo assistente de despesas',
-                description: 'O Concierge pode categorizar despesas, preencher detalhes e acompanhar recibos ausentes para você.',
-            },
-            buildAgents: {title: 'Crie seus próprios agentes', description: 'Crie agentes de IA personalizados para automatizar os fluxos de trabalho que mais importam para a sua equipe.'},
+        subtitle: 'Novo no Concierge AI',
+        confirmText: 'Vamos nessa!',
+        spendAnalysis: {
+            title: 'Análise interativa de gastos',
+            description:
+                '<muted-text>O Concierge apresenta insights mensais de gastos e permite que você aprofunde nos detalhes por trás de cada número. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Saiba mais</a>.</muted-text>',
+        },
+        expenseAssistant: {
+            title: 'Conheça seu novo assistente de despesas',
+            description:
+                '<muted-text>Converse com o Concierge para criar e atualizar despesas, direto no app ou por e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Saiba mais</a>.</muted-text>',
+        },
+        customAgents: {
+            title: 'Crie seus próprios agentes',
+            description:
+                '<muted-text>Crie agentes personalizados para revisar, aprovar e direcionar despesas com base nas regras que você definir. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Saiba mais</a>.</muted-text>',
         },
     },
 };

@@ -9565,19 +9565,22 @@ ${reportName}
     },
     monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
     aiFeaturesPromoModal: {
-        title: 'Concierge AI を紹介します',
-        description: '新しい AI 搭載の Expensify アシスタントです。',
-        letsGo: '始めましょう',
-        learnMore: '詳細はこちら',
-        next: '次へ',
-        back: '戻る',
-        screens: {
-            spendAnalysis: {title: 'インタラクティブな支出分析', description: 'カテゴリ、人、プロジェクト、期間など、必要な切り口で支出を分解するよう Concierge に依頼できます。'},
-            expenseAssistant: {
-                title: '新しい経費アシスタントをご紹介します',
-                description: 'Concierge は、経費のカテゴリ分けや詳細の入力、不足しているレシートのフォローアップを代わりに行います。',
-            },
-            buildAgents: {title: '独自のエージェントを作成する', description: 'チームにとって最も重要なワークフローを自動化するカスタム AI エージェントを作成しましょう。'},
+        subtitle: 'Concierge AI を初めて利用する方へ',
+        confirmText: 'さあ、始めましょう！',
+        spendAnalysis: {
+            title: 'インタラクティブな支出分析',
+            description:
+                '<muted-text>Concierge は毎月の支出インサイトを提示し、あらゆる数値の背景にある詳細を深掘りできるようにします。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">詳細はこちら</a>。</muted-text>',
+        },
+        expenseAssistant: {
+            title: '新しい経費アシスタントを紹介します',
+            description:
+                '<muted-text>アプリ内やメール、テキストメッセージで、Concierge とチャットして経費を作成・更新できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">詳しく見る</a>。</muted-text>',
+        },
+        customAgents: {
+            title: '独自のエージェントを作成',
+            description:
+                '<muted-text>設定したルールに基づいて経費をレビュー、承認、振り分けするカスタムエージェントを作成しましょう。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">詳細はこちら</a>。</muted-text>',
         },
     },
 };

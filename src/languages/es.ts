@@ -9951,19 +9951,22 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     aiFeaturesPromoModal: {
-        title: 'Conoce Concierge AI',
-        description: 'Tu nuevo asistente de Expensify potenciado por IA.',
-        letsGo: 'Vamos allá',
-        learnMore: 'Más información',
-        next: 'Siguiente',
-        back: 'Atrás',
-        screens: {
-            spendAnalysis: {title: 'Análisis interactivo del gasto', description: 'Pídele a Concierge que desglosE tus gastos como quieras: por categoría, persona, proyecto o periodo.'},
-            expenseAssistant: {
-                title: 'Conoce a tu nuevo asistente de gastos',
-                description: 'Concierge puede categorizar gastos, completar detalles y hacer seguimiento de los recibos que falten por ti.',
-            },
-            buildAgents: {title: 'Crea tus propios agentes', description: 'Crea agentes de IA personalizados para automatizar los flujos de trabajo que más le importan a tu equipo.'},
+        subtitle: 'Nuevo en Concierge AI',
+        confirmText: '¡Vamos!',
+        spendAnalysis: {
+            title: 'Análisis interactivo de gastos',
+            description:
+                '<muted-text>Concierge muestra información sobre el gasto mensual y te permite profundizar en los detalles detrás de cada cifra. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Más información</a>.</muted-text>',
+        },
+        expenseAssistant: {
+            title: 'Conoce a tu nuevo asistente de gastos',
+            description:
+                '<muted-text>Chatea con Concierge para crear y actualizar gastos, directamente en la aplicación o por correo electrónico o mensaje de texto. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Más información</a>.</muted-text>',
+        },
+        customAgents: {
+            title: 'Crea tus propios agentes',
+            description:
+                '<muted-text>Crea agentes personalizados para revisar, aprobar y dirigir gastos según las reglas que establezcas. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>',
         },
     },
 };

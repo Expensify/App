@@ -9704,25 +9704,22 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
     aiFeaturesPromoModal: {
-        title: 'Lernen Sie Concierge AI kennen',
-        description: 'Ihr neuer KI-gestützter Expensify-Assistent.',
-        letsGo: "Los geht's",
-        learnMore: 'Mehr erfahren',
-        next: 'Weiter',
-        back: 'Zurück',
-        screens: {
-            spendAnalysis: {
-                title: 'Interaktive Ausgabenanalyse',
-                description: 'Bitten Sie Concierge, Ihre Ausgaben ganz nach Ihren Wünschen aufzuschlüsseln – nach Kategorie, Person, Projekt oder Zeitraum.',
-            },
-            expenseAssistant: {
-                title: 'Lernen Sie Ihre neue Spesenassistenz kennen',
-                description: 'Concierge kann Ausgaben kategorisieren, Details ausfüllen und fehlenden Belegen für Sie nachgehen.',
-            },
-            buildAgents: {
-                title: 'Erstellen Sie Ihre eigenen Agents',
-                description: 'Erstellen Sie benutzerdefinierte KI-Agenten, um die Workflows zu automatisieren, die für Ihr Team am wichtigsten sind.',
-            },
+        subtitle: 'Neu bei Concierge KI',
+        confirmText: "Los geht's!",
+        spendAnalysis: {
+            title: 'Interaktive Ausgabenanalyse',
+            description:
+                '<muted-text>Concierge zeigt Ihnen monatliche Ausgabenanalysen und ermöglicht es Ihnen, die Details hinter jeder Zahl zu prüfen. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Mehr erfahren</a>.</muted-text>',
+        },
+        expenseAssistant: {
+            title: 'Lernen Sie Ihre neue Spesenassistenz kennen',
+            description:
+                '<muted-text>Chatten Sie mit Concierge, um Ausgaben direkt in der App oder per E-Mail oder SMS zu erstellen und zu aktualisieren. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Mehr erfahren</a>.</muted-text>',
+        },
+        customAgents: {
+            title: 'Erstellen Sie Ihre eigenen Agenten',
+            description:
+                '<muted-text>Erstellen Sie benutzerdefinierte Agents, um Ausgaben basierend auf Ihren Regeln zu prüfen, zu genehmigen und weiterzuleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>',
         },
     },
 };

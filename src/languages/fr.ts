@@ -9740,22 +9740,22 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     },
     monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
     aiFeaturesPromoModal: {
-        title: 'Découvrez Concierge IA',
-        description: 'Votre nouvel assistant Expensify, optimisé par l’IA.',
-        letsGo: 'Allons-y',
-        learnMore: 'En savoir plus',
-        next: 'Suivant',
-        back: 'Retour',
-        screens: {
-            spendAnalysis: {
-                title: 'Analyse interactive des dépenses',
-                description: 'Demandez à Concierge de ventiler vos dépenses comme vous le souhaitez — par catégorie, personne, projet ou période.',
-            },
-            expenseAssistant: {
-                title: 'Découvrez votre nouvel assistant de dépenses',
-                description: 'Concierge peut catégoriser les dépenses, renseigner les détails et faire le suivi des reçus manquants pour vous.',
-            },
-            buildAgents: {title: 'Créez vos propres agents', description: 'Créez des agents IA personnalisés pour automatiser les workflows qui comptent le plus pour votre équipe.'},
+        subtitle: 'Nouveau dans Concierge AI',
+        confirmText: 'Allons-y !',
+        spendAnalysis: {
+            title: 'Analyse interactive des dépenses',
+            description:
+                '<muted-text>Concierge met en avant des analyses de dépenses mensuelles et vous permet d’examiner en détail ce qui se cache derrière chaque chiffre. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">En savoir plus</a>.</muted-text>',
+        },
+        expenseAssistant: {
+            title: 'Découvrez votre nouvel assistant de dépenses',
+            description:
+                '<muted-text>Discutez avec Concierge pour créer et mettre à jour des dépenses, directement dans l’application ou par e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">En savoir plus</a>.</muted-text>',
+        },
+        customAgents: {
+            title: 'Créez vos propres agents',
+            description:
+                '<muted-text>Créez des agents personnalisés pour examiner, approuver et acheminer les dépenses selon les règles que vous définissez. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">En savoir plus</a>.</muted-text>',
         },
     },
 };

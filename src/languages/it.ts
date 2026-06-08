@@ -9694,22 +9694,22 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
     },
     monthPickerPage: {month: 'Mese', selectMonth: 'Seleziona un mese'},
     aiFeaturesPromoModal: {
-        title: 'Incontra Concierge AI',
-        description: 'Il tuo nuovo assistente Expensify con tecnologia AI.',
-        letsGo: 'Andiamo',
-        learnMore: 'Scopri di più',
-        next: 'Avanti',
-        back: 'Indietro',
-        screens: {
-            spendAnalysis: {
-                title: 'Analisi interattiva delle spese',
-                description: 'Chiedi a Concierge di suddividere le tue spese come vuoi tu — per categoria, persona, progetto o periodo.',
-            },
-            expenseAssistant: {
-                title: 'Scopri il tuo nuovo assistente per le spese',
-                description: 'Concierge può categorizzare le spese, compilare i dettagli e sollecitare le ricevute mancanti per te.',
-            },
-            buildAgents: {title: 'Crea i tuoi agenti', description: 'Crea agenti IA personalizzati per automatizzare i flussi di lavoro più importanti per il tuo team.'},
+        subtitle: 'Nuovo in Concierge AI',
+        confirmText: 'Andiamo!',
+        spendAnalysis: {
+            title: 'Analisi interattiva della spesa',
+            description:
+                '<muted-text>Concierge mostra informazioni approfondite sulla spesa mensile e ti permette di analizzare nel dettaglio il significato di ogni numero. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Scopri di più</a>.</muted-text>',
+        },
+        expenseAssistant: {
+            title: 'Incontra il tuo nuovo assistente per le spese',
+            description:
+                '<muted-text>Chatta con Concierge per creare e aggiornare le spese, direttamente nell’app o via email o SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Scopri di più</a>.</muted-text>',
+        },
+        customAgents: {
+            title: 'Crea i tuoi agenti',
+            description:
+                '<muted-text>Crea agenti personalizzati per verificare, approvare e instradare le spese in base alle regole che imposti. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Scopri di più</a>.</muted-text>',
         },
     },
 };
