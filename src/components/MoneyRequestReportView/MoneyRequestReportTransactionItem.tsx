@@ -166,7 +166,7 @@ function MoneyRequestReportTransactionItemBody({
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
-                hoverStyle={[!isPendingDelete && {backgroundColor: theme.hoverLight}, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!isPendingDelete && {backgroundColor: theme.hoverLight}, isSelected && styles.searchRowSelectedBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onPressIn={() => {
                     wasEditingOnMouseDownRef.current = isEditingCell;

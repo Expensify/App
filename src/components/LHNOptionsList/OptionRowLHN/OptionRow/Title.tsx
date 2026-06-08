@@ -2,7 +2,6 @@ import React from 'react';
 import DisplayNames from '@components/DisplayNames';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {shouldUseBoldText} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isGroupChat, isSystemChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -23,7 +22,7 @@ function Title({optionItem, isOptionFocused, testID}: TitleProps) {
     const styles = useThemeStyles();
 
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0];
 
     const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat(optionItem);

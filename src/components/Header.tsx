@@ -5,6 +5,7 @@ import {Linking, View} from 'react-native';
 import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
@@ -96,7 +97,7 @@ function Header({
                     ? !!title && (
                           <Text
                               numberOfLines={numberOfTitleLines}
-                              style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
+                              style={[styles.headerText, {fontSize: variables.fontSizeH1}, styles.lineHeightXLarge, textStyles]}
                               accessibilityRole={CONST.ROLE.HEADER}
                               accessibilityLabel={title}
                           >

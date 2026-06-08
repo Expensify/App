@@ -52,6 +52,7 @@ const lightTheme = {
     messageHighlightBG: colors.yellow100,
     hoverComponentBG: colors.productLight300,
     activeComponentBG: colors.productLight400,
+    searchRowSelectedBG: colors.green100,
     signInSidebar: colors.green800,
     sidebar: colors.productLight100,
     sidebarHover: colors.productLight300,

@@ -20,7 +20,7 @@ function SpendOverTimeSectionContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -36,14 +36,11 @@ function SpendOverTimeSectionContent() {
             titleRightContent={
                 state === SPEND_OVER_TIME_STATE.READY ? (
                     <Button
-                        small
+                        medium
                         text={translate('common.view')}
                         onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}))}
-                        iconRight={icons.Expand}
-                        shouldShowRightIcon
                         textStyles={styles.pb0}
                         style={styles.widgetItemButton}
-                        iconWrapperStyles={styles.justifyContentCenter}
                     />
                 ) : null
             }

@@ -312,7 +312,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             accessibilityLabel={transaction.text ?? ''}
                             isNested
                             onMouseDown={(e) => e.preventDefault()}
-                            hoverStyle={[!transaction.isDisabled && {backgroundColor: theme.hoverLight}, transaction.isSelected && styles.activeComponentBG]}
+                            hoverStyle={[!transaction.isDisabled && {backgroundColor: theme.hoverLight}, transaction.isSelected && styles.searchRowSelectedBG]}
                             wrapperStyle={isDeletedOrPendingDelete ? styles.cursorDisabled : undefined}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                             id={transaction.transactionID}

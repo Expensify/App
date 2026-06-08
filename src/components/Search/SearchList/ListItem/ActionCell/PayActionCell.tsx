@@ -74,7 +74,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
         <SearchScopeProvider isOnSearch={false}>
             <SettlementButton
                 shouldUseShortForm
-                buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                 currency={currency}
                 formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
                 policyID={policyID || iouReport?.policyID}

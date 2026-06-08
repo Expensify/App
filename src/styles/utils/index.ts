@@ -578,7 +578,7 @@ function getIconWidthAndHeightStyle(
         case small:
             return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall};
         case medium:
-            return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeNormal};
         case large:
             return {width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge, height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
@@ -1161,7 +1161,7 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL) {
         return {
-            height: variables.componentSizeSmall,
+            height: 24,
         };
     }
 
@@ -1172,7 +1172,7 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
     }
 
     return {
-        height: variables.componentSizeNormal,
+        height: 32,
     };
 }
 
@@ -1837,7 +1837,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getSearchTableRowBorderStyle: (isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
         borderRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        borderColor: theme.border,
         ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
@@ -1845,7 +1845,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderRadius: 0,
         borderTopWidth: isFirstItem ? 0 : 1,
         borderBottomWidth: isLastItem ? 1 : 0,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.borderLight,
+        borderColor: theme.borderLight,
     }),
 
     getSearchTableRowPressableStyle: (_isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
@@ -1855,14 +1855,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
         borderBottomWidth: 1,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.borderLight,
+        borderColor: theme.borderLight,
         ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
         ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
     }),
 
     getSelectedBorderBottomStyle: (isSelected?: boolean): ViewStyle => ({
         ...styles.borderBottom,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.borderLight,
+        borderColor: theme.borderLight,
     }),
 
     getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),

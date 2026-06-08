@@ -89,7 +89,7 @@ function FreeTrialSection() {
                     <Button
                         text={ctaText}
                         onPress={onCtaPress}
-                        small
+                        medium
                         style={styles.widgetItemButton}
                         success
                     />

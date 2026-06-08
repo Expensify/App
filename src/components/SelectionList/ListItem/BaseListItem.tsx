@@ -211,6 +211,7 @@ function BaseListItem<TItem extends ListItem>({
                 style={[
                     pressableStyle,
                     isFocusVisible &&
+                        !item.isSelected &&
                         StyleUtils.getItemBackgroundColorStyle(
                             shouldHighlightSelectedItem && !!item.isSelected,
                             !!isFocusVisible,

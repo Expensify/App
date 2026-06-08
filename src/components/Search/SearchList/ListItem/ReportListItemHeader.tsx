@@ -232,7 +232,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.searchRowSelectedBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.appBG;
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {

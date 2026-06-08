@@ -804,9 +804,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
-            minHeight: variables.componentSizeSmall,
-            minWidth: variables.componentSizeSmall,
-            paddingHorizontal: 12,
+            minHeight: 24,
+            minWidth: 24,
+            paddingHorizontal: 8,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -820,9 +820,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
-            minHeight: variables.componentSizeNormal,
-            minWidth: variables.componentSizeNormal,
-            paddingHorizontal: 16,
+            minHeight: 32,
+            minWidth: 32,
+            paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -978,6 +978,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         activeComponentBG: {
             backgroundColor: theme.activeComponentBG,
+        },
+
+        searchRowSelectedBG: {
+            backgroundColor: theme.searchRowSelectedBG,
         },
 
         messagesRowHeight: {
@@ -1303,7 +1307,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerText: {
             color: theme.heading,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             fontSize: variables.fontSizeNormal,
         },
 
@@ -3902,11 +3906,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         quickCreationActionsBarButton: {
             borderRadius: variables.buttonBorderRadius,
-        },
-
-        quickCreationActionsBarButtonText: {
-            fontSize: variables.fontSizeSmall,
-            lineHeight: 14,
         },
 
         homePageContentContainer: {

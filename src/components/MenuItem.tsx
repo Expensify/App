@@ -670,7 +670,7 @@ function MenuItem({
             styles.popoverMenuText,
             // eslint-disable-next-line no-nested-ternary
             shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
-            shouldShowBasicTitle ? {} : styles.textStrong,
+            focused ? styles.textStrong : {},
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,

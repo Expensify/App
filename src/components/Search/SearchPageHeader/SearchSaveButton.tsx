@@ -44,7 +44,7 @@ function SearchSaveButton() {
 
     return (
         <Button
-            small
+            medium
             icon={expensifyIcons.Bookmark}
             text={translate('common.save')}
             onPress={openSaveSearchPage}

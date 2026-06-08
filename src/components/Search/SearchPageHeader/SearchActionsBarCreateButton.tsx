@@ -229,7 +229,7 @@ function SearchActionsBarCreateButton() {
             <Button
                 ref={createButtonRef}
                 success
-                small
+                medium
                 icon={expensifyIcons.Plus}
                 text={translate('common.create')}
                 onPress={showCreateMenu}

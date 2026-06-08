@@ -55,7 +55,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
 
     return (
         <Button
-            small
+            medium
             accessibilityLabel={translate('search.filtersHeader')}
             text={translate('search.filtersHeader')}
             icon={expensifyIcons.Filter}

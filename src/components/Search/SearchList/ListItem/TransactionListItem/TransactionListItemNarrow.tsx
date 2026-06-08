@@ -61,7 +61,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         styles.ph5,
         styles.pv4,
         styles.noBorderRadius,
-        item.isSelected && styles.activeComponentBG,
+        item.isSelected && styles.searchRowSelectedBG,
         {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
 
@@ -69,7 +69,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.appBG,
+        backgroundColor: item.isSelected ? theme.searchRowSelectedBG : theme.appBG,
         shouldApplyOtherStyles: true,
     });
 
@@ -83,13 +83,13 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
-                hoverStyle={[!item.isDisabled && {backgroundColor: theme.hoverLight}, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && {backgroundColor: theme.hoverLight}, item.isSelected && styles.searchRowSelectedBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.searchRowSelectedBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}

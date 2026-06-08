@@ -116,7 +116,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                     {!isVisuallyCollapsed && (
                         <Animated.View style={[styles.justifyContentCenter, styles.flex1, styles.ml3, labelAnimatedStyle]}>
                             <Text
-                                style={[styles.popoverMenuText, styles.textStrong]}
+                                style={[styles.popoverMenuText, focused && styles.textStrong]}
                                 numberOfLines={1}
                             >
                                 {title}

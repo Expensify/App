@@ -46,7 +46,7 @@ function ChatListItem<TItem extends ListItem>({
         styles.overflowHidden,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
-        item.isSelected && styles.activeComponentBG,
+        item.isSelected && styles.searchRowSelectedBG,
         styles.mh0,
         item.cursorStyle,
     ];
@@ -73,7 +73,7 @@ function ChatListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            hoverStyle={item.isSelected && styles.activeComponentBG}
+            hoverStyle={item.isSelected && styles.searchRowSelectedBG}
             forwardedFSClass={fsClass}
         >
             <ReportActionItem

@@ -51,7 +51,7 @@ function ActionCell({
                 testID="ActionCell"
                 text={text}
                 onPress={onButtonPress}
-                small={!extraSmall}
+                medium={!extraSmall}
                 extraSmall={extraSmall}
                 style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                 isDisabled={shouldDisablePointerEvents}
@@ -88,7 +88,7 @@ function ActionCell({
         <Button
             text={text}
             onPress={onButtonPress}
-            small={!extraSmall}
+            medium={!extraSmall}
             extraSmall={extraSmall}
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}

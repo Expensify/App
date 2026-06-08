@@ -182,7 +182,7 @@ function DropdownButton({
                         >
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textMicroBold, styles.flexShrink1, labelStyle]}
+                                style={[medium ? styles.buttonMediumText : styles.textMicroBold, styles.flexShrink1, labelStyle]}
                             >
                                 {buttonText}
                             </Text>

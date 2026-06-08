@@ -119,7 +119,7 @@ function TransactionListItemWide<TItem extends ListItem>({
 
     const pressableStyle = [
         styles.transactionListItemStyle,
-        item.isSelected && styles.activeComponentBG,
+        item.isSelected && styles.searchRowSelectedBG,
         {
             ...styles.flexRow,
             ...styles.justifyContentBetween,
@@ -132,7 +132,7 @@ function TransactionListItemWide<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.appBG,
+        backgroundColor: item.isSelected ? theme.searchRowSelectedBG : theme.appBG,
         shouldApplyOtherStyles: false,
     });
 
@@ -148,13 +148,13 @@ function TransactionListItemWide<TItem extends ListItem>({
                 isNested
                 onMouseDown={handleOnMouseDown}
                 onHoverIn={handleOnHoverIn}
-                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && {backgroundColor: theme.hoverLight}, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && {backgroundColor: theme.hoverLight}, item.isSelected && styles.searchRowSelectedBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.searchRowSelectedBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}

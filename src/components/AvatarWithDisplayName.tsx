@@ -279,8 +279,8 @@ function AvatarWithDisplayName({
         displayNamesWithTooltips,
         transactions,
         shouldUseFullTitle,
-        [styles.headerText, styles.pre, customDisplayNameStyle],
-        [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
+        [styles.headerText, styles.textStrong, styles.pre, customDisplayNameStyle],
+        [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.textStrong, styles.pre],
         isAnonymous,
         isMoneyRequestOrReport,
     );

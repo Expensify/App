@@ -227,7 +227,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isLargeScreenWidth ? styles.ph3 : styles.ph5,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
-            item.isSelected && styles.activeComponentBG,
+            item.isSelected && styles.searchRowSelectedBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
             isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
@@ -250,7 +250,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.appBG,
+        backgroundColor: item.isSelected ? theme.searchRowSelectedBG : theme.appBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -326,7 +326,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
-            hoverStyle={item.isSelected && styles.activeComponentBG}
+            hoverStyle={item.isSelected && styles.searchRowSelectedBG}
             pressableWrapperStyle={[
                 isLargeScreenWidth && styles.mh5,
                 animatedHighlightStyle,

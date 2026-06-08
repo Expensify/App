@@ -205,7 +205,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.appBG,
+        backgroundColor: isItemSelected ? theme.searchRowSelectedBG : theme.appBG,
         shouldApplyOtherStyles: false,
     });
 
@@ -216,7 +216,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             borderRadius: 0,
             paddingVertical: variables.tableGroupRowPaddingVertical,
         },
-        isItemSelected && styles.activeComponentBG,
+        isItemSelected && styles.searchRowSelectedBG,
     ];
     const pressableRef = useRef<View>(null);
 
@@ -528,13 +528,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!isExpanded && !item.isDisabled && {backgroundColor: theme.hoverLight}, isItemSelected && styles.activeComponentBG]}
+                hoverStyle={[!isExpanded && !item.isDisabled && {backgroundColor: theme.hoverLight}, isItemSelected && styles.searchRowSelectedBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.searchRowSelectedBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[

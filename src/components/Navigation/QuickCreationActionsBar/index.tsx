@@ -34,7 +34,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLinesPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Car', 'LuggageWithLines']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -202,38 +202,34 @@ function QuickCreationActionsBar() {
     return (
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
             <Button
-                small
+                medium
                 success
-                icon={icons.ReceiptPlus}
+                icon={icons.Receipt}
                 text={translate('common.expense')}
                 onPress={handleExpense}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
             />
             <Button
-                small
-                icon={icons.DocumentPlus}
+                medium
+                icon={icons.Document}
                 text={translate('common.report')}
                 onPress={handleReport}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
             />
             <Button
-                small
-                icon={icons.CarPlus}
+                medium
+                icon={icons.Car}
                 text={translate('common.distance')}
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
             />
             {shouldShowBookTravel && (
                 <Button
-                    small
-                    icon={icons.LuggageWithLinesPlus}
+                    medium
+                    icon={icons.LuggageWithLines}
                     text={translate('workspace.common.travel')}
                     onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
-                    textStyles={styles.quickCreationActionsBarButtonText}
                 />
             )}
         </View>

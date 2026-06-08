@@ -69,6 +69,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
             value={null}
             PopoverComponent={displayPopup}
             ButtonComponent={shouldUseNarrowLayout || isMediumScreenWidth ? displayIconButton : undefined}
+            medium
         />
     );
 }
