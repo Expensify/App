@@ -2,9 +2,6 @@ import lodashIsObject from 'lodash/isObject';
 import type {RawAxisStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from './parseAttribute';
 
-/**
- * Translate VictoryChart's `interpolation` attribute into victory-native's `curveType` attribute.
- */
 function parseRawAxisStyle(attribute: string): RawAxisStyle {
     const style: RawAxisStyle = {};
     const parsedValue = parseAttribute(attribute);

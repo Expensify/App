@@ -2,9 +2,6 @@ import lodashIsObject from 'lodash/isObject';
 import type {RawShiftedLineSegmentStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from './parseAttribute';
 
-/**
- * Translate VictoryChart's `interpolation` attribute into victory-native's `curveType` attribute.
- */
 function parseRawShiftedLineSegmentStyle(attribute: string): RawShiftedLineSegmentStyle {
     const style: RawShiftedLineSegmentStyle = {};
     const parsedValue = parseAttribute(attribute);
