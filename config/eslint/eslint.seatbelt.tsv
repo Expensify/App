@@ -1648,7 +1648,7 @@
 "../../tests/ui/AvatarSelector.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/ui/BaseListItemTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/BaseLoginFormTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/ui/BaseModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/ui/BaseModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/BaseTwoFactorAuthFormTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/BottomTabBarTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/ui/CategoryListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1961,6 +1961,7 @@
 "../../tests/unit/hooks/useReceiptTraining.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useRestoreWorkspacesTabOnNavigate.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/hooks/useSaveSortedReportIDs.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/unit/hooks/useSearchBulkActionsDeleteTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useSearchBulkActionsDuplicateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../tests/unit/hooks/useSearchSections.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useSearchShouldCalculateTotals.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
