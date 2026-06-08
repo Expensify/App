@@ -1198,7 +1198,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellHoverIconButton: {
-            padding: 4,
+            width: 28,
+            height: 28,
             borderRadius: '50%',
             backgroundColor: theme.buttonDefaultBG,
             justifyContent: 'center',
