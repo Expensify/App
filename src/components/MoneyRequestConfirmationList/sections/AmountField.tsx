@@ -242,8 +242,9 @@ function AmountField({
         persistMainDraftTotal(updatedAmount, value);
 
         if (isMovingTransactionFromTrackExpense(action)) {
-            const taxCode = getTaxCode(transactionForHandlers);
+            const taxCode = value !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
             if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
                 const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
                 const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, updatedAmount, getCurrencyDecimals(value)));
                 setMoneyRequestTaxAmount(transactionID, taxAmount);
