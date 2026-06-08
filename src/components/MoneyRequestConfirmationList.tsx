@@ -258,14 +258,25 @@ function MoneyRequestConfirmationList({
 
     const prevCreated = usePrevious(transaction?.created);
     const prevRateID = usePrevious(customUnitRateID);
+    const [pendingDateChange, setPendingDateChange] = useState(false);
     const [shouldShowRateAutoUpdatedTooltip, setShouldShowRateAutoUpdatedTooltip] = useState(false);
     const dateChanged = prevCreated !== undefined && prevCreated !== transaction?.created;
     const rateChanged = prevRateID !== undefined && prevRateID !== customUnitRateID;
+
+    if (dateChanged && !pendingDateChange) {
+        setPendingDateChange(true);
+    }
+
     if (dateChanged || rateChanged) {
-        const newShouldShow = isDistanceRequest && dateChanged && rateChanged;
+        const newShouldShow = isDistanceRequest && rateChanged && (dateChanged || pendingDateChange);
+        if (newShouldShow && pendingDateChange) {
+            setPendingDateChange(false);
+        }
         if (newShouldShow !== shouldShowRateAutoUpdatedTooltip) {
             setShouldShowRateAutoUpdatedTooltip(newShouldShow);
         }
+    } else if (pendingDateChange) {
+        setPendingDateChange(false);
     }
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
