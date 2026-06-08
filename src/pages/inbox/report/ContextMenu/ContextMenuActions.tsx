@@ -863,7 +863,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
-                    const displayMessage = getReportPreviewMessage(iouReportID, conciergeReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
+                    const displayMessage = getReportPreviewMessage({
+                        reportOrID: iouReportID,
+                        iouReportAction: reportAction,
+                        isCopyAction: true,
+                        conciergeReportID,
+                    });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
                     const {text, html} = getTaskReportActionMessage(translate, reportAction);
