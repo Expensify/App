@@ -321,6 +321,7 @@ describe('actions/PolicyRules', () => {
             const ruleID = 'codingRule1';
             const rule: CodingRule = {
                 ruleID,
+                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 errors: {[ERROR_KEY]: 'boom'},
             };
@@ -341,6 +342,7 @@ describe('actions/PolicyRules', () => {
             const ruleID = 'codingRule1';
             const rule: CodingRule = {
                 ruleID,
+                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 errors: {[ERROR_KEY]: 'boom'},
             };
