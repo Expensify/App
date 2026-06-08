@@ -901,6 +901,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1012,6 +1013,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1030,6 +1032,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1051,6 +1054,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1074,6 +1078,7 @@ describe('SidebarUtils', () => {
                 isOffline: true,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
             });
 
             expect(result).toBeDefined();
@@ -1098,6 +1103,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
             });
 
             expect(result).toBeDefined();
@@ -3885,6 +3891,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guidesEmailsByReport: {},
                 });
 
                 expect(result).toBe(displayedReports);
@@ -3909,6 +3916,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guidesEmailsByReport: {},
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -3931,6 +3939,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guidesEmailsByReport: {},
                 });
 
                 expect(result).toEqual({});
@@ -3950,6 +3959,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guidesEmailsByReport: {},
                 });
 
                 expect(result).toEqual({});
@@ -3973,6 +3983,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guidesEmailsByReport: {},
                 });
 
                 expect(result).toEqual({});
@@ -4000,6 +4011,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guidesEmailsByReport: {},
                 });
 
                 // The function should run without errors with isOffline=false
@@ -4028,6 +4040,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guidesEmailsByReport: {},
                 });
 
                 // The function should run without errors with isOffline=true
@@ -4056,6 +4069,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guidesEmailsByReport: {},
                 });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
@@ -4094,6 +4108,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guidesEmailsByReport: {},
                 });
 
                 // Should not throw and should return a valid result
@@ -4123,6 +4138,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guidesEmailsByReport: {},
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4150,6 +4166,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guidesEmailsByReport: {},
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4175,6 +4192,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guidesEmailsByReport: {},
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -4211,6 +4229,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guidesEmailsByReport: {},
                 });
 
                 // Should not throw and should return a valid result

@@ -278,6 +278,7 @@ type ShouldDisplayReportInLHNParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     currentUserLogin: string;
     currentUserAccountID: number;
+    hasGuidesEmails: boolean;
 };
 
 function shouldDisplayReportInLHN({
@@ -294,6 +295,7 @@ function shouldDisplayReportInLHN({
     reportAttributes,
     currentUserAccountID,
     currentUserLogin,
+    hasGuidesEmails,
 }: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
@@ -353,6 +355,7 @@ function shouldDisplayReportInLHN({
         requiresAttention,
         currentUserLogin,
         currentUserAccountID,
+        hasGuidesEmails,
     });
 
     return {shouldDisplay};
@@ -371,6 +374,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID,
     reportNameValuePairs,
     reportAttributes,
+    guidesEmailsByReport,
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
@@ -384,6 +388,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID: number;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    guidesEmailsByReport: Record<string, boolean>;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
@@ -409,6 +414,7 @@ function getReportsToDisplayInLHN({
             isReportArchived: isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
             currentUserLogin,
+            hasGuidesEmails: guidesEmailsByReport[report.reportID] ?? false,
             currentUserAccountID,
         });
 
@@ -437,6 +443,7 @@ type UpdateReportsToDisplayInLHNProps = {
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
+    guidesEmailsByReport: Record<string, boolean>;
 };
 
 function updateReportsToDisplayInLHN({
@@ -454,6 +461,7 @@ function updateReportsToDisplayInLHN({
     isOffline,
     currentUserLogin,
     currentUserAccountID,
+    guidesEmailsByReport,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -491,6 +499,7 @@ function updateReportsToDisplayInLHN({
             reportAttributes,
             currentUserLogin,
             currentUserAccountID,
+            hasGuidesEmails: guidesEmailsByReport[report.reportID] ?? false,
         });
 
         if (shouldDisplay) {
@@ -1324,7 +1333,7 @@ function getOptionData({
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
-    if (isJoinRequestInAdminRoom(report)) {
+    if (isJoinRequestInAdminRoom(report, currentUserLogin)) {
         result.isUnread = true;
     }
 

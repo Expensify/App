@@ -128,7 +128,7 @@ describe('navigateAfterOnboarding', () => {
 
         navigateAfterOnboarding(true, true, '', archivedReportsIdSet, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
-        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, archivedReportsIdSet);
+        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, undefined, false, undefined, archivedReportsIdSet);
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {
