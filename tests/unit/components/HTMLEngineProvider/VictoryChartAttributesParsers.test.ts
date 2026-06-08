@@ -22,13 +22,13 @@ describe('parseRawChartData', () => {
 
 describe('parseRawLabelStyle', () => {
     it('skips invalid properties (passing a single object)', () => {
-        const result = parseRawLabelStyle("{fill: 'lightgreen', fontStyle: 123, fontFamily: 'Expensify Neue'}");
-        expect(result).toEqual([{fill: 'lightgreen', fontFamily: 'Expensify Neue'}]);
+        const result = parseRawLabelStyle("{fill: 'green', fontStyle: 123, fontFamily: 'Expensify Neue'}");
+        expect(result).toEqual([{fill: 'green', fontFamily: 'Expensify Neue'}]);
     });
 
     it('skips invalid entries and properties (passing an array)', () => {
-        const result = parseRawLabelStyle("[null, 5, 'x', {name: 'A'}, {x: 'test'}, {fontSize: 20}, {fill: 'lightgreen', fontStyle: 123, fontFamily: 'Expensify Neue'}]");
-        expect(result).toEqual([{}, {}, {fontSize: 20}, {fill: 'lightgreen', fontFamily: 'Expensify Neue'}]);
+        const result = parseRawLabelStyle("[null, 5, 'x', {name: 'A'}, {x: 'test'}, {fontSize: 20}, {fill: 'green', fontStyle: 123, fontFamily: 'Expensify Neue'}]");
+        expect(result).toEqual([{}, {}, {fontSize: 20}, {fill: 'green', fontFamily: 'Expensify Neue'}]);
     });
 });
 
