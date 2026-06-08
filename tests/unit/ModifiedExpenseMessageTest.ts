@@ -2174,6 +2174,7 @@ describe('ModifiedExpenseMessage', () => {
                 const result = getForReportAction({
                     translate: translateLocal,
                     reportAction,
+                    policy: undefined,
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
                 });
@@ -2194,6 +2195,7 @@ describe('ModifiedExpenseMessage', () => {
                 const result = getForReportAction({
                     translate: translateLocal,
                     reportAction,
+                    policy: undefined,
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
                 });
@@ -2214,6 +2216,7 @@ describe('ModifiedExpenseMessage', () => {
                 const result = getForReportAction({
                     translate: translateLocal,
                     reportAction,
+                    policy: undefined,
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
                 });
