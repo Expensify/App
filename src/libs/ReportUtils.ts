@@ -4271,7 +4271,7 @@ function getReasonAndReportActionThatRequiresAttention(
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
-        allReportActionsParam,
+        reportActions,
     );
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
@@ -4578,12 +4578,12 @@ function getReportFieldKey(reportFieldId: string | undefined) {
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string | undefined): Policy['fieldList'] {
+function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList'] {
+    const policyID = policy?.id;
     if (!policyID) {
         return {};
     }
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const fieldList = (policy ?? policyDraft)?.fieldList;
 
@@ -5122,11 +5122,10 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     );
 }
 
-function canModifyHoldStatus(report: Report, reportAction: ReportAction, currentUserAccountID: number | undefined): boolean {
+function canModifyHoldStatus(report: Report, reportAction: ReportAction, currentUserAccountID: number | undefined, isAdmin: boolean): boolean {
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
-    const isAdmin = isPolicyAdmin(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]);
     const isActionOwner = isActionCreator(reportAction);
     const isManager = isMoneyRequestReport(report) && report?.managerID !== null && currentUserAccountID === report?.managerID;
 
@@ -5169,7 +5168,7 @@ function canHoldUnholdReportAction(
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isClosed = isClosedReport(report);
 
-    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID);
+    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID, isAdmin);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
@@ -5186,6 +5185,7 @@ const changeMoneyRequestHoldStatus = (
     isOffline: boolean,
     currentUserLogin: string,
     currentUserAccountID: number,
+    transactionViolations: OnyxEntry<TransactionViolations>,
 ): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
@@ -5209,7 +5209,7 @@ const changeMoneyRequestHoldStatus = (
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID);
+            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID, transactionViolations);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
@@ -5370,30 +5370,33 @@ function getTransactionReportName({
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
+type GetReportPreviewMessageBaseParams = {
+    reportOrID: OnyxInputOrEntry<Report> | string;
+    /** This is always an IOU action. When necessary, report preview actions will be unwrapped and the child iou report action is passed here (the original report preview action will be passed as `originalReportAction` in this case). */
+    iouReportAction?: OnyxInputOrEntry<ReportAction>;
+    shouldConsiderScanningReceiptOrPendingRoute?: boolean;
+    isPreviewMessageForParentChatReport?: boolean;
+    policy?: OnyxInputOrEntry<Policy>;
+    isForListPreview?: boolean;
+    /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
+    originalReportAction?: OnyxInputOrEntry<ReportAction>;
+};
+
 /**
- * Get expense message for an IOU report
+ * Get expense message for an IOU report.
  *
- * @param [iouReportAction] This is always an IOU action. When necessary, report preview actions will be unwrapped and the child iou report action is passed here (the original report preview
- *     action will be passed as `originalReportAction` in this case).
- * @param [originalReportAction] This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped
- *     from a report preview action. Otherwise, it will be the same as `iouReportAction`.
+ * `conciergeReportID` is only consumed (and required) when `isCopyAction: true`.
  */
-function getReportPreviewMessage(
-    reportOrID: OnyxInputOrEntry<Report> | string,
-    conciergeReportID: string | undefined,
-    iouReportAction: OnyxInputOrEntry<ReportAction> = null,
-    shouldConsiderScanningReceiptOrPendingRoute = false,
-    isPreviewMessageForParentChatReport = false,
-    policy?: OnyxInputOrEntry<Policy>,
-    isForListPreview = false,
-    originalReportAction: OnyxInputOrEntry<ReportAction> = iouReportAction,
-    isCopyAction = false,
-): string {
+function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction?: false}): string;
+function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction: true; conciergeReportID: string | undefined}): string;
+function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {isCopyAction?: boolean; conciergeReportID?: string | undefined}): string {
+    const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
+    const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
-    if (isCopyAction) {
+    if (params.isCopyAction) {
         if (report) {
-            return computeReportName({report, currentUserLogin: '', conciergeReportID}) || (originalReportAction?.childReportName ?? '');
+            return computeReportName({report, currentUserLogin: '', conciergeReportID: params.conciergeReportID}) || (originalReportAction?.childReportName ?? '');
         }
         return originalReportAction?.childReportName ?? '';
     }
@@ -5633,7 +5636,12 @@ function getModifiedExpenseOriginalMessage(
     // to match how we handle the modified expense action in oldDot
     const didAmountOrCurrencyChange = 'amount' in transactionChanges || 'currency' in transactionChanges;
     if (didAmountOrCurrencyChange) {
-        originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, allowNegative);
+        // When the receipt is still being scanned and has no amount yet, omit oldAmount so that
+        // buildMessageFragmentForValue() treats this as a first-time "set" (generating "set the amount to X")
+        // rather than an "update" (generating "changed the amount from $0 to X").
+        if (!(isReceiptBeingScanned(oldTransaction) && !getTransactionDetails(oldTransaction)?.amount)) {
+            originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, allowNegative);
+        }
         originalMessage.amount = transactionChanges?.amount ?? transactionChanges.oldAmount;
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.currency = transactionChanges?.currency ?? transactionChanges.oldCurrency;
@@ -6740,7 +6748,7 @@ function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, 
         return null;
     }
 
-    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy) ?? {});
     const formulaContext: FormulaContext = {
         report,
         policy,
@@ -7531,12 +7539,10 @@ function buildOptimisticReportPreview(
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
     reportActionID?: string,
-    // TODO: conciergeReportID will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string | undefined,
     delegateAccountIDParam: number | undefined = undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewMessage(iouReport, conciergeReportID);
+    const message = getReportPreviewMessage({reportOrID: iouReport});
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
@@ -7727,8 +7733,7 @@ function updateReportPreview(
         }
     }
 
-    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
-    const message = getReportPreviewMessage(iouReport, undefined, reportPreviewAction);
+    const message = getReportPreviewMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction});
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -8935,8 +8940,8 @@ function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | undef
 function hasEmptyReportsForPolicy(
     reports: OnyxCollection<Report> | undefined,
     policyID: string | undefined,
+    reportIDsWithActiveTransactions: Record<string, boolean>,
     accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions,
 ): boolean {
     if (!accountID || !policyID) {
         return false;
@@ -8949,7 +8954,6 @@ function hasEmptyReportsForPolicy(
             return false;
         }
 
-        // Exclude reports that are being deleted or have errors
         if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
             return false;
         }
@@ -8962,11 +8966,7 @@ function hasEmptyReportsForPolicy(
             return false;
         }
 
-        // Ignore transactions that are already pending deletion so we treat the report as empty once the removal is queued.
-        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam).filter(
-            (transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-        return transactions.length === 0;
+        return !reportIDsWithActiveTransactions[report.reportID];
     });
 }
 
@@ -13638,6 +13638,7 @@ export {
     isSortableColumnName,
     getLinkedIOUTransaction,
     hasHeldExpensesFromTransactions,
+    canModifyHoldStatus,
 };
 
 export type {

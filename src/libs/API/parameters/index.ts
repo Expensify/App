@@ -554,3 +554,4 @@ export type {default as DeleteAgentParams} from './DeleteAgentParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
+export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
