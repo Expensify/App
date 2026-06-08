@@ -36,9 +36,11 @@ function AddAIRulePage({
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const formRef = useRef<FormRef>(null);
 
-    const handleKeyPress = (e: TextInputKeyPressEvent) => {
-        const event = e as unknown as KeyboardEvent;
-        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in e)) {
+            return;
+        }
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
             formRef.current?.submit();
         }
     };
