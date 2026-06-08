@@ -1,21 +1,19 @@
 import type {ImageContentFit} from 'expo-image';
-import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useEffect, useRef, useState} from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {MergeExclusive} from 'type-fest';
+import type ImageSVGProps from '@components/ImageSVG/types';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
+import Modal from '@components/Modal';
+import ScrollView from '@components/ScrollView';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import Accessibility from '@libs/Accessibility';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,28 +23,11 @@ import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
-import Button from './Button';
-import CheckboxWithLabel from './CheckboxWithLabel';
-import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
-import ImageSVG from './ImageSVG';
-import type ImageSVGProps from './ImageSVG/types';
-import Lottie from './Lottie';
-import LottieAnimations from './LottieAnimations';
-import type DotLottieAnimation from './LottieAnimations/types';
-import Modal from './Modal';
-import OfflineIndicator from './OfflineIndicator';
-import RenderHTML from './RenderHTML';
-import ScrollView from './ScrollView';
-import Text from './Text';
-import VideoPlayer from './VideoPlayer';
-
-// Aspect ratio and height of the video.
-// Useful before video loads to reserve space.
-const VIDEO_ASPECT_RATIO = 1280 / 960;
+import FeatureTrainingModalBody from './FeatureTrainingModalBody';
 
 const MODAL_PADDING = variables.spacing2;
 
-type VideoStatus = 'video' | 'animation';
+const SCROLL_SETTLE_MS = 300;
 
 type BaseFeatureTrainingModalProps = {
     /** The aspect ratio to preserve for the icon, video or animation */
@@ -58,23 +39,11 @@ type BaseFeatureTrainingModalProps = {
     /** Style for the outer container of the animation */
     illustrationOuterContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Title for the modal */
-    title?: string | React.ReactNode;
-
-    /** Describe what is showing */
-    description?: string;
-
-    /** Secondary description rendered with additional space */
-    secondaryDescription?: string;
-
     /** Style for the title */
     titleStyles?: StyleProp<TextStyle>;
 
     /** Whether to show `Don't show me this again` option */
     shouldShowDismissModalOption?: boolean;
-
-    /** Text to show on primary button */
-    confirmText: string;
 
     /** A callback to call when user confirms the tutorial */
     onConfirm?: (willShowAgain: boolean) => void;
@@ -97,7 +66,7 @@ type BaseFeatureTrainingModalProps = {
     /** Styles for the modal inner container */
     modalInnerContainerStyle?: ViewStyle;
 
-    /** Children to show below title and description and above buttons */
+    /** Children to show below title and description and above buttons (single-page mode only) */
     children?: React.ReactNode;
 
     /** Modal width */
@@ -140,6 +109,23 @@ type BaseFeatureTrainingModalProps = {
     confirmSentryLabel?: string;
 };
 
+type FeatureTrainingModalContentProps = {
+    /** Title for the modal */
+    title?: string | React.ReactNode;
+
+    /** Subtitle for the modal */
+    subtitle?: string;
+
+    /** Describe what is showing */
+    description?: string;
+
+    /** Secondary description rendered with additional space */
+    secondaryDescription?: string;
+
+    /** Text to show on primary button */
+    confirmText: string;
+};
+
 type FeatureTrainingModalVideoProps = {
     /** Animation to show when video is unavailable. Useful when app is offline */
     animation?: DotLottieAnimation;
@@ -165,22 +151,32 @@ type FeatureTrainingModalSVGProps = {
     imageHeight?: ImageSVGProps['height'];
 };
 
-// This page requires either an icon or a video/animation, but not both
-type FeatureTrainingModalProps = BaseFeatureTrainingModalProps & MergeExclusive<FeatureTrainingModalVideoProps, FeatureTrainingModalSVGProps>;
+// This page requires either an icon or a video/animation, but not both.
+type FeatureTrainingModalIllustrationProps = MergeExclusive<FeatureTrainingModalVideoProps, FeatureTrainingModalSVGProps>;
 
-const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
+type FeatureTrainingModalPageProps = FeatureTrainingModalIllustrationProps & FeatureTrainingModalContentProps;
+
+type FeatureTrainingModalCarouselProps = {
+    /**
+     * When provided (and length > 1), the modal renders a horizontal paging carousel.
+     * The primary button advances to the next page until the last page, where it fires `onConfirm`.
+     */
+    pages?: FeatureTrainingModalPageProps[];
+
+    /** Called when the user swipes to a different page. */
+    onPageChange?: (index: number) => void;
+};
+
+// Either single-page content fields OR carousel pages, but not both.
+type FeatureTrainingModalProps = BaseFeatureTrainingModalProps & MergeExclusive<FeatureTrainingModalPageProps, FeatureTrainingModalCarouselProps>;
 
 function FeatureTrainingModal({
-    animation,
-    animationStyle,
     illustrationInnerContainerStyle,
     illustrationOuterContainerStyle,
-    videoURL,
     illustrationAspectRatio: illustrationAspectRatioProp,
-    image,
-    contentFitImage,
     width = variables.featureTrainingModalWidth,
     title = '',
+    subtitle = '',
     description = '',
     secondaryDescription = '',
     titleStyles,
@@ -194,8 +190,6 @@ function FeatureTrainingModal({
     contentInnerContainerStyles,
     contentOuterContainerStyles,
     modalInnerContainerStyle,
-    imageWidth,
-    imageHeight,
     isModalDisabled = true,
     shouldRenderSVG = true,
     shouldRenderHTMLDescription = false,
@@ -208,21 +202,16 @@ function FeatureTrainingModal({
     shouldCallOnHelpWhenModalHidden = false,
     helpSentryLabel,
     confirmSentryLabel,
+    pages,
+    onPageChange,
+    ...props
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
-    const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
-    const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
-    const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isOffline} = useNetwork();
     const hasHelpButtonBeenPressed = useRef(false);
     const pendingCloseRef = useRef(false);
     const scrollViewRef = useRef<RNScrollView>(null);
@@ -232,7 +221,11 @@ function FeatureTrainingModal({
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
-    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
+    const isCarousel = !!pages && pages.length > 1;
+    const [currentPage, setCurrentPage] = useState(0);
+    const lastReportedPage = useRef(0);
+
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode || isCarousel;
 
     useEffect(() => {
         // Transition tracker is used directly as we defer the opening of the modal until other animations are finished,
@@ -248,97 +241,6 @@ function FeatureTrainingModal({
         });
         return () => handle.cancel();
     }, [isModalDisabled]);
-
-    useEffect(() => {
-        if (isVideoStatusLocked) {
-            return;
-        }
-
-        if (isOffline) {
-            setVideoStatus('animation');
-        } else if (!isOffline) {
-            setVideoStatus('video');
-            setIsVideoStatusLocked(true);
-        }
-    }, [isOffline, isVideoStatusLocked]);
-
-    const setAspectRatio = (event: SourceLoadEventPayload) => {
-        const track = event.availableVideoTracks.at(0);
-
-        if (!track) {
-            return;
-        }
-
-        setIllustrationAspectRatio(track.size.width / track.size.height);
-    };
-
-    const renderIllustration = () => {
-        const aspectRatio = illustrationAspectRatio || VIDEO_ASPECT_RATIO;
-
-        return (
-            <View
-                style={[
-                    isInLandscapeMode ? styles.h100 : styles.w100,
-                    // Prevent layout jumps by reserving height
-                    // for the video until it loads. Also, when
-                    // videoStatus === 'animation' it will
-                    // set the same aspect ratio as the video would.
-                    illustrationInnerContainerStyle,
-                    (!!videoURL || !!image) && {aspectRatio},
-                ]}
-            >
-                {!!image &&
-                    (shouldRenderSVG ? (
-                        <ImageSVG
-                            src={image}
-                            contentFit={contentFitImage}
-                            width={imageWidth}
-                            height={imageHeight}
-                            testID={CONST.IMAGE_SVG_TEST_ID}
-                        />
-                    ) : (
-                        <Image
-                            accessibilityIgnoresInvertColors
-                            source={image as ImageSourcePropType}
-                            resizeMode={contentFitImage as ImageResizeMode}
-                            style={styles.featureTrainingModalImage}
-                            testID={CONST.IMAGE_TEST_ID}
-                        />
-                    ))}
-                {!!videoURL && videoStatus === 'video' && (
-                    <GestureHandlerRootView>
-                        <VideoPlayer
-                            url={videoURL}
-                            videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
-                            onSourceLoaded={setAspectRatio}
-                            controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
-                            shouldUseControlsBottomMargin={false}
-                            shouldPlay
-                            isLooping
-                        />
-                    </GestureHandlerRootView>
-                )}
-                {((!videoURL && !image) || (!!videoURL && videoStatus === 'animation')) && (
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !!videoURL && {aspectRatio}, animationStyle]}>
-                        {isReduceMotionEnabled && (animation ?? LottieAnimations.Hands) === LottieAnimations.Hands ? (
-                            <ImageSVG
-                                src={illustrations.Hands}
-                                style={styles.h100}
-                            />
-                        ) : (
-                            <Lottie
-                                source={animation ?? LottieAnimations.Hands}
-                                style={styles.h100}
-                                webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                                autoPlay
-                                loop
-                            />
-                        )}
-                    </View>
-                )}
-            </View>
-        );
-    };
 
     const toggleWillShowAgain = () => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain);
 
@@ -356,7 +258,10 @@ function FeatureTrainingModal({
         }
     };
 
-    const closeModal = () => {
+    const closeModal = (didPressHelpButton?: boolean) => {
+        if (didPressHelpButton) {
+            hasHelpButtonBeenPressed.current = true;
+        }
         Log.hmmm(`[FeatureTrainingModal] closeModal called - willShowAgain: ${willShowAgain}, shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 
         if (!willShowAgain) {
@@ -385,13 +290,66 @@ function FeatureTrainingModal({
         }
     };
 
+    /**
+     * Defer page update until the scroll animation has visually completed.
+     */
+    const scrollToPage = (nextIndex: number) => {
+        console.log(nextIndex, currentPage);
+        scrollViewRef.current?.scrollTo({x: nextIndex * width, y: 0, animated: true});
+        setTimeout(() => {
+            if (nextIndex === lastReportedPage.current) {
+                return;
+            }
+            lastReportedPage.current = nextIndex;
+            setCurrentPage(nextIndex);
+            onPageChange?.(nextIndex);
+        }, SCROLL_SETTLE_MS);
+    };
+
+    const advanceCarousel = () => {
+        if (!isCarousel) {
+            return;
+        }
+        scrollToPage(Math.min(currentPage + 1, pages.length - 1));
+    };
+
+    const goBack = () => {
+        if (!isCarousel || currentPage <= 0) {
+            return;
+        }
+        scrollToPage(Math.max(currentPage - 1, 0));
+    };
+
+    const handleConfirmPress = () => {
+        console.log(currentPage, pages?.length);
+        if (isCarousel && currentPage < pages.length) {
+            advanceCarousel();
+            return;
+        }
+        closeAndConfirmModal();
+    };
+
+    const onCarouselMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if (!isCarousel || width <= 0) {
+            return;
+        }
+        console.log(e.nativeEvent.contentOffset.x, width);
+        const nextPage = Math.round(e.nativeEvent.contentOffset.x / width);
+        if (nextPage === lastReportedPage.current) {
+            return;
+        }
+        lastReportedPage.current = nextPage;
+        setCurrentPage(nextPage);
+        onPageChange?.(nextPage);
+    };
+
     // Scrolls modal to the bottom when keyboard appears so the action buttons are visible.
     useEffect(() => {
-        if (contentHeight <= containerHeight || onboardingIsMediumOrLargerScreenWidth || !shouldUseScrollView) {
+        if (contentHeight <= containerHeight || onboardingIsMediumOrLargerScreenWidth || !shouldUseScrollView || isCarousel) {
             return;
         }
         scrollViewRef.current?.scrollToEnd({animated: false});
-    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView]);
+    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView, isCarousel]);
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
@@ -437,6 +395,11 @@ function FeatureTrainingModal({
                     wrapperStyles.style,
                     isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
                 ]}
+                horizontal={isCarousel}
+                pagingEnabled={isCarousel}
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={isCarousel ? onCarouselMomentumScrollEnd : undefined}
+                scrollEventThrottle={isCarousel ? 16 : undefined}
                 contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
@@ -446,69 +409,77 @@ function FeatureTrainingModal({
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                <View
-                    style={[
-                        onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING},
-                        illustrationOuterContainerStyle,
-                        isInLandscapeMode ? [{maxHeight: windowHeight * LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO}, styles.alignSelfCenter] : undefined,
-                    ]}
-                >
-                    {renderIllustration()}
-                </View>
-                <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
-                    {!!title && !!description && (
-                        <View
-                            style={[
-                                onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [shouldRenderHTMLDescription ? styles.mb5 : styles.mb10],
-                                contentInnerContainerStyles,
-                            ]}
-                        >
-                            {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
-                            {shouldRenderHTMLDescription ? (
-                                <View style={styles.mb2}>
-                                    <RenderHTML html={description} />
-                                </View>
-                            ) : (
-                                <Text style={styles.textSupporting}>{description}</Text>
-                            )}
-                            {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
-                            {children}
-                        </View>
-                    )}
-                    {shouldShowDismissModalOption && (
-                        <CheckboxWithLabel
-                            label={translate('featureTraining.doNotShowAgain')}
-                            accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                            style={[styles.mb5]}
-                            isChecked={!willShowAgain}
-                            onInputChange={toggleWillShowAgain}
+                {!isCarousel ? (
+                    <FeatureTrainingModalBody
+                        illustrationInnerContainerStyle={illustrationInnerContainerStyle}
+                        illustrationOuterContainerStyle={illustrationOuterContainerStyle}
+                        illustrationAspectRatio={illustrationAspectRatioProp}
+                        width={width}
+                        title={title}
+                        subtitle={subtitle}
+                        description={description}
+                        secondaryDescription={secondaryDescription}
+                        titleStyles={titleStyles}
+                        shouldShowDismissModalOption={shouldShowDismissModalOption}
+                        confirmText={confirmText}
+                        helpText={helpText}
+                        onHelp={onHelp}
+                        contentInnerContainerStyles={contentInnerContainerStyles}
+                        contentOuterContainerStyles={contentOuterContainerStyles}
+                        shouldRenderSVG={shouldRenderSVG}
+                        shouldRenderHTMLDescription={shouldRenderHTMLDescription}
+                        shouldShowConfirmationLoader={shouldShowConfirmationLoader}
+                        canConfirmWhileOffline={canConfirmWhileOffline}
+                        shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
+                        helpSentryLabel={helpSentryLabel}
+                        confirmSentryLabel={confirmSentryLabel}
+                        modalPadding={MODAL_PADDING}
+                        willShowAgain={willShowAgain}
+                        toggleWillShowAgain={toggleWillShowAgain}
+                        closeModal={closeModal}
+                        confirmModal={handleConfirmPress}
+                        {...props}
+                    >
+                        {children}
+                    </FeatureTrainingModalBody>
+                ) : (
+                    pages.map((page, index) => (
+                        <FeatureTrainingModalBody
+                            key={`FeatureTrainingModalBody-${index}`}
+                            animation={page.animation}
+                            animationStyle={page.animationStyle}
+                            illustrationInnerContainerStyle={illustrationInnerContainerStyle}
+                            illustrationOuterContainerStyle={illustrationOuterContainerStyle}
+                            illustrationAspectRatio={illustrationAspectRatioProp}
+                            width={width}
+                            title={page.title}
+                            subtitle={page.subtitle}
+                            description={page.description}
+                            secondaryDescription={page.secondaryDescription}
+                            titleStyles={titleStyles}
+                            shouldShowDismissModalOption={shouldShowDismissModalOption}
+                            confirmText={page.confirmText}
+                            helpText={helpText}
+                            onHelp={onHelp}
+                            contentInnerContainerStyles={contentInnerContainerStyles}
+                            contentOuterContainerStyles={contentOuterContainerStyles}
+                            shouldRenderSVG={shouldRenderSVG}
+                            shouldRenderHTMLDescription={shouldRenderHTMLDescription}
+                            shouldShowConfirmationLoader={shouldShowConfirmationLoader}
+                            canConfirmWhileOffline={canConfirmWhileOffline}
+                            shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
+                            helpSentryLabel={helpSentryLabel}
+                            confirmSentryLabel={confirmSentryLabel}
+                            modalPadding={MODAL_PADDING}
+                            willShowAgain={willShowAgain}
+                            toggleWillShowAgain={toggleWillShowAgain}
+                            closeModal={closeModal}
+                            confirmModal={handleConfirmPress}
+                            shouldShowBackButton={index > 0}
+                            onBack={goBack}
                         />
-                    )}
-                    {!!helpText && (
-                        <Button
-                            large
-                            style={[styles.mb3]}
-                            onPress={() => {
-                                if (shouldCallOnHelpWhenModalHidden) {
-                                    setIsModalVisible(false);
-                                    hasHelpButtonBeenPressed.current = true;
-                                    return;
-                                }
-                                onHelp();
-                            }}
-                            text={helpText}
-                            sentryLabel={helpSentryLabel}
-                        />
-                    )}
-                    <FormAlertWithSubmitButton
-                        onSubmit={closeAndConfirmModal}
-                        isLoading={shouldShowConfirmationLoader}
-                        buttonText={confirmText}
-                        enabledWhenOffline={canConfirmWhileOffline}
-                        sentryLabel={confirmSentryLabel}
-                    />
-                    {!canConfirmWhileOffline && <OfflineIndicator />}
-                </View>
+                    ))
+                )}
             </Wrapper>
         </Modal>
     );
@@ -516,4 +487,4 @@ function FeatureTrainingModal({
 
 export default FeatureTrainingModal;
 
-export type {FeatureTrainingModalProps};
+export type {BaseFeatureTrainingModalProps, FeatureTrainingModalProps, FeatureTrainingModalPageProps};
