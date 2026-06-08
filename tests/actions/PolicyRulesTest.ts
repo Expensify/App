@@ -34,7 +34,9 @@ describe('actions/PolicyRules', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        mockFetch = TestHelper.setupGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
