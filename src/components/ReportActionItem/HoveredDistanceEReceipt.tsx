@@ -14,11 +14,6 @@ type HoveredDistanceEReceiptProps = {
     transaction: Transaction;
 };
 
-/**
- * Overlay that shows the full distance e-receipt on hover scaled down (object-fit: contain) to sit inside the
- * fixed-size receipt box without changing the box dimensions. The space around the portrait card is filled with
- * the card's own background color so there is no white gap.
- */
 function HoveredDistanceEReceipt({transaction}: HoveredDistanceEReceiptProps) {
     const styles = useThemeStyles();
     const [boxWidth, setBoxWidth] = useState(0);
@@ -40,6 +35,7 @@ function HoveredDistanceEReceipt({transaction}: HoveredDistanceEReceiptProps) {
         <View
             style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.b0, styles.justifyContentCenter, styles.alignItemsCenter, styles.overflowHidden, styles.eReceiptHoverFill]}
             onLayout={onOverlayLayout}
+            pointerEvents="none"
         >
             <View
                 style={[{width: E_RECEIPT_CARD_WIDTH}, scale ? {transform: [{scale}]} : styles.opacity0]}

@@ -57,6 +57,7 @@ import {
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    getWaypoints,
     hasEReceipt,
     hasReceiptSource,
     hasReceipt as hasReceiptTransactionUtils,
@@ -172,10 +173,14 @@ function MoneyRequestReceiptView({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
-    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
-    const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
-    const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
+    const displayedTransaction = updatedTransaction ?? transaction;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
+    // A merged distance expense can be typed `distance-manual` while still carrying the map waypoints/route from the
+    // expense it was merged with, so fall back to the presence of waypoints to still surface the distance e-receipt.
+    const hasDistanceWaypoints = Object.keys(getWaypoints(displayedTransaction) ?? {}).length > 0;
+    const isMapDistanceRequest = !!displayedTransaction && isDistanceRequest && (!isManualDistanceRequest(displayedTransaction) || hasDistanceWaypoints);
+    const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
+    const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
@@ -257,10 +262,9 @@ function MoneyRequestReceiptView({
 
     let receiptURIs;
     if (hasReceipt) {
-        receiptURIs = getThumbnailAndImageURIs(updatedTransaction ?? transaction);
+        receiptURIs = getThumbnailAndImageURIs(displayedTransaction);
     }
-    const transactionForReceipt = updatedTransaction ?? transaction;
-    const isEReceiptTransaction = !!transactionForReceipt && !hasReceiptSource(transactionForReceipt) && hasEReceipt(transactionForReceipt);
+    const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
     const canZoomReceipt = hasReceipt && !isLoading && !isTransactionScanning && !isEReceiptTransaction && !!receiptURIs?.image;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
@@ -641,9 +645,7 @@ function MoneyRequestReceiptView({
                                             onLoad={() => setIsLoading(false)}
                                             onLoadFailure={() => setIsLoading(false)}
                                         />
-                                        {/* On hover, a map distance receipt overlays the full e-receipt (map + amount + waypoints), scaled to fit the
-                                            box without resizing it, matching Expensify Classic. The map underneath keeps the box at its resting size. */}
-                                        {isMapDistanceRequest && hovered && !!transactionForReceipt && <HoveredDistanceEReceipt transaction={transactionForReceipt} />}
+                                        {isMapDistanceRequest && hovered && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
                                     </>
                                 </ReceiptHoverZoom>
                             </View>
