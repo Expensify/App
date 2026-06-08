@@ -1164,10 +1164,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     };
 }
 
-const getConvertTrackedExpenseInformation = (
+const getMoveTrackedExpenseInformation = (
     transactionID: string | undefined,
     actionableWhisperReportActionID: string | undefined,
-    moneyRequestReportID: string | undefined,
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string | undefined,
@@ -1472,10 +1471,9 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     successData?.push(...(onyxData.successData ?? []));
     failureData?.push(...(onyxData.failureData ?? []));
 
-    const convertTrackedExpenseInformation = getConvertTrackedExpenseInformation(
+    const convertTrackedExpenseInformation = getMoveTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
-        iouParams.reportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -2116,10 +2114,9 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         successData: moveTransactionSuccessData,
         failureData: moveTransactionFailureData,
         modifiedExpenseReportActionID,
-    } = getConvertTrackedExpenseInformation(
+    } = getMoveTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
-        moneyRequestReportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -2210,10 +2207,9 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         isLinkedTrackedExpenseReportArchived,
     } = reportInformation;
 
-    const convertTrackedExpenseInformation = getConvertTrackedExpenseInformation(
+    const convertTrackedExpenseInformation = getMoveTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
-        moneyRequestReportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -2829,6 +2825,7 @@ export {
     convertBulkTrackedExpensesToIOU,
     deleteTrackExpense,
     getDeleteTrackExpenseInformation,
+    getMoveTrackedExpenseInformation,
     getNavigationUrlAfterTrackExpenseDelete,
     getTrackExpenseInformation,
     hasManualDistanceOverride,

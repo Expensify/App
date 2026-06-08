@@ -3,11 +3,15 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {PerDiemExpenseTransactionParams} from '@libs/actions/IOU/PerDiem';
 import {addSubrate, clearSubrates, computePerDiemExpenseAmount, getPerDiemExpenseInformation, removeSubrate, submitPerDiemExpense, updateSubrate} from '@libs/actions/IOU/PerDiem';
 import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestMoneyParticipantParams';
+import * as API from '@libs/API';
+import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import createPersonalDetails from '../../utils/collections/personalDetails';
@@ -69,6 +73,10 @@ describe('PerDiem', () => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     describe('computePerDiemExpenseAmount', () => {
@@ -651,6 +659,94 @@ describe('PerDiem', () => {
     });
 
     describe('submitPerDiemExpense', () => {
+        it('should clean up the linked tracked expense when submitting a per diem from self DM', async () => {
+            const sourceTransactionID = 'tracked-per-diem-transaction';
+            const selfDMReportID = 'self-dm-report';
+            const actionableWhisperReportActionID = 'actionable-whisper-action';
+            const linkedTrackedExpenseReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: 'tracked-per-diem-action',
+                childReportID: 'tracked-per-diem-thread',
+                created: DateUtils.getDBTime(),
+                message: [],
+                originalMessage: {
+                    IOUTransactionID: sourceTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            } as unknown as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransactionID}`, {
+                transactionID: sourceTransactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
+                [linkedTrackedExpenseReportAction.reportActionID]: linkedTrackedExpenseReportAction,
+            });
+            await waitForBatchedUpdates();
+
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            submitPerDiemExpense({
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant: {},
+                },
+                report: {
+                    reportID: '1',
+                },
+                transactionParams: {
+                    created: DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    customUnit: {
+                        customUnitID: 'A',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitRateID: 'B',
+                        subRates: [{id: '1', name: 'rate_a', quantity: 1, rate: 2}],
+                        attributes: {dates: {end: '', start: ''}},
+                    },
+                    actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: selfDMReportID,
+                },
+                policyRecentlyUsedCurrencies: [],
+                policyParams: {
+                    policy: {...createRandomPolicy(1)},
+                },
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                conciergeReportID: undefined,
+            });
+
+            const createPerDiemRequestCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST);
+            const parameters = createPerDiemRequestCall?.[1] as CreatePerDiemRequestParams | undefined;
+            const onyxData = createPerDiemRequestCall?.[2];
+            expect(parameters?.actionableWhisperReportActionID).toBe(actionableWhisperReportActionID);
+            expect(typeof parameters?.modifiedExpenseReportActionID).toBe('string');
+            expect(onyxData?.optimisticData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                        value: expect.objectContaining({
+                            [linkedTrackedExpenseReportAction.reportActionID]: expect.objectContaining({
+                                originalMessage: {IOUTransactionID: null},
+                            }),
+                        }),
+                    }),
+                ]),
+            );
+        });
+
         it('should update policyRecentlyUsedTags when tag is provided', async () => {
             // Given a transaction with a tag
             const iouReportID = '2';

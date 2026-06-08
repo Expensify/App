@@ -547,6 +547,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 existingChatReport,
             );
             const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
+            const isLinkedTrackedExpenseReportArchived =
+                !!transaction.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transaction.linkedTrackedExpenseReportID}`];
 
             const result = submitPerDiemExpenseIOUActions({
                 report,
@@ -575,6 +577,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
+                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    isLinkedTrackedExpenseReportArchived,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 },
                 isASAPSubmitBetaEnabled,

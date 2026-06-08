@@ -71,6 +71,7 @@ import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
+import type TrackedExpenseSubmitParams from './types/TrackedExpenseSubmitParams';
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
@@ -110,43 +111,40 @@ type MoneyRequestInformation = {
     reimbursable?: boolean;
 };
 
-type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
-    attendees?: Attendee[];
-    actionableWhisperReportActionID?: string;
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
-    linkedTrackedExpenseReportID?: string;
-    receipt?: Receipt;
-    waypoints?: WaypointCollection;
-    comment?: string;
-    originalTransactionID?: string;
-    isTestDrive?: boolean;
-    source?: string;
-    pendingAction?: PendingAction;
-    pendingFields?: PendingFields<string>;
-    distance?: number;
-    isLinkedTrackedExpenseReportArchived?: boolean;
-    customUnit?: TransactionCustomUnit;
-    odometerStart?: number;
-    odometerEnd?: number;
+type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> &
+    TrackedExpenseSubmitParams & {
+        attendees?: Attendee[];
+        receipt?: Receipt;
+        waypoints?: WaypointCollection;
+        comment?: string;
+        originalTransactionID?: string;
+        isTestDrive?: boolean;
+        source?: string;
+        pendingAction?: PendingAction;
+        pendingFields?: PendingFields<string>;
+        distance?: number;
+        customUnit?: TransactionCustomUnit;
+        odometerStart?: number;
+        odometerEnd?: number;
 
-    /** Transaction type (e.g., 'time' for time tracking expenses) */
-    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+        /** Transaction type (e.g., 'time' for time tracking expenses) */
+        type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
-    /** Number of hours for time tracking expenses */
-    count?: number;
+        /** Number of hours for time tracking expenses */
+        count?: number;
 
-    /** Hourly rate in cents. Use convertToBackendAmount() to convert from policy rate (which is stored as a float) */
-    rate?: number;
+        /** Hourly rate in cents. Use convertToBackendAmount() to convert from policy rate (which is stored as a float) */
+        rate?: number;
 
-    /** Unit for time tracking (e.g., 'h' for hours) */
-    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+        /** Unit for time tracking (e.g., 'h' for hours) */
+        unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 
-    /** Whether this is a selfDM split transaction */
-    isSelfDMSplit?: boolean;
+        /** Whether this is a selfDM split transaction */
+        isSelfDMSplit?: boolean;
 
-    /** The selfDM report ID for split transactions */
-    selfDMReportID?: string;
-};
+        /** The selfDM report ID for split transactions */
+        selfDMReportID?: string;
+    };
 
 type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
