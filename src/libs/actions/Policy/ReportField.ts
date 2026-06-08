@@ -103,8 +103,6 @@ function openPolicyReportFieldsPage(policyID: string) {
  */
 function setInitialCreateReportFieldsForm() {
     Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
-        [INPUT_IDS.NAME]: '',
-        [INPUT_IDS.TYPE]: '',
         [INPUT_IDS.INITIAL_VALUE]: '',
     });
 }
@@ -170,11 +168,6 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReportIDs, policy}: CreateReportFieldParams) {
     if (!policy) {
         Log.warn('Policy data is not present');
-        return;
-    }
-
-    if (!type) {
-        Log.warn('Report field type is not present');
         return;
     }
 
