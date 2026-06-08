@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
+import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import Button from './Button';
 import {useMultifactorAuthentication} from './MultifactorAuthentication/Context';
@@ -33,7 +34,10 @@ function BiometricsTestToolRow() {
                     small
                     isDisabled={isOffline}
                     text={translate('multifactorAuthentication.biometricsTest.test')}
-                    onPress={() => executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST)}
+                    onPress={() => {
+                        toggleTestToolsModal();
+                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+                    }}
                 />
                 {isCurrentDeviceRegistered && !!localCredentialID && (
                     <Button

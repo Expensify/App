@@ -85,6 +85,12 @@ jest.mock('@components/MultifactorAuthentication/Context', () => ({
     }),
 }));
 
+const mockToggleTestToolsModal = jest.fn();
+jest.mock('@userActions/TestTool', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockToggleTestToolsModal(...args),
+}));
+
 jest.mock('@userActions/Network', () => ({
     setShouldFailAllRequests: jest.fn(),
     setShouldForceOffline: jest.fn(),
@@ -253,7 +259,7 @@ describe('TestToolMenu biometrics', () => {
         expect(mockRevokeCredentials).toHaveBeenCalledWith({onlyKeyID: 'key-abc'});
     });
 
-    it('always shows the Test button and invokes executeScenario with BIOMETRICS_TEST when pressed', () => {
+    it('always shows the Test button and closes the Test Tools modal then invokes executeScenario with BIOMETRICS_TEST when pressed', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
         render(<TestToolMenu />);
@@ -261,6 +267,7 @@ describe('TestToolMenu biometrics', () => {
         const testButton = screen.getByText('multifactorAuthentication.biometricsTest.test');
         fireEvent.press(testButton);
 
+        expect(mockToggleTestToolsModal).toHaveBeenCalledTimes(1);
         expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
     });
 });
