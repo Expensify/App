@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -24,7 +24,6 @@ import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportT
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {
     hasViolations as hasViolationsReportUtils,
@@ -40,7 +39,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining, PersonalDetailsList} from '@src/types/onyx';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import type {DismissedProductTraining} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
@@ -66,12 +66,8 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
-    const reportOwnerAccountID = report?.ownerAccountID;
-    const submitterEmailSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[reportOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
-        [reportOwnerAccountID],
-    );
-    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: submitterEmailSelector}, [submitterEmailSelector]);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
+    const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.managerID)}, [report?.managerID]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -84,91 +80,73 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const filteredReportActions = useAllPolicyExpenseChatReportActions();
     const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
 
-    const selectPolicy = useCallback(
-        (policyID?: string) => {
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            if (!policyID || !policy) {
-                return;
+    const selectPolicy = (policyID?: string) => {
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        if (!policyID || !policy) {
+            return;
+        }
+        if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+        Navigation.goBack(navigateBackFromChangeWorkspacePath);
+        if (isIOUReport(reportID)) {
+            const invite = moveIOUReportToPolicyAndInviteSubmitter(
+                report,
+                policy,
+                formatPhoneNumber,
+                filteredReportActions,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                submitterLogin,
+                reportTransactions,
+            );
+            if (!invite?.policyExpenseChatReportID) {
+                moveIOUReportToPolicy(report, policy, false, reportTransactions);
             }
-            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                return;
-            }
-            Navigation.goBack(navigateBackFromChangeWorkspacePath);
-            if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(
-                    report,
-                    policy,
-                    formatPhoneNumber,
-                    filteredReportActions,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    reportTransactions,
-                );
-                if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(report, policy, false, reportTransactions);
-                }
-                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
-                const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter({
-                    report,
-                    parentReport,
-                    policy,
-                    currentUser: {
-                        accountID: currentUserPersonalDetails.accountID,
-                        displayName: currentUserPersonalDetails.displayName,
-                        email: currentUserPersonalDetails.email,
-                        avatar: currentUserPersonalDetails.avatar,
-                    },
-                    hasViolationsParam: hasViolations,
-                    isChangePolicyTrainingModalDismissed,
-                    isASAPSubmitBetaEnabled,
-                    employeeList,
-                    formatPhoneNumber,
-                    isReportLastVisibleArchived,
-                    reportNextStep,
-                    reportActionsList: filteredReportActions,
-                });
-            } else {
-                changeReportPolicy(
-                    report,
-                    parentReport,
-                    policy,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
-                    isChangePolicyTrainingModalDismissed,
-                    isASAPSubmitBetaEnabled,
-                    reportNextStep,
-                    isReportLastVisibleArchived,
-                );
-            }
-        },
-        [
-            policies,
-            userBillingGracePeriods,
-            ownerBillingGracePeriodEnd,
-            amountOwed,
-            navigateBackFromChangeWorkspacePath,
-            reportID,
+            return;
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        }
+
+        if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, submitterLogin)) {
+            const employeeList = policy?.employeeList;
+            changeReportPolicyAndInviteSubmitter({
+                report,
+                parentReport,
+                policy,
+                currentUser: {
+                    accountID: currentUserPersonalDetails.accountID,
+                    displayName: currentUserPersonalDetails.displayName,
+                    email: currentUserPersonalDetails.email,
+                    avatar: currentUserPersonalDetails.avatar,
+                },
+                submitterLogin,
+                managerLogin,
+                hasViolationsParam: hasViolations,
+                isChangePolicyTrainingModalDismissed,
+                isASAPSubmitBetaEnabled,
+                employeeList,
+                formatPhoneNumber,
+                isReportLastVisibleArchived,
+                reportNextStep,
+                reportActionsList: filteredReportActions,
+            });
+            return;
+        }
+
+        changeReportPolicy({
             report,
             parentReport,
-            formatPhoneNumber,
-            reportTransactions,
-            filteredReportActions,
-            isReportLastVisibleArchived,
-            session?.accountID,
-            session?.email,
-            hasViolations,
+            policy,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            managerLogin,
+            hasViolationsParam: hasViolations,
+            isChangePolicyTrainingModalDismissed,
             isASAPSubmitBetaEnabled,
             reportNextStep,
-            isChangePolicyTrainingModalDismissed,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.displayName,
-            currentUserPersonalDetails.avatar,
-            currentUserPersonalDetails.email,
-        ],
-    );
+            isReportLastVisibleArchived,
+        });
+    };
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
@@ -179,7 +157,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         localeCompare,
         additionalFilter: (newPolicy) => {
             const isReportSettled = isSettled(report);
-            const isEligible = isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report);
+            const isEligible = isWorkspaceEligibleForReportChange(submitterLogin, newPolicy, report);
             if (isReportSettled) {
                 return isEligible && isPolicyAdmin(newPolicy, session?.email);
             }
@@ -187,15 +165,12 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         },
     });
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: shouldShowSearchInput ? translate('common.search') : undefined,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
-        }),
-        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
-    );
+    const textInputOptions = {
+        label: shouldShowSearchInput ? translate('common.search') : undefined,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+    };
 
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
         return <NotFoundPage />;

@@ -5,6 +5,7 @@ import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,8 +20,15 @@ function openProfilePage() {
     read(READ_COMMANDS.OPEN_PROFILE_PAGE, null);
 }
 
-function createAgent(firstName: string | undefined, prompt: string, customExpensifyAvatarID?: string, file?: File | CustomRNImageManipulatorResult, optimisticAvatarURI?: string) {
-    const optimisticAccountID = -Math.round(Math.random() * 1000000);
+function createAgent(
+    firstName: string | undefined,
+    prompt: string,
+    customExpensifyAvatarID?: string,
+    file?: File | CustomRNImageManipulatorResult,
+    optimisticAvatarURI?: string,
+    policyID?: string,
+) {
+    const optimisticAccountID = Number(generateReportID());
 
     let avatarURI: string | undefined;
     if (customExpensifyAvatarID) {
@@ -29,18 +37,19 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
         avatarURI = optimisticAvatarURI;
     }
 
+    // Optimistic row for Settings > Agents until CREATE_AGENT responds. Omit `login` (server-assigned).
+    const optimisticPersonalDetail = {
+        accountID: optimisticAccountID,
+        displayName: firstName,
+        isOptimisticPersonalDetail: true,
+        ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
+    };
+
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [optimisticAccountID]: {
-                    accountID: optimisticAccountID,
-                    displayName: firstName,
-                    isOptimisticPersonalDetail: true,
-                    ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
-                },
-            },
+            value: {[optimisticAccountID]: optimisticPersonalDetail},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -53,14 +62,17 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [optimisticAccountID]: null,
-            },
+            value: {[optimisticAccountID]: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
             value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
+            value: {[optimisticAccountID]: null},
         },
     ];
 
@@ -68,14 +80,7 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [optimisticAccountID]: {
-                    accountID: optimisticAccountID,
-                    displayName: firstName,
-                    isOptimisticPersonalDetail: true,
-                    ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
-                },
-            },
+            value: {[optimisticAccountID]: optimisticPersonalDetail},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -86,14 +91,71 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
                 errors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd'),
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
+            value: {[optimisticAccountID]: null},
+        },
     ];
 
-    write(WRITE_COMMANDS.CREATE_AGENT, {firstName, prompt, customExpensifyAvatarID, file}, {optimisticData, successData, failureData});
+    // When the agent is being created as part of a workspace flow, also mirror the
+    // pending/error state onto the policy. That way the failure surfaces as a brick road
+    // indicator on the workspace and an inline error on the Workflows page, instead of
+    // being hidden away in Settings > Agents (where the admin may never look).
+    if (policyID) {
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
+                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
+                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd')},
+            },
+        });
+    }
+
+    write(
+        WRITE_COMMANDS.CREATE_AGENT,
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID)},
+        {optimisticData, successData, failureData},
+    );
+
+    return {optimisticAccountID, avatarURI};
 }
 
 function clearAgentError(optimisticAccountID: number) {
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
     Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
+}
+
+/**
+ * Discard a failed optimistic agent that was seeded into an approval workflow. Wipes the
+ * deferred workflow save (so the agent stops appearing as a pending approver), the optimistic
+ * personal detail + prompt entry, the optimistic->real ID mapping slot, and the policy-level
+ * addAgent error. Used by the RBR X click on the workflows page.
+ */
+function clearPendingAgentFromApprovalWorkflow(policyID: string, firstApproverEmail: string, optimisticAccountID: number) {
+    Onyx.merge(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES, {[`${policyID}:${firstApproverEmail}`]: null});
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
+    Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
+    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null}});
 }
 
 function clearAgentUpdateError(accountID: number) {
@@ -295,6 +357,7 @@ export {
     openProfilePage,
     createAgent,
     clearAgentError,
+    clearPendingAgentFromApprovalWorkflow,
     clearAgentUpdateError,
     clearAgentNameUpdateError,
     clearAgentPromptUpdateError,

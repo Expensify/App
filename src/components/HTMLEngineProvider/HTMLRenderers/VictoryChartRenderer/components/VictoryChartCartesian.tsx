@@ -1,9 +1,10 @@
 import React from 'react';
 import {CartesianChart} from 'victory-native';
+import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
-import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
-import VictoryChartLabels from './VictoryChartLabels';
+import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
+import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
 
@@ -25,17 +26,30 @@ function VictoryChartCartesian() {
             domainPadding={domainPadding}
             padding={padding}
             renderOutside={(renderArgs) => (
-                <VictoryChartRenderArgsProvider value={renderArgs}>
-                    <VictoryChartLabels labelItems={labelItems} />
-                    <VictoryChartLegend legendItems={legendItems} />
-                </VictoryChartRenderArgsProvider>
+                // Chart font context does not propagate across the Skia renderOutside boundary.
+                <ChartFontsLoaderProvider>
+                    <VictoryChartRenderArgsProvider value={renderArgs}>
+                        {labelItems.map((labelItem) => (
+                            <VictoryChartLabel
+                                key={`label-${labelItem.x}-${labelItem.y}`}
+                                {...labelItem}
+                            />
+                        ))}
+                        {legendItems.map((legendItem) => (
+                            <VictoryChartLegend
+                                key={`legend-${legendItem.x}-${legendItem.y}`}
+                                {...legendItem}
+                            />
+                        ))}
+                    </VictoryChartRenderArgsProvider>
+                </ChartFontsLoaderProvider>
             )}
         >
             {(renderArgs) => (
                 <VictoryChartRenderArgsProvider value={renderArgs}>
                     {tnode.children.map((child) => (
                         <VictoryChartSeries
-                            key={`${child.tagName ?? 'node'}-${getYKey(child)}`}
+                            key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
                             tnode={child}
                             isHorizontal={isHorizontal}
                         />
@@ -45,7 +59,5 @@ function VictoryChartCartesian() {
         </CartesianChart>
     );
 }
-
-VictoryChartCartesian.displayName = 'VictoryChartCartesian';
 
 export default VictoryChartCartesian;

@@ -3,9 +3,10 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useOnyx from '@hooks/useOnyx';
-import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
-import type {IOUType} from '@src/CONST';
+import {rand64} from '@libs/NumberUtils';
+import {generateReportID, isMoneyRequestReport} from '@libs/ReportUtils';
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
+import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Beta, IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
@@ -16,6 +17,9 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 type UseDistanceNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
     iouType: IOUType;
+
+    /** Route param: the IOU action (create / edit). */
+    action: IOUAction;
 
     /** The chat/expense report that owns this transaction. */
     report: OnyxEntry<Report>;
@@ -92,6 +96,7 @@ type UseDistanceNavigationParams = {
 
 function useDistanceNavigation({
     iouType,
+    action,
     report,
     policy,
     transaction,
@@ -130,8 +135,12 @@ function useDistanceNavigation({
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     return () => {
+        const optimisticTransactionID = rand64();
+        const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+
         handleMoneyRequestStepDistanceNavigation({
             iouType,
+            action,
             report,
             policy,
             transaction,
@@ -156,7 +165,6 @@ function useDistanceNavigation({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            privateIsArchived: isArchived,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -167,6 +175,8 @@ function useDistanceNavigation({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            optimisticTransactionID,
+            optimisticChatReportID,
             reportDraft,
         });
     };

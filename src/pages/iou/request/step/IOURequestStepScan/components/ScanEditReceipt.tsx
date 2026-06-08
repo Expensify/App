@@ -76,18 +76,14 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
             shouldShowWrapper
             testID="ScanEditReceipt"
         >
-            {() => (
-                <>
-                    {PDFValidationComponent}
-                    <Camera
-                        onCapture={handleCapture}
-                        onPicked={validateFiles}
-                        onAttachmentPickerStatusChange={setIsLoaderVisible}
-                        isReplacingReceipt
-                    />
-                    {ErrorModal}
-                </>
-            )}
+            {PDFValidationComponent}
+            <Camera
+                onCapture={handleCapture}
+                onPicked={validateFiles}
+                onAttachmentPickerStatusChange={setIsLoaderVisible}
+                isReplacingReceipt
+            />
+            {ErrorModal}
         </StepScreenDragAndDropWrapper>
     );
 }

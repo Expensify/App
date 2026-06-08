@@ -7,7 +7,7 @@ type SidePanelModalProps = {
     shouldHideSidePanel: boolean;
     sidePanelTranslateX: RefObject<Animated.Value>;
     shouldHideSidePanelBackdrop: boolean;
-    closeSidePanel: (options?: {afterTransition?: () => void}) => void;
+    closeSidePanel: (shouldUpdateNarrow?: boolean) => void;
 };
 
 export default SidePanelModalProps;
