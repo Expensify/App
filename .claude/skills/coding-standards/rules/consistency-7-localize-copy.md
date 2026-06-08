@@ -1,9 +1,9 @@
 ---
-ruleId: I18N-1
+ruleId: CONSISTENCY-7
 title: Localize all user-visible copy
 ---
 
-## [I18N-1] Localize all user-visible copy
+## [CONSISTENCY-7] Localize all user-visible copy
 
 ### Reasoning
 

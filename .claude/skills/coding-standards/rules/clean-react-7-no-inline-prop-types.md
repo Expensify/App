@@ -1,9 +1,9 @@
 ---
-ruleId: TS-2
+ruleId: CLEAN-REACT-7
 title: Do not inline prop types on exported components
 ---
 
-## [TS-2] Do not inline prop types on exported components
+## [CLEAN-REACT-7] Do not inline prop types on exported components
 
 ### Reasoning
 

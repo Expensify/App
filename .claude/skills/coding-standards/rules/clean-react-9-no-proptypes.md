@@ -1,9 +1,9 @@
 ---
-ruleId: STYLE-2
+ruleId: CLEAN-REACT-9
 title: Use TypeScript types, not propTypes or defaultProps
 ---
 
-## [STYLE-2] Use TypeScript types, not propTypes or defaultProps
+## [CLEAN-REACT-9] Use TypeScript types, not propTypes or defaultProps
 
 ### Reasoning
 

@@ -1,9 +1,9 @@
 ---
-ruleId: NAMING-1
+ruleId: CONSISTENCY-9
 title: Name files after what they export
 ---
 
-## [NAMING-1] Name files after what they export
+## [CONSISTENCY-9] Name files after what they export
 
 ### Reasoning
 

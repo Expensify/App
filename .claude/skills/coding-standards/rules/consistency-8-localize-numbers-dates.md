@@ -1,9 +1,9 @@
 ---
-ruleId: I18N-2
+ruleId: CONSISTENCY-8
 title: Localize numbers, amounts, dates and phone numbers
 ---
 
-## [I18N-2] Localize numbers, amounts, dates and phone numbers
+## [CONSISTENCY-8] Localize numbers, amounts, dates and phone numbers
 
 ### Reasoning
 

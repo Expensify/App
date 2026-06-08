@@ -1,9 +1,9 @@
 ---
-ruleId: STYLE-3
+ruleId: UI-3
 title: Do not use inline style objects
 ---
 
-## [STYLE-3] Do not use inline style objects
+## [UI-3] Do not use inline style objects
 
 ### Reasoning
 

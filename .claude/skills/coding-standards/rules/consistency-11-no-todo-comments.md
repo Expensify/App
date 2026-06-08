@@ -1,9 +1,9 @@
 ---
-ruleId: OVERENG-1
+ruleId: CONSISTENCY-11
 title: Track future work in a GitHub issue, not a TODO comment
 ---
 
-## [OVERENG-1] Track future work in a GitHub issue, not a TODO comment
+## [CONSISTENCY-11] Track future work in a GitHub issue, not a TODO comment
 
 ### Reasoning
 

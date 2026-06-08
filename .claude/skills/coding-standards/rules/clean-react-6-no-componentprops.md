@@ -1,9 +1,9 @@
 ---
-ruleId: TS-1
+ruleId: CLEAN-REACT-6
 title: Import the exported prop type instead of ComponentProps
 ---
 
-## [TS-1] Import the exported prop type instead of ComponentProps
+## [CLEAN-REACT-6] Import the exported prop type instead of ComponentProps
 
 ### Reasoning
 

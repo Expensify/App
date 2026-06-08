@@ -1,9 +1,9 @@
 ---
-ruleId: DOC-1
+ruleId: CONSISTENCY-10
 title: Follow the JSDoc style guidelines
 ---
 
-## [DOC-1] Follow the JSDoc style guidelines
+## [CONSISTENCY-10] Follow the JSDoc style guidelines
 
 ### Reasoning
 
