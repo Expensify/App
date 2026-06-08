@@ -10,6 +10,7 @@ import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/
 import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertAngleToArcLength';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
+import Log from '@libs/Log';
 import VictoryChartPieLabel from './VictoryChartPieLabel';
 
 type VictoryChartPieProps = {tnode: TNode};
@@ -52,6 +53,37 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
             },
             {} as Record<string, {customLabelRadius: number | undefined; customLabel: string | undefined}>,
         );
+
+    // Diagnostic: capture every numeric prop after parseAttribute → Number. NaN here would explain
+    // a pie that renders as one uniform shape: victory-native silently treats NaN size/innerRadius
+    // as zero/full-disk. Also dumps labels/labelComponent/labelIndicator parse outcomes so we can
+    // see if `pieLabels` is an array (good) vs a fallback string (broken) and whether the encoded
+    // <victorylabel> / <ShiftedLineSegment> children resolved into TNodes.
+    Log.info('[VictoryChartPie debug] render', false, {
+        sliceCount: Object.keys(data).length,
+        sliceLabels: Object.keys(data),
+        rawRadius: tnode.attributes.radius,
+        parsedRadius: radius,
+        radiusIsNaN: Number.isNaN(radius as number),
+        rawInnerRadius: tnode.attributes.innerradius,
+        parsedInnerRadius: innerRadius,
+        innerRadiusIsNaN: Number.isNaN(innerRadius as number),
+        rawPadAngle: tnode.attributes.padangle,
+        parsedPadAngle: padAngle,
+        rawLabelRadius: tnode.attributes.labelradius,
+        parsedLabelRadius: labelRadius,
+        size,
+        angularStrokeWidth,
+        rawLabelsLength: tnode.attributes.labels?.length,
+        rawLabelsPreview: tnode.attributes.labels?.slice(0, 200),
+        pieLabelsIsArray: Array.isArray(pieLabels),
+        pieLabelsCount: Array.isArray(pieLabels) ? pieLabels.length : 'not-array',
+        pieLabelsFirst: Array.isArray(pieLabels) ? pieLabels.at(0) : undefined,
+        labelComponentResolved: !!labelComponentNode,
+        baseLabelItemResolved: !!baseLabelItem,
+        labelIndicatorResolved: !!labelIndicatorNode,
+        labelIndicatorStyles,
+    });
 
     return (
         <Pie.Chart
