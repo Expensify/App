@@ -1689,6 +1689,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} bis ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Gültig ab ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Gültig bis ${endDate}`,
     },
     transactionMerge: {
         listPage: {
@@ -9414,6 +9417,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         scanTestDriveTooltip: '<tooltip>Sende diese Quittung, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-Tracking läuft! Wenn du fertig bist, stoppe die Aufzeichnung unten.</tooltip>',
         hasFilterNegation: '<tooltip>Suchen Sie nach Ausgaben ohne Belege mit <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Wir haben den Kurs basierend auf Ihrem Reisedatum aktualisiert.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',

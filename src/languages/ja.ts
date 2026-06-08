@@ -1667,6 +1667,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} 〜 ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `有効期間：${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `${endDate} まで有効`,
     },
     transactionMerge: {
         listPage: {
@@ -9280,6 +9283,7 @@ ${reportName}
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
         hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>出張日にもとづいてレートを更新しました。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

@@ -1645,6 +1645,9 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
             confirmText: 'Eliminar impuesto',
         },
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Válido desde ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Válido hasta ${endDate}`,
     },
     transactionMerge: {
         listPage: {
@@ -9575,6 +9578,7 @@ ${amount} para ${merchant} - ${date}`,
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
         hasFilterNegation: '<tooltip>Busca gastos sin recibos usando <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Hemos actualizado la tasa según tu fecha de viaje.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

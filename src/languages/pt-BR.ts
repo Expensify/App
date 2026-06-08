@@ -1680,6 +1680,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Válido a partir de ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Válido até ${endDate}`,
     },
     transactionMerge: {
         listPage: {
@@ -9361,6 +9364,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
         hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Nós atualizamos a taxa com base na sua data de viagem.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
