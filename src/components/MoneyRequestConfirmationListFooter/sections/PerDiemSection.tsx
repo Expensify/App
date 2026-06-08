@@ -22,12 +22,30 @@ type PerDiemSectionProps = {
     formError: string;
 };
 
+type PerDiemSectionContentProps = Omit<PerDiemSectionProps, 'isPerDiemRequest'>;
+
+/**
+ * Two-level guard: the outer component checks the prop-level gate (`isPerDiemRequest` + action)
+ * without subscribing to anything. The inner component is the only place that subscribes to the
+ * transaction slice, so non-per-diem flows avoid the extra Onyx subscriptions.
+ */
 function PerDiemSection({isPerDiemRequest, policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
-    const {action, iouType, transactionID, reportID, isReadOnly, didConfirm} = useConfirmationFields();
-    const transaction = useTransactionSelector(transactionID, perDiemSliceSelector);
+    const {action} = useConfirmationFields();
     if (!isPerDiemRequest || action === CONST.IOU.ACTION.SUBMIT) {
         return null;
     }
+    return (
+        <PerDiemSectionContent
+            policy={policy}
+            shouldDisplayFieldError={shouldDisplayFieldError}
+            formError={formError}
+        />
+    );
+}
+
+function PerDiemSectionContent({policy, shouldDisplayFieldError, formError}: PerDiemSectionContentProps) {
+    const {action, iouType, transactionID, reportID, isReadOnly, didConfirm} = useConfirmationFields();
+    const transaction = useTransactionSelector(transactionID, perDiemSliceSelector);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
 
