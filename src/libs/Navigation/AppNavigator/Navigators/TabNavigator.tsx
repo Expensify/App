@@ -90,7 +90,6 @@ function TabNavigator() {
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
             return;

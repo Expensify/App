@@ -12,7 +12,7 @@ import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
-import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
@@ -229,16 +229,18 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getTabNavigatorState(splitState);
     }
 
-    // Handle dynamic routes: find the appropriate full screen route
+    // Handle dynamic routes: find the appropriate full screen route.
+    // Iterate all candidates so that a false-positive first match (e.g. a tag named "gl-code"
+    // colliding with the registered static suffix) does not produce a NOT_FOUND state.
     if (route.path) {
-        const suffixMatch = findMatchingDynamicSuffix(route.path);
-        if (suffixMatch) {
+        const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
+        for (const suffixMatch of allSuffixMatches) {
             // Strip the suffix from the URL. For parametric routes we pass both the actual URL
             // suffix and the registered pattern so query params can be resolved correctly.
             const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
-                return undefined;
+                continue;
             }
 
             // Parse the base path (without dynamic suffix) into a navigation state
@@ -247,7 +249,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
             if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
-                return undefined;
+                continue;
             }
 
             const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
@@ -259,7 +261,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             const focusedRouteUnderDynamicRoute = findFocusedRouteWithOnyxTabGuard(stateUnderDynamicRoute);
 
             if (!focusedRouteUnderDynamicRoute) {
-                return undefined;
+                continue;
             }
 
             // Recursively find the matching full screen route for the focused dynamic route
@@ -408,6 +410,12 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
     if (normalizedPath === CONST.SIGNIN_ROUTE) {
+        normalizedPath = '/';
+    }
+
+    // PublicScreens registers SCREENS.HOME ('Home') without a path mapping, so React Navigation derives `/Home` as the URL.
+    // The authenticated config maps SCREENS.HOME to lowercase 'home', and the case-sensitive mismatch falls to NOT_FOUND.
+    if (normalizedPath === `/${SCREENS.HOME}`) {
         normalizedPath = '/';
     }
 

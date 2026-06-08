@@ -7,6 +7,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
@@ -74,6 +75,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
@@ -139,6 +141,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
 
         // Handle add new card flow
         if (isNewFeedConnected) {
+            if (checkForDuplicateFeed(newFeed)) {
+                return;
+            }
+
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
@@ -163,6 +169,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        checkForDuplicateFeed,
     ]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {

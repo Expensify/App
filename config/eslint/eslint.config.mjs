@@ -631,7 +631,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'server/**/*'],
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
@@ -639,7 +639,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*', 'tests/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
         rules: {
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
@@ -735,6 +735,24 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['server/**/*.ts', 'server/**/*.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'server/tsconfig.json'),
+            },
+        },
+    },
+
+    {
+        files: ['server/victory-chart-renderer/**/*.ts', 'server/victory-chart-renderer/**/*.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
+            },
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
@@ -743,6 +761,7 @@ const config = defineConfig([
         '**/*.config.mjs',
         '**/node_modules/**/*',
         '**/dist/**/*',
+        'server/**/dist/**',
         '.eslint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
