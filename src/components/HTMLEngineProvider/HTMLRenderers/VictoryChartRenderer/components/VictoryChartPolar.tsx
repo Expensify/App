@@ -18,7 +18,8 @@ type VictoryChartPolarProps = {
  * Renders the PolarChart with data drawn from context.
  */
 function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
-    const {tnode, data, labelItems, legendItems} = useVictoryChartContext();
+    const {tnode, data, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
+    const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
 
     const chartContent = (
         <>
@@ -38,6 +39,7 @@ function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
                 <VictoryChartLegend
                     key={`legend-${legendItem.x}-${legendItem.y}`}
                     {...legendItem}
+                    chartWidth={chartWidth}
                 />
             ))}
         </>
