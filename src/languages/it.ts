@@ -487,9 +487,11 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Delega ferie',
         expensifyLogo: 'Logo Expensify',
-        concierge: {sidePanelGreeting: 'Ciao, come posso aiutarti?', showHistory: 'Mostra cronologia'},
+        concierge: {greeting: 'Ciao, come posso aiutarti?', showHistory: 'Mostra cronologia'},
         duplicateReport: 'Report duplicato',
         approver: 'Approvante',
+        goToConcierge: 'Vai a Concierge',
+        allSet: 'Tutto pronto!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `inserire la cifra ${digitIndex} di ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copia di ${reportName}`,
         previousMonth: 'Mese precedente',
@@ -497,6 +499,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        editor: 'Editor',
         restrictions: 'Restrizioni',
     },
     socials: {
@@ -2141,7 +2144,7 @@ const translations: TranslationDeepObject<typeof en> = {
             partnerManager: 'Responsabile partner',
             yourPartnerManager: 'Il tuo partner manager',
             partnerManagerDescription: 'Massimizza la tua partnership e genera referral',
-            guideDescription: 'Il tuo specialista di configurazione',
+            guideDescription: 'Il tuo account executive',
             approvedPartnerTeamTitle: 'Incontra il tuo team partner Approved!',
             approvedPartnerTeamDescription:
                 'Un team dedicato che ti aiuta a far crescere il tuo studio, ad attivare i clienti più velocemente e a ottenere supporto di esperti ogni volta che ne hai bisogno.',
@@ -2926,6 +2929,8 @@ ${amount} per ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Modalità alto contrasto',
+        enableHighContrast: 'Attiva alto contrasto',
+        disableHighContrast: 'Disattiva alto contrasto',
         chooseThemeBelowOrSync: 'Scegli un tema qui sotto o sincronizza con le impostazioni del tuo dispositivo.',
     },
     termsOfUse: {
@@ -3085,7 +3090,7 @@ ${amount} per ${merchant} - ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) uno spazio di lavoro`,
-                description: 'Crea uno spazio di lavoro e configura le impostazioni con l’aiuto del tuo/tuа specialista di configurazione!',
+                description: 'Crea uno spazio di lavoro e configura le impostazioni con l’aiuto del tuo account executive!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Crea uno [spazio di lavoro](${workspaceSettingsLink})`,
@@ -3303,11 +3308,11 @@ ${amount} per ${merchant} - ${date}`,
                 isOnboardingFlow
                     ? dedent(`
                         # La tua prova gratuita è iniziata! Configuriamo il tuo account.
-                        👋 Ciao, sono il tuo/​la tua specialista per la configurazione di Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le ricevute e le spese del tuo team. Per sfruttare al massimo i 30 giorni di prova gratuita, segui i passaggi di configurazione rimanenti qui sotto!
+                        👋 Ciao, sono il tuo account executive di Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le ricevute e le spese del tuo team. Per sfruttare al meglio i tuoi 30 giorni di prova gratuita, segui semplicemente i passaggi di configurazione qui sotto!
                     `)
                     : dedent(`
                         # La tua prova gratuita è iniziata! Configuriamo il tuo account.
-                        👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi qui sotto!
+                        👋 Ciao, sono il tuo account executive di Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi qui sotto!
                     `),
             onboardingTrackWorkspaceMessage: 'Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui i passaggi rimanenti qui sotto:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come fare.',
@@ -4100,6 +4105,38 @@ ${amount} per ${merchant} - ${date}`,
         weTake: 'Prendiamo molto sul serio la tua sicurezza. Configura ora l’autenticazione a due fattori (2FA) per aggiungere un ulteriore livello di protezione al tuo account.',
         secure: 'Proteggi il tuo account',
     },
+    documentsStep: {
+        beforeYouGo: 'Prima di continuare, abbiamo bisogno di alcuni documenti per verificare alcune informazioni',
+        subheader: 'Verifica',
+        verificationFailed: 'La verifica non è riuscita, quindi avremo bisogno di documenti aggiuntivi per verificare te e la tua azienda',
+        taxIDVerification: 'Verifica dell’ID fiscale',
+        taxIDVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Lettera di assegnazione TIN/EIN dell’IRS
+        • Conferma della richiesta TIN/EIN dell’IRS (di solito indica "Congratulations! The EIN has been successfully assigned")
+        • Lettera di esenzione fiscale dell’IRS con nome dell’azienda ed EIN`),
+        nameChangeDocument: 'Documento di cambio nome',
+        nameChangeDocumentDescription:
+            'Se il nome della tua azienda è cambiato dopo la richiesta del TIN/EIN, abbiamo bisogno di questo documento per verificare il numero di ID fiscale fornito',
+        companyAddressVerification: 'Verifica dell’indirizzo aziendale',
+        companyAddressVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Bolletta recente con nome e indirizzo dell’azienda
+        • Estratto conto bancario con nome e indirizzo dell’azienda
+        • Contratto di locazione attuale con pagina firme che mostri nome e indirizzo attuale dell’azienda
+        • Documento assicurativo con nome e indirizzo dell’azienda
+        • Documento di assegnazione TIN con nome e indirizzo dell’azienda`),
+        userAddressVerification: 'Verifica dell’indirizzo',
+        userAddressVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Tessera elettorale
+        • Patente di guida
+        • Estratto conto bancario
+        • Bolletta`),
+        userDOBVerification: 'Verifica della data di nascita',
+        userDOBVerificationDescription: 'Carica un documento di identità rilasciato negli Stati Uniti',
+        finishViaChat: 'Completa via chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
         explanationLine: 'Stiamo esaminando le tue informazioni. Potrai procedere con i prossimi passaggi a breve.',
@@ -4363,6 +4400,8 @@ ${amount} per ${merchant} - ${date}`,
                         return 'Amministratore';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Amministrazione carta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5611,8 +5650,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             emptyCategories: {
                 title: 'Nessuna categoria ancora',
                 subtitle: 'Aggiungi una categoria per organizzare le tue spese.',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Le tue categorie sono attualmente importate da una connessione contabile. Vai alla sezione <a href="${accountingPageURL}">contabilità</a> per apportare modifiche.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Le tue categorie sono attualmente importate da una connessione contabile.${canManage ? ` Vai alla sezione <a href="${accountingPageURL}">contabilità</a> per apportare modifiche.` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Si è verificato un errore durante l’aggiornamento della categoria, riprova per favore',
             createFailureMessage: 'Si è verificato un errore durante la creazione della categoria, riprova per favore',
@@ -5668,6 +5707,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             travel: {
                 title: 'Viaggi',
                 subtitle: 'Prenota, gestisci e riconcilia tutti i viaggi di lavoro.',
+                disableTravelTitle: 'Disattiva prima la fatturazione viaggi',
+                disableTravelPrompt: 'La fatturazione Viaggi è abilitata per questo spazio di lavoro. Disattivala prima di poter disabilitare Viaggi.',
+                disableTravelButton: 'Vai alle impostazioni Viaggio',
                 getStarted: {
                     title: 'Inizia con Expensify Travel',
                     subtitle: 'Ci servono solo ancora alcune informazioni sulla tua attività, poi sarai pronto al decollo.',
@@ -5999,14 +6041,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             editTags: 'Modifica tag',
             findTag: 'Trova tag',
             subtitle: 'I tag aggiungono modi più dettagliati per classificare i costi.',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>I tag aggiungono modi più dettagliati per classificare i costi. Stai usando i <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tag dipendenti</a>. Puoi <a href="${importSpreadsheetLink}">importare nuovamente un foglio di calcolo</a> per aggiornare i tuoi tag.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string, canReimport = true) =>
+                `<muted-text>I tag aggiungono modi più dettagliati per classificare i costi. Stai usando i <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tag dipendenti</a>.${canReimport ? ` Puoi <a href="${importSpreadsheetLink}">importare nuovamente un foglio di calcolo</a> per aggiornare i tuoi tag.` : ''}</muted-text>`,
             emptyTags: {
                 title: 'Nessun tag ancora',
                 subtitle: 'Aggiungi un tag per tenere traccia di progetti, sedi, reparti e altro ancora.',
                 subtitleHTML: `<muted-text><centered-text>Aggiungi tag per tenere traccia di progetti, sedi, reparti e altro ancora. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Scopri di più</a> sulla formattazione dei file dei tag da importare.</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>I tuoi tag vengono attualmente importati da una connessione di contabilità. Vai alla sezione <a href="${accountingPageURL}">Contabilità</a> per apportare qualsiasi modifica.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>I tuoi tag vengono attualmente importati da una connessione di contabilità.${canManage ? ` Vai alla sezione <a href="${accountingPageURL}">Contabilità</a> per apportare qualsiasi modifica.` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'Elimina tag',
             deleteTags: 'Elimina tag',
@@ -6150,6 +6192,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             confirmWorkflows: {
                 continue: 'Continua senza membri',
                 description: 'Copiare Flussi di lavoro senza Membri non copierà i flussi di lavoro di approvazione. Le impostazioni di invio e pagamento verranno comunque copiate.',
+            },
+            progress: {
+                copyInProgressTitle: 'Copia in corso...',
+                copyInProgressDescription: 'Puoi aspettare che il processo finisca oppure Concierge può avvisarti quando è terminato.',
+                letMeKnowPrompt: 'Fammi sapere quando hai finito',
+                conciergeNotificationTitle: 'Concierge ti farà sapere',
+                conciergeNotificationDescription: 'Quando il processo sarà completato, Concierge ti invierà un messaggio.',
+                copyCompleted: 'Le impostazioni dello spazio di lavoro sono state copiate.',
             },
         },
         emptyWorkspace: {
@@ -6306,7 +6356,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chatta con il tuo specialista di configurazione.',
+            talkYourOnboardingSpecialist: 'Chatta con il tuo account executive.',
             talkYourAccountManager: 'Chatta con il tuo account manager.',
             talkToConcierge: 'Chatta con Concierge.',
             needAnotherAccounting: 'Ti serve un altro software di contabilità?',
@@ -6899,8 +6949,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             upgradeToUnlock: 'Sblocca questa funzionalità',
             completed: {
                 headline: `Hai aggiornato il tuo spazio di lavoro!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Hai effettuato l'upgrade di ${policyName} al piano Control! <a href="${subscriptionLink}">Visualizza il tuo abbonamento</a> per maggiori dettagli.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Hai effettuato l'upgrade di ${policyName} al piano ${planName}! <a href="${subscriptionLink}">Visualizza il tuo abbonamento</a> per maggiori dettagli.</centered-text>`,
                 categorizeMessage: `Hai eseguito l’upgrade al piano Collect. Ora puoi categorizzare le tue spese!`,
                 travelMessage: `Hai eseguito correttamente l’upgrade al piano Collect. Ora puoi iniziare a prenotare e gestire i viaggi!`,
                 distanceRateMessage: `Hai eseguito correttamente l’upgrade al piano Collect. Ora puoi modificare il rimborso chilometrico!`,
@@ -8035,6 +8085,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             newChat: 'Nuova schermata chat',
             copy: 'Copia commento',
             openDebug: 'Apri la finestra delle preferenze di test',
+            expenseReportSearch: 'Cerca i report spese',
+            goToWorkspace: 'Vai allo spazio di lavoro del report corrente',
         },
     },
     guides: {
@@ -8242,6 +8294,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         withdrawalType: 'Tipo di prelievo',
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
+        serverResults: 'Risultati di ricerca',
         searchIn: 'Cerca in',
         askConcierge: (message: string) => `Chiedi a Concierge “${message}”`,
         searchPlaceholder: 'Cerca qualcosa...',
@@ -8776,8 +8829,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Chatta con il tuo specialista di configurazione in <a href="${href}">${adminReportName}</a> per ricevere assistenza`,
-        default: `Invia un messaggio a <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> per ricevere assistenza con la configurazione`,
+            `Chatta con il tuo account executive in <a href="${href}">${adminReportName}</a> per avere aiuto`,
+        default: `Invia un messaggio a <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> per ricevere aiuto con la configurazione`,
     },
     violations: {
         allTagLevelsRequired: 'Tutti i tag obbligatori',
@@ -9426,7 +9479,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         confirmation: {
             title: 'Conferma chiamata',
             description: 'Assicurati che i dettagli qui sotto ti sembrino corretti. Una volta confermata la chiamata, ti invieremo un invito con maggiori informazioni.',
-            setupSpecialist: 'Il tuo/La tua specialista di configurazione',
+            setupSpecialist: 'Il tuo account executive',
             meetingLength: 'Durata riunione',
             dateTime: 'Data e ora',
             minutes: '30 minuti',

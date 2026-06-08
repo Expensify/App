@@ -4169,7 +4169,6 @@ function createWorkspaceFromIOUPayment(
     currentUserAccountID: number,
     currentUserEmail: string,
     iouReportOwnerEmail: string,
-    conciergeReportID: string | undefined,
     currentUserLocalCurrency: string,
     lastWorkspaceNumber: number | undefined,
     localeTranslate: LocalizedTranslate,
@@ -4551,7 +4550,7 @@ function createWorkspaceFromIOUPayment(
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage(expenseReport, conciergeReportID, null, false, false, newWorkspace),
+                            text: ReportUtils.getReportPreviewMessage({reportOrID: expenseReport, policy: newWorkspace}),
                         },
                     ],
                     created: DateUtils.getDBTime(),
