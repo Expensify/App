@@ -308,8 +308,9 @@ function BaseModal({
 
     const shouldSuppressRightDockedBackdrop =
         type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
+    const isFullWidthRightDocked = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
     const backdropOpacityAdjusted =
-        hideBackdrop || shouldSuppressRightDockedBackdrop // right_docked modals shouldn't add backdrops when opened in same-width RHP
+        hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthRightDocked // right_docked modals shouldn't add backdrops when opened in same-width RHP or as a full-width narrow sheet
             ? 0
             : backdropOpacity;
 

@@ -26,7 +26,8 @@ function getWebModalAnimation(type: BaseModalProps['type'], isSmallScreenWidth: 
     if (!isRightDocked && !isCentered) {
         return {};
     }
-    if (isSmallScreenWidth) {
+    const isFadeOnlyCentered = type === CONST.MODAL.MODAL_TYPE.CONFIRM || type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL;
+    if (isSmallScreenWidth && !isFadeOnlyCentered) {
         return {
             animationInTiming: CONST.MODAL.ANIMATION_TIMING.NARROW_SLIDE_DURATION_IN_WEB,
             animationOutTiming: CONST.MODAL.ANIMATION_TIMING.NARROW_SLIDE_DURATION_OUT_WEB,

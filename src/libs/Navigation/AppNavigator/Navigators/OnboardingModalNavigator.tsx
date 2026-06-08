@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -44,7 +45,7 @@ let signUpEventPublishedForAccountID: number | undefined;
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -103,9 +104,10 @@ function OnboardingModalNavigator() {
                 cardStyle: {
                     height: '100%',
                 },
+                transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
             },
         };
-    }, [customInterpolator]);
+    }, [customInterpolator, shouldUseNarrowLayout]);
 
     // If the account data is not loaded yet, we don't want to show the onboarding modal
     if (isLoadingOnyxValue(accountMetadata)) {
