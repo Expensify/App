@@ -96,10 +96,7 @@ function usePaymentContext(): PaymentContextValue {
 }
 
 function useReportPaymentContext({reportID, chatReportPolicyID, invoiceReceiverPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
-    const paymentContext = useContext(PaymentContext);
-    if (!paymentContext) {
-        throw new Error('useReportPaymentContext must be used within PaymentContextProvider');
-    }
+    const paymentContext = usePaymentContext();
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(reportID)}`);
     const chatReportPolicy = usePolicy(chatReportPolicyID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(paymentContext.activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, invoiceReceiverPolicyID ?? chatReportPolicyID);
