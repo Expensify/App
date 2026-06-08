@@ -30,7 +30,11 @@ jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
 jest.mock('@libs/PolicyUtils', () => ({
     getDefaultChatEnabledPolicy: jest.fn((policies: Array<OnyxEntry<Policy>>, activePolicy: OnyxEntry<Policy>) => {
         // Mirror the real helper: prefer activePolicy if it's a paid group with chat enabled, otherwise the single non-personal candidate.
-        if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && (activePolicy.type === 'team' || activePolicy.type === 'corporate' || activePolicy.type === 'submit2026')) {
+        if (
+            activePolicy &&
+            activePolicy.isPolicyExpenseChatEnabled &&
+            (activePolicy.type === CONST.POLICY.TYPE.TEAM || activePolicy.type === CONST.POLICY.TYPE.CORPORATE || activePolicy.type === CONST.POLICY.TYPE.SUBMIT)
+        ) {
             return activePolicy;
         }
         if (policies.length === 1) {
@@ -38,8 +42,10 @@ jest.mock('@libs/PolicyUtils', () => ({
         }
         return undefined;
     }),
-    isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate'),
-    isGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate' || policy?.type === 'submit2026'),
+    isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE),
+    isGroupPolicy: jest.fn(
+        (policy: OnyxEntry<Policy>) => policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.SUBMIT,
+    ),
 }));
 
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()));
