@@ -314,27 +314,7 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
     }
 
     const allReportFields = policy?.fieldList ?? {};
-    const resolveReportFieldKey = (reportFieldIDOrKey: string) => {
-        if (allReportFields[reportFieldIDOrKey]) {
-            return reportFieldIDOrKey;
-        }
-
-        const expensifyKey = ReportUtils.getReportFieldKey(reportFieldIDOrKey);
-        if (allReportFields[expensifyKey]) {
-            return expensifyKey;
-        }
-
-        if (reportFieldIDOrKey.startsWith('expensify_')) {
-            const rawKey = reportFieldIDOrKey.slice('expensify_'.length);
-            if (allReportFields[rawKey]) {
-                return rawKey;
-            }
-        }
-
-        return undefined;
-    };
-
-    const resolvedReportFieldKeys = reportFieldsToUpdate.map(resolveReportFieldKey).filter((key): key is string => !!key);
+    const resolvedReportFieldKeys = reportFieldsToUpdate.filter((reportFieldKey) => !!allReportFields[reportFieldKey]);
     if (resolvedReportFieldKeys.length === 0) {
         Log.warn('No valid report fields to delete', {reportFieldsToUpdate});
         return;
