@@ -50,6 +50,7 @@ const TARGET_BODY_MARKDOWN = 'Hello';
 const COMPLETED_BODY_MARKDOWN = 'Hello world';
 const NEXT_BODY_MARKDOWN = 'HelloWorld';
 const FINAL_RENDERED_HTML = '<comment>Server final response</comment>';
+const PUSHER_DRAFT_PACE_INTERVAL_MS = 10;
 
 type MockPusherSubscribe = jest.MockedFunction<
     (
@@ -212,7 +213,7 @@ describe('ConciergeDraftContext', () => {
             triggerVisibilityChange(false);
         });
 
-        now += 40;
+        now += 4 * PUSHER_DRAFT_PACE_INTERVAL_MS;
         act(() => {
             triggerVisibilityChange(true);
         });
@@ -224,12 +225,44 @@ describe('ConciergeDraftContext', () => {
         });
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('HelloW');
 
-        now += 10;
+        now += PUSHER_DRAFT_PACE_INTERVAL_MS;
         act(() => {
             triggerVisibilityChange(true);
         });
 
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('HelloWo');
+
+        unmount();
+    });
+
+    it('preserves elapsed catch-up across queued Pusher targets when visibility returns', async () => {
+        let now = 1000;
+        jest.spyOn(Date, 'now').mockImplementation(() => now);
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
+        });
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+
+        act(() => {
+            triggerVisibilityChange(false);
+        });
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(NEXT_BODY_MARKDOWN, {sequence: 2}));
+        });
+
+        now += 9 * PUSHER_DRAFT_PACE_INTERVAL_MS;
+        act(() => {
+            triggerVisibilityChange(true);
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe(NEXT_BODY_MARKDOWN);
 
         unmount();
     });

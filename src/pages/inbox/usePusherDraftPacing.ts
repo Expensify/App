@@ -160,6 +160,14 @@ function publishVisibleEvent(
     });
 }
 
+function getNextLastPaceTickTime(now: number, paceStartTime: number, elapsedIntervals: number, revealedUnits: number, shouldPreserveElapsedDebt: boolean): number {
+    if (!shouldPreserveElapsedDebt || elapsedIntervals === 0 || revealedUnits === 0) {
+        return now;
+    }
+
+    return Math.min(now, paceStartTime + revealedUnits * PUSHER_DRAFT_PACE_INTERVAL_MS);
+}
+
 function tickPacing(runtime: PusherDraftPacingRuntime) {
     const {
         completedPusherDraftEventRef,
@@ -184,6 +192,7 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     const elapsed = lastPaceTickTimeRef.current ? Math.max(0, now - lastPaceTickTimeRef.current) : PUSHER_DRAFT_PACE_INTERVAL_MS;
     const elapsedIntervals = Math.floor(elapsed / PUSHER_DRAFT_PACE_INTERVAL_MS);
     const unitsToReveal = Math.max(1, elapsedIntervals);
+    const paceStartTime = lastPaceTickTimeRef.current || now - elapsedIntervals * PUSHER_DRAFT_PACE_INTERVAL_MS;
     let revealedUnits = 0;
     let nextVisibleMarkdown = {
         bodyMarkdown: visibleBodyMarkdownRef.current,
@@ -211,23 +220,38 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     if (nextVisibleMarkdown.bodyMarkdown !== visibleBodyMarkdownRef.current || nextVisibleMarkdown.sourceOffset !== visibleSourceOffsetRef.current) {
         const isTargetFullyVisible = nextVisibleMarkdown.sourceOffset >= targetBodyMarkdown.length;
         const status = completedEvent && !hasQueuedTarget && isTargetFullyVisible ? 'completed' : 'updated';
-        lastPaceTickTimeRef.current =
-            isTargetFullyVisible || elapsedIntervals === 0 || revealedUnits < unitsToReveal ? now : lastPaceTickTimeRef.current + unitsToReveal * PUSHER_DRAFT_PACE_INTERVAL_MS;
+        lastPaceTickTimeRef.current = getNextLastPaceTickTime(
+            now,
+            paceStartTime,
+            elapsedIntervals,
+            revealedUnits,
+            (isTargetFullyVisible && hasQueuedTarget) || (!isTargetFullyVisible && revealedUnits >= elapsedIntervals),
+        );
         publishVisibleEvent(runtime, status === 'completed' && completedEvent ? completedEvent : latestEvent, nextVisibleMarkdown, status);
 
         if (status === 'completed') {
             completedPusherDraftEventRef.current = null;
             stopPusherDraftPace(runtime);
         }
+
+        if (isTargetFullyVisible && hasQueuedTarget && revealedUnits < unitsToReveal && promoteQueuedPusherDraftTarget(runtime)) {
+            tickPacing(runtime);
+        }
+        return;
+    }
+
+    if (promoteQueuedPusherDraftTarget(runtime)) {
+        if (elapsedIntervals > 0) {
+            tickPacing(runtime);
+            return;
+        }
+
+        lastPaceTickTimeRef.current = now;
+        startPusherDraftPace(runtime);
         return;
     }
 
     lastPaceTickTimeRef.current = now;
-
-    if (promoteQueuedPusherDraftTarget(runtime)) {
-        startPusherDraftPace(runtime);
-        return;
-    }
 
     if (completedEvent) {
         publishVisibleEvent(runtime, completedEvent, {bodyMarkdown: targetBodyMarkdown, sourceMarkdown: targetBodyMarkdown, sourceOffset: targetBodyMarkdown.length}, 'completed');
