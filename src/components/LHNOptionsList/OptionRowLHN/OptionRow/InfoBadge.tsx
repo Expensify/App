@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import getActionBadgeText from '@components/utils/getActionBadgeText';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -16,12 +15,9 @@ type InfoBadgeProps = {
 
     /** Action badge key used to derive the badge label. */
     actionBadge: OptionData['actionBadge'];
-
-    /** Whether to show the "Mark as Done" state for this row. */
-    isMarkAsDone?: boolean;
 };
 
-function InfoBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: InfoBadgeProps) {
+function InfoBadge({brickRoadIndicator, actionBadge}: InfoBadgeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -31,7 +27,7 @@ function InfoBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: InfoBadgePro
         return null;
     }
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = actionBadge ? translate(`common.actionBadge.${actionBadge}`) : '';
 
     if (actionBadgeText) {
         return (

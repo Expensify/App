@@ -33,6 +33,8 @@ const getInitialTransactionViolation = () =>
             rejectedBy: undefined,
             rejectReason: undefined,
             formattedLimit: undefined,
+            amount: undefined,
+            currency: undefined,
             surcharge: undefined,
             invoiceMarkup: undefined,
             maxAge: undefined,
