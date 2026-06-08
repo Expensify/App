@@ -3,9 +3,11 @@ import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -14,9 +16,9 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSortedActions from '@hooks/useSortedActions';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import {createOptionFromReport, filterAndOrderOptions, filterReports, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
-import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
+import type {OptionWithKey, SearchOptionData} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {searchInServer} from '@userActions/Report';
@@ -98,42 +100,34 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                   policyCollection: allPolicies,
                   sortedActions,
                   conciergeReportID,
-              });
+              }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
         selectedOptions,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
     });
 
-    const sections: SelectionListSections = [];
+    const selectedReportIDsSet = new Set(selectedReportIDs);
+    // Mark selected rows in place so the checkmark moves with the toggle without reordering the list.
+    const recentReportsWithSelection = chatOptions.recentReports.map((report) => (selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report));
 
+    // Selected reports that don't show up in Recents — surface them but respect the search term.
+    const visibleReportIDsSet = new Set(chatOptions.recentReports.map((report) => report.reportID));
+    const reportIDsMatchingSearch = cleanSearchTerm === '' ? null : new Set(filterReports(selectedOptions as SearchOptionData[], [cleanSearchTerm]).map((report) => report.reportID));
+    const matchesSearchTerm = (report: OptionData) => reportIDsMatchingSearch === null || reportIDsMatchingSearch.has(report.reportID);
+    const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && matchesSearchTerm(report));
+
+    const baseSections: Array<Section<OptionData>> = [];
     if (!isLoading) {
-        const formattedResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            privateIsArchivedMap,
-            currentUserAccountID,
-            allPolicies,
-            personalDetails,
-            false,
-            undefined,
-            reportAttributesDerived,
-        );
-
-        sections.push(formattedResults.section);
-
-        const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
-        const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
-
-        sections.push({
-            data: reportsFiltered,
-            sectionIndex: 1,
-        });
+        if (extraSelectedReports.length > 0) {
+            baseSections.push({data: extraSelectedReports, sectionIndex: 1});
+        }
+        baseSections.push({data: recentReportsWithSelection, sectionIndex: 2});
     }
-    const noResultsFound = didScreenTransitionEnd && sections.at(0)?.data.length === 0 && sections.at(1)?.data.length === 0;
+
+    const sections = useFrozenPreSelection<OptionData>(baseSections, {initialSelectedValues: initialReportIDs, canCapture: !isLoading});
+
+    const noResultsFound = didScreenTransitionEnd && !isLoading && sections.every((section) => section.data.length === 0);
     const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
 
     useEffect(() => {
@@ -191,6 +185,9 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             footerContent={footerContent}
             canSelectMultiple
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            shouldUpdateFocusedIndex
+            shouldPreventAutoScrollOnSelect
+            shouldClearInputOnSelect={false}
             textInputOptions={textInputOptions}
             isLoadingNewOptions={isLoadingNewOptions}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}

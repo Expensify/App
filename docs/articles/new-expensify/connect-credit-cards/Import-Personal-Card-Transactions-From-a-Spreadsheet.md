@@ -1,7 +1,7 @@
 ---
 title: Import personal card transactions from a spreadsheet
 description: Learn how Members can manually import personal card transactions using a spreadsheet in Wallet. 
-keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, Wallet, card feed, reimbursable, bring your own card, BYOC]
+keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, Wallet, card feed, reimbursable, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
 internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions via CSV. Does not cover company cards or Plaid connections.
 ---
 
