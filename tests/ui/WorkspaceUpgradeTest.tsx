@@ -1,5 +1,5 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -31,6 +31,22 @@ jest.mock('@components/RenderHTML', () => {
     };
 });
 
+jest.mock('@hooks/usePolicyData', () =>
+    jest.fn(() => ({
+        policy: {},
+        tags: {},
+        categories: {},
+        reports: [],
+        transactionsAndViolations: {},
+    })),
+);
+
+jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyIllustrations: jest.fn((illustrations: string[]) => Object.fromEntries(illustrations.map((name) => [name, 1]))),
+    useMemoizedLazyExpensifyIcons: jest.fn((icons: string[]) => Object.fromEntries(icons.map((name) => [name, 1]))),
+    useMemoizedLazyAsset: jest.fn(() => ({asset: 1})),
+}));
+
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
@@ -59,6 +75,7 @@ describe('WorkspaceUpgrade', () => {
     });
 
     afterEach(async () => {
+        cleanup();
         await waitForIdle();
         await act(async () => {
             await Onyx.clear();
@@ -103,7 +120,7 @@ describe('WorkspaceUpgrade', () => {
         });
 
         // Render the WorkspaceUpgradePage without initializing user's preferred currency
-        renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
+        const {unmount: unmountDefaultCurrencyView} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
         await waitForBatchedUpdatesWithAct();
 
         // Expect the price to be in USD, as the user's preferred currency is not initialized
@@ -112,6 +129,8 @@ describe('WorkspaceUpgrade', () => {
             CONST.PAYMENT_CARD_CURRENCY.USD,
         );
         expect(await screen.findByText(expectedPrice, {exact: false})).toBeTruthy();
+        unmountDefaultCurrencyView();
+        await waitForBatchedUpdatesWithAct();
 
         // Iterate through all payment card currencies
         for (const currency of Object.values(CONST.PAYMENT_CARD_CURRENCY)) {
@@ -124,20 +143,21 @@ describe('WorkspaceUpgrade', () => {
             });
 
             // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView
-            renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
+            const {unmount: unmountGenericFeaturesView} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
             expect(await screen.findByText(price, {exact: false})).toBeTruthy();
+            unmountGenericFeaturesView();
+            await waitForBatchedUpdatesWithAct();
 
             // Render the WorkspaceUpgradePage with rules as a feature to render UpgradeIntro
-            const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: 'rules'});
+            const {unmount: unmountUpgradeIntroView} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: 'rules'});
             await waitForBatchedUpdatesWithAct();
 
             expect(await screen.findByText(price, {exact: false})).toBeTruthy();
 
-            unmount();
+            unmountUpgradeIntroView();
+            await waitForBatchedUpdatesWithAct();
         }
-
-        await waitForBatchedUpdates();
     });
 });
