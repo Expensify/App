@@ -2351,7 +2351,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Policy account ID configured for Expensify Card */
         policyAccountID?: number;
 
-        /** Setup specialist guide assigned for the policy */
+        /** Account executive guide assigned for the policy */
         assignedGuide?: {
             /** The guide's email */
             email: string;
