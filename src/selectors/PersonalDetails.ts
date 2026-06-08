@@ -48,5 +48,4 @@ export {
     conciergePersonalDetailSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
-    isPersonalDetailOptimistic,
 };
