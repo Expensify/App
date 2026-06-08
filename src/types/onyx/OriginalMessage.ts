@@ -74,6 +74,9 @@ type OriginalMessageIOU = {
 
     /** The bank account id */
     bankAccountID?: number;
+
+    /** True when the submitter marked the report as payment received outside Expensify */
+    isSubmitterMarkedPaymentReceived?: boolean;
 } & (
     | {
           /** How much was transaction */

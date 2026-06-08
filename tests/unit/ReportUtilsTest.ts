@@ -518,6 +518,35 @@ describe('ReportUtils', () => {
 
             expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
+
+        it('should return received payment when submitter marked payment received', () => {
+            const paymentReceivedReportAction = {
+                ...createRandomReportAction(45),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: iouReportID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    isSubmitterMarkedPaymentReceived: true,
+                },
+            };
+
+            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, undefined, iouReport)).toBe(translateLocal('iou.receivedPaymentReportAction'));
+        });
+
+        it('should return marked as paid for elsewhere payment without submitter flag', () => {
+            const paidElsewhereReportAction = {
+                ...createRandomReportAction(46),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: iouReportID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                },
+            };
+
+            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, undefined, iouReport)).toBe(translateLocal('iou.paidElsewhere'));
+        });
     });
 
     describe('getTaskAssigneeChatOnyxData', () => {

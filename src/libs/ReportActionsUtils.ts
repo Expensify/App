@@ -458,6 +458,14 @@ function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName
     return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
 
+function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
+    if (originalMessage?.isSubmitterMarkedPaymentReceived) {
+        return translate('iou.receivedPaymentReportAction', {payer});
+    }
+
+    return translate('iou.paidElsewhere', {payer, comment: originalMessage?.comment?.trim()});
+}
+
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
@@ -4602,6 +4610,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getElsewherePaymentReportActionMessage,
     getMarkedReimbursedMessage,
     getReimbursedMessage,
     getMemberChangeMessageFragment,

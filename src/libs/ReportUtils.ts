@@ -177,6 +177,7 @@ import {
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getElsewherePaymentReportActionMessage,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
@@ -445,6 +446,7 @@ type BuildOptimisticIOUReportActionParams = {
     reportActionID?: string;
     // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountIDParam?: number;
+    isSubmitterMarkedPaymentReceived?: boolean;
 };
 
 type OptimisticIOUReportAction = Pick<
@@ -5536,7 +5538,7 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
         }
         if (translatePhraseKey === 'iou.paidElsewhere') {
-            return translateLocal(translatePhraseKey, {payer: payerDisplayName ?? undefined});
+            return getElsewherePaymentReportActionMessage(translateLocal, originalMessage, payerDisplayName ?? undefined);
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
             return translateLocal(translatePhraseKey, formattedAmount, payerDisplayName ?? '');
@@ -7121,6 +7123,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         bankAccountID,
         reportActionID,
         delegateAccountIDParam,
+        isSubmitterMarkedPaymentReceived,
     } = params;
 
     const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
@@ -7154,6 +7157,10 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             delete originalMessage.IOUTransactionID;
             delete originalMessage.comment;
             originalMessage.paymentType = paymentType;
+        }
+
+        if (isSubmitterMarkedPaymentReceived) {
+            originalMessage.isSubmitterMarkedPaymentReceived = true;
         }
     }
 
@@ -10688,7 +10695,7 @@ function getIOUReportActionDisplayMessage(
             return translate(translationKey, '', last4Digits);
         }
         if (translationKey === 'iou.paidElsewhere') {
-            return translate(translationKey);
+            return getElsewherePaymentReportActionMessage(translate, originalMessage);
         }
         if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
             return translate(translationKey, '');
