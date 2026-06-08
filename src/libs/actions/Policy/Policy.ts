@@ -2648,7 +2648,10 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
-                reimbursementChoice: isTrackOnboardingChoice(engagementChoice) ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimbursementChoice:
+                    isTrackOnboardingChoice(engagementChoice) || type === CONST.POLICY.TYPE.SUBMIT
+                        ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
+                        : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 created: DateUtils.getDBTime(),
                 customUnits,
                 areCategoriesEnabled: true,
@@ -4165,7 +4168,6 @@ function createWorkspaceFromIOUPayment(
     currentUserAccountID: number,
     currentUserEmail: string,
     iouReportOwnerEmail: string,
-    conciergeReportID: string | undefined,
     currentUserLocalCurrency: string,
     lastWorkspaceNumber: number | undefined,
     localeTranslate: LocalizedTranslate,
@@ -4547,7 +4549,7 @@ function createWorkspaceFromIOUPayment(
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage(expenseReport, conciergeReportID, null, false, false, newWorkspace),
+                            text: ReportUtils.getReportPreviewMessage({reportOrID: expenseReport, policy: newWorkspace}),
                         },
                     ],
                     created: DateUtils.getDBTime(),

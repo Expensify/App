@@ -30,6 +30,7 @@ export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPa
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
 export type {default as SyncPolicyToMergeParams} from './SyncPolicyToMergeParams';
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
+export type {default as SyncPolicyToFinancialForceParams} from './SyncPolicyToFinancialForceParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
@@ -111,6 +112,7 @@ export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
+export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
@@ -552,3 +554,4 @@ export type {default as DeleteAgentParams} from './DeleteAgentParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
+export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';

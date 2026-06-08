@@ -3968,8 +3968,7 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
-    const message = getReportPreviewMessage(optimisticReportData, undefined);
+    const message = getReportPreviewMessage({reportOrID: optimisticReportData});
     const createReportActionMessage = [
         {
             html: message,
@@ -7280,7 +7279,7 @@ function buildOptimisticChangePolicyData({
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
     // TODO: delegateAccountIDParam will be threaded in PR 15 (https://github.com/Expensify/App/issues/66425)
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, '', null, undefined, undefined, undefined, undefined);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, '', null, undefined, undefined, undefined);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 

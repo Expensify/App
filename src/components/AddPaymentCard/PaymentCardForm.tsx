@@ -38,8 +38,6 @@ type PaymentCardFormProps = {
     footerContent?: ReactNode;
     /** Custom content to display in the header before card form */
     headerContent?: ReactNode;
-    /** object to get currency route details from */
-    currencySelectorRoute?: typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY;
 };
 
 function IAcceptTheLabel() {
@@ -123,7 +121,6 @@ function PaymentCardForm({
     showStateSelector,
     footerContent,
     headerContent,
-    currencySelectorRoute,
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
     const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
@@ -358,7 +355,6 @@ function PaymentCardForm({
                 {!!showCurrencyField && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            currencySelectorRoute={currencySelectorRoute}
                             value={data?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD}
                             InputComponent={CurrencySelector}
                             inputID={INPUT_IDS.CURRENCY}

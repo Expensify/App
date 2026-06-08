@@ -1,7 +1,7 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
-import {useChartTypefaces} from '@components/Charts/hooks';
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
@@ -21,7 +21,7 @@ type ProcessedLine = {
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'start'}: VictoryChartLabelsProps) {
+function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle'}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
     const processedLines = text.split('\n').reduce(
         (acc, line, index) => {

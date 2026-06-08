@@ -77,7 +77,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const corpayFieldsLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'BankAccountDetails', isLoading: !!corpayFields?.isLoading};
