@@ -2,6 +2,7 @@ import '@testing-library/react-native';
 import type {KeyboardEventName} from 'react-native';
 import {Keyboard} from 'react-native';
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.useRealTimers();
@@ -53,4 +54,17 @@ jest.mock(
 // the second init() just re-runs initStoreValues and re-resolves the already-resolved deferred task.
 beforeAll(() => {
     Onyx.init({keys: ONYXKEYS});
+});
+
+// Pre-dismiss the AI features promo modal in every test. The AIFeaturesPromoGuard proactively
+// redirects any authenticated session to the modal unless this NVP records a dismissal, which
+// would otherwise intercept navigation in unrelated UI tests (e.g. SessionTest, PaginationTest).
+// Tests that specifically exercise the guard can override this fixture locally.
+beforeEach(async () => {
+    await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+        [CONST.AI_FEATURES_PROMO_MODAL]: {
+            timestamp: new Date().toISOString(),
+            dismissedMethod: 'x',
+        },
+    });
 });
