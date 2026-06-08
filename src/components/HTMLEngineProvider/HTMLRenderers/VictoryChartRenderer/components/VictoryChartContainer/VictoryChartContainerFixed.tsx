@@ -1,6 +1,7 @@
 import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import VictoryChartExpandButton from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartExpandButton';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {VictoryChartContainerLayout, VictoryChartContainerThemeStyles} from './types';
 
@@ -8,9 +9,10 @@ type VictoryChartContainerFixedProps = {
     children: React.ReactNode;
     layout: VictoryChartContainerLayout;
     themeStyles?: VictoryChartContainerThemeStyles;
+    onExpandPress?: () => void;
 };
 
-function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChartContainerFixedProps) {
+function VictoryChartContainerFixed({children, layout, themeStyles, onExpandPress}: VictoryChartContainerFixedProps) {
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     const {backgroundColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
     const layoutKind = layout.kind;
@@ -36,13 +38,14 @@ function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChar
 
     contentStyle.push(chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden'});
 
-    if (layoutKind === 'scaled' && scaledScale !== undefined && scaledScale < 1) {
+    if (layoutKind === 'scaled' && scaledScale !== undefined && scaledScale !== 1) {
         contentStyle.push({transform: [{scale: scaledScale}], transformOrigin: 'top left'});
     }
 
     return (
         <View style={containerStyle}>
             <View style={contentStyle}>{children}</View>
+            {onExpandPress && <VictoryChartExpandButton onPress={onExpandPress} />}
         </View>
     );
 }

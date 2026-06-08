@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {VictoryChartContainerLayout} from './types';
 import VictoryChartContainerFixed from './VictoryChartContainerFixed';
 
-function VictoryChartContainerResponsive({children}: {children: React.ReactNode}) {
+function VictoryChartContainerResponsive({children, onExpandPress}: {children: React.ReactNode; onExpandPress?: () => void}) {
     const styles = useThemeStyles();
     const {chartContentStyles} = useVictoryChartContext();
     const [containerWidth, setContainerWidth] = useState(0);
@@ -35,6 +35,7 @@ function VictoryChartContainerResponsive({children}: {children: React.ReactNode}
             <VictoryChartContainerFixed
                 layout={layout}
                 themeStyles={themeStyles}
+                onExpandPress={onExpandPress}
             >
                 {children}
             </VictoryChartContainerFixed>
@@ -49,6 +50,7 @@ function VictoryChartContainerResponsive({children}: {children: React.ReactNode}
             <VictoryChartContainerFixed
                 layout={layout}
                 themeStyles={themeStyles}
+                onExpandPress={onExpandPress}
             >
                 {children}
             </VictoryChartContainerFixed>

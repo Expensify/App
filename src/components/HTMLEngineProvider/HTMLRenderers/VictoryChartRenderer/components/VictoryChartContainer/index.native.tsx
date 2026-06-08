@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import VictoryChartExpandButton from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartExpandButton';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -10,7 +11,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 // Used instead of onLayout because Yoga inflates the container width to match the fixed-width chart child.
 const CHAT_MESSAGE_HORIZONTAL_PADDING = 92;
 
-function VictoryChartContainer({children}: {children: React.ReactNode}) {
+type VictoryChartContainerProps = {
+    children: React.ReactNode;
+    onExpandPress?: () => void;
+};
+
+function VictoryChartContainer({children, onExpandPress}: VictoryChartContainerProps) {
     const styles = useThemeStyles();
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     const {windowWidth} = useWindowDimensions();
@@ -37,6 +43,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     return (
         <View style={containerStyle}>
             <View style={contentStyle}>{children}</View>
+            {onExpandPress && <VictoryChartExpandButton onPress={onExpandPress} />}
         </View>
     );
 }
