@@ -482,9 +482,11 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: '季度',
         vacationDelegate: '休假代理',
         expensifyLogo: 'Expensify徽标',
-        concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
+        concierge: {greeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
+        goToConcierge: '前往 Concierge',
+        allSet: '全部就绪！',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `输入第 ${digitIndex} 位数字，共 ${totalDigits} 位`,
         copyOfReportName: (reportName: string) => `${reportName} 的副本`,
         previousMonth: '上个月',
@@ -492,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        editor: '编辑',
         restrictions: '限制',
     },
     socials: {
@@ -2080,7 +2083,7 @@ const translations: TranslationDeepObject<typeof en> = {
             partnerManager: '合作伙伴经理',
             yourPartnerManager: '您的合作伙伴经理',
             partnerManagerDescription: '充分发挥合作伙伴关系，提升推荐量',
-            guideDescription: '您的设置专员',
+            guideDescription: '您的客户经理',
             approvedPartnerTeamTitle: '认识你的 Approved! 合作团队',
             approvedPartnerTeamDescription: '一支专注于帮助您的公司成长、更快为客户完成上线，并在您需要时随时提供专家支持的专属团队。',
             accountExecutive: '客户经理',
@@ -2841,6 +2844,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
         },
         highContrastMode: '高对比度模式',
+        enableHighContrast: '启用高对比度',
+        disableHighContrast: '关闭高对比度',
         chooseThemeBelowOrSync: '请选择下方的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
@@ -2997,7 +3002,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink}) 一个工作区`,
-                description: '在设置专家的帮助下创建工作区并配置相关设置！',
+                description: '在客户经理的帮助下创建工作区并配置相关设置！',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `创建一个[工作区](${workspaceSettingsLink})`,
@@ -3214,12 +3219,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
                     ? dedent(`
-                        # 您的免费试用已开始！让我们开始设置吧。
-                        👋 您好，我是您的 Expensify 设置专员。我已为您创建了一个工作区，帮助管理您团队的收据和费用。要充分利用这 30 天的免费试用，只需按照下面剩余的设置步骤完成即可！
+                        # 您的免费试用已开始！让我们来完成设置。
+                        👋 您好，我是负责您 Expensify 账号的客户经理。我已经为您创建了一个工作区，帮助管理您团队的收据和报销。要充分利用这 30 天的免费试用，请按照下面剩余的设置步骤进行操作！
                     `)
                     : dedent(`
-                        # 您的免费试用已开始！让我们帮您完成设置。
-                        👋 您好，我是您的 Expensify 设置专员。现在您已经创建了一个工作区，请按照下面的步骤操作，充分利用这 30 天的免费试用期！
+                        # 您的免费试用已开始！让我们来为您完成设置。
+                        👋 您好，我是您的 Expensify 客户经理。现在您已经创建了一个工作区，请按照以下步骤操作，充分利用这 30 天的免费试用期！
                     `),
             onboardingTrackWorkspaceMessage: '要充分利用您的 30 天免费试用，请完成以下剩余步骤：',
             onboardingChatSplitMessage: '和朋友分摊账单就像发条消息一样简单。操作方法如下。',
@@ -4254,6 +4259,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return '编辑';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return '卡片管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5513,6 +5520,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             travel: {
                 title: '差旅',
                 subtitle: '预订、管理并对账您所有的商务差旅。',
+                disableTravelTitle: '请先关闭差旅开票',
+                disableTravelPrompt: '此工作区已启用差旅开票。要禁用差旅功能，请先将其关闭。',
+                disableTravelButton: '前往差旅设置',
                 getStarted: {
                     title: '开始使用 Expensify Travel',
                     subtitle: '我们只需要再获取一些关于您企业的信息，之后您就可以准备起飞了。',
@@ -5946,6 +5956,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 continue: '继续且无成员',
                 description: '在不包含成员的情况下复制工作流时，将不会复制审批工作流。但提交和付款设置仍会被复制。',
             },
+            progress: {
+                copyInProgressTitle: '正在复制中…',
+                copyInProgressDescription: '你可以选择等待流程完成，或者由 Concierge 在完成后通知你。',
+                letMeKnowPrompt: '完成后告诉我',
+                conciergeNotificationTitle: 'Concierge 会通知你',
+                conciergeNotificationDescription: '流程完成后，Concierge 会向你发送一条消息。',
+                copyCompleted: '您的工作区设置已复制。',
+            },
         },
         emptyWorkspace: {
             title: '你还没有工作区',
@@ -6097,7 +6115,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: '与您的设置专家聊天。',
+            talkYourOnboardingSpecialist: '与您的客户经理聊天。',
             talkYourAccountManager: '与您的客户经理聊天。',
             talkToConcierge: '与 Concierge 聊天。',
             needAnotherAccounting: '需要其他会计软件吗？',
@@ -6668,8 +6686,8 @@ ${reportName}
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您已升级您的工作区！`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>您已成功将 ${policyName} 升级到 Control 方案！有关更多详情，请<a href="${subscriptionLink}">查看您的订阅</a>。</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>您已成功将 ${policyName} 升级到 ${planName} 方案！有关更多详情，请<a href="${subscriptionLink}">查看您的订阅</a>。</centered-text>`,
                 categorizeMessage: `您已成功升级至 Collect 方案。现在您可以为报销费用分类了！`,
                 travelMessage: `您已成功升级到 Collect 方案。现在可以开始预订和管理行程了！`,
                 distanceRateMessage: `您已成功升级到 Collect 方案。现在您可以修改里程费率了！`,
@@ -7755,6 +7773,8 @@ ${reportName}
             newChat: '新聊天界面',
             copy: '复制评论',
             openDebug: '打开测试首选项对话框',
+            expenseReportSearch: '搜索报销报告',
+            goToWorkspace: '前往当前报表的工作区',
         },
     },
     guides: {
@@ -7948,6 +7968,7 @@ ${reportName}
         withdrawalType: '提款类型',
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
+        serverResults: '搜索结果',
         searchIn: '搜索范围',
         askConcierge: (message: string) => `询问 Concierge“${message}”`,
         searchPlaceholder: '搜索内容...',
@@ -8460,8 +8481,9 @@ ${reportName}
         copyReferralLink: '复制邀请链接',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) => `在 <a href="${href}">${adminReportName}</a> 中与您的设置专员聊天以获取帮助`,
-        default: `向 <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> 发送消息以获取设置帮助`,
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `如需帮助，请在 <a href="${href}">${adminReportName}</a> 中与您的客户经理聊天`,
+        default: `如需设置帮助，请联系 <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link>`,
     },
     violations: {
         allTagLevelsRequired: '所有标签为必填项',
@@ -9101,7 +9123,7 @@ ${reportName}
         confirmation: {
             title: '确认通话',
             description: '请确认以下详情是否正确。确认通话后，我们会发送一封包含更多信息的邀请。',
-            setupSpecialist: '您的设置专员',
+            setupSpecialist: '您的客户经理',
             meetingLength: '会议时长',
             dateTime: '日期和时间',
             minutes: '30 分钟',

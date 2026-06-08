@@ -36,6 +36,7 @@ import {
     isTimeTrackingEnabled,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
+import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -121,10 +122,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
+    const [travelCardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const settings = getCardSettings(cardSettings);
     const paymentBankAccountID = settings?.paymentBankAccountID;
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const warnAccountingManagesOrganizeFeature = async () => {
@@ -202,6 +206,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             return;
         }
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+    };
+
+    const promptDisableTravelViaInvoicing = async () => {
+        const {action} = await showConfirmModal({
+            title: translate('workspace.moreFeatures.travel.disableTravelTitle'),
+            prompt: translate('workspace.moreFeatures.travel.disableTravelPrompt'),
+            confirmText: translate('workspace.moreFeatures.travel.disableTravelButton'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM || !policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID));
     };
 
     const promptDisableCompanyCardsViaConcierge = async () => {
@@ -498,8 +515,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.travel.subtitle')}
                             isActive={policy?.isTravelEnabled ?? false}
                             pendingAction={policy?.pendingFields?.isTravelEnabled}
-                            disabled={!canWriteMoreFeatures}
-                            disabledAction={withReadOnlyFallback()}
+                            disabled={!canWriteMoreFeatures || isTravelInvoicingEnabled}
+                            disabledAction={withReadOnlyFallback(promptDisableTravelViaInvoicing)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
