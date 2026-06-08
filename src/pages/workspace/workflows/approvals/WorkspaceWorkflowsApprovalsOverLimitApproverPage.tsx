@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -45,6 +46,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
     const currentApproverEmail = currentApprover?.email;
 
+    const shouldShowNotFoundView = isAnyHRReadOnlyWorkflowMode(policy);
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserPersonalDetails?.login);
 
     const allApprovers: SelectionListApprover[] = (() => {
@@ -165,6 +167,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
                 initiallyFocusedOptionKey={currentApprover?.overLimitForwardsTo}
+                shouldShowNotFoundView={shouldShowNotFoundView}
                 shouldShowNotFoundViewLink
                 allApprovers={allApprovers}
                 onBackButtonPress={goBack}

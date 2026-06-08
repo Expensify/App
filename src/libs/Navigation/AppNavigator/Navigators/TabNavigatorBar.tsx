@@ -80,9 +80,10 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         );
     }
 
+    // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer]}
+            style={[styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
             pointerEvents="box-none"
         >
             <NavigationTabBar selectedTab={selectedTab} />

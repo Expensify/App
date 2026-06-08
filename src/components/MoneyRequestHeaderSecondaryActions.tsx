@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -34,9 +35,11 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import isSearchOriginForMerge from '@libs/Navigation/helpers/isSearchOriginForMerge';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
@@ -198,7 +201,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const targetPolicyTags = defaultPolicyTags ?? {};
 
     // Duplicate action throttle
@@ -237,7 +239,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyCategories: activePolicyCategoriesMap,
                 targetReport: activePolicyExpenseChat,
                 existingTransactionDraft,
-                draftTransactionIDs,
                 betas,
                 personalDetails,
                 recentWaypoints,
@@ -271,6 +272,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setRejectModalAction(null);
     };
 
+    const {isProduction} = useEnvironment();
+
     // Secondary actions
     const secondaryActions = (() => {
         if (!transaction || !parentReportAction || !parentReport) {
@@ -288,6 +291,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             outstandingReportsByPolicyID,
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
+            isProduction,
         });
     })();
 
@@ -340,7 +344,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, policy, report);
+                initSplitExpense(transaction, policy, report, accountID, {isProduction});
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
@@ -351,7 +355,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 if (!transaction) {
                     return;
                 }
-                const isOnSearch = route.name.toLowerCase().startsWith('search');
+                const isOnSearch = isSearchOriginForMerge(route.name, route.params?.backTo);
                 setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, getCurrencyDecimals, [], false, isOnSearch);
             },
         },
@@ -361,7 +365,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
-                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     dropdownMenuRef.current?.setIsMenuVisible(false);
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                     return;
@@ -411,7 +415,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.viewDetails'),
             icon: expensifyIcons.Info,
             onSelected: () => {
-                navigateToDetailsPage(report, Navigation.getActiveRoute());
+                navigateToDetailsPage(report);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
@@ -535,7 +539,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action): action is NonNullable<typeof action> => !!action);
+    const applicableSecondaryActions = sortAndSectionPopoverMenuItems(
+        secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action): action is NonNullable<typeof action> => !!action),
+        TRANSACTION_MORE_MENU_SECTIONS,
+    );
 
     if (!applicableSecondaryActions.length) {
         return null;

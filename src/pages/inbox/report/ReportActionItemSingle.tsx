@@ -60,7 +60,7 @@ const showWorkspaceDetails = (reportID: string | undefined) => {
     if (!reportID) {
         return;
     }
-    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
 };
 
 function ReportActionItemSingle({
