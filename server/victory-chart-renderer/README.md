@@ -1,19 +1,21 @@
 # Victory Chart Renderer
 
-Standalone Bun CLI that will render Expensify chart XML to PNG using the same chart code as the App.
+Standalone Bun CLI (`@expensify/victory-chart-renderer`) that renders Expensify charts to PNG using the same `victory-native` and Skia code paths as the App.
 
-## Project layout
-
-- `src/` — CLI source
-- `tests/` — Bun integration tests (`bun:test`)
-- `dist/` — compiled binaries (gitignored)
+This package is an [npm workspace](https://docs.npmjs.com/cli/using-npm/workspaces) child of the App root. React Native peer dependencies are declared as local `file:` stub packages under [`../stubs/`](../stubs/) (with `overrides` + `installConfig.hoistingLimits` so they stay in this workspace). At runtime, `scripts/dev.ts` and `scripts/build.ts` bundle the CLI with [`../plugins/rnStubPlugin.ts`](../plugins/rnStubPlugin.ts), which redirects `react-native`, `react-native-reanimated`, `react-native-gesture-handler`, and `react-native/*` imports to those stubs, because hoisted `victory-native` at the repo root would otherwise resolve the real native modules. The in-app Metro build is unaffected.
 
 ## Development
 
 From the App repository root:
 
 ```bash
-npm run server:vcr:dev /tmp/out.txt
+npm run server:vcr:dev -- --outPath /tmp/out.png
+```
+
+Or from this directory:
+
+```bash
+npm run dev -- --outPath /tmp/out.png
 ```
 
 ## Tests
@@ -27,14 +29,23 @@ npm run server:vcr:test
 Or from this directory:
 
 ```bash
-bun test
+npm test
+```
+
+To refresh the reference PNG after an intentional rendering change:
+
+```bash
+UPDATE_GOLDEN=1 npm test
 ```
 
 ## Compiled binaries
 
+From the App repository root:
+
 ```bash
 npm run server:vcr:build:linux
+npm run server:vcr:build:linux-arm
 npm run server:vcr:build:macos
 ```
 
-Binaries are written to `server/victory-chart-renderer/dist/` (gitignored).
+Binaries are written to `dist/` (gitignored). `canvaskit.wasm` (~8 MB) is embedded in the executable via Bun's `with { type: "file" }` import; `LoadSkiaWeb` uses `locateFile` to load it from the embedded asset so only the binary needs to be shipped.

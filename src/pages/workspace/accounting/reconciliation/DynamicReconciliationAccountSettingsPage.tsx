@@ -54,7 +54,7 @@ type DynamicReconciliationProps = {
 };
 
 const policyConnectionsSelector = (policy: OnyxEntry<Policy>) => policy?.connections;
-const policyWorkspaceAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.workspaceAccountID;
+const policyWorkspaceAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.policyAccountID;
 
 function ReconciliationAccountSettingsLayout({
     policyID,

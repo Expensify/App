@@ -37,13 +37,16 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
+import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
+import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DeferredAgentWorkflowSave from './DeferredAgentWorkflowSave';
 import type {
     CardFeedErrorsDerivedValue,
     FlaggedExpensesDerivedValue,
@@ -160,6 +163,7 @@ import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
 import type SearchResults from './SearchResults';
+import type SearchSidebar from './SearchSidebar';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
@@ -225,6 +229,7 @@ export type {
     Download,
     ExportDownload,
     DuplicateWorkspace,
+    CopyPolicySettingsNVP,
     CopyPolicySettings,
     WorkspaceCardsList,
     ExpenseRule,
@@ -268,6 +273,7 @@ export type {
     AnyOnyxUpdatesFromServer,
     OdometerDraft,
     Pages,
+    ConciergePendingFollowupList,
     PendingConciergeResponse,
     PersonalBankAccount,
     PersonalDetails,
@@ -359,6 +365,7 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
+    DeferredAgentWorkflowSave,
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
@@ -367,6 +374,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     SearchContext,
+    SearchSidebar,
     ImportedSpreadsheet,
     BankAccountShareDetails,
     ImportedSpreadsheetMemberData,

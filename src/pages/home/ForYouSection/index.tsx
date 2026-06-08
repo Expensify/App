@@ -29,6 +29,10 @@ function ForYouSection() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    // HAS_LOADED_APP flips to true once the first OpenApp completes and persists across reconnects.
+    // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
+    // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
+    const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
@@ -159,11 +163,13 @@ function ForYouSection() {
     );
 
     const renderContent = () => {
-        if (isLoadingApp || isLoadingReportData || reportCounts === undefined) {
+        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
+        if (isInitialLoad) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
                 context: 'ForYouSection.ForYouSkeleton',
                 isLoadingApp,
                 isLoadingReportData,
+                hasLoadedApp,
                 isReportCountsUndefined: reportCounts === undefined,
             };
             return <ForYouSkeleton reasonAttributes={reasonAttributes} />;

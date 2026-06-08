@@ -1270,15 +1270,16 @@ function changeTransactionsReport({
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
         if (isPaidGroupPolicy(policy) && policy?.id) {
-            const violationData = ViolationsUtils.getViolationsOnyxData(
-                transactionForViolations,
-                currentTransactionViolations[transaction.transactionID] ?? [],
+            const violationData = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transactionForViolations,
+                transactionViolations: currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
-                policyTagList ?? {},
-                policyCategories ?? {},
-                policyHasDependentTags,
-                false,
-            );
+                policyTagList: policyTagList ?? {},
+                policyCategories: policyCategories ?? {},
+                hasDependentTags: policyHasDependentTags,
+                isInvoiceTransaction: false,
+                shouldRemoveRejectedExpenseViolation: true,
+            });
             optimisticData.push(violationData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1668,15 +1669,15 @@ function changeTransactionsReport({
         if (!isPaidGroupPolicy(policy) || !policy?.id) {
             continue;
         }
-        const violationData = ViolationsUtils.getViolationsOnyxData(
-            transaction,
-            currentTransactionViolations[transaction.transactionID] ?? [],
+        const violationData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: transaction,
+            transactionViolations: currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
-            policyTagList ?? {},
-            policyCategories ?? {},
-            policyHasDependentTags,
-            false,
-        );
+            policyTagList: policyTagList ?? {},
+            policyCategories: policyCategories ?? {},
+            hasDependentTags: policyHasDependentTags,
+            isInvoiceTransaction: false,
+        });
         if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
         }

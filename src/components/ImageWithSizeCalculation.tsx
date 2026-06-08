@@ -53,6 +53,9 @@ type ImageWithSizeCalculationProps = {
 
     /** Reason attributes for skeleton span telemetry */
     reasonAttributes?: SkeletonSpanReasonAttributes;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 };
 
 /**
@@ -74,6 +77,7 @@ function ImageWithSizeCalculation({
     onLoad,
     resizeMode,
     reasonAttributes,
+    previewUri,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -104,6 +108,7 @@ function ImageWithSizeCalculation({
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             reasonAttributes={reasonAttributes}
+            previewUri={previewUri}
         />
     );
 }

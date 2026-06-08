@@ -2,11 +2,13 @@ import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
+import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -24,7 +26,6 @@ import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
-import SpendRulesSection from './SpendRules/SpendRulesSection';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
@@ -38,6 +39,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Rules']);
+    const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
@@ -55,6 +57,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
@@ -63,6 +66,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 icon={illustrations.Rules}
+                policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
@@ -80,9 +84,23 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                             style={[styles.mh5, styles.mb5]}
                         />
                     )}
-                    <IndividualExpenseRulesSection policyID={policyID} />
-                    <MerchantRulesSection policyID={policyID} />
-                    {!!policy?.areExpensifyCardsEnabled && <SpendRulesSection policyID={policyID} />}
+                    <IndividualExpenseRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        withReadOnlyFallback={withReadOnlyFallback}
+                    />
+                    <MerchantRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                    />
+                    {!!policy?.areExpensifyCardsEnabled && (
+                        <SpendRulesSection
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
+                        />
+                    )}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
