@@ -2152,6 +2152,8 @@ const CONST = {
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_APP_STARTUP_NETWORK_REQUEST: 'ManualAppStartupNetworkRequest',
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
+        SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
+        SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
@@ -2225,6 +2227,12 @@ const CONST = {
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
+        // Start type stamped on the navigate-to-reports spans: cold, warm_first, or warm_subsequent.
+        ATTRIBUTE_START_TYPE: 'start_type',
+        // Search query fields parsed from the route, stamped on the navigate-to-reports spans.
+        ATTRIBUTE_SEARCH_TYPE: 'search_type',
+        ATTRIBUTE_SEARCH_VIEW: 'search_view',
+        ATTRIBUTE_SEARCH_GROUP_BY: 'search_group_by',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
@@ -2275,6 +2283,14 @@ const CONST = {
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
             SEND_MONEY: 'send_money',
+        },
+        // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
+        // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.
+        NAVIGATE_TO_REPORTS_START_TYPE: {
+            COLD: 'cold',
+            WARM_FIRST: 'warm_first',
+            WARM_SUBSEQUENT: 'warm_subsequent',
+            UNKNOWN: 'unknown',
         },
         // Event names
         EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
