@@ -115,6 +115,7 @@ function RateField({
             tooltipShiftHorizontal={variables.mileageRateTooltipShiftHorizontal}
             tooltipShiftVertical={variables.mileageRateTooltipShiftVertical}
             onEducationTooltipPress={hideProductTrainingTooltip}
+            shouldHideOnScroll
         />
     );
 }
