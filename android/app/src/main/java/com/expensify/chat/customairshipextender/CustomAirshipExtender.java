@@ -2,16 +2,17 @@ package com.expensify.chat.customairshipextender;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
-import com.urbanairship.Airship;
-import com.urbanairship.android.framework.proxy.AirshipPluginExtender;
+import com.urbanairship.UAirship;
+import com.urbanairship.push.NotificationListener;
 import com.urbanairship.push.PushManager;
+import com.urbanairship.reactnative.AirshipExtender;
 
-public class CustomAirshipExtender implements AirshipPluginExtender {
+public class CustomAirshipExtender implements AirshipExtender {
     @Override
-    public void onAirshipReady(@NonNull Context context) {
-        PushManager pushManager = Airship.getPush();
+    public void onAirshipReady(@NonNull Context context, @NonNull UAirship airship) {
+        PushManager pushManager = airship.getPushManager();
 
-        CustomNotificationProvider notificationProvider = new CustomNotificationProvider(context, Airship.getAirshipConfigOptions());
+        CustomNotificationProvider notificationProvider = new CustomNotificationProvider(context, airship.getAirshipConfigOptions());
         pushManager.setNotificationProvider(notificationProvider);
     }
 }

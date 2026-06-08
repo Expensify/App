@@ -173,7 +173,7 @@
                 tools:replace="android:launchMode"/>
 
         <meta-data
-            android:name="com.urbanairship.plugin.extender"
+            android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
             android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
 
         <meta-data
