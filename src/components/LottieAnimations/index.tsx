@@ -94,6 +94,22 @@ const DotLottieAnimations = {
         w: 204,
         h: 204,
     },
+    SpendAnalysis: {
+        file: require<LottieViewProps['source']>('@assets/animations/SpendAnalysis.lottie'),
+        w: 440,
+        h: 334,
+        backgroundColor: colors.pink700,
+    },
+    ExpenseAssistant: {
+        file: require<LottieViewProps['source']>('@assets/animations/ExpenseAssistant.lottie'),
+        w: 440,
+        h: 334,
+    },
+    CustomAgents: {
+        file: require<LottieViewProps['source']>('@assets/animations/CustomAgents.lottie'),
+        w: 440,
+        h: 334,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;
