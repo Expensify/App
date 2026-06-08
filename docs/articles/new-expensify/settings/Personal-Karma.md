@@ -8,15 +8,28 @@ keywords: [New Expensify, personal karma, donations, expensify.org, save the wor
 
 Personal Karma lets you automatically donate a small percentage of your monthly added expenses to [Expensify.org](https://www.expensify.org/about).
 
-For every $500 in expenses you add, $1 is donated to a related Expensify.org fund. Donations are calculated monthly and charged to the billing card on file. You’ll receive a donation receipt by email after each charge.
+For every $500 in expenses you add, $1 is donated to a related Expensify.org fund. Donations are calculated monthly and charged to the billing card on file. You'll receive a donation receipt by email after each charge.
 
 ---
 
-## How to enable or disable Personal Karma
+## How to enable Personal Karma
 
-1. In the navigation tabs (on the left on Web, at the bottom on Mobile), choose **Account**.
-2. Select **Save the World**
-3. Toggle **Personal Karma** to enable or disable it.
+1. In the navigation tabs (on the left on web, at the bottom on mobile), choose **Account**.
+2. Select **Save the World**.
+3. Toggle **Enable Personal Karma** on.
+
+If you don't have a payment card on file, you'll be prompted to add one before Personal Karma can be enabled. If you dismiss the payment card prompt without adding a card, the toggle will revert to disabled.
+
+Once enabled, your billing card details are displayed below the toggle.
+
+---
+
+## How to disable Personal Karma
+
+1. In the navigation tabs (on the left on web, at the bottom on mobile), choose **Account**.
+2. Select **Save the World**.
+3. Toggle **Enable Personal Karma** off.
+4. A confirmation prompt will ask if you want to stop donating to Expensify.org. Select **Disable** to confirm, or **Cancel** to keep Personal Karma enabled.
 
 ---
 

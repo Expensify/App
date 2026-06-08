@@ -8,13 +8,14 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {getApprovalWorkflow} from '@libs/PolicyUtils';
+import {getApprovalWorkflow, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,11 +36,13 @@ type LimitTypeStepProps = {
 };
 
 function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
+
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const formRef = useRef<FormRef | null>(null);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = getDefaultExpensifyCardLimitType(policy);
@@ -47,15 +50,17 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
     const isEditing = issueNewCard?.isEditing;
+    const isSpendRuleAvailable = !isProduction && isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
+
     const nextStep = useMemo(() => {
         if (isEditing) {
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
-        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
-            return CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS;
+        if (isSpendRuleAvailable || issueNewCard?.data.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
+            return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
         }
         return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
-    }, [isEditing, issueNewCard?.data?.cardType]);
+    }, [isSpendRuleAvailable, isEditing, issueNewCard?.data.cardType]);
 
     const onInputFocus = useCallback(() => {
         formRef.current?.scrollToEnd();

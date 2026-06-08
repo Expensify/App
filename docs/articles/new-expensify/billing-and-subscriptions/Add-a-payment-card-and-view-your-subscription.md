@@ -1,13 +1,11 @@
 ---
 title: Manage Expensify Subscription
-description: Learn how to manage your subscription, update billing details, cancel early, or delete a workspace in New Expensify.
+description: Learn how to manage your subscription, update billing details, request to cancel your subscription, or delete a workspace in New Expensify.
 keywords: [New Expensify, billing owner, manage subscription, update payment card, cancel subscription, delete workspace, billing and subscriptions, subscription settings, can't delete workspace, can't cancel subscription]
 internalScope: Audience is billing owners and Workspace Admins. Covers how to manage a paid subscription in New Expensify, including billing permissions and ownership transfer. Does not cover free workspaces or plan upgrades.
 ---
 
-You can manage your Expensify subscription anytime from your account settings—update your billing info, request early cancellation, or delete a workspace if you're the billing owner.
-
-View and manage your subscription under **Account > Subscription**.
+You can manage your Expensify subscription in **Account > Subscription**. From there, you can update your billing information, request to cancel your subscription, or delete a workspace if you're the billing owner.
 
 ---
 
@@ -16,7 +14,7 @@ View and manage your subscription under **Account > Subscription**.
 Only the **billing owner** can:
 
 - Add or change the payment card
-- Request early cancellation of an annual plan
+- Request to cancel an annual subscription
 - Delete a paid workspace
 
 If you don’t see these options, you’re likely not the billing owner.
@@ -59,6 +57,7 @@ You can view and update your plan details from the **Subscription** section:
 - **Current plan:** View your subscription type and number of seats.
 - **Billing info:** See your payment method and next renewal date.
 - **Auto-renew:** Check when your subscription will automatically renew (e.g., **Renews on Nov 1, 2026**).
+- **Credit balance:** If your account has prepaid Expensify credits, this row displays your current credit balance. It appears only when you have a positive balance.
 - **Auto-increase annual seats:** See how much you could save by automatically increasing seats if your team grows.
 
 **Note:** Enabling auto-increase will extend your annual subscription end date.
@@ -71,13 +70,11 @@ To access the **Subscription** section:
 
 ---
 
-# How to request early cancellation of an annual subscription
-
+# How to request to cancel an annual subscription
+## How to request to cancel an annual subscription
 1. Go to **Account > Subscription**.
-2. Click **Request early cancellation**.
+2. Click **Cancel subscription**.
 3. Follow the prompts. Your request may be processed automatically or reviewed by our team.
-
-**Note:** This option is only available to the billing owner and early cancellation is not available to all members. 
 
 ---
 
@@ -88,7 +85,7 @@ To stop being charged for Expensify, you’ll need to either:
 - **Delete the paid workspace**, or  
 - **Transfer billing ownership** to another member.
 
-**Note:** If you're on an annual subscription, you can’t delete your last workspace unless you’ve first requested and received early cancellation.
+**Note:** If you’re on an annual subscription, you can’t delete your last workspace unless you’ve first canceled your subscription.
 
 ---
 
@@ -116,8 +113,8 @@ Only Workspace Admins can transfer billing ownership to themselves - it’s not 
 
 # What to do if you can’t update a subscription
 
-If you're blocked from updating billing settings, canceling early, or deleting a workspace, it's likely because you’re not the billing owner.
-
+If you’re blocked from updating billing settings, requesting to canceling your subscription, or deleting a workspace, it’s likely because you’re not the billing owner.
+If you're blocked from updating billing settings, requesting to cancel your subscription, or deleting a workspace, it's likely because you're not the billing owner.
 If you are a Workspace Admin, you can transfer billing ownership to yourself by following the steps to [transfer billing ownership](LINK).
 
 ---
@@ -126,13 +123,13 @@ If you are a Workspace Admin, you can transfer billing ownership to yourself by 
 
 ## Why don’t I see the option to cancel or delete my workspace?
 
-Only the billing owner can cancel a subscription or delete a workspace. To confirm if you're the billing owner, go to the **Workspaces** tab and check the **Billing owner** column for the relevant workspace.
+Only the billing owner can request to cancel a subscription or delete a workspace. To confirm if you're the billing owner, go to the **Workspaces** tab and check the **Billing owner** column for the relevant workspace.
 
 ---
 
 ## Can I delete a workspace if I’m on an annual subscription?
 
-Only if you’ve been granted early cancellation. Otherwise, you’ll need to either wait for the subscription to end or request early cancellation first.
+Only if your subscription has been canceled. Otherwise, you’ll need to either wait for the subscription to end or cancel your subscription first.
 
 ---
 

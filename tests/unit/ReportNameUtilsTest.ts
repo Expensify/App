@@ -78,7 +78,6 @@ describe('ReportNameUtils', () => {
             pronouns: 'She/her',
         },
     ].reduce((acc, detail) => {
-        // eslint-disable-next-line no-param-reassign
         acc[String(detail.accountID)] = detail;
         return acc;
     }, {} as PersonalDetailsList);
@@ -594,6 +593,61 @@ describe('ReportNameUtils', () => {
             expect(name).toBe('added card feed "Visa Commercial"');
         });
 
+        test('UPDATE_REQUIRE_COMPANY_CARDS_ENABLED parent action', () => {
+            const thread: Report = createWorkspaceThread(150);
+            const enabledParentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    enabled: true,
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled the company card purchases requirement');
+
+            const disabledParentAction: ReportAction = {
+                ...enabledParentAction,
+                originalMessage: {
+                    enabled: false,
+                },
+            } as unknown as ReportAction;
+            const disabledReportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction},
+            };
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                disabledReportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled the company card purchases requirement');
+        });
+
         test('DELETE_CARD_FEED parent action', () => {
             const thread: Report = createWorkspaceThread(101);
             const parentAction: ReportAction = {
@@ -805,6 +859,44 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
         });
+
+        test('UPDATE_MCC_GROUP_CATEGORY parent action renders the friendly MCC group label', () => {
+            const thread: Report = createWorkspaceThread(75);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    mccGroupName: 'Airlines',
+                    oldCategory: 'Insurance',
+                    newCategory: 'Travel',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+        });
     });
 
     describe('getReportName (derived value vs fallback)', () => {
@@ -910,6 +1002,7 @@ describe('ReportNameUtils', () => {
                 report,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
+                policy: undefined,
                 currentUserAccountID,
             });
 
@@ -928,6 +1021,7 @@ describe('ReportNameUtils', () => {
                 report,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
+                policy: undefined,
                 currentUserAccountID,
             });
 

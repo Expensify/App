@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -10,7 +11,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
-import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
@@ -55,6 +55,9 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */
         shouldShowPatriotActLink?: boolean;
+
+        /** Whether the form submit button should be enabled when offline */
+        enabledWhenOffline?: boolean;
     };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -72,6 +75,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     customLastNameLabel,
     shouldShowPatriotActLink = false,
     forwardedFSClass,
+    enabledWhenOffline: enabledWhenOfflineProp = true,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -125,7 +129,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            enabledWhenOffline
+            enabledWhenOffline={enabledWhenOfflineProp}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{formTitle}</Text>

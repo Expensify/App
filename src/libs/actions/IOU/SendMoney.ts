@@ -6,6 +6,7 @@ import * as API from '@libs/API';
 import type {SendMoneyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
@@ -19,7 +20,7 @@ import {
     getParsedComment,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {addOptimization, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {notifyNewAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -73,6 +74,7 @@ function getSendMoneyParams({
     receipt,
     optimisticChatReportID,
     currentUserAccountID,
+    delegateAccountID,
 }: {
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -87,6 +89,8 @@ function getSendMoneyParams({
     receipt?: Receipt;
     optimisticChatReportID?: string;
     currentUserAccountID: number;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 }): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -143,9 +147,11 @@ function getSendMoneyParams({
             transactionID: optimisticTransaction.transactionID,
             paymentType: paymentMethodType,
             isSendMoneyFlow: true,
+            currentUserAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
 
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, undefined, undefined, undefined, undefined, undefined, delegateAccountID);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
@@ -492,16 +498,27 @@ type SendMoneyActionParams = {
     merchant?: string;
     receipt?: Receipt;
     optimisticChatReportID?: string;
+    shouldStartTracking?: boolean;
+    shouldDeferForSearch?: boolean;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
-function sendMoneyElsewhere({report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID}: SendMoneyActionParams) {
+function executeSendMoney(
+    actionParams: SendMoneyActionParams,
+    paymentMethodType: typeof CONST.IOU.PAYMENT_TYPE.ELSEWHERE | typeof CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+    writeCommand: typeof WRITE_COMMANDS.SEND_MONEY_ELSEWHERE | typeof WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
+) {
+    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID, delegateAccountID} = actionParams;
+    const {shouldStartTracking = true, shouldDeferForSearch = false} = actionParams;
+
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
         quickAction,
         amount,
         currency,
         commentParam: comment,
-        paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        paymentMethodType,
         managerID: currentUserAccountID,
         recipient,
         created,
@@ -509,55 +526,42 @@ function sendMoneyElsewhere({report, quickAction, amount, currency, comment, cur
         receipt,
         optimisticChatReportID,
         currentUserAccountID,
+        delegateAccountID,
     });
-    startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
-        name: 'submit-to-destination-visible',
-        op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
-            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!receipt,
-            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isEmptyObject(report) || !report?.reportID,
-            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.PAY,
-            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'pay',
-        },
-    });
+    if (shouldStartTracking) {
+        startTracking(
+            {
+                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                iouType: CONST.IOU.TYPE.PAY,
+                requestType: CONST.IOU.TYPE.PAY,
+                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                hasReceipt: !!receipt,
+            },
+            {skipSubmitExpenseSpan: true},
+        );
+    }
+    // Sound acknowledges the action immediately, even when the write is deferred.
     playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
-
-    notifyNewAction(params.chatReportID, undefined, true);
+    const chatReportIDForNotification = params.chatReportID;
+    deferOrExecuteWrite(
+        () => {
+            API.write(writeCommand, params, {optimisticData, successData, failureData});
+            notifyNewAction(chatReportIDForNotification, undefined, true);
+        },
+        {
+            shouldDeferForSearch,
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        },
+    );
 }
 
-function sendMoneyWithWallet({report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID}: SendMoneyActionParams) {
-    const {params, optimisticData, successData, failureData} = getSendMoneyParams({
-        report,
-        quickAction,
-        amount,
-        currency,
-        commentParam: comment,
-        paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        managerID: currentUserAccountID,
-        recipient,
-        created,
-        merchant,
-        receipt,
-        optimisticChatReportID,
-        currentUserAccountID,
-    });
-    startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
-        name: 'submit-to-destination-visible',
-        op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
-            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!receipt,
-            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isEmptyObject(report) || !report?.reportID,
-            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.PAY,
-            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'pay',
-        },
-    });
-    playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
+function sendMoneyElsewhere(actionParams: SendMoneyActionParams) {
+    executeSendMoney(actionParams, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, WRITE_COMMANDS.SEND_MONEY_ELSEWHERE);
+}
 
-    notifyNewAction(params.chatReportID, undefined, true);
+function sendMoneyWithWallet(actionParams: SendMoneyActionParams) {
+    executeSendMoney(actionParams, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, WRITE_COMMANDS.SEND_MONEY_WITH_WALLET);
 }
 
 export {sendMoneyElsewhere, sendMoneyWithWallet};

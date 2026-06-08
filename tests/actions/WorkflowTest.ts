@@ -20,7 +20,6 @@ jest.mock('@src/libs/WorkflowUtils', () => {
     const actual = jest.requireActual('@src/libs/WorkflowUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         ...actual,
         calculateApprovers: jest.fn(),
     };
@@ -308,7 +307,7 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            expect(completeTaskMock).toHaveBeenCalledWith(addExpenseApprovalsTaskReport, false, false, undefined, undefined);
+            expect(completeTaskMock).toHaveBeenCalledWith(addExpenseApprovalsTaskReport, false, false, undefined, undefined, undefined, false);
         });
 
         it('should not auto-complete the task if it is already approved', async () => {

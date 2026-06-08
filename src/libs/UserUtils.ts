@@ -3,8 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
-import type Login from '@src/types/onyx/Login';
+import type {LoginList, Logins, NewLogin, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -44,6 +43,70 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  */
 function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email: string | undefined): boolean {
     return Object.values(loginList ?? {}).some((login) => login.partnerUserID && email !== login.partnerUserID && !login.validatedDate);
+}
+
+function getLoginKey(login: NewLogin) {
+    return `${login.partnerID}_${login.partnerUserID}`;
+}
+
+function getLastLogin(login: NewLogin) {
+    // If we have not re-authenticated, then lastLogin will still be the default 2008-01-01 value. So the created time stamp will be more accurate in that case.
+    return login.lastLogin > login.created ? login.lastLogin : login.created;
+}
+
+const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT, CONST.PARTNER_ID.OAUTH]);
+
+function isDeviceLogin(login: NewLogin) {
+    return DEVICE_PARTNER_IDS.has(login.partnerID) && (!login.additionalData?.infiniteLoginRoot || login.additionalData.infiniteLoginRoot === login.partnerUserID);
+}
+
+function getDeviceLogins(logins: OnyxEntry<Logins>) {
+    return Object.values(logins ?? {})?.filter(isDeviceLogin);
+}
+
+function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
+    return Object.values(logins ?? {})?.some((login) => isDeviceLogin(login) && !!login.errorFields?.revoke);
+}
+
+const MCP_PLATFORM_DISPLAY_NAMES: Record<string, string> = {
+    cursor: 'Cursor',
+    claude: 'Claude',
+    claudedesktop: 'Claude Desktop',
+    claudecodeex: 'Claude Code',
+    chatgpt: 'ChatGPT',
+    openai: 'OpenAI',
+};
+
+const MCP_PARTNER_USER_ID_PATTERN = /^mcp-([a-z0-9]+)-/;
+
+/**
+ * Returns a human-readable display name for a device login.
+ *
+ * MCP OAuth logins have a partnerUserID of the form "mcp-<slug>-<hex>". For
+ * those, the platform slug (stored raw in additionalData.deviceName, or parsed
+ * from partnerUserID as a fallback for older logins) is mapped to a friendly
+ * label. Regular device logins show their deviceName + OS string as before.
+ */
+function getDeviceDisplayName(
+    login: NewLogin,
+    deviceName: string | undefined,
+    deviceVersion: string | undefined,
+    os: string | undefined,
+    osVersion: string | undefined,
+    unknownDeviceLabel: string,
+): string {
+    const mcpMatch = login.partnerUserID ? MCP_PARTNER_USER_ID_PATTERN.exec(login.partnerUserID) : null;
+    if (mcpMatch) {
+        const slug = deviceName ?? mcpMatch[1];
+        const platformName = MCP_PLATFORM_DISPLAY_NAMES[slug];
+        return platformName ? `OAuth - MCP (${platformName})` : 'OAuth - MCP';
+    }
+
+    if (deviceName && os) {
+        return `${deviceName} ${deviceVersion ? `${deviceVersion} ` : ''}(${os} ${osVersion})`;
+    }
+
+    return unknownDeviceLabel;
 }
 
 /**
@@ -105,14 +168,6 @@ function hashText(text: string, range: number): number {
  */
 function generateAccountID(searchValue: string): number {
     return hashText(searchValue, 2 ** 32);
-}
-
-/**
- * Gets the secondary phone login number
- */
-function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined {
-    const parsedLoginList = Object.keys(loginList ?? {}).map((login) => Str.removeSMSDomain(login));
-    return parsedLoginList.find((login) => Str.isValidE164Phone(login));
 }
 
 /**
@@ -178,12 +233,16 @@ export {
     generateAccountID,
     getLoginListBrickRoadIndicator,
     getProfilePageBrickRoadIndicator,
-    getSecondaryPhoneLogin,
     hasLoginListError,
     hasLoginListInfo,
     hashText,
     getContactMethod,
     isCurrentUserValidated,
     getContactMethodsOptions,
+    getLoginKey,
+    getLastLogin,
+    getDeviceLogins,
+    getDeviceDisplayName,
+    hasDeviceManagementError,
 };
 export type {AvatarSource};

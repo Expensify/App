@@ -1,4 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -12,10 +13,11 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {NetworkStatus} from '@libs/NetworkConnection';
+import {getIsOffline} from '@libs/NetworkState';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -28,21 +30,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
-
-let isNetworkOffline = false;
-let networkStatus: NetworkStatus;
-// Use connectWithoutView since this is to open an external link and doesn't affect any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => {
-        isNetworkOffline = value?.isOffline ?? false;
-        networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
-    },
-});
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -87,7 +79,7 @@ function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shou
 }
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
-    if (isNetworkOffline) {
+    if (getIsOffline()) {
         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
@@ -190,7 +182,15 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen) {
-        shouldCloseRHP = !willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        const targetWillNavigateToRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        if (!targetWillNavigateToRHP) {
+            shouldCloseRHP = true;
+        } else if (hasSameOrigin) {
+            // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
+            // user sees only the RHP content update + the underlying tab animate, no close+reopen
+            // flicker (issue: https://github.com/Expensify/App/issues/89710).
+            swapBackgroundTabForRHPTarget(currentState, internalNewExpensifyPath as Route);
+        }
     }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
@@ -255,7 +255,7 @@ function openReportFromDeepLink(
         openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas});
 
         // Show the sign-in page if the app is offline
-        if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+        if (getIsOffline()) {
             endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }
@@ -271,6 +271,12 @@ function openReportFromDeepLink(
         route = '';
     }
 
+    // React Navigation generates /Home (capitalized) for the root URL because PublicScreens uses SCREENS.HOME ('Home')
+    // at the root level without a path mapping. Treat it as empty route to avoid showing a “not found” page after sign-in.
+    if (normalizePath(route) === `/${SCREENS.HOME}`) {
+        route = '';
+    }
+
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
         return;
@@ -281,8 +287,12 @@ function openReportFromDeepLink(
         return;
     }
 
+    // The Plaid OAuth redirect URI is handled by the native Plaid SDK on iOS — skip navigation to avoid showing NotFound
+    if (route?.includes(CONST.PLAID.OAUTH_REDIRECT_PATH_IOS)) {
+        return;
+    }
+
     // Navigate to the report after sign-in/sign-up.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
@@ -353,16 +363,11 @@ function openReportFromDeepLink(
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            if (
-                                reportID &&
-                                !isAuthenticated &&
-                                (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
-                            ) {
+                            if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
                                 const reportConnection = Onyx.connectWithoutView({
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);
@@ -374,7 +379,7 @@ function openReportFromDeepLink(
                             }
                         };
 
-                        if (isAnonymousUser()) {
+                        if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
                     });

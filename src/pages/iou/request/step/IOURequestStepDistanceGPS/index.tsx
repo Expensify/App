@@ -43,9 +43,9 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
 }
 
 const IOURequestStepDistanceGPSWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceGPS);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceGPSWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceGPSWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceGPSWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceGPSWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceGPSWithFullTransactionOrNotFound;

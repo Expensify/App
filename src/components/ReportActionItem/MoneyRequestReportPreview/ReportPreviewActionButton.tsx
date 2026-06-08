@@ -39,7 +39,6 @@ type ReportPreviewActionButtonProps = {
     startSubmittingAnimation: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
-    onNonReimbursablePaymentError?: () => void;
     openReportFromPreview: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
     transactionPreviewCarouselWidth: number;
@@ -57,7 +56,6 @@ function ReportPreviewActionButton({
     startSubmittingAnimation,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    onNonReimbursablePaymentError,
     openReportFromPreview,
     onHoldMenuOpen,
     transactionPreviewCarouselWidth,
@@ -95,8 +93,32 @@ function ReportPreviewActionButton({
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    const canIOUBePaid = canIOUBePaidIOUActions(
+        iouReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserDetails.login ?? '',
+        currentUserDetails.accountID,
+        transactions,
+        false,
+        undefined,
+        invoiceReceiverPolicy,
+    );
+    const onlyShowPayElsewhere =
+        !canIOUBePaid &&
+        canIOUBePaidIOUActions(
+            iouReport,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserDetails.login ?? '',
+            currentUserDetails.accountID,
+            transactions,
+            true,
+            undefined,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const buttonMaxWidth =
@@ -124,7 +146,6 @@ function ReportPreviewActionButton({
             return (
                 <SubmitActionButton
                     iouReportID={iouReportID}
-                    chatReportID={chatReportID}
                     isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                     stopAnimation={stopAnimation}
                     startSubmittingAnimation={startSubmittingAnimation}
@@ -156,7 +177,6 @@ function ReportPreviewActionButton({
                     onPaymentOptionsShow={onPaymentOptionsShow}
                     onPaymentOptionsHide={onPaymentOptionsHide}
                     onHoldMenuOpen={onHoldMenuOpen}
-                    onNonReimbursablePaymentError={onNonReimbursablePaymentError}
                     buttonMaxWidth={buttonMaxWidth}
                     reportPreviewAction={reportPreviewAction}
                 />
@@ -197,6 +217,7 @@ function ReportPreviewActionButton({
                         iouRequestBackToReport: chatReportID,
                         unreportedExpenseBackToReport: iouReport?.parentReportID,
                         lastDistanceExpenseType,
+                        currentUserAccountID: currentUserDetails.accountID,
                     })}
                     isSplitButton={false}
                     anchorAlignment={{

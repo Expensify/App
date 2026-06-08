@@ -1,4 +1,5 @@
 import {useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, Keyboard} from 'react-native';
 import {KeyboardController} from 'react-native-keyboard-controller';
 
@@ -11,7 +12,6 @@ const useRestoreInputFocus = (isLostFocus: boolean) => {
         }
 
         if (!isLostFocus && keyboardVisibleBeforeLoosingFocusRef.current) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 KeyboardController.setFocusTo('current');
             });

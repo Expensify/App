@@ -14,7 +14,7 @@ const userID = 'johndoe12@expensify.com';
 
 const cardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    workspaceAccountID: 12345,
+    policyAccountID: 12345,
 };
 
 const accountCardFeedTestCases = {
@@ -114,7 +114,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
             chatReportID: status === CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS ? undefined : '123',
         },
         [ONYXKEYS.LOGIN_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             [userID]: {
                 partnerName: 'John Doe',
                 partnerUserID: userID,
@@ -163,13 +162,13 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
             name: 'Workspace 1',
             owner: name === accountCardFeedTestCases.admin.name ? 'johndoe12@expensify.com' : 'otheruser@expensify.com',
             role: name === accountCardFeedTestCases.admin.name ? 'admin' : 'user',
-            workspaceAccountID: cardFeed.workspaceAccountID,
+            policyAccountID: cardFeed.policyAccountID,
         },
         [`${ONYXKEYS.CARD_LIST}`]: {
             card123: {
                 bank: 'OTHER_BANK',
                 lastScrapeResult: name === accountCardFeedTestCases.admin.name || name === accountCardFeedTestCases.employee.name ? 403 : 200,
-                fundID: String(cardFeed.workspaceAccountID),
+                fundID: String(cardFeed.policyAccountID),
             },
         },
     }) as unknown as OnyxMultiSetInput;
@@ -403,7 +402,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: cardFeed.feedName,
-                            fundID: String(cardFeed.workspaceAccountID),
+                            fundID: String(cardFeed.policyAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -425,7 +424,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: CONST.EXPENSIFY_CARD.BANK,
-                            fundID: String(cardFeed.workspaceAccountID),
+                            fundID: String(cardFeed.policyAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -446,7 +445,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: cardFeed.feedName,
-                            fundID: String(cardFeed.workspaceAccountID),
+                            fundID: String(cardFeed.policyAccountID),
                             lastScrapeResult: 200,
                         },
                     },

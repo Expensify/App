@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from '@components/Button';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -9,10 +10,10 @@ import useConfirmApproval from './useConfirmApproval';
 
 type ApprovePrimaryActionProps = {
     reportID: string | undefined;
-    startApprovedAnimation: () => void;
 };
 
-function ApprovePrimaryAction({reportID, startApprovedAnimation}: ApprovePrimaryActionProps) {
+function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
+    const {startApprovedAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);

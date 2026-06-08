@@ -39,11 +39,6 @@ type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
 
 /**
- *
- */
-type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
-
-/**
  * Card type name
  */
 type CardTypeName = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE_NAMES>;
@@ -118,6 +113,20 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Plaid access token */
     plaidAccessToken?: string;
+
+    /** CSV upload layout settings (present on ccupload feeds) */
+    uploadLayoutSettings?: {
+        /** User-defined name for the CSV upload layout */
+        layoutName?: string;
+
+        /** Unique identifier for this CSV layout instance */
+        instanceID?: string;
+
+        /** Stored column mappings from the most recent CSV import (column name → column index) */
+        columnMappings?: Record<string, string>;
+
+        [key: string]: unknown;
+    };
 
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
@@ -238,6 +247,12 @@ type CardFeeds = {
 
         /** List of member emails exempt from the domain's 2FA requirement */
         twoFactorAuthExemptEmails?: string[];
+
+        /** Travel invoicing provisioning data */
+        travelInvoicing?: {
+            /** Provisioning errors for workspace members */
+            errors?: string[];
+        };
     };
 } & CardFeedsStatus &
     DomainSettings;
@@ -252,12 +267,6 @@ type AddNewCardFeedData = {
 
     /** Name of the card */
     cardTitle: string;
-
-    /** Indicates the day (preset value) when the statement period for this card ends */
-    statementPeriodEnd?: StatementPeriodEnd;
-
-    /** Indicates the day (custom day) when the statement period for this card ends */
-    statementPeriodEndDay?: StatementPeriodEndDay;
 
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
@@ -291,6 +300,9 @@ type AddNewCardFeedData = {
 
     /** Whether to use advanced fields in the CSV layout */
     useAdvancedFields?: boolean;
+
+    /** Existing instance ID when editing a CSV feed */
+    existingInstanceID?: string;
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
@@ -340,13 +352,11 @@ export type {
     CardFeedWithDomainID,
     BankName,
     NonConnectableBankName,
-    CardType,
     CardTypeName,
     CompanyCardFeed,
     CompanyCardFeedWithNumber,
     CompanyCardFeedWithDomainID,
     CardFeedDetails,
-    DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
     CardFeedsStatus,

@@ -14,8 +14,9 @@ type CompleteGuidedSetupParams = {
     policyID?: string;
     selfDMReportID?: string;
     selfDMCreatedReportActionID?: string;
-    bespokeWelcomeMessage?: string;
     optimisticConciergeReportActionID?: string;
+    /** Feature ids the user toggled on the InterestedFeatures onboarding page; shapes the #admins welcome followups on this single request. */
+    selectedInterestedFeatures?: string;
 };
 
 export default CompleteGuidedSetupParams;

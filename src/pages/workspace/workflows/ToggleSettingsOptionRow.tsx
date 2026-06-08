@@ -82,7 +82,7 @@ type ToggleSettingOptionRowProps = {
     showLockIcon?: boolean;
 
     /** Callback to fire when the switch is toggled in disabled state */
-    disabledAction?: () => void;
+    disabledAction?: () => void | Promise<void>;
 
     /** Text to display in tooltip when the toggle is disabled */
     disabledText?: string;

@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -24,6 +24,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
@@ -60,6 +61,7 @@ function BaseTextInput({
     hideFocusedState = false,
     maxLength = undefined,
     hint = '',
+    shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
     autoCorrect = true,
@@ -80,10 +82,12 @@ function BaseTextInput({
     placeholderTextColor,
     onClearInput,
     iconContainerStyle,
+    clearButtonStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
     rightHandSideComponent,
+    shouldAllowFocusInLandscapeMode = false,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -263,7 +267,7 @@ function BaseTextInput({
     const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
@@ -293,7 +297,8 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
-    const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
+    const resolvedAccessibilityLabel = inputProps.accessibilityLabel ?? accessibilityLabel;
+    const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, resolvedAccessibilityLabel);
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
@@ -342,6 +347,7 @@ function BaseTextInput({
                                 isMultiline={isMultiline}
                             />
                         ) : null}
+                        {hiddenLabel}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
@@ -374,7 +380,7 @@ function BaseTextInput({
                             )}
                             <InputComponent
                                 ref={(element: BaseTextInputRef | null): void => {
-                                    const baseTextInputRef = isInLandscapeMode ? getLandscapeTextInputRefProxy(element) : element;
+                                    const baseTextInputRef = isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? getLandscapeTextInputRefProxy(element) : element;
 
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
@@ -388,8 +394,9 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                autoFocus={isInLandscapeMode ? false : inputProps.autoFocus}
-                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
+                                accessibilityLabel={resolvedAccessibilityLabel}
+                                accessibilityLabelledBy={accessibilityLabelledBy}
                                 accessibilityValue={accessibilityValue}
                                 accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
@@ -451,7 +458,7 @@ function BaseTextInput({
                                         setValue('');
                                         onClearInput?.();
                                     }}
-                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                 />
                             )}
                             {!!inputProps.isLoading && !shouldShowClearButton && (
@@ -502,6 +509,7 @@ function BaseTextInput({
                     <FormHelpMessage
                         isError={!!errorText}
                         message={inputHelpText}
+                        shouldRenderMessageAsHTML={!errorText && shouldRenderHintAsHTML}
                     />
                 )}
             </View>

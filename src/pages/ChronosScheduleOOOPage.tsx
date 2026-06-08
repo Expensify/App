@@ -13,6 +13,7 @@ import type {ValuePickerItem} from '@components/ValuePicker/types';
 import ValueSelectorModal from '@components/ValuePicker/ValueSelectorModal';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +38,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID, timezone: timezoneParam} = useCurrentUserPersonalDetails();
     const isInSidePanel = useIsInSidePanel();
+    const delegateAccountID = useDelegateAccountID();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isDurationUnitModalVisible, setIsDurationUnitModalVisible] = useState(false);
@@ -106,6 +108,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             currentUserAccountID,
             shouldPlaySound: false,
             isInSidePanel,
+            delegateAccountID,
         });
 
         Navigation.goBack();
@@ -156,7 +159,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         currencyButtonLabel={durationUnitButtonLabel}
                         currencyButtonAccessibilityLabel={`${translate('common.select')}, ${durationUnitButtonLabel}`}
                         currency={CONST.CURRENCY.USD}
-                        decimals={0}
+                        decimals={2}
                         onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
                         isCurrencyPressable
                     />

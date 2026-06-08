@@ -140,23 +140,19 @@ jobs:
     needs: [buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ inputs.APP_REF }}
 
-      - name: Download Artifact
-        # v7
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
-
       - name: Publish links to apps for download on Expensify/App PR
         if: ${{ inputs.APP_PR_NUMBER != '' }}
-        uses: ./.github/actions/javascript/postTestBuildComment
+        uses: ./.github/actions/javascript/postOrReplaceComment
         with:
           REPO: App
           APP_PR_NUMBER: ${{ inputs.APP_PR_NUMBER }}
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
           GITHUB_TOKEN: ${{ github.token }}
+          COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}
           IOS: ${{ needs.buildIOS.result }}
           WEB: ${{ needs.buildWeb.result == 'failure' && 'failure' || needs.deployWebAdHoc.result }}
@@ -166,11 +162,12 @@ jobs:
 
       - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
         if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
-        uses: ./.github/actions/javascript/postTestBuildComment
+        uses: ./.github/actions/javascript/postOrReplaceComment
         with:
           REPO: Mobile-Expensify
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}
           IOS: ${{ needs.buildIOS.result }}
           ANDROID_LINK: ${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}
@@ -183,8 +180,7 @@ jobs:
     needs: [buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ inputs.APP_REF }}
 

@@ -94,11 +94,39 @@ describe('SidebarUtils', () => {
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, CONST.PRIORITY_MODE.DEFAULT, {}, transactionViolations, {}));
+        await measureFunction(() =>
+            SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId,
+                reports: allReports,
+                betas: mockedBetas,
+                priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                draftComments: {},
+                transactionViolations,
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: 1,
+                reportNameValuePairs: {},
+            }),
+        );
     });
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, CONST.PRIORITY_MODE.GSD, {}, transactionViolations, {}));
+        await measureFunction(() =>
+            SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId,
+                reports: allReports,
+                betas: mockedBetas,
+                priorityMode: CONST.PRIORITY_MODE.GSD,
+                draftComments: {},
+                transactionViolations,
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: 1,
+                reportNameValuePairs: {},
+            }),
+        );
     });
 });

@@ -160,6 +160,7 @@ function FormHelpMessage({
                         key={`reannounce-${errorAnnouncementKey}`}
                         style={styles.hiddenElementOutsideOfWindow}
                         role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="assertive"
                     >
                         {errorAnnouncementText}
                     </Text>

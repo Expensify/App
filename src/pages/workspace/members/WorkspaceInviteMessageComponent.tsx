@@ -14,6 +14,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,12 +23,11 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy, isSubmitPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -36,7 +36,7 @@ import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrappe
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -45,7 +45,7 @@ type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
     policyID: string;
     backTo: Routes | undefined;
-    currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     shouldShowTooltip?: boolean;
     shouldShowBackButton?: boolean;
     shouldShowMemberNames?: boolean;
@@ -68,6 +68,7 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -75,8 +76,10 @@ function WorkspaceInviteMessageComponent({
 
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
-    const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
-
+    const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
+    // Submit workspaces only allow inviting editors, so default the invite role accordingly when no draft is set.
+    // The backend ignores any other role for Submit workspaces, but defaulting here keeps the UI honest before submit.
+    const workspaceInviteRoleDraft = workspaceInviteRoleDraftFromOnyx ?? (isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.USER);
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
@@ -156,7 +159,14 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
+            {
+                accountID: currentUserPersonalDetails?.accountID,
+                displayName: currentUserPersonalDetails?.displayName,
+                email: currentUserPersonalDetails.email,
+                avatar: currentUserPersonalDetails?.avatar,
+            },
             shouldShowApproverRow ? validatedApprover : undefined,
+            filteredReportActions,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
@@ -167,17 +177,12 @@ function WorkspaceInviteMessageComponent({
         }
 
         if ((backTo as string)?.endsWith('members')) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+            Navigation.dismissModal();
             return;
         }
 
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {forceReplace: true});
-            return;
-        }
-
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)),
         });
     };
 
@@ -276,6 +281,9 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute())) {
+                                        return;
+                                    }
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path));
                                 }}
                             />

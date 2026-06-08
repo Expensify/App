@@ -10,10 +10,14 @@
 
 <p>{{ hub.description }}</p>
 
+{% assign emptyItems = "" | split: "," %}
+{% assign hubArticles = hub.articles | default: emptyItems %}
+{% assign hubSections = hub.sections | default: emptyItems %}
+
 {% if hub.articles %}
-    {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'title' %}
 {% else %}
-    {% assign sortedSectionsAndArticles = hub.sections | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hubSections | sort: 'title' %}
 {% endif%}
 
 <section>

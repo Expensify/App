@@ -18,9 +18,6 @@ function setupSentry(): void {
         // When "Log Sentry to console" toggle is ON, it logs envelope contents to the console.
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
-        // 1. Profiling for Android is currently disabled because it causes crashes sometimes.
-        // 2. When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
-        profilesSampleRate: 0.1,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,
@@ -32,6 +29,17 @@ function setupSentry(): void {
         // In HybridApp, native SDK is initialized early in Application.onCreate (Android) and
         // AppDelegate (iOS) to capture breadcrumbs during native startup before JS loads.
         autoInitializeNativeSdk: !CONFIG.IS_HYBRID_APP,
+        // We set experimental lifecycle value to enable profiling for whole spans. Without this option profile often is dropped early and we haven't the whole picture
+        // See https://github.com/Expensify/App/issues/87489
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        _experiments: {
+            profilingOptions: {
+                // When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
+                // This option replaces `profilesSampleRate`
+                profileSessionSampleRate: 0.1,
+                lifecycle: 'trace',
+            },
+        },
     });
 
     Sentry.setTag(CONST.TELEMETRY.TAGS.BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);

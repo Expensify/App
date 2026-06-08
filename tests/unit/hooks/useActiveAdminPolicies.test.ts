@@ -10,7 +10,6 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const TEST_LOGIN = 'admin@expensify.com';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({login: TEST_LOGIN})),
 }));

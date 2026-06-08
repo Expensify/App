@@ -1,3 +1,4 @@
+import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -17,6 +18,7 @@ type NavigateAfterExpenseCreateParams = {
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
+    shouldAddPendingNewTransactionIDs?: boolean;
 };
 
 /**
@@ -26,7 +28,14 @@ type NavigateAfterExpenseCreateParams = {
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
  * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
  */
-function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions}: NavigateAfterExpenseCreateParams) {
+function navigateAfterExpenseCreate({
+    activeReportID,
+    transactionID,
+    isFromGlobalCreate,
+    isInvoice,
+    hasMultipleTransactions,
+    shouldAddPendingNewTransactionIDs = false,
+}: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
     // If the expense is not created from global create or is currently on the inbox tab,
@@ -34,6 +43,9 @@ function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobal
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
         dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        if (shouldAddPendingNewTransactionIDs) {
+            addPendingNewTransactionIDs(activeReportID, transactionID);
+        }
         return;
     }
 
@@ -64,7 +76,7 @@ function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobal
             if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
             } else {
-                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed — no-op');
+                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
             }
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));

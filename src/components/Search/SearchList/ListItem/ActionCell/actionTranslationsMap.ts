@@ -11,6 +11,7 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
     [CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING]: 'common.export',
     [CONST.SEARCH.ACTION_TYPES.DONE]: 'common.done',
     [CONST.SEARCH.ACTION_TYPES.PAID]: 'iou.settledExpensify',
+    [CONST.SEARCH.ACTION_TYPES.UNDELETE]: 'search.bulkActions.undelete',
 };
 
 export default actionTranslationsMap;

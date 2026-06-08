@@ -28,5 +28,4 @@ function filterObject<TObject extends Record<string, unknown>>(obj: TObject, pre
         }, {} as TObject);
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {shallowCompare, filterObject};

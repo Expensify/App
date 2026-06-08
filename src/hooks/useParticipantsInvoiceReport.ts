@@ -26,8 +26,7 @@ function useParticipantsInvoiceReport(receiverID: string | number | undefined, r
             }
 
             const isSameReceiver =
-                report.invoiceReceiver &&
-                report.invoiceReceiver.type === receiverType &&
+                report.invoiceReceiver?.type === receiverType &&
                 (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
                     ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
 

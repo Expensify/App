@@ -15,6 +15,7 @@ import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} 
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {lastItem} from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
@@ -38,7 +39,6 @@ jest.setTimeout(120000);
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -175,7 +175,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
 
     await waitForBatchedUpdates();
 
@@ -280,9 +280,12 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('4');
-                // Scroll up and verify that the "New messages" badge appears
+                // Scroll up and verify that the "New messages" badge appears.
+                // Use waitForBatchedUpdates instead of waitFor to avoid wrapping in act(),
+                // which can hang under heavy CI load while draining scroll-triggered effects.
                 scrollUpToRevealNewMessagesBadge();
-                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
+                await waitForBatchedUpdates();
+                expect(isNewMessagesBadgeVisible()).toBe(true);
             }));
     it('Clear the new line indicator and bold when we navigate away from a chat that is now read', () =>
         signInAndGetAppWithUnreadChat()
@@ -511,6 +514,7 @@ describe('Unread Indicators', () => {
                     text: 'Current User Comment 1',
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_A_ACCOUNT_ID,
+                    delegateAccountID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -591,6 +595,7 @@ describe('Unread Indicators', () => {
                         text: 'Current User Comment 1',
                         timezoneParam: CONST.DEFAULT_TIME_ZONE,
                         currentUserAccountID: USER_A_ACCOUNT_ID,
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -638,7 +643,15 @@ describe('Unread Indicators', () => {
         await navigateToSidebarOption(0);
 
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
-        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 1', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
+        addComment({
+            report,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            text: 'Comment 1',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: USER_A_ACCOUNT_ID,
+            delegateAccountID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -649,7 +662,15 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 2', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
+            addComment({
+                report,
+                notifyReportID: REPORT_ID,
+                ancestors: [],
+                text: 'Comment 2',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: USER_A_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -692,7 +713,7 @@ describe('Unread Indicators', () => {
     it('Do not display the new line indicator when tracking an expense on self DM while offline', async () => {
         // Given a self DM report and an offline network
         await signInAndGetAppWithUnreadChat();
-        await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
         // Remove unnecessary report
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
 
@@ -754,14 +775,11 @@ describe('Unread Indicators', () => {
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
             isASAPSubmitBetaEnabled: true,
-            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
-            currentUserEmailParam: USER_A_EMAIL,
+            currentUser: {accountID: USER_A_ACCOUNT_ID, email: USER_A_EMAIL},
             introSelected: undefined,
-            activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
-            draftTransactionIDs: [fakeTransaction.transactionID],
             isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
@@ -811,9 +829,11 @@ describe('Unread Indicators', () => {
 
         await waitForBatchedUpdates();
         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
-        const displayNameTexts = screen.queryAllByLabelText(hintText);
-        expect(displayNameTexts).toHaveLength(1);
-        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        await waitFor(() => {
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
+            expect(displayNameTexts).toHaveLength(1);
+            expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        });
     });
 
     it('Mark the last comment as unread should set lastReadTime to the last action’s creation time', async () => {
@@ -823,7 +843,15 @@ describe('Unread Indicators', () => {
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
 
         // When USER_A add a comment
-        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Current User Comment', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
+        addComment({
+            report,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            text: 'Current User Comment',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: USER_A_ACCOUNT_ID,
+            delegateAccountID: undefined,
+        });
         await waitForBatchedUpdates();
 
         const reportActions: OnyxEntry<ReportActions> = await new Promise((resolve) => {

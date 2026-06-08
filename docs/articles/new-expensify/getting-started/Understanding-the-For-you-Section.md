@@ -9,7 +9,7 @@ internalScope: Audience is all Expensify members. Covers how the For you section
 
 The **For you** section shows items that currently need your attention. Each item links you to the report or view where you can take action.
 
-For you helps you see what needs attention at a glance, without having to search through Inbox or Reports.
+**For you** helps you see what needs attention at a glance, without having to search through Inbox or Spend.
 
 ---
 
@@ -64,7 +64,7 @@ The items you see in **For you** depend on what actions you’re responsible for
 
 ## Where each For you item takes you
 
-When you select an item in **For you**, you’re taken directly to Reports, filtered to show the items that need that action.
+When you select an item in **For you**, you’re taken directly to **Spend**, filtered to show the items that need that action.
 
 For example:
 - **Submit** takes you to reports ready to submit
@@ -91,9 +91,9 @@ If you’re responsible for more than one type of action, such as approving and 
 
 An item only appears when a report is waiting specifically on you. If the report is still in progress or waiting on someone else, it won’t appear in For you.
 
-## Does the For you section replace Inbox or Reports?
+## Does the For you section replace Inbox or Spend?
 
-No. For you helps you spot what needs attention and takes you to the right place. All work is still completed in Reports.
+No. For you helps you spot what needs attention and takes you to the right place. All work is still completed in Spend.
 
 ## Why don’t all my reports appear in the For you section?
 

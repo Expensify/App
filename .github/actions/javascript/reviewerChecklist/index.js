@@ -11588,6 +11588,10 @@ const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App
 const reviewerChecklistContains = '# Reviewer Checklist';
 const issue = github.context.payload.issue?.number ?? github.context.payload.pull_request?.number ?? -1;
 const combinedComments = [];
+// Org members and owners are internal Expensify engineers; external contributors (including C+) are not.
+const INTERNAL_EXPENSIFY_ASSOCIATIONS = new Set(['MEMBER', 'OWNER']);
+// A reviewer's standing is their latest review in one of these states; plain "commented" reviews don't change it.
+const DECISIVE_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
 function getNumberOfItemsFromReviewerChecklist() {
     console.log('Getting the number of items in the reviewer checklist...');
     return new Promise((resolve, reject) => {
@@ -11657,8 +11661,44 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
         core.setFailed("PR Reviewer Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
     });
 }
-getNumberOfItemsFromReviewerChecklist()
-    .then(checkIssueForCompletedChecklist)
+// An approval from an internal Expensify engineer means we've decided this PR doesn't need a C+ checklist, so let the check pass.
+// This workflow re-runs on every pull_request_review event, so we scan the whole review history: once an internal approval
+// stands, a later "commented" or "changes requested" review from anyone must not re-require the checklist.
+async function hasStandingInternalApproval() {
+    const { owner, repo } = github.context.repo;
+    const reviews = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listReviews, {
+        owner,
+        repo,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        pull_number: issue,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    });
+    // GitHub treats a reviewer's latest decisive review as their standing, so keep only that per internal engineer.
+    const latestStateByInternalReviewer = new Map();
+    for (const review of reviews) {
+        const login = review.user?.login;
+        const state = review.state ?? '';
+        if (!login || !INTERNAL_EXPENSIFY_ASSOCIATIONS.has(review.author_association ?? '') || !DECISIVE_REVIEW_STATES.has(state)) {
+            continue;
+        }
+        latestStateByInternalReviewer.set(login, state);
+    }
+    for (const state of latestStateByInternalReviewer.values()) {
+        if (state === 'APPROVED') {
+            return true;
+        }
+    }
+    return false;
+}
+hasStandingInternalApproval()
+    .then((isApproved) => {
+    if (isApproved) {
+        console.log('PR has a standing approval from an internal Expensify engineer, so the reviewer checklist is not required 🎉');
+        return;
+    }
+    return getNumberOfItemsFromReviewerChecklist().then(checkIssueForCompletedChecklist);
+})
     .catch((err) => {
     console.error(err);
     core.setFailed(err);
@@ -11691,6 +11731,7 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+        DAILY: 'Daily',
     },
     STATE: {
         OPEN: 'open',
@@ -11787,7 +11828,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -11875,11 +11916,11 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers) {
+    static fetchAllPullRequests(pullRequestNumbers, repo = CONST_1.default.APP_REPO) {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
+            repo,
             state: 'all',
             sort: 'created',
             direction: 'desc',

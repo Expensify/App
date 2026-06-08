@@ -26,37 +26,72 @@ type DeepLinkHandlerProps = {
  */
 function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
+    const initialUrlProcessed = useRef(false);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
     useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata, isSelfTourViewedMetadata)) {
+        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
             return;
         }
-        // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => {
-            onInitialUrl(url as Route);
 
-            if (url) {
-                if (conciergeReportID === undefined) {
-                    Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
+        // Guard against stale closures: when deps change and the effect re-runs, the previous
+        // getInitialURL() promise may still be in-flight. Without this guard, its .then() would
+        // fire with stale conciergeReportID/introSelected values, causing a duplicate
+        // openReportFromDeepLink() call.
+        let cancelled = false;
+        let timeoutId: ReturnType<typeof setTimeout>;
+
+        // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report.
+        // We race against a timeout to prevent permanently blocking NavigationRoot if getInitialURL() never resolves
+        // (e.g. in HybridApp when OldDot fails to send the URL via native bridge).
+        Promise.race([
+            Linking.getInitialURL(),
+            new Promise<null>((resolve) => {
+                timeoutId = setTimeout(() => resolve(null), CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
+            }),
+        ])
+            .then((url) => {
+                if (cancelled) {
+                    return;
                 }
-                if (introSelected === undefined) {
-                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
+
+                initialUrlProcessed.current = true;
+                onInitialUrl(url as Route);
+
+                if (url) {
+                    if (conciergeReportID === undefined) {
+                        Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
+                    }
+                    if (introSelected === undefined) {
+                        Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
+                    }
+                    // Use hasAuthToken() for the latest auth state at call time, since the isAuthenticated
+                    // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
+                    const isCurrentlyAuthenticated = hasAuthToken();
+                    openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+                } else {
+                    Report.doneCheckingPublicRoom();
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
-            } else {
+
+                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
+            })
+            .catch(() => {
+                if (cancelled) {
+                    return;
+                }
+
+                initialUrlProcessed.current = true;
+                onInitialUrl(null);
                 Report.doneCheckingPublicRoom();
-            }
-
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
-        });
+                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
+            });
 
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
@@ -71,10 +106,35 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         });
 
         return () => {
+            cancelled = true;
+            clearTimeout(timeoutId);
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
-    }, [sessionMetadata?.status, conciergeReportID, introSelected, isSelfTourViewedMetadata, betas]);
+    }, [
+        conciergeReportID,
+        introSelected,
+        betas,
+        allReportsMetadata.status,
+        sessionMetadata.status,
+        conciergeReportIDMetadata.status,
+        introSelectedMetadata.status,
+        isSelfTourViewedMetadata.status,
+        betasMetadata.status,
+    ]);
+
+    // Safety net: if getInitialURL() resolves before the session loads, hasAuthToken() may return false
+    // for an authenticated user, causing openReportFromDeepLink to take the wrong path. Once isAuthenticated
+    // settles to true, unblock the UI. The initialUrlProcessed guard ensures this doesn't fire before URL
+    // resolution. In the common case (isAuthenticated settles first), this is a no-op because
+    // openReportFromDeepLink's own doneCheckingPublicRoom() call handles it.
+    useEffect(() => {
+        if (!isAuthenticated || !initialUrlProcessed.current) {
+            return;
+        }
+
+        Report.doneCheckingPublicRoom();
+    }, [isAuthenticated]);
 
     return null;
 }

@@ -3,7 +3,6 @@ import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
 import {translateLocal} from '@libs/Localize';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
@@ -151,7 +150,6 @@ export default {
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
             translate: translateLocal,
             reportAction,
             policy,

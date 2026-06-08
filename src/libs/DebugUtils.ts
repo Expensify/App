@@ -972,6 +972,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'groupCurrency':
         case 'transactionType':
         case 'transactionThreadReportID':
+        case 'withdrawalID':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -1051,6 +1052,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    vendor: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1070,6 +1072,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStartImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEndImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    tripID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1090,6 +1093,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     modifiedMerchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedWaypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participantsAutoAssigned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isMerchantSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1138,6 +1142,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     currencyConversionRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1175,6 +1181,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 source: 'string',
                 originalTransactionID: 'string',
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
+                vendor: 'object',
                 splits: 'array',
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
@@ -1188,6 +1195,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 odometerEnd: 'number',
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
+                tripID: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1302,6 +1310,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 originalMessage: 'object',
                 previousMessage: 'object',
             });
+        case 'isAmountSet':
+        case 'isMerchantSet':
+            return validateBoolean(value);
     }
 }
 
@@ -1321,6 +1332,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 rejectedBy: 'string',
                 rejectReason: 'string',
                 formattedLimit: 'string',
+                amount: 'number',
+                currency: 'string',
                 surcharge: 'number',
                 invoiceMarkup: 'number',
                 maxAge: 'number',
@@ -1346,6 +1359,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 prohibitedExpenseRule: 'string',
                 comment: 'string',
                 cardID: 'number',
+                missingFields: 'array',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1408,6 +1422,8 @@ function getReasonForShowingRowInLHN({
     isInFocusMode = false,
     betas = undefined,
     draftComment,
+    currentUserLogin,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1417,6 +1433,8 @@ function getReasonForShowingRowInLHN({
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
     draftComment: string | undefined;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1434,6 +1452,8 @@ function getReasonForShowingRowInLHN({
         includeSelfDM: true,
         isReportArchived,
         draftComment,
+        currentUserLogin,
+        currentUserAccountID,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1457,12 +1477,17 @@ type GBRReasonAndReportAction = {
 /**
  * Gets the reason and report action that is causing the GBR to show up in LHN row
  */
-function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>, isReportArchived = false): GBRReasonAndReportAction | null {
+function getReasonAndReportActionForGBRInLHNRow(
+    report: OnyxEntry<Report>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    isReportArchived = false,
+): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived) ?? {};
+    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, undefined, isReportArchived) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};
@@ -1487,10 +1512,21 @@ function getReasonAndReportActionForRBRInLHNRow(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     hasViolations: boolean,
     reportErrors: Errors,
+    isOffline: boolean,
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+            report,
+            chatReport,
+            reportActions,
+            hasViolations,
+            reportErrors,
+            transactions,
+            isOffline,
+            transactionViolations,
+            isArchivedReport,
+        ) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

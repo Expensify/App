@@ -1,8 +1,10 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +39,9 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const delegateAccountID = useDelegateAccountID();
 
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
@@ -45,7 +49,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
-            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, betas, personalDetail?.timezone);
+            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, betas, isSelfTourViewed, delegateAccountID, personalDetail?.timezone);
             return;
         }
 

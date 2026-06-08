@@ -33,6 +33,7 @@ import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaDa
 import type * as OnyxTypes from '@src/types/onyx';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
 
@@ -48,17 +49,15 @@ function ReportFooter() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- isSmallScreenWidth guards composer visibility on mobile during keyboard events, shouldUseNarrowLayout would wrongly hide it in RHP
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
-    const isAnonymousUser = useIsAnonymousUser();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
     });
@@ -66,7 +65,7 @@ function ReportFooter() {
         selector: policyRoleSelector,
     });
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
-    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
 
@@ -79,19 +78,20 @@ function ReportFooter() {
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
+    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
 
-    if (!isCurrentReportLoadedFromOnyx || !report) {
+    if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
     }
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
 
     // Happy path — user can compose
-    if (!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth)) {
+    if (!shouldHideComposer) {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                    <ReportActionCompose reportID={report.reportID} />
+                    <ReportActionCompose reportID={reportIDFromRoute} />
                 </SwipeableView>
             </View>
         );
@@ -101,7 +101,7 @@ function ReportFooter() {
     if (isArchivedRoom) {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                <ArchivedReportFooter reportID={report.reportID} />
+                <ArchivedReportFooter reportID={reportIDFromRoute} />
                 {!shouldUseNarrowLayout && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
@@ -115,7 +115,7 @@ function ReportFooter() {
     if (isAnonymousUser) {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                <AnonymousReportFooter reportID={report.reportID} />
+                <AnonymousReportFooter reportID={reportIDFromRoute} />
                 {!shouldUseNarrowLayout && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
@@ -153,13 +153,46 @@ function ReportFooter() {
         );
     }
 
-    // Admins-only room
+    // Admins-only room — keep the banner visible; mount the composer above it while editing on narrow screens.
     if (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) {
+        const isEditingWithComposer = shouldShowComposerForActiveEditDraft;
+
+        return (
+            <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                {isEditingWithComposer && (
+                    <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
+                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
+                        </SwipeableView>
+                    </View>
+                )}
+                <Banner
+                    containerStyles={[styles.chatFooterBanner, isEditingWithComposer && styles.mt2]}
+                    text={translate('adminOnlyCanPost')}
+                    icon={expensifyIcons.Lightbulb}
+                    shouldShowIcon
+                />
+                {!shouldUseNarrowLayout && (
+                    <View style={styles.offlineIndicatorContainer}>
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                    </View>
+                )}
+            </View>
+        );
+    }
+
+    // Permissions-based lockout: the report's permissions array is non-empty and excludes both
+    // "write" and "auditor" (e.g. "read" only via Report::inviteToRoom, donor-matching shares,
+    // anonymous access to public rooms). Render a neutral banner so the user isn't left with an
+    // empty footer. Other reasons the composer is hidden (creation errorFields, money-request
+    // pending deletion, mobile keyboard dismiss) fall through to null so their more specific
+    // indicators keep priority.
+    if (!canWriteInReport) {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <Banner
                     containerStyles={[styles.chatFooterBanner]}
-                    text={translate('adminOnlyCanPost')}
+                    text={translate('readOnlyConversation')}
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon
                 />

@@ -2,7 +2,6 @@ import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import CONFIG from '@src/CONFIG';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
-// eslint-disable-next-line import/no-relative-packages -- Import mock class directly for proper typing
 import {Pusher as MockedPusher} from '../../__mocks__/@pusher/pusher-websocket-react-native/index';
 
 /**
@@ -20,7 +19,7 @@ import {Pusher as MockedPusher} from '../../__mocks__/@pusher/pusher-websocket-r
  */
 
 // Store the original __DEV__ value so we can restore it after tests
-// eslint-disable-next-line no-underscore-dangle
+
 const originalDev = __DEV__;
 
 async function initPusher() {
@@ -44,7 +43,7 @@ describe('Pusher.subscribe', () => {
     });
 
     afterEach(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-underscore-dangle
+        // eslint-disable-next-line no-underscore-dangle
         (global as Record<string, unknown>).__DEV__ = originalDev;
         Pusher.disconnect();
         jest.restoreAllMocks();

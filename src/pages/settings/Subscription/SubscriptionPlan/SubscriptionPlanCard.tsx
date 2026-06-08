@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
-import SelectCircle from '@components/SelectCircle';
+import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -124,12 +124,16 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                                 width={variables.iconHeader}
                                 height={variables.iconHeader}
                             />
-                            <View>
-                                <SelectCircle
-                                    isChecked={isSelected}
-                                    selectCircleStyles={[styles.bgTransparent, styles.borderNone]}
-                                />
-                            </View>
+                            {isFromComparisonModal && (
+                                <View pointerEvents="none">
+                                    <RadioButton
+                                        isChecked={isSelected}
+                                        onPress={() => {}}
+                                        accessibilityLabel=""
+                                        accessible={false}
+                                    />
+                                </View>
+                            )}
                         </View>
                         <Text
                             style={[styles.headerText, styles.mv2, styles.textHeadlineH2]}

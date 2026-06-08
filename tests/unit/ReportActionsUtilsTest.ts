@@ -1,9 +1,10 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronosTimerRunningFromVisibleActions, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
+import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -12,30 +13,35 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
-    findLastReportActions,
     getAddedCardFeedMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getHumanAgentAccountIDFromReportAction,
+    getHumanAgentFirstName,
+    getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getMccGroupCategoryMessage,
+    getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRemovedCardFeedMessage,
     getRenamedCardFeedMessage,
     getReportActionActorAccountID,
+    getRequireCompanyCardsEnabledMessage,
     getSendMoneyFlowAction,
-    getSortedReportActions,
-    getSortedReportActionsForDisplay,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -45,14 +51,12 @@ import {
     isConsecutiveActionMadeByPreviousActor,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
-    isReportActionVisibleAsLastAction,
-    isResolvedActionableWhisper,
     shouldHideNewMarker,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
-import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import shouldDisplayNewMarkerOnReportAction, {getUnreadMarkerReportAction} from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -75,7 +79,7 @@ describe('ReportActionsUtils', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         return waitForBatchedUpdates();
     });
 
@@ -1042,65 +1046,6 @@ describe('ReportActionsUtils', () => {
             // Then the whisper with deleted set should be filtered out, leaving only the ADD_COMMENT
             expect(result).toStrictEqual([input.at(0)]);
         });
-
-        it('should keep ACTIONABLE_MENTION_WHISPER visible when deleted is set but parent comment is not deleted', () => {
-            // Given a parent ADD_COMMENT (ID N) and an ACTIONABLE_MENTION_WHISPER (ID N+1) whose
-            // originalMessage.deleted is set (e.g. from the backend one-per-user cleanup rule).
-            // Use sequential IDs so the parent check can find the parent via whisperID - 1.
-            const parentID = '1000000000000000';
-            const whisperID = '1000000000000001';
-
-            const parentAction: ReportAction = {
-                created: '2024-11-19 08:04:13.728',
-                reportActionID: parentID,
-                reportID: '1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: {
-                    html: '<mention-user accountID="18414674"/>',
-                    whisperedTo: [],
-                    lastModified: '2024-11-19 08:04:13.728',
-                },
-                message: [
-                    {
-                        html: '<mention-user accountID="18414674"/>',
-                        text: '@someone',
-                        type: 'COMMENT',
-                        whisperedTo: [],
-                    },
-                ],
-            };
-
-            const whisperAction: ReportAction = {
-                created: '2024-11-19 08:04:13.730',
-                reportActionID: whisperID,
-                reportID: '1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
-                originalMessage: {
-                    inviteeAccountIDs: [18414674],
-                    lastModified: '2024-11-19 08:04:25.813',
-                    whisperedTo: [18301266],
-                    deleted: '2024-11-19 08:04:27.000',
-                },
-                message: [
-                    {
-                        html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
-                        text: "Heads up,  isn't a member of this room.",
-                        type: 'COMMENT',
-                    },
-                ],
-            };
-
-            const allActionsForReport: ReportActions = {
-                [parentID]: parentAction,
-                [whisperID]: whisperAction,
-            };
-
-            // When checking whether the whisper is resolved, providing the full action set
-            const result = isResolvedActionableWhisper(whisperAction, allActionsForReport);
-
-            // Then the whisper should NOT be treated as resolved because its parent is still present and not deleted
-            expect(result).toBe(false);
-        });
     });
 
     describe('hasRequestFromCurrentAccount', () => {
@@ -1279,63 +1224,57 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getReportActionMessageFragments', () => {
-        it('should return the correct fragment for the REIMBURSED action', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+    describe('getExportIntegrationActionFragments', () => {
+        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
                 reportActionID: '1',
-                created: '1',
-                message: [
-                    {
-                        type: 'TEXT',
-                        style: 'strong',
-                        text: 'Concierge',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' reimbursed this report',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' on behalf of you',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' from the bank account ending in 1111',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: '. Money is on its way to your bank account ending in 0000. Reimbursement estimated to complete on Dec 16.',
-                    },
-                ],
-            };
-            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
-            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
-        });
-
-        it('should translate the REIMBURSED action using originalMessage.method when paymentMethod is absent (Pusher path)', () => {
-            // Given a REIMBURSED action that arrived via Pusher with only `method` set (as Auth stores it)
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '2',
-                created: '2024-01-01',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
                 originalMessage: {
-                    method: 'Check',
+                    label,
+                    lastModified: '2026-05-15 10:00:00.000',
+                    nonReimbursableUrls,
                 },
-            };
-            // When we get the message fragments
-            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            // Then the translated message is used (not raw backend text)
-            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
-            expect(fragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
-            expect(expectedMessage).toContain('check');
+            } as unknown as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>;
+        }
+
+        it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(label, ['SI-123', 'SI-456']));
+
+            expect(fragments).toEqual([
+                {text: `exported to ${label}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: ''},
+            ]);
         });
 
+        it('keeps URL-based company card export records linked', () => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(
+                translateLocal,
+                buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero, ['1', '2']),
+            );
+
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://go.xero.com/Bank/BankAccounts.aspx'},
+            ]);
+        });
+
+        it('keeps QuickBooks Online company card export records linked', () => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(CONST.EXPORT_LABELS.QBO, ['1', '2']));
+
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.QBO}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://qbo.intuit.com/app/expenses'},
+            ]);
+        });
+    });
+
+    describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
@@ -1813,6 +1752,21 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'card-issued-virtual-123',
+                actorAccountID: 21052128,
+                created: '2026-05-19 01:00:00.000',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 21052128,
+                    cardID: 12345,
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
         it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
@@ -1835,6 +1789,106 @@ describe('ReportActionsUtils', () => {
             };
 
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it('should not crash and should return false when originalMessage is a plain string (legacy/OldDot expense-update shape)', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const reportAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: legacyNotificationString,
+                message: [
+                    {
+                        html: legacyNotificationString,
+                        type: 'COMMENT',
+                        text: legacyNotificationString,
+                    },
+                ],
+            } as unknown as ReportAction;
+
+            expect(() => ReportActionsUtils.isDeletedAction(reportAction)).not.toThrow();
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it('should not crash and should return false when message is a non-array string and originalMessage is missing', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const reportAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '8401445780099177',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: legacyNotificationString,
+            } as unknown as ReportAction;
+
+            expect(() => ReportActionsUtils.isDeletedAction(reportAction)).not.toThrow();
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
+
+    describe('getFirstVisibleReportActionID', () => {
+        it('does not crash when sortedReportActions contains a legacy action whose originalMessage is a string', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const createdAction = {
+                created: '2021-08-31 09:00:00.000',
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                message: [{html: '__FAKE__', type: 'COMMENT', text: '__FAKE__'}],
+            } as unknown as ReportAction;
+
+            const legacyExpenseUpdateAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: legacyNotificationString,
+                message: [{html: legacyNotificationString, type: 'COMMENT', text: legacyNotificationString}],
+            } as unknown as ReportAction;
+
+            const visibleAction = {
+                created: '2021-08-31 11:00:00.000',
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {html: 'Hello', whisperedTo: []},
+                message: [{html: 'Hello', type: 'COMMENT', text: 'Hello'}],
+            } as unknown as ReportAction;
+
+            // Mirror the production sort used by getSortedReportActionsForDisplay (descending, CREATED last)
+            // so this test exercises the same ordering invariant the helper relies on.
+            const sorted = ReportActionsUtils.getSortedReportActions([createdAction, legacyExpenseUpdateAction, visibleAction], true);
+
+            expect(() => ReportActionsUtils.getFirstVisibleReportActionID(sorted)).not.toThrow();
+            expect(ReportActionsUtils.getFirstVisibleReportActionID(sorted)).toBe(legacyExpenseUpdateAction.reportActionID);
+        });
+    });
+
+    describe('getOriginalMessage', () => {
+        it('returns undefined when the underlying originalMessage is a plain string (legacy shape)', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'legacy-1',
+                originalMessage: 'plain string from legacy backend',
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toBeUndefined();
+        });
+
+        it('returns undefined when message is a non-array string and originalMessage is missing', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'legacy-2',
+                message: 'plain string from legacy backend',
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toBeUndefined();
+        });
+
+        it('returns the object when originalMessage is object-shaped', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'shaped-1',
+                originalMessage: {html: 'hi', whisperedTo: []},
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toEqual({html: 'hi', whisperedTo: []});
         });
     });
 
@@ -1963,18 +2017,23 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it('should return true for moved transaction if the report destination is available', async () => {
-            // Given a moved transaction action but the report destination is available
-            const report: Report = createRandomReport(2, undefined);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        it('should return true for moved transaction if the report destination is available', () => {
+            // Given a moved transaction action with a valid message
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
-                    toReportID: report.reportID,
+                    toReportID: '2',
                     fromReportID: '1',
                 },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'moved',
+                        text: 'moved',
+                    },
+                ],
             };
 
             // Then the action should be visible
@@ -2251,6 +2310,17 @@ describe('ReportActionsUtils', () => {
 
             expect(result).toBe(expectedMessage);
         });
+
+        // Guards regression #90422: when the harvest report is absent from Onyx, getReportName returns ''
+        // and the message previously rendered an empty hyperlink on screen and an empty span when copied.
+        it('should fall back to "#<reportID>" when the report name is empty', () => {
+            const reportID = '12345';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, `#${reportID}`);
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, '', translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
     });
 
     describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
@@ -2259,12 +2329,7 @@ describe('ReportActionsUtils', () => {
             const reportName = 'Original Report';
             const isReportDeleted = false;
             const reportUrl = getReportURLForCurrentContext(reportID);
-            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
-                reportUrl,
-                reportName,
-                reportID,
-                isReportDeleted,
-            });
+            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', reportUrl, reportName, reportID, isReportDeleted);
 
             const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, isReportDeleted, translateLocal);
 
@@ -3430,6 +3495,53 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    newMaxExpenseAmountNoItemizedReceipt: 2500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('set itemized receipt required amount to "$25.00"');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: 2500,
+                    newMaxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('removed itemized receipt required amount (previously "$25.00")');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: 2500,
+                    newMaxExpenseAmountNoItemizedReceipt: 7500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('changed itemized receipt required amount to "$75.00" (previously "$25.00")');
+        });
+    });
+
     describe('getAddedCardFeedMessage', () => {
         it('should return translated message when feedName is present', () => {
             const action = {
@@ -3865,6 +3977,23 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('disabled the Distance rate "Default Rate"');
         });
+
+        it('should return the correct message when a rate is renamed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'name',
+                    oldValue: 'Default Rate',
+                    newValue: 'Custom Rate',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
+        });
     });
 
     describe('didMessageMentionCurrentUser', () => {
@@ -4289,6 +4418,38 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getRequireCompanyCardsEnabledMessage', () => {
+        it('should return enabled message when the company card requirement is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
+            expect(result).toBe('enabled the company card purchases requirement');
+        });
+
+        it('should return disabled message when the company card requirement is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
+            expect(result).toBe('disabled the company card purchases requirement');
+        });
+    });
+
     describe('getAutoReimbursementMessage', () => {
         it('should return set message when setting limit for the first time from zero', () => {
             const action = {
@@ -4339,6 +4500,42 @@ describe('ReportActionsUtils', () => {
 
             const result = getAutoReimbursementMessage(translateLocal, action);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
+        });
+    });
+
+    describe('getMccGroupCategoryMessage', () => {
+        it('should render the friendly MCC group label that the emitter already resolved', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'Airlines',
+                    oldCategory: 'Insurance',
+                    newCategory: 'Travel',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+        });
+
+        it('should pass through a fallback raw groupID when the emitter could not resolve it', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'spaceflight',
+                    oldCategory: 'Travel',
+                    newCategory: 'Equipment',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "spaceflight" to "Equipment" (previously "Travel")');
         });
     });
 
@@ -4393,135 +4590,6 @@ describe('ReportActionsUtils', () => {
 
             expect(isNewerReportAction(higher, lower)).toBeTruthy();
             expect(isNewerReportAction(lower, higher)).toBeFalsy();
-        });
-    });
-
-    describe('findLastReportActions', () => {
-        const makeAction = (overrides: Partial<ReportAction>): ReportAction =>
-            ({
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: '1',
-                reportID: 'testReportID',
-                created: '2024-01-01 00:00:00.000',
-                person: [{type: 'TEXT', style: 'strong', text: 'Actor'}],
-                message: [{html: 'hello', text: 'hello', type: 'COMMENT'}],
-                ...overrides,
-            }) as ReportAction;
-
-        it('returns undefined for both when reportActions is undefined', () => {
-            const result = findLastReportActions(undefined);
-            expect(result.lastVisibleAction).toBeUndefined();
-            expect(result.lastActionForDisplay).toBeUndefined();
-        });
-
-        it('returns undefined for both when reportActions is empty', () => {
-            const result = findLastReportActions({});
-            expect(result.lastVisibleAction).toBeUndefined();
-            expect(result.lastActionForDisplay).toBeUndefined();
-        });
-
-        it('returns the single visible action for both when there is only one ADD_COMMENT action', () => {
-            const action = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const result = findLastReportActions({[action.reportActionID]: action});
-            expect(result.lastVisibleAction).toBe(action);
-            expect(result.lastActionForDisplay).toBe(action);
-        });
-
-        it('returns undefined for lastActionForDisplay but not lastVisibleAction when only action is CREATED', () => {
-            const created = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const result = findLastReportActions({[created.reportActionID]: created});
-            expect(result.lastVisibleAction).toBe(created);
-            expect(result.lastActionForDisplay).toBeUndefined();
-        });
-
-        it('returns the newest of multiple visible actions', () => {
-            const older = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const newer = makeAction({reportActionID: '2', created: '2024-01-02 00:00:00.000'});
-            const result = findLastReportActions({
-                [older.reportActionID]: older,
-                [newer.reportActionID]: newer,
-            });
-            expect(result.lastVisibleAction).toBe(newer);
-            expect(result.lastActionForDisplay).toBe(newer);
-        });
-
-        it('skips deleted actions (no pendingAction, empty html) for both results', () => {
-            const visible = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const deleted = makeAction({
-                reportActionID: '2',
-                created: '2024-01-02 00:00:00.000',
-                message: [{html: '', text: '', type: 'COMMENT'}],
-                pendingAction: undefined,
-            });
-            const result = findLastReportActions({
-                [visible.reportActionID]: visible,
-                [deleted.reportActionID]: deleted,
-            });
-            expect(result.lastVisibleAction).toBe(visible);
-            expect(result.lastActionForDisplay).toBe(visible);
-        });
-
-        it('excludes actions with errors from lastActionForDisplay but not from lastVisibleAction', () => {
-            const clean = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const withErrors = makeAction({
-                reportActionID: '2',
-                created: '2024-01-02 00:00:00.000',
-                errors: {someError: 'error message'},
-            });
-            const result = findLastReportActions({
-                [clean.reportActionID]: clean,
-                [withErrors.reportActionID]: withErrors,
-            });
-            expect(result.lastVisibleAction).toBe(withErrors);
-            expect(result.lastActionForDisplay).toBe(clean);
-        });
-
-        it('agrees with getSortedReportActionsForDisplay for lastVisibleAction across multiple actions', () => {
-            const actionA = makeAction({reportActionID: 'actionA', created: '2024-01-01 00:00:00.000'});
-            const actionB = makeAction({reportActionID: 'actionB', created: '2024-01-03 00:00:00.000'});
-            const actionC = makeAction({reportActionID: 'actionC', created: '2024-01-02 00:00:00.000'});
-            const actions: ReportActions = {
-                actionA,
-                actionB,
-                actionC,
-            };
-            const {lastVisibleAction} = findLastReportActions(actions);
-            const fromSort = getSortedReportActionsForDisplay(actions).at(0);
-            expect(lastVisibleAction?.reportActionID).toBe(fromSort?.reportActionID);
-        });
-
-        it('agrees with the old getSortedReportActions+filter approach for lastActionForDisplay', () => {
-            const actionA = makeAction({reportActionID: 'actionA', created: '2024-01-01 00:00:00.000'});
-            const actionB = makeAction({reportActionID: 'actionB', created: '2024-01-03 00:00:00.000'});
-            const actionC = makeAction({
-                reportActionID: 'actionC',
-                created: '2024-01-02 00:00:00.000',
-                errors: {someError: 'error'},
-            });
-            const actions: ReportActions = {actionA, actionB, actionC};
-            const {lastActionForDisplay} = findLastReportActions(actions);
-            const fromOldApproach = getSortedReportActions(Object.values(actions)).findLast(
-                (a) => isReportActionVisibleAsLastAction(a) && a.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-            );
-            expect(lastActionForDisplay?.reportActionID).toBe(fromOldApproach?.reportActionID);
-        });
-
-        it('respects canUserPerformWriteAction when determining visibility', () => {
-            const normalAction = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            // An actionable mention whisper is hidden when canUserPerformWriteAction is false
-            const joinRequestAction = makeAction({
-                reportActionID: '2',
-                created: '2024-01-02 00:00:00.000',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
-            });
-
-            const withWrite = findLastReportActions({[normalAction.reportActionID]: normalAction, [joinRequestAction.reportActionID]: joinRequestAction}, true);
-            const withoutWrite = findLastReportActions({[normalAction.reportActionID]: normalAction, [joinRequestAction.reportActionID]: joinRequestAction}, false);
-
-            // With write permission: join request is visible, so it should be selected as newer
-            expect(withWrite.lastVisibleAction?.reportActionID).toBe(joinRequestAction.reportActionID);
-            // Without write permission: join request hidden, so only the normal action remains
-            expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
         });
     });
 
@@ -4846,10 +4914,10 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getLatestUserChronosTimerCommand', () => {
+    describe('getTimeOfChronosTimerRunningFromVisibleActions', () => {
         const currentUserAccountID = 100;
 
-        function makeUserTimerComment(text: string, actorAccountID: number, overrides: Partial<ReportAction> = {}): ReportAction {
+        function makeUserTimerComment(text: string, actorAccountID: number = currentUserAccountID, overrides: Partial<ReportAction> = {}): ReportAction {
             return getFakeReportAction(actorAccountID, {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 actorAccountID,
@@ -4859,30 +4927,31 @@ describe('ReportActionsUtils', () => {
         }
 
         it('returns null when there are no matching comments', () => {
-            expect(getLatestUserChronosTimerCommand([], currentUserAccountID)).toBe(null);
-            expect(getLatestUserChronosTimerCommand([makeUserTimerComment('hello', currentUserAccountID)], currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([], currentUserAccountID)).toBeNull();
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([makeUserTimerComment('hello')], currentUserAccountID)).toBeNull();
         });
 
-        it('returns the newest matching command when sorted newest-first', () => {
+        it('returns the created timestamp of the newest start command when sorted newest-first', () => {
+            const startCreated = '2024-01-03 10:00:00.000';
             const sortedNewestFirst = [
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: '2024-01-03 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: startCreated}),
                 makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(startCreated);
         });
 
-        it('returns stop when the newest timer command is stop', () => {
+        it('returns null when the newest timer command is stop', () => {
             const sortedNewestFirst = [
                 makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores comments from other users', () => {
             const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores non-ADD_COMMENT actions', () => {
@@ -4893,34 +4962,7 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
                 }),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
-        });
-    });
-
-    describe('isChronosTimerRunningFromVisibleActions', () => {
-        const currentUserAccountID = 200;
-
-        function makeUserTimerComment(text: string, overrides: Partial<ReportAction> = {}): ReportAction {
-            return getFakeReportAction(currentUserAccountID, {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: currentUserAccountID,
-                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
-                ...overrides,
-            });
-        }
-
-        it('returns true when the latest user timer command is start', () => {
-            const sortedNewestFirst = [makeUserTimerComment('start', {reportActionID: '2'}), makeUserTimerComment('stop', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(true);
-        });
-
-        it('returns false when the latest user timer command is stop', () => {
-            const sortedNewestFirst = [makeUserTimerComment('stop', {reportActionID: '2'}), makeUserTimerComment('start', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(false);
-        });
-
-        it('returns false when there is no timer command', () => {
-            expect(isChronosTimerRunningFromVisibleActions([makeUserTimerComment('stats')], currentUserAccountID)).toBe(false);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
     });
 
@@ -4968,8 +5010,7 @@ describe('ReportActionsUtils', () => {
             unreadMarkerTime,
             currentUserAccountID,
             prevSortedVisibleReportActionsObjects: {},
-            scrollingVerticalOffset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1,
-            prevUnreadMarkerReportActionID: 'some-id',
+            isScrolledOverThreshold: true,
         };
 
         it('returns true when isEarliestReceivedOfflineMessage is true and next message is not unread', () => {
@@ -5030,17 +5071,541 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns false when message is from current user, is new, and no prevUnreadMarkerReportActionID', () => {
+        it('returns false when message is from current user and is new', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'new-action-id'});
             expect(
                 shouldDisplayNewMarkerOnReportAction({
                     ...baseParams,
                     message,
-                    prevUnreadMarkerReportActionID: null,
                     prevSortedVisibleReportActionsObjects: {},
                     isOffline: false,
                 }),
             ).toBe(false);
+        });
+
+        it('returns false when message is from current user and was previously optimistic (now confirmed)', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'confirmed-action-id', pendingAction: null});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'confirmed-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when message is from current user but is already present (not new, not optimistic)', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns true when an unread message from another user is new and the list is scrolled over the threshold', () => {
+            const message = makeAction({reportActionID: 'other-new-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isScrolledOverThreshold: true,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when an unread message from another user is new and the list is within the threshold', () => {
+            const message = makeAction({reportActionID: 'other-new-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true for an already-present unread message from another user regardless of scroll threshold', () => {
+            const message = makeAction({reportActionID: 'other-existing-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({reportActionID: 'other-existing-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+    });
+
+    describe('getUnreadMarkerReportAction', () => {
+        const unreadMarkerTime = '2023-01-01 10:00:00.000';
+        const currentUserAccountID = 1;
+
+        function makeAction(overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(2, {
+                actorAccountID: 99,
+                created: '2023-01-01 11:00:00.000',
+                ...overrides,
+            });
+        }
+
+        const baseScanParams = {
+            earliestReceivedOfflineMessageIndex: undefined,
+            currentUserAccountID,
+            prevSortedVisibleReportActionsObjects: {},
+            unreadMarkerTime,
+            isScrolledOverThreshold: true,
+            isOffline: false,
+            isReversed: false,
+        };
+
+        it('short-circuits to [null, -1] for an anonymous user', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'a'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isAnonymousUser: true,
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it('returns [null, -1] when no action qualifies (all read)', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'a', created: '2023-01-01 09:00:00.000'}), makeAction({reportActionID: 'b', created: '2023-01-01 08:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it('returns the [reportActionID, index] of the first qualifying unread action in a forward scan', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'newest'}), makeAction({reportActionID: 'older', created: '2023-01-01 09:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual(['newest', 0]);
+        });
+
+        it('skips the concierge greeting action during a forward scan', () => {
+            const visibleReportActions = [makeAction({reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID}), makeAction({reportActionID: 'real-unread'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual(['real-unread', 1]);
+        });
+
+        it('starts the forward scan at earliestReceivedOfflineMessageIndex', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'before-offline'}), makeAction({reportActionID: 'offline-anchor'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    earliestReceivedOfflineMessageIndex: 1,
+                }),
+            ).toEqual(['offline-anchor', 1]);
+        });
+
+        it('scans from high index to low when isReversed is true', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'read-older', created: '2023-01-01 09:00:00.000'}), makeAction({reportActionID: 'unread-newer'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isReversed: true,
+                }),
+            ).toEqual(['unread-newer', 1]);
+        });
+    });
+
+    describe('getIntegrationSyncFailedMessage', () => {
+        const testPolicyID = 'test-policy-123';
+
+        it('should render message without recurrence text when recurrenceCount is absent', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-1',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'QuickBooks Online',
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Auth token expired',
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Auth token expired');
+            expect(result).not.toContain('Repeated');
+        });
+
+        it('should append recurrence text when recurrenceCount > 1', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-2',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'NetSuite',
+                    source: 'AUTOSYNC',
+                    errorMessage: 'Login Error',
+                    recurrenceCount: 3,
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Login Error');
+            expect(result).toContain('Repeated 3 times');
+        });
+
+        it('should not append recurrence text when recurrenceCount is 1', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-3',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'Xero',
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Rate limit',
+                    recurrenceCount: 1,
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Rate limit');
+            expect(result).not.toContain('Repeated');
+        });
+    });
+
+    describe('getHumanAgentAccountIDFromReportAction', () => {
+        const HUMAN_AGENT_ACCOUNT_ID = 12345;
+
+        function makeConciergeAction(originalMessageOverrides: Record<string, unknown> = {}): ReportAction {
+            return {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                originalMessage: {
+                    html: 'hello',
+                    lastModified: '2026-01-01 00:00:00.000',
+                    whisperedTo: [],
+                    ...originalMessageOverrides,
+                },
+            };
+        }
+
+        it('returns undefined when the report action is null', () => {
+            expect(getHumanAgentAccountIDFromReportAction(null)).toBeUndefined();
+        });
+
+        it('returns undefined when the report action is undefined', () => {
+            expect(getHumanAgentAccountIDFromReportAction(undefined)).toBeUndefined();
+        });
+
+        it('returns undefined when the actor is not Concierge', () => {
+            const action: ReportAction = {
+                ...makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID}),
+                actorAccountID: 42,
+            };
+            expect(getHumanAgentAccountIDFromReportAction(action)).toBeUndefined();
+        });
+
+        it('returns undefined when the Concierge action has no original message', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                originalMessage: undefined,
+            };
+            expect(getHumanAgentAccountIDFromReportAction(action)).toBeUndefined();
+        });
+
+        it('returns undefined when humanAgentAccountID is missing from originalMessage', () => {
+            expect(getHumanAgentAccountIDFromReportAction(makeConciergeAction())).toBeUndefined();
+        });
+
+        it('returns undefined when humanAgentAccountID is not a number (e.g. a string)', () => {
+            const action = makeConciergeAction({humanAgentAccountID: '12345'});
+            expect(getHumanAgentAccountIDFromReportAction(action)).toBeUndefined();
+        });
+
+        it('returns the humanAgentAccountID when the Concierge action carries one', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentAccountIDFromReportAction(action)).toBe(HUMAN_AGENT_ACCOUNT_ID);
+        });
+    });
+
+    describe('getHumanAgentFirstName', () => {
+        const HUMAN_AGENT_ACCOUNT_ID = 54321;
+
+        function makeConciergeAction(originalMessageOverrides: Record<string, unknown> = {}): ReportAction {
+            return {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                originalMessage: {
+                    html: 'hello',
+                    lastModified: '2026-01-01 00:00:00.000',
+                    whisperedTo: [],
+                    ...originalMessageOverrides,
+                },
+            };
+        }
+
+        function makePersonalDetails(firstName: string | undefined, displayName = 'Pat Agent'): PersonalDetailsList {
+            return {
+                [HUMAN_AGENT_ACCOUNT_ID]: {
+                    accountID: HUMAN_AGENT_ACCOUNT_ID,
+                    firstName,
+                    displayName,
+                },
+            };
+        }
+
+        it('returns undefined when there is no human agent on the action', () => {
+            const action = makeConciergeAction();
+            expect(getHumanAgentFirstName(action, makePersonalDetails('Pat'))).toBeUndefined();
+        });
+
+        it('returns the agent firstName (not the full displayName) when available', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, makePersonalDetails('Pat', 'Pat Agent'))).toBe('Pat');
+        });
+
+        it('returns undefined when personalDetails has no entry for the agent', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, {})).toBeUndefined();
+        });
+
+        it('returns undefined when personalDetails are not loaded yet', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, undefined)).toBeUndefined();
+        });
+
+        it('returns undefined when the agent firstName is an empty string so the generic fallback can be used', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, makePersonalDetails(''))).toBeUndefined();
+        });
+
+        it('returns undefined when the agent firstName is only whitespace so the generic fallback can be used', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, makePersonalDetails('   '))).toBeUndefined();
+        });
+    });
+
+    describe('getCombinedReportActions', () => {
+        const makeAction = (id: string, actionName: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction =>
+            ({
+                reportActionID: id,
+                actionName,
+                created,
+                message: [{type: 'TEXT', html: '', text: '', isEdited: false, isDeletedParentAction: false}],
+                ...overrides,
+            }) as unknown as ReportAction;
+
+        const makeIOUAction = (id: string, created: string, type: string, hasIOUDetails = false): ReportAction =>
+            makeAction(id, CONST.REPORT.ACTIONS.TYPE.IOU, created, {
+                originalMessage: {
+                    type,
+                    ...(hasIOUDetails ? {IOUDetails: {amount: 100, currency: 'USD'}} : {}),
+                },
+            } as Partial<ReportAction>);
+
+        it('returns original reportActions when transactionThreadReportID is null', () => {
+            const actions = [makeAction('1', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00')];
+            const result = getCombinedReportActions(actions, null, []);
+            expect(result).toEqual(actions);
+        });
+
+        it('returns original reportActions for sent money reports', () => {
+            const sentMoneyAction = makeIOUAction('1', '2024-01-01 10:00:00', CONST.IOU.REPORT_ACTION_TYPE.PAY, true);
+            const actions = [sentMoneyAction];
+            const result = getCombinedReportActions(actions, 'txnThread1', [makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 11:00:00')]);
+            expect(result).toEqual(actions);
+        });
+
+        it('combines and sorts actions from parent and transaction thread', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const parentComment = makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 09:00:00');
+            const txnCreated = makeAction('4', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 09:30:00');
+
+            const result = getCombinedReportActions([parentCreated, parentComment], 'txnThread1', [txnCreated, txnComment]);
+
+            // parentCreated should be kept since it's older; txnCreated should be filtered out
+            // Result should be sorted descending by created, with CREATED last
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).toContain('1');
+            expect(resultIDs).toContain('2');
+            expect(resultIDs).toContain('3');
+        });
+
+        it('keeps transaction thread CREATED when it is older than parent CREATED', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 10:00:00');
+            const txnCreated = makeAction('2', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+
+            const result = getCombinedReportActions([parentCreated], 'txnThread1', [txnCreated]);
+            const actionNames = result.map((a) => a.actionName);
+            // Only one CREATED should be present
+            expect(actionNames.filter((name) => name === CONST.REPORT.ACTIONS.TYPE.CREATED).length).toBe(1);
+        });
+
+        it('filters out IOU CREATE actions in non-selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouCreateAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouCreateAction], 'txnThread1', [txnComment]);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('filters out IOU TRACK actions in non-selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment]);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('keeps IOU TRACK actions in selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], true);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).toContain('2');
+        });
+
+        it('filters out IOU CREATE actions even in selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouCreateAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouCreateAction], 'txnThread1', [txnComment], true);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('passes report parameter correctly to determine selfDM behavior', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            // Without report - TRACK should be filtered
+            const resultWithoutReport = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], false);
+            expect(resultWithoutReport.map((a) => a.reportActionID)).not.toContain('2');
+
+            // With selfDM report - TRACK should be kept
+            const resultWithReport = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], true);
+            expect(resultWithReport.map((a) => a.reportActionID)).toContain('2');
+        });
+    });
+
+    describe('getModerationFlagState', () => {
+        function makeActionWithDecision(decision: DecisionName | undefined): ReportAction {
+            return {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hello',
+                        text: 'hello',
+                        moderationDecision: decision ? {decision} : undefined,
+                    },
+                ],
+            } as ReportAction;
+        }
+
+        it('returns undefined and not flagged when the action is null', () => {
+            expect(getModerationFlagState(null)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns undefined and not flagged when the action is undefined', () => {
+            expect(getModerationFlagState(undefined)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns undefined and not flagged when the message has no moderation decision', () => {
+            expect(getModerationFlagState(makeActionWithDecision(undefined))).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns approved and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_APPROVED))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_APPROVED,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pending and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pendingRemove and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pendingHide and flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+                hasBeenFlagged: true,
+            });
+        });
+
+        it('returns hidden and flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_HIDDEN))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN,
+                hasBeenFlagged: true,
+            });
+        });
+
+        it('returns the safe default for non-ADD_COMMENT actions even when the message carries a flagged decision', () => {
+            const action = {
+                ...makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_HIDDEN),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            } as ReportAction;
+            expect(getModerationFlagState(action)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
         });
     });
 });

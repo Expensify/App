@@ -2,7 +2,7 @@ import React, {useContext, useImperativeHandle, useRef} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import ScrollView from '@components/ScrollView';
@@ -222,12 +222,7 @@ function FormWrapper({
                 if (!shouldScrollToEnd) {
                     return;
                 }
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    requestAnimationFrame(() => {
-                        formRef.current?.scrollToEnd({animated: true});
-                    });
-                });
+                formRef.current?.scrollToEnd({animated: true});
             }}
         >
             {children}
@@ -236,6 +231,7 @@ function FormWrapper({
                     key={`fallback-announce-${errorAnnouncementKey}`}
                     style={styles.hiddenElementOutsideOfWindow}
                     role={CONST.ROLE.ALERT}
+                    accessibilityLiveRegion="assertive"
                 >
                     {fallbackAnnouncementMessage}
                 </Text>

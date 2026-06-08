@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import {useCallback, useMemo} from 'react';
 import type {TapGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';

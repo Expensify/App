@@ -6,7 +6,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
@@ -22,7 +21,6 @@ import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';
 import {clearValidateCodeActionError, requestValidateCodeAction} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -49,12 +47,10 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {cancel} = useMultifactorAuthentication();
-    const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
+    const {requestCancel} = useMultifactorAuthentication();
 
-    const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
-    const {continuableError} = state;
+    const {continuableError} = useMultifactorAuthenticationState();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -90,9 +86,9 @@ function MultifactorAuthenticationValidateCodePage() {
             return;
         }
 
-        if (continuableError.reason !== VALUES.REASON.BACKEND.INVALID_VALIDATE_CODE) {
+        if (continuableError.reason !== VALUES.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
             // Cannot handle this error - convert to regular error which will stop the flow
-            dispatch({type: 'SET_ERROR', payload: {reason: continuableError.reason, message: continuableError.message}});
+            dispatch({type: 'SET_ERROR', payload: continuableError});
         }
     }, [continuableError, dispatch]);
 
@@ -121,11 +117,13 @@ function MultifactorAuthenticationValidateCodePage() {
         clearAccountMessages();
     }, [account?.errors]);
 
-    // Reset formError when hasError changes
+    // Clear client-side formError when a backend error arrives so both don't show simultaneously.
+    // Clearing state (not just hiding) avoids stale errors if hasError later becomes false without user input.
     useEffect(() => {
         if (!hasError) {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- derived-state reset; formError is not in this effect's deps, so writing it cannot re-trigger the effect
         setFormError({});
     }, [hasError]);
 
@@ -200,46 +198,27 @@ function MultifactorAuthenticationValidateCodePage() {
         dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 
-    const showCancelModal = () => {
-        if (isOffline) {
-            Navigation.closeRHPFlow();
-        } else {
-            setCancelModalVisibility(true);
-        }
-    };
-
-    const hideCancelModal = () => {
-        setCancelModalVisibility(false);
-    };
-
-    const cancelFlow = () => {
-        if (isCancelModalVisible) {
-            hideCancelModal();
-        }
-        cancel();
-    };
-
-    const focusTrapConfirmModal = () => {
-        setCancelModalVisibility(true);
+    // Outside-clicks and Escape route through the central cancel handler; return
+    // false to keep the focus trap intact while the confirm modal opens.
+    const interceptFocusTrapEscape = () => {
+        requestCancel();
         return false;
     };
-
-    const CancelConfirmModal = state.scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     return (
         <ScreenWrapper
             testID={MultifactorAuthenticationValidateCodePage.displayName}
             focusTrapSettings={{
                 focusTrapOptions: {
-                    allowOutsideClick: focusTrapConfirmModal,
-                    clickOutsideDeactivates: focusTrapConfirmModal,
-                    escapeDeactivates: focusTrapConfirmModal,
+                    allowOutsideClick: interceptFocusTrapEscape,
+                    clickOutsideDeactivates: interceptFocusTrapEscape,
+                    escapeDeactivates: interceptFocusTrapEscape,
                 },
             }}
         >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={showCancelModal}
+                onBackButtonPress={requestCancel}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
@@ -281,11 +260,6 @@ function MultifactorAuthenticationValidateCodePage() {
                         isDisabled={isOffline}
                     />
                 </View>
-                <CancelConfirmModal
-                    isVisible={isCancelModalVisible}
-                    onConfirm={cancelFlow}
-                    onCancel={hideCancelModal}
-                />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

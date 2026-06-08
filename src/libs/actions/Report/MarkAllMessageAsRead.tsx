@@ -4,7 +4,7 @@ import {isAnonymousUser} from '@libs/actions/Session';
 import * as API from '@libs/API';
 import type {MarkAllMessagesAsReadParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import NetworkConnection from '@libs/NetworkConnection';
+import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isUnread} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
@@ -32,7 +32,7 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
         return;
     }
 
-    const newLastReadTime = NetworkConnection.getDBTimeWithSkew();
+    const newLastReadTime = getDBTimeWithSkew();
 
     type PartialReport = {
         lastReadTime: Report['lastReadTime'] | null;

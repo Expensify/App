@@ -41,6 +41,7 @@ const lightTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
     overlay: colors.productLight400,
@@ -162,7 +163,7 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.REFERRAL_DETAILS]: {
+        [SCREENS.DYNAMIC_REFERRAL_DETAILS]: {
             backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -192,6 +193,14 @@ const lightTheme = {
         closed: {
             backgroundColor: colors.pink200,
             textColor: colors.pink700,
+        },
+        deleted: {
+            backgroundColor: colors.tangerine500,
+            textColor: colors.productLight100,
+        },
+        unreported: {
+            backgroundColor: colors.productLight400,
+            textColor: colors.productLight900,
         },
     },
 

@@ -7,6 +7,7 @@ type AutoCompleteSuggestionsPortalProps<TSuggestion> = ExternalProps<TSuggestion
     width: number;
     bottom: number;
     measuredHeightOfSuggestionRows: number;
+    isInLandscapeMode?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

@@ -11,7 +11,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 let mockCapturedAvatarProps: Record<string, unknown> = {};
 
 jest.mock('@components/ReportActionAvatars', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {
         mockCapturedAvatarProps = props;
@@ -19,12 +19,18 @@ jest.mock('@components/ReportActionAvatars', () => {
     };
 });
 
-// Mock the AgentZero context to make isProcessing=true so the component renders
+// Admin and announce rooms surface Concierge as the persona, so the mock returns
+// Concierge's accountID here. `mock` prefix lets jest's hoist plugin reference
+// this from inside the factory below.
+const mockPersonaAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+
+// Mock the AgentZero context to make isProcessing=true so the component renders.
 jest.mock('@pages/inbox/AgentZeroStatusContext', () => ({
     useAgentZeroStatus: () => ({
         isProcessing: true,
         reasoningHistory: [],
         statusLabel: 'Thinking...',
+        personaAccountID: mockPersonaAccountID,
     }),
 }));
 
@@ -38,12 +44,12 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 // Avoid loading the full ReportActionItemMessageHeaderSender
 jest.mock('@pages/inbox/report/ReportActionItemMessageHeaderSender', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return () => <View testID="MockedSender" />;
 });
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const ConciergeThinkingMessage = require('@pages/home/report/ConciergeThinkingMessage').default;
 
 const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;

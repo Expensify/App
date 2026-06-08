@@ -397,7 +397,31 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         cancellationNote,
     };
 
-    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: false},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters, onyxData);
 }
 
 function requestTaxExempt() {

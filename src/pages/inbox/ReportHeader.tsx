@@ -16,7 +16,7 @@ import {getReportOfflinePendingActionAndErrors, isInvoiceReport, isMoneyRequestR
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {reportByIDsSelector} from '@src/selectors/Attributes';
+import reportByIDsSelector from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
 import HeaderView from './HeaderView';
 

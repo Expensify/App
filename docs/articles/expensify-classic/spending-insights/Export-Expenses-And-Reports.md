@@ -206,6 +206,8 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {expense:card} | Manual/Cash Expenses — would output Cash assuming the expense was manually entered using either the website or the mobile app.|
 | {expense:card} | Bank Card Expenses — would output user@company.com – 1234 assuming the expense was imported from a credit card feed.|
 | | Note - If you do not have access to the card that the expense was created on 'Unknown' will be displayed.  If cards are assigned to users under Domain, then you'll need to be a Domain Admin to export the card number.|
+| Card feed program | |
+| {expense:feedcountry} | Would output the card program for the expense. Outputs `TRAVEL_US` for Travel Invoicing card expenses and `US` for regular Expensify Card expenses. Outputs an empty string for non-card expenses.|
 | Expense ID | |
 | {expense:id} | Would output the unique number associated with each individual expense "4294967579".|
 | Reimbursable state | |

@@ -23,7 +23,6 @@ function Template(props: TemplateProps) {
         <Picker
             value={value}
             onInputChange={(e) => setValue(e)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

@@ -1,16 +1,15 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -18,7 +17,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {updateXeroExportNonReimbursableAccount} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function DynamicXeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -27,17 +26,14 @@ function DynamicXeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) 
 
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
-    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        () => getXeroBankAccounts(policy ?? undefined, config?.export?.nonReimbursableAccount || bankAccounts?.[0]?.id),
-        [config?.export?.nonReimbursableAccount, policy, bankAccounts],
+        () => getXeroBankAccounts(policy ?? undefined, config?.export?.nonReimbursableAccount),
+        [config?.export?.nonReimbursableAccount, policy],
     );
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
-    }, [backPath]);
+        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
+    }, [policyID]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -81,7 +77,6 @@ function DynamicXeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) 
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="XeroBankAccountSelectPage"
             data={xeroSelectorOptions}
-            listItem={RadioListItem}
             onSelectRow={updateBankAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}

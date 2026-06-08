@@ -76,6 +76,24 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([]);
         });
 
+        it('should highlight WITHDRAWAL_STATUS filter with a valid settlement status value', () => {
+            const input = 'withdrawal-status:pending';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([
+                {start: 18, type: 'mention-user', length: 7}, // withdrawal-status:pending
+            ]);
+        });
+
+        it('should not highlight WITHDRAWAL_STATUS filter with invalid value', () => {
+            const input = 'withdrawal-status:invalid';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([]);
+        });
+
         it('should not highlight WITHDRAWAL_ID filter with valid ID because it is not in autocomplete parser', () => {
             const input = 'withdrawalID:12345';
 
@@ -166,6 +184,32 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([
                 {start: 9, type: 'mention-here', length: 23}, // attendee:currentuser@example.com (length is 23)
             ]);
+        });
+
+        it('should highlight FROM filter with the "me" keyword as mention-here', () => {
+            const input = 'from:me';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([
+                {start: 5, type: 'mention-here', length: 2}, // from:me
+            ]);
+        });
+
+        it('should highlight every user-based filter with the "me" keyword as mention-here', () => {
+            const inputs: Array<[string, number]> = [
+                ['from:me', 5],
+                ['to:me', 3],
+                ['assignee:me', 9],
+                ['payer:me', 6],
+                ['exporter:me', 9],
+                ['attendee:me', 9],
+            ];
+
+            for (const [input, start] of inputs) {
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+                expect(result).toEqual([{start, type: 'mention-here', length: 2}]);
+            }
         });
 
         it('should handle complex queries with multiple new filters', () => {

@@ -138,4 +138,4 @@ function trackExpenseApiError(context: ApiErrorContext): void {
 }
 
 export default trackExpenseCreationError;
-export {trackExpenseApiError, isExpenseCommand, isLostExpenseIndicatorCommand};
+export {trackExpenseApiError};

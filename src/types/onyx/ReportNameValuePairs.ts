@@ -11,7 +11,7 @@ type CalendlyCall = {
     /** Status of the call */
     status: ValueOf<typeof CONST.SCHEDULE_CALL_STATUS>;
 
-    /** The setup specialist the user confirmed the call with */
+    /** The account executive the user confirmed the call with */
     host: number;
 
     /** The selected date and time in YYYY-MM-DD HH:MM:SS format for the call */
@@ -84,6 +84,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Agent Zero processing request indicator message */
     agentZeroProcessingRequestIndicator?: string;
+
+    /** Parent report ID */
+    parentReportID?: string;
 
     /** Title field configuration copied from policy - presence indicates auto-generated names are allowed */
     // eslint-disable-next-line @typescript-eslint/naming-convention

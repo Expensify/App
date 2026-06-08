@@ -1,5 +1,6 @@
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -28,7 +29,14 @@ import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
-import {getIOURequestPolicyID, setCustomUnitID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {
+    getIOURequestPolicyID,
+    setCustomUnitID,
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestCurrency,
+    setMoneyRequestParticipantsFromReport,
+} from '@userActions/IOU/MoneyRequest';
 import {clearSubrates} from '@userActions/IOU/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,7 +98,6 @@ function IOURequestStepDestination({
         focus: destinationSelectionListRef.current?.focusTextInput,
     }));
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy);
 
     const {isOffline} = useNetwork();
@@ -109,7 +116,7 @@ function IOURequestStepDestination({
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+        if (openedFromStartPage && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
@@ -171,13 +178,24 @@ function IOURequestStepDestination({
         // When the rates are not available for the policy, the transaction does not have valid customUnitID and moneyRequestCategory
         // So, we set these in the transaction when the rates are fetched in fetchPerDiemRates
         const perDiemUnit = getPerDiemCustomUnit(policy);
-        if (!perDiemUnit || transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID || !!transaction?.category) {
+        // Wait until the draft transaction has actually become a per diem request before writing per diem defaults.
+        // On the start page, switching tabs to per diem re-initializes the draft transaction via initMoneyRequest's
+        // Onyx.set. If this effect merges customUnitID/category while the draft is still the previous (e.g. manual)
+        // transaction, those merges are queued against the stale value and clobber the per diem Onyx.set, wiping
+        // comment.customUnit.attributes.dates (the start/end date-time). Gating on the per diem request type lets the
+        // effect re-run after the transaction settles so the merges land on top of the per diem draft instead.
+        if (
+            transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.PER_DIEM ||
+            !perDiemUnit ||
+            transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID ||
+            !!transaction?.category
+        ) {
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionID, policy?.customUnits]);
+    }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
     const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 
@@ -219,7 +237,6 @@ function IOURequestStepDestination({
                                     success
                                     style={[styles.w100]}
                                     onPress={() => {
-                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         InteractionManager.runAfterInteractions(() => {
                                             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                         });
@@ -245,8 +262,7 @@ function IOURequestStepDestination({
     );
 }
 
-/* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);
-/* eslint-disable rulesdir/no-negated-variables */
+
 const IOURequestStepDestinationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDestinationWithFullTransactionOrNotFound);
 export default IOURequestStepDestinationWithWritableReportOrNotFound;

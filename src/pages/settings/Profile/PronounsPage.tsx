@@ -1,9 +1,10 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -95,14 +96,17 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                 <FullScreenLoadingIndicator reasonAttributes={{context: 'PronounsPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes} />
             ) : (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('pronounsPage.pronouns')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
-                    <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
+                    <CollapsibleHeaderOnKeyboard>
+                        <HeaderWithBackButton
+                            title={translate('pronounsPage.pronouns')}
+                            onBackButtonPress={() => Navigation.goBack()}
+                        />
+                        <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
+                    </CollapsibleHeaderOnKeyboard>
+
                     <SelectionList
                         data={filteredPronounsList}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={updatePronouns}
                         textInputOptions={textInputOptions}
                         initiallyFocusedItemKey={currentPronounsKey}

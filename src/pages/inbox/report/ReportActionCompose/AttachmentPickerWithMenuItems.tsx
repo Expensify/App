@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,7 +12,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
-import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,6 +21,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
@@ -38,7 +37,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
@@ -50,6 +49,7 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+import ExpandCollapseButton from './ExpandCollapseButton';
 
 type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
@@ -109,6 +109,8 @@ type AttachmentPickerWithMenuItemsProps = {
     reportParticipantIDs?: number[];
 
     shouldDisableAttachmentItem?: boolean;
+
+    testID?: string;
 };
 
 /**
@@ -134,6 +136,7 @@ function AttachmentPickerWithMenuItems({
     actionButtonRef,
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
+    testID,
 }: AttachmentPickerWithMenuItemsProps) {
     const icons = useMemoizedLazyExpensifyIcons([
         'Cash',
@@ -172,12 +175,10 @@ function AttachmentPickerWithMenuItems({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
+    const {accountID} = currentUserPersonalDetails;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
-    const hasEmptyReport = useHasEmptyReportsForPolicy(report?.policyID);
-    const shouldShowEmptyReportConfirmation = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -185,7 +186,7 @@ function AttachmentPickerWithMenuItems({
                 shouldRestrictAction &&
                 policy &&
                 policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
@@ -193,7 +194,7 @@ function AttachmentPickerWithMenuItems({
 
             onSelected();
         },
-        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed],
+        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, accountID],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
@@ -445,7 +446,10 @@ function AttachmentPickerWithMenuItems({
                 ];
                 return (
                     <>
-                        <View style={outerContainerStyles}>
+                        <View
+                            testID={testID}
+                            style={outerContainerStyles}
+                        >
                             <View style={innerContainerStyles}>
                                 <View style={createButtonContainerStyles}>
                                     <Tooltip text={translate('common.create')}>
@@ -465,7 +469,7 @@ function AttachmentPickerWithMenuItems({
                                             style={styles.composerSizeButton}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={translate('common.create')}
+                                            accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                             sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_CREATE_BUTTON}
                                         >
                                             <Icon
@@ -475,67 +479,18 @@ function AttachmentPickerWithMenuItems({
                                         </PressableWithFeedback>
                                     </Tooltip>
                                 </View>
-                                {(isFullComposerAvailable || isComposerFullSize) && (
-                                    <View style={expandCollapseButtonContainerStyles}>
-                                        {isComposerFullSize ? (
-                                            <Tooltip
-                                                text={translate('reportActionCompose.collapse')}
-                                                key="composer-collapse"
-                                            >
-                                                <PressableWithFeedback
-                                                    onPress={(e) => {
-                                                        e?.preventDefault();
-                                                        raiseIsScrollLikelyLayoutTriggered();
-                                                        setIsComposerFullSize(reportID, false);
-                                                    }}
-                                                    // Keep focus on the composer when Collapse button is clicked.
-                                                    onMouseDown={(e) => e.preventDefault()}
-                                                    style={styles.composerSizeButton}
-                                                    disabled={disabled}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('reportActionCompose.collapse')}
-                                                    sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_COLLAPSE_BUTTON}
-                                                >
-                                                    <Icon
-                                                        fill={theme.icon}
-                                                        src={icons.Collapse}
-                                                    />
-                                                </PressableWithFeedback>
-                                            </Tooltip>
-                                        ) : (
-                                            <Tooltip
-                                                text={translate('reportActionCompose.expand')}
-                                                key="composer-expand"
-                                            >
-                                                <PressableWithFeedback
-                                                    onPress={(e) => {
-                                                        e?.preventDefault();
-                                                        raiseIsScrollLikelyLayoutTriggered();
-                                                        setIsComposerFullSize(reportID, true);
-                                                    }}
-                                                    // Keep focus on the composer when Expand button is clicked.
-                                                    onMouseDown={(e) => e.preventDefault()}
-                                                    style={styles.composerSizeButton}
-                                                    disabled={disabled}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('reportActionCompose.expand')}
-                                                    sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_EXPAND_BUTTON}
-                                                >
-                                                    <Icon
-                                                        fill={theme.icon}
-                                                        src={icons.Expand}
-                                                    />
-                                                </PressableWithFeedback>
-                                            </Tooltip>
-                                        )}
-                                    </View>
-                                )}
+                                <ExpandCollapseButton
+                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    isComposerFullSize={isComposerFullSize}
+                                    reportID={reportID}
+                                    disabled={disabled}
+                                    raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                    setIsComposerFullSize={setIsComposerFullSize}
+                                    style={expandCollapseButtonContainerStyles}
+                                />
                             </View>
                         </View>
                         <PopoverMenu
-                            animationInTiming={menuItems.length * 50}
-                            // The menu should close 2/3 of the time it took to open
-                            animationOutTiming={menuItems.length * 50 * 0.66}
                             isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {

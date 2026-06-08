@@ -5,7 +5,7 @@ import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDefaultApprover} from '@libs/PolicyUtils';
-import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
+import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees, getOverLimitForwardsToDisplayName} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,8 +92,8 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
         addExpenseApprovalsTaskReport &&
         (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
     ) {
-        // Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
-        completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined);
+        // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined, undefined, false);
     }
 }
 
@@ -113,6 +113,30 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         approversToRemove,
         defaultApprover: newDefaultApprover ?? previousDefaultApprover ?? '',
     });
+
+    // Force the new default approver's `submitsTo` to themselves whenever the default
+    // approver changes. `convertApprovalWorkflowToPolicyEmployees` only rewrites `submitsTo`
+    // for emails present in `approvalWorkflow.members`, so a newly-promoted approver who
+    // wasn't already a member (e.g., an agent the backend's `shareWithEmployees` just added
+    // with `submitsTo = previous default approver`) keeps that stale value and shows up as
+    // their own orphan submission group on the workflows page. This backstop guarantees the
+    // new default approver self-submits regardless of the caller's `members` snapshot.
+    if (newDefaultApprover && newDefaultApprover !== previousDefaultApprover) {
+        const existing = updatedEmployees[newDefaultApprover] ?? previousEmployeeList[newDefaultApprover];
+        if (existing && existing.submitsTo !== newDefaultApprover) {
+            const previousPendingAction = previousEmployeeList[newDefaultApprover]?.pendingAction;
+            updatedEmployees[newDefaultApprover] = {
+                ...existing,
+                email: newDefaultApprover,
+                submitsTo: newDefaultApprover,
+                pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                pendingFields: {
+                    ...existing.pendingFields,
+                    submitsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+        }
+    }
 
     // If there are no changes to the employees list, we can exit early
     if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
@@ -255,7 +279,8 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     }
 
     const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
-    approvers[approverIndex] = approver;
+    const overLimitForwardsToDisplayName = getOverLimitForwardsToDisplayName(approver.overLimitForwardsTo, personalDetailsByEmail);
+    approvers[approverIndex] = {...approver, overLimitForwardsToDisplayName};
 
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
@@ -271,6 +296,7 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
                 ...existingApprover,
                 approvalLimit: approver.approvalLimit,
                 overLimitForwardsTo: approver.overLimitForwardsTo,
+                overLimitForwardsToDisplayName,
             };
         }
     }
@@ -372,6 +398,52 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
     return isEmptyObject(errors);
 }
 
+/**
+ * Build the key used to identify a deferred agent workflow save. We pin it to the policy +
+ * the workflow's primary approver email so two different workflows in the same policy don't
+ * stomp on each other, and so the WorkflowsPage watcher can look up the right entry when it
+ * comes time to fire the real save.
+ */
+function buildDeferredAgentWorkflowSaveKey(policyID: string, firstApproverEmail: string) {
+    return `${policyID}:${firstApproverEmail}`;
+}
+
+/**
+ * Persist a workflow save the admin issued while a freshly-created agent was still pending.
+ * The Edit Approvers modal dismisses immediately on save, the WorkspaceWorkflowsPage shows
+ * the workflow with the agent rendered faded, and the watcher fires the actual save once
+ * the agent's real email lands.
+ */
+function queueDeferredAgentWorkflowSave(
+    policyID: string,
+    firstApproverEmail: string,
+    approvalWorkflow: ApprovalWorkflowOnyx,
+    initialApprovalWorkflow: ApprovalWorkflow,
+    pendingAgentAccountID: number,
+    pendingAgentPrompt: string,
+) {
+    const key = buildDeferredAgentWorkflowSaveKey(policyID, firstApproverEmail);
+    Onyx.merge(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES, {
+        [key]: {
+            policyID,
+            firstApproverEmail,
+            approvalWorkflow,
+            initialApprovalWorkflow,
+            pendingAgentAccountID,
+            pendingAgentPrompt,
+        },
+    });
+}
+
+/**
+ * Remove a deferred save entry. Called by the watcher after it has fired the actual save
+ * (or when the user manually navigates back to the editor and saves with the real email).
+ */
+function clearDeferredAgentWorkflowSave(policyID: string, firstApproverEmail: string) {
+    const key = buildDeferredAgentWorkflowSaveKey(policyID, firstApproverEmail);
+    Onyx.merge(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES, {[key]: null});
+}
+
 export {
     createApprovalWorkflow,
     updateApprovalWorkflow,
@@ -384,4 +456,7 @@ export {
     clearApprovalWorkflow,
     validateApprovalWorkflow,
     setApprovalWorkflowIsInitialFlow,
+    buildDeferredAgentWorkflowSaveKey,
+    queueDeferredAgentWorkflowSave,
+    clearDeferredAgentWorkflowSave,
 };

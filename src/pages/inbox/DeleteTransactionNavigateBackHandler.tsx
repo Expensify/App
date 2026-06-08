@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
@@ -23,7 +24,6 @@ function DeleteTransactionNavigateBackHandler() {
             return;
         }
         // Clear the URL only after we navigate away to avoid a brief Not Found flash.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 clearDeleteTransactionNavigateBackUrl();

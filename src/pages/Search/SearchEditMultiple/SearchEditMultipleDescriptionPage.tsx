@@ -10,7 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';

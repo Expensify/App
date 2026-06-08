@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, {useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {Button, View} from 'react-native';
@@ -18,7 +17,6 @@ const story = {
 type StoryType = typeof Template & {args?: Partial<InteractiveStepSubHeaderProps>};
 
 function Template(args: InteractiveStepSubHeaderProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <InteractiveStepSubHeader {...args} />;
 }
 

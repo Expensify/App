@@ -123,6 +123,7 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
             shouldEnableMaxHeight
         >
             <DateFilterBase
+                style={styles.flex1}
                 title={translate(titleKey)}
                 defaultDateValues={defaultDateValues}
                 presets={presets}
@@ -138,6 +139,14 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                         [dateRangeKey]: values[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
                     });
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                }}
+                onReset={(values) => {
+                    updateAdvancedFilters({
+                        [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+                        [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+                        [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+                        [dateRangeKey]: values[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
+                    });
                 }}
             />
         </ScreenWrapper>

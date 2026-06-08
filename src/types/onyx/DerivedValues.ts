@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
-import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -45,6 +45,14 @@ type ReportAttributes = {
      * The reportID of the one-transaction thread report, if applicable.
      */
     oneTransactionThreadReportID?: string;
+
+    /**
+     * True when this report (typically a child expense report) has an RBR-worthy reason that should
+     * propagate up to its parent workspace chat. Set by the per-report pass; consumed by the propagation
+     * loop. We track it separately from `brickRoadStatus` because we suppress the child's own RBR/Fix badge
+     * when the parent workspace chat is accessible (so we can't read `brickRoadStatus` to drive propagation).
+     */
+    needsParentChatErrorPropagation?: boolean;
 };
 
 /**
@@ -166,16 +174,6 @@ type FeedErrors = CardFeedErrorState & {
 };
 
 /**
- * The ID of a card feed in the errors map/object.
- */
-type CardFeedId = CompanyCardFeedWithNumber;
-
-/**
- * The errors of all card feeds by workspace account ID and feed name with domain ID.
- */
-type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
-
-/**
  * The errors of all card feeds.
  */
 type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
@@ -285,7 +283,6 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
-export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -300,9 +297,7 @@ export type {
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,
-    AllCardFeedErrorsMap,
     CardFeedErrorsObject,
-    FeedErrors,
     CardFeedErrorState,
     CardFeedErrors,
     CardErrors,

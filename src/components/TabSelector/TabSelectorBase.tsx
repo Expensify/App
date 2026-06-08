@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import ScrollView from '@components/ScrollView';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
-// eslint-disable-next-line no-restricted-imports
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -27,8 +26,6 @@ function TabSelectorBase({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
-    shouldShowProductTrainingTooltip = false,
-    renderProductTrainingTooltip,
 }: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -120,8 +117,6 @@ function TabSelectorBase({
                         testID={tab.testID}
                         sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                        renderProductTrainingTooltip={renderProductTrainingTooltip}
                         equalWidth={equalWidth}
                         badgeText={tab.badgeText}
                         pendingAction={tab.pendingAction}

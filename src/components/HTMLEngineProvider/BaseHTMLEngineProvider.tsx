@@ -8,6 +8,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
+import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     /** Whether text elements should be selectable */
@@ -186,15 +187,27 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'bullet-item',
                 contentModel: HTMLContentModel.block,
             }),
+            ul: HTMLElementModel.fromCustomModel({
+                tagName: 'ul',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: styles.mv3,
+            }),
+            ol: HTMLElementModel.fromCustomModel({
+                tagName: 'ol',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: styles.mv3,
+            }),
             'sparkles-icon': HTMLElementModel.fromCustomModel({
                 tagName: 'sparkles-icon',
                 contentModel: HTMLContentModel.mixed,
             }),
+            ...VICTORY_HTML_ELEMENT_MODELS,
         }),
         [
             styles.taskTitleMenuItem,
             styles.formError,
             styles.mb0,
+            styles.mv3,
             styles.colorMuted,
             styles.mutedNormalTextLabel,
             styles.productTrainingTooltipText,
@@ -235,7 +248,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 recognizeSelfClosing: true,
             }}
             domVisitors={{
-                // eslint-disable-next-line no-param-reassign
                 onText: (text) => {
                     // Avoid injecting LTR controls into whitespace-only nodes.
                     // Doing so turns otherwise ignorable whitespace into visible content in some renderers (Android),

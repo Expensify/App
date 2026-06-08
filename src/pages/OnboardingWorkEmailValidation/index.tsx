@@ -8,7 +8,6 @@ function OnboardingWorkEmailValidation(props: OnboardingWorkEmailValidationProps
         <OnboardingWrapper>
             <BaseOnboardingWorkEmailValidation
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </OnboardingWrapper>

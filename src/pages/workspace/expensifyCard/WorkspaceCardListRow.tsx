@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
@@ -50,9 +51,28 @@ type WorkspacesListRowProps = {
 
     /** Card limit type */
     limitType: CardLimitType | undefined;
+
+    /** When set, shows a row checkbox for bulk selection */
+    bulkSelection?: {
+        isSelected: boolean;
+        onToggle: () => void;
+    };
 };
 
-function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, frozenByDisplayName, frozenByAccountID, frozenDate, currency, isVirtual, isHovered, limitType}: WorkspacesListRowProps) {
+function WorkspaceCardListRow({
+    limit,
+    cardholder,
+    lastFourPAN,
+    name,
+    frozenByDisplayName,
+    frozenByAccountID,
+    frozenDate,
+    currency,
+    isVirtual,
+    isHovered,
+    limitType,
+    bulkSelection,
+}: WorkspacesListRowProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'FreezeCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -78,6 +98,15 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, frozenByDis
     return (
         <View style={[styles.flexColumn, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.gap3]}>
+                {!!bulkSelection && (
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mr2]}>
+                        <Checkbox
+                            accessibilityLabel={cardholderName}
+                            isChecked={bulkSelection.isSelected}
+                            onPress={bulkSelection.onToggle}
+                        />
+                    </View>
+                )}
                 <View style={[styles.flexRow, styles.flex4, styles.gap3, styles.alignItemsCenter]}>
                     <Avatar
                         source={cardholder?.avatar ?? icons.FallbackAvatar}

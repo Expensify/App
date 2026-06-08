@@ -62,7 +62,7 @@ function setKYCWallSource(source?: ValueOf<typeof CONST.KYC_WALL_SOURCE>, chatRe
  * Validates a user's provided details against a series of checks
  */
 function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletParams) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS | typeof ONYXKEYS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -70,6 +70,14 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
                 isLoading: true,
                 errors: null,
                 errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                errorCode: null,
+                errors: null,
             },
         },
     ];
@@ -206,7 +214,27 @@ function openInitialSettingsPage() {
  * Fetches data when the user opens the EnablePaymentsPage
  */
 function openEnablePaymentsPage() {
-    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null, {optimisticData, finallyData});
 }
 
 function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null) {
@@ -252,7 +280,7 @@ function resetWalletAdditionalDetailsDraft() {
 }
 
 function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
         platform: 'ios',
         appVersion: pkg.version,

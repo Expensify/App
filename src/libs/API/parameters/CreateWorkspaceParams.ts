@@ -20,6 +20,7 @@ type CreateWorkspaceParams = {
     features?: string;
     shouldAddGuideWelcomeMessage?: boolean;
     areDistanceRatesEnabled?: boolean;
+    optimisticConciergeReportActionID?: string;
 };
 
 export default CreateWorkspaceParams;
