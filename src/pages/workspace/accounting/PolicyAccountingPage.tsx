@@ -19,7 +19,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
@@ -28,6 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,7 +39,6 @@ import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import {
     areSettingsInErrorFields,
-    canMemberWrite,
     findCurrentXeroOrganization,
     getConnectedIntegration,
     getCurrentSageIntacctEntityName,
@@ -87,7 +86,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
@@ -116,7 +114,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
     const hasAccountingConnection = hasAccountingConnections(policy);
-    const canWriteAccounting = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
+    const {canWrite: canWriteAccounting, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
     const isSageIntacct = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
@@ -329,10 +327,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (!hasAccountingConnection && !isSyncInProgress && policyID) {
-            if (!canWriteAccounting) {
-                return [];
-            }
-
             return accountingIntegrations
                 .map((integration) => {
                     const integrationData = getAccountingIntegrationData(
@@ -376,9 +370,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         shouldShowBadgeBelow: shouldUseNarrowLayout,
                         rightComponent: (
                             <Button
-                                onPress={() => startIntegrationFlow({name: integration})}
+                                onPress={() => {
+                                    if (!canWriteAccounting) {
+                                        showReadOnlyModal();
+                                        return;
+                                    }
+                                    startIntegrationFlow({name: integration});
+                                }}
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
+                                innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                                hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                 small
                                 isDisabled={isOffline}
                                 ref={(ref) => {
@@ -516,7 +518,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 rightComponent,
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
-            ...(!hasAccountingConnection || !isConnectionVerified || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA ? [] : configurationOptions),
+            ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
         policy,
@@ -539,6 +541,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.popoverMenuIcon,
         styles.mr3,
         styles.justifyContentCenter,
+        styles.buttonOpacityDisabled,
+        styles.buttonDisabled,
         shouldShowCardReconciliationOption,
         shouldShowSynchronizationError,
         synchronizationError,
@@ -554,10 +558,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         hasReusablePoliciesConnectedToCertinia,
         hasReusablePoliciesConnectedToQBD,
         canWriteAccounting,
+        showReadOnlyModal,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
-        if (!canWriteAccounting || (!hasAccountingConnection && !isSyncInProgress) || !policyID) {
+        if ((!hasAccountingConnection && !isSyncInProgress) || !policyID) {
             return;
         }
         const otherIntegrations = accountingIntegrations.filter(
@@ -588,15 +593,21 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title: integrationData?.title,
                     rightComponent: (
                         <Button
-                            onPress={() =>
+                            onPress={() => {
+                                if (!canWriteAccounting) {
+                                    showReadOnlyModal();
+                                    return;
+                                }
                                 startIntegrationFlow({
                                     name: integration,
                                     integrationToDisconnect: connectedIntegration,
                                     shouldDisconnectIntegrationBeforeConnecting: true,
-                                })
-                            }
+                                });
+                            }}
                             text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
+                            innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                            hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                             small
                             isDisabled={isOffline}
                             ref={(r) => {
@@ -626,16 +637,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         hasReusablePoliciesConnectedToCertinia,
         hasReusablePoliciesConnectedToQBD,
         styles.justifyContentCenter,
+        styles.buttonOpacityDisabled,
+        styles.buttonDisabled,
         styles.sectionMenuItemTopDescription,
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
         accountingIcons,
         canWriteAccounting,
+        showReadOnlyModal,
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {
-        // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
+        // If they have an onboarding specialist assigned display the following and link to the #admins room with the account executive.
         if (policy?.chatReportIDAdmins) {
             return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
         }

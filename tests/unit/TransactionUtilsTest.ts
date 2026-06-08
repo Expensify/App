@@ -254,6 +254,28 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getIsFromGlobalCreate', () => {
+        it('returns true when isFromFloatingActionButton is true', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate({isFromFloatingActionButton: true} as Transaction)).toBe(true);
+        });
+
+        it('returns false when isFromFloatingActionButton is explicitly false (FAB takes precedence over isFromGlobalCreate via ?? semantics)', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate({isFromFloatingActionButton: false, isFromGlobalCreate: true} as Transaction)).toBe(false);
+        });
+
+        it('falls back to isFromGlobalCreate when isFromFloatingActionButton is undefined', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate({isFromGlobalCreate: true} as Transaction)).toBe(true);
+        });
+
+        it('returns undefined when both flags are absent', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate({} as Transaction)).toBeUndefined();
+        });
+
+        it('returns undefined when the transaction is undefined', () => {
+            expect(TransactionUtils.getIsFromGlobalCreate(undefined)).toBeUndefined();
+        });
+    });
+
     describe('getCategoryTaxDetails', () => {
         it('should return the associated tax when the category matches the tax expense rules', () => {
             // Given a policy with tax expense rules associated with a category
@@ -715,6 +737,37 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
+        });
+    });
+
+    describe('isMerchantMissing', () => {
+        it('returns true for empty, default, and partial merchant values', () => {
+            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: ''}))).toBe(true);
+            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT}))).toBe(true);
+            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}))).toBe(true);
+        });
+
+        it('returns false for a valid merchant', () => {
+            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: 'Starbucks'}))).toBe(false);
+        });
+
+        it('uses modifiedMerchant when present', () => {
+            expect(
+                TransactionUtils.isMerchantMissing(
+                    generateTransaction({
+                        merchant: 'Starbucks',
+                        modifiedMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    }),
+                ),
+            ).toBe(true);
+            expect(
+                TransactionUtils.isMerchantMissing(
+                    generateTransaction({
+                        merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                        modifiedMerchant: 'Starbucks',
+                    }),
+                ),
+            ).toBe(false);
         });
     });
 

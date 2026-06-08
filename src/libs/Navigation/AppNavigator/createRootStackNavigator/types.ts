@@ -11,11 +11,17 @@ type RootStackNavigatorActionType =
           };
       }
     | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY;
+          payload: {
+              isVisible: boolean;
+          };
+      }
+    | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-          payload: {route: Route};
+          payload: {route: Route; collapseTabToLeaf?: boolean};
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
@@ -58,6 +64,10 @@ type ToggleSidePanelWithHistoryActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
 };
 
+type ToggleMfaModalNavigatorWithHistoryActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY;
+};
+
 type PreloadActionType = RootStackNavigatorAction & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD};
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
@@ -70,7 +80,7 @@ type DismissModalActionType = RootStackNavigatorActionType & {
 
 type ReplaceFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-    payload: {route: Route};
+    payload: {route: Route; collapseTabToLeaf?: boolean};
 };
 
 type RemoveFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
@@ -94,4 +104,5 @@ export type {
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleSidePanelWithHistoryActionType,
+    ToggleMfaModalNavigatorWithHistoryActionType,
 };

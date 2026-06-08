@@ -10,10 +10,18 @@ import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import type {BulkPaySelectionData, PaymentData, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
+import {
+    createTransactionThreadReport,
+    deleteAppReport,
+    exportReportToPDF,
+    markAsManuallyExported,
+    moveIOUReportToPolicy,
+    moveIOUReportToPolicyAndInviteSubmitter,
+} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     exportSearchItemsToCSV,
@@ -33,7 +41,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
+import {getTargetTransactionThreadReportIDForSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -52,8 +60,8 @@ import {
     isIOUReport as isIOUReportUtil,
     isSelfDM,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {getSelectedGroupFilterEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getOriginalTransactionWithSplitInfo,
@@ -74,7 +82,6 @@ import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {BillingGraceEndPeriod, Policy, Report, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -326,12 +333,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -532,6 +540,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
 
+            // Only fall back to the selection's policyID when every selected transaction belongs to the same real workspace.
+            // selectedPolicyIDs filters out falsy policyIDs, so a mix of one workspace expense and policy-less (personal/unreported)
+            // expenses would otherwise collapse to a single ID and incorrectly resolve GL codes against that workspace.
+            const allSelectedHavePolicy = Object.values(selectedTransactions).every((transaction) => !!transaction.policyID);
+            const selectedPolicyID = allSelectedHavePolicy && selectedPolicyIDs.length === 1 ? selectedPolicyIDs.at(0) : undefined;
+            const queryPolicyID = queryJSON?.policyID?.length === 1 ? queryJSON.policyID.at(0) : undefined;
+            const exportPolicyID = policyID ?? (areAllMatchingItemsSelected ? queryPolicyID : selectedPolicyID);
+
             if (areAllMatchingItemsSelected) {
                 queueExportSearchWithTemplate({
                     templateName,
@@ -539,7 +555,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: serializedQuery,
                     reportIDList: [],
                     transactionIDList: [],
-                    policyID,
+                    policyID: exportPolicyID,
                 });
             } else {
                 const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
@@ -549,7 +565,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}',
                     reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
                     transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
-                    policyID,
+                    policyID: exportPolicyID,
                 });
             }
 
@@ -576,6 +592,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             queryJSON,
             selectedTransactionReportIDs,
             selectedTransactionsKeys,
+            selectedPolicyIDs,
         ],
     );
 
@@ -592,123 +609,80 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return result;
     }, [policies]);
 
-    const exportSearchData = searchResults?.data;
-    const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
+    const handleBasicExport = useCallback(async () => {
+        if (isOffline) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
 
-    const getCSVExportParameters = useCallback(
-        (isBasicExport: boolean) => {
-            const columnsToExport = getColumnsToShow({
-                currentAccountID: accountID,
-                data: exportSearchData ?? {},
-                visibleColumns,
-                type: exportSearchType,
-                groupBy: getValidGroupBy(queryJSON?.groupBy),
-                shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
+        if (status === null || status === undefined) {
+            return;
+        }
+
+        const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+
+        if (areAllMatchingItemsSelected) {
+            const result = await showConfirmModal({
+                title: translate('search.exportSearchResults.title'),
+                prompt: translate('search.exportSearchResults.description'),
+                confirmText: translate('search.exportSearchResults.title'),
+                cancelText: translate('common.cancel'),
             });
-
-            const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
-            for (const column of columnsToExport) {
-                exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column));
-            }
-
-            const jsonQuery = queryJSON ? serializeQueryJSONForBackend({...queryJSON, columns: columnsToExport as SearchQueryJSON['columns']}) : (JSON.stringify(queryJSON) ?? '');
-
-            return {
-                jsonQuery,
-                isBasicExport,
-                exportColumnLabels: JSON.stringify(exportColumnLabels),
-            };
-        },
-        [accountID, currentSearchKey, exportSearchData, exportSearchType, queryJSON, translate, visibleColumns],
-    );
-
-    const handleCSVExport = useCallback(
-        async (isBasicExport: boolean) => {
-            if (isOffline) {
-                setIsOfflineModalVisible(true);
+            if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-
-            if (status === null || status === undefined) {
+            if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                 return;
             }
+            const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
+            queueExportSearchItemsToCSV({
+                query: status,
+                jsonQuery: serializedQuery,
+                reportIDList,
+                transactionIDList: selectedTransactionsKeys,
+            });
+            selectAllMatchingItems(false);
+            clearSelectedTransactions();
+            return;
+        }
 
-            if (areAllMatchingItemsSelected) {
-                const result = await showConfirmModal({
-                    title: translate('search.exportSearchResults.title'),
-                    prompt: translate('search.exportSearchResults.description'),
-                    confirmText: translate('search.exportSearchResults.title'),
-                    cancelText: translate('common.cancel'),
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
-                    return;
-                }
-                const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
-                const exportParameters = getCSVExportParameters(isBasicExport);
-                queueExportSearchItemsToCSV({
-                    query: status,
-                    jsonQuery: exportParameters.jsonQuery,
-                    reportIDList,
-                    transactionIDList: selectedTransactionsKeys,
-                    isBasicExport: exportParameters.isBasicExport,
-                    exportColumnLabels: exportParameters.exportColumnLabels,
-                });
-                selectAllMatchingItems(false);
-                clearSelectedTransactions();
-                return;
-            }
-
-            const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-            let didFail = false;
-            const exportParameters = getCSVExportParameters(isBasicExport);
-            const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
-            await exportSearchItemsToCSV(
-                {
-                    query: status,
-                    jsonQuery: isGroupExport
-                        ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data))
-                        : exportParameters.jsonQuery,
-                    reportIDList: isGroupExport ? [] : reportIDList,
-                    transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
-                    isBasicExport: exportParameters.isBasicExport,
-                    exportColumnLabels: exportParameters.exportColumnLabels,
-                },
-                () => {
-                    didFail = true;
-                    setEmptyReportsCount(0);
-                    setIsDownloadErrorModalVisible(true);
-                },
-                translate,
-            );
-            if (!didFail) {
-                clearSelectedTransactions(undefined, true);
-            }
-        },
-        [
-            isOffline,
-            status,
-            areAllMatchingItemsSelected,
-            queryJSON,
-            selectedReports,
-            selectedReportIDs,
-            selectedTransactionReportIDs,
-            selectedTransactions,
-            selectedTransactionsKeys,
+        const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+        let didFail = false;
+        const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
+        await exportSearchItemsToCSV(
+            {
+                query: status,
+                jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : serializedQuery,
+                reportIDList: isGroupExport ? [] : reportIDList,
+                transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
+            },
+            () => {
+                didFail = true;
+                setEmptyReportsCount(0);
+                setIsDownloadErrorModalVisible(true);
+            },
             translate,
-            clearSelectedTransactions,
-            showConfirmModal,
-            hash,
-            selectAllMatchingItems,
-            getCSVExportParameters,
-            currentSearchResults?.data,
-        ],
-    );
-
-    const handleBasicExport = useCallback(() => handleCSVExport(true), [handleCSVExport]);
-    const handleExportCurrentView = useCallback(() => handleCSVExport(false), [handleCSVExport]);
+        );
+        if (!didFail) {
+            clearSelectedTransactions(undefined, true);
+        }
+    }, [
+        isOffline,
+        status,
+        areAllMatchingItemsSelected,
+        queryJSON,
+        selectedReports,
+        selectedReportIDs,
+        selectedTransactionReportIDs,
+        selectedTransactions,
+        selectedTransactionsKeys,
+        translate,
+        clearSelectedTransactions,
+        showConfirmModal,
+        hash,
+        selectAllMatchingItems,
+        currentSearchResults?.data,
+    ]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
         if (isOffline) {
@@ -1157,7 +1131,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
             const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
-            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
             const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
@@ -1289,18 +1262,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 shouldCallAfterModalHide: true,
             });
 
-            if (!isGroupedSearch) {
-                exportOptions.push({
-                    text: translate('export.currentView'),
-                    icon: expensifyIcons.Table,
-                    onSelected: () => {
-                        handleExportCurrentView();
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
-            }
-
             if (!allSelectedAreDeleted && !includesGroupExport) {
                 for (const template of exportTemplates) {
                     const isStandardTemplate =
@@ -1417,7 +1378,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE))
+                ? selectedReports.every((report) => report.canApprove)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
@@ -1474,7 +1435,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             selectedReports.length &&
-            selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER));
+            selectedReports.every((report) => report.canChangeApprover);
 
         if (shouldShowChangeApproverOption) {
             options.push({
@@ -1490,7 +1451,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
+                ? selectedReports.every((report) => report.canSubmit)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
 
         if (shouldShowSubmitOption) {
@@ -1661,7 +1622,57 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true),
+                        onSelected: () => {
+                            const transactionKey: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                            const searchSnapshotTransaction = currentSearchResults?.data?.[transactionKey];
+                            const selectedTransactionInfo = selectedTransactions[transactionID];
+                            const isSingleSelection = selectedTransactionsKeys.length === 1;
+                            let targetTransactionThreadReportIDOverride = isSingleSelection
+                                ? getTargetTransactionThreadReportIDForSelection(searchSnapshotTransaction ?? searchedTransactions.at(0), selectedTransactionInfo)
+                                : undefined;
+
+                            if (!targetTransactionThreadReportIDOverride && isSingleSelection) {
+                                const selectedReport = selectedTransactionInfo?.report ?? reports.at(0) ?? getReportOrDraftReport(searchSnapshotTransaction?.reportID);
+                                const selectedReportAction = selectedTransactionInfo?.reportAction;
+                                const targetTransaction = searchSnapshotTransaction ?? searchedTransactions.at(0);
+                                const shouldPassTransactionData = !selectedReportAction?.reportActionID || targetTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                                const transactionViolations = targetTransaction
+                                    ? allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`]
+                                    : undefined;
+                                const createdThreadReport = targetTransaction
+                                    ? createTransactionThreadReport({
+                                          introSelected,
+                                          currentUserLogin: currentUserPersonalDetails.login ?? '',
+                                          currentUserAccountID: currentUserPersonalDetails.accountID,
+                                          betas,
+                                          iouReport: selectedReport,
+                                          iouReportAction: selectedReportAction,
+                                          transaction: shouldPassTransactionData ? targetTransaction : undefined,
+                                          transactionViolations: shouldPassTransactionData ? transactionViolations : undefined,
+                                      })
+                                    : undefined;
+                                targetTransactionThreadReportIDOverride = createdThreadReport?.reportID;
+                            }
+
+                            const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = targetTransactionThreadReportIDOverride
+                                ? {
+                                      transactionID,
+                                      threadReportID: targetTransactionThreadReportIDOverride,
+                                  }
+                                : undefined;
+
+                            setupMergeTransactionDataAndNavigate(
+                                transactionID,
+                                searchedTransactions,
+                                localeCompare,
+                                getCurrencyDecimals,
+                                reports,
+                                false,
+                                true,
+                                undefined,
+                                targetTransactionThreadReportCandidate,
+                            );
+                        },
                     });
                 }
             }
@@ -1848,6 +1859,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         invokeDuplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
+        introSelected,
+        betas,
         undeleteTransactions,
         theme.icon,
         styles.colorMuted,

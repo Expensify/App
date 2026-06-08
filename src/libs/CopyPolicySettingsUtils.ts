@@ -20,6 +20,7 @@ const FEATURE_ROWS = [
     {part: 'taxes', labelKey: 'workspace.common.taxes'},
     {part: 'workflows', labelKey: 'workspace.common.workflows'},
     {part: 'rules', labelKey: 'workspace.common.rules'},
+    {part: 'codingRules', labelKey: 'workspace.duplicateWorkspace.merchantRules'},
     {part: 'distanceRates', labelKey: 'workspace.common.distanceRates'},
     {part: 'perDiem', labelKey: 'workspace.common.perDiem'},
     {part: 'invoices', labelKey: 'workspace.common.invoices'},
@@ -38,6 +39,7 @@ type CopyPolicySettingsSourceFeatureContext = {
     connectedIntegrationCount: number;
     hasWorkflowRules: boolean;
     hasWorkspaceRules: boolean;
+    codingRulesCount: number;
     hasInvoiceConfiguration: boolean;
     isCollectPolicy: boolean;
 };
@@ -213,6 +215,8 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
             return context.hasWorkflowRules;
         case 'rules':
             return context.hasWorkspaceRules && !context.isCollectPolicy;
+        case 'codingRules':
+            return context.codingRulesCount > 0 && !context.isCollectPolicy;
         case 'distanceRates':
             return context.distanceRatesCount > 0 && !!policy?.areDistanceRatesEnabled;
         case 'perDiem':
@@ -236,4 +240,4 @@ export {
     isCopyPolicySettingsPartEnabledOnSource,
     FEATURE_ROWS,
 };
-export type {AccountingConnectionIdentity, CopyPolicySettingsSourceFeatureContext, FeatureRow};
+export type {CopyPolicySettingsSourceFeatureContext};
