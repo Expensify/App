@@ -325,6 +325,7 @@ function IOURequestStepAmount({
                         trackExpense({
                             report,
                             isDraftPolicy: false,
+                            isDraftChatReport: !!reportDraft,
                             participantParams: {
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,

@@ -8856,7 +8856,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const result = isReportIneligibleForMoveExpenses(report, undefined);
+            const result = isReportIneligibleForMoveExpenses(report, undefined, false);
 
             expect(result).toBe(false);
         });
@@ -8873,7 +8873,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy, false);
 
             expect(result).toBe(false);
         });
@@ -8892,7 +8892,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy, false);
 
             expect(result).toBe(false);
         });
@@ -8919,7 +8919,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy, false);
 
             expect(result).toBe(false);
         });
@@ -8940,7 +8940,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy, false);
 
             expect(result).toBe(false);
         });
@@ -8967,7 +8967,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy, false);
 
             expect(result).toBe(true);
         });
@@ -8991,10 +8991,9 @@ describe('ReportUtils', () => {
                 reimbursable: false,
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy, true);
 
             expect(result).toBe(false);
         });
@@ -9027,7 +9026,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
 
-            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy, false);
 
             expect(result).toBe(false);
         });

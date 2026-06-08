@@ -28,7 +28,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
@@ -55,6 +54,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [draftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const delegateAccountID = useDelegateAccountID();
 
@@ -114,8 +114,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         return <NotFoundPage />;
     }
 
-    const isDraft = isDraftReport(reportOrAccountID);
-
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
@@ -140,7 +138,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             fileSource,
             validateFileName,
             (file) => {
-                if (isDraft) {
+                if (draftReport) {
                     openReport({
                         reportID: report.reportID,
                         introSelected,
