@@ -681,8 +681,6 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
         >
     > = [
         {
@@ -702,7 +700,6 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
         >
     > = [
         {
@@ -734,7 +731,6 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
         >
     > = [
         {

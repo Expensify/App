@@ -16,16 +16,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {
-    arePaymentsEnabled,
-    getSubmitReportManagerAccountID,
-    hasDynamicExternalWorkflow,
-    isPaidGroupPolicy,
-    isPolicyAdmin,
-    isSubmitAndClose,
-    isSubmitPolicy,
-    tryNavigateToSubmitWorkspaceUpgrade,
-} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -421,11 +412,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         const backTo = Navigation.getActiveRoute() ?? ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID);
 
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, expenseReport.reportID));
-        return;
-    }
-
-    // Fallback to legacy behavior (keep this in case other call sites rely on it)
-    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias)) {
         return;
     }
 
