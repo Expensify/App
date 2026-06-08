@@ -41,6 +41,8 @@ export default function useFlashListScrollKey<T>({
     const [hasLinkingSettled, setHasLinkingSettled] = useState(!initialScrollKey);
     const hasAppliedInitialScrollOffset = useRef(false);
 
+    const getAnchorIndex = () => data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
+
     // Two-frame handoff for deep-link:
     // RAF 1: switch from sliced data to the full array — FlashList's default MVCP pins the
     //        linked item through the data swap.
@@ -71,7 +73,7 @@ export default function useFlashListScrollKey<T>({
                 if (!initialScrollOffset || hasAppliedInitialScrollOffset.current) {
                     return;
                 }
-                const anchorIndex = data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
+                const anchorIndex = getAnchorIndex();
                 if (anchorIndex <= 0) {
                     return;
                 }
@@ -89,7 +91,7 @@ export default function useFlashListScrollKey<T>({
         return {displayedData: data, onStartReached, maintainVisibleContentPosition};
     }
 
-    const targetIndex = data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
+    const targetIndex = getAnchorIndex();
     if (targetIndex <= 0) {
         return {displayedData: data, onStartReached, maintainVisibleContentPosition};
     }
