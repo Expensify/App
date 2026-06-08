@@ -160,7 +160,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             );
             return violations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         });
-    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails.accountID, currentUserDetails.email]);
+    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails]);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
