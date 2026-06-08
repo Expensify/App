@@ -7152,6 +7152,12 @@ ${reportName}
             syncingModalTitle: '您的连接正在同步',
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
             syncing: '正在同步员工',
+            mergeHR: {
+                completeSetup: '完成设置',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
+                groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+            },
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
