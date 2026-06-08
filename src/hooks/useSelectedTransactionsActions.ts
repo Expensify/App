@@ -347,7 +347,8 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID);
+                        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID, transactionViolations);
                     }
                     clearSelectedTransactions(true);
                 },
