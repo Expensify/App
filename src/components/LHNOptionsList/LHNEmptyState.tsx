@@ -6,9 +6,11 @@ import Icon from '@components/Icon';
 import TextBlock from '@components/TextBlock';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 
 function LHNEmptyState() {
@@ -17,6 +19,24 @@ function LHNEmptyState() {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
     const emptyLHNIllustration = useEmptyLHNIllustration();
+    const {activeTab} = useSidebarOrderedReportsState();
+    const {setActiveTab} = useSidebarOrderedReportsActions();
+
+    if (activeTab === CONST.INBOX_TAB.UNREAD || activeTab === CONST.INBOX_TAB.TODO) {
+        const title = activeTab === CONST.INBOX_TAB.UNREAD ? translate('common.emptyLHN.noUnreadChats') : translate('common.emptyLHN.noTodos');
+
+        return (
+            <BlockingView
+                {...(emptyLHNIllustration as BlockingViewProps)}
+                title={title}
+                subtitle={translate('common.emptyLHN.caughtUp')}
+                subtitleStyle={styles.textSupporting}
+                linkTranslationKey="common.emptyLHN.seeAllChats"
+                onLinkPress={() => setActiveTab(CONST.INBOX_TAB.ALL)}
+                accessibilityLabel={title}
+            />
+        );
+    }
 
     const subtitle = (
         <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
