@@ -461,7 +461,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     } = params;
 
     // The expense report of personal policy shouldn't have any action
-    if (isExpenseReportUtils(report) && !isPaidGroupPolicy(policy)) {
+    if (isExpenseReportUtils(report) && !isGroupPolicy(policy)) {
         return '';
     }
 
