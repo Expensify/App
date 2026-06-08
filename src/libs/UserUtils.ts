@@ -215,7 +215,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
     // The default contact method is determined by checking against the session email (the current login).
     const sortedLoginList = Object.entries(loginList).sort(([, loginData]) => (loginData.partnerUserID === defaultEmail ? -1 : 1));
 
-    return sortedLoginList.map(([loginName, login]) => {
+    return sortedLoginList.map(([, login]) => {
         const isDefaultContactMethod = defaultEmail === login?.partnerUserID;
         const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
         if (!login?.partnerUserID && !pendingAction) {
@@ -239,10 +239,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 
-        // Default to using login key if we deleted login.partnerUserID optimistically
-        // but still need to show the pending login being deleted while offline.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const partnerUserID = login?.partnerUserID || loginName;
+        const partnerUserID = login?.partnerUserID ? login.partnerUserID : '';
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
 
         return {

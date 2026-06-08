@@ -173,7 +173,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
-        if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
+        if (!loginData?.partnerUserID || loginData?.validatedDate || loginData?.pendingFields?.deletedLogin || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
@@ -377,13 +377,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
                             // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
-                            if (!loginDataRef.current?.partnerUserID) {
+                            if (!loginDataRef.current?.partnerUserID || loginDataRef.current?.pendingFields?.deletedLogin) {
                                 return;
                             }
                             clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
                         }}
                         sendValidateCode={() => {
-                            if (!loginData.partnerUserID) {
+                            if (!loginData.partnerUserID || loginData.pendingFields?.deletedLogin) {
                                 return;
                             }
                             requestContactMethodValidateCode(contactMethod);

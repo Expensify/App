@@ -309,7 +309,6 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             key: ONYXKEYS.LOGINS,
             value: {
                 [loginKey]: {
-                    partnerUserID: '',
                     errorFields: null,
                     pendingFields: {
                         deletedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
