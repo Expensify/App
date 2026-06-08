@@ -219,6 +219,16 @@ function NumberWithSymbolForm({
         end: currentNumber.length,
     });
 
+    // When the prop resets to empty, mirror that in internal state so the field doesn't stay stuck at "0.00".
+    useEffect(() => {
+        if (number !== '') {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing internal state to an externally-driven prop reset (Onyx); mirrors the existing pattern in this file
+        setCurrentNumber('');
+        setSelection({start: 0, end: 0});
+    }, [number]);
+
     const forwardDeletePressedRef = useRef(false);
     // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewNumber
     const willSelectionBeUpdatedManually = useRef(false);
@@ -340,8 +350,9 @@ function NumberWithSymbolForm({
 
     // Modifies the number to match changed decimals.
     useEffect(() => {
-        // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength, allowNegativeInput || allowFlippingAmount)) {
+        // If the field is intentionally empty (e.g. new manual expense flow before the user enters an amount)
+        // or the current number is already valid for the new decimal count, nothing to do.
+        if (number === '' || validateAmount(currentNumber, decimals, maxLength, allowNegativeInput || allowFlippingAmount)) {
             return;
         }
 

@@ -9,9 +9,9 @@
  * Required --target and --outfile select the Bun compile target and output path. The script
  * exits after writing the binary; it does not run it.
  */
-import createRnStubPlugin from '@plugins/rnStubPlugin';
+import parseCompileTarget from '@server/libs/parseCompileTarget';
+import createRnStubPlugin from '@server/plugins/rnStubPlugin';
 import {join, resolve} from 'node:path';
-import parseCompileTarget from '@libs/parseCompileTarget';
 import CLI from '@scripts/utils/CLI';
 
 const packageRoot = resolve(import.meta.dir, '..');
