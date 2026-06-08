@@ -2052,6 +2052,9 @@ type AIRule = {
     /** The AI prompt (i.e. the rule defined with natural language) */
     prompt: string;
 
+    /** Short one-line summary generated server-side from the prompt */
+    title?: string;
+
     /** When this rule was created */
     created: string;
 
