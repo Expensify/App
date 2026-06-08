@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -158,7 +158,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         getAccessiblePolicies();
     });
 
-    const skipJoiningWorkspaces = () => {
+    const skipJoiningWorkspaces = useCallback(() => {
         if (isEmployerWithSubmit) {
             autoCreateSubmitWorkspace(onboardingPersonalDetails?.firstName ?? '', onboardingPersonalDetails?.lastName ?? '');
             return;
@@ -169,7 +169,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             return;
         }
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-    };
+    }, [isEmployerWithSubmit, autoCreateSubmitWorkspace, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isVsb, isSmb, route.params?.backTo]);
+
+    // When validation succeeded but there are no joinable workspaces to show and the API call has completed,
+    // skip this screen automatically (same as the "Skip for now" button) instead of stranding the user on an empty list.
+    useEffect(() => {
+        if (!isValidated || allPolicyIDItems.length > 0 || joinablePoliciesLoading !== false) {
+            return;
+        }
+        skipJoiningWorkspaces();
+    }, [isValidated, allPolicyIDItems.length, joinablePoliciesLoading, skipJoiningWorkspaces]);
 
     return (
         <ScreenWrapper
