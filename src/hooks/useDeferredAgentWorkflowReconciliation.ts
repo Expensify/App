@@ -174,4 +174,3 @@ function useDeferredAgentWorkflowReconciliation(rawApprovalWorkflows: ApprovalWo
 }
 
 export default useDeferredAgentWorkflowReconciliation;
-export type {ApprovalWorkflowWithRouting};

@@ -63,6 +63,7 @@ import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
+import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
@@ -268,6 +269,7 @@ const Illustrations = {
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
+    EarthWithControls,
     Fireworks,
     FolderWithPapersAndWatch,
     FolderWithPapers,
