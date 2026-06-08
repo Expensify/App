@@ -173,7 +173,7 @@ function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConne
     }
 }
 
-/** Display label for the admin's chosen Merge HR groups: locale-aware list of names, or the localized "All" label for the `'all'` sentinel, or undefined when nothing is chosen. */
+/** Display label for the admin's chosen Merge HR groups: list of names or the localized "All" label for the 'all' value, or undefined when nothing is chosen. */
 function getMergeHRGroupsSummary(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
     const groups = policy?.connections?.merge_hris?.config?.groups;
     if (!groups) {

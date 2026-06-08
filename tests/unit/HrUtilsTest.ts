@@ -1,5 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getConnectedHRProvider, getHRApprovalMode, getMergeHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isMergeHRConnected} from '@libs/HRUtils';
+import {getConnectedHRProvider, getHRApprovalMode, getMergeHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isMergeHRConnected, isMergeHRSetupComplete} from '@libs/HRUtils';
 import {getApprovalModeLabel, getHRCards, getHRCardState} from '@pages/workspace/hr/utils';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -320,6 +320,28 @@ describe('HRUtils', () => {
                 },
             } as Policy;
             expect(getMergeHRFinalApprover(policy)).toBeNull();
+        });
+    });
+
+    describe('isMergeHRSetupComplete', () => {
+        it('returns false when the admin has not chosen groups yet (config.groups not defined)', () => {
+            const policy = {
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday'}},
+                },
+            } as Policy;
+            expect(isMergeHRSetupComplete(policy)).toBe(false);
+        });
+
+        it('returns true once the admin has chosen groups', () => {
+            const policy = {
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', groups: ['group-1']}},
+                },
+            } as Policy;
+            expect(isMergeHRSetupComplete(policy)).toBe(true);
         });
     });
 });
@@ -763,5 +785,55 @@ describe('getHRCards', () => {
             const expected = MERGE_HR_PROVIDERS[slug as keyof typeof MERGE_HR_PROVIDERS]?.iconUrl;
             expect(card.icon).toBe(expected);
         }
+    });
+
+    it('connected Merge card needing setup exposes completeSetupRoute and no groups summary', () => {
+        const policy = makePolicy({
+            connections: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+                merge_hris: {config: {integration: 'bamboohr', groups: null}, data: {groups: [{id: 'g1', name: 'Test group', type: 'Department'}]}, lastSync: {}},
+            } as unknown as Policy['connections'],
+        });
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
+
+        const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
+        expect(bambooCard?.completeSetupRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
+        expect(bambooCard?.groupsRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
+        expect(bambooCard?.groupsSummary).toBeUndefined();
+
+        expect(cards.find((c) => c.key === 'merge_workday')?.completeSetupRoute).toBeUndefined();
+    });
+
+    it('connected Merge card with chosen groups summarizes the selected names and drops completeSetupRoute', () => {
+        const policy = makePolicy({
+            connections: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+                merge_hris: {
+                    config: {integration: 'bamboohr', groups: ['g1', 'missing']},
+                    data: {groups: [{id: 'g1', name: 'Test group', type: 'Department'}]},
+                    lastSync: {},
+                },
+            } as unknown as Policy['connections'],
+        });
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
+
+        const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
+        expect(bambooCard?.groupsSummary).toBe('Test group');
+        expect(bambooCard?.completeSetupRoute).toBeUndefined();
+    });
+
+    it('connected Merge card with the "all" value summarizes groups as the localized "all" label', () => {
+        const policy = makePolicy({
+            connections: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+                merge_hris: {config: {integration: 'bamboohr', groups: CONST.MERGE_HR.GROUPS_ALL}, data: {}, lastSync: {}},
+            } as unknown as Policy['connections'],
+        });
+
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
+
+        const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
+        expect(bambooCard?.groupsSummary).toBe('common.all');
+        expect(bambooCard?.completeSetupRoute).toBeUndefined();
     });
 });
