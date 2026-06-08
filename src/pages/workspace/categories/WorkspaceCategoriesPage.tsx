@@ -386,7 +386,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.approver')}</Text>
                         </View>
                     )}
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), canWriteCategories && styles.mr5]}>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
                     </View>
                 </View>
@@ -735,10 +735,23 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         return (
             <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
-                <RenderHTML html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`)} />
+                <RenderHTML
+                    html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`, canWriteCategories)}
+                />
             </View>
         );
-    }, [policyHasAccountingConnections, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.textSupporting, styles.textNormal, translate, environmentURL, policyId]);
+    }, [
+        policyHasAccountingConnections,
+        styles.renderHTML,
+        styles.textAlignCenter,
+        styles.alignItemsCenter,
+        styles.textSupporting,
+        styles.textNormal,
+        translate,
+        environmentURL,
+        policyId,
+        canWriteCategories,
+    ]);
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
