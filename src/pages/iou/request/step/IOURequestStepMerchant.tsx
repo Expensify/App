@@ -113,7 +113,7 @@ function IOURequestStepMerchant({
 
         if (newMerchant === '' && isInvalidMerchantValue(merchant)) {
             setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            armNavigateBack();
             clearMoneyRequestMerchant(transactionID);
             return;
         }
