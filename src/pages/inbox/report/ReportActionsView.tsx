@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -12,7 +12,6 @@ import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsPagination from '@hooks/useReportActionsPagination';
 import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -55,6 +54,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
+        reportPreviewAction,
     } = useReportActionsPagination(reportID, reportActionIDFromRoute);
 
     const parentReportAction = useParentReportAction(report);
@@ -75,7 +75,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
-    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
     const didLayout = useRef(false);
 
     useEffect(() => {
