@@ -27,26 +27,30 @@ jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
     })),
 );
 
-jest.mock('@libs/PolicyUtils', () => ({
-    getDefaultChatEnabledPolicy: jest.fn((policies: Array<OnyxEntry<Policy>>, activePolicy: OnyxEntry<Policy>) => {
-        // Mirror the real helper: prefer activePolicy if it's a paid group with chat enabled, otherwise the single non-personal candidate.
-        if (
-            activePolicy &&
-            activePolicy.isPolicyExpenseChatEnabled &&
-            (activePolicy.type === CONST.POLICY.TYPE.TEAM || activePolicy.type === CONST.POLICY.TYPE.CORPORATE || activePolicy.type === CONST.POLICY.TYPE.SUBMIT)
-        ) {
-            return activePolicy;
-        }
-        if (policies.length === 1) {
-            return policies.at(0);
-        }
-        return undefined;
-    }),
-    isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE),
-    isGroupPolicy: jest.fn(
-        (policy: OnyxEntry<Policy>) => policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.SUBMIT,
-    ),
-}));
+jest.mock('@libs/PolicyUtils', () => {
+    // `require` inside the factory because jest hoists `jest.mock` above the top-level `CONST` import.
+    const CONSTANTS = (require('@src/CONST') as {default: typeof CONST}).default;
+    return {
+        getDefaultChatEnabledPolicy: jest.fn((policies: Array<OnyxEntry<Policy>>, activePolicy: OnyxEntry<Policy>) => {
+            // Mirror the real helper: prefer activePolicy if it's a paid group with chat enabled, otherwise the single non-personal candidate.
+            if (
+                activePolicy &&
+                activePolicy.isPolicyExpenseChatEnabled &&
+                (activePolicy.type === CONSTANTS.POLICY.TYPE.TEAM || activePolicy.type === CONSTANTS.POLICY.TYPE.CORPORATE || activePolicy.type === CONSTANTS.POLICY.TYPE.SUBMIT)
+            ) {
+                return activePolicy;
+            }
+            if (policies.length === 1) {
+                return policies.at(0);
+            }
+            return undefined;
+        }),
+        isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === CONSTANTS.POLICY.TYPE.TEAM || policy?.type === CONSTANTS.POLICY.TYPE.CORPORATE),
+        isGroupPolicy: jest.fn(
+            (policy: OnyxEntry<Policy>) => policy?.type === CONSTANTS.POLICY.TYPE.TEAM || policy?.type === CONSTANTS.POLICY.TYPE.CORPORATE || policy?.type === CONSTANTS.POLICY.TYPE.SUBMIT,
+        ),
+    };
+});
 
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()));
 
