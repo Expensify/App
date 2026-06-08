@@ -1,10 +1,11 @@
 import React, {createContext, useContext} from 'react';
 import type {TNode} from 'react-native-render-html';
-import {useChartDefaultTypeface} from '@components/Charts/hooks';
-import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
+import Log from '@libs/Log';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -13,6 +14,11 @@ type VictoryChartContextValue = {
     yKeys: ProcessNodeResult['yKeys'];
     xAxis: ProcessNodeResult['xAxis'];
     yAxis: ProcessNodeResult['yAxis'];
+    domain: ProcessNodeResult['domain'];
+    domainPadding: ProcessNodeResult['domainPadding'];
+    padding: ProcessNodeResult['padding'];
+    isHorizontal: ProcessNodeResult['isHorizontal'];
+    categories: ProcessNodeResult['categories'];
     labelItems: ProcessNodeResult['labelItems'];
     legendItems: ProcessNodeResult['legendItems'];
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
@@ -27,22 +33,20 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  * Returns null when the chart data is invalid (no data points, or mixed cartesian/polar content).
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
-    const {regular: regularTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface);
-    const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
+    const typefaces = useChartTypefaces();
 
-    const hasCartesianData = Object.keys(data).length > 0;
-    const hasPolarData = false;
-    let type: ChartType | null = null;
-
-    // XNOR Check. There must be one and only one valid chart
-    if (hasCartesianData === hasPolarData) {
-        type = null;
-    } else if (hasCartesianData) {
-        type = CHART_TYPE.CARTESIAN;
-    } else if (hasPolarData) {
-        type = CHART_TYPE.POLAR;
+    let processedResult: ProcessNodeResult;
+    try {
+        processedResult = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
+    } catch (error) {
+        // Malformed chart HTML can make a parser throw. Fail closed (render nothing) instead of crashing the whole report.
+        Log.warn('[VictoryChartProvider] Failed to process chart tree from malformed HTML', {error});
+        return null;
     }
+
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processedResult;
+    const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
+    const type = resolveVictoryChartType(data);
 
     if (!type) {
         return null;
@@ -55,6 +59,11 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         yKeys,
         xAxis,
         yAxis,
+        domain,
+        domainPadding,
+        padding,
+        isHorizontal,
+        categories,
         labelItems,
         legendItems,
         chartContentStyles,
@@ -65,8 +74,6 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
 }
 
-VictoryChartProvider.displayName = 'VictoryChartProvider';
-
 function useVictoryChartContext(): VictoryChartContextValue {
     const context = useContext(VictoryChartContext);
     if (!context) {
@@ -76,4 +83,3 @@ function useVictoryChartContext(): VictoryChartContextValue {
 }
 
 export {VictoryChartProvider, useVictoryChartContext};
-export type {VictoryChartContextValue};

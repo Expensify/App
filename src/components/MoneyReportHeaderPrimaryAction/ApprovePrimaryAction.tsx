@@ -1,11 +1,10 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import Button from '@components/Button';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getNextApproverAccountID, isReportOwner, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {getNextApproverAccountID, isReportOwner} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useConfirmApproval from './useConfirmApproval';
 
@@ -19,13 +18,7 @@ function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        isTrackIntentUser,
-        report: moneyRequestReport,
-        policy,
-    });
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover =
         isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
@@ -37,7 +30,7 @@ function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
         <Button
             success
             onPress={confirmApproval}
-            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}
+            text={translate('iou.approve')}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
         />
     );
