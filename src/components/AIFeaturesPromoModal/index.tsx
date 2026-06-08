@@ -1,7 +1,10 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import Badge from '@components/Badge';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import type {FeatureTrainingModalPageProps} from '@components/FeatureTrainingModal';
 import LottieAnimations from '@components/LottieAnimations';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +18,17 @@ function AIFeaturesPromoModal() {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const canUseCustomAgent = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+
+    const customAgentPromoTitle = (
+        <View style={[styles.dFlex, styles.flexRow, styles.gap4]}>
+            <Text style={styles.textHeadlineH1}>{translate('aiFeaturesPromoModal.customAgents.title')}</Text>
+            <Badge
+                isStrong
+                isCondensed
+                text={translate('common.beta')}
+            />
+        </View>
+    );
 
     const pages = useMemo<FeatureTrainingModalPageProps[]>(
         () => [
@@ -36,7 +50,7 @@ function AIFeaturesPromoModal() {
                 ? [
                       {
                           animation: LottieAnimations.CustomAgents,
-                          title: translate('aiFeaturesPromoModal.customAgents.title'),
+                          title: customAgentPromoTitle,
                           subtitle: translate('aiFeaturesPromoModal.subtitle'),
                           description: translate('aiFeaturesPromoModal.customAgents.description'),
                           confirmText: translate('aiFeaturesPromoModal.confirmText'),
