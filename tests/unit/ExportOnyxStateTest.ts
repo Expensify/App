@@ -376,6 +376,13 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.ONFIDO_APPLICANT_ID,
             ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
             ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
+            ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
+            ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
+            ONYXKEYS.COLLECTION.NEXT_STEP,
+            ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
+            ONYXKEYS.WALLET_TERMS,
+            ONYXKEYS.VALIDATE_ACTION_CODE,
+            ONYXKEYS.NVP_INTRO_SELECTED,
         ];
 
         for (const sensitiveKey of knownSensitiveKeys) {
