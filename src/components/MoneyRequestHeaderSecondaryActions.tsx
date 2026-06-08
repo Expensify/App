@@ -6,7 +6,6 @@ import React, {useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -118,7 +117,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {wideRHPRouteKeys} = useWideRHPState();
     const isNarrowButton = !useShouldDisplayButtonsInSeparateLine() || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
     const {isOffline} = useNetwork();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -293,7 +291,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             outstandingReportsByPolicyID,
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
-            archivedReportsIDSet,
             isProduction,
         });
     })();

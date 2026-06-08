@@ -79,7 +79,6 @@ import {
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
@@ -905,7 +904,6 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
     parentReport,
-    archivedReportsIDSet,
     isProduction,
 }: {
     currentUserLogin: string;
@@ -926,8 +924,6 @@ function getSecondaryReportActions({
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
-    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    archivedReportsIDSet?: ArchivedReportsIDSet;
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
@@ -1066,7 +1062,6 @@ function getSecondaryReportActions({
                 isChatReportArchived,
                 outstandingReportsByPolicyID,
                 transaction,
-                archivedReportsIDSet,
             });
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
 
@@ -1129,7 +1124,6 @@ function getSecondaryTransactionThreadActions({
     outstandingReportsByPolicyID,
     isChatReportArchived,
     grandParentReport,
-    archivedReportsIDSet,
     isProduction,
 }: {
     currentUserLogin: string;
@@ -1143,7 +1137,6 @@ function getSecondaryTransactionThreadActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     isChatReportArchived?: boolean;
     grandParentReport?: OnyxEntry<Report>;
-    archivedReportsIDSet: ArchivedReportsIDSet;
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
@@ -1184,7 +1177,6 @@ function getSecondaryTransactionThreadActions({
             isChatReportArchived,
             outstandingReportsByPolicyID,
             transaction: reportTransaction,
-            archivedReportsIDSet,
         }) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
