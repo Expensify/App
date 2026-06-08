@@ -1,6 +1,6 @@
 import type {NavigationAction, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
-import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
@@ -13,7 +13,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining, Session} from '@src/types/onyx';
+import type {DismissedProductTraining, Onboarding, Session} from '@src/types/onyx';
 import type {GuardResult, NavigationGuard} from './types';
 
 let session: OnyxEntry<Session>;
@@ -25,6 +25,9 @@ let isDismissedProductTrainingLoaded = false;
 let hasBeenAddedToNudgeMigration = false;
 let isHybridAppOnboardingCompleted: boolean | undefined;
 let isTryNewDotLoaded = false;
+
+let onboarding: OnyxEntry<Onboarding>;
+let isOnboardingLoaded = false;
 
 let hasRedirectedToAIFeaturesPromoModal = false;
 
@@ -92,6 +95,7 @@ function navigateToAIFeaturesPromoModalIfReady() {
         hasRedirectedToAIFeaturesPromoModal ||
         !isDismissedProductTrainingLoaded ||
         !isTryNewDotLoaded ||
+        !isOnboardingLoaded ||
         isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) ||
         observedActiveMigrationModalThisSession ||
         observedActiveOnboardingThisSession ||
@@ -126,6 +130,18 @@ Onyx.connectWithoutView({
         // If the migration welcome modal is currently still pending, suppress AI promo this session.
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, value)) {
             observedActiveMigrationModalThisSession = true;
+        }
+        navigateToAIFeaturesPromoModalIfReady();
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => {
+        onboarding = value;
+        isOnboardingLoaded = true;
+        if (!hasCompletedGuidedSetupFlowSelector(onboarding)) {
+            observedActiveOnboardingThisSession = true;
         }
         navigateToAIFeaturesPromoModalIfReady();
     },
