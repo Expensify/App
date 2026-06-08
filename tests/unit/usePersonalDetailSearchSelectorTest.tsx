@@ -330,4 +330,174 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
 
         jest.useRealTimers();
     });
+
+    it('includes non-existing user in selectedNonExistingOptions in single-select mode with shouldUpdateSelectedOptionsOnSingleSelect', async () => {
+        const {result} = renderHook(() =>
+            usePersonalDetailSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+                shouldUpdateSelectedOptionsOnSingleSelect: true,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            result.current.toggleSelection(NON_EXISTING_USER);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.selectedNonExistingOptions).toHaveLength(1);
+        expect(result.current.selectedNonExistingOptions.at(0)?.login).toBe('invitee@gmail.com');
+        expect(result.current.selectedOptions).toHaveLength(1);
+    });
+
+    it('replaces selectedNonExistingOptions when a new non-existing user is selected in single-select mode', async () => {
+        const {result} = renderHook(() =>
+            usePersonalDetailSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+                shouldUpdateSelectedOptionsOnSingleSelect: true,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            result.current.toggleSelection(NON_EXISTING_USER);
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.selectedNonExistingOptions.at(0)?.login).toBe('invitee@gmail.com');
+
+        // Selecting a second non-existing user replaces the first in single-select mode
+        act(() => {
+            result.current.toggleSelection(SECOND_NON_EXISTING_USER);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.selectedNonExistingOptions).toHaveLength(1);
+        expect(result.current.selectedNonExistingOptions.at(0)?.login).toBe('another@gmail.com');
+        expect(result.current.selectedOptions).toHaveLength(1);
+    });
+
+    // -------------------------------------------------------------------------
+    // Tests below specifically validate filterOption()-based filtering.
+    // They PASS with the new implementation (which delegates to filterOption)
+    // but FAIL if reverted to the manual filter:
+    //   option.text?.toLowerCase().includes(searchValue) || option.login?.toLowerCase().includes(searchValue)
+    // because that filter (a) never deburrs accented characters and (b) tries
+    // to match the full multi-word search string against a single field instead
+    // of splitting terms and checking each against the combined text+login.
+    // -------------------------------------------------------------------------
+
+    it('shows a selected non-existing option when search matches via deburr (accented chars)', async () => {
+        // filterOption deburrs before matching: "bjorn" should match "Björn".
+        // The old manual filter does a raw .includes() without deburr, so it
+        // would NOT match and would hide the option instead.
+        jest.useFakeTimers();
+
+        const userWithAccent: OptionData = {
+            text: 'Björn',
+            login: 'user@example.com', // no accent in login so old filter can't match via login either
+            accountID: 654321,
+            isOptimisticAccount: true,
+            isSelected: false,
+            keyForList: 'user@example.com',
+        } as OptionData;
+
+        const {result} = renderHook(() =>
+            usePersonalDetailSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                shouldKeepSelectedInAvailableOptions: true,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            result.current.toggleSelection(userWithAccent);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Search without the umlaut
+        act(() => {
+            result.current.setSearchTerm('bjorn');
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(400);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // filterOption deburrs → match; old manual filter → no match → would return 0
+        expect(result.current.selectedNonExistingOptions).toHaveLength(1);
+        expect(result.current.selectedNonExistingOptions.at(0)?.text).toBe('Björn');
+
+        jest.useRealTimers();
+    });
+
+    it('shows a selected non-existing option when multi-word search terms are split across text and login', async () => {
+        // filterOption uses processSearchString which splits on spaces and checks
+        // each term against the combined "text login" string.
+        // "alice smith" → ["alice","smith"]; combined "Alice smith@example.com" contains both.
+        // The old manual filter tries text.includes("alice smith") and
+        // login.includes("alice smith") — both false — and hides the option.
+        jest.useFakeTimers();
+
+        const userAlice: OptionData = {
+            text: 'Alice',
+            login: 'smith@example.com',
+            accountID: 112233,
+            isOptimisticAccount: true,
+            isSelected: false,
+            keyForList: 'smith@example.com',
+        } as OptionData;
+
+        const {result} = renderHook(() =>
+            usePersonalDetailSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                shouldKeepSelectedInAvailableOptions: true,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            result.current.toggleSelection(userAlice);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Multi-word: "alice" is in text, "smith" is at the start of login
+        act(() => {
+            result.current.setSearchTerm('alice smith');
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(400);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // filterOption splits on spaces and matches each term in combined field → found;
+        // old filter tries the full string "alice smith" in "Alice" or "smith@example.com" → not found → 0
+        expect(result.current.selectedNonExistingOptions).toHaveLength(1);
+        expect(result.current.selectedNonExistingOptions.at(0)?.login).toBe('smith@example.com');
+
+        jest.useRealTimers();
+    });
+
+    it('clears selectedNonExistingOptions when the same non-existing user is toggled off in single-select mode', async () => {
+        const {result} = renderHook(() =>
+            usePersonalDetailSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+                shouldUpdateSelectedOptionsOnSingleSelect: true,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            result.current.toggleSelection(NON_EXISTING_USER);
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.selectedNonExistingOptions).toHaveLength(1);
+
+        act(() => {
+            result.current.toggleSelection(NON_EXISTING_USER);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.selectedNonExistingOptions).toHaveLength(0);
+        expect(result.current.selectedOptions).toHaveLength(0);
+    });
 });

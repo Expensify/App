@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import type {WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -11,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getShortLivedAuthTokenURL} from '@userActions/Link';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type ConnectToHRFlowProps from './types';
 
 function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
@@ -66,6 +68,11 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
         setIsPopupVisible(true);
     };
 
+    const dismiss = () => {
+        setIsWebViewOpen(false);
+        onDone?.();
+    };
+
     const handleBackPress = () => {
         if (isPopupVisible) {
             // Keep the popup WebView mounted (hidden) so in-flight OAuth redirects
@@ -73,12 +80,18 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
             setIsPopupVisible(false);
             return;
         }
-        setIsWebViewOpen(false);
-        onDone?.();
+        dismiss();
+    };
+
+    const handleNavigationStateChange = (navState: WebViewNavigation) => {
+        if (!navState.url.includes(ROUTES.CONNECTION_COMPLETE)) {
+            return;
+        }
+
+        dismiss();
     };
 
     const isReady = cookiesCleared && !!authenticatedUrl;
-
     return (
         <Modal
             onClose={handleBackPress}
@@ -112,6 +125,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
                         <WebView
                             source={{uri: authenticatedUrl}}
                             onOpenWindow={handleOpenWindow}
+                            onNavigationStateChange={handleNavigationStateChange}
                             startInLoadingState
                             renderLoading={renderLoading}
                         />
