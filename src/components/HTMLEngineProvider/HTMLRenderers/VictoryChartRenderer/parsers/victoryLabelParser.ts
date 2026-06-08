@@ -1,11 +1,8 @@
 import type {TNode} from 'react-native-render-html';
 import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
-import type {LabelItem, PartialProcessNodeResult, RawLabelStyle, TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import parseAttribute, {
-    parseAttributeAsNumber,
-    parseAttributeAsNumberArray,
-    parseAttributeAsString,
-} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import type {LabelItem, PartialProcessNodeResult, RawLabelStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import {parseAttributeAsNumber, parseAttributeAsNumberArray, parseAttributeAsString} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseRawLabelStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawLabelStyle';
 import parseTextAnchor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseTextAnchor';
 
 /**
@@ -26,40 +23,37 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
         verticalAnchor: parseTextAnchor(tnode.attributes.verticalanchor),
     };
 
-    const style = parseAttribute(tnode.attributes.style);
-    if (style) {
-        const textStyles = Array.isArray(style) ? (style as RawLabelStyle[]) : [style as RawLabelStyle];
-        for (const [index, textStyle] of textStyles.entries()) {
-            if (textStyle.fill) {
-                labelItem.color = {
-                    ...labelItem.color,
-                    [index]: textStyle.fill,
-                };
-            }
-            if (textStyle.fontSize) {
-                labelItem.fontSize = {
-                    ...labelItem.fontSize,
-                    [index]: Number(textStyle.fontSize),
-                };
-            }
-            if (textStyle.fontWeight) {
-                labelItem.fontWeight = {
-                    ...labelItem.fontWeight,
-                    [index]: normalizeChartFontWeight(textStyle.fontWeight),
-                };
-            }
-            if (textStyle.fontFamily) {
-                labelItem.fontFamily = {
-                    ...labelItem.fontFamily,
-                    [index]: textStyle.fontFamily,
-                };
-            }
-            if (textStyle.fontStyle) {
-                labelItem.fontStyle = {
-                    ...labelItem.fontStyle,
-                    [index]: textStyle.fontStyle,
-                };
-            }
+    const style = parseRawLabelStyle(tnode.attributes.style);
+    for (const [index, textStyle] of style.entries()) {
+        if (textStyle.fill) {
+            labelItem.color = {
+                ...labelItem.color,
+                [index]: textStyle.fill,
+            };
+        }
+        if (textStyle.fontSize) {
+            labelItem.fontSize = {
+                ...labelItem.fontSize,
+                [index]: Number(textStyle.fontSize),
+            };
+        }
+        if (textStyle.fontWeight) {
+            labelItem.fontWeight = {
+                ...labelItem.fontWeight,
+                [index]: normalizeChartFontWeight(textStyle.fontWeight),
+            };
+        }
+        if (textStyle.fontFamily) {
+            labelItem.fontFamily = {
+                ...labelItem.fontFamily,
+                [index]: textStyle.fontFamily,
+            };
+        }
+        if (textStyle.fontStyle) {
+            labelItem.fontStyle = {
+                ...labelItem.fontStyle,
+                [index]: textStyle.fontStyle,
+            };
         }
     }
 
