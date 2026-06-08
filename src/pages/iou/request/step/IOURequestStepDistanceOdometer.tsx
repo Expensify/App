@@ -596,7 +596,9 @@ function IOURequestStepDistanceOdometer({
             return false;
         }
         const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-        const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+        const hasImageChanges =
+            getOdometerImageUri(transaction?.comment?.odometerStartImage) !== getOdometerImageUri(initialStartImageRef.current) ||
+            getOdometerImageUri(transaction?.comment?.odometerEndImage) !== getOdometerImageUri(initialEndImageRef.current);
         return hasReadingChanges || hasImageChanges;
     };
 
@@ -613,7 +615,13 @@ function IOURequestStepDistanceOdometer({
         setFormError('');
     };
 
-    useRegisterDistanceTabGuard(CONST.TAB_REQUEST.DISTANCE_ODOMETER, getHasUnsavedChanges, handleTabSwitchDiscard);
+    const restoreLastInputFocus = useCallback(() => {
+        InteractionManager.runAfterInteractions(() => {
+            lastFocusedInputRef.current?.focus();
+        });
+    }, []);
+
+    useRegisterDistanceTabGuard(CONST.TAB_REQUEST.DISTANCE_ODOMETER, getHasUnsavedChanges, handleTabSwitchDiscard, restoreLastInputFocus);
 
     const handleSaveForLater = useCallback(async () => {
         shouldBypassDiscardConfirmationRef.current = true;
@@ -665,11 +673,7 @@ function IOURequestStepDistanceOdometer({
             {isStandaloneScreen && (
                 <StandaloneDiscardGuard
                     getHasUnsavedChanges={getHasUnsavedChanges}
-                    onCancel={() => {
-                        InteractionManager.runAfterInteractions(() => {
-                            lastFocusedInputRef.current?.focus();
-                        });
-                    }}
+                    onCancel={restoreLastInputFocus}
                     onConfirm={
                         isEditingConfirmation
                             ? async () => {
