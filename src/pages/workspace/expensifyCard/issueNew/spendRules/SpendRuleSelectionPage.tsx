@@ -57,9 +57,9 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     }, [isLoadingIssueCardForm, issueCardForm?.data, policyID]);
 
     // We only allow cards that share the same currency to be on a spend rule
-    const availableCardRules = cardRules
-        .filter((cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency)
-        .filter((cardRule) => cardRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const availableCardRules = cardRules.filter(
+        (cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency && cardRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
 
     const cardRuleListItems: SpendRuleListItemType[] = availableCardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
