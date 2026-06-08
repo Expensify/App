@@ -170,7 +170,7 @@ function computeSpendRuleCardDiff(oldCards: SpendRuleCard[], newCards: SpendRule
 
 type SpendRulePhraseVerb = 'added' | 'removed' | 'changed' | 'set' | 'applied';
 type SpendRulePhraseAdjective = '' | typeof CONST.SPEND_RULES.ACTION.BLOCK | typeof CONST.SPEND_RULES.ACTION.ALLOW;
-type SpendRulePhraseNoun = 'merchant' | 'spendCategory' | '';
+type SpendRulePhraseNoun = typeof CONST.SPEND_RULES.NOUN.MERCHANT | typeof CONST.SPEND_RULES.NOUN.SPEND_CATEGORY | '';
 
 type SpendRulePhrase = {
     verb: SpendRulePhraseVerb;
@@ -375,7 +375,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
             merchantDiff,
             adjective,
             adjectiveWord,
-            'merchant',
+            CONST.SPEND_RULES.NOUN.MERCHANT,
             (value) => value,
             (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchant', params),
             (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchantValueOnly', params),
@@ -385,7 +385,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
             categoryDiff,
             adjective,
             adjectiveWord,
-            'spendCategory',
+            CONST.SPEND_RULES.NOUN.SPEND_CATEGORY,
             (category) => getSpendRuleCategoryDisplayName(translate, category),
             (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', params),
             (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryValueOnly', params),

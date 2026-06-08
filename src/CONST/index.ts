@@ -4770,6 +4770,10 @@ const CONST = {
             ALLOW: 'allow',
             BLOCK: 'block',
         },
+        NOUN: {
+            MERCHANT: 'merchant',
+            SPEND_CATEGORY: 'spendCategory',
+        },
     },
 
     get SUBSCRIPTION_PRICES() {
