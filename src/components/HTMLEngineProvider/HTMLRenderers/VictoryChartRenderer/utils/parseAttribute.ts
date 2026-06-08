@@ -48,15 +48,17 @@ function parseAttributeAsNumber(attribute: string): number | undefined {
 function parseAttributeAsNumberArray(attribute: string): number[] | undefined {
     const parsedValue = parseAttribute(attribute);
     if (Array.isArray(parsedValue)) {
-        return parsedValue.filter((element): element is number => {
-            if (typeof element === 'number') {
-                return true;
-            }
-            if (typeof element === 'string' && Number.isFinite(Number(element))) {
-                return true;
-            }
-            return false;
-        });
+        return parsedValue
+            .filter((element): element is number | string => {
+                if (typeof element === 'number') {
+                    return true;
+                }
+                if (typeof element === 'string' && Number.isFinite(Number(element))) {
+                    return true;
+                }
+                return false;
+            })
+            .map(Number);
     }
     return undefined;
 }
