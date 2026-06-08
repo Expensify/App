@@ -17,6 +17,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+// Transition tracker is used directly as we defer the opening of the modal until other animations are finished,
+// for which there is no higher-level API.
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import {setNameValuePair} from '@userActions/User';
@@ -228,8 +231,6 @@ function FeatureTrainingModal({
     const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode || isCarousel;
 
     useEffect(() => {
-        // Transition tracker is used directly as we defer the opening of the modal until other animations are finished,
-        // for which there is no higher-level API.
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 if (!isModalDisabled) {
@@ -294,7 +295,6 @@ function FeatureTrainingModal({
      * Defer page update until the scroll animation has visually completed.
      */
     const scrollToPage = (nextIndex: number) => {
-        console.log(nextIndex, currentPage);
         scrollViewRef.current?.scrollTo({x: nextIndex * width, y: 0, animated: true});
         setTimeout(() => {
             if (nextIndex === lastReportedPage.current) {
@@ -321,7 +321,6 @@ function FeatureTrainingModal({
     };
 
     const handleConfirmPress = () => {
-        console.log(currentPage, pages?.length);
         if (isCarousel && currentPage < pages.length) {
             advanceCarousel();
             return;
@@ -333,7 +332,6 @@ function FeatureTrainingModal({
         if (!isCarousel || width <= 0) {
             return;
         }
-        console.log(e.nativeEvent.contentOffset.x, width);
         const nextPage = Math.round(e.nativeEvent.contentOffset.x / width);
         if (nextPage === lastReportedPage.current) {
             return;
@@ -445,6 +443,8 @@ function FeatureTrainingModal({
                 ) : (
                     pages.map((page, index) => (
                         <FeatureTrainingModalBody
+                            // Pages is a small fixed array passed in by the caller; index is stable.
+                            // eslint-disable-next-line react/no-array-index-key
                             key={`FeatureTrainingModalBody-${index}`}
                             animation={page.animation}
                             animationStyle={page.animationStyle}

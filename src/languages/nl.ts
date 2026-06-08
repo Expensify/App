@@ -9662,18 +9662,15 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         confirmText: 'Laten we gaan!',
         spendAnalysis: {
             title: 'Interactieve uitgavenanalyse',
-            description:
-                '<muted-text>Concierge toont maandelijkse uitgaveninzichten en laat je inzoomen op de details achter elk bedrag. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Meer informatie</a>.</muted-text>',
+            description: `<muted-text>Concierge toont maandelijkse uitgaveninzichten en laat je inzoomen op de details achter elk getal. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Meer informatie</a>.</muted-text>`,
         },
         expenseAssistant: {
-            title: 'Maak kennis met je nieuwe onkostenassistent',
-            description:
-                '<muted-text>Chat met Concierge om uitgaven te maken en bij te werken, direct in de app of via e-mail of sms. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Meer informatie</a>.</muted-text>',
+            title: 'Maak kennis met je nieuwe declaratie-assistent',
+            description: `<muted-text>Chat met Concierge om uitgaven aan te maken en bij te werken, rechtstreeks in de app of via e-mail of sms. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Meer informatie</a>.</muted-text>`,
         },
         customAgents: {
             title: 'Bouw je eigen agents',
-            description:
-                '<muted-text>Maak aangepaste agents om uitgaven te controleren, goed te keuren en door te sturen op basis van regels die je instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>',
+            description: `<muted-text>Maak aangepaste agents om uitgaven te beoordelen, goed te keuren en door te sturen op basis van regels die jij instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>`,
         },
     },
 };

@@ -9697,19 +9697,16 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         subtitle: 'Nuovo in Concierge AI',
         confirmText: 'Andiamo!',
         spendAnalysis: {
-            title: 'Analisi interattiva della spesa',
-            description:
-                '<muted-text>Concierge mostra informazioni approfondite sulla spesa mensile e ti permette di analizzare nel dettaglio il significato di ogni numero. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Scopri di più</a>.</muted-text>',
+            title: 'Analisi interattiva delle spese',
+            description: `<muted-text>Concierge mette in evidenza approfondimenti sulla spesa mensile e ti permette di approfondire i dettagli dietro ogni numero. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Scopri di più</a>.</muted-text>`,
         },
         expenseAssistant: {
             title: 'Incontra il tuo nuovo assistente per le spese',
-            description:
-                '<muted-text>Chatta con Concierge per creare e aggiornare le spese, direttamente nell’app o via email o SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Scopri di più</a>.</muted-text>',
+            description: `<muted-text>Chatta con Concierge per creare e aggiornare le spese direttamente nell’app o via email o SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Scopri di più</a>.</muted-text>`,
         },
         customAgents: {
             title: 'Crea i tuoi agenti',
-            description:
-                '<muted-text>Crea agenti personalizzati per verificare, approvare e instradare le spese in base alle regole che imposti. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Scopri di più</a>.</muted-text>',
+            description: `<muted-text>Crea agenti personalizzati per verificare, approvare e instradare le spese in base alle regole che imposti. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Scopri di più</a>.</muted-text>`,
         },
     },
 };

@@ -46,7 +46,7 @@ function AIFeaturesPromoModal() {
                   ]
                 : []),
         ],
-        [translate],
+        [translate, canUseCustomAgent],
     );
 
     const onConfirm = () => {
