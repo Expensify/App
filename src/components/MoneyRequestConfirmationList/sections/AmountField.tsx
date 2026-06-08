@@ -10,11 +10,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
-import {calculateAmount} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
+import {calculateTaxAmount, getTaxValue} from '@libs/TransactionUtils';
 import {isParticipantP2P} from '@pages/iou/request/step/IOURequestStepAmount';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
@@ -85,6 +86,7 @@ function AmountField({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const transactionForHandlers = transactionSlice as OnyxEntry<OnyxTypes.Transaction>;
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
@@ -264,6 +266,17 @@ function AmountField({
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);
         persistMainDraftTotal(parsedAmount, effectiveCurrency);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(newAmount));
+            const taxCode = effectiveCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, decimals));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
     };
 
     return (
