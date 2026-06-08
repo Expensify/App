@@ -1,4 +1,3 @@
-import type {TNode} from 'react-native-render-html';
 import {getGroupedBarCenterY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getBarGroupSeriesLayout';
 
 describe('getGroupedBarCenterY', () => {

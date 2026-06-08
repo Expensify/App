@@ -1,5 +1,5 @@
 import type {YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import getBarTooltipKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getBarTooltipKey';
+import getBarTooltipKey from './getBarTooltipKey';
 
 type BarPointValues = {
     xValue: string | number | null | undefined;
@@ -9,13 +9,7 @@ type BarPointValues = {
 /**
  * Resolves a parsed tooltip index from a Victory-generated bar point.
  */
-function resolveBarTooltipIndex(
-    yKey: YKey,
-    point: BarPointValues,
-    isHorizontal: boolean,
-    categories: string[] | undefined,
-    tooltipKeyToIndex: Record<string, number>,
-): number | undefined {
+function resolveBarTooltipIndex(yKey: YKey, point: BarPointValues, isHorizontal: boolean, categories: string[] | undefined, tooltipKeyToIndex: Record<string, number>): number | undefined {
     const candidates: Array<string | number> = [];
 
     if (isHorizontal) {
@@ -44,4 +38,3 @@ function resolveBarTooltipIndex(
 }
 
 export default resolveBarTooltipIndex;
-export type {BarPointValues};

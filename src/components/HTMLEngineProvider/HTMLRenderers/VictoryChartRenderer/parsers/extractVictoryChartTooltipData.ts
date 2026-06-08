@@ -95,4 +95,3 @@ function extractVictoryChartTooltipData(tnode: TNode, context: ExtractVictoryCha
 
 export default extractVictoryChartTooltipData;
 export {extractVictoryBarGroupLayout, extractVictoryPieTooltipEntries};
-export type {ExtractVictoryChartTooltipContext, VictoryChartTooltipData};

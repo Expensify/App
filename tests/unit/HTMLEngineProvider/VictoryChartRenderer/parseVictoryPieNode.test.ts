@@ -17,7 +17,7 @@ describe('parseVictoryPieNode', () => {
         const tnode = createMockPieNode("[{x: 'Travel', y: 500}]");
         const {data} = parseVictoryPieNode(tnode);
 
-        expect(Object.keys(data)).toHaveLength(1);
+        expect(Object.keys(data ?? {})).toHaveLength(1);
     });
 });
 

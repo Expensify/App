@@ -28,12 +28,13 @@ function VictoryChartBarHitTargetsSync({
     isHorizontal,
     categories,
 }: VictoryChartBarHitTargetsSyncProps) {
-    const valueAxisZero = isHorizontal ? renderArgs.xScale(0) : renderArgs.yScale(0);
+    const {points, xScale, yScale} = renderArgs;
+    const valueAxisZero = isHorizontal ? xScale(0) : yScale(0);
 
     useLayoutEffect(() => {
         updateHitTargets(
             buildBarHitTargets({
-                points: renderArgs.points,
+                points,
                 barYKeys,
                 barSeriesConfig,
                 barGroupLayouts,
@@ -43,7 +44,7 @@ function VictoryChartBarHitTargetsSync({
                 valueAxisZero,
             }),
         );
-    }, [barGroupLayouts, barSeriesConfig, barYKeys, categories, isHorizontal, renderArgs, tooltipKeyToIndex, updateHitTargets, valueAxisZero]);
+    }, [barGroupLayouts, barSeriesConfig, barYKeys, categories, isHorizontal, points, tooltipKeyToIndex, updateHitTargets, valueAxisZero]);
 
     return null;
 }

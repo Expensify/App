@@ -117,4 +117,3 @@ function useVictoryChartPieTooltips({slices, pieGeometry, innerRadius, onHoverCh
 }
 
 export default useVictoryChartPieTooltips;
-export type {PieGeometry, UseVictoryChartPieTooltipsParams};

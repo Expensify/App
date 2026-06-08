@@ -2,8 +2,8 @@ import type {PointsArray} from 'victory-native';
 import type {BarHitTarget} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
 import {DEFAULT_BAR_WIDTH} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
 import type {BarGroupLayout, BarSeriesConfig, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import {getBarGroupSeriesLayout, getGroupedBarCenterY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getBarGroupSeriesLayout';
-import resolveBarTooltipIndex from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveBarTooltipIndex';
+import {getBarGroupSeriesLayout, getGroupedBarCenterY} from './getBarGroupSeriesLayout';
+import resolveBarTooltipIndex from './resolveBarTooltipIndex';
 
 type BuildBarHitTargetsParams = {
     points: Record<string, PointsArray>;
@@ -71,16 +71,7 @@ function buildHitTargetFromPoint({
 /**
  * Computes canvas hit targets for each bar from Victory render args.
  */
-function buildBarHitTargets({
-    points,
-    barYKeys,
-    barSeriesConfig,
-    barGroupLayouts,
-    tooltipKeyToIndex,
-    isHorizontal,
-    categories,
-    valueAxisZero,
-}: BuildBarHitTargetsParams): BarHitTarget[] {
+function buildBarHitTargets({points, barYKeys, barSeriesConfig, barGroupLayouts, tooltipKeyToIndex, isHorizontal, categories, valueAxisZero}: BuildBarHitTargetsParams): BarHitTarget[] {
     const targets: BarHitTarget[] = [];
 
     for (const yKey of barYKeys) {
@@ -115,4 +106,3 @@ function buildBarHitTargets({
 }
 
 export default buildBarHitTargets;
-export type {BuildBarHitTargetsParams};

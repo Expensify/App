@@ -20,7 +20,6 @@ const START_ANGLE = 270;
 
 type VictoryChartPolarTooltipsProps = {
     chartWidth: number;
-    chartHeight: number;
     innerRadius: number;
     hitTestRadius: number;
     centerX: number;
@@ -30,7 +29,7 @@ type VictoryChartPolarTooltipsProps = {
 /**
  * Captures hover/tap over the pie chart without wrapping PolarChart itself.
  */
-function VictoryChartPolarTooltips({chartWidth, chartHeight, innerRadius, hitTestRadius, centerX, centerY}: VictoryChartPolarTooltipsProps) {
+function VictoryChartPolarTooltips({chartWidth, innerRadius, hitTestRadius, centerX, centerY}: VictoryChartPolarTooltipsProps) {
     const {tooltipData} = useVictoryChartContext();
     const formatTooltipValue = useVictoryChartTooltipFormatter();
 
@@ -55,7 +54,7 @@ function VictoryChartPolarTooltips({chartWidth, chartHeight, innerRadius, hitTes
         <>
             <GestureDetector gesture={plotGestures}>
                 <View
-                    style={StyleSheet.absoluteFillObject}
+                    style={StyleSheet.absoluteFill}
                     pointerEvents="box-only"
                 />
             </GestureDetector>
@@ -115,7 +114,6 @@ function VictoryChartPolar() {
             {hasPieTooltips && chartWidth > 0 && chartHeight > 0 && (
                 <VictoryChartPolarTooltips
                     chartWidth={chartWidth}
-                    chartHeight={chartHeight}
                     innerRadius={innerRadius}
                     hitTestRadius={hitTestRadius}
                     centerX={centerX}

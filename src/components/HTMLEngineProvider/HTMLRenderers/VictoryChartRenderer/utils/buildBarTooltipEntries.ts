@@ -1,9 +1,11 @@
 import type {TNode} from 'react-native-render-html';
 import type {BarSeriesConfig, BarTooltipEntry, RawChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import formatBarTooltipLabel from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/formatBarTooltipLabel';
-import getBarTooltipKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getBarTooltipKey';
-import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import formatBarTooltipLabel from './formatBarTooltipLabel';
+import getBarTooltipKey from './getBarTooltipKey';
+import getYKey from './getYKey';
+import isNonNullObject from './isNonNullObject';
+import parseArrayAttribute from './parseArrayAttribute';
+import parseAttribute from './parseAttribute';
 
 type BuildBarTooltipEntriesParams = {
     tnode: TNode;
@@ -19,8 +21,8 @@ function buildBarTooltipEntries({tnode, yKey, isHorizontal, categories}: BuildBa
     entries: BarTooltipEntry[];
     seriesConfig: BarSeriesConfig;
 } {
-    const points = parseAttribute<RawChartData[]>(tnode.attributes.data) ?? [];
-    const labels = parseAttribute<string[]>(tnode.attributes.labels) ?? [];
+    const points = parseArrayAttribute<RawChartData>(tnode.attributes.data).filter(isNonNullObject<RawChartData>);
+    const labels = parseArrayAttribute<string>(tnode.attributes.labels);
     const barWidth = parseAttribute<number>(tnode.attributes.barwidth);
 
     const entries: BarTooltipEntry[] = points.map((point, index) => {
@@ -54,7 +56,11 @@ function buildBarTooltipEntries({tnode, yKey, isHorizontal, categories}: BuildBa
 /**
  * Parses tooltip metadata from a `<victorybar>` node, including yKey assignment.
  */
-function parseVictoryBarTooltips(tnode: TNode, isHorizontal: boolean, categories?: string[]): {
+function parseVictoryBarTooltips(
+    tnode: TNode,
+    isHorizontal: boolean,
+    categories?: string[],
+): {
     entries: BarTooltipEntry[];
     yKey: YKey;
     seriesConfig: BarSeriesConfig;
@@ -66,4 +72,3 @@ function parseVictoryBarTooltips(tnode: TNode, isHorizontal: boolean, categories
 }
 
 export {buildBarTooltipEntries, parseVictoryBarTooltips};
-export type {BuildBarTooltipEntriesParams};

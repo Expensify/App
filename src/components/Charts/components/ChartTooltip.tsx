@@ -31,7 +31,12 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
 
-    const content = percentage ? `${label} • ${amount} (${percentage})` : amount ? `${label} • ${amount}` : label;
+    let content = label;
+    if (percentage) {
+        content = `${label} • ${amount} (${percentage})`;
+    } else if (amount) {
+        content = `${label} • ${amount}`;
+    }
 
     /**
      * Synchronously reset the width and hide the tooltip whenever the content changes.

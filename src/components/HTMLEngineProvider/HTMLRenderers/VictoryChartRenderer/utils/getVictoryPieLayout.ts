@@ -1,5 +1,5 @@
 import type {TNode} from 'react-native-render-html';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseAttribute from './parseAttribute';
 
 type VictoryPieLayout = {
     /** Outer radius parsed from HTML, when present */
@@ -39,4 +39,3 @@ function getVictoryPieLayout(pieNode: TNode | undefined, chartWidth: number, cha
 }
 
 export default getVictoryPieLayout;
-export type {VictoryPieLayout};

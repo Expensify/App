@@ -1,5 +1,5 @@
-import type {BarGroupLayout, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import {DEFAULT_BAR_WIDTH} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
+import type {BarGroupLayout, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type BarGroupSeriesLayout = {
     seriesIndex: number;
@@ -37,4 +37,3 @@ function getGroupedBarCenterY(centerY: number, groupLayout: BarGroupSeriesLayout
 }
 
 export {getBarGroupSeriesLayout, getGroupedBarCenterY};
-export type {BarGroupSeriesLayout};

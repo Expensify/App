@@ -115,7 +115,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
 
     const chartConfig = {
         data,
-        xKey: X_KEY,
+        xKey: X_KEY as ProcessNodeResult['xKey'],
         yKeys,
         xAxis,
         yAxis,
@@ -130,7 +130,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
 
     if (!rootProcessedResult) {
         const tooltipData = extractVictoryChartTooltipData(tnode, {isHorizontal, categories});
-        return {...chartConfig, ...tooltipData};
+        return {...chartConfig, ...tooltipData} satisfies ProcessNodeResult;
     }
 
     return {
@@ -140,7 +140,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         barSeriesConfig: {},
         barGroupLayouts: [],
         pieTooltipEntries: [],
-    };
+    } satisfies ProcessNodeResult;
 }
 
 export default processVictoryChartTree;
