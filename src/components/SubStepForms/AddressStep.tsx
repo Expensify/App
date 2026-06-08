@@ -139,9 +139,10 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             const street = values[inputFieldsIDs.street as keyof typeof values];
-            if (street && !isValidAddress(street as FormValue)) {
+            const streetValue = street as FormValue;
+            if (street && !isValidAddress(streetValue)) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate(getInvalidAddressErrorTranslationPath(street as FormValue));
+                errors[inputFieldsIDs.street] = translate(getInvalidAddressErrorTranslationPath(streetValue));
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];

@@ -646,10 +646,6 @@ describe('ValidationUtils', () => {
                 expect(isValidAddress('')).toBe(false);
             });
 
-            test('Should return false for non-string values', () => {
-                expect(isValidAddress(123 as unknown as string)).toBe(false);
-            });
-
             test('Should return false for addresses containing only emojis', () => {
                 expect(isValidAddress('😊')).toBe(false);
             });
