@@ -2,10 +2,19 @@ import '@testing-library/react-native';
 import type {KeyboardEventName} from 'react-native';
 import {Keyboard} from 'react-native';
 import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.useRealTimers();
+
+// Globally short-circuit AIFeaturesPromoGuard in tests. The real guard proactively
+// navigates any authenticated session to /ai-features-promo unless the dismissal NVP
+// is set, which would otherwise intercept navigation in unrelated UI tests. Tests
+// that need the real guard can override this mock locally.
+jest.mock('@libs/Navigation/guards/AIFeaturesPromoGuard', () => ({
+    __esModule: true,
+    default: {name: 'AIFeaturesPromoGuard', evaluate: () => ({type: 'ALLOW'})},
+    onSessionOrLoadingAppChanged: jest.fn(),
+}));
 
 // Patch Keyboard.addListener to return a subscription object with .remove() so that
 // @react-navigation/bottom-tabs useIsKeyboardShown hook doesn't crash on cleanup.
@@ -54,21 +63,4 @@ jest.mock(
 // the second init() just re-runs initStoreValues and re-resolves the already-resolved deferred task.
 beforeAll(() => {
     Onyx.init({keys: ONYXKEYS});
-});
-
-// The AIFeaturesPromoGuard proactively redirects any authenticated session to the AI promo modal
-// unless this NVP records a dismissal, which would otherwise intercept navigation in unrelated UI
-// tests. We seed the dismissal in beforeEach AND patch Onyx.clear so that tests calling
-// `Onyx.clear()` in their own beforeEach (e.g. GroupChatNameTests) keep the fixture in place.
-const originalOnyxClear = Onyx.clear;
-Onyx.clear = (keysToPreserve = []) => originalOnyxClear([ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, ...keysToPreserve]);
-
-beforeEach(async () => {
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-        [CONST.AI_FEATURES_PROMO_MODAL]: {
-            timestamp: new Date().toISOString(),
-            dismissedMethod: 'x',
-        },
-    });
 });
