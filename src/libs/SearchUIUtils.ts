@@ -209,6 +209,11 @@ import {isInvalidMerchantValue} from './ValidationUtils';
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
 type PolicyCategoriesLookup = OnyxEntry<OnyxTypes.PolicyCategories> | OnyxCollection<OnyxTypes.PolicyCategories>;
+
+type SortSectionsOptions = {
+    policyCategories?: PolicyCategoriesLookup;
+    fallbackPolicyID?: string;
+};
 type GroupBySection = {
     sectionIndex: number;
     options: Array<SingleSelectItem<SearchGroupBy>>;
@@ -3733,6 +3738,7 @@ function getSortedSections(
     sortBy?: SearchSortBy,
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
+    options?: SortSectionsOptions,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[], localeCompare);
@@ -3751,7 +3757,7 @@ function getSortedSections(
         }
     }
 
-    return getSortedTransactionData(data as TransactionListItemType[], localeCompare, translate, sortBy, sortOrder);
+    return getSortedTransactionData(data as TransactionListItemType[], localeCompare, translate, sortBy, sortOrder, options);
 }
 
 /**
@@ -3808,6 +3814,21 @@ function getTransactionSortValue(transaction: TransactionListItemType, sortingPr
     return transaction[sortingProperty as keyof TransactionListItemType];
 }
 
+function getTransactionPolicyID(transaction: TransactionListItemType, fallbackPolicyID?: string): string | undefined {
+    const explicitPolicyID = [transaction.policyID, transaction.report?.policyID, transaction.policy?.id].find((policyID): policyID is string => !!policyID);
+    if (explicitPolicyID) {
+        return explicitPolicyID;
+    }
+
+    return transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? fallbackPolicyID : undefined;
+}
+
+function getTransactionCategoryGLCodeSortValue(transaction: TransactionListItemType, options?: SortSectionsOptions): string {
+    const transactionPolicyID = getTransactionPolicyID(transaction, options?.fallbackPolicyID);
+    const transactionPolicyCategories = getPolicyCategoriesForPolicyID(options?.policyCategories, transactionPolicyID);
+    return getCategoryGLCode(transactionPolicyCategories, transaction.category);
+}
+
 /**
  * @private
  * Sorts transaction sections based on a specified column and sort order.
@@ -3818,6 +3839,7 @@ function getSortedTransactionData(
     translate: LocaleContextProps['translate'],
     sortBy?: SearchSortBy,
     sortOrder?: SortOrder,
+    options?: SortSectionsOptions,
 ) {
     if (!sortBy || !sortOrder) {
         return data;
@@ -3907,6 +3929,14 @@ function getSortedTransactionData(
         return data.sort((a, b) => {
             const aValue = getMCCForDisplay(a.mcc);
             const bValue = getMCCForDisplay(b.mcc);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE) {
+        return data.sort((a, b) => {
+            const aValue = getTransactionCategoryGLCodeSortValue(a, options);
+            const bValue = getTransactionCategoryGLCodeSortValue(b, options);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }

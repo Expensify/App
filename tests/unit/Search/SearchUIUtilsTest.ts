@@ -5893,6 +5893,95 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        it('should sort expense data by category GL code using policy categories', () => {
+            const glCodePolicyID = 'policyGLCodeSort';
+            const glCodeReport = {
+                ...report1,
+                policyID: glCodePolicyID,
+            };
+            const glCodePolicy = {
+                ...policy,
+                id: glCodePolicyID,
+            };
+            const policyCategoriesForSort: OnyxCollection<OnyxTypes.PolicyCategories> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${glCodePolicyID}`]: {
+                    Advertising: {name: 'Advertising', enabled: true, 'GL Code': '6100'},
+                    Benefits: {name: 'Benefits', enabled: true, 'GL Code': '1010'},
+                    Travel: {name: 'Travel', enabled: true, 'GL Code': '6200'},
+                },
+            };
+            const getTransactionFixture = (index: number): TransactionListItemType => {
+                const transaction = transactionsListItems.at(index);
+                if (!transaction) {
+                    throw new Error(`Missing transaction fixture at index ${index}`);
+                }
+                return transaction;
+            };
+            const transactionWithoutGLCode = {
+                ...getTransactionFixture(0),
+                transactionID: 'without-gl-code',
+                keyForList: 'without-gl-code',
+                reportID: glCodeReport.reportID,
+                report: glCodeReport,
+                policy: glCodePolicy,
+                category: 'Meals',
+            } as TransactionListItemType;
+            const transactionWithGLCode6100 = {
+                ...getTransactionFixture(1),
+                transactionID: 'gl-code-6100',
+                keyForList: 'gl-code-6100',
+                reportID: glCodeReport.reportID,
+                report: glCodeReport,
+                policy: glCodePolicy,
+                category: 'Advertising',
+            } as TransactionListItemType;
+            const transactionWithGLCode1010 = {
+                ...getTransactionFixture(2),
+                transactionID: 'gl-code-1010',
+                keyForList: 'gl-code-1010',
+                reportID: glCodeReport.reportID,
+                report: glCodeReport,
+                policy: glCodePolicy,
+                category: 'Benefits',
+            } as TransactionListItemType;
+            const transactionWithGLCode6200 = {
+                ...getTransactionFixture(3),
+                transactionID: 'gl-code-6200',
+                keyForList: 'gl-code-6200',
+                reportID: glCodeReport.reportID,
+                report: glCodeReport,
+                policy: glCodePolicy,
+                category: 'Travel',
+            } as TransactionListItemType;
+            const unorderedTransactions = [transactionWithGLCode6100, transactionWithoutGLCode, transactionWithGLCode6200, transactionWithGLCode1010];
+
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+                {policyCategories: policyCategoriesForSort},
+            ) as TransactionListItemType[];
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+                {policyCategories: policyCategoriesForSort},
+            ) as TransactionListItemType[];
+
+            expect(ascendingResult.map((transaction) => transaction.transactionID)).toEqual(['without-gl-code', 'gl-code-1010', 'gl-code-6100', 'gl-code-6200']);
+            expect(descendingResult.map((transaction) => transaction.transactionID)).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
+        });
+
         it('should return getSortedReportData result when type is expense-report', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
