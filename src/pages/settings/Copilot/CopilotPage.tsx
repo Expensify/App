@@ -83,22 +83,19 @@ function CopilotPage() {
         });
     }, [showConfirmModal, translate]);
 
-    const showRemoveDelegatorModal = useCallback(
-        (delegatorEmail: string) => {
-            const personalDetail = personalDetailsByLogin[delegatorEmail.toLowerCase()];
-            const delegatorName = personalDetail?.displayName ?? formatPhoneNumber(delegatorEmail);
+    const showRemoveDelegatorModal = (delegatorEmail: string) => {
+        const personalDetail = personalDetailsByLogin[delegatorEmail.toLowerCase()];
+        const delegatorName = personalDetail?.displayName ?? formatPhoneNumber(delegatorEmail);
 
-            return showConfirmModal({
-                title: translate('delegate.removeCopilotAccessTitle'),
-                prompt: translate('delegate.removeCopilotAccessConfirmation', {delegatorName}),
-                confirmText: translate('delegate.removeCopilotAccessConfirm'),
-                cancelText: translate('common.cancel'),
-                shouldShowCancelButton: true,
-                danger: true,
-            });
-        },
-        [showConfirmModal, translate, personalDetailsByLogin, formatPhoneNumber],
-    );
+        return showConfirmModal({
+            title: translate('delegate.removeCopilotAccessTitle'),
+            prompt: translate('delegate.removeCopilotAccessConfirmation', {delegatorName}),
+            confirmText: translate('delegate.removeCopilotAccessConfirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    };
 
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
 
@@ -153,16 +150,13 @@ function CopilotPage() {
         };
     }, [setMenuPosition]);
 
-    const showDelegatorPopoverMenu = useCallback(
-        (nativeEvent: GestureResponderEvent | KeyboardEvent, delegator: Delegate) => {
-            delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
-            setMenuPosition();
-            setShouldShowDelegatorPopoverMenu(true);
-            setSelectedDelegator(delegator);
-            setSelectedEmail(delegator.email);
-        },
-        [setMenuPosition],
-    );
+    const showDelegatorPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegator: Delegate) => {
+        delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+        setMenuPosition();
+        setShouldShowDelegatorPopoverMenu(true);
+        setSelectedDelegator(delegator);
+        setSelectedEmail(delegator.email);
+    };
 
     const renderTitleWithRole = useCallback(
         (titleText: string, descriptionText: string, role: DelegateRole | undefined) => (
@@ -289,7 +283,6 @@ function CopilotPage() {
             onPress: (e: GestureResponderEvent | KeyboardEvent) => {
                 showDelegatorPopoverMenu(e, {email, role});
             },
-            role: CONST.ROLE.LINK,
             pendingAction,
             shouldForceOpacity: !!pendingAction,
             error,
