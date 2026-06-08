@@ -124,15 +124,16 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
     }, [isAnimationRunning, isShowingLoading, isDEWSubmissionComplete, isDEWSubmission]);
 
     useEffect(() => {
-        if (!isSubmittingAnimationRunning || !isDEWSubmission || reportMetadata?.pendingExpenseAction !== CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED) {
+        if (!isAnimationRunning || !isDEWSubmission || reportMetadata?.pendingExpenseAction !== CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED) {
             return;
         }
         // When pending submission fails we quit to avoid showing submitted animation.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setCanShow(false);
         clearPendingExpenseAction(reportID);
-    }, [isSubmittingAnimationRunning, reportMetadata?.pendingExpenseAction, reportID, isDEWSubmission]);
+    }, [isAnimationRunning, reportMetadata?.pendingExpenseAction, reportID, isDEWSubmission]);
 
+    // eslint-disable-next-line react-hooks/refs
     const showLoading = isShowingLoading || (isAnimationRunning && (!viewRef.current || (isDEWSubmission && !isDEWSubmissionComplete)));
 
     return (
