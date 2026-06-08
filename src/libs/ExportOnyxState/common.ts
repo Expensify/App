@@ -111,6 +111,42 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['accountID', 'bank', 'isVirtual', 'cardID'],
         maskList: ['lastFourPAN', 'nameOnCard'],
     },
+    [ONYXKEYS.COLLECTION.NEXT_STEP]: {
+        // `message`/`expenseMessage`/`buttons` carry free-text with names and amounts; `nextReceiver` is an approver email.
+        allowList: ['icon', 'iconFill', 'requiresUserAction', 'type', 'showUndoSubmit', 'showForMobile', 'showForExpense'],
+        maskList: ['nextReceiver'],
+    },
+    [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: {
+        // `downloadURL` is a signed link to the user's exported financial data.
+        allowList: ['state', 'reportCount', 'failedReportCount', 'shouldSendFromConcierge'],
+        maskList: ['downloadURL'],
+    },
+    [ONYXKEYS.WALLET_TERMS]: {
+        // `errors` holds KYC server messages that can echo submitted names/emails/bank fragments.
+        allowList: ['chatReportID', 'source', 'isLoading'],
+        maskList: ['errors'],
+    },
+    [ONYXKEYS.VALIDATE_ACTION_CODE]: {
+        // `errorFields`/`errors` hold auth-flow server messages that may include email or partial code.
+        allowList: ['validateCodeSent', 'isLoading', 'pendingAction', 'pendingFields'],
+        maskList: ['errorFields', 'errors'],
+    },
+    [ONYXKEYS.NVP_INTRO_SELECTED]: {
+        // `companySize` is a user-entered employer attribute.
+        allowList: [
+            'choice',
+            'inviteType',
+            'isInviteOnboardingComplete',
+            'viewTour',
+            'createWorkspace',
+            'setupCategories',
+            'addExpenseApprovals',
+            'setupTags',
+            'setupCategoriesAndTags',
+            'previousChoices',
+        ],
+        maskList: ['companySize'],
+    },
 };
 
 // ============================================================
@@ -126,17 +162,14 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.ATTACHMENT,
     ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
-    ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
     ONYXKEYS.COLLECTION.DOWNLOAD,
     ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA,
     ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION,
     ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID,
     ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION,
     ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION,
-    ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
     ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED,
     ONYXKEYS.COLLECTION.LAST_SELECTED_FEED,
-    ONYXKEYS.COLLECTION.NEXT_STEP,
     ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME,
     ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS,
     ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED,
@@ -148,7 +181,6 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.REPORT_METADATA,
     ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE,
     ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM,
-    ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
     ONYXKEYS.COLLECTION.SELECTED_DISTANCE_REQUEST_TAB,
     ONYXKEYS.COLLECTION.SELECTED_TAB,
     ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
@@ -216,7 +248,6 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
     ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED,
     ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-    ONYXKEYS.NVP_INTRO_SELECTED,
     ONYXKEYS.NVP_LAST_ANDROID_LOGIN,
     ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
     ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN,
@@ -283,11 +314,9 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE,
     ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
     ONYXKEYS.TRAVEL_INVOICE_STATEMENT,
-    ONYXKEYS.VALIDATE_ACTION_CODE,
     ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE,
     ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
     ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID,
-    ONYXKEYS.WALLET_TERMS,
 ]);
 
 // ============================================================
@@ -308,6 +337,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION,
     ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST,
     ONYXKEYS.COLLECTION.DOMAIN,
+    ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
     ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS,
     ONYXKEYS.COLLECTION.MERGE_TRANSACTION,
     ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST,
@@ -330,6 +360,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.REPORT_DRAFT,
     ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
     ONYXKEYS.COLLECTION.SAML_METADATA,
     ONYXKEYS.COLLECTION.SECURITY_GROUP,
     ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,

@@ -201,6 +201,93 @@ describe('maskOnyxState', () => {
         });
     });
 
+    describe('keys removed from safeOnyxKeys (Part 1 audit)', () => {
+        it('should mask nextReceiver email and message text on NEXT_STEP while preserving debug fields', () => {
+            const input = {
+                [`${ONYXKEYS.COLLECTION.NEXT_STEP}123`]: {
+                    type: 'alert',
+                    icon: 'hourglass',
+                    requiresUserAction: true,
+                    nextReceiver: 'approver@example.com',
+                    message: [{text: 'Waiting for John Doe to approve $500.00'}],
+                },
+            };
+            const result = maskOnyxState(input) as Record<string, Record<string, unknown>>;
+            const nextStep = result[`${ONYXKEYS.COLLECTION.NEXT_STEP}123`];
+
+            expect(nextStep.type).toBe('alert');
+            expect(nextStep.icon).toBe('hourglass');
+            expect(nextStep.requiresUserAction).toBe(true);
+            expect(nextStep.nextReceiver).not.toBe('approver@example.com');
+            expect((nextStep.message as Array<{text: string}>).at(0)?.text).not.toContain('John Doe');
+        });
+
+        it('should mask downloadURL on EXPORT_DOWNLOAD while preserving state', () => {
+            const input = {
+                [`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}abc`]: {
+                    state: 'ready',
+                    downloadURL: 'https://www.expensify.com/secret-signed-link?token=abc123',
+                    reportCount: 5,
+                },
+            };
+            const result = maskOnyxState(input) as Record<string, Record<string, unknown>>;
+            const exportDownload = result[`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}abc`];
+
+            expect(exportDownload.state).toBe('ready');
+            expect(exportDownload.downloadURL).not.toBe('https://www.expensify.com/secret-signed-link?token=abc123');
+        });
+
+        it('should mask errors on WALLET_TERMS while preserving safe fields', () => {
+            const input = {
+                [ONYXKEYS.WALLET_TERMS]: {
+                    chatReportID: '789',
+                    isLoading: false,
+                    errors: {someError: 'KYC failed for user@example.com'},
+                },
+            };
+            const result = maskOnyxState(input) as Record<string, Record<string, unknown>>;
+            const walletTerms = result[ONYXKEYS.WALLET_TERMS];
+
+            expect(walletTerms.chatReportID).toBe('789');
+            expect(walletTerms.isLoading).toBe(false);
+            expect(walletTerms.errors).toBe('***');
+        });
+
+        it('should mask companySize on NVP_INTRO_SELECTED while preserving onboarding choice', () => {
+            const input = {
+                [ONYXKEYS.NVP_INTRO_SELECTED]: {
+                    choice: 'newDotManageTeam',
+                    companySize: '1000+',
+                },
+            };
+            const result = maskOnyxState(input) as Record<string, Record<string, unknown>>;
+            const introSelected = result[ONYXKEYS.NVP_INTRO_SELECTED];
+
+            expect(introSelected.choice).toBe('newDotManageTeam');
+            expect(introSelected.companySize).not.toBe('1000+');
+        });
+
+        it('should mask email object-keys on REPORT_USER_IS_TYPING and DOMAIN_ERRORS when masking is enabled', () => {
+            const input = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                [`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}1`]: {'typing@example.com': true},
+                [`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}expensify.com`]: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    memberErrors: {'member@example.com': {errors: {someError: 'some error'}}},
+                },
+            };
+            const result = maskOnyxState(input, true) as Record<string, Record<string, unknown>>;
+
+            const typing = result[`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}1`];
+            expect(Object.keys(typing).at(0)).not.toBe('typing@example.com');
+            expect(Object.keys(typing).at(0)).toMatch(emailRegex);
+
+            const domainErrors = result[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}expensify.com`].memberErrors as Record<string, unknown>;
+            expect(Object.keys(domainErrors).at(0)).not.toBe('member@example.com');
+            expect(Object.keys(domainErrors).at(0)).toMatch(emailRegex);
+        });
+    });
+
     it('should mask session details by default', () => {
         const input = {session: mockSession};
         const result = maskOnyxState(input) as ExampleOnyxState;
@@ -376,6 +463,13 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.ONFIDO_APPLICANT_ID,
             ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
             ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
+            ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
+            ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
+            ONYXKEYS.COLLECTION.NEXT_STEP,
+            ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
+            ONYXKEYS.WALLET_TERMS,
+            ONYXKEYS.VALIDATE_ACTION_CODE,
+            ONYXKEYS.NVP_INTRO_SELECTED,
         ];
 
         for (const sensitiveKey of knownSensitiveKeys) {
