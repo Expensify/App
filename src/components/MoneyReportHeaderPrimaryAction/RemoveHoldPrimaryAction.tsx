@@ -52,6 +52,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 if (!moneyRequestAction) {
                     return;
                 }
+
                 const linkedTransaction = getLinkedIOUTransaction(moneyRequestAction, transactions);
                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
                 changeMoneyRequestHoldStatus(moneyRequestAction, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
