@@ -33,6 +33,9 @@ type VideoStatus = 'video' | 'animation';
 
 const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
 
+// Vertical gap between the pagination dots and the bottom edge of the illustration container.
+const PAGINATION_DOTS_BOTTOM_OFFSET = 12;
+
 type FeatureTrainingModalBodyProps = BaseFeatureTrainingModalProps &
     FeatureTrainingModalPageProps & {
         /** Padding for the modal */
@@ -197,7 +200,7 @@ function FeatureTrainingModalBody({
                 {!!paginationDots && (
                     <View
                         pointerEvents="none"
-                        style={[styles.pAbsolute, styles.flexRow, styles.justifyContentCenter, styles.w100, styles.l0, styles.r0, {bottom: 12}]}
+                        style={[styles.pAbsolute, styles.flexRow, styles.justifyContentCenter, styles.w100, styles.l0, styles.r0, {bottom: PAGINATION_DOTS_BOTTOM_OFFSET}]}
                     >
                         {paginationDots}
                     </View>

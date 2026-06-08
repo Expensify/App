@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
@@ -30,45 +30,45 @@ function AIFeaturesPromoModal() {
         </View>
     );
 
-    const pages = useMemo<FeatureTrainingModalPageProps[]>(
-        () => [
-            {
-                animation: LottieAnimations.SpendAnalysis,
-                title: translate('aiFeaturesPromoModal.spendAnalysis.title'),
-                subtitle: translate('aiFeaturesPromoModal.subtitle'),
-                description: translate('aiFeaturesPromoModal.spendAnalysis.description'),
-                confirmText: translate('common.next'),
-            },
-            {
-                animation: LottieAnimations.ExpenseAssistant,
-                title: translate('aiFeaturesPromoModal.expenseAssistant.title'),
-                subtitle: translate('aiFeaturesPromoModal.subtitle'),
-                description: translate('aiFeaturesPromoModal.expenseAssistant.description'),
-                confirmText: canUseCustomAgent ? translate('common.next') : translate('aiFeaturesPromoModal.confirmText'),
-            },
-            ...(canUseCustomAgent
-                ? [
-                      {
-                          animation: LottieAnimations.CustomAgents,
-                          title: customAgentPromoTitle,
-                          subtitle: translate('aiFeaturesPromoModal.subtitle'),
-                          description: translate('aiFeaturesPromoModal.customAgents.description'),
-                          confirmText: translate('aiFeaturesPromoModal.confirmText'),
-                      },
-                  ]
-                : []),
-        ],
-        [translate, canUseCustomAgent],
-    );
+    const pages: FeatureTrainingModalPageProps[] = [
+        {
+            animation: LottieAnimations.SpendAnalysis,
+            title: translate('aiFeaturesPromoModal.spendAnalysis.title'),
+            subtitle: translate('aiFeaturesPromoModal.subtitle'),
+            description: translate('aiFeaturesPromoModal.spendAnalysis.description'),
+            confirmText: translate('common.next'),
+        },
+        {
+            animation: LottieAnimations.ExpenseAssistant,
+            title: translate('aiFeaturesPromoModal.expenseAssistant.title'),
+            subtitle: translate('aiFeaturesPromoModal.subtitle'),
+            description: translate('aiFeaturesPromoModal.expenseAssistant.description'),
+            confirmText: canUseCustomAgent ? translate('common.next') : translate('aiFeaturesPromoModal.confirmText'),
+        },
+        ...(canUseCustomAgent
+            ? [
+                  {
+                      animation: LottieAnimations.CustomAgents,
+                      title: customAgentPromoTitle,
+                      subtitle: translate('aiFeaturesPromoModal.subtitle'),
+                      description: translate('aiFeaturesPromoModal.customAgents.description'),
+                      confirmText: translate('aiFeaturesPromoModal.confirmText'),
+                  },
+              ]
+            : []),
+    ];
+
+    const wasDismissedViaConfirmRef = useRef(false);
 
     const onConfirm = () => {
-        Log.hmmm('[AIFeaturesPromoModal] onConfirm called, dismissing product training');
-        dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL);
+        Log.hmmm('[AIFeaturesPromoModal] onConfirm called, recording click dismissal');
+        wasDismissedViaConfirmRef.current = true;
     };
 
     const onClose = () => {
-        Log.hmmm('[AIFeaturesPromoModal] onClose called, dismissing product training');
-        dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, true);
+        const isCloseButtonDismissal = !wasDismissedViaConfirmRef.current;
+        Log.hmmm(`[AIFeaturesPromoModal] onClose called, dismissing product training via ${isCloseButtonDismissal ? 'x' : 'click'}`);
+        dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, isCloseButtonDismissal);
     };
 
     return (

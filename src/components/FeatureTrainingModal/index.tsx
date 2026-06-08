@@ -1,6 +1,8 @@
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
+// We import these types directly from react-native because they are not re-exported by the project's
+// preferred wrappers (FlatList/ScrollView are also re-exported wrappers).
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, FlatList as RNFlatList, ScrollView as RNScrollView, StyleProp, TextStyle, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
 import type {MergeExclusive} from 'type-fest';
@@ -250,7 +252,7 @@ function FeatureTrainingModal({
     useEffect(() => {
         onPageChangeRef.current = onPageChange;
     }, [onPageChange]);
-    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]}) => {
         const entry = viewableItems.at(0);
         if (entry?.index == null || entry.index === lastReportedPage.current) {
             return;
@@ -258,13 +260,15 @@ function FeatureTrainingModal({
         lastReportedPage.current = entry.index;
         setCurrentPage(entry.index);
         onPageChangeRef.current?.(entry.index);
-    }, []);
+    };
 
     const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
     const carouselPaginationDots = isCarousel
         ? pages.map((_page, index) => (
               <View
+                  // Pagination dots are purely presentational indicators whose count derives from `pages` —
+                  // the array is static for the modal's lifetime, so the index is a stable key.
                   // eslint-disable-next-line react/no-array-index-key
                   key={`carousel-dot-${index}`}
                   style={StyleUtils.getFeatureTrainingCarouselDotStyle(CAROUSEL_DOT_SIZE, theme.highlightBG, index === currentPage)}
