@@ -1,6 +1,5 @@
 import type {ViewStyle} from 'react-native';
-
-type ChartExplicitSize = {width: number; height: number};
+import type {ChartExplicitSize} from 'victory-native';
 
 /**
  * Resolves the chart's design width for overlay layout (e.g. legend centering).
