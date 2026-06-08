@@ -121,7 +121,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                                 />
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                                 {!!item.ownerDisplayName && (
                                     <>
                                         {!!item.ownerAccountID && (
