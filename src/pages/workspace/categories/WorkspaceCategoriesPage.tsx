@@ -600,7 +600,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 />
             </View>
         );
-    }, [policyHasAccountingConnections, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.textSupporting, styles.textNormal, translate, environmentURL, policyId]);
+    }, [
+        policyHasAccountingConnections,
+        styles.renderHTML,
+        styles.textAlignCenter,
+        styles.alignItemsCenter,
+        styles.textSupporting,
+        styles.textNormal,
+        translate,
+        environmentURL,
+        policyId,
+        canWriteCategories,
+    ]);
 
     return (
         <AccessOrNotFoundWrapper
