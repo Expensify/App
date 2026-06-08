@@ -39,7 +39,9 @@ function useCopyPolicySettingsProgressModal() {
             onConfirm: () => {
                 clearCopyPolicySettings();
             },
-            onCancel: () => {},
+            onCancel: () => {
+                clearCopyPolicySettings();
+            },
         };
     }
 
@@ -105,6 +107,7 @@ function CopyPolicySettingsProgressModal() {
             cancelText={cancelText}
             shouldShowCancelButton={shouldShowCancelButton}
             isTitleLoading={isTitleLoading}
+            shouldHandleNavigationBack={isVisible}
             success
         />
     );
