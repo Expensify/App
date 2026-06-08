@@ -20,8 +20,8 @@ To claim a private domain, you must:
 - Have verified your contact method with a magic code
 
 1. From the left-hand menu, select **Workspaces**, then select the **Domains** tab.
-2. Click the **New domain** button.
-   - If you have already claimed one or more domains, click the **New** button in the upper-right corner to add a new domain.
+2. Click **New domain**.
+   - If you have already claimed one or more domains, click **New** in the upper right to add a new domain.
 3. Enter the name of your private domain (e.g., `yourcompany.com`) in the form.
 4. Click **Continue**.
 
@@ -34,7 +34,7 @@ If you haven't claimed a domain yet, you'll see an empty state titled **Enhance 
 Each domain is listed in its own row, showing:
 - Domain name
 - Verification status (Verified, Not verified)
-- A three dots menu **(⋮)** with management options
+- The three dots **(⋮)** with management options
 
 ## What happens after claiming a domain?
 
