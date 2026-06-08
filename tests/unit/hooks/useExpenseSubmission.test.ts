@@ -5,7 +5,6 @@ import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpens
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportAction, Transaction} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockRequestMoneyAction = jest.fn();
@@ -120,7 +119,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         isDraftPolicy: false,
         currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@test.com', email: 'me@test.com'},
         personalDetails: {},
-        participants: [{accountID: 42, login: 'them@test.com'}],
+        participants: [{accountID: 42, login: 'them@test.com', selected: true}],
         iouType: CONST.IOU.TYPE.REQUEST,
         action: CONST.IOU.ACTION.CREATE,
         requestType: undefined,
@@ -140,8 +139,6 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
     };
 }
 
-const PARTICIPANTS: Participant[] = [{accountID: 42, login: 'them@test.com'}];
-
 describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -160,7 +157,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(PARTICIPANTS, false, false);
+                result.current.createTransaction(false, false);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -179,7 +176,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(PARTICIPANTS, false, true);
+                result.current.createTransaction(false, true);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -220,7 +217,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(PARTICIPANTS, false, true);
+                result.current.createTransaction(false, true);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -240,7 +237,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(PARTICIPANTS, false, true);
+                result.current.createTransaction(false, true);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -255,7 +252,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(PARTICIPANTS, false, false);
+                result.current.createTransaction(false, false);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -274,7 +271,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(PARTICIPANTS, false, true);
+                result.current.createTransaction(false, true);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -289,7 +286,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(PARTICIPANTS, false, true);
+                result.current.createTransaction(false, true);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -315,7 +312,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(PARTICIPANTS, false, true);
+            result.current.createTransaction(false, true);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -343,7 +340,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(PARTICIPANTS, false, true);
+            result.current.createTransaction(false, true);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -365,7 +362,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(PARTICIPANTS, false, true);
+            result.current.createTransaction(false, true);
         });
         await waitForBatchedUpdatesWithAct();
 
