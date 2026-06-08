@@ -82,7 +82,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {currentSearchResults} = useSearchResultsContext();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const currentUserDetails = useCurrentUserPersonalDetails();
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
@@ -142,10 +142,15 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
         const isInvoice = isInvoiceReport(reportItem) || reportItem.type === CONST.REPORT.TYPE.INVOICE;
         return reportItem?.transactions?.some((transaction) => {
+            const currentUserPersonalDetails = {
+                accountID: currentUserDetails.accountID,
+                email: currentUserDetails.email,
+            };
+
             const relevantViolations = (transaction.violations ?? []).filter(
                 (violation) =>
-                    !isViolationDismissed(transaction, violation, currentUserEmail ?? '', currentUserAccountID, reportForViolations, policyForViolations) &&
-                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserEmail ?? '', false, transaction),
+                    !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
+                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transaction),
             );
 
             const violations = syncMissingAttendeesViolation(
@@ -153,14 +158,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 policyCategories,
                 transaction.category ?? '',
                 transaction.attendees,
-                {accountID: currentUserAccountID, email: currentUserEmail},
+                currentUserPersonalDetails,
                 isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );
             return violations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         });
-    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserAccountID, currentUserEmail]);
+    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails.accountID, currentUserDetails.email]);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -208,7 +213,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
-            currentUserAccountID,
+            currentUserAccountID: currentUserDetails.accountID,
         });
     }, [
         currentSearchHash,
@@ -233,7 +238,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         amountOwed,
         showConfirmModal,
         translate,
-        currentUserAccountID,
+        currentUserDetails.accountID,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
