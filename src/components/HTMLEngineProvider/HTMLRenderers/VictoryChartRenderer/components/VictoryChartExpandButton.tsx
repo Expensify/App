@@ -1,4 +1,5 @@
 import React from 'react';
+import {StyleSheet, View} from 'react-native';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,14 +16,19 @@ function VictoryChartExpandButton({onPress}: VictoryChartExpandButtonProps) {
     const {translate} = useLocalize();
 
     return (
-        <IconButton
-            src={icons.Expand}
-            style={[styles.videoExpandButton, styles.chartExpandButton]}
-            tooltipText={translate('videoPlayer.expand')}
-            onPress={onPress}
-            small
-            sentryLabel={CONST.SENTRY_LABEL.VICTORY_CHART.EXPAND_BUTTON}
-        />
+        <View
+            style={[StyleSheet.absoluteFillObject, styles.pointerEventsBoxNone, styles.chartExpandButtonOverlay]}
+            testID="victory-chart-expand-button-overlay"
+        >
+            <IconButton
+                src={icons.Expand}
+                style={[styles.videoExpandButton, styles.chartExpandButton]}
+                tooltipText={translate('videoPlayer.expand')}
+                onPress={onPress}
+                small
+                sentryLabel={CONST.SENTRY_LABEL.VICTORY_CHART.EXPAND_BUTTON}
+            />
+        </View>
     );
 }
 

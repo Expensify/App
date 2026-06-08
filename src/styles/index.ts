@@ -5399,6 +5399,11 @@ const staticStyles = (theme: ThemeColors) =>
             elevation: 10,
         },
 
+        chartExpandButtonOverlay: {
+            zIndex: 100,
+            elevation: 100,
+        },
+
         videoPlayerTimeComponentWidth: {
             width: 40,
         },

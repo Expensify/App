@@ -1,8 +1,9 @@
 import React from 'react';
+import {StyleSheet, View} from 'react-native';
 import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import VictoryChartExpandButton from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartExpandButton';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {VictoryChartContainerLayout, VictoryChartContainerThemeStyles} from './types';
 
 type VictoryChartContainerFixedProps = {
@@ -13,6 +14,7 @@ type VictoryChartContainerFixedProps = {
 };
 
 function VictoryChartContainerFixed({children, layout, themeStyles, onExpandPress}: VictoryChartContainerFixedProps) {
+    const styles = useThemeStyles();
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     const {backgroundColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
     const layoutKind = layout.kind;
@@ -22,20 +24,19 @@ function VictoryChartContainerFixed({children, layout, themeStyles, onExpandPres
     const scaledScale = layout.kind === 'scaled' ? layout.scale : undefined;
     const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
 
-    const containerStyleBase: ViewStyle[] = [themeStyles?.mw100, themeStyles?.container, layoutContainerStyles].filter((style): style is ViewStyle => !!style);
-    let containerStyle: ViewStyle[] = containerStyleBase;
+    const shellStyleBase: ViewStyle[] = [themeStyles?.mw100, themeStyles?.container, layoutContainerStyles, styles.pRelative].filter((style): style is ViewStyle => !!style);
+    let shellStyle: ViewStyle[] = shellStyleBase;
 
     if (layoutKind === 'fixed' && fixedWidth !== undefined && fixedHeight !== undefined) {
-        containerStyle = [...containerStyleBase, {width: fixedWidth, height: fixedHeight, borderRadius: 0, overflow: 'hidden'}];
+        shellStyle = [...shellStyleBase, {width: fixedWidth, height: fixedHeight, borderRadius: 0}];
     } else if (layoutKind === 'scaled' && scaledDesignHeight !== undefined && scaledScale !== undefined) {
-        containerStyle = [
-            ...containerStyleBase,
+        shellStyle = [
+            ...shellStyleBase,
             {
                 borderRadius: 0,
                 width: designWidth !== undefined ? designWidth * scaledScale : undefined,
                 height: scaledDesignHeight * scaledScale,
                 alignSelf: 'flex-start',
-                overflow: 'hidden',
             },
         ];
     }
@@ -52,9 +53,19 @@ function VictoryChartContainerFixed({children, layout, themeStyles, onExpandPres
         contentStyle.push({transform: [{scale: scaledScale}], transformOrigin: 'top left'});
     }
 
+    const clipStyle: ViewStyle =
+        layoutKind === 'fluid'
+            ? {overflow: 'hidden'}
+            : {
+                  ...StyleSheet.absoluteFillObject,
+                  overflow: 'hidden',
+              };
+
     return (
-        <View style={containerStyle}>
-            <View style={contentStyle}>{children}</View>
+        <View style={shellStyle}>
+            <View style={clipStyle}>
+                <View style={contentStyle}>{children}</View>
+            </View>
             {onExpandPress && <VictoryChartExpandButton onPress={onExpandPress} />}
         </View>
     );

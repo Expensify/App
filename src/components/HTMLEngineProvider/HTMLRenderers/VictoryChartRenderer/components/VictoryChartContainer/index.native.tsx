@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import VictoryChartExpandButton from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartExpandButton';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
@@ -35,14 +35,19 @@ function VictoryChartContainer({children, onExpandPress}: VictoryChartContainerP
         ? [chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const, transform: [{scale}], transformOrigin: 'top left' as const}]
         : [styles.chartContent, chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const}];
 
-    const containerStyle =
-        hasExplicitDimensions && designHeight && designWidth
-            ? [{width: designWidth * scale, height: designHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const}]
-            : [styles.chartContainer, styles.mw100, layoutContainerStyles];
+    const shellStyle = hasExplicitDimensions && designHeight && designWidth
+        ? [{width: designWidth * scale, height: designHeight * scale, alignSelf: 'flex-start' as const}, styles.pRelative]
+        : [styles.chartContainer, styles.mw100, layoutContainerStyles, styles.pRelative];
+
+    const clipStyle = hasExplicitDimensions
+        ? {...StyleSheet.absoluteFillObject, overflow: 'hidden' as const}
+        : {overflow: 'hidden' as const};
 
     return (
-        <View style={containerStyle}>
-            <View style={contentStyle}>{children}</View>
+        <View style={shellStyle}>
+            <View style={clipStyle}>
+                <View style={contentStyle}>{children}</View>
+            </View>
             {onExpandPress && <VictoryChartExpandButton onPress={onExpandPress} />}
         </View>
     );
