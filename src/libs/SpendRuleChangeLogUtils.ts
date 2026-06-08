@@ -275,6 +275,7 @@ function getDiffPhrases(
     noun: SpendRulePhraseNoun,
     getDisplayName: (value: string) => string,
     formatBody: (params: {adjective: string; value: string}) => string,
+    formatValueOnly: (params: {value: string}) => string,
     formatBodyChange: (params: {adjective: string; oldValue: string; newValue: string}) => string,
 ): SpendRulePhrase[] {
     const diffPhrases: SpendRulePhrase[] = [];
@@ -300,7 +301,7 @@ function getDiffPhrases(
                 noun,
                 bodyWithAdjective: formatBody({adjective: adjectiveWord, value: display}),
                 bodyWithoutAdjective: formatBody({adjective: '', value: display}),
-                bodyValueOnly: `'${display}'`,
+                bodyValueOnly: formatValueOnly({value: display}),
             });
         }
         for (const value of diff.removed) {
@@ -311,7 +312,7 @@ function getDiffPhrases(
                 noun,
                 bodyWithAdjective: formatBody({adjective: adjectiveWord, value: display}),
                 bodyWithoutAdjective: formatBody({adjective: '', value: display}),
-                bodyValueOnly: `'${display}'`,
+                bodyValueOnly: formatValueOnly({value: display}),
             });
         }
     }
@@ -377,6 +378,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
             'merchant',
             (value) => value,
             (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchant', params),
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchantValueOnly', params),
             (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchantChange', params),
         ),
         ...getDiffPhrases(
@@ -386,6 +388,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
             'spendCategory',
             (category) => getSpendRuleCategoryDisplayName(translate, category),
             (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', params),
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryValueOnly', params),
             (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', params),
         ),
     ];
