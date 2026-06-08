@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,7 @@ let dismissedProductTraining: OnyxEntry<DismissedProductTraining>;
 let isDismissedProductTrainingLoaded = false;
 
 let hasBeenAddedToNudgeMigration = false;
+let isHybridAppOnboardingCompleted: boolean | undefined;
 let isTryNewDotLoaded = false;
 
 let onboarding: OnyxEntry<Onboarding>;
@@ -32,18 +34,20 @@ let hasRedirectedToAIFeaturesPromoModal = false;
  * Same-session protection.
  *
  * Per the issue requirements, the AI features promo modal must not appear in the same
- * session as the migration welcome modal or the onboarding flow. These flags trip when
- * we observe either of those modals being "active" (pending dismissal / not yet
- * completed) at any point during this process lifetime, and suppress the AI promo for
- * the rest of the session.
+ * session as the migration welcome modal, the onboarding flow, or the HybridApp
+ * explanation modal. These flags trip when we observe any of those modals being
+ * "active" (pending dismissal / not yet completed) at any point during this process
+ * lifetime, and suppress the AI promo for the rest of the session.
  */
 let observedActiveMigrationModalThisSession = false;
 let observedActiveOnboardingThisSession = false;
+let observedActiveExplanationModalThisSession = false;
 
 function resetSessionFlag() {
     hasRedirectedToAIFeaturesPromoModal = false;
     observedActiveMigrationModalThisSession = false;
     observedActiveOnboardingThisSession = false;
+    observedActiveExplanationModalThisSession = false;
 }
 
 /**
@@ -60,7 +64,8 @@ function navigateToAIFeaturesPromoModalIfReady() {
         !isOnboardingLoaded ||
         isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) ||
         observedActiveMigrationModalThisSession ||
-        observedActiveOnboardingThisSession
+        observedActiveOnboardingThisSession ||
+        observedActiveExplanationModalThisSession
     ) {
         return;
     }
@@ -101,9 +106,14 @@ Onyx.connectWithoutView({
     callback: (value) => {
         const result = value ? tryNewDotOnyxSelector(value) : undefined;
         hasBeenAddedToNudgeMigration = result?.hasBeenAddedToNudgeMigration ?? false;
+        isHybridAppOnboardingCompleted = result?.isHybridAppOnboardingCompleted;
         isTryNewDotLoaded = true;
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, dismissedProductTraining)) {
             observedActiveMigrationModalThisSession = true;
+        }
+        // The HybridApp explanation modal shows when the user is transitioning from OldDot to NewDot.
+        if (CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false) {
+            observedActiveExplanationModalThisSession = true;
         }
         navigateToAIFeaturesPromoModalIfReady();
     },
