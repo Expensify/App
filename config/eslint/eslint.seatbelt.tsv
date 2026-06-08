@@ -1,6 +1,5 @@
 # eslint-seatbelt temporarily allowed errors
 # docs: https://github.com/justjake/eslint-seatbelt#readme
-
 "../../.github/actions/javascript/authorChecklist/categories/newComponentCategory.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../.github/actions/javascript/failureNotifier/failureNotifier.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/formatCodeCovComment/formatCodeCovComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -2060,6 +2059,7 @@
 "../../tests/utils/collections/card.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/collections/paymentMethods.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/collections/reportActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/createSharedValueMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/getIsUsingFakeTimers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../webpack/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

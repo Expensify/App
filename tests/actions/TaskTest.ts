@@ -29,6 +29,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+import createMock from '../utils/createMock';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -977,14 +978,14 @@ describe('actions/Task', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            const parentReportAction = {
+            const parentReportAction = createMock<OnyxEntry<ReportAction>>({
                 reportActionID: mockParentReportActionID,
                 reportID: mockParentReportID,
                 childReportID: mockTaskReportID,
                 childType: CONST.REPORT.TYPE.TASK,
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as OnyxEntry<ReportAction>;
+            });
 
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTaskReportID}`, taskReport);
@@ -1443,11 +1444,11 @@ describe('actions/Task', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            const parentReportAction = {
+            const parentReportAction = createMock<OnyxEntry<ReportAction>>({
                 reportActionID: parentReportActionID,
                 reportID: parentReportID,
                 childReportID: taskReportID,
-            } as OnyxEntry<ReportAction>;
+            });
 
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);

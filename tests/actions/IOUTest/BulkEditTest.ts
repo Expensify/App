@@ -9,6 +9,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1621,7 +1622,7 @@ describe('actions/IOU/BulkEdit', () => {
             };
 
             // Report action has childReportID pointing to a different thread
-            const reportActions = {
+            const reportActions = createMock<OnyxCollection<ReportActions>>({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`]: {
                     [reportActionID]: {
                         reportActionID,
@@ -1634,7 +1635,7 @@ describe('actions/IOU/BulkEdit', () => {
                         created: '2026-01-01 00:00:00',
                     },
                 },
-            } as OnyxCollection<ReportActions>;
+            });
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
