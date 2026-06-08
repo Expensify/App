@@ -498,7 +498,10 @@ function PureReportActionItem({
                             }
                             Keyboard.dismiss();
                         }}
-                        style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
+                        style={[
+                            styles.textAlignLeft,
+                            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto,
+                        ]}
                         onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onSecondaryInteraction={showPopover}
@@ -673,6 +676,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
         prevProps.report?.policyAvatar === nextProps.report?.policyAvatar &&
         prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
+        prevProps.shouldDisplayContextMenu === nextProps.shouldDisplayContextMenu &&
         deepEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
         deepEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
         deepEqual(prevParentReportAction, nextParentReportAction) &&

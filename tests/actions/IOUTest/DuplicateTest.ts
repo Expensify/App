@@ -776,6 +776,10 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                    [duplicate2ID]: childReportID2,
+                },
             };
 
             // When: Call resolveDuplicates
@@ -867,6 +871,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID: 'report123',
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates with undefined transactionID
@@ -909,6 +914,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates with empty duplicate list
@@ -965,6 +971,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates without IOU actions
@@ -1041,6 +1048,9 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID: reportA,
+                transactionThreadReportIDMap: {
+                    [crossReportDuplicateID]: childReportIDCross,
+                },
             };
 
             // When: Call resolveDuplicates with cross-report duplicates
@@ -1163,7 +1173,6 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1227,7 +1236,6 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1283,7 +1291,6 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1332,7 +1339,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1381,7 +1387,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1433,7 +1438,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1495,7 +1499,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1542,7 +1545,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1582,7 +1584,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1625,7 +1626,6 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1674,7 +1674,6 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1739,7 +1738,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1804,7 +1802,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1853,7 +1850,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1913,7 +1909,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -1995,6 +1990,9 @@ describe('actions/Duplicate', () => {
                         reimbursable: true,
                         tag: '',
                         transactionIDList: [transaction2.transactionID],
+                        transactionThreadReportIDMap: {
+                            [transaction2.transactionID]: 'transactionThread-2',
+                        },
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2082,7 +2080,6 @@ describe('actions/Duplicate', () => {
             currentUserAccountID: RORY_ACCOUNT_ID,
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
-            conciergeReportID: undefined,
             ...overrides,
         });
 
@@ -2650,7 +2647,6 @@ describe('actions/Duplicate', () => {
                 transactionDrafts: undefined,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
-                conciergeReportID: undefined,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
@@ -2737,7 +2733,10 @@ describe('actions/Duplicate', () => {
                 reportID: id,
                 policyID: undefined,
                 action: CONST.SEARCH.ACTION_TYPES.DONE,
-                allActions: [CONST.SEARCH.ACTION_TYPES.DONE],
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
                 total: 0,
                 chatReportID: undefined,
             })),
@@ -2764,7 +2763,6 @@ describe('actions/Duplicate', () => {
             transactionViolations: {},
             translate: mockTranslate,
             recentWaypoints: [],
-            conciergeReportID: undefined,
             ...overrides,
         });
 
