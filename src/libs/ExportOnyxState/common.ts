@@ -748,4 +748,4 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     }
 };
 
-export {maskOnyxState, maskFragileData, emailRegex, ONYX_KEY_EXPORT_RULES, onyxKeysToRemove, safeOnyxKeys, onyxKeysToMaskFragileData};
+export {maskOnyxState, emailRegex, ONYX_KEY_EXPORT_RULES, onyxKeysToRemove, safeOnyxKeys, onyxKeysToMaskFragileData};
