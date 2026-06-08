@@ -9,6 +9,7 @@ import type {PartialDeep, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
 import type {
@@ -60,7 +61,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
 import * as CollectionUtils from '@libs/CollectionUtils';
-import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as Environment from '@libs/Environment/Environment';
@@ -678,7 +678,7 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string | undefined) {
 
 /**
  * Subscribe to conciergeReasoning Pusher events for a report.
- * Tracks subscriptions to avoid duplicates and updates ConciergeReasoningStore with reasoning data.
+ * Tracks subscriptions to avoid duplicates and updates AgentZeroReasoningStore with reasoning data.
  */
 function subscribeToReportReasoningEvents(reportID: string) {
     if (!reportID || reasoningSubscriptions.has(reportID)) {
@@ -694,7 +694,7 @@ function subscribeToReportReasoningEvents(reportID: string) {
         // Older backends omit actorAccountID; those payloads default to Concierge.
         const agentAccountID = typeof eventData.actorAccountID === 'number' && eventData.actorAccountID > 0 ? eventData.actorAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
-        ConciergeReasoningStore.addReasoning(reportID, agentAccountID, {
+        AgentZeroReasoningStore.addReasoning(reportID, agentAccountID, {
             reasoning: eventData.reasoning,
             agentZeroRequestID: eventData.agentZeroRequestID,
             loopCount: eventData.loopCount,
@@ -724,7 +724,7 @@ function unsubscribeFromReportReasoningChannel(reportID: string) {
     // Use the per-callback handle for precise cleanup instead of the global
     // Pusher.unsubscribe which removes ALL callbacks for the event on the channel.
     handle.unsubscribe();
-    ConciergeReasoningStore.clearReportReasoning(reportID);
+    AgentZeroReasoningStore.clearReportReasoning(reportID);
     reasoningSubscriptions.delete(reportID);
 }
 
@@ -736,7 +736,7 @@ function unsubscribeFromReportReasoningChannel(reportID: string) {
  */
 function clearAgentZeroProcessingIndicator(reportID: string, agentAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: {[agentAccountID]: null}});
-    ConciergeReasoningStore.clearReasoning(reportID, agentAccountID);
+    AgentZeroReasoningStore.clearReasoning(reportID, agentAccountID);
 }
 
 // New action subscriber array for report pages

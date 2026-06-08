@@ -3,8 +3,8 @@ import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 're
 import type {OnyxEntry} from 'react-native-onyx';
 import {clearAgentZeroProcessingIndicator, getNewerActions} from '@libs/actions/Report';
 import AgentZeroOptimisticStore, {MAX_AGE_MS as OPTIMISTIC_MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
-import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
+import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
+import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportNameValuePairs} from '@src/types/onyx';
@@ -225,11 +225,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         },
     });
 
-    // Subscribe to ConciergeReasoningStore using useSyncExternalStore for correct
+    // Subscribe to AgentZeroReasoningStore using useSyncExternalStore for correct
     // synchronization with React's render cycle. React Compiler memoizes these closures
     // based on reportID, so useSyncExternalStore doesn't unsubscribe/resubscribe on every render.
     const subscribeToReasoningStore = (onStoreChange: () => void) => {
-        const unsubscribe = ConciergeReasoningStore.subscribe((updatedReportID, updatedAgentAccountID) => {
+        const unsubscribe = AgentZeroReasoningStore.subscribe((updatedReportID, updatedAgentAccountID) => {
             if (updatedReportID !== reportID || updatedAgentAccountID !== agentAccountID) {
                 return;
             }
@@ -237,7 +237,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         });
         return unsubscribe;
     };
-    const getReasoningSnapshot = () => ConciergeReasoningStore.getReasoningHistory(reportID, agentAccountID);
+    const getReasoningSnapshot = () => AgentZeroReasoningStore.getReasoningHistory(reportID, agentAccountID);
     const reasoningHistory = useSyncExternalStore(subscribeToReasoningStore, getReasoningSnapshot, getReasoningSnapshot);
 
     // Synchronize the displayed label with debounce and minimum display time.
@@ -268,7 +268,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         else {
             clearSafetyTimer();
             if (hadServerLabel && reasoningHistory.length > 0) {
-                ConciergeReasoningStore.clearReasoning(reportID, agentAccountID);
+                AgentZeroReasoningStore.clearReasoning(reportID, agentAccountID);
             }
         }
 

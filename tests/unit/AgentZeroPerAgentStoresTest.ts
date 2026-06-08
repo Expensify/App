@@ -1,5 +1,5 @@
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
-import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
+import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 
 const REPORT = '1001';
 const AGENT_A = 111;
@@ -42,37 +42,37 @@ describe('AgentZeroOptimisticStore (per-agent keying)', () => {
     });
 });
 
-describe('ConciergeReasoningStore (per-agent keying)', () => {
+describe('AgentZeroReasoningStore (per-agent keying)', () => {
     afterEach(() => {
-        ConciergeReasoningStore.clearReportReasoning(REPORT);
+        AgentZeroReasoningStore.clearReportReasoning(REPORT);
     });
 
     it('stores reasoning history per agent', () => {
-        ConciergeReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'A thinks', agentZeroRequestID: 'req-A', loopCount: 1});
-        ConciergeReasoningStore.addReasoning(REPORT, AGENT_B, {reasoning: 'B thinks', agentZeroRequestID: 'req-B', loopCount: 1});
-        expect(ConciergeReasoningStore.getReasoningHistory(REPORT, AGENT_A).map((entry) => entry.reasoning)).toEqual(['A thinks']);
-        expect(ConciergeReasoningStore.getReasoningHistory(REPORT, AGENT_B).map((entry) => entry.reasoning)).toEqual(['B thinks']);
+        AgentZeroReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'A thinks', agentZeroRequestID: 'req-A', loopCount: 1});
+        AgentZeroReasoningStore.addReasoning(REPORT, AGENT_B, {reasoning: 'B thinks', agentZeroRequestID: 'req-B', loopCount: 1});
+        expect(AgentZeroReasoningStore.getReasoningHistory(REPORT, AGENT_A).map((entry) => entry.reasoning)).toEqual(['A thinks']);
+        expect(AgentZeroReasoningStore.getReasoningHistory(REPORT, AGENT_B).map((entry) => entry.reasoning)).toEqual(['B thinks']);
     });
 
     it('resets an agent history when a new agentZeroRequestID arrives', () => {
-        ConciergeReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'old', agentZeroRequestID: 'req-1', loopCount: 1});
-        ConciergeReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'new', agentZeroRequestID: 'req-2', loopCount: 1});
-        expect(ConciergeReasoningStore.getReasoningHistory(REPORT, AGENT_A).map((entry) => entry.reasoning)).toEqual(['new']);
+        AgentZeroReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'old', agentZeroRequestID: 'req-1', loopCount: 1});
+        AgentZeroReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'new', agentZeroRequestID: 'req-2', loopCount: 1});
+        expect(AgentZeroReasoningStore.getReasoningHistory(REPORT, AGENT_A).map((entry) => entry.reasoning)).toEqual(['new']);
     });
 
     it('clears only the targeted agent', () => {
-        ConciergeReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'A thinks', agentZeroRequestID: 'req-A', loopCount: 1});
-        ConciergeReasoningStore.addReasoning(REPORT, AGENT_B, {reasoning: 'B thinks', agentZeroRequestID: 'req-B', loopCount: 1});
-        ConciergeReasoningStore.clearReasoning(REPORT, AGENT_A);
-        expect(ConciergeReasoningStore.getReasoningHistory(REPORT, AGENT_A)).toEqual([]);
-        expect(ConciergeReasoningStore.getReasoningHistory(REPORT, AGENT_B).map((entry) => entry.reasoning)).toEqual(['B thinks']);
+        AgentZeroReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'A thinks', agentZeroRequestID: 'req-A', loopCount: 1});
+        AgentZeroReasoningStore.addReasoning(REPORT, AGENT_B, {reasoning: 'B thinks', agentZeroRequestID: 'req-B', loopCount: 1});
+        AgentZeroReasoningStore.clearReasoning(REPORT, AGENT_A);
+        expect(AgentZeroReasoningStore.getReasoningHistory(REPORT, AGENT_A)).toEqual([]);
+        expect(AgentZeroReasoningStore.getReasoningHistory(REPORT, AGENT_B).map((entry) => entry.reasoning)).toEqual(['B thinks']);
     });
 
     it('clears every agent in a report on clearReportReasoning', () => {
-        ConciergeReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'A thinks', agentZeroRequestID: 'req-A', loopCount: 1});
-        ConciergeReasoningStore.addReasoning(REPORT, AGENT_B, {reasoning: 'B thinks', agentZeroRequestID: 'req-B', loopCount: 1});
-        ConciergeReasoningStore.clearReportReasoning(REPORT);
-        expect(ConciergeReasoningStore.getReasoningHistory(REPORT, AGENT_A)).toEqual([]);
-        expect(ConciergeReasoningStore.getReasoningHistory(REPORT, AGENT_B)).toEqual([]);
+        AgentZeroReasoningStore.addReasoning(REPORT, AGENT_A, {reasoning: 'A thinks', agentZeroRequestID: 'req-A', loopCount: 1});
+        AgentZeroReasoningStore.addReasoning(REPORT, AGENT_B, {reasoning: 'B thinks', agentZeroRequestID: 'req-B', loopCount: 1});
+        AgentZeroReasoningStore.clearReportReasoning(REPORT);
+        expect(AgentZeroReasoningStore.getReasoningHistory(REPORT, AGENT_A)).toEqual([]);
+        expect(AgentZeroReasoningStore.getReasoningHistory(REPORT, AGENT_B)).toEqual([]);
     });
 });

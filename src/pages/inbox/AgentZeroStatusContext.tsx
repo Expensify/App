@@ -6,7 +6,7 @@ import React, {createContext, useContext, useEffect} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
+import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -114,7 +114,17 @@ function AgentZeroStatusGate({reportID, includeConcierge, children}: React.Props
     if (currentUserAccountID !== undefined) {
         candidateIDs.delete(currentUserAccountID);
     }
-    const candidateAgentIDs = [...candidateIDs];
+    // Render Concierge's bubble first, then any custom agents ascending by accountID — a stable,
+    // intentional order instead of relying on Set insertion order.
+    const candidateAgentIDs = [...candidateIDs].sort((a, b) => {
+        if (a === CONST.ACCOUNT_ID.CONCIERGE) {
+            return -1;
+        }
+        if (b === CONST.ACCOUNT_ID.CONCIERGE) {
+            return 1;
+        }
+        return a - b;
+    });
 
     const stateValue = {candidateAgentIDs};
     const actionsValue = {kickoffWaitingIndicator};

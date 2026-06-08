@@ -6,7 +6,7 @@ import Onyx from 'react-native-onyx';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
-import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
+import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {setForceOffline} from '@libs/NetworkState';
 import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import CONST from '@src/CONST';
@@ -45,9 +45,9 @@ const mockUnsubscribeFromReportReasoningChannel = unsubscribeFromReportReasoning
 
 const reportID = '123';
 
-/** Simulates a reasoning event for Concierge via ConciergeReasoningStore (the real store, since it's not mocked) */
+/** Simulates a reasoning event for Concierge via AgentZeroReasoningStore (the real store, since it's not mocked) */
 function simulateReasoning(data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) {
-    ConciergeReasoningStore.addReasoning(reportID, CONST.ACCOUNT_ID.CONCIERGE, data);
+    AgentZeroReasoningStore.addReasoning(reportID, CONST.ACCOUNT_ID.CONCIERGE, data);
 }
 
 function wrapper({children}: {children: React.ReactNode}) {
@@ -61,8 +61,8 @@ describe('AgentZeroStatusContext', () => {
         jest.clearAllMocks();
         await Onyx.clear();
 
-        // Clear ConciergeReasoningStore between tests
-        ConciergeReasoningStore.clearReportReasoning(reportID);
+        // Clear AgentZeroReasoningStore between tests
+        AgentZeroReasoningStore.clearReportReasoning(reportID);
 
         // Clear AgentZeroOptimisticStore between tests so a leftover entry from a prior
         // test doesn't hydrate the next hook mount with unexpected optimistic state.
@@ -72,7 +72,7 @@ describe('AgentZeroStatusContext', () => {
         // so safety timeout and reconnect tests can verify the full clearing flow
         mockClearAgentZeroProcessingIndicator.mockImplementation((rID: string, agentAccountID: number) => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rID}`, {agentZeroProcessingRequestIndicator: {[agentAccountID]: null}});
-            ConciergeReasoningStore.clearReasoning(rID, agentAccountID);
+            AgentZeroReasoningStore.clearReasoning(rID, agentAccountID);
         });
 
         // Mark this report as Concierge by default
