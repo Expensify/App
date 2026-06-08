@@ -86,8 +86,12 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const navigateAfterCompletion = () => {
         if (isEditFlow) {
-            // In edit mode, always go directly to the Edit page when saving
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover));
+            // In edit mode, always go directly to the Edit page when saving.
+            // Don't compare params: when the workflow was opened from "Add agent", the mounted edit
+            // screen carries extra seed params, so a strict param match misses it and REPLACE mounts
+            // a fresh edit screen that re-derives the workflow from the policy — wiping the unsaved
+            // draft (the seeded agent and any in-progress edits). POP_TO returns to the live screen.
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover), {compareParams: false});
             return;
         }
         // Mark that we've completed the initial wizard flow before navigating to the summary page
