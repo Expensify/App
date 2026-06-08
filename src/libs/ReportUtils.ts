@@ -6063,7 +6063,7 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isPolicyNamePreferred = false, isReportArchived = false): string | undefined {
+function getChatRoomSubtitle(report: OnyxEntry<Report>, isPolicyNamePreferred = false, isReportArchived = false): string | undefined {
     if (isChatThread(report)) {
         return '';
     }
@@ -6084,12 +6084,13 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const submitToAccountID = getSubmitToAccountID(policy, report);
         const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
         const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
         if (!subtitle || !isPolicyNamePreferred) {
-            return getPolicyName({report, policy});
+            return getPolicyName({report});
         }
         return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', subtitle ?? '')}`;
     }
@@ -6097,7 +6098,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     if (isReportArchived) {
         return report?.oldPolicyName ?? '';
     }
-    return getPolicyName({report, policy});
+    return getPolicyName({report});
 }
 
 /**

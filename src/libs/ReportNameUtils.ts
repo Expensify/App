@@ -319,7 +319,8 @@ function getInvoicesChatName({
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
     personalDetails?: Partial<PersonalDetailsList>;
-    policy: OnyxEntry<Policy>;
+    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66415
+    policy?: OnyxEntry<Policy>;
     currentUserAccountID?: number;
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;

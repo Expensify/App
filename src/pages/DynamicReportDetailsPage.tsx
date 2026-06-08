@@ -246,14 +246,14 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const ancestors = useAncestors(report);
 
     const chatRoomSubtitle = useMemo(() => {
-        const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived);
+        const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
 
         if (subtitle) {
             return subtitle;
         }
 
         return '';
-    }, [isReportArchived, report, policy]);
+    }, [isReportArchived, report]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
