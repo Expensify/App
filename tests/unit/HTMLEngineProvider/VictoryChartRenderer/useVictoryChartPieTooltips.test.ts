@@ -12,7 +12,7 @@ describe('translateCursorToChartSpace', () => {
 
 describe('pie plot overlay hit-testing', () => {
     it('finds the correct slice when pointer coords are translated from the plot overlay', () => {
-        const pieGeometry = {centerX: 340, centerY: 265, radius: 145};
+        const pieGeometry = {centerX: 340, centerY: 265, radius: 145, innerRadius: 125};
         const overlayOrigin = {left: 195, top: 120};
         const data = [{label: 'Interest', total: 220}];
         const slices = processDataIntoSlices(data, pieGeometry, 270);

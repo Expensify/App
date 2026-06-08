@@ -1,7 +1,7 @@
 import {processDataIntoSlices} from '@components/Charts/utils';
 
 describe('processDataIntoSlices', () => {
-    const pieGeometry = {centerX: 340, centerY: 265, radius: 145};
+    const pieGeometry = {centerX: 340, centerY: 265, radius: 145, innerRadius: 0};
 
     it('sorts by descending value', () => {
         const data = [

@@ -1,12 +1,8 @@
-import React, {createContext, useContext, useMemo} from 'react';
+import React, {createContext, useContext} from 'react';
 import type {TNode} from 'react-native-render-html';
-import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import type {ChartDataPoint} from '@components/Charts/types';
-import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import type {BarGroupLayout, BarSeriesConfig, ChartType, ProcessNodeResult, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
-import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';
-import Log from '@libs/Log';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -29,7 +25,7 @@ type VictoryChartContextValue = {
     tooltipKeyToIndex: Record<string, number>;
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
-    type: ChartType | null;
+    type: ChartType;
 };
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
@@ -60,91 +56,67 @@ function buildPieTooltipData(entries: ProcessNodeResult['pieTooltipEntries']): C
     }));
 }
 
-/**
- * Parses the HTML tnode tree into chart config and makes it available to all chart sub-components.
- * Returns null when the chart data is invalid (no data points, or mixed cartesian/polar content).
- */
-function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
-    const typefaces = useChartTypefaces();
+type VictoryChartProviderProps = {
+    tnode: TNode;
+    processedResult: ProcessNodeResult;
+    type: ChartType;
+    children: React.ReactNode;
+};
 
-    const processedResult = useMemo(() => {
-        try {
-            return processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
-        } catch (error) {
-            // Malformed chart HTML can make a parser throw. Fail closed (render nothing) instead of crashing the whole report.
-            Log.warn('[VictoryChartProvider] Failed to process chart tree from malformed HTML', {error});
-            return null;
-        }
-    }, [tnode, typefaces.EXP_NEUE]);
+/** Supplies parsed chart config to chart sub-components. Callers must parse and validate the tnode first. */
+function VictoryChartProvider({tnode, processedResult, type, children}: VictoryChartProviderProps) {
+    const {
+        data,
+        xKey,
+        yKeys,
+        xAxis,
+        yAxis,
+        domain,
+        domainPadding,
+        padding,
+        isHorizontal,
+        categories,
+        labelItems,
+        legendItems,
+        barTooltipEntries,
+        barYKeys,
+        barSeriesConfig,
+        barGroupLayouts,
+        pieTooltipEntries,
+    } = processedResult;
+    const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
 
-    const chartStyles = useMemo(() => parseStyles(tnode), [tnode]);
+    const {tooltipData, tooltipKeyToIndex} =
+        barTooltipEntries.length > 0
+            ? buildBarTooltipLookup(barTooltipEntries)
+            : {
+                  tooltipData: buildPieTooltipData(pieTooltipEntries),
+                  tooltipKeyToIndex: {},
+              };
 
-    const contextValue = useMemo((): VictoryChartContextValue | null => {
-        if (!processedResult) {
-            return null;
-        }
-
-        const {
-            data,
-            xKey,
-            yKeys,
-            xAxis,
-            yAxis,
-            domain,
-            domainPadding,
-            padding,
-            isHorizontal,
-            categories,
-            labelItems,
-            legendItems,
-            barTooltipEntries,
-            barYKeys,
-            barSeriesConfig,
-            barGroupLayouts,
-            pieTooltipEntries,
-        } = processedResult;
-        const type = resolveVictoryChartType(data);
-
-        if (!type) {
-            return null;
-        }
-
-        const {tooltipData, tooltipKeyToIndex} =
-            barTooltipEntries.length > 0
-                ? buildBarTooltipLookup(barTooltipEntries)
-                : {
-                      tooltipData: buildPieTooltipData(pieTooltipEntries),
-                      tooltipKeyToIndex: {},
-                  };
-
-        return {
-            tnode,
-            data,
-            xKey,
-            yKeys,
-            xAxis,
-            yAxis,
-            domain,
-            domainPadding,
-            padding,
-            isHorizontal,
-            categories,
-            labelItems,
-            legendItems,
-            barYKeys,
-            barSeriesConfig,
-            barGroupLayouts,
-            tooltipData,
-            tooltipKeyToIndex,
-            chartContentStyles: chartStyles.nodeStyles,
-            chartContainerStyles: chartStyles.parentNodeStyles,
-            type,
-        };
-    }, [chartStyles, processedResult, tnode]);
-
-    if (!contextValue) {
-        return null;
-    }
+    const contextValue: VictoryChartContextValue = {
+        tnode,
+        data,
+        xKey,
+        yKeys,
+        xAxis,
+        yAxis,
+        domain,
+        domainPadding,
+        padding,
+        isHorizontal,
+        categories,
+        labelItems,
+        legendItems,
+        barYKeys,
+        barSeriesConfig,
+        barGroupLayouts,
+        tooltipData,
+        tooltipKeyToIndex,
+        chartContentStyles,
+        chartContainerStyles,
+        type,
+    };
 
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
 }

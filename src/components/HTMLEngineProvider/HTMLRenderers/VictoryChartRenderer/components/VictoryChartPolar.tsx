@@ -9,6 +9,8 @@ import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HT
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import useVictoryChartPieTooltips from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartPieTooltips';
 import useVictoryChartTooltipFormatter from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartTooltipFormatter';
+import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
+import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import getVictoryPieLayout from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryPieLayout';
 import VictoryChartCategories from './VictoryChartCategories';
@@ -38,8 +40,9 @@ function VictoryChartPolarTooltips({chartWidth, innerRadius, hitTestRadius, cent
             centerX,
             centerY,
             radius: hitTestRadius,
+            innerRadius,
         }),
-        [centerX, centerY, hitTestRadius],
+        [centerX, centerY, hitTestRadius, innerRadius],
     );
 
     const processedSlices = useMemo(() => processDataIntoSlices(tooltipData, pieGeometry, START_ANGLE), [pieGeometry, tooltipData]);
@@ -70,16 +73,46 @@ function VictoryChartPolarTooltips({chartWidth, innerRadius, hitTestRadius, cent
     );
 }
 
+type VictoryChartPolarProps = {
+    explicitSize?: {width: number; height: number};
+    headless?: boolean;
+};
+
 /**
  * Renders the PolarChart with data drawn from context.
  */
-function VictoryChartPolar() {
+function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
     const {tnode, data, labelItems, legendItems, tooltipData, chartContentStyles} = useVictoryChartContext();
+    const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
+    const chartWidth = explicitSize?.width ?? (typeof chartContentStyles.width === 'number' ? chartContentStyles.width : 0);
+    const chartHeight = explicitSize?.height ?? (typeof chartContentStyles.height === 'number' ? chartContentStyles.height : 0);
     const pieNode = tnode.children.find((child) => child.tagName === 'victorypie');
-    const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : 0;
-    const chartHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : 0;
     const {innerRadius, hitTestRadius, centerX, centerY} = getVictoryPieLayout(pieNode, chartWidth, chartHeight);
     const hasPieTooltips = tooltipData.length > 0;
+
+    const chartContent = (
+        <>
+            {tnode.children.map((child) => (
+                <VictoryChartCategories
+                    key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
+                    tnode={child}
+                />
+            ))}
+            {labelItems.map((labelItem) => (
+                <VictoryChartLabel
+                    key={`label-${labelItem.x}-${labelItem.y}`}
+                    {...labelItem}
+                />
+            ))}
+            {legendItems.map((legendItem) => (
+                <VictoryChartLegend
+                    key={`legend-${legendItem.x}-${legendItem.y}`}
+                    {...legendItem}
+                    chartWidth={designWidth}
+                />
+            ))}
+        </>
+    );
 
     return (
         <>
@@ -88,28 +121,9 @@ function VictoryChartPolar() {
                 labelKey={LABEL_KEY}
                 valueKey={VALUE_KEY}
                 colorKey={COLOR_KEY}
+                {...getChartLayoutModeProps(explicitSize, headless)}
             >
-                {/* Chart font context does not propagate into polar Skia children. */}
-                <ChartFontsLoaderProvider>
-                    {tnode.children.map((child) => (
-                        <VictoryChartCategories
-                            key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
-                            tnode={child}
-                        />
-                    ))}
-                    {labelItems.map((labelItem) => (
-                        <VictoryChartLabel
-                            key={`label-${labelItem.x}-${labelItem.y}`}
-                            {...labelItem}
-                        />
-                    ))}
-                    {legendItems.map((legendItem) => (
-                        <VictoryChartLegend
-                            key={`legend-${legendItem.x}-${legendItem.y}`}
-                            {...legendItem}
-                        />
-                    ))}
-                </ChartFontsLoaderProvider>
+                {headless ? chartContent : <ChartFontsLoaderProvider>{chartContent}</ChartFontsLoaderProvider>}
             </PolarChart>
             {hasPieTooltips && chartWidth > 0 && chartHeight > 0 && (
                 <VictoryChartPolarTooltips

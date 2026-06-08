@@ -6,17 +6,24 @@ import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRendere
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import {useVictoryChartBarTooltips} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
 import useVictoryChartTooltipFormatter from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartTooltipFormatter';
+import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
+import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartBarHitTargetsSync from './VictoryChartBarHitTargetsSync';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
 
+type VictoryChartCartesianProps = {
+    explicitSize?: {width: number; height: number};
+    headless?: boolean;
+};
+
 /**
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
-function VictoryChartCartesian() {
+function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianProps) {
     const {
         tnode,
         data,
@@ -38,8 +45,9 @@ function VictoryChartCartesian() {
         tooltipKeyToIndex,
         chartContentStyles,
     } = useVictoryChartContext();
+    const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
+    const chartWidth = designWidth ?? 0;
     const hasBarTooltips = barYKeys.length > 0 && tooltipData.length > 0;
-    const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : 0;
     const {plotGestures, updateHitTargets, matchedIndex, isTooltipActive, initialTooltipPosition} = useVictoryChartBarTooltips();
     const formatTooltipValue = useVictoryChartTooltipFormatter();
 
@@ -54,10 +62,10 @@ function VictoryChartCartesian() {
                 domain={domain}
                 domainPadding={domainPadding}
                 padding={padding}
+                {...getChartLayoutModeProps(explicitSize, headless)}
                 customGestures={hasBarTooltips ? plotGestures : undefined}
-                renderOutside={(renderArgs) => (
-                    // Chart font context does not propagate across the Skia renderOutside boundary.
-                    <ChartFontsLoaderProvider>
+                renderOutside={(renderArgs) => {
+                    const overlayContent = (
                         <VictoryChartRenderArgsProvider value={renderArgs}>
                             {labelItems.map((labelItem) => (
                                 <VictoryChartLabel
@@ -69,11 +77,19 @@ function VictoryChartCartesian() {
                                 <VictoryChartLegend
                                     key={`legend-${legendItem.x}-${legendItem.y}`}
                                     {...legendItem}
+                                    chartWidth={designWidth}
                                 />
                             ))}
                         </VictoryChartRenderArgsProvider>
-                    </ChartFontsLoaderProvider>
-                )}
+                    );
+
+                    if (headless) {
+                        return overlayContent;
+                    }
+
+                    // Chart font context does not propagate across the Skia renderOutside boundary.
+                    return <ChartFontsLoaderProvider>{overlayContent}</ChartFontsLoaderProvider>;
+                }}
             >
                 {(renderArgs) => (
                     <VictoryChartRenderArgsProvider value={renderArgs}>
