@@ -52,6 +52,7 @@ import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/on
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
+import {getYourSpendSnapshotTotalUpdates} from './YourSpendSnapshotUpdate';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
     params: UpdateMoneyRequestParams;
@@ -1790,6 +1791,18 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: transactionThreadReport,
         });
+    }
+
+    if ((hasModifiedAmount || hasModifiedCurrency) && transaction && updatedTransaction && iouReport) {
+        const yourSpendSnapshotTotalUpdates = getYourSpendSnapshotTotalUpdates({
+            transaction,
+            updatedTransaction,
+            iouReport,
+            currentUserAccountID: currentUserAccountIDParam,
+        });
+        optimisticData.push(...yourSpendSnapshotTotalUpdates.optimisticData);
+        successData.push(...yourSpendSnapshotTotalUpdates.successData);
+        failureData.push(...yourSpendSnapshotTotalUpdates.failureData);
     }
 
     return {
