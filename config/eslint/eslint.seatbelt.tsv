@@ -1,5 +1,6 @@
 # eslint-seatbelt temporarily allowed errors
 # docs: https://github.com/justjake/eslint-seatbelt#readme
+
 "../../.github/actions/javascript/authorChecklist/categories/newComponentCategory.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../.github/actions/javascript/failureNotifier/failureNotifier.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/formatCodeCovComment/formatCodeCovComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -55,7 +56,6 @@
 "../../scripts/utils/Translator/TranslationPromptUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../server/stubs/react-native-reanimated.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../server/stubs/react-native-reanimated/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../server/victory-chart-renderer/src/cli.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../server/victory-chart-renderer/src/initSkiaForCli.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../server/victory-chart-renderer/src/loadChartFontsForCli.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../server/victory-chart-renderer/tests/resolveCanvasSize.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -682,7 +682,7 @@
 "../../src/libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtensionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/DebugTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
+"../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/libs/Navigation/Navigation.ts"	"no-restricted-imports"	1
 "../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1566,7 +1566,6 @@
 "../../src/utils/keyboard/index.ts"	"no-restricted-imports"	1
 "../../src/utils/keyboard/index.web.ts"	"no-restricted-imports"	1
 "../../src/utils/keyboard/index.website.ts"	"no-restricted-imports"	1
-"../../src/utils/lazyRetry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/utils/times.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/AppTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/actions/BankAccountsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1707,7 +1706,7 @@
 "../../tests/ui/TestToolMenuBiometricsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/TimeExpenseConfirmationTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/UnreadIndicatorsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	20
-"../../tests/ui/UpgradeConfirmationTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/ui/UpgradeConfirmationTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/WalletExpensifyCardPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/WeekListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/WorkEmailOnboarding.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1806,7 +1805,7 @@
 "../../tests/unit/Navigation/createRootStackNavigator/handleReplaceFullscreenUnderRHP.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../tests/unit/Navigation/getCreateReportRouteTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/Navigation/getReportRouteForCurrentContextTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/Navigation/guards/OnboardingGuard.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
+"../../tests/unit/Navigation/guards/OnboardingGuard.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/Navigation/routerExtensions/addPushParamsRouterExtension.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	130
 "../../tests/unit/Navigation/routerExtensions/addRootHistoryRouterExtension.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	38
 "../../tests/unit/NavigationFocusReturnTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1969,7 +1968,7 @@
 "../../tests/unit/hooks/useSearchBulkActionsDuplicateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../tests/unit/hooks/useSearchSections.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useSearchShouldCalculateTotals.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/hooks/useSelectedTransactionsActions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/unit/hooks/useSelectedTransactionsActions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useSelectionModeReportActions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/hooks/useSplitContextHooks.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/hooks/useSplitEffectivePolicy.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
