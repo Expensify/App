@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useRef} from 'react';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -40,6 +41,14 @@ function EditAIRulePage({
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const policy = usePolicy(policyID);
     const aiRule = policy?.rules?.aiRules?.[ruleID];
+    const formRef = useRef<FormRef>(null);
+
+    const handleKeyPress = (e: TextInputKeyPressEvent) => {
+        const event = e as unknown as KeyboardEvent;
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            formRef.current?.submit();
+        }
+    };
 
     const validate = (values: FormOnyxValues<EditAIRuleFormID>): FormInputErrors<EditAIRuleFormID> => {
         const errors: FormInputErrors<EditAIRuleFormID> = {};
@@ -97,6 +106,7 @@ function EditAIRulePage({
             >
                 <HeaderWithBackButton title={translate('workspace.rules.aiRules.editRuleTitle')} />
                 <FormProvider
+                    ref={formRef}
                     formID={ONYXKEYS.FORMS.EDIT_AI_RULE_FORM}
                     validate={validate}
                     onSubmit={saveRule}
@@ -131,6 +141,7 @@ function EditAIRulePage({
                             label={translate('workspace.rules.aiRules.describeRuleTitle')}
                             accessibilityLabel={translate('workspace.rules.aiRules.describeRuleTitle')}
                             role={CONST.ROLE.PRESENTATION}
+                            onKeyPress={handleKeyPress}
                             defaultValue={aiRule.prompt}
                             multiline
                             containerStyles={[styles.flex1]}

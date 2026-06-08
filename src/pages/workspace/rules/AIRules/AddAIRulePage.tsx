@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useRef} from 'react';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -33,6 +34,14 @@ function AddAIRulePage({
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const formRef = useRef<FormRef>(null);
+
+    const handleKeyPress = (e: TextInputKeyPressEvent) => {
+        const event = e as unknown as KeyboardEvent;
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            formRef.current?.submit();
+        }
+    };
 
     const validate = (values: FormOnyxValues<AddAIRuleFormID>): FormInputErrors<AddAIRuleFormID> => {
         const errors: FormInputErrors<AddAIRuleFormID> = {};
@@ -61,6 +70,7 @@ function AddAIRulePage({
             >
                 <HeaderWithBackButton title={translate('workspace.rules.aiRules.addRuleTitle')} />
                 <FormProvider
+                    ref={formRef}
                     formID={ONYXKEYS.FORMS.ADD_AI_RULE_FORM}
                     validate={validate}
                     onSubmit={saveRule}
@@ -85,6 +95,7 @@ function AddAIRulePage({
                             label={translate('workspace.rules.aiRules.describeRuleTitle')}
                             accessibilityLabel={translate('workspace.rules.aiRules.describeRuleTitle')}
                             role={CONST.ROLE.PRESENTATION}
+                            onKeyPress={handleKeyPress}
                             multiline
                             containerStyles={[styles.flex1]}
                             touchableInputWrapperStyle={[styles.flex1]}
