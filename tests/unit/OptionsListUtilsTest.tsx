@@ -4019,7 +4019,8 @@ describe('OptionsListUtils', () => {
 
     describe('getParticipantsOption', () => {
         it('returns the personal-detail display name for a known Expensify user', () => {
-            const result = getParticipantsOption({accountID: 2, login: 'tonystark@expensify.com'} as Participant, PERSONAL_DETAILS);
+            const participant: Participant = {accountID: 2, login: 'tonystark@expensify.com'};
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS);
 
             // formatPhoneNumber replaces spaces with non-breaking spaces, so normalize before comparing.
             expect(result.text?.replaceAll(String.fromCharCode(0xa0), ' ')).toBe('Iron Man');
@@ -4029,7 +4030,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('prefers participant.displayName over the personal-detail name when provided', () => {
-            const participant = {accountID: 2, login: 'tonystark@expensify.com', displayName: 'Override Name'} as Participant;
+            const participant: Participant = {accountID: 2, login: 'tonystark@expensify.com', displayName: 'Override Name'};
             const result = getParticipantsOption(participant, PERSONAL_DETAILS);
 
             // participant.displayName takes precedence and is returned as-is.
@@ -4039,11 +4040,11 @@ describe('OptionsListUtils', () => {
         it('falls back to the device-contact name (participant.text) when the personal detail has no login', () => {
             // Optimistic accountID for an imported device contact: not in PERSONAL_DETAILS,
             // so getPersonalDetailsForAccountIDs returns a stub with no login.
-            const participant = {
+            const participant: Participant = {
                 accountID: 9999999,
                 login: '+12025550123@expensify.sms',
                 text: 'John Smith',
-            } as unknown as Participant;
+            };
 
             const result = getParticipantsOption(participant, PERSONAL_DETAILS);
 
@@ -4052,10 +4053,10 @@ describe('OptionsListUtils', () => {
         });
 
         it('falls back to the formatted phone number when neither displayName, personal-detail login, nor participant.text exist', () => {
-            const participant = {
+            const participant: Participant = {
                 accountID: 9999998,
                 login: '+12025550124@expensify.sms',
-            } as unknown as Participant;
+            };
 
             const result = getParticipantsOption(participant, PERSONAL_DETAILS);
 
@@ -4065,7 +4066,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('uses participant.login when no accountID is provided', () => {
-            const participant = {login: 'guest@example.com'} as Participant;
+            const participant: Participant = {login: 'guest@example.com'};
 
             const result = getParticipantsOption(participant, PERSONAL_DETAILS);
 
@@ -4087,7 +4088,8 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const result = getParticipantsOption({accountID: 42} as Participant, personalDetails);
+            const participant: Participant = {accountID: 42};
+            const result = getParticipantsOption(participant, personalDetails);
 
             expect(result.firstName).toBe('Agent');
             expect(result.lastName).toBe('Smith');
