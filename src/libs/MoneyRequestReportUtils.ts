@@ -1,13 +1,16 @@
+import isEmpty from 'lodash/isEmpty';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 import {hasDeferredWriteForReport} from './deferredLayoutWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
+    getActionErrorsByTransaction,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -19,7 +22,8 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
+import {transactionHasRBR} from './TransactionPreviewUtils';
+import {getReimbursable, getVisibleTransactionViolations, isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
@@ -199,6 +203,53 @@ const getTotalAmountForIOUReportPreviewButton = (
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
+/**
+ * Builds the set of transaction IDs that display an RBR (red brick road) indicator on their row, used to
+ * prioritize them at the top of the report's transaction list on the default Date/ASC sort.
+ *
+ * A transaction is flagged when any of the following is true (mirroring what TransactionItemRowRBR renders):
+ * - transactionHasRBR: holds, receipt errors, report-action errors, DEW, violation/warning/notice-type violations
+ * - a visible violation the row would display (getVisibleTransactionViolations) that transactionHasRBR misses,
+ *   e.g. violations with showInReview !== true
+ * - transaction-level errors (surfaced by getRBRMessages on the row)
+ *
+ * `allTransactionViolations` is optional: non-violation RBRs (holds, receipt/action errors, DEW, transaction.errors)
+ * still display when no violation collection is loaded, so they must stay flagged even when it is undefined.
+ */
+function getRBRTransactionIDs(
+    transactions: Transaction[],
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
+    login: string,
+    accountID: number,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportActionsMap: Record<string, ReportAction>,
+): Set<string> {
+    // Precompute report-action errors once so each transaction's RBR check is an O(1) lookup instead of
+    // re-scanning every report action (O(transactions × actions)).
+    const actionErrors = getActionErrorsByTransaction(report?.reportID, reportActionsMap);
+    const ids = new Set<string>();
+    for (const transaction of transactions) {
+        const violations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+        // Check RBR via transactionHasRBR (hold, receipt errors, action errors, DEW, violation-type violations).
+        if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap, actionErrors)) {
+            ids.add(transaction.transactionID);
+            continue;
+        }
+        // Also flag transactions with visible violations the row would display, covering the gap where
+        // getVisibleTransactionViolations includes violations that transactionHasRBR misses.
+        if (getVisibleTransactionViolations(transaction, violations, login, accountID, report, policy).length > 0) {
+            ids.add(transaction.transactionID);
+            continue;
+        }
+        // Flag transactions with transaction-level errors (extractErrorMessages in getRBRMessages surfaces these in the row).
+        if (!isEmpty(transaction.errors)) {
+            ids.add(transaction.transactionID);
+        }
+    }
+    return ids;
+}
+
 export {
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
@@ -210,4 +261,5 @@ export {
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
     hasNonReimbursableTransactions,
+    getRBRTransactionIDs,
 };

@@ -1,7 +1,9 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import {getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {getRBRTransactionIDs, getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import createRandomTransaction from '../utils/collections/transaction';
 
 const policyBaseMock: Policy = {
     id: '123456789A',
@@ -185,6 +187,66 @@ describe('MoneyRequestReportUtils', () => {
             const reimbursable = {reimbursable: true} as unknown as Transaction;
             const nonReimbursable = {reimbursable: false} as unknown as Transaction;
             expect(hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
+        });
+    });
+
+    describe('getRBRTransactionIDs', () => {
+        const login = 'admin@test.com';
+        const accountID = 100;
+        const noReportActions: Record<string, ReportAction> = {};
+
+        // Start from a fully-typed transaction with required fields present (merchant/created) so transactionHasRBR
+        // does not flag it as "missing smartscan fields", and clear receipt/errors/comment so the only RBR signal is
+        // whatever the individual test sets — letting each test isolate the errors/violations branches.
+        const createCleanTransaction = (transactionID: string, overrides: Partial<Transaction> = {}): Transaction => ({
+            ...createRandomTransaction(Number(transactionID)),
+            transactionID,
+            merchant: 'Coffee Shop',
+            created: '2024-12-21 00:00:00',
+            receipt: undefined,
+            errors: undefined,
+            comment: {},
+            ...overrides,
+        });
+
+        test('flags a transaction with transaction-level errors even when no violation collection is loaded', () => {
+            // Regression guard for the early-return gate: allTransactionViolations is undefined, but the row still
+            // shows an RBR for transaction.errors, so the transaction must stay prioritized in the default sort.
+            const withErrors = createCleanTransaction('1', {errors: {error1: 'Something went wrong'}});
+            const clean = createCleanTransaction('2');
+
+            const result = getRBRTransactionIDs([withErrors, clean], undefined, login, accountID, reportBaseMock, undefined, noReportActions);
+
+            expect(result.has('1')).toBe(true);
+            expect(result.has('2')).toBe(false);
+        });
+
+        test('does not flag clean transactions when no violation collection is loaded', () => {
+            const result = getRBRTransactionIDs([createCleanTransaction('1'), createCleanTransaction('2')], undefined, login, accountID, reportBaseMock, undefined, noReportActions);
+
+            expect(result.size).toBe(0);
+        });
+
+        test('flags only the transactions that show an RBR, leaving clean ones unprioritized', () => {
+            const errored = createCleanTransaction('1', {errors: {error1: 'boom'}});
+            const cleanA = createCleanTransaction('2');
+            const cleanB = createCleanTransaction('3');
+
+            const result = getRBRTransactionIDs([cleanA, errored, cleanB], undefined, login, accountID, reportBaseMock, undefined, noReportActions);
+
+            expect([...result]).toEqual(['1']);
+        });
+
+        test('flags a transaction that has a visible violation in the loaded violation collection', () => {
+            const transaction = createCleanTransaction('1');
+            const violations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+            const allTransactionViolations: Record<string, TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: violations,
+            };
+
+            const result = getRBRTransactionIDs([transaction], allTransactionViolations, login, accountID, reportBaseMock, policyBaseMock, noReportActions);
+
+            expect(result.has('1')).toBe(true);
         });
     });
 });

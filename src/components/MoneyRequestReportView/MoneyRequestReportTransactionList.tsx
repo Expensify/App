@@ -42,14 +42,13 @@ import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
-import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {getRBRTransactionIDs, hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
-    getActionErrorsByTransaction,
     getAddExpenseDropdownOptions,
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
@@ -63,7 +62,6 @@ import {
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
@@ -353,40 +351,16 @@ function MoneyRequestReportTransactionList({
         return {reportActionsMap: actionsMap, transactionThreadReportIDByTransactionID: threadReportIDByTransactionID};
     }, [reportActions]);
 
-    // Precompute the set of RBR-flagged transaction IDs.
-    // Uses both transactionHasRBR (hold, receipt errors, action errors, DEW) AND
-    // getVisibleTransactionViolations (matching the row's displayed red indicator) so that
-    // every row showing an RBR indicator is also prioritized in the sort.
+    // Precompute the set of RBR-flagged transaction IDs (only on the default Date/ASC sort, where we prioritize them).
+    // See getRBRTransactionIDs for what counts as RBR — it mirrors the row's displayed indicator and does not require
+    // the violation collection to be loaded, so non-violation RBRs (holds, receipt/action errors, DEW, errors) still sort.
     const rbrTransactionIDs = useMemo(() => {
-        if (!isDefaultSort || !allTransactionViolations) {
+        if (!isDefaultSort) {
             return null;
         }
         const login = currentUserDetails?.login ?? '';
         const accountID = currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        // Precompute report-action errors once so each transaction's RBR check is an O(1) lookup instead of
-        // re-scanning every report action (O(transactions × actions)).
-        const actionErrors = getActionErrorsByTransaction(report?.reportID, reportActionsMap);
-        const ids = new Set<string>();
-        for (const transaction of transactions) {
-            const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-            // Check RBR via transactionHasRBR (hold, receipt errors, action errors, DEW, violation-type violations).
-            if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap, actionErrors)) {
-                ids.add(transaction.transactionID);
-                continue;
-            }
-            // Also flag transactions that have visible violations the row would display,
-            // covering the gap where getVisibleTransactionViolations includes violations
-            // that transactionHasRBR misses (e.g. violations with showInReview !== true).
-            if (getVisibleTransactionViolations(transaction, violations, login, accountID, report, policy).length > 0) {
-                ids.add(transaction.transactionID);
-                continue;
-            }
-            // Flag transactions with transaction-level errors (extractErrorMessages in getRBRMessages surfaces these in the row).
-            if (!isEmpty(transaction.errors)) {
-                ids.add(transaction.transactionID);
-            }
-        }
-        return ids;
+        return getRBRTransactionIDs(transactions, allTransactionViolations, login, accountID, report, policy, reportActionsMap);
     }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, policy, reportActionsMap]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
