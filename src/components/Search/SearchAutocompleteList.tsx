@@ -45,9 +45,8 @@ import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
-const PROPOSAL_A_FOCUS_GATE = false;
-const PROPOSAL_B_UNMOUNT_ON_BLUR = false;
-const PROPOSAL_C_FREEZE_SECONDARY_ONYX = false;
+const PROPOSAL_A_FOCUS_GATE = true;
+const PROPOSAL_B_UNMOUNT_ON_BLUR = true;
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
@@ -163,12 +162,12 @@ function SearchAutocompleteList({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
-    const [draftCommentsLive] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [visibleReportActionsDataLive] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedActions = useSortedActions();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -181,19 +180,6 @@ function SearchAutocompleteList({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-
-    const [draftCommentsSnapshot, setDraftCommentsSnapshot] = useState(draftCommentsLive);
-    const [visibleReportActionsDataSnapshot, setVisibleReportActionsDataSnapshot] = useState(visibleReportActionsDataLive);
-    if (PROPOSAL_C_FREEZE_SECONDARY_ONYX && isFocused) {
-        if (draftCommentsSnapshot !== draftCommentsLive) {
-            setDraftCommentsSnapshot(draftCommentsLive);
-        }
-        if (visibleReportActionsDataSnapshot !== visibleReportActionsDataLive) {
-            setVisibleReportActionsDataSnapshot(visibleReportActionsDataLive);
-        }
-    }
-    const draftComments = PROPOSAL_C_FREEZE_SECONDARY_ONYX ? draftCommentsSnapshot : draftCommentsLive;
-    const visibleReportActionsData = PROPOSAL_C_FREEZE_SECONDARY_ONYX ? visibleReportActionsDataSnapshot : visibleReportActionsDataLive;
 
     const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({
         enabled: PROPOSAL_A_FOCUS_GATE ? isFocused : true,
