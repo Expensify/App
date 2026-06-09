@@ -6867,7 +6867,7 @@ describe('actions/Policy', () => {
         });
 
         it('falls back to USD when no currency is provided and no personal details exist', () => {
-            const result = Policy.buildOptimisticDistanceRateCustomUnits();
+            const result = Policy.buildOptimisticDistanceRateCustomUnits(undefined);
 
             expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
             const rate = result.customUnits[result.customUnitID].rates[result.customUnitRateID];
@@ -7313,8 +7313,8 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, CONST.CURRENCY.USD, undefined, mockTranslate, {});
             await waitForBatchedUpdates();
 
             // Optimistic merge: read the stored transaction from Onyx

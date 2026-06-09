@@ -2,6 +2,7 @@ import type {TNode} from 'react-native-render-html';
 import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
 import type {LabelItem, PartialProcessNodeResult, RawLabelStyle, TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import unescapeVictoryChartText from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/unescapeVictoryChartText';
 
 /**
  * Parse label config from a `<victorylabel>` node.
@@ -10,7 +11,7 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
     const labelItem: LabelItem = {
         x: parseAttribute<number>(tnode.attributes.x) ?? 0,
         y: parseAttribute<number>(tnode.attributes.y) ?? 0,
-        text: parseAttribute<string>(tnode.attributes.text) ?? '',
+        text: unescapeVictoryChartText(parseAttribute<string>(tnode.attributes.text) ?? ''),
         color: {},
         fontSize: {},
         fontWeight: {},
