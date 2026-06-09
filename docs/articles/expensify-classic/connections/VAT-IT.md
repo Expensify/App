@@ -52,6 +52,6 @@ Once VAT IT prepares your VAT reclaim documents in the required languages, they 
 
 # Tracking Your VAT Reclaim
 
-After submission, you can monitor the progress of your VAT reclaim via the **Submission Analysis Report** in Global VaTax.
+After submission, you can monitor the progress of your VAT reclaim via the **Submission Analysis Report** in VAT IT.
 
 By integrating Expensify with VAT IT, businesses can maximize VAT recovery while reducing administrative burden.
