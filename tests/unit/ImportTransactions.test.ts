@@ -763,6 +763,7 @@ describe('ImportTransactions', () => {
     });
 
     describe('importTransactionsFromCSV', () => {
+        const CURRENT_USER_ACCOUNT_ID = 12345;
         const validSpreadsheet = {
             data: [
                 ['Date', '2024-01-15', '2024-01-20'],
@@ -788,14 +789,14 @@ describe('ImportTransactions', () => {
         });
 
         it('returns the failed-import modal and skips the API call when no transactions are parsed', async () => {
-            const result = await importTransactionsFromCSV({...validSpreadsheet, data: []});
+            const result = await importTransactionsFromCSV({...validSpreadsheet, data: []}, CURRENT_USER_ACCOUNT_ID);
 
             expect(result).toEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.invalidFileMessage'});
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('calls API.write with an optimistic card when no existingCardID is passed', async () => {
-            await importTransactionsFromCSV(validSpreadsheet);
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
             const [command, , onyxData] = writeSpy.mock.calls.at(0) as [string, unknown, {optimisticData: Array<{key: string}>}];
@@ -806,7 +807,7 @@ describe('ImportTransactions', () => {
         it('reuses an existingCardID without queuing an optimistic card', async () => {
             const existingCardID = 987654321;
 
-            await importTransactionsFromCSV(validSpreadsheet, existingCardID);
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID);
 
             const [, params, onyxData] = writeSpy.mock.calls.at(0) as [string, {cardID: number}, {optimisticData: Array<{key: string}>}];
             expect(params.cardID).toBe(existingCardID);
