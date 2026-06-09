@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useMemo} from 'react';
+import React, {createContext, useContext} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -62,7 +62,7 @@ function usePaymentContextValues(): PaymentContextValue {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const activePolicy = usePolicy(activePolicyID);
 
-    const defaultWorkspaceName = useMemo(() => generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate), [email, lastWorkspaceNumber, translate]);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate);
 
     return {
         currentUserAccountID,
