@@ -479,7 +479,7 @@ function getCustomUnitRateID({
         const mileageRates = getMileageRates(policy);
         if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             const lastSelectedMileageRate = mileageRates[lastSelectedDistanceRateID];
-            // If the last selected rate is missing from mileageRates we cannot verify date eligibility, so keep using the last selected ID.
+            // mileageRates may be empty when the distance unit has no attributes. Guard against undefined before calling isRateEligibleForDate, and preserve the user's last selected ID when rate metadata is unavailable.
             if (!lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate)) {
                 return lastSelectedDistanceRateID;
             }
