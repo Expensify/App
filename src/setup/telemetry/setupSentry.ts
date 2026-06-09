@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
-import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
+import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, reportingObserverIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -8,7 +8,9 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 function setupSentry(): void {
-    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration];
+    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration].filter(
+        (integration): integration is NonNullable<typeof integration> => integration !== undefined,
+    );
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
