@@ -1,20 +1,18 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- Test assertions use FullStory's external snake_case keys. */
 import CONST from '@src/CONST';
 import {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep} from '@src/libs/Fullstory/utils';
-import type {Policy} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 
 describe('FullstoryUtils', () => {
     it('builds expected FullStory user vars from onboarding and workspace context', () => {
         const policy = {
-            id: '1',
-            name: 'Test Workspace',
-            type: CONST.POLICY.TYPE.TEAM,
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test Workspace'),
             role: CONST.POLICY.ROLE.ADMIN,
             employeeList: {
                 1: {email: 'a@test.com'},
                 2: {email: 'b@test.com'},
             },
-        } as unknown as Policy;
+        };
 
         const userVars = buildFullstoryUserVars({
             account: {isFromPublicDomain: true},
