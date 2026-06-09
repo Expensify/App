@@ -554,7 +554,7 @@ describe('actions/PolicyMember', () => {
 
             // When inviting a new member on a Submit workspace (role is forced to Editor)
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
+          Member.addMembersToWorkspace({ [editorEmail]: editorAccountID }, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
 
             await waitForBatchedUpdates();
 
