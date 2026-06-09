@@ -1,6 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
+import useSplitEffectivePolicy, {getSplitEffectivePolicy} from '@hooks/useSplitEffectivePolicy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
@@ -182,5 +183,54 @@ describe('useSplitEffectivePolicy', () => {
         const {result} = renderHook(() => useSplitEffectivePolicy(undefined, undefined, undefined));
 
         await waitFor(() => expect(result.current).toBeUndefined());
+    });
+});
+
+describe('getSplitEffectivePolicy', () => {
+    const customUnitPolicy = buildPolicyWithRate('cu-policy', 'unit-x', 'rate-x');
+    const allPolicies: OnyxCollection<Policy> = {
+        [`${ONYXKEYS.COLLECTION.POLICY}${customUnitPolicy.id}`]: customUnitPolicy,
+    };
+    const fallbackPolicy: Policy = {...createRandomPolicy(1), id: 'fallback'};
+
+    it('returns the report policy when it has an employee list', () => {
+        const policy = buildPolicyWithRate('workspace-1', 'unit-a', 'rate-a', true);
+        const result = getSplitEffectivePolicy({policy, transaction: buildTransaction(), allPolicies, fallbackPolicy});
+        expect(result?.id).toBe(policy.id);
+    });
+
+    it('falls back to the search snapshot policy when the report policy has no employee list', () => {
+        const policy = buildPolicyWithRate('workspace-1', 'unit-a', 'rate-a');
+        const searchSnapshotPolicy = buildPolicyWithRate('snapshot-1', 'unit-a', 'rate-a', true);
+        const result = getSplitEffectivePolicy({policy, searchSnapshotPolicy, transaction: buildTransaction(), allPolicies, fallbackPolicy});
+        expect(result?.id).toBe(searchSnapshotPolicy.id);
+    });
+
+    it('resolves the policy by customUnitID when there is no current policy', () => {
+        const result = getSplitEffectivePolicy({policy: undefined, transaction: buildTransaction({customUnitID: 'unit-x'}), allPolicies, fallbackPolicy});
+        expect(result?.id).toBe(customUnitPolicy.id);
+    });
+
+    it('resolves the policy by customUnitRateID when the customUnitID does not match', () => {
+        const result = getSplitEffectivePolicy({policy: undefined, transaction: buildTransaction({customUnitRateID: 'rate-x'}), allPolicies, fallbackPolicy});
+        expect(result?.id).toBe(customUnitPolicy.id);
+    });
+
+    it('skips the customUnit lookups for the P2P rate and uses the fallback', () => {
+        const transaction = buildTransaction({customUnitID: 'unit-x', customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID});
+        const result = getSplitEffectivePolicy({policy: undefined, transaction, allPolicies, fallbackPolicy});
+        expect(result?.id).toBe(fallbackPolicy.id);
+    });
+
+    it('returns the fallback policy when nothing else resolves', () => {
+        const result = getSplitEffectivePolicy({policy: undefined, transaction: buildTransaction(), allPolicies: {}, fallbackPolicy});
+        expect(result?.id).toBe(fallbackPolicy.id);
+    });
+
+    it('prefers the draft transaction customUnit over the transaction customUnit', () => {
+        const transaction = buildTransaction({customUnitID: 'no-match'});
+        const draftTransaction = buildTransaction({customUnitID: 'unit-x'});
+        const result = getSplitEffectivePolicy({policy: undefined, transaction, draftTransaction, allPolicies, fallbackPolicy});
+        expect(result?.id).toBe(customUnitPolicy.id);
     });
 });
