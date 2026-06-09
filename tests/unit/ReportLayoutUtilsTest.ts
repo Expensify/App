@@ -244,6 +244,60 @@ describe('groupTransactionsByCategory', () => {
         expect(result.at(0)?.transactions).toHaveLength(2);
         expect(result.at(0)?.subTotalAmount).toBe(3000);
     });
+
+    it('sorts groups containing an RBR transaction before non-RBR groups, overriding alphabetical order', () => {
+        const report = createMockReport();
+        const transactions = [createMockTransaction({transactionID: '1', category: 'Alpha', amount: -1000}), createMockTransaction({transactionID: '2', category: 'Zebra', amount: -500})];
+        // The RBR transaction is in the alphabetically-later group ('Zebra'), so without RBR
+        // prioritization it would render after 'Alpha'.
+        const rbrTransactionIDs = new Set(['2']);
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, rbrTransactionIDs);
+
+        expect(result.at(0)?.groupKey).toBe('Zebra');
+        expect(result.at(0)?.hasRBR).toBe(true);
+        expect(result.at(1)?.groupKey).toBe('Alpha');
+        expect(result.at(1)?.hasRBR).toBe(false);
+    });
+
+    it('sorts an RBR group before the empty-key group', () => {
+        const report = createMockReport();
+        const transactions = [createMockTransaction({transactionID: '1', category: '', amount: -1000}), createMockTransaction({transactionID: '2', category: 'Travel', amount: -500})];
+        const rbrTransactionIDs = new Set(['2']);
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, rbrTransactionIDs);
+
+        expect(result.at(0)?.groupKey).toBe('Travel');
+        expect(result.at(0)?.hasRBR).toBe(true);
+        expect(result.at(1)?.groupKey).toBe('');
+    });
+
+    it('keeps alphabetical order within the RBR band and within the non-RBR band', () => {
+        const report = createMockReport();
+        const transactions = [
+            createMockTransaction({transactionID: '1', category: 'Bravo', amount: -1000}),
+            createMockTransaction({transactionID: '2', category: 'Alpha', amount: -500}),
+            createMockTransaction({transactionID: '3', category: 'Yankee', amount: -200}),
+            createMockTransaction({transactionID: '4', category: 'Xray', amount: -200}),
+        ];
+        // RBR transactions live in 'Bravo' and 'Yankee'; those two groups should come first (A→Z within the band),
+        // followed by the non-RBR groups 'Alpha' and 'Xray' (A→Z within their band).
+        const rbrTransactionIDs = new Set(['1', '3']);
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare, rbrTransactionIDs);
+
+        expect(result.map((g) => g.groupKey)).toEqual(['Bravo', 'Yankee', 'Alpha', 'Xray']);
+    });
+
+    it('preserves alphabetical order when no rbrTransactionIDs are provided', () => {
+        const report = createMockReport();
+        const transactions = [createMockTransaction({transactionID: '1', category: 'Zebra', amount: -1000}), createMockTransaction({transactionID: '2', category: 'Alpha', amount: -500})];
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+
+        expect(result.map((g) => g.groupKey)).toEqual(['Alpha', 'Zebra']);
+        expect(result.every((g) => !g.hasRBR)).toBe(true);
+    });
 });
 
 describe('groupTransactionsByTag', () => {
@@ -463,5 +517,47 @@ describe('groupTransactionsByTag', () => {
         expect(result.at(0)?.groupKey).toBe('R&D');
         expect(result.at(0)?.transactions).toHaveLength(2);
         expect(result.at(0)?.subTotalAmount).toBe(3000);
+    });
+
+    it('sorts groups containing an RBR transaction before non-RBR groups, overriding alphabetical order', () => {
+        const report = createMockReport();
+        const transactions = [
+            createMockTransaction({transactionID: '1', tag: 'Project Alpha', amount: -1000}),
+            createMockTransaction({transactionID: '2', tag: 'Project Zebra', amount: -500}),
+        ];
+        // The RBR transaction is in the alphabetically-later group ('Project Zebra').
+        const rbrTransactionIDs = new Set(['2']);
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare, rbrTransactionIDs);
+
+        expect(result.at(0)?.groupKey).toBe('Project Zebra');
+        expect(result.at(0)?.hasRBR).toBe(true);
+        expect(result.at(1)?.groupKey).toBe('Project Alpha');
+        expect(result.at(1)?.hasRBR).toBe(false);
+    });
+
+    it('sorts an RBR group before the empty-key group', () => {
+        const report = createMockReport();
+        const transactions = [createMockTransaction({transactionID: '1', tag: '', amount: -1000}), createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500})];
+        const rbrTransactionIDs = new Set(['2']);
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare, rbrTransactionIDs);
+
+        expect(result.at(0)?.groupKey).toBe('Project A');
+        expect(result.at(0)?.hasRBR).toBe(true);
+        expect(result.at(1)?.groupKey).toBe('');
+    });
+
+    it('preserves alphabetical order when no rbrTransactionIDs are provided', () => {
+        const report = createMockReport();
+        const transactions = [
+            createMockTransaction({transactionID: '1', tag: 'Project Zebra', amount: -1000}),
+            createMockTransaction({transactionID: '2', tag: 'Project Alpha', amount: -500}),
+        ];
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+
+        expect(result.map((g) => g.groupKey)).toEqual(['Project Alpha', 'Project Zebra']);
+        expect(result.every((g) => !g.hasRBR)).toBe(true);
     });
 });

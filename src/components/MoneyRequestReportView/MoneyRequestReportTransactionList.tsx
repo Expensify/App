@@ -353,7 +353,10 @@ function MoneyRequestReportTransactionList({
         return {reportActionsMap: actionsMap, transactionThreadReportIDByTransactionID: threadReportIDByTransactionID};
     }, [reportActions]);
 
-    // Precompute the set of RBR-flagged transaction IDs
+    // Precompute the set of RBR-flagged transaction IDs.
+    // Uses both transactionHasRBR (hold, receipt errors, action errors, DEW) AND
+    // getVisibleTransactionViolations (matching the row's displayed red indicator) so that
+    // every row showing an RBR indicator is also prioritized in the sort.
     const rbrTransactionIDs = useMemo(() => {
         if (!isDefaultSort || !allTransactionViolations) {
             return null;
@@ -366,7 +369,20 @@ function MoneyRequestReportTransactionList({
         const ids = new Set<string>();
         for (const transaction of transactions) {
             const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            // Check RBR via transactionHasRBR (hold, receipt errors, action errors, DEW, violation-type violations).
             if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap, actionErrors)) {
+                ids.add(transaction.transactionID);
+                continue;
+            }
+            // Also flag transactions that have visible violations the row would display,
+            // covering the gap where getVisibleTransactionViolations includes violations
+            // that transactionHasRBR misses (e.g. violations with showInReview !== true).
+            if (getVisibleTransactionViolations(transaction, violations, login, accountID, report, policy).length > 0) {
+                ids.add(transaction.transactionID);
+                continue;
+            }
+            // Flag transactions with transaction-level errors (extractErrorMessages in getRBRMessages surfaces these in the row).
+            if (!isEmpty(transaction.errors)) {
                 ids.add(transaction.transactionID);
             }
         }
@@ -453,13 +469,13 @@ function MoneyRequestReportTransactionList({
             return [];
         }
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
-            return groupTransactionsByTag(resolvedTransactions, report, localeCompare);
+            return groupTransactionsByTag(resolvedTransactions, report, localeCompare, rbrTransactionIDs ?? undefined);
         }
-        return groupTransactionsByCategory(resolvedTransactions, report, localeCompare);
+        return groupTransactionsByCategory(resolvedTransactions, report, localeCompare, rbrTransactionIDs ?? undefined);
         // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
         // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions]);
+    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions, rbrTransactionIDs]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldShowGroupedTransactions || groupedTransactions.length === 0) {

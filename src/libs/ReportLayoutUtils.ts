@@ -8,10 +8,16 @@ import {getDecodedTagName, isTagMissing} from './TagUtils';
 import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
- * Sorts groups alphabetically (A→Z) with empty keys at the end
+ * Sorts groups with RBR-flagged groups first, then alphabetically (A→Z) with empty keys at the end.
+ * When rbrTransactionIDs is provided, groups containing at least one RBR transaction are ordered before
+ * groups without any RBR transactions. Within each RBR band, the existing alphabetical sort applies.
  */
 function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     return groups.sort((a, b) => {
+        // RBR groups first
+        if (!!a.hasRBR !== !!b.hasRBR) {
+            return a.hasRBR ? -1 : 1;
+        }
         if (a.groupKey === '' && b.groupKey !== '') {
             return 1;
         }
@@ -54,32 +60,42 @@ function calculateGroupTotal(transactionList: Transaction[], reportCurrency: str
 /**
  * Groups transactions by category
  */
-function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
+function groupTransactionsByCategory(
+    transactions: Transaction[],
+    report: OnyxEntry<Report>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    rbrTransactionIDs?: Set<string>,
+): GroupedTransactions[] {
     if (!report) {
         return [];
     }
 
     const reportCurrency = report.currency ?? '';
-    const groups = new Map<string, Transaction[]>();
+    const groups = new Map<string, {transactions: Transaction[]; hasRBR: boolean}>();
 
     for (const transaction of transactions) {
         const category = getCategory(transaction);
         const categoryKey = isCategoryMissing(category) ? '' : getDecodedCategoryName(category);
 
         if (!groups.has(categoryKey)) {
-            groups.set(categoryKey, []);
+            groups.set(categoryKey, {transactions: [], hasRBR: false});
         }
-        groups.get(categoryKey)?.push(transaction);
+        const group = groups.get(categoryKey);
+        group?.transactions.push(transaction);
+        if (rbrTransactionIDs?.has(transaction.transactionID) && group) {
+            group.hasRBR = true;
+        }
     }
 
     const result: GroupedTransactions[] = [];
-    for (const [categoryKey, transactionList] of groups) {
+    for (const [categoryKey, {transactions: transactionList, hasRBR}] of groups) {
         result.push({
             groupName: categoryKey,
             groupKey: categoryKey,
             transactions: transactionList,
             subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
             isExpanded: true,
+            hasRBR,
         });
     }
 
@@ -89,32 +105,42 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 /**
  * Groups transactions by tag
  */
-function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
+function groupTransactionsByTag(
+    transactions: Transaction[],
+    report: OnyxEntry<Report>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    rbrTransactionIDs?: Set<string>,
+): GroupedTransactions[] {
     if (!report) {
         return [];
     }
 
     const reportCurrency = report.currency ?? '';
-    const groups = new Map<string, Transaction[]>();
+    const groups = new Map<string, {transactions: Transaction[]; hasRBR: boolean}>();
 
     for (const transaction of transactions) {
         const tag = getTag(transaction);
         const tagKey = isTagMissing(tag) ? '' : getDecodedTagName(tag);
 
         if (!groups.has(tagKey)) {
-            groups.set(tagKey, []);
+            groups.set(tagKey, {transactions: [], hasRBR: false});
         }
-        groups.get(tagKey)?.push(transaction);
+        const group = groups.get(tagKey);
+        group?.transactions.push(transaction);
+        if (rbrTransactionIDs?.has(transaction.transactionID) && group) {
+            group.hasRBR = true;
+        }
     }
 
     const result: GroupedTransactions[] = [];
-    for (const [tagKey, transactionList] of groups) {
+    for (const [tagKey, {transactions: transactionList, hasRBR}] of groups) {
         result.push({
             groupName: tagKey,
             groupKey: tagKey,
             transactions: transactionList,
             subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
             isExpanded: true,
+            hasRBR,
         });
     }
 

@@ -21,6 +21,9 @@ type GroupedTransactions = {
 
     /** Whether the group is currently expanded */
     isExpanded: boolean;
+
+    /** Whether this group contains at least one RBR-flagged transaction */
+    hasRBR?: boolean;
 };
 
 export type {ReportLayoutGroupBy, GroupedTransactions};
