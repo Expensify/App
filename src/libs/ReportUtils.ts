@@ -11120,7 +11120,7 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
     const accountID = approverAccountID ?? deprecatedCurrentUserAccountID;
     const isOwner = accountID === report?.ownerAccountID;
 
-    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report?.ownerAccountID, accountID)) {
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report?.ownerAccountID, accountID ?? CONST.DEFAULT_NUMBER_ID)) {
         return false;
     }
 

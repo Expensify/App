@@ -124,10 +124,6 @@ function canApproveIOU(
         return false;
     }
 
-    if (isSubmitPolicy(policy)) {
-        return false;
-    }
-
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
         return false;
