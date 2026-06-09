@@ -204,16 +204,20 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 />
                                                 {shouldBreakGrouping ? (
                                                     <PressableWithoutFeedback
-                                                        accessible
+                                                        accessible={!isDisableInteractive}
                                                         accessibilityRole={CONST.ROLE.BUTTON}
                                                         accessibilityLabel={taskAccessibilityLabel}
-                                                        accessibilityState={{disabled: isDisableInteractive}}
                                                         disabled={isDisableInteractive}
                                                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path))}
                                                         style={[styles.flexRow, styles.flex1]}
                                                         sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                                     >
-                                                        <View style={[styles.flexRow, styles.flex1]}>
+                                                        <View
+                                                            style={[styles.flexRow, styles.flex1]}
+                                                            pointerEvents="none"
+                                                            accessibilityElementsHidden
+                                                            importantForAccessibility="no-hide-descendants"
+                                                        >
                                                             <RenderHTML html={taskTitle} />
                                                         </View>
                                                         {!isDisableInteractive && (
