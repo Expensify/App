@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isIndividualInvoiceRoom} from '@libs/ReportUtils';
@@ -18,13 +17,10 @@ function usePayChatReportActions(initialChatReport: OnyxEntry<Report>, existingB
     const [initialChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(initialChatReport?.reportID)}`);
     const [b2bInvoiceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(existingB2BInvoiceReport?.reportID)}`);
 
-    return useCallback(
-        (payAsBusiness: boolean | undefined) => {
-            const shouldUseB2BInvoiceReport = !!payAsBusiness && !!existingB2BInvoiceReport && isIndividualInvoiceRoom(initialChatReport);
-            return shouldUseB2BInvoiceReport ? b2bInvoiceReportActions : initialChatReportActions;
-        },
-        [initialChatReport, existingB2BInvoiceReport, initialChatReportActions, b2bInvoiceReportActions],
-    );
+    return (payAsBusiness: boolean | undefined) => {
+        const shouldUseB2BInvoiceReport = !!payAsBusiness && !!existingB2BInvoiceReport && isIndividualInvoiceRoom(initialChatReport);
+        return shouldUseB2BInvoiceReport ? b2bInvoiceReportActions : initialChatReportActions;
+    };
 }
 
 export default usePayChatReportActions;
