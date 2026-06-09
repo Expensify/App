@@ -1058,7 +1058,6 @@ function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAtt
 export {
     computeReportName,
     getReportName,
-    generateArchivedReportName,
     getInvoiceReportName,
     getMoneyRequestReportName,
     buildReportNameFromParticipantNames,
@@ -1066,5 +1065,4 @@ export {
     getGroupChatName,
     getPolicyExpenseChatName,
     getInvoicesChatName,
-    computeReportNameBasedOnReportAction,
 };

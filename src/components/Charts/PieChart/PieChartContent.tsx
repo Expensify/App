@@ -12,8 +12,10 @@ import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@componen
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import PaddedPieSlice from './PaddedPieSlice';
 
 type PieChartProps = ChartProps & {
     /** Callback when a slice is pressed */
@@ -28,6 +30,7 @@ type PieChartProps = ChartProps & {
 
 function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
@@ -45,7 +48,9 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     };
 
     // Calculate pie geometry
-    const pieGeometry = {radius: Math.min(canvasWidth, canvasHeight) / 2, centerX: canvasWidth / 2, centerY: canvasHeight / 2};
+    const radius = Math.min(canvasWidth, canvasHeight) / 2;
+    const innerRadius = radius * VictoryTheme.pie.innerRadiusRatio;
+    const pieGeometry = {radius, innerRadius, centerX: canvasWidth / 2, centerY: canvasHeight / 2};
 
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
@@ -58,8 +63,8 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
     // Handle hover state updates
     const updateActiveSlice = (x: number, y: number) => {
-        const {radius, centerX, centerY} = pieGeometry;
-        const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, 0, processedSlices);
+        const {centerX, centerY} = pieGeometry;
+        const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, innerRadius, processedSlices);
         setActiveSliceIndex(sliceIndex);
         setIsHoveringOverPie(sliceIndex >= 0);
     };
@@ -112,8 +117,8 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         Gesture.Tap().onEnd((e) => {
             'worklet';
 
-            const {radius, centerX, centerY} = pieGeometry;
-            const sliceIndex = findSliceAtPosition(e.x, e.y, centerX, centerY, radius, 0, processedSlices);
+            const {centerX, centerY} = pieGeometry;
+            const sliceIndex = findSliceAtPosition(e.x, e.y, centerX, centerY, radius, innerRadius, processedSlices);
 
             if (sliceIndex >= 0) {
                 scheduleOnRN(handleSlicePress, sliceIndex);
@@ -172,8 +177,34 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                             valueKey="value"
                             colorKey="color"
                         >
-                            <Pie.Chart startAngle={VictoryTheme.pie.startAngle} />
+                            <Pie.Chart
+                                startAngle={VictoryTheme.pie.startAngle}
+                                innerRadius={`${VictoryTheme.pie.innerRadiusRatio * 100}%`}
+                            >
+                                {({slice}) => (
+                                    <PaddedPieSlice
+                                        slice={slice}
+                                        padAngle={VictoryTheme.pie.padAngle}
+                                    />
+                                )}
+                            </Pie.Chart>
                         </PolarChart>
+                    )}
+
+                    {processedSlices.length > 0 && (
+                        <View
+                            pointerEvents="none"
+                            style={styles.pieChartCenterLabel}
+                        >
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
+                            <Text
+                                numberOfLines={1}
+                                adjustsFontSizeToFit
+                                style={[styles.textHeadlineH1, styles.textAlignCenter]}
+                            >
+                                {formatValue(data.reduce((sum, point) => sum + point.total, 0))}
+                            </Text>
+                        </View>
                     )}
 
                     {/* Tooltip */}

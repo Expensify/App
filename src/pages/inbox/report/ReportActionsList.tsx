@@ -2,8 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
@@ -28,6 +27,7 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionMessage,
@@ -399,13 +399,17 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldFocusToTopOnMount) {
-                return;
-            }
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (shouldFocusToTopOnMount) {
+                    return;
+                }
+                setIsFloatingMessageCounterVisible(false);
+                reportScrollManager.scrollToBottom();
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -416,11 +420,15 @@ function ReportActionsList({
             return;
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
-        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
-            });
+        if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER || prevSorted) {
+            return;
         }
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
+        });
+        return () => handle.cancel();
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     // Clear the highlighted report action after scrolling and highlighting
@@ -442,9 +450,12 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
 
@@ -641,7 +652,11 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(() => loadNewerChats(false));
+            },
+        });
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
