@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from './hooks/useOnyx';
 import FS from './libs/Fullstory';
@@ -20,31 +20,20 @@ function FullstoryUserContextHandler() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
 
-    const activePolicy = useMemo(() => {
-        if (!activePolicyID) {
-            return;
-        }
-
-        return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    }, [activePolicyID, policies]);
-
-    const userVars = useMemo(
-        () =>
-            buildFullstoryUserVars({
-                account,
-                activePolicy,
-                introSelected,
-                loginList,
-                onboarding,
-                onboardingCompanySize,
-                onboardingLastVisitedPath,
-                onboardingPurposeSelected,
-                policies,
-                session,
-                userMetadata,
-            }),
-        [account, activePolicy, introSelected, loginList, onboarding, onboardingCompanySize, onboardingLastVisitedPath, onboardingPurposeSelected, policies, session, userMetadata],
-    );
+    const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
+    const userVars = buildFullstoryUserVars({
+        account,
+        activePolicy,
+        introSelected,
+        loginList,
+        onboarding,
+        onboardingCompanySize,
+        onboardingLastVisitedPath,
+        onboardingPurposeSelected,
+        policies,
+        session,
+        userMetadata,
+    });
 
     const previousUserVars = useRef<OnyxEntry<FullstoryUserVars>>(undefined);
 
@@ -53,12 +42,24 @@ function FullstoryUserContextHandler() {
             return;
         }
 
-        if (shallowCompare(previousUserVars.current, userVars)) {
-            return;
-        }
+        let didCancel = false;
 
-        previousUserVars.current = userVars;
-        FS.setUserVars(userVars);
+        FS.onReady().then(() => {
+            if (didCancel) {
+                return;
+            }
+
+            if (shallowCompare(previousUserVars.current, userVars)) {
+                return;
+            }
+
+            previousUserVars.current = userVars;
+            FS.setUserVars(userVars);
+        });
+
+        return () => {
+            didCancel = true;
+        };
     }, [userMetadata?.accountID, userVars]);
 
     return null;
