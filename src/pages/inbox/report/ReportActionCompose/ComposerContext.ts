@@ -26,6 +26,7 @@ type ComposerText = string;
 
 // Warm — changes on interaction
 type ComposerState = {
+    reportID: string;
     isFocused: boolean;
     isMenuVisible: boolean;
     isFullComposerAvailable: boolean;
@@ -90,6 +91,7 @@ const noop = () => {};
 const ComposerTextContext = createContext<ComposerText>('');
 
 const defaultState: ComposerState = {
+    reportID: '',
     isFocused: false,
     isMenuVisible: false,
     isFullComposerAvailable: false,

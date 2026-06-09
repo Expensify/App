@@ -1,4 +1,5 @@
 import React from 'react';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -7,7 +8,7 @@ import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
@@ -41,7 +42,9 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(policyID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserPersonalDetails?.login);
 
     const approvers: SelectionListApprover[] = [];
 
@@ -50,6 +53,10 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             const email = employee.email;
 
             if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
+
+            if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && selectedApprover !== email) {
                 continue;
             }
 

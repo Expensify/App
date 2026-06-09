@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -8,11 +9,10 @@ import type * as OnyxTypes from '@src/types/onyx';
  * is present. In split-bill edit mode the source of truth is `SPLIT_TRANSACTION_DRAFT`;
  * otherwise it's `TRANSACTION_DRAFT` (creation) with a fallback to `TRANSACTION` (existing).
  *
- * TODO: the `isEditingSplitBill` argument (and the same prop on the leaves that pass it
- * through) will be dropped once `ConfirmationFieldsProvider` lands — the hook will read
- * the flag from `useConfirmationFields()` instead of having each caller thread it in.
+ * Must be called from inside a `ConfirmationFieldsProvider`.
  */
-function useTransactionSelector<TReturn>(transactionID: string | undefined, selector: (t: OnyxEntry<OnyxTypes.Transaction>) => TReturn, isEditingSplitBill = false): TReturn | undefined {
+function useTransactionSelector<TReturn>(transactionID: string | undefined, selector: (t: OnyxEntry<OnyxTypes.Transaction>) => TReturn): TReturn | undefined {
+    const {isEditingSplitBill} = useConfirmationFields();
     const [splitDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {selector});
     const [draft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {selector});
     const [existing] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector});
