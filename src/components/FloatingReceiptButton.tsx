@@ -25,7 +25,7 @@ type FloatingReceiptButtonProps = WithSentryLabel & {
 };
 
 function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}: FloatingReceiptButtonProps) {
-    const {successHover, textLight} = useTheme();
+    const {successHover, floatingActionButtonIcon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
@@ -63,7 +63,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
                         testID="floating-receipt-button-container"
                     >
                         <Icon
-                            fill={textLight}
+                            fill={floatingActionButtonIcon}
                             src={icons.ReceiptPlus}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
