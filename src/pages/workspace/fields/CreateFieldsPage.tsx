@@ -271,7 +271,6 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                     InputComponent={InitialListValueSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
-                                    subtitle={translate(isInvoiceField ? 'workspace.invoiceFields.listValuesInputSubtitle' : 'workspace.reportFields.listValuesInputSubtitle')}
                                 />
                             )}
                         </View>
