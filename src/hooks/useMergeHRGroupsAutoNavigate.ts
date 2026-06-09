@@ -1,5 +1,5 @@
 import {useEffect, useEffectEvent, useState} from 'react';
-import {setMergeHRCompleteSetupAutoNavigated} from '@libs/actions/connections/MergeHR';
+import {setMergeHRGroupsAutoNavigated} from '@libs/actions/connections/MergeHR';
 import {isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports -- the hook does not use React Navigation hooks internally (isFocused is passed in as a parameter), so there is no navigation instance available to use navigation.addListener for transition detection.
@@ -16,7 +16,7 @@ import usePolicy from './usePolicy';
  */
 function useMergeHRGroupsAutoNavigate(policyID: string, isFocused: boolean) {
     const policy = usePolicy(policyID);
-    const [wasAutoNavigated] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_COMPLETE_SETUP_AUTO_NAVIGATED}${policyID}`);
+    const [wasAutoNavigated] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_GROUPS_AUTO_NAVIGATED}${policyID}`);
     const [isAppVisible, setIsAppVisible] = useState(Visibility.isVisible);
     const [isAnyModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => !!modal?.isVisible});
 
@@ -26,7 +26,7 @@ function useMergeHRGroupsAutoNavigate(policyID: string, isFocused: boolean) {
         if (wasAutoNavigated) {
             return;
         }
-        setMergeHRCompleteSetupAutoNavigated(policyID);
+        setMergeHRGroupsAutoNavigated(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID));
     });
 
