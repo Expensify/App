@@ -31,6 +31,7 @@ import {
     calculateDefaultReimbursable,
     getExistingTransactionID,
     isMovingTransactionFromTrackExpense,
+    isParticipantP2P,
     navigateToConfirmationPage,
     navigateToParticipantPage,
     resolveOptimisticChatReportID,
@@ -353,6 +354,7 @@ function IOURequestStepAmount({
                             isSelfTourViewed,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                         });
                     } else {
                         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -586,13 +588,6 @@ function IOURequestStepAmount({
     );
 }
 
-/**
- * Check if the participant is a P2P chat
- */
-function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
-    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
-}
-
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmount, true);
 
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound, true);
@@ -601,4 +596,4 @@ const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrN
 const IOURequestStepAmountWithTransactionOnly = withFullTransactionOrNotFound(IOURequestStepAmount, true);
 
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
-export {isParticipantP2P, IOURequestStepAmountWithTransactionOnly};
+export {IOURequestStepAmountWithTransactionOnly};

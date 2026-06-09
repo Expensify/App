@@ -81,6 +81,7 @@ type CreateTransactionParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
+    currentUserLocalCurrency: string | undefined;
 };
 
 function createTransaction({
@@ -108,6 +109,7 @@ function createTransaction({
     recentWaypoints,
     optimisticTransactionIDs,
     optimisticChatReportID,
+    currentUserLocalCurrency,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -159,6 +161,7 @@ function createTransaction({
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                currentUserLocalCurrency,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
