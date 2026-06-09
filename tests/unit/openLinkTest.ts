@@ -40,8 +40,17 @@ jest.mock('@libs/actions/Session', () => ({
     waitForUserSignIn: jest.fn(),
 }));
 
-// Silence unrelated Onyx / Network state reads.
-jest.mock('@libs/NetworkState', () => ({getIsOffline: () => false}));
+// Cut the two deep transitive chains that Link.ts pulls in at module load time.
+jest.mock('@libs/API', () => ({makeRequestWithSideEffects: jest.fn()}));
+jest.mock('@libs/Navigation/helpers/swapBackgroundTabForRHPTarget', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@libs/NetworkState', () => ({
+    getIsOffline: () => false,
+    subscribe: () => () => {},
+    onReachabilityConfirmed: () => () => {},
+}));
 
 beforeEach(() => {
     mockNavigate.mockClear();
