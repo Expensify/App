@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type BankAccountFilterItem = {
@@ -33,22 +34,17 @@ type BankAccountFilterItem = {
     value: string;
 };
 
-function SearchFiltersBankAccountPage() {
+type BankAccountPickerProps = {
+    bankAccountList: BankAccountList | undefined;
+    initialSelectedIDs: string[];
+};
+
+function BankAccountPicker({bankAccountList, initialSelectedIDs}: BankAccountPickerProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-
-    const isLoadingOnyxData = isLoadingOnyxValue(bankAccountListMetadata, searchAdvancedFiltersFormResult);
-
-    const [selectedBankAccountIDs, setSelectedBankAccountIDs] = useState<string[]>(() => searchAdvancedFiltersForm?.bankAccount ?? []);
-
-    useEffect(() => {
-        setSelectedBankAccountIDs(searchAdvancedFiltersForm?.bankAccount ?? []);
-    }, [searchAdvancedFiltersForm?.bankAccount]);
+    const [selectedBankAccountIDs, setSelectedBankAccountIDs] = useState<string[]>(initialSelectedIDs);
 
     const buildItem = useCallback(
         (bankAccount: OnyxTypes.BankAccount): BankAccountFilterItem | undefined => {
@@ -150,6 +146,35 @@ function SearchFiltersBankAccountPage() {
     );
 
     return (
+        <View style={[styles.flex1]}>
+            <SelectionListWithSections<BankAccountFilterItem>
+                sections={sections}
+                ListItem={MultiSelectListItem}
+                initiallyFocusedItemKey={initiallyFocusedKey}
+                shouldUpdateFocusedIndex
+                shouldClearInputOnSelect={false}
+                onSelectRow={toggleSelection}
+                footerContent={footerContent}
+                shouldShowTextInput={shouldShowSearchInput}
+                textInputOptions={textInputOptions}
+                shouldStopPropagation
+                shouldPreventAutoScrollOnSelect
+                canSelectMultiple
+            />
+        </View>
+    );
+}
+
+function SearchFiltersBankAccountPage() {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+
+    const isLoadingOnyxData = isLoadingOnyxValue(bankAccountListMetadata, searchAdvancedFiltersFormResult);
+
+    return (
         <ScreenWrapper
             testID={SearchFiltersBankAccountPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
@@ -173,22 +198,10 @@ function SearchFiltersBankAccountPage() {
                 </View>
             )}
             {!isLoadingOnyxData && (
-                <View style={[styles.flex1]}>
-                    <SelectionListWithSections<BankAccountFilterItem>
-                        sections={sections}
-                        ListItem={MultiSelectListItem}
-                        initiallyFocusedItemKey={initiallyFocusedKey}
-                        shouldUpdateFocusedIndex
-                        shouldClearInputOnSelect={false}
-                        onSelectRow={toggleSelection}
-                        footerContent={footerContent}
-                        shouldShowTextInput={shouldShowSearchInput}
-                        textInputOptions={textInputOptions}
-                        shouldStopPropagation
-                        shouldPreventAutoScrollOnSelect
-                        canSelectMultiple
-                    />
-                </View>
+                <BankAccountPicker
+                    bankAccountList={bankAccountList}
+                    initialSelectedIDs={searchAdvancedFiltersForm?.bankAccount ?? []}
+                />
             )}
         </ScreenWrapper>
     );
