@@ -394,9 +394,9 @@ function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseD
             return bScore - aScore;
         }
 
-        if (aScore === 2 && bScore === 2 && a.endDate && a.startDate && b.endDate && b.startDate) {
-            const aRange = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
-            const bRange = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
+        if (aScore === 2 && bScore === 2) {
+            const aRange = new Date(a.endDate!).getTime() - new Date(a.startDate!).getTime();
+            const bRange = new Date(b.endDate!).getTime() - new Date(b.startDate!).getTime();
             if (aRange !== bRange) {
                 return aRange - bRange;
             }
@@ -414,6 +414,15 @@ function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseD
     });
 
     return eligibleRates.at(0);
+}
+
+function getBestEligibleRateOrPolicyDefault(mileageRates: Record<string, MileageRate>, expenseDate: string, policy: OnyxEntry<Policy>): MileageRate | undefined {
+    const bestRate = getBestEligibleRate(mileageRates, expenseDate);
+    if (bestRate) {
+        return bestRate;
+    }
+
+    return getDefaultMileageRate(policy);
 }
 
 /**
@@ -454,42 +463,31 @@ function getCustomUnitRateID({
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
 
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
-            if (expenseDate) {
-                const mileageRates = getMileageRates(policy);
-                const lastSelectedMileageRate = mileageRates[lastSelectedDistanceRateID];
-                if (!lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate)) {
-                    customUnitRateID = lastSelectedDistanceRateID;
-                } else {
-                    const bestRate = getBestEligibleRate(mileageRates, expenseDate);
-                    if (bestRate?.customUnitRateID) {
-                        customUnitRateID = bestRate.customUnitRateID;
-                    } else {
-                        const defaultMileageRate = getDefaultMileageRate(policy);
-                        if (defaultMileageRate?.customUnitRateID) {
-                            customUnitRateID = defaultMileageRate.customUnitRateID;
-                        }
-                    }
-                }
-            } else {
-                customUnitRateID = lastSelectedDistanceRateID;
+        if (!expenseDate) {
+            if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+                return lastSelectedDistanceRateID;
             }
-        } else if (expenseDate) {
-            const mileageRates = getMileageRates(policy);
-            const bestRate = getBestEligibleRate(mileageRates, expenseDate);
-            if (bestRate?.customUnitRateID) {
-                customUnitRateID = bestRate.customUnitRateID;
-            } else {
-                const defaultMileageRate = getDefaultMileageRate(policy);
-                if (defaultMileageRate?.customUnitRateID) {
-                    customUnitRateID = defaultMileageRate.customUnitRateID;
-                }
-            }
-        } else {
+
             const defaultMileageRate = getDefaultMileageRate(policy);
             if (defaultMileageRate?.customUnitRateID) {
-                customUnitRateID = defaultMileageRate.customUnitRateID;
+                return defaultMileageRate.customUnitRateID;
             }
+
+            return customUnitRateID;
+        }
+
+        const mileageRates = getMileageRates(policy);
+        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+            const lastSelectedMileageRate = mileageRates[lastSelectedDistanceRateID];
+            // If the last selected rate is missing from mileageRates we cannot verify date eligibility, so keep using the last selected ID.
+            if (!lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate)) {
+                return lastSelectedDistanceRateID;
+            }
+        }
+
+        const bestRate = getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+        if (bestRate?.customUnitRateID) {
+            return bestRate.customUnitRateID;
         }
     }
 

@@ -89,6 +89,63 @@ const FAKE_POLICY: Policy = {
     },
 };
 
+const DATE_BOUND_POLICY: Policy = {
+    ...FAKE_POLICY,
+    customUnits: {
+        C9031B6F4725D: {
+            ...FAKE_POLICY.customUnits!.C9031B6F4725D,
+            rates: {
+                DEFAULT_RATE_ID: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'DEFAULT_RATE_ID',
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: 67,
+                    subRates: [],
+                    index: 0,
+                },
+                RATE_2025_ID: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'RATE_2025_ID',
+                    enabled: true,
+                    name: '2025 Rate',
+                    rate: 70,
+                    subRates: [],
+                    index: 1,
+                    startDate: '2025-01-01',
+                    endDate: '2025-12-31',
+                },
+                RATE_2026_ID: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'RATE_2026_ID',
+                    enabled: true,
+                    name: '2026 Rate',
+                    rate: 75,
+                    subRates: [],
+                    index: 2,
+                    startDate: '2026-01-01',
+                    endDate: '2026-12-31',
+                },
+                RATE_2026_H1_ID: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'RATE_2026_H1_ID',
+                    enabled: true,
+                    name: '2026 H1 Rate',
+                    rate: 80,
+                    subRates: [],
+                    index: 3,
+                    startDate: '2026-01-01',
+                    endDate: '2026-06-30',
+                },
+            },
+        },
+    },
+};
+
 describe('DistanceRequestUtils', () => {
     describe('getDistanceRequestAmount', () => {
         test.each([
@@ -185,6 +242,123 @@ describe('DistanceRequestUtils', () => {
             });
 
             expect(result).toBe('222AAF6B93BCB');
+        });
+
+        it('returns last selected rate when no expense date is provided', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: {[DATE_BOUND_POLICY.id]: 'RATE_2025_ID'},
+            });
+
+            expect(result).toBe('RATE_2025_ID');
+        });
+
+        it('returns last selected rate when it is eligible for the expense date', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: {[DATE_BOUND_POLICY.id]: 'RATE_2026_ID'},
+                expenseDate: '2026-03-15',
+            });
+
+            expect(result).toBe('RATE_2026_ID');
+        });
+
+        it('returns the best eligible rate when the last selected rate is not eligible for the expense date', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: {[DATE_BOUND_POLICY.id]: 'RATE_2025_ID'},
+                expenseDate: '2026-03-15',
+            });
+
+            expect(result).toBe('RATE_2026_H1_ID');
+        });
+
+        it('returns the best eligible rate when no last selected rate is provided', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: undefined,
+                expenseDate: '2025-06-01',
+            });
+
+            expect(result).toBe('RATE_2025_ID');
+        });
+
+        it('returns the unbounded default rate when no date-bound rates are eligible for the expense date', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: undefined,
+                expenseDate: '2024-06-01',
+            });
+
+            expect(result).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('returns the policy default rate when no expense date is provided and no last selected rate exists', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: undefined,
+            });
+
+            expect(result).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('returns the policy default rate as a fallback when no rates are eligible for the expense date', () => {
+            const boundedOnlyPolicy: Policy = {
+                ...DATE_BOUND_POLICY,
+                customUnits: {
+                    C9031B6F4725D: {
+                        ...DATE_BOUND_POLICY.customUnits!.C9031B6F4725D,
+                        rates: {
+                            DEFAULT_RATE_ID: {
+                                attributes: {},
+                                currency: 'USD',
+                                customUnitRateID: 'DEFAULT_RATE_ID',
+                                enabled: true,
+                                name: 'Default Rate',
+                                rate: 67,
+                                subRates: [],
+                                index: 0,
+                                startDate: '2025-01-01',
+                                endDate: '2025-12-31',
+                            },
+                            RATE_2026_ID: {
+                                attributes: {},
+                                currency: 'USD',
+                                customUnitRateID: 'RATE_2026_ID',
+                                enabled: true,
+                                name: '2026 Rate',
+                                rate: 75,
+                                subRates: [],
+                                index: 1,
+                                startDate: '2026-01-01',
+                                endDate: '2026-12-31',
+                            },
+                        },
+                    },
+                },
+            };
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: boundedOnlyPolicy,
+                lastSelectedDistanceRates: undefined,
+                expenseDate: '2024-06-01',
+            });
+
+            expect(result).toBe('DEFAULT_RATE_ID');
         });
     });
 
