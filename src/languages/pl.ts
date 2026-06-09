@@ -2107,8 +2107,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidFile: 'Nieprawidłowy plik',
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
             invalidateWithDelay: 'Unieważnij z opóźnieniem',
-            leftHandNavCache: 'Pamięć podręczna lewego panelu nawigacji',
-            clearleftHandNavCache: 'Wyczyść',
             softKillTheApp: 'Miękko zamknij aplikację',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',

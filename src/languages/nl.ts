@@ -2107,8 +2107,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidFile: 'Ongeldig bestand',
             invalidFileDescription: 'Het bestand dat u probeert te importeren is ongeldig. Probeer het opnieuw.',
             invalidateWithDelay: 'Ongeldig maken met vertraging',
-            leftHandNavCache: 'Cache linkernavigatie',
-            clearleftHandNavCache: 'Wissen',
             softKillTheApp: 'App zacht afsluiten',
             kill: 'Doden',
             sentryDebug: 'Sentry-debug',

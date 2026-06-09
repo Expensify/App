@@ -2112,8 +2112,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidFile: 'File non valido',
             invalidFileDescription: 'Il file che stai tentando di importare non è valido. Riprova.',
             invalidateWithDelay: 'Invalidare con ritardo',
-            leftHandNavCache: 'Cache di navigazione sinistra',
-            clearleftHandNavCache: 'Pulisci',
             softKillTheApp: "Termina dolcemente l'app",
             kill: 'Termina',
             sentryDebug: 'Debug Sentry',
