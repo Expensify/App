@@ -4,7 +4,6 @@ import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
 
 type UseWorkspaceUpgradeConfirmationParams = {
     policyID: string | undefined;
-    reportID: string | undefined;
     isUpgraded: boolean;
     canPerformUpgrade: boolean;
     upgradingFromSubmit: boolean | undefined;
@@ -15,19 +14,10 @@ type UseWorkspaceUpgradeConfirmationParams = {
 
 /**
  * Runs post-upgrade feature confirmation when the user leaves the page, except for Submit-tier features
- * where the backend already enables them. For approvalSubmit without a reportID (workflows), also confirms
+ * where the backend already enables them. For approvalSubmit (workflows), also confirms
  * immediately after upgrade completes because the blur handler intentionally skips Submit-tier features.
  */
-function useWorkspaceUpgradeConfirmation({
-    policyID,
-    reportID,
-    isUpgraded,
-    canPerformUpgrade,
-    upgradingFromSubmit,
-    featureID,
-    isPendingUpgrade,
-    confirmUpgrade,
-}: UseWorkspaceUpgradeConfirmationParams) {
+function useWorkspaceUpgradeConfirmation({policyID, isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID, isPendingUpgrade, confirmUpgrade}: UseWorkspaceUpgradeConfirmationParams) {
     const confirmUpgradeRef = useRef(confirmUpgrade);
     const hasConfirmedApprovalSubmitUpgradeRef = useRef(false);
     const confirmUpgradeOnBlurRef = useRef({
@@ -76,7 +66,7 @@ function useWorkspaceUpgradeConfirmation({
     );
 
     useEffect(() => {
-        if (reportID || !isUpgraded || isPendingUpgrade || featureID !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id) {
+        if (!isUpgraded || isPendingUpgrade || featureID !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id) {
             return;
         }
 
@@ -86,7 +76,7 @@ function useWorkspaceUpgradeConfirmation({
 
         hasConfirmedApprovalSubmitUpgradeRef.current = true;
         confirmUpgradeRef.current();
-    }, [featureID, isPendingUpgrade, isUpgraded, reportID]);
+    }, [featureID, isPendingUpgrade, isUpgraded]);
 }
 
 export default useWorkspaceUpgradeConfirmation;

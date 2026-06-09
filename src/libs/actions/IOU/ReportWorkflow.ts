@@ -406,7 +406,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     // since some call sites pass `policy` as the active/personal policy rather than the report's workspace policy.
     const policyToUpgrade = expenseReportPolicy ?? policy;
     if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id) {
-        const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias;
+        const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
         const backTo = Navigation.getActiveRoute() ?? ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID);
 
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, expenseReport.reportID));

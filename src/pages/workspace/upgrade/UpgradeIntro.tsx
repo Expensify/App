@@ -38,10 +38,9 @@ type Props = {
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
-    reportID?: string;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, reportID}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -55,7 +54,6 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const isSubmitFeature = isSubmitPolicy && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
-    const isApproveReportUpgrade = feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id && !!reportID;
 
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
@@ -87,6 +85,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'HandCard',
         'InvoiceBlue',
         'Members',
+        'Approval',
     ]);
     const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'AdvancedApprovalsSquare', 'Unlock']);
     const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
@@ -133,8 +132,8 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     }
 
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
-    const title = isApproveReportUpgrade ? translate('workspace.upgrade.approvalSubmit.approveReport.title') : translate(feature.title);
-    const description = isApproveReportUpgrade ? translate('workspace.upgrade.approvalSubmit.approveReport.description') : translate(feature.description);
+    const title = translate(feature.title);
+    const description = translate(feature.description);
 
     return (
         <View style={styles.p5}>
@@ -162,18 +161,16 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 <View style={styles.mb5}>
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{title}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{description}</Text>
-                    {!isApproveReportUpgrade && (
-                        <View style={[styles.renderHTML]}>
-                            <RenderHTML
-                                html={translate(
-                                    feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports'
-                                        ? 'workspace.upgrade.approvals.onlyAvailableOnPlan'
-                                        : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
-                                    {formattedPrice, hasTeam2025Pricing},
-                                )}
-                            />
-                        </View>
-                    )}
+                    <View style={[styles.renderHTML]}>
+                        <RenderHTML
+                            html={translate(
+                                feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports'
+                                    ? 'workspace.upgrade.approvals.onlyAvailableOnPlan'
+                                    : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
+                                {formattedPrice, hasTeam2025Pricing},
+                            )}
+                        />
+                    </View>
                 </View>
                 <Button
                     isLoading={loading}

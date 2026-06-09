@@ -250,10 +250,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                if (reportID && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id) {
-                    break;
-                }
                 setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id:
                 enableExpensifyCard(policyID, true);
@@ -295,7 +294,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
     }, [
         policyID,
-        reportID,
         feature,
         featureNameAlias,
         policy,
@@ -312,7 +310,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     useWorkspaceUpgradeConfirmation({
         policyID,
-        reportID,
         isUpgraded,
         canPerformUpgrade,
         upgradingFromSubmit,
@@ -356,7 +353,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     <UpgradeIntro
                         policyID={policyID}
                         feature={feature}
-                        reportID={reportID}
                         onUpgrade={onUpgradeToCorporate}
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}

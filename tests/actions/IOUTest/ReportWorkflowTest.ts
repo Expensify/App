@@ -2543,7 +2543,7 @@ describe('actions/IOU/ReportWorkflow', () => {
     describe('approveMoneyRequest Submit workspace upgrade', () => {
         const submitPolicyID = 'submit-policy-id';
         const teamPolicyID = 'team-policy-id';
-        const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias;
+        const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
 
         const submitPolicy: Policy = {
             ...createRandomPolicy(Number(submitPolicyID), CONST.POLICY.TYPE.SUBMIT),
