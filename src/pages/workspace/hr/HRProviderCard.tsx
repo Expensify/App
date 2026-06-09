@@ -33,9 +33,12 @@ type HRProviderCardProps = {
 
     /** Whether the current user can edit this HR connection. */
     canWriteMoreFeatures: boolean;
+
+    /** Shows the read-only action modal. */
+    showReadOnlyModal: () => void;
 };
 
-function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRProviderCardProps) {
+function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -88,14 +91,21 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRP
     ];
 
     let rightInset: React.ReactNode;
-    if (!canWriteMoreFeatures) {
-        rightInset = null;
-    } else if (!card.isConnected) {
+    if (!card.isConnected) {
         rightInset = (
             <Button
                 small
                 text={translate('workspace.hr.connect')}
-                onPress={handleConnect}
+                onPress={() => {
+                    if (!canWriteMoreFeatures) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    handleConnect();
+                }}
+                innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                isDisabled={isOffline}
             />
         );
     } else if (card.isSyncInProgress) {

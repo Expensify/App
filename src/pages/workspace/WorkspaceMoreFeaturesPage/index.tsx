@@ -36,6 +36,7 @@ import {
     isTimeTrackingEnabled,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
+import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -121,11 +122,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
+    const [travelCardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const settings = getCardSettings(cardSettings);
     const paymentBankAccountID = settings?.paymentBankAccountID;
-    const {canWrite: canWriteMoreFeatures, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
+    const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -204,6 +208,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
     };
 
+    const promptDisableTravelViaInvoicing = async () => {
+        const {action} = await showConfirmModal({
+            title: translate('workspace.moreFeatures.travel.disableTravelTitle'),
+            prompt: translate('workspace.moreFeatures.travel.disableTravelPrompt'),
+            confirmText: translate('workspace.moreFeatures.travel.disableTravelButton'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM || !policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID));
+    };
+
     const promptDisableCompanyCardsViaConcierge = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.companyCards.disableCardTitle'),
@@ -271,7 +288,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={isAccountingEnabled}
                             pendingAction={policy?.pendingFields?.areConnectionsEnabled}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
-                            disabledAction={getReadOnlyDisabledAction(warnDisconnectAccountingFirst)}
+                            disabledAction={withReadOnlyFallback(warnDisconnectAccountingFirst)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -302,7 +319,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.receiptPartners?.enabled ?? false}
                             pendingAction={policy?.pendingFields?.receiptPartners}
                             disabled={!canWriteMoreFeatures || isUberConnected}
-                            disabledAction={getReadOnlyDisabledAction(warnReceiptPartnersStillConnected)}
+                            disabledAction={withReadOnlyFallback(warnReceiptPartnersStillConnected)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -330,7 +347,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
                             pendingAction={policy?.pendingFields?.isHREnabled}
                             disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
-                            disabledAction={getReadOnlyDisabledAction(warnDisconnectHRFirst)}
+                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -360,7 +377,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.areCategoriesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areCategoriesEnabled}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
-                            disabledAction={getReadOnlyDisabledAction(warnAccountingManagesOrganizeFeature)}
+                            disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -381,7 +398,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.areTagsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areTagsEnabled}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
-                            disabledAction={getReadOnlyDisabledAction(warnAccountingManagesOrganizeFeature)}
+                            disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
                             onToggle={(isEnabled) => {
                                 enablePolicyTags(policyData, isEnabled);
                             }}
@@ -399,16 +416,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={(policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled}
                             pendingAction={policy?.pendingFields?.tax}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
-                            disabledAction={getReadOnlyDisabledAction(warnAccountingManagesOrganizeFeature)}
+                            disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
                                 if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, policy?.taxRates, policyData);
+                                    enablePolicyTaxes(policyID, true, policy?.taxRates);
                                     return;
                                 }
-                                enablePolicyTaxes(policyID, false, undefined, policyData);
+                                enablePolicyTaxes(policyID, false);
                             }}
                             onPress={() => {
                                 if (!policyID) {
@@ -427,7 +444,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.areWorkflowsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areWorkflowsEnabled}
                             disabled={!canWriteMoreFeatures || isSmartLimitEnabled}
-                            disabledAction={getReadOnlyDisabledAction(promptDisableSmartLimitForWorkflows)}
+                            disabledAction={withReadOnlyFallback(promptDisableSmartLimitForWorkflows)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -448,7 +465,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.areRulesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areRulesEnabled}
                             disabled={!canWriteMoreFeatures}
-                            disabledAction={getReadOnlyDisabledAction()}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -478,7 +495,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.areDistanceRatesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areDistanceRatesEnabled}
                             disabled={!canWriteMoreFeatures}
-                            disabledAction={getReadOnlyDisabledAction()}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -498,8 +515,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.travel.subtitle')}
                             isActive={policy?.isTravelEnabled ?? false}
                             pendingAction={policy?.pendingFields?.isTravelEnabled}
-                            disabled={!canWriteMoreFeatures}
-                            disabledAction={getReadOnlyDisabledAction()}
+                            disabled={!canWriteMoreFeatures || isTravelInvoicingEnabled}
+                            disabledAction={withReadOnlyFallback(promptDisableTravelViaInvoicing)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -523,7 +540,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.areExpensifyCardsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areExpensifyCardsEnabled}
                             disabled={!canWriteMoreFeatures || (!!policy?.areExpensifyCardsEnabled && !!paymentBankAccountID) || !isEmptyObject(cardsList)}
-                            disabledAction={getReadOnlyDisabledAction(promptDisableExpensifyCardViaConcierge)}
+                            disabledAction={withReadOnlyFallback(promptDisableExpensifyCardViaConcierge)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -547,7 +564,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.areCompanyCardsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areCompanyCardsEnabled}
                             disabled={!canWriteMoreFeatures || !isEmptyObject(getCompanyFeeds(cardFeeds))}
-                            disabledAction={getReadOnlyDisabledAction(promptDisableCompanyCardsViaConcierge)}
+                            disabledAction={withReadOnlyFallback(promptDisableCompanyCardsViaConcierge)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -571,7 +588,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={(policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED)) ?? false}
                             pendingAction={policy?.pendingFields?.arePerDiemRatesEnabled}
                             disabled={!canWriteMoreFeatures}
-                            disabledAction={getReadOnlyDisabledAction()}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -598,7 +615,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={isTimeTrackingEnabled(policy)}
                             pendingAction={policy?.pendingFields?.isTimeTrackingEnabled}
                             disabled={!canWriteMoreFeatures}
-                            disabledAction={getReadOnlyDisabledAction()}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -622,7 +639,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             isActive={policy?.areInvoicesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areInvoicesEnabled}
                             disabled={!canWriteMoreFeatures}
-                            disabledAction={getReadOnlyDisabledAction()}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;

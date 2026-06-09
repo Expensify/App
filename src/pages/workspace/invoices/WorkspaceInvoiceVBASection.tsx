@@ -32,12 +32,15 @@ type WorkspaceInvoiceVBASectionProps = {
 
     /** Whether the current user can edit miscellaneous settings. */
     canWriteMoreFeatures: boolean;
+
+    /** Shows the read-only access modal. */
+    showReadOnlyModal: () => void;
 };
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 // TODO: can be refactored to use ThreeDotsMenu component instead handling the popover and positioning
-function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceInvoiceVBASectionProps) {
+function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnlyModal}: WorkspaceInvoiceVBASectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -128,6 +131,11 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceI
     };
 
     const onAddBankAccountPress = () => {
+        if (!canWriteMoreFeatures) {
+            showReadOnlyModal();
+            return;
+        }
+
         if (!isSupportedGlobalReimbursement) {
             showConfirmModal({
                 danger: true,
@@ -242,11 +250,11 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceI
                 onPress={onBankAccountRowPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
                 onThreeDotsMenuPress={paymentMethodPressed}
-                shouldSkipDefaultAccountValidation={!isSupportedGlobalReimbursement}
+                shouldSkipDefaultAccountValidation={!canWriteMoreFeatures || !isSupportedGlobalReimbursement}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
-                shouldShowAddBankAccount={canWriteMoreFeatures}
+                addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                 style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 policyID={policyID}

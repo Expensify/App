@@ -57,6 +57,7 @@ import {
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    getWaypoints,
     hasEReceipt,
     hasReceiptSource,
     hasReceipt as hasReceiptTransactionUtils,
@@ -79,6 +80,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -171,9 +173,15 @@ function MoneyRequestReceiptView({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
-    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-    const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
-    const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
+    const displayedTransaction = updatedTransaction ?? transaction;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
+
+    // A merged distance expense can be typed `distance-manual` while still carrying the map waypoints/route from the
+    // expense it was merged with, so fall back to the presence of waypoints to still surface the distance e-receipt.
+    const hasDistanceWaypoints = Object.keys(getWaypoints(displayedTransaction) ?? {}).length > 0;
+    const isMapDistanceRequest = !!displayedTransaction && isDistanceRequest && (!isManualDistanceRequest(displayedTransaction) || hasDistanceWaypoints);
+    const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
+    const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
@@ -255,10 +263,9 @@ function MoneyRequestReceiptView({
 
     let receiptURIs;
     if (hasReceipt) {
-        receiptURIs = getThumbnailAndImageURIs(updatedTransaction ?? transaction);
+        receiptURIs = getThumbnailAndImageURIs(displayedTransaction);
     }
-    const transactionForReceipt = updatedTransaction ?? transaction;
-    const isEReceiptTransaction = !!transactionForReceipt && !hasReceiptSource(transactionForReceipt) && hasEReceipt(transactionForReceipt);
+    const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
     const canZoomReceipt = hasReceipt && !isLoading && !isTransactionScanning && !isEReceiptTransaction && !!receiptURIs?.image;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
@@ -504,8 +511,6 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
-
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
@@ -623,23 +628,26 @@ function MoneyRequestReceiptView({
                                     isEnabled={canZoomReceipt}
                                     hoverContainerRef={receiptContainerRef}
                                 >
-                                    <ReportActionItemImage
-                                        shouldUseThumbnailImage={!fillSpace}
-                                        shouldUseFullHeight={fillSpace}
-                                        thumbnail={receiptURIs?.thumbnail}
-                                        fileExtension={receiptURIs?.fileExtension}
-                                        isThumbnail={receiptURIs?.isThumbnail}
-                                        image={receiptURIs?.image}
-                                        isLocalFile={receiptURIs?.isLocalFile}
-                                        filename={receiptURIs?.filename}
-                                        transaction={updatedTransaction ?? transaction}
-                                        enablePreviewModal
-                                        readonly={readonly || !canEditReceipt}
-                                        mergeTransactionID={mergeTransactionID}
-                                        report={report}
-                                        onLoad={() => setIsLoading(false)}
-                                        onLoadFailure={() => setIsLoading(false)}
-                                    />
+                                    <>
+                                        <ReportActionItemImage
+                                            shouldUseThumbnailImage={!fillSpace}
+                                            shouldUseFullHeight={fillSpace}
+                                            thumbnail={receiptURIs?.thumbnail}
+                                            fileExtension={receiptURIs?.fileExtension}
+                                            isThumbnail={receiptURIs?.isThumbnail}
+                                            image={receiptURIs?.image}
+                                            isLocalFile={receiptURIs?.isLocalFile}
+                                            filename={receiptURIs?.filename}
+                                            transaction={updatedTransaction ?? transaction}
+                                            enablePreviewModal
+                                            readonly={readonly || !canEditReceipt}
+                                            mergeTransactionID={mergeTransactionID}
+                                            report={report}
+                                            onLoad={() => setIsLoading(false)}
+                                            onLoadFailure={() => setIsLoading(false)}
+                                        />
+                                        {isMapDistanceRequest && hovered && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
+                                    </>
                                 </ReceiptHoverZoom>
                             </View>
                             {canShowReceiptActions && (
