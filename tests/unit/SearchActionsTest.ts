@@ -17,10 +17,17 @@ const mockWrite = jest.mocked(write);
 
 function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]} {
     const options = mockWrite.mock.calls.at(-1)?.at(2);
-    if (!options || typeof options !== 'object' || !('optimisticData' in options)) {
+    if (
+        !options ||
+        typeof options !== 'object' ||
+        !('optimisticData' in options) ||
+        !Array.isArray(options.optimisticData) ||
+        !('failureData' in options) ||
+        !Array.isArray(options.failureData)
+    ) {
         throw new Error('write was not called with optimistic options');
     }
-    return options as {optimisticData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]};
+    return {optimisticData: options.optimisticData, failureData: options.failureData};
 }
 
 describe('queueExportSearchItemsToCSV', () => {

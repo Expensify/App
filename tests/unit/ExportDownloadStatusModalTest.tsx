@@ -35,7 +35,7 @@ const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeo
 const mockNavigateToConcierge = navigateToConciergeChat as jest.MockedFunction<typeof navigateToConciergeChat>;
 
 const EXPORT_ID = 'test-export-123';
-const DOWNLOAD_URL = 'https://example.com/export.csv';
+const FILE_NAME = 'export_2026-06-09_02-41-38_6a277d629c569.csv';
 
 function renderModal(props: Partial<React.ComponentProps<typeof ExportDownloadStatusModal>> = {}) {
     return render(
@@ -103,17 +103,18 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.dismiss')).toBeTruthy();
     });
 
-    it('auto-downloads on ready state transition', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+    it('auto-downloads on ready state transition with a secure URL built from the fileName', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), DOWNLOAD_URL, undefined);
+        const expectedURLPart = `secure?secureType=csvexport&filename=${encodeURIComponent(FILE_NAME)}&downloadName=${encodeURIComponent(FILE_NAME)}`;
+        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), FILE_NAME);
     });
 
     it('shows ready state with Download and Close buttons', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
@@ -137,7 +138,7 @@ describe('ExportDownloadStatusModal', () => {
     });
 
     it('retains last state when Onyx key becomes null', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
@@ -165,7 +166,7 @@ describe('ExportDownloadStatusModal', () => {
 
     it('Close button calls clearExportDownload', async () => {
         const onClose = jest.fn();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal({onClose});
         await waitForBatchedUpdatesWithAct();
