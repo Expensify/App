@@ -21,6 +21,7 @@ import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
+import OnboardingPersonalTrackGoal from '@pages/OnboardingPersonalTrackGoal';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
@@ -152,6 +153,10 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.INTERESTED_FEATURES}
                                 component={OnboardingInterestedFeatures}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL}
+                                component={OnboardingPersonalTrackGoal}
                             />
                         </Stack.Navigator>
                     </OnboardingModalNavigatorContentWrapper>
