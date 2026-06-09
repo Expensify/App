@@ -1607,6 +1607,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         if (!selectedTransactions[transactionID].reportAction?.childReportID) {
                             continue;
                         }
+                        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                         unholdRequest(
                             transactionID,
                             selectedTransactions[transactionID].reportAction?.childReportID,
@@ -1614,6 +1615,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             isOffline,
                             currentUserPersonalDetails?.login ?? '',
                             currentUserPersonalDetails?.accountID,
+                            transactionViolations,
                         );
                     }
                     InteractionManager.runAfterInteractions(() => {
