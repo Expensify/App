@@ -22,7 +22,7 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRule
 
     return (
         <View style={[styles.flexRow]}>
-            <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{translate('workspace.rules.spendRules.restrictionType')}</Text>
+            <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{translate('workspace.rules.spendRules.restrictMerchants')}</Text>
             <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
                 <Button
                     text={translate('common.off')}

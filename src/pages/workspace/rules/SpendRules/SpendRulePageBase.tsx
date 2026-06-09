@@ -197,6 +197,11 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         });
     };
 
+    const merchantsTitle =
+        restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchants');
+    const merchantTypesTitle =
+        restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
+
     if (isEditing && !existingRule) {
         return <NotFoundPage />;
     }
@@ -237,7 +242,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
-                    <Text style={[styles.textStrong, styles.ph5, styles.mt5]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
+                    <Text style={[styles.textStrong, styles.ph5, styles.mt5, styles.pv2]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.permittedCurrencies')}
                         onPress={() => {
@@ -281,7 +286,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     {restrictionAction !== CONST.SPEND_RULES.ACTION.OFF && (
                         <>
                             <MenuItemWithTopDescription
-                                description={translate('common.merchant')}
+                                description={merchantsTitle}
                                 onPress={
                                     canWriteRules
                                         ? () => {
@@ -298,7 +303,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                             />
                             <MenuItemWithTopDescription
-                                description={translate('workspace.rules.spendRules.spendCategory')}
+                                description={merchantTypesTitle}
                                 onPress={
                                     canWriteRules
                                         ? () => {
