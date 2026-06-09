@@ -422,6 +422,66 @@ describe('SearchAutocompleteList', () => {
             expect(relevantOrder.indexOf('Charlie Report')).toBeLessThan(relevantOrder.indexOf('NewServer Report'));
         });
 
+        it('should keep an optimistic (invite) account in "Recent chats" instead of "Search results"', async () => {
+            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            await waitFor(() => {
+                expect(screen.getByText('Recent chats')).toBeTruthy();
+            });
+
+            // Type a query that matches the existing reports so their local rank is frozen and non-empty
+            // (the invite account is not part of that snapshot).
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'test');
+            await flushAllUpdates();
+
+            // Simulate an optimistic (invite) result arriving after the frozen rank was captured. It is not part
+            // of the frozen snapshot, so without special handling it would be treated as a server result and
+            // shown under "Search results". Because it is locally generated it must stay in "Recent chats".
+            getSearchOptionsSpy.mockReturnValue({
+                options: {
+                    recentReports: [
+                        {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
+                        {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
+                        {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
+                        {reportID: '201', keyForList: '201', text: 'InviteAccount Report', alternateText: 'invite alt', lastMessageText: 'new', isOptimisticAccount: true},
+                    ],
+                    personalDetails: [],
+                    currentUserOption: null,
+                    userToInvite: null,
+                },
+            });
+            mockUseFilteredOptions.mockReturnValue({
+                options: {...mockedOptions},
+                isLoading: false,
+                loadMore: jest.fn(),
+                hasMore: false,
+                isLoadingMore: false,
+            });
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+            });
+            await flushAllUpdates();
+
+            // The optimistic account is locally generated, so it must never be treated as a server result.
+            await waitFor(() => {
+                expect(screen.getByText('InviteAccount Report')).toBeTruthy();
+            });
+            expect(screen.queryByText('Search results')).toBeNull();
+        });
+
         it('should focus the first matched chat so submitting opens it instead of running a search', async () => {
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
             recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};

@@ -499,15 +499,19 @@ function SearchAutocompleteList({
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             for (const item of nextStyledRecentReports) {
-                if (item.keyForList && frozenLocalRank.has(item.keyForList)) {
+                // Optimistic (invite) accounts are generated locally and are never server search results,
+                // so always keep them in the local section. Otherwise they briefly land in "Search results"
+                // before the frozen rank snapshot catches up, flashing across sections.
+                if (item.isOptimisticAccount || (item.keyForList && frozenLocalRank.has(item.keyForList))) {
                     localRows.push(item);
                 } else {
                     serverRows.push(item);
                 }
             }
             // Sort the local section by the rank captured at query-change time so it cannot
-            // reorder when the API returns.
-            localRows.sort((a, b) => (frozenLocalRank.get(a.keyForList ?? '') ?? 0) - (frozenLocalRank.get(b.keyForList ?? '') ?? 0));
+            // reorder when the API returns. Rows without a frozen rank (e.g. optimistic invite
+            // accounts) keep their original order at the end of the section.
+            localRows.sort((a, b) => (frozenLocalRank.get(a.keyForList ?? '') ?? Number.MAX_SAFE_INTEGER) - (frozenLocalRank.get(b.keyForList ?? '') ?? Number.MAX_SAFE_INTEGER));
 
             if (localRows.length > 0 || !isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
