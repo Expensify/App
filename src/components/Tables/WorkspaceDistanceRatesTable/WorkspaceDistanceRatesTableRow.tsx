@@ -95,7 +95,6 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                             text={statusLabels[status] ?? ''}
                             backgroundColor={statusColors.backgroundColor}
                             textColor={statusColors.textColor}
-                            badgeStyles={styles.alignSelfStart}
                         />
                         {shouldUseNarrowTableLayout && (
                             <TextWithTooltip

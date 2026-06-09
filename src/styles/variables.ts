@@ -135,7 +135,7 @@ export default {
     tableGroupRowHeight: 36,
     tableSkeletonHeight: 32,
     tableCheckboxColumnWidth: 20,
-    tableStatusColumnWidth: 60,
+    tableStatusColumnWidth: 48,
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     domainTableActionColumnWidth: 64,

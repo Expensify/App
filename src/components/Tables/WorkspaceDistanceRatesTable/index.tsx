@@ -60,7 +60,13 @@ function WorkspaceDistanceRatesTable({
     const tableRef = useRef<TableHandle<DistanceRateTableItemData, DistanceRatesTableColumnKey>>(null);
 
     const columns: Array<TableColumn<DistanceRatesTableColumnKey>> = [
-        {key: 'status', label: translate('workspace.distanceRates.status'), sortable: true, width: variables.tableStatusColumnWidth},
+        {
+            key: 'status',
+            label: translate('workspace.distanceRates.status'),
+            sortable: true,
+            width: variables.tableStatusColumnWidth,
+            styling: {containerStyles: [styles.justifyContentCenter]},
+        },
         {key: 'name', label: translate('common.name'), sortable: true},
         {key: 'rate', label: translate('workspace.distanceRates.rate'), sortable: true},
         {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
