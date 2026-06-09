@@ -3376,7 +3376,7 @@ describe('ReportActionsUtils', () => {
             const memo = 'Testing approval memo';
             const action = buildForwardedAction({message: memo});
 
-            expect(ReportActionsUtils.getForwardedReportActionMessage(translateLocal, action)).toBe(translateLocal('iou.forwarded', memo));
+            expect(ReportActionsUtils.getForwardedReportActionMessage(action, translateLocal)).toBe(translateLocal('iou.forwarded', memo));
         });
 
         it('should suppress the memo for a DEW forwarded action with a routed action', () => {
@@ -3386,7 +3386,7 @@ describe('ReportActionsUtils', () => {
                 workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             });
 
-            expect(ReportActionsUtils.getForwardedReportActionMessage(translateLocal, action)).toBe(translateLocal('iou.forwarded'));
+            expect(ReportActionsUtils.getForwardedReportActionMessage(action, translateLocal)).toBe(translateLocal('iou.forwarded'));
         });
     });
 

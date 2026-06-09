@@ -839,7 +839,7 @@ function getLastMessageTextForReport({
         if (automaticAction) {
             lastMessageTextFromReport = Parser.htmlToText(translate('iou.automaticallyForwarded'));
         } else {
-            lastMessageTextFromReport = getForwardedReportActionMessage(translate, lastReportAction);
+            lastMessageTextFromReport = getForwardedReportActionMessage(lastReportAction, translate);
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         lastMessageTextFromReport = translate('iou.rejectedThisReport');

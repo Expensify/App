@@ -95,7 +95,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport}: Appro
             );
         }
 
-        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(translate, action)} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
 
     return null;

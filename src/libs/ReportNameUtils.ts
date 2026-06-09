@@ -442,7 +442,7 @@ function computeReportNameBasedOnReportAction(
         if (automaticAction) {
             return Parser.htmlToText(translate('iou.automaticallyForwarded'));
         }
-        return getForwardedReportActionMessage(translate, parentReportAction);
+        return getForwardedReportActionMessage(parentReportAction, translate);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
         return translate('iou.heldExpense');

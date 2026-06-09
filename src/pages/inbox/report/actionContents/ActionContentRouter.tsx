@@ -302,7 +302,7 @@ function ActionContentRouter({
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(translate, action)} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
     if (isHandledPolicyChangeLogAction(action)) {
         return (

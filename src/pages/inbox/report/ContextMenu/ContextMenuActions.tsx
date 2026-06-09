@@ -1050,7 +1050,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (automaticAction) {
                         setClipboardMessage(translate('iou.automaticallyForwarded'));
                     } else {
-                        Clipboard.setString(getForwardedReportActionMessage(translate, reportAction));
+                        Clipboard.setString(getForwardedReportActionMessage(reportAction, translate));
                     }
                 } else if (isRejectedAction(reportAction)) {
                     Clipboard.setString(translate('iou.rejectedThisReport'));

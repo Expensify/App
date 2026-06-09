@@ -320,7 +320,7 @@ function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
-function getForwardedReportActionMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>>): string {
+function getForwardedReportActionMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>>, translate: LocalizedTranslate): string {
     const originalMessage = getOriginalMessage(reportAction);
     if (originalMessage?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL && originalMessage?.to) {
         return translate('iou.forwarded');
