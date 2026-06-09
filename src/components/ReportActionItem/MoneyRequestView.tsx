@@ -1,4 +1,5 @@
 import {policyTypeSelector} from '@selectors/Policy';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
