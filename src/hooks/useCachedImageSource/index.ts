@@ -1,42 +1,40 @@
-import {useNavigation} from '@react-navigation/native';
 import type {ImageSource} from 'expo-image';
 import {useContext, useEffect, useRef, useState} from 'react';
 import {AttachmentIDContext} from '@components/Attachments/AttachmentIDContext';
 import useOnyx from '@hooks/useOnyx';
-import {getCachedAttachment} from '@libs/actions/Attachment';
+import {getAttachmentLocalSource, getCachedAttachment} from '@libs/actions/Attachment';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
-    const hasHeaders = typeof source === 'object' && !isEmptyObject(source.headers);
     const {attachmentID} = useContext(AttachmentIDContext);
     const [hasError, setHasError] = useState(false);
     const [cachedUri, setCachedUri] = useState<string | null>(null);
+    const [hasSettled, setHasSettled] = useState(false);
     const [attachment, attachmentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
-    const isUnmounted = useRef(false);
     const objectURL = useRef<string | null>(null);
-    const navigation = useNavigation();
+    const authToken = source?.headers?.[CONST.CHAT_ATTACHMENT_TOKEN_KEY];
 
     useEffect(() => {
-        const unsubscribeFocus = navigation.addListener('focus', () => {
-            isUnmounted.current = false;
-        });
-        const unsubscribeBlur = navigation.addListener('blur', () => {
-            isUnmounted.current = true;
-        });
-        return () => {
-            unsubscribeFocus();
-            unsubscribeBlur();
-        };
-    }, [navigation]);
-
-    useEffect(() => {
-        setCachedUri(null);
         setHasError(false);
+        setHasSettled(false);
 
-        if ((!hasHeaders && !attachmentID) || !uri) {
+        if ((!authToken && !attachmentID) || !uri) {
+            setCachedUri(null);
+            return;
+        }
+
+        // Check attachmentLocalSources (module-level cache) FIRST.
+        // This is synchronous and survives component lifecycles, so
+        // navigate-back is instant — no re-reading from CacheAPI.
+        // Also works while metadata is still loading.
+        const localSource = getAttachmentLocalSource(attachmentID);
+        if (localSource) {
+            objectURL.current = localSource;
+            setCachedUri(localSource);
+            setHasSettled(true);
             return;
         }
 
@@ -44,46 +42,45 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
             return;
         }
 
-        getCachedAttachment({uri, attachmentID, attachment, sourceHeaders: source?.headers})
+        let cancelled = false;
+        const previousObjectURL = objectURL.current;
+
+        getCachedAttachment({uri, attachmentID, remoteSource: attachment?.remoteSource, authToken})
             .then((cachedSource) => {
-                if (!cachedSource) {
-                    if (!isUnmounted.current) {
-                        setHasError(true);
-                    }
+                if (cancelled) {
                     return;
                 }
-                if (objectURL.current) {
-                    URL.revokeObjectURL(objectURL.current);
+                setHasSettled(true);
+
+                if (!cachedSource) {
+                    setHasError(true);
+                    return;
+                }
+
+                // Revoke previous URL only after the new one is ready.
+                if (previousObjectURL && previousObjectURL !== cachedSource) {
+                    URL.revokeObjectURL(previousObjectURL);
                 }
 
                 objectURL.current = cachedSource;
-                if (!isUnmounted.current) {
-                    setCachedUri(objectURL.current);
-                } else {
-                    URL.revokeObjectURL(objectURL.current);
-                }
+                setCachedUri(cachedSource);
             })
             .catch((error) => {
-                if (!isUnmounted.current) {
-                    setHasError(true);
-
-                    if (objectURL.current) {
-                        URL.revokeObjectURL(objectURL.current);
-                    }
+                if (cancelled) {
+                    return;
                 }
+                setHasSettled(true);
+                setHasError(true);
                 Log.hmmm('[AttachmentCache] Failed to get cached attachment', {message: (error as Error).message});
             });
 
         return () => {
-            if (objectURL.current) {
-                URL.revokeObjectURL(objectURL.current);
-                objectURL.current = null;
-            }
+            cancelled = true;
         };
-    }, [uri, hasHeaders, attachment, attachmentMetadata.status, attachmentID, source?.headers]);
+    }, [uri, authToken, attachmentID, attachment?.remoteSource, attachmentMetadata.status]);
 
-    // Skip if there's no attachmentID and headers
-    if (!hasHeaders && !attachmentID) {
+    // Skip if there's no attachmentID and auth token
+    if (!authToken && !attachmentID) {
         return source;
     }
 
@@ -99,9 +96,18 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
         return source;
     }
 
-    // If cache fetch is still in progress — return null so expo-image doesn't
-    // render the remote source (which would bypass our cache)
+    // If cache fetch is still in progress, check if we have a local source
+    // from the upload (uploader case) and show it instead of blocking
     if (!cachedUri) {
+        const localSource = getAttachmentLocalSource(attachmentID);
+        if (localSource) {
+            return {uri: localSource};
+        }
+
+        if (hasSettled) {
+            return source;
+        }
+
         return null;
     }
 

@@ -186,7 +186,7 @@ describe('AttachmentStorage', () => {
 
         // Given the new markdown attachment link
         const newSourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=100';
-        getCachedAttachment({attachmentID, attachment, source: {uri: newSourceURL}});
+        getCachedAttachment({attachmentID, uri: newSourceURL, remoteSource: attachment?.remoteSource});
 
         await waitForBatchedUpdates();
 

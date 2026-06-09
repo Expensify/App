@@ -6,8 +6,8 @@ type CacheAttachmentProps = {
     /** Attachment ID based on the data-attachment-id attribute (only required for non-auth remote attachments) */
     attachmentID?: string;
 
-    /** URI of the given attachment either external or local source */
-    sourceHeaders?: Record<string, string>;
+    /** Auth token for remote local attachments */
+    authToken?: string;
 
     /** MIME type of the given attachment (native-only) */
     fileType?: string;
@@ -18,11 +18,14 @@ type GetCachedAttachmentProps = {
     /** Attachment ID based on the data-attachment-id attribute */
     attachmentID?: string;
 
-    /** Attachment data from Onyx */
-    attachment: OnyxEntry<Attachment>;
+    /** Remote source */
+    remoteSource?: string;
 
-    /** Current source of the attachment */
-    sourceHeaders?: Record<string, string>;
+    /** Local path source for the cached attachment */
+    localSource?: string;
+
+    /** Auth token for remote local attachments */
+    authToken?: string;
 };
 
 type RemoveCachedAttachmentProps = {

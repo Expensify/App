@@ -2,22 +2,22 @@ import type {ImageSource} from 'expo-image';
 import {useContext, useEffect, useState} from 'react';
 import {AttachmentIDContext} from '@components/Attachments/AttachmentIDContext';
 import useOnyx from '@hooks/useOnyx';
-import {getCachedAttachment} from '@libs/actions/Attachment';
+import {getAttachmentLocalSource, getCachedAttachment} from '@libs/actions/Attachment';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
-    const hasHeaders = typeof source === 'object' && !isEmptyObject(source.headers);
     const {attachmentID} = useContext(AttachmentIDContext);
     const [cachedUri, setCachedUri] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
+    const [hasSettled, setHasSettled] = useState(false);
     const [attachment, attachmentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
 
     useEffect(() => {
         setCachedUri(null);
         setHasError(false);
+        setHasSettled(false);
 
         // On native, expo-image handles remote/auth attachments natively — no caching needed
         if (!attachmentID || !uri) {
@@ -30,12 +30,12 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
 
         let revoked = false;
 
-        getCachedAttachment({uri, attachmentID, attachment, sourceHeaders: source?.headers})
+        getCachedAttachment({uri, attachmentID, localSource: attachment?.source})
             .then((cachedSource) => {
+                if (!revoked) {
+                    setHasSettled(true);
+                }
                 if (!cachedSource) {
-                    if (!revoked) {
-                        setHasError(true);
-                    }
                     return;
                 }
                 if (!revoked) {
@@ -44,6 +44,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
             })
             .catch((error) => {
                 if (!revoked) {
+                    setHasSettled(true);
                     setHasError(true);
                 }
                 Log.hmmm('[AttachmentCache] Failed to get cached attachment', {message: (error as Error).message});
@@ -52,7 +53,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
         return () => {
             revoked = true;
         };
-    }, [uri, hasHeaders, attachmentID, attachment, attachmentMetadata.status, source?.headers]);
+    }, [uri, attachmentID, attachment?.source, attachmentMetadata.status]);
 
     // Skip if there's no attachmentID, because expo-image
     // already handle remote attachments natively
@@ -71,9 +72,18 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
         return source;
     }
 
-    // If cache fetch is still in progress — return null so expo-image doesn't
-    // render the remote source (which would bypass our cache)
+    // If cache fetch is still in progress, check if we have a local source
+    // from the upload (uploader case) and show it instead of blocking
     if (!cachedUri) {
+        const localSource = getAttachmentLocalSource(attachmentID);
+        if (localSource) {
+            return {uri: localSource};
+        }
+
+        if (hasSettled) {
+            return source;
+        }
+
         return null;
     }
 

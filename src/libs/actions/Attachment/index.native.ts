@@ -6,20 +6,33 @@ import {getMimeTypeFromUri, isLocalFile} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
 const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 
-async function cacheAttachment({uri, attachmentID, sourceHeaders, fileType}: CacheAttachmentProps): Promise<string | undefined> {
-    const isAuthRemoteAttachment = !isEmptyObject(sourceHeaders);
-    const isMarkdownAttachment = isEmptyObject(sourceHeaders) && !isLocalFile(uri);
+const attachmentLocalSources = new Map<string, string>();
+
+function getAttachmentLocalSource(attachmentID: string | undefined): string | undefined {
+    if (!attachmentID) {
+        return undefined;
+    }
+    return attachmentLocalSources.get(attachmentID);
+}
+
+async function cacheAttachment({uri, attachmentID, authToken, fileType}: CacheAttachmentProps): Promise<string | undefined> {
+    const isAuthRemoteAttachment = !!authToken;
+    const isMarkdownAttachment = !authToken && !isLocalFile(uri);
 
     // Cache file-upload only to prevent flash bug, because remote/external attachments are automatically cached by expo-image
     const shouldSkipCaching = isAuthRemoteAttachment || isMarkdownAttachment;
 
     if (!uri || shouldSkipCaching || !attachmentID) {
         return;
+    }
+
+    // Save local URI immediately for uploads so it can be rendered while caching is in progress
+    if (uri.startsWith('file:')) {
+        attachmentLocalSources.set(attachmentID, uri);
     }
 
     // Create attachment directory if it's not yet exists
@@ -47,8 +60,13 @@ async function cacheAttachment({uri, attachmentID, sourceHeaders, fileType}: Cac
                 source: destPath,
             });
 
+            // Update local source to the cached file path
+            attachmentLocalSources.set(attachmentID, `file://${destPath}`);
+
             return destPath;
         } catch (error) {
+            // Clean up local source reference on failure
+            attachmentLocalSources.delete(attachmentID);
             throw new Error('[AttachmentCache] Failed to cache attachment');
         }
     }
@@ -81,23 +99,42 @@ async function cacheAttachment({uri, attachmentID, sourceHeaders, fileType}: Cac
             remoteSource: uri,
         });
 
+        // Update local source to the cached file path
+        attachmentLocalSources.set(attachmentID, filePath);
+
         return filePath;
     } catch (error) {
+        // Clean up local source reference on failure
+        attachmentLocalSources.delete(attachmentID);
         throw new Error('[AttachmentCache] Failed to cache attachment');
     }
 }
 
-async function getCachedAttachment({uri, attachment}: GetCachedAttachmentProps) {
-    if (!uri) {
-        return;
-    }
-    const cachedSource = attachment?.source;
-    const isCached = cachedSource && (await RNFS.exists(cachedSource));
-    if (!isCached) {
+async function getCachedAttachment({uri, attachmentID, localSource}: GetCachedAttachmentProps) {
+    if (!uri || !attachmentID) {
         return;
     }
 
-    return `file://${cachedSource}`;
+    const localUri = attachmentLocalSources.get(attachmentID);
+    if (localUri) {
+        const exists = await RNFS.exists(localUri);
+        if (exists) {
+            return localUri.startsWith('file://') ? localUri : `file://${localUri}`;
+        }
+        // File no longer exists — remove stale entry and fall through
+        attachmentLocalSources.delete(attachmentID);
+    }
+
+    if (localSource) {
+        const isCached = await RNFS.exists(localSource);
+        if (!isCached) {
+            removeCachedAttachment({attachmentID, localSource: localSource});
+            return;
+        }
+        return `file://${localSource}`;
+    }
+
+    return;
 }
 
 async function removeCachedAttachment({attachmentID, localSource}: RemoveCachedAttachmentProps): Promise<void> {
@@ -111,6 +148,7 @@ async function removeCachedAttachment({attachmentID, localSource}: RemoveCachedA
             await RNFS.unlink(localSource);
         }
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
+        attachmentLocalSources.delete(attachmentID);
     } catch (error) {
         Log.hmmm(`[AttachmentCache] Failed to remove cached attachment: ${attachmentID}`, {message: (error as Error).message});
     }
@@ -123,9 +161,10 @@ async function clearCachedAttachments(): Promise<void> {
             await RNFS.unlink(ATTACHMENT_DIR);
         }
         await Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
+        attachmentLocalSources.clear();
     } catch (error) {
         Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {message: (error as Error).message});
     }
 }
 
-export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments};
+export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments, getAttachmentLocalSource};
