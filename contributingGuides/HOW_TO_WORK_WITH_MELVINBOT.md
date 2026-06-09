@@ -25,7 +25,7 @@ Only Expensify employees, C+ members, and backend contributors can trigger Melvi
 Issue opened → Melvin posts proposal → C+ reviews proposal(s)
     → Accepted: C+ asks Melvin to implement
     → Not accepted: C+ explains why
-→ Melvin opens draft PR → C+ tweaks, tests, completes Author checklist, self-reviews
+→ Melvin opens draft PR → C+ tweaks, tests, completes Author checklist, self-reviews (including Reviewer checklist)
 → C+ submits PR for review as human author → CME reviews and merges
 ```
 
@@ -63,7 +63,7 @@ Before requesting final review, the assigned C+ must:
 1. **Manually tweak the PR** if Melvin's implementation needs corrections.
 2. **Test the change** on all required platforms (see [CONTRIBUTING.md](./CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)).
 3. **Complete every step** in the PR Author Checklist.
-4. **Self-review the code** against [PR Review Guidelines](./PR_REVIEW_GUIDELINES.md) and [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md).
+4. **Self-review the code** against [PR Review Guidelines](./PR_REVIEW_GUIDELINES.md), [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md), and complete the [Reviewer Checklist](./REVIEWER_CHECKLIST.md) as part of that self-review.
 5. **Submit the PR for review** and become the **official human author** of record for that change.
 
 The C+ is accountable for the PR quality, the same as any contributor who authored a PR.
@@ -93,5 +93,6 @@ We intentionally do **not** add a second round of contributor or C+ PR review on
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — full contributor workflow
 - [PROPOSAL_TEMPLATE.md](./PROPOSAL_TEMPLATE.md) — proposal format and C+ review instructions
+- [Reviewer Checklist](./REVIEWER_CHECKLIST.md) — C+ completes this during self-review before submitting for CME review
 - [AI Etiquette](./AI_ETIQUETTE.md) — accountability for AI-assisted work
 - [AI Reviewer philosophy](./philosophies/AI-REVIEWER.md) — automated PR feedback vs human review
