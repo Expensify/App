@@ -45,6 +45,12 @@ type CommonContentProps = SearchFilterCommonProps & {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
+function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filterKey: K, value: SearchAdvancedFiltersForm[K] | undefined): Partial<SearchAdvancedFiltersForm> {
+    const update: Partial<SearchAdvancedFiltersForm> = {};
+    update[filterKey] = value;
+    return update;
+}
+
 function TextInputFilterContent({filterKey, value: initialValue, autoFocus, onChange}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -60,7 +66,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, onCh
                 filterKey={filterKey}
                 policyIDQuery={undefined}
                 autoFocus={autoFocus}
-                onChange={(v) => setValue(v as string)}
+                onChange={(v) => setValue(typeof v === 'string' ? v : undefined)}
             />
             <Button
                 style={[styles.ph5, styles.pb5]}
@@ -98,7 +104,7 @@ function CommonContent({filterKey, value: initialValue, type, policyIDs, policyI
                     setValue(newValue);
                     return;
                 }
-                onChange({[filterKey]: newValue} as Partial<SearchAdvancedFiltersForm>);
+                onChange(getFilterFormValue(filterKey, newValue));
             }}
             footer={
                 fullscreen ? (
@@ -106,7 +112,7 @@ function CommonContent({filterKey, value: initialValue, type, policyIDs, policyI
                         success
                         large
                         text={translate('common.confirm')}
-                        onPress={() => onChange({[filterKey]: value} as Partial<SearchAdvancedFiltersForm>)}
+                        onPress={() => onChange(getFilterFormValue(filterKey, value))}
                     />
                 ) : undefined
             }
