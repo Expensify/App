@@ -10,6 +10,7 @@ import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import {useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import useNetwork from './useNetwork';
@@ -104,11 +105,12 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         }
         const html = pendingFollowupAction ? getReportActionHtml(pendingFollowupAction) : '';
         const hardClearIndicator = () => {
-            // Skip clearing agent thinking indicator when a newer agent request has kicked off.
-            const optimisticEntry = AgentZeroOptimisticStore.getEntry(reportID);
+            // Follow-up lists are a Concierge feature, so this clears Concierge's indicator slot.
+            // Skip clearing when a newer Concierge request has kicked off.
+            const optimisticEntry = AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE);
             const hasNewerRequest = !!optimisticEntry && optimisticEntry.startedAt > pendingFollowupList.createdAt;
             if (!hasNewerRequest) {
-                clearAgentZeroProcessingIndicator(reportID);
+                clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
             }
             clearPendingFollowupList(reportID);
         };

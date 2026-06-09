@@ -62,6 +62,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
+    currentUserLocalCurrency: string | undefined;
     backTo?: Route;
     backToReport?: string;
     shouldSkipConfirmation: boolean;
@@ -152,6 +153,7 @@ function handleMoneyRequestStepDistanceNavigation({
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
+    currentUserLocalCurrency,
     backTo,
     backToReport,
     shouldSkipConfirmation,
@@ -314,6 +316,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             previousOdometerDraft,
                             optimisticTransactionID,
                             optimisticChatReportID,
+                            currentUserLocalCurrency,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,

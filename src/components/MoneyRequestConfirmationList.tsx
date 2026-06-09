@@ -557,7 +557,7 @@ function MoneyRequestConfirmationList({
                 transactionID={transactionID}
                 reportID={reportID}
                 reportActionID={reportActionID}
-                transaction={transaction}
+                isScanRequest={isScanRequest}
                 policyID={policyID}
                 policy={policy}
                 policyTags={policyTags}

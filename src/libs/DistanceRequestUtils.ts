@@ -373,6 +373,14 @@ function getBoundednessScore(rate: MileageRate): number {
     return 0;
 }
 
+function getFullyBoundedDateRangeMs(rate: MileageRate): number | undefined {
+    if (!rate.startDate || !rate.endDate) {
+        return undefined;
+    }
+
+    return new Date(rate.endDate).getTime() - new Date(rate.startDate).getTime();
+}
+
 /**
  * Finds the best eligible rate for a given expense date from a set of mileage rates.
  * Selection order per design doc:
@@ -395,10 +403,10 @@ function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseD
             return bScore - aScore;
         }
 
-        if (aScore === 2 && bScore === 2 && a.endDate && a.startDate && b.endDate && b.startDate) {
-            const aRange = new Date(a.endDate).getTime() - new Date(a.startDate).getTime();
-            const bRange = new Date(b.endDate).getTime() - new Date(b.startDate).getTime();
-            if (aRange !== bRange) {
+        if (aScore === 2 && bScore === 2) {
+            const aRange = getFullyBoundedDateRangeMs(a);
+            const bRange = getFullyBoundedDateRangeMs(b);
+            if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
                 return aRange - bRange;
             }
         }
@@ -415,6 +423,15 @@ function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseD
     });
 
     return eligibleRates.at(0);
+}
+
+function getBestEligibleRateOrPolicyDefault(mileageRates: Record<string, MileageRate>, expenseDate: string, policy: OnyxEntry<Policy>): MileageRate | undefined {
+    const bestRate = getBestEligibleRate(mileageRates, expenseDate);
+    if (bestRate) {
+        return bestRate;
+    }
+
+    return getDefaultMileageRate(policy);
 }
 
 /**
@@ -439,7 +456,7 @@ function getCustomUnitRateID({
     isTrackDistanceExpense?: boolean;
     expenseDate?: string;
 }): string {
-    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    const customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (!reportID) {
         return customUnitRateID;
@@ -455,42 +472,31 @@ function getCustomUnitRateID({
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
 
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
-            if (expenseDate) {
-                const mileageRates = getMileageRates(policy);
-                const lastSelectedMileageRate = mileageRates[lastSelectedDistanceRateID];
-                if (!lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate)) {
-                    customUnitRateID = lastSelectedDistanceRateID;
-                } else {
-                    const bestRate = getBestEligibleRate(mileageRates, expenseDate);
-                    if (bestRate?.customUnitRateID) {
-                        customUnitRateID = bestRate.customUnitRateID;
-                    } else {
-                        const defaultMileageRate = getDefaultMileageRate(policy);
-                        if (defaultMileageRate?.customUnitRateID) {
-                            customUnitRateID = defaultMileageRate.customUnitRateID;
-                        }
-                    }
-                }
-            } else {
-                customUnitRateID = lastSelectedDistanceRateID;
+        if (!expenseDate) {
+            if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+                return lastSelectedDistanceRateID;
             }
-        } else if (expenseDate) {
-            const mileageRates = getMileageRates(policy);
-            const bestRate = getBestEligibleRate(mileageRates, expenseDate);
-            if (bestRate?.customUnitRateID) {
-                customUnitRateID = bestRate.customUnitRateID;
-            } else {
-                const defaultMileageRate = getDefaultMileageRate(policy);
-                if (defaultMileageRate?.customUnitRateID) {
-                    customUnitRateID = defaultMileageRate.customUnitRateID;
-                }
-            }
-        } else {
+
             const defaultMileageRate = getDefaultMileageRate(policy);
             if (defaultMileageRate?.customUnitRateID) {
-                customUnitRateID = defaultMileageRate.customUnitRateID;
+                return defaultMileageRate.customUnitRateID;
             }
+
+            return customUnitRateID;
+        }
+
+        const mileageRates = getMileageRates(policy);
+        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+            const lastSelectedMileageRate = mileageRates[lastSelectedDistanceRateID];
+            // mileageRates may be empty when the distance unit has no attributes. Guard against undefined before calling isRateEligibleForDate, and preserve the user's last selected ID when rate metadata is unavailable.
+            if (!lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate)) {
+                return lastSelectedDistanceRateID;
+            }
+        }
+
+        const bestRate = getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+        if (bestRate?.customUnitRateID) {
+            return bestRate.customUnitRateID;
         }
     }
 
