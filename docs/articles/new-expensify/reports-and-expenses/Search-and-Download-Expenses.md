@@ -2,6 +2,7 @@
 title: Export Expenses and Reports
 description: Learn how to export your expenses and reports in CSV or PDF format using default or custom templates in New Expensify.
 keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, accounting integration, report templates, export grouped expenses, group by, grouped export, Basic export]
+internalScope: Audience is members and admins. Covers exporting expenses and reports as CSV or PDF, does not cover accounting integration setup.
 ---
 
 
