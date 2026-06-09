@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -65,9 +65,11 @@ function InboxTabButton({selectedTab, isWideLayout, statusIndicatorColor, chatTa
 
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
 
-    // Wrap factory in useMemo so the selector identity is stable per actionID
-    const doesLastReportActionExistSelector = useMemo(() => makeDoesLastReportActionExistSelector(lastReportRouteReportActionID), [lastReportRouteReportActionID]);
-    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector}, [lastReportRouteReportID]);
+    const doesLastReportActionExistSelector = makeDoesLastReportActionExistSelector(lastReportRouteReportActionID);
+    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector}, [
+        lastReportRouteReportID,
+        lastReportRouteReportActionID,
+    ]);
 
     const inboxAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.INBOX};
 
