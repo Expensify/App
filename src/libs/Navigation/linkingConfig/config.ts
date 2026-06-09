@@ -137,6 +137,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL]: {
+                    path: ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.route,
+                    exact: true,
+                },
             },
         },
         [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,

@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUReportIDFromReportActionPreview, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -70,13 +71,13 @@ function ChatTransactionPreview({action, reportID, iouReport, shouldShowSplitPre
                             iouReportAction: action,
                         });
                         if (createdTransactionThreadReport?.reportID) {
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
+                            Navigation.navigate(getReportRouteForCurrentContext({reportID: createdTransactionThreadReport.reportID}));
                             return;
                         }
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
+                    Navigation.navigate(getReportRouteForCurrentContext({reportID: action.childReportID}));
                 }}
                 isTrackExpense={isTrackExpenseAction(action)}
             />

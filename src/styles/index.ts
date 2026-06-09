@@ -949,7 +949,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonDangerText: {
-            color: theme.textLight,
+            color: theme.buttonDangerText,
         },
 
         buttonBlendContainer: {
@@ -4226,10 +4226,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 20,
             width: 335,
             overflow: 'hidden',
-        },
-
-        eReceiptHoverFill: {
-            backgroundColor: colors.green800,
         },
 
         eReceiptBackgroundThumbnail: {
