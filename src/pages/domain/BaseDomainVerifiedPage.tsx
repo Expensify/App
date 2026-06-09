@@ -40,7 +40,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const doesDomainExist = !!domain;
 
-    const isDomainVerified = domain?.validated || domain?.hasValidationSucceeded;
+    const isDomainVerified = domain?.validated ?? domain?.hasValidationSucceeded;
 
     useEffect(() => {
         if (!doesDomainExist || isDomainVerified) {
