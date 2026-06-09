@@ -203,7 +203,7 @@ Tag approvers are added to the beginning of a Workspace's approval workflow. Whe
 
 If a Category approver is also assigned, the Category approver approves before the Tag approver.
 
-To learn how Category approvers, Tag approvers, and Workspace approvers work together, see [Set Category and Tag approvers](/articles/new-expensify/workspaces/Add-Approvals#set-category-and-tag-approvers)
+To learn how Category approvers, Tag approvers, and Workspace approvers work together, see [Set Category and Tag approvers](/articles/new-expensify/workspaces/Add-Approvals#set-category-and-tag-approvers).
 
 ## Can I see an audit trail of tag changes?
 
