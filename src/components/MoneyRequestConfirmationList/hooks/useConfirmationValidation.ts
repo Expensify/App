@@ -121,10 +121,9 @@ type UseConfirmationValidationParams = {
  * navigating to the company info route, showing the delegate-no-access modal)
  * stay in the caller.
  *
- * The Invoice -> Company Info routing check stays in the caller as well:
- * it is a routing decision that happens before validation runs, so the
- * caller guards the call to `validate()` with its own
- * `iouType === INVOICE && !hasInvoicingDetails(policy)` check.
+ * The Invoice -> Company Info routing check stays in the caller as well, but
+ * the caller runs `validate()` first so $0 (and other invalid) invoices are
+ * rejected before routing to the company info step.
  */
 function useConfirmationValidation({
     transaction,
