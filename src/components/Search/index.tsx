@@ -23,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -317,6 +318,7 @@ function Search({
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributesDerivedValue = useReportAttributes();
 
     const {
         showPendingExpensePlaceholder,
@@ -576,6 +578,7 @@ function Search({
             onyxPersonalDetailsList,
             policyForMovingExpenses,
             convertToDisplayString,
+            reportAttributesDerivedValue,
             optimisticTransactionID: optimisticTrackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, ''),
         });
         return {
@@ -611,6 +614,7 @@ function Search({
         onyxPersonalDetailsList,
         policyForMovingExpenses,
         convertToDisplayString,
+        reportAttributesDerivedValue,
         optimisticTrackingState.optimisticWatchKey,
     ]);
 
