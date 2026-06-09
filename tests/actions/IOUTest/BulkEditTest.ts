@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
@@ -13,6 +14,28 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const RORY_ACCOUNT_ID = 3;
+
+/** Narrows an arbitrary Onyx update value to a partial Report so we can read .reportName without an unsafe cast. */
+function isPartialReport(value: unknown): value is Partial<Report> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** Narrows an arbitrary value to OnyxData (the third arg shape of API.write) so we can read .optimisticData without an unsafe cast. */
+function isOnyxData(value: unknown): value is OnyxData<OnyxKey> {
+    return typeof value === 'object' && value !== null && 'optimisticData' in value;
+}
+
+/** Extracts the optimistic reportName writes for a given iouReportID across every recorded API.write call. */
+function getOptimisticReportNamesFromWriteSpy(writeSpy: jest.SpyInstance, reportID: string): Array<string | undefined> {
+    const targetKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    return (writeSpy.mock.calls as ReadonlyArray<readonly unknown[]>).flatMap((call) => {
+        const onyxData = call.at(2);
+        if (!isOnyxData(onyxData)) {
+            return [];
+        }
+        return (onyxData.optimisticData ?? []).filter((update) => update.key === targetKey).map((update) => (isPartialReport(update.value) ? update.value.reportName : undefined));
+    });
+}
 
 describe('actions/IOU/BulkEdit', () => {
     describe('updateMultipleMoneyRequests', () => {
@@ -1748,12 +1771,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
-            const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
-                const onyxParams = call[2] as {optimisticData: any[]};
-                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
-            });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
             // Without cumulative tracking, iteration 2 would see stale Onyx txn1 (Jan 10) and produce "Trip from Jan 10 to Jan 15".
             expect(iouReportNames.at(-1)).toBe('Trip from Jan 15 to Jan 15, 2025');
@@ -1836,15 +1854,10 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
-            const iouReportWrites = writeSpy.mock.calls.flatMap((call) => {
-                const onyxParams = call[2] as {optimisticData: any[]};
-                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => u.value as Report);
-            });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
             // Without the !isTotalIndeterminate gate, the recompute would bake "Trip $100.00" (stale total) into the title.
-            expect(iouReportWrites.at(-1)?.reportName).toBe(ORIGINAL_REPORT_NAME);
+            expect(iouReportNames.at(-1)).toBe(ORIGINAL_REPORT_NAME);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1920,12 +1933,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
-            const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
-                const onyxParams = call[2] as {optimisticData: any[]};
-                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
-            });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
             // Without snapshot merging, the snapshot-only Jan 05 would be invisible and the start date would resolve to Jan 15.
             expect(iouReportNames.at(-1)).toBe('Trip from Jan 05 to Jan 15, 2025');
@@ -1999,12 +2007,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
-            const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
-                const onyxParams = call[2] as {optimisticData: any[]};
-                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
-            });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
             // expensify_text_title=null signals "manually renamed". Without RNVP loaded we can't tell, so must NOT overwrite.
             expect(iouReportNames.at(-1)).toBe(MANUAL_TITLE);
@@ -2080,12 +2083,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
-            const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
-                const onyxParams = call[2] as {optimisticData: any[]};
-                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
-            });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+            const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
 
             // Title must be preserved — applying the raw "Total: {report:total:EUR}" would be worse than the BE-computed value.
             expect(iouReportNames.at(-1)).toBe(BE_COMPUTED_TITLE);
