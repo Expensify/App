@@ -37,7 +37,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import handleMoneyRequestStepDistanceNavigation from './IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
@@ -98,9 +98,9 @@ function IOURequestStepDistanceManual({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
     });
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = !!guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = !!guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -258,6 +258,7 @@ function IOURequestStepDistanceManual({
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
             isSelfTourViewed: !!isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,

@@ -608,6 +608,7 @@ describe('MoneyRequest', () => {
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
@@ -1147,6 +1148,57 @@ describe('MoneyRequest', () => {
             await waitForBatchedUpdates();
             expect(capturedParticipants.length).toBeGreaterThan(0);
             expect(capturedParticipants.at(0)).toMatchObject({isDisabled: false});
+        });
+
+        it('should forward hasCompletedGuidedSetupFlow: true to trackExpense', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                hasCompletedGuidedSetupFlow: true,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    hasCompletedGuidedSetupFlow: true,
+                }),
+            );
+        });
+
+        it('should forward hasCompletedGuidedSetupFlow: false to trackExpense', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                hasCompletedGuidedSetupFlow: false,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    hasCompletedGuidedSetupFlow: false,
+                }),
+            );
+        });
+
+        it('should forward hasCompletedGuidedSetupFlow to trackExpense for waypoints-based track expense', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                manualDistance: undefined,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                hasCompletedGuidedSetupFlow: true,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    hasCompletedGuidedSetupFlow: true,
+                }),
+            );
         });
     });
 

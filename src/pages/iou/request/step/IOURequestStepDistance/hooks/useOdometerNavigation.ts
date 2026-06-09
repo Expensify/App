@@ -1,4 +1,4 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -133,7 +133,9 @@ function useOdometerNavigation({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = !!guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = !!guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -183,6 +185,7 @@ function useOdometerNavigation({
             personalOutputCurrency,
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,

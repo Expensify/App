@@ -34,6 +34,8 @@ type CreateTrackExpenseParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
+    // TODO: Make it required once we complete refactoring the trackExpense function to use hasCompletedGuidedSetupFlow. Refactor issue: https://github.com/Expensify/App/issues/66424
+    hasCompletedGuidedSetupFlow?: boolean;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;

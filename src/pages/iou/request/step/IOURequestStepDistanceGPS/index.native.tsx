@@ -31,7 +31,7 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import GPSButtons from './GPSButtons';
@@ -68,7 +68,9 @@ function IOURequestStepDistanceGPS({
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = !!guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = !!guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -153,6 +155,7 @@ function IOURequestStepDistanceGPS({
             personalOutputCurrency: personalPolicy?.outputCurrency,
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,

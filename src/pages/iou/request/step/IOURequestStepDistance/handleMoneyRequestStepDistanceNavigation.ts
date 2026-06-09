@@ -90,6 +90,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     unit?: Unit;
     personalOutputCurrency?: string;
     isSelfTourViewed: boolean;
+    hasCompletedGuidedSetupFlow: boolean;
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
@@ -182,6 +183,7 @@ function handleMoneyRequestStepDistanceNavigation({
     unit,
     personalOutputCurrency,
     isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
@@ -312,6 +314,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             recentWaypoints,
                             betas,
                             isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow,
                             previousOdometerDraft,
                             optimisticTransactionID,
                             optimisticChatReportID,
