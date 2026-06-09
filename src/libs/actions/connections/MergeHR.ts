@@ -267,10 +267,6 @@ function setMergeHRInitialSyncModalShown(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
 }
 
-function setMergeHRGroupsAutoNavigated(policyID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_GROUPS_AUTO_NAVIGATED}${policyID}`, true);
-}
-
 type HRProviderName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
 type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups';
@@ -290,7 +286,7 @@ function clearHRConnectionErrorField(policyID: string | undefined, provider: HRP
     });
 }
 
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, updateMergeHRGroups, clearHRConnectionErrorField, setMergeHRInitialSyncModalShown, setMergeHRGroupsAutoNavigated};
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, updateMergeHRGroups, clearHRConnectionErrorField, setMergeHRInitialSyncModalShown};
 export type {HRConnectionErrorFieldName};
 
 export default getMergeHRSetupLink;

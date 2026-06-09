@@ -11,7 +11,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMergeHRGroupsAutoNavigate from '@hooks/useMergeHRGroupsAutoNavigate';
 import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -64,7 +63,6 @@ function WorkspaceHRPage({
     }, [policyID]);
 
     useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
-    useMergeHRGroupsAutoNavigate(policyID, isFocused);
     useMergeHRInitialSyncingModal(policyID, isFocused);
 
     const cards = getHRCards({
