@@ -81,7 +81,7 @@ function BaseAnchorForCommentsOnly({
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            role={CONST.ROLE.LINK}
+            role={linkProps.onPress ? CONST.ROLE.LINK : undefined}
             tabIndex={-1}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
@@ -100,13 +100,17 @@ function BaseAnchorForCommentsOnly({
                         target: isEmail || !linkProps.href ? '_self' : target,
                     }}
                     href={linkHref}
-                    onPress={(e) => {
-                        if (!linkProps.onPress || !isScreenReaderActive) {
-                            return;
-                        }
-                        e?.preventDefault();
-                        linkProps.onPress();
-                    }}
+                    onPress={
+                        isScreenReaderActive
+                            ? (e) => {
+                                  if (!linkProps.onPress) {
+                                      return;
+                                  }
+                                  e?.preventDefault();
+                                  linkProps.onPress();
+                              }
+                            : undefined
+                    }
                     suppressHighlighting
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
