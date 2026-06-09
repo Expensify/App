@@ -298,28 +298,16 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
 
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
-            return SequentialQueue.waitForIdle()
-                .then(() =>
-                    restoreDelegateSession({
-                        authToken,
-                        encryptedAuthToken: response.encryptedAuthToken,
-                        accountID: response.requesterID,
-                        email: requesterEmail,
-                        stashedCredentials,
-                        stashedSession,
-                    }),
-                )
-                .then(() => {
-                    if (!CONFIG.IS_HYBRID_APP) {
-                        return;
-                    }
-                    HybridAppModule.switchAccount({
-                        newDotCurrentAccountEmail: requesterEmail,
-                        authToken,
-                        policyID: '',
-                        accountID: '',
-                    });
-                });
+            return SequentialQueue.waitForIdle().then(() =>
+                restoreDelegateSession({
+                    authToken,
+                    encryptedAuthToken: response.encryptedAuthToken,
+                    accountID: response.requesterID,
+                    email: requesterEmail,
+                    stashedCredentials,
+                    stashedSession,
+                }),
+            );
         })
         .catch((error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
@@ -702,6 +690,20 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
 
             confirmReadyToOpenApp();
             return openApp();
+        })
+        .then(() => {
+            // Keep OldDot in sync with NewDot. Without this, OD remains on the delegate session
+            // after a reauth-driven restoration (e.g. expired delegate token, invalidateAuthToken),
+            // causing the two halves of HybridApp to disagree about which account is active.
+            if (!CONFIG.IS_HYBRID_APP || !email || !authToken) {
+                return;
+            }
+            HybridAppModule.switchAccount({
+                newDotCurrentAccountEmail: email,
+                authToken,
+                policyID: '',
+                accountID: '',
+            });
         });
 }
 
