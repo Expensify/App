@@ -7369,7 +7369,7 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Matches exactly',
-                spendCategory: 'Spend category',
+                merchantTypes: 'Merchant types',
                 maxAmount: 'Max amount',
                 allowedMerchants: 'Allowed merchants',
                 allowedMerchantTypes: 'Allowed merchant types',

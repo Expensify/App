@@ -284,7 +284,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                             numberOfLinesTitle={2}
                                             titleStyle={styles.flex1}
                                             title={spendRuleCategoriesTitle}
-                                            description={translate('workspace.rules.spendRules.spendCategory')}
+                                            description={translate('workspace.rules.spendRules.merchantTypes')}
                                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                             onPress={() => {
                                                 setSpendRuleErrorMessage('');

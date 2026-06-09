@@ -46,7 +46,7 @@ export default function SpendRulesCurrencyBase({currencies, onCurrenciesChange}:
         return items.sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));
     };
 
-    const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(currencyItems, filterCurrency, sortCurrencies);
+    const [inputValue, setInputValue, filteredCurrencyItems] = useSearchResults(currencyItems, filterCurrency, sortCurrencies);
 
     const toggleCurrency = (item: CurrencyListItem) => {
         setSelectedCurrencies((prev) => {
@@ -58,7 +58,7 @@ export default function SpendRulesCurrencyBase({currencies, onCurrenciesChange}:
     };
 
     const toggleSelectAll = () => {
-        const visibleValues = filteredCategoryItems.map((item) => item.value);
+        const visibleValues = filteredCurrencyItems.map((item) => item.value);
         const allVisibleSelected = visibleValues.length > 0 && visibleValues.every((value) => selectedCurrencies.includes(value));
 
         if (allVisibleSelected) {
@@ -84,25 +84,25 @@ export default function SpendRulesCurrencyBase({currencies, onCurrenciesChange}:
 
     return (
         <ScreenWrapper
-            testID="SpendRuleCategoryPage"
+            testID="SpendRuleCurrenciesPage"
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
-                title={translate('workspace.rules.spendRules.spendCategory')}
+                title={translate('workspace.rules.spendRules.permittedCurrencies')}
                 onBackButtonPress={goBack}
             />
             <SelectionList
                 canSelectMultiple
                 shouldUpdateFocusedIndex
                 ListItem={MultiSelectListItem}
-                data={filteredCategoryItems}
+                data={filteredCurrencyItems}
                 selectedItems={selectedCurrencies}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleCurrency}
                 onSelectionButtonPress={toggleCurrency}
-                onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
+                onSelectAll={filteredCurrencyItems.length > 0 ? toggleSelectAll : undefined}
                 textInputOptions={{
                     value: inputValue,
                     label: translate('common.search'),
