@@ -132,7 +132,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     // just the synthetic CREATED action (an almost-empty chat flash). Start the
     // session as soon as cached actions exist so messages render immediately on
     // refresh, matching the skeleton-suppression gate below.
-    const canStartConciergeSession = hasOnceLoadedReportActions || allReportActions.length > 0;
+    const canStartConciergeSession = !!hasOnceLoadedReportActions || allReportActions.length > 0;
 
     useLayoutEffect(() => {
         if (!isConciergeMainDM || !canStartConciergeSession) {
