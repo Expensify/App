@@ -14,8 +14,8 @@ Melvin can open pull requests before a human has validated the approach. Without
 |------|----------------------------------|
 | **MelvinBot** | Posts the first proposal on the issue. Implements the accepted solution when asked. Opens a draft PR with MelvinBot as the GitHub author. |
 | **Contributor** | May submit their own proposal if they have a meaningfully different approach. Must not open a PR until a proposal is accepted and they are hired on the job. |
-| **Contributor+ (C+)** | Reviews proposals (Melvin's and any contributor proposals) using the same standards as any other job. If Melvin's proposal is accepted, asks Melvin to implement, then owns the PR as the human author before sending it for final review. |
-| **Contributor Manager Engineer (CME)** | Internal engineer assigned to review and merge the PR. |
+| **Contributor+ (C+)** | Reviews proposals (Melvin's and any contributor proposals) using the same standards as any other job. Recommends acceptance to the CME. After the CME approves, asks Melvin to implement, then owns the PR as the human author before sending it for final review. |
+| **Contributor Manager Engineer (CME)** | Reviews and approves proposals (same as any other App job). After implementation, reviews and merges the PR. |
 
 Only Expensify employees, C+ members, and backend contributors can trigger Melvin with `@MelvinBot` comments on GitHub.
 
@@ -23,8 +23,9 @@ Only Expensify employees, C+ members, and backend contributors can trigger Melvi
 
 ```
 Issue opened → Melvin posts proposal → C+ reviews proposal(s)
-    → Accepted: C+ asks Melvin to implement
-    → Not accepted: C+ explains why
+    → C+ recommends acceptance (🎀👀🎀) → CME approves proposal
+    → C+ asks Melvin to implement (only after CME approval)
+    → Not accepted: C+ or CME explains why
 → Melvin opens draft PR → C+ tweaks, tests, posts PR body/checklist in a PR comment, asks Melvin to apply it, self-reviews (including Reviewer checklist)
 → C+ submits PR for review as human author → CME reviews and merges (PR body and/or C+ PR comment)
 ```
@@ -36,11 +37,19 @@ Melvin's proposal will always be the first on the issue. Follow the **same propo
 1. Use the [proposal template](./PROPOSAL_TEMPLATE.md) criteria: clear root cause, concrete solution, no code diffs.
 2. C+ reviews Melvin's proposal with the same rigor as a contributor proposal. Do not approve proposals that lack a satisfying root-cause explanation.
 3. Contributors may still post proposals if they have a **meaningfully different** approach (see [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job)).
-4. **No one opens a pull request** until a proposal is accepted.
+4. **No one opens a pull request** until a proposal is accepted by the CME (same as any other App job; see [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job)).
 
-### If Melvin's proposal is accepted
+### C+ reviews and recommends
 
-The assigned C+ comments on the issue asking Melvin to implement, for example:
+The C+ reviews Melvin's proposal with the same rigor as a contributor proposal. Follow the [proposal template](./PROPOSAL_TEMPLATE.md) review instructions.
+
+When the C+ is satisfied with Melvin's proposal, they recommend it to the CME by posting `🎀👀🎀` on the issue. That triggers CME assignment for the job.
+
+**Do not ask Melvin to implement until the CME has approved the proposal.** C+ recommendation is not the same as CME approval.
+
+### After the CME approves the proposal
+
+Once the assigned CME has approved Melvin's proposal (the same acceptance step as for any contributor proposal), the C+ comments on the issue asking Melvin to implement, for example:
 
 ```
 @MelvinBot please implement your proposal
@@ -50,9 +59,7 @@ Adjust the wording if needed, but the comment must mention `@MelvinBot` and clea
 
 ### If Melvin's proposal is not accepted
 
-The C+ explains **why** the proposal was not accepted (wrong root cause, incomplete solution, better alternative exists, etc.). If a contributor's proposal is accepted instead, follow the standard contributor hiring and implementation flow in [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-When a C+ accepts a proposal, they may also post `🎀👀🎀` on the issue to trigger CME assignment for the job.
+The C+ or CME explains **why** the proposal was not accepted (wrong root cause, incomplete solution, better alternative exists, etc.). If a contributor's proposal is accepted instead, follow the standard contributor hiring and implementation flow in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Phase 2: C+ owns the pull request
 
@@ -126,6 +133,7 @@ We intentionally do **not** add a second round of contributor or C+ PR review on
 | Do not | Why |
 |--------|-----|
 | Open a PR before a proposal is accepted | Wastes contributor and reviewer time if the approach is wrong |
+| Ask `@MelvinBot` to implement before the CME approves the proposal | Implementation must wait for CME approval, not just C+ recommendation |
 | Skip C+ proposal review because Melvin wrote it | Melvin proposals need the same validation as human proposals |
 | Send Melvin's draft PR for CME review without testing and checklist completion | The C+ is the human author and owns quality |
 | Assume you can edit Melvin's PR description in the GitHub UI | Post the body in a PR comment and ask `@MelvinBot` to apply it |
