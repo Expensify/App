@@ -14672,7 +14672,7 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {field_id_LIST: reportNameValuePairField});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
 
             const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
 
@@ -14721,7 +14721,7 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {field_id_LIST: reportNameValuePairField});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
 
             const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
 
