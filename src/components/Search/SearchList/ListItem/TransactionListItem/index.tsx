@@ -10,11 +10,13 @@ import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
 import type {ListItem} from '@components/SelectionList/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
@@ -66,20 +68,23 @@ function TransactionListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
+    const snapshotData = currentSearchResults?.data;
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
 
-    // Use active policy (user's current workspace) as fallback for self DM tracking expenses
-    // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     // Use report's policyID as fallback when transaction doesn't have policyID directly
-    // Use active policy as final fallback for SelfDM (tracking expenses)
+    // Use moving-expense policy as final fallback for SelfDM tracking expenses.
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
+    const explicitPolicyID = transactionItem.policyID || snapshotReport?.policyID;
+    let policyID = explicitPolicyID;
+    if (!policyID && transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        policyID = policyForMovingExpensesID;
+    }
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
@@ -98,6 +103,15 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem,
     ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
+
+    const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
+        item: transactionItem,
+        reportID: transactionItem.reportID,
+        itemKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`,
+        snapshotData,
+        snapshotActions: exportedReportActions,
+        enabled: !!snapshotData,
+    });
     const transactionPreviewData: TransactionPreviewData = {
         hasParentReport: !!parentReport,
         hasTransaction: !!transaction,
@@ -161,7 +175,7 @@ function TransactionListItem<TItem extends ListItem>({
     };
 
     const sharedProps = {
-        item,
+        item: liveTransactionItem as unknown as TItem,
         isDeletedTransaction,
         isFocused,
         showTooltip,
@@ -179,6 +193,7 @@ function TransactionListItem<TItem extends ListItem>({
         handleActionButtonPress,
         transactionPreviewData,
         exportedReportActions,
+        policyCategories,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
     };
