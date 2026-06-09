@@ -154,6 +154,7 @@ function DynamicIOURequestStepUpgradePage({
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 allTransactions,
                 policyTagList,
+                allTransactionViolation: transactionViolations,
             });
 
             clearSelectedTransactions();
@@ -250,6 +251,7 @@ function DynamicIOURequestStepUpgradePage({
         isTrack,
         allPolicyTags,
         createReportForCurrentUser,
+        transactionViolations,
     ]);
 
     const participant = transaction?.participants?.[0];

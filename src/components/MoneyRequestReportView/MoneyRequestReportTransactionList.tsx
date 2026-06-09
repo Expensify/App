@@ -211,6 +211,7 @@ function MoneyRequestReportTransactionList({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -382,9 +383,16 @@ function MoneyRequestReportTransactionList({
                     return aHasRBR ? -1 : 1;
                 }
             }
-            return compareValues(getTransactionSortValue(a, sortBy, report, policy), getTransactionSortValue(b, sortBy, report, policy), sortOrder, sortBy, localeCompare, true);
+            return compareValues(
+                getTransactionSortValue(a, sortBy, report, policy, policyCategories),
+                getTransactionSortValue(b, sortBy, report, policy, policyCategories),
+                sortOrder,
+                sortBy,
+                localeCompare,
+                true,
+            );
         });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, rbrTransactionIDs]);
+    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, rbrTransactionIDs]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
 
@@ -406,6 +414,7 @@ function MoneyRequestReportTransactionList({
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
+            policyCategories,
         });
     }, [
         transactions,
@@ -416,6 +425,7 @@ function MoneyRequestReportTransactionList({
         reportDetailsColumns,
         report?.currency,
         isTaxEnabled,
+        policyCategories,
     ]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -696,6 +706,7 @@ function MoneyRequestReportTransactionList({
             columns={columnsToShow}
             report={report}
             policy={policy}
+            policyCategories={policyCategories}
             isSelectionModeEnabled={isMobileSelectionModeEnabled}
             toggleTransaction={toggleTransaction}
             isSelected={isTransactionSelected(transaction.transactionID)}

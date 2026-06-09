@@ -62,8 +62,9 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
-    const report = reportReal ?? reportDraft ?? transactionReport;
-    const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport);
+    const participantReport = useReportOrReportDraft(transaction?.participants?.at(0)?.reportID);
+    const report = reportReal ?? reportDraft ?? transactionReport ?? participantReport;
+    const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport ?? participantReport);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
