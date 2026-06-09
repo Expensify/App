@@ -2968,47 +2968,47 @@ describe('SearchQueryUtils', () => {
 
     describe('getKeywordQueryWithCurrentSearchContext', () => {
         it('should prepend current search context to keyword-only input', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:outstanding') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:outstanding');
 
-            const result = getKeywordQueryWithCurrentSearchContext('hello', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('hello', currentQueryJSON) : '';
             expect(result).toContain('hello');
             expect(result).toContain('type:trip');
             expect(result).toContain('status:outstanding');
         });
 
         it('should return query unchanged when it contains explicit filters', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
-            const result = getKeywordQueryWithCurrentSearchContext('type:expense hello', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense hello', currentQueryJSON) : '';
             expect(result).toBe('type:expense hello');
         });
 
         it('should return query unchanged when it contains only explicit filters without keywords', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
-            const result = getKeywordQueryWithCurrentSearchContext('type:expense status:open', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense status:open', currentQueryJSON) : '';
             expect(result).toBe('type:expense status:open');
         });
 
         it('should return empty query unchanged', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
-            const result = getKeywordQueryWithCurrentSearchContext('', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('', currentQueryJSON) : '';
             expect(result).toBe('');
         });
 
         it('should strip existing keyword filters from current context before prepending', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:expense status:all existing') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:expense status:all existing');
 
-            const result = getKeywordQueryWithCurrentSearchContext('new-keyword', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('new-keyword', currentQueryJSON) : '';
             expect(result).toContain('new-keyword');
             expect(result).not.toContain('existing');
         });
 
         it('should handle multi-word keyword input', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
-            const result = getKeywordQueryWithCurrentSearchContext('hello world', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('hello world', currentQueryJSON) : '';
             expect(result).toContain('hello world');
             expect(result).toContain('type:trip');
         });

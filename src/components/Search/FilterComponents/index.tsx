@@ -147,7 +147,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
             }[filterKey];
             return (
                 <Component
-                    value={value as string[] | undefined}
+                    value={typeof value === 'object' ? value : undefined}
                     policyIDs={policyIDs}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
@@ -161,7 +161,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE: {
             return (
                 <TypeSelector
-                    value={value as string | undefined}
+                    value={typeof value === 'string' ? value : undefined}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
                     onChange={onChange}
@@ -178,7 +178,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
                 <TextInputFilterComponents
                     key={filterKey}
                     filterKey={filterKey}
-                    value={value as string | undefined}
+                    value={typeof value === 'string' ? value : undefined}
                     autoFocus={autoFocus}
                     onChange={onChange}
                 />
@@ -189,7 +189,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
             return (
                 <CurrencySelector
                     key={filterKey}
-                    value={value as string[] | undefined}
+                    value={typeof value === 'object' ? value : undefined}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
@@ -201,11 +201,15 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
+            const isSingleSelectFilterValue = (value: FilterComponentsProps['value']): value is SingleSelectFilterComponentsProps['value'] => {
+                return typeof value === 'string';
+            };
+
             return (
                 <SingleSelectFilterComponents
                     key={filterKey}
                     filterKey={filterKey}
-                    value={value as SingleSelectFilterComponentsProps['value'] | undefined}
+                    value={isSingleSelectFilterValue(value) ? value : undefined}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
@@ -237,7 +241,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
             return (
                 <UserSelector
-                    value={value as string[] | undefined}
+                    value={typeof value === 'object' ? value : undefined}
                     key={filterKey}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
@@ -250,7 +254,7 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
             return (
                 <WorkspaceSelector
-                    value={value as string[] | undefined}
+                    value={typeof value === 'object' ? value : undefined}
                     policyIDQuery={policyIDQuery}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}

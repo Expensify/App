@@ -2138,7 +2138,7 @@ function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdva
                 acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
             }
         } else if (filterKey !== FILTER_KEYS.COLUMNS || !isTypeExpense) {
-            acc[filterKey as SearchAdvancedFiltersKey] = undefined;
+            Object.assign(acc, {[filterKey]: undefined});
         }
 
         return acc;
