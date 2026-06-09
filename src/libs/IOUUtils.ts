@@ -418,7 +418,7 @@ function calculateDefaultReimbursable({
     participant?: Participant;
     transactionReportID?: string;
 }): boolean {
-    const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
     const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
