@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {setSearchContext} from '@libs/actions/Search';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +47,12 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
                         values={searchAdvancedFiltersForm}
                         filterKey={selectedFilter}
                         policyIDQuery={queryJSON.policyID}
-                        onChange={(values) => updateFilterQueryParams(values)}
+                        onChange={(values) => {
+                            updateFilterQueryParams(values);
+                            if (values.keyword) {
+                                setSearchContext(true);
+                            }
+                        }}
                     />
                 </View>
             </View>

@@ -1,7 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import { setSearchContext } from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
@@ -45,7 +44,6 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         }
 
         Navigation.setParams({q: queryString, rawQuery: undefined});
-        setSearchContext(!!values.keyword);
     }
 
     function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
