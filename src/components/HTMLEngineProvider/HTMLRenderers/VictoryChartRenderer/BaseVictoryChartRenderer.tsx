@@ -9,9 +9,14 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     return (
         <ChartFontsProvider>
             <VictoryChartProvider tnode={tnode}>
-                <VictoryChartContainer>
-                    <VictoryChartContent />
-                </VictoryChartContainer>
+                <View style={styles.pRelative}>
+                    <VictoryChartContainer>
+                        <VictoryChartContent />
+                    </VictoryChartContainer>
+                    <VictoryChartExpandButton
+                        onPress={() => openChart({tnode, processedResult, type, fonts})}
+                    />
+                </View>
             </VictoryChartProvider>
         </ChartFontsProvider>
     );
