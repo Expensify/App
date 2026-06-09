@@ -6,7 +6,7 @@ import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import {initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
-import {buildPolicyTagListByReportID, updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
+import {updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
@@ -252,22 +252,15 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
                 const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
                 const expenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE ? report : parentTransactionReport;
-                const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
                 const activeGroupSearchHashes =
                     currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
-                const policyTagListByReportID = buildPolicyTagListByReportID({
-                    splitExpenses: remainingSplitExpenses,
-                    allReportsList: allReports,
-                    expenseReport,
-                    currentUserPersonalDetails,
-                    allPolicyTagsList: allPolicyTags,
-                });
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     allSnapshots,
+                    allPolicyTags,
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
@@ -290,12 +283,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     quickAction,
                     iouReportNextStep,
                     betas,
-                    policyTags,
                     personalDetails,
                     transactionReport: report,
                     expenseReport,
                     isOffline,
-                    policyTagListByReportID,
                 });
             }
 

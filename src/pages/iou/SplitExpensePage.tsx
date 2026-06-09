@@ -74,7 +74,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyTagLists} from '@src/types/onyx';
+import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -276,7 +276,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext);
     };
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
 
     const {fallbackPolicyParentChatReport, participants} = getExpenseReportChatContext({allReportsList: allReports, expenseReport, currentUserPersonalDetails});
     const policyIDByReportID: Record<string, string | undefined> = {};
@@ -289,20 +288,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             fallbackPolicyParentChatReport?.policyID ??
             allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participants.at(0)?.reportID}`]?.policyID;
     }
-    const [policyTagsByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
-        selector: (allTags) => {
-            const uniquePolicyIDs = new Set(Object.values(policyIDByReportID).filter((id): id is string => !!id));
-            const result: Record<string, PolicyTagLists> = {};
-            for (const policyID of uniquePolicyIDs) {
-                result[policyID] = allTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-            }
-            return result;
-        },
-    });
 
-    const policyTagListByReportID = Object.fromEntries(
-        Object.entries(policyIDByReportID).map(([splitReportID, policyID]) => [splitReportID, (policyID ? policyTagsByPolicyID?.[policyID] : undefined) ?? {}]),
-    );
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
     const onSaveSplitExpense = () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
@@ -371,6 +358,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
+            allPolicyTags,
             transactionData: {
                 reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -390,12 +378,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             quickAction,
             iouReportNextStep,
             betas,
-            policyTags: policyTags ?? {},
             personalDetails,
             transactionReport: draftTransactionReport,
             expenseReport,
             isOffline,
-            policyTagListByReportID,
         });
     };
 

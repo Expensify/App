@@ -140,6 +140,7 @@ type UpdateSplitTransactionsParams = {
     allReportsList: OnyxCollection<OnyxTypes.Report>;
     allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>;
+    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     transactionData: {
         reportID: string;
         originalTransactionID: string;
@@ -160,12 +161,10 @@ type UpdateSplitTransactionsParams = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
-    policyTags: OnyxTypes.PolicyTagLists;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
-    policyTagListByReportID: Record<string, OnyxTypes.PolicyTagLists>;
 };
 
 function updateSplitTransactions({
@@ -173,6 +172,7 @@ function updateSplitTransactions({
     allReportsList,
     allReportNameValuePairsList,
     allSnapshots,
+    allPolicyTags,
     transactionData,
     searchContext,
     policyCategories,
@@ -188,12 +188,10 @@ function updateSplitTransactions({
     iouReportNextStep,
     isFromSplitExpensesFlow,
     betas,
-    policyTags,
     personalDetails,
     transactionReport,
     expenseReport: expenseReportFromParams,
     isOffline,
-    policyTagListByReportID,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -219,6 +217,8 @@ function updateSplitTransactions({
         expenseReport,
         currentUserPersonalDetails,
     });
+
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
 
     // Determine if the original transaction is in a selfDM report (used for first IOU action handling)
     let isOriginalTransactionInSelfDM = false;
@@ -564,7 +564,6 @@ function updateSplitTransactions({
         const reverseSplitLinkedTrackedExpenseReportAction = isReverseSplitOperation && linkedTrackedExpenseChildReportExistsInOnyx ? currentReportAction : undefined;
 
         const splitExpenseMerchant = splitExpense.merchant ?? '';
-        const policyTagList = splitExpense.reportID ? policyTagListByReportID[splitExpense.reportID] : undefined;
 
         const requestMoneyInformation = {
             participantParams: {
@@ -576,7 +575,6 @@ function updateSplitTransactions({
                 policy,
                 policyCategories,
                 policyTags,
-                policyTagList,
             },
             transactionParams: {
                 amount: Math.abs(originalTransaction?.amount ?? 0),
@@ -687,6 +685,13 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
+        const splitExpenseIOUReportPolicyID = splitExpense.reportID
+            ? (allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID ??
+              fallbackPolicyParentChatReport?.policyID ??
+              allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${participants.at(0)?.reportID}`]?.policyID)
+            : undefined;
+        const policyTagList = splitExpense.reportID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseIOUReportPolicyID}`] ?? {}) : undefined;
+
         // For selfDM, use UNREPORTED_REPORT_ID for moneyRequestReportID.
         // For confirmed workspace transactions, use splitTransaction.reportID directly because
         // splitExpense.reportID may be set to selfDMReportID for navigation purposes.
@@ -708,7 +713,7 @@ function updateSplitTransactions({
         } = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
-            policyParams,
+            policyParams: {...policyParams, policyTagList},
             transactionParams,
             moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
