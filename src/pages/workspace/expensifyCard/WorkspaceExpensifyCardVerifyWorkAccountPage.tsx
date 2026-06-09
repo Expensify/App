@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -25,7 +26,7 @@ type WorkspaceExpensifyCardVerifyWorkAccountPageContentProps = Pick<WorkspaceExp
 function WorkspaceExpensifyCardVerifyWorkAccountPageContent({route}: WorkspaceExpensifyCardVerifyWorkAccountPageContentProps) {
     const {policyID, fundID} = route.params;
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const workEmail = usePrimaryContactMethod();
     const workEmailLoginKey = workEmail ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === workEmail.toLowerCase()) : undefined;
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
