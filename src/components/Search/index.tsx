@@ -39,7 +39,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
-import {isOneTransactionReport} from '@libs/ReportUtils';
+import {isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -63,6 +63,13 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {
+    cancelNavigateToReportsSpans,
+    cancelNavigateToReportsSpansIfSame,
+    endNavigateToReportsContentLoad,
+    endNavigateToReportsFirstPaint,
+    getNavigateToReportsSpans,
+} from '@libs/telemetry/navigateToReportsSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
@@ -76,7 +83,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {SaveSearch} from '@src/types/onyx';
+import type {ReportAction, SaveSearch} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -92,7 +99,7 @@ import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchSelectionController from './SearchSelectionController';
 import {useRowSelectionActions} from './SearchSelectionProvider';
 import SearchTableHeader from './SearchTableHeader';
-import type {SearchColumnType, SearchParams, SearchQueryJSON, SortOrder} from './types';
+import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -157,6 +164,7 @@ function Search({
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const {accountID, email} = useCurrentUserPersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
@@ -179,7 +187,11 @@ function Search({
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const [exportReportActions] = useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: selectFilteredReportActions,
+    });
+
+    const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
     // Only the boolean derived from policyForMovingExpenses is consumed by row components downstream.
     // Drilling the policy object causes ref churn on every unrelated policy update (Pusher pushes).
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
@@ -370,6 +382,7 @@ function Search({
             formatPhoneNumber,
             bankAccountList,
             groupBy: validGroupBy,
+            reportActions: exportReportActions,
             currentSearch: currentSearchKey,
             archivedReportsIDList: archivedReportsIdSet,
             queryJSON,
@@ -394,6 +407,7 @@ function Search({
     }, [
         currentSearchKey,
         isOffline,
+        exportReportActions,
         validGroupBy,
         isDataLoaded,
         shouldDeferHeavySearchWork,
@@ -577,6 +591,7 @@ function Search({
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
     const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
+    const newNavigateToReportsSpansOnMount = useRef(getNavigateToReportsSpans());
 
     useEffect(
         () => () => {
@@ -586,12 +601,11 @@ function Search({
                 return;
             }
 
-            const activeNavigateToReportsSpan = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-            if (activeNavigateToReportsSpan !== navigateToReportsSpanOnMount.current) {
-                return;
+            if (getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS) === navigateToReportsSpanOnMount.current) {
+                cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
             }
 
-            cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            cancelNavigateToReportsSpansIfSame(newNavigateToReportsSpansOnMount.current);
         },
         [],
     );
@@ -816,8 +830,17 @@ function Search({
         if (!searchResults?.data) {
             return getEmptyArray<SearchColumnType>();
         }
-        return getColumnsToShow({currentAccountID: accountID, data: searchResults?.data, visibleColumns, type: searchDataType, groupBy: validGroupBy, shouldUseStrictDefaultExpenseColumns});
-    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns]);
+        return getColumnsToShow({
+            currentAccountID: accountID,
+            data: searchResults?.data,
+            visibleColumns,
+            type: searchDataType,
+            groupBy: validGroupBy,
+            shouldUseStrictDefaultExpenseColumns,
+            policyCategories,
+            fallbackPolicyID: policyForMovingExpensesID,
+        });
+    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns, policyCategories, policyForMovingExpensesID]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn
@@ -855,29 +878,31 @@ function Search({
 
     const sortedData = useMemo(
         () =>
-            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
-                const baseKey = isChat
-                    ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
-                    : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, {policyCategories, fallbackPolicyID: policyForMovingExpensesID}).map(
+                (item) => {
+                    const baseKey = isChat
+                        ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+                        : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
 
-                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
+                    const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
 
-                const isAnyTransactionMatch =
-                    !isChat &&
-                    (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
-                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                        return !!newSearchResultKeys?.has(transactionKey);
-                    });
+                    const isAnyTransactionMatch =
+                        !isChat &&
+                        (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
+                            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                            return !!newSearchResultKeys?.has(transactionKey);
+                        });
 
-                const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
+                    const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
-                    return item;
-                }
+                    if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                        return item;
+                    }
 
-                return {...item, shouldAnimateInHighlight, hash};
-            }),
-        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
+                    return {...item, shouldAnimateInHighlight, hash};
+                },
+            ),
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, policyCategories, policyForMovingExpensesID, isChat, newSearchResultKeys, hash],
     );
 
     useSaveSortedReportIDs(type, sortedData);
@@ -913,6 +938,8 @@ function Search({
         hasHadFirstLayout.current = true;
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
+        endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
             callback: () => flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
         });
@@ -933,6 +960,7 @@ function Search({
 
     const cancelNavigationSpans = useCallback(() => {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        cancelNavigateToReportsSpans();
         if (getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
             cancelSubmitFollowUpActionSpan();
         }
@@ -956,6 +984,8 @@ function Search({
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
+        endNavigateToReportsContentLoad();
     }, []);
 
     // Tracks whether the pending-expense tracking was re-armed on re-focus
@@ -984,6 +1014,8 @@ function Search({
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
             });
+            endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
+            endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
@@ -1007,6 +1039,7 @@ function Search({
         useCallback(() => {
             return () => {
                 cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+                cancelNavigateToReportsSpans();
             };
         }, []),
     );
@@ -1044,7 +1077,7 @@ function Search({
     );
 
     const onSortPress = useCallback(
-        (column: SearchColumnType, order: SortOrder) => {
+        (column: SearchSortBy, order: SortOrder) => {
             clearSelectedTransactions();
             const newQuery = buildSearchQueryString({
                 ...queryJSON,
