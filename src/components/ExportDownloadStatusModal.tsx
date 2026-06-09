@@ -52,6 +52,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
@@ -65,11 +66,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
     // via the encryptedAuthToken — no separate OldDot sign-in needed.
     const downloadFile = () => {
-        if (!fileName) {
+        if (!fileName || !currentUserLogin) {
             return;
         }
         const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
-        const url = `${baseURL}secure?secureType=csvexport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(fileName)}`;
+        const url = `${baseURL}secure?secureType=csvexport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(fileName)}&email=${encodeURIComponent(currentUserLogin)}`;
         fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName);
     };
 

@@ -576,16 +576,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             setActiveExportID(exportID);
         },
-        [
-            selectedReports,
-            selectedTransactions,
-            isOffline,
-            areAllMatchingItemsSelected,
-            currentSearchResults?.data,
-            queryJSON,
-            selectedTransactionReportIDs,
-            selectedTransactionsKeys,
-        ],
+        [selectedReports, selectedTransactions, isOffline, areAllMatchingItemsSelected, currentSearchResults?.data, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
