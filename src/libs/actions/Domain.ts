@@ -2358,6 +2358,5 @@ export {
     clearDomainGroupCreatePreferredPolicyID,
     createDomainSecurityGroup,
     clearGroupCreateError,
-    setDomainHighlightItems,
     clearDomainHighlightItems,
 };

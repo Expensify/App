@@ -12,5 +12,4 @@ type DomainHighlightItems = {
     id?: string | null;
 };
 
-export type {DomainHighlightItemType};
 export default DomainHighlightItems;
