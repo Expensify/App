@@ -23,6 +23,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
+import {clearDomainHighlightItems} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -103,14 +104,11 @@ type BaseDomainMembersPageProps = {
     /** Ref forwarded to the inner SelectionListWithModal for scroll-and-highlight operations */
     selectionListRef?: RefObject<SelectionListHandle<MemberOption> | null>;
 
-    /** Keys (accountID strings) pending scroll-and-highlight after an add flow */
-    highlightKeys?: string[] | null;
+    /** Item key pending scroll-and-highlight after an add flow */
+    highlightKey?: string | null;
 
     /** Whether the parent screen is focused */
     isPageFocused?: boolean;
-
-    /** Called after a successful scroll-and-highlight (e.g. to clear Onyx highlight state) */
-    onHighlightComplete?: () => void;
 
     /** Called when the highlighted item is hidden by the pre-filter (e.g. to reset a group filter) */
     onResetPreFilter?: () => void;
@@ -139,9 +137,8 @@ function BaseDomainMembersPage({
     emptyStateTitle,
     emptyStateSubtitle,
     selectionListRef,
-    highlightKeys,
+    highlightKey,
     isPageFocused,
-    onHighlightComplete,
     onResetPreFilter,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
@@ -197,28 +194,27 @@ function BaseDomainMembersPage({
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, preFilter);
 
     useEffect(() => {
-        if (!isPageFocused || !highlightKeys?.length) {
+        if (!isPageFocused || !highlightKey) {
             return;
         }
 
-        const highlightedKey = highlightKeys.at(0);
-        if (!highlightedKey || !accountIDs.includes(Number(highlightedKey))) {
+        if (!accountIDs.includes(Number(highlightKey))) {
             return;
         }
 
-        if (inputValue.trim() && !filteredData.some((item) => item.keyForList === highlightedKey)) {
+        if (inputValue.trim() && !filteredData.some((item) => item.keyForList === highlightKey)) {
             setInputValue('');
             return;
         }
 
-        if (!filteredData.some((item) => item.keyForList === highlightedKey)) {
+        if (!filteredData.some((item) => item.keyForList === highlightKey)) {
             onResetPreFilter?.();
             return;
         }
 
-        selectionListRef?.current?.scrollAndHighlightItem?.(highlightKeys);
-        onHighlightComplete?.();
-    }, [highlightKeys, isPageFocused, accountIDs, inputValue, filteredData, setInputValue, selectionListRef, onHighlightComplete, onResetPreFilter]);
+        selectionListRef?.current?.scrollAndHighlightItem?.([highlightKey]);
+        clearDomainHighlightItems(domainAccountID);
+    }, [highlightKey, isPageFocused, domainAccountID, accountIDs, inputValue, filteredData, setInputValue, selectionListRef, onResetPreFilter]);
 
     const isUserToggleEnabled = setSelectedMembers && filteredData.length > 0;
 

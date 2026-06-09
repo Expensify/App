@@ -1,19 +1,16 @@
+/** Domain list type pending a scroll-and-highlight after an add flow */
+type DomainHighlightItemType = 'admins' | 'members' | 'groups';
+
 /**
- * Pending domain item identifiers for scroll-and-highlight after add flows
+ * Pending domain item identifier for scroll-and-highlight after an add flow
  */
 type DomainHighlightItems = {
-    /** Account IDs of newly added admins pending highlight */
-    admins?: string[] | null;
+    /** Domain list type for the pending highlight */
+    type?: DomainHighlightItemType | null;
 
-    /** Account IDs of newly added members pending highlight */
-    members?: string[] | null;
-
-    /** Group IDs of newly added groups pending highlight */
-    groups?: string[] | null;
+    /** Item identifier pending highlight (accountID or groupID) */
+    id?: string | null;
 };
-
-/** Keys of {@link DomainHighlightItems} used when setting or clearing highlight state */
-type DomainHighlightItemType = keyof DomainHighlightItems;
 
 export type {DomainHighlightItemType};
 export default DomainHighlightItems;

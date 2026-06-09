@@ -132,29 +132,28 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
         );
     };
 
-    const highlightGroups = highlightItems?.groups;
+    const highlightKey = highlightItems?.type === 'groups' ? highlightItems.id : null;
     useEffect(() => {
-        if (!isFocused || !highlightGroups?.length) {
+        if (!isFocused || !highlightKey) {
             return;
         }
 
-        const highlightedGroupID = highlightGroups.at(0);
-        if (!highlightedGroupID || !groups.some((group) => group.id === highlightedGroupID)) {
+        if (!groups.some((group) => group.id === highlightKey)) {
             return;
         }
 
-        if (inputValue.trim() && !filteredData.some((item) => item.keyForList === highlightedGroupID)) {
+        if (inputValue.trim() && !filteredData.some((item) => item.keyForList === highlightKey)) {
             setInputValue('');
             return;
         }
 
-        if (!filteredData.some((item) => item.keyForList === highlightedGroupID)) {
+        if (!filteredData.some((item) => item.keyForList === highlightKey)) {
             return;
         }
 
-        selectionListRef.current?.scrollAndHighlightItem?.(highlightGroups);
-        clearDomainHighlightItems(domainAccountID, 'groups');
-    }, [highlightGroups, isFocused, groups, inputValue, filteredData, setInputValue, domainAccountID]);
+        selectionListRef.current?.scrollAndHighlightItem?.([highlightKey]);
+        clearDomainHighlightItems(domainAccountID);
+    }, [highlightKey, isFocused, groups, inputValue, filteredData, setInputValue, domainAccountID]);
 
     const createGroupHeaderButton = (
         <Button

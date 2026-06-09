@@ -31,7 +31,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDomainHighlightItems, clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
+import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getMemberCustomRowProps, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
 import Navigation from '@navigation/Navigation';
@@ -103,7 +103,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         },
     ];
 
-    const highlightMembers = highlightItems?.members;
+    const highlightKey = highlightItems?.type === 'members' ? highlightItems.id : null;
 
     const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
         <SingleSelectPopup
@@ -375,9 +375,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 useSelectionModeHeader={selectionModeHeader}
                 getCustomRightElement={getGroupRightElement}
                 searchBarAccessory={groupFilterDropdown}
-                highlightKeys={highlightMembers}
+                highlightKey={highlightKey}
                 isPageFocused={isFocused}
-                onHighlightComplete={() => clearDomainHighlightItems(domainAccountID, 'members')}
                 onResetPreFilter={() => handleGroupChange(groupOptions.at(0))}
                 emptyStateTitle={translate('domain.members.emptyMembers.title')}
                 emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}

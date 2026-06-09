@@ -20,7 +20,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
-import {clearAdminError, clearDomainHighlightItems} from '@userActions/Domain';
+import {clearAdminError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -79,7 +79,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         />
     );
 
-    const highlightAdmins = highlightItems?.admins;
+    const highlightKey = highlightItems?.type === 'admins' ? highlightItems.id : null;
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -120,9 +120,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
             selectionListRef={selectionListRef}
-            highlightKeys={highlightAdmins}
+            highlightKey={highlightKey}
             isPageFocused={isFocused}
-            onHighlightComplete={() => clearDomainHighlightItems(domainAccountID, 'admins')}
         />
     );
 }

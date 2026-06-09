@@ -679,7 +679,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         targetEmail,
     };
 
-    setDomainHighlightItems(domainAccountID, 'admins', [String(accountID)]);
+    setDomainHighlightItems(domainAccountID, 'admins', String(accountID));
     API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
 }
 
@@ -982,7 +982,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
         domainAccountID,
     };
 
-    setDomainHighlightItems(domainAccountID, 'members', [String(optimisticAccountID)]);
+    setDomainHighlightItems(domainAccountID, 'members', String(optimisticAccountID));
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }
 
@@ -2282,7 +2282,7 @@ function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: Do
         shouldSetAsDefaultGroup,
     };
 
-    setDomainHighlightItems(domainAccountID, 'groups', [groupID]);
+    setDomainHighlightItems(domainAccountID, 'groups', groupID);
     API.write(WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
@@ -2301,12 +2301,12 @@ function clearGroupCreateError(domainAccountID: number, groupID: string) {
     });
 }
 
-function setDomainHighlightItems(domainAccountID: number, type: 'admins' | 'members' | 'groups', items: string[]) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {[type]: items});
+function setDomainHighlightItems(domainAccountID: number, type: 'admins' | 'members' | 'groups', id: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {type, id});
 }
 
-function clearDomainHighlightItems(domainAccountID: number, type: 'admins' | 'members' | 'groups') {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {[type]: null});
+function clearDomainHighlightItems(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {type: null, id: null});
 }
 
 export {
