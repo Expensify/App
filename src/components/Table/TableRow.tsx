@@ -1,5 +1,5 @@
 import React from 'react';
-import type {PressableStateCallbackType} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -143,8 +143,8 @@ export default function TableRow({
         return children;
     };
 
-    const handleCheckboxPress = (event?: MouseEvent) => {
-        if (event && event.shiftKey) {
+    const handleCheckboxPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
+        if (event && 'shiftKey' in event && event.shiftKey) {
             tableMethods.handleMultipleRowSelection(item.keyForList);
             return;
         }
@@ -152,7 +152,7 @@ export default function TableRow({
         tableMethods.handleSingleRowSelection(item.keyForList);
     };
 
-    const handleRowPress = (event?: MouseEvent) => {
+    const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isDisabled || !interactive) {
             return;
         }
@@ -188,7 +188,7 @@ export default function TableRow({
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-                onPress={(event) => handleRowPress(event as unknown as MouseEvent)}
+                onPress={(event) => handleRowPress(event)}
                 onLongPress={handleRowLongPress}
                 {...props}
             >
@@ -215,7 +215,7 @@ export default function TableRow({
                                         disabled={item.disabled}
                                         isChecked={!!item.selected}
                                         accessibilityLabel={translate('common.select')}
-                                        onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
+                                        onPress={(event) => handleCheckboxPress(event)}
                                     />
                                 )}
                                 {renderChildren(state)}
