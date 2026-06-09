@@ -357,6 +357,9 @@ const ONYXKEYS = {
     /** Object containing Wallet terms step state */
     WALLET_TERMS: 'walletTerms',
 
+    /** A payment action interrupted by account verification, resumed once the user validates their account */
+    PENDING_PAYMENT_CONTINUE: 'pendingPaymentContinue',
+
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
@@ -1529,6 +1532,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
+    [ONYXKEYS.PENDING_PAYMENT_CONTINUE]: OnyxTypes.PendingPaymentContinue;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;

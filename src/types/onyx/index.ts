@@ -112,6 +112,7 @@ import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
+import type PendingPaymentContinue from './PendingPaymentContinue';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {AddNewPersonalCard, PersonalCardFeed} from './PersonalCard';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
@@ -357,6 +358,7 @@ export type {
     PolicyJoinMember,
     SearchResults,
     ReviewDuplicates,
+    PendingPaymentContinue,
     PrivateSubscription,
     PrivatePromoDiscount,
     BillingGraceEndPeriod,

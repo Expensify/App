@@ -25,7 +25,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useResumePaymentAfterValidation from '@hooks/useResumePaymentAfterValidation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setPendingPaymentContinue} from '@libs/actions/PendingPaymentContinue';
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
@@ -191,7 +193,7 @@ function SettlementButton({
     }
 
     const checkForNecessaryAction = useCallback(
-        (paymentMethodType?: PaymentMethodType) => {
+        (paymentMethodType?: PaymentMethodType, selectedOption?: PaymentMethod) => {
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
                 return true;
@@ -203,6 +205,11 @@ function SettlementButton({
             }
 
             if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                // Remember the payment the user was attempting so `useResumePaymentAfterValidation` can resume it once
+                // the account is validated, instead of forwarding them to a static page that can't reproduce the KYC flow.
+                if (reportID && paymentMethodType) {
+                    setPendingPaymentContinue({reportID, iouPaymentType: paymentMethodType, paymentMethod: selectedOption});
+                }
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                 return true;
             }
@@ -241,6 +248,7 @@ function SettlementButton({
             isDelegateAccessRestricted,
             isAccountLocked,
             isUserValidated,
+            reportID,
             isBankAccountLocked,
             policy,
             userBillingGracePeriodEnds,
@@ -331,7 +339,7 @@ function SettlementButton({
                         description: account.description,
                         shouldIgnoreCompactStyle: true,
                         onSelected: () => {
-                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.VBBA)) {
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.VBBA, CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)) {
                                 return;
                             }
                             onPress({
@@ -394,7 +402,7 @@ function SettlementButton({
                         icon: formattedPaymentMethod?.icon,
                         shouldUpdateSelectedIndex: true,
                         onSelected: () => {
-                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)) {
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, formattedPaymentMethod.accountType)) {
                                 return;
                             }
                             onPress({
@@ -565,7 +573,11 @@ function SettlementButton({
         }
     };
 
-    const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
+    const handlePaymentSelection = (
+        event: GestureResponderEvent | KeyboardEvent | undefined,
+        selectedOption: PaymentMethod | undefined,
+        triggerKYCFlow: (params: ContinueActionParams) => void,
+    ) => {
         const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(
             selectedOption,
             activeAdminPolicies,
@@ -573,18 +585,29 @@ function SettlementButton({
             policyIDKey,
         );
 
-        if (checkForNecessaryAction(paymentType)) {
+        if (checkForNecessaryAction(paymentType, selectedOption)) {
             return;
         }
         const isPayingWithMethod = paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
         if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && (isPayingWithMethod || !!policyFromPaymentMethod)) {
-            selectPaymentMethod(event, paymentType, triggerKYCFlow, selectedOption as PaymentMethod, policyFromPaymentMethod ?? policyFromContext);
+            selectPaymentMethod(event, paymentType, triggerKYCFlow, selectedOption, policyFromPaymentMethod ?? policyFromContext);
             return;
         }
 
         selectPaymentType(event, selectedOption as PaymentMethodType);
     };
+
+    // After the user verifies their account, re-run the exact selection handler they pressed (now validated) so the
+    // KYC wall continues the flow instead of dead-ending on a static page. Placed after `handlePaymentSelection` so it
+    // can be referenced without hoisting; the matching `setPendingPaymentContinue` happens in `checkForNecessaryAction`.
+    useResumePaymentAfterValidation(reportID, (intent) => {
+        const triggerKYCFlow = kycWallRef.current?.continueAction;
+        if (!triggerKYCFlow) {
+            return;
+        }
+        handlePaymentSelection(undefined, intent.paymentMethod, triggerKYCFlow);
+    });
 
     let customText: string;
     if (shouldUseShortForm) {
