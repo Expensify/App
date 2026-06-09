@@ -2123,20 +2123,21 @@ function getEmptyDateValues(): SearchDateValues {
  *
  * - STATUS is reset to `ALL`
  * - TYPE is reset to `EXPENSE`
+ * - COLUMNS is reset to undefined only if the current TYPE is not EXPENSE
  * - Other filters are reset to `undefined`
- * - COLUMNS is excluded from resetting
  */
 function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
+    const isTypeExpense = searchAdvancedFiltersForm.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
         if (filterKey === FILTER_KEYS.STATUS) {
             if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.STATUS.EXPENSE.ALL) {
                 acc[filterKey] = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
         } else if (filterKey === FILTER_KEYS.TYPE) {
-            if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+            if (!isTypeExpense) {
                 acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
             }
-        } else if (filterKey !== FILTER_KEYS.COLUMNS) {
+        } else if (filterKey !== FILTER_KEYS.COLUMNS || !isTypeExpense) {
             acc[filterKey as SearchAdvancedFiltersKey] = undefined;
         }
 
