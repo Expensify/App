@@ -255,7 +255,6 @@ function NewChatPage({ref}: NewChatPageProps) {
             newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
             newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
-            selectionListRef?.current?.scrollToIndex(0);
         }
 
         selectionListRef.current?.clearInputAfterSelect();
