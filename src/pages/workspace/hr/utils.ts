@@ -239,9 +239,6 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
     for (const provider of STATIC_HR_PROVIDERS) {
         const {connectionName} = provider;
         const state = getHRCardState({policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime});
-        if (provider.beta && !isBetaEnabled(provider.beta) && !state.isConnected) {
-            continue;
-        }
         const config = getCardConfig(policy, connectionName);
         cards.push({
             key: provider.key,
