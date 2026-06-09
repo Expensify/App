@@ -76,6 +76,7 @@ import {
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
+    isSubmitPolicy,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -118,6 +119,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
+    EDITORS: 'editors',
 } as const;
 
 type WorkspaceMemberFilterValue = ValueOf<typeof WORKSPACE_MEMBER_FILTER_VALUES>;
@@ -574,6 +576,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }
 
+    if (isSubmitPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('common.editor'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.EDITORS,
+        });
+    }
+
     const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
         setSelectedEmployees([]);
 
@@ -599,6 +608,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return isPolicyApprover(policy, member.login);
             case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
                 return employee?.role === CONST.POLICY.ROLE.AUDITOR;
+            case WORKSPACE_MEMBER_FILTER_VALUES.EDITORS:
+                return employee?.role === CONST.POLICY.ROLE.EDITOR;
             default:
                 return true;
         }
