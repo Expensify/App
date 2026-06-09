@@ -589,7 +589,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactions,
             isOffline,
             areAllMatchingItemsSelected,
-
             currentSearchResults?.data,
             queryJSON,
             selectedTransactionReportIDs,
