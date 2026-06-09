@@ -923,19 +923,4 @@ describe('getHRCards', () => {
         expect(getRow(bambooCard, 'groups')?.title).toBe('Test group');
         expect(bambooCard?.completeSetupRoute).toBeUndefined();
     });
-
-    it('connected Merge card with the "all" value (empty array) summarizes groups as the localized "all" label', () => {
-        const policy = makePolicy({
-            connections: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
-                merge_hris: {config: {integration: 'bamboohr', groups: []}, data: {}, lastSync: {}},
-            } as unknown as Policy['connections'],
-        });
-
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: (beta) => beta === CONST.BETAS.MERGE_HR}));
-
-        const bambooCard = cards.find((c) => c.key === 'merge_bamboohr');
-        expect(getRow(bambooCard, 'groups')?.title).toBe('common.all');
-        expect(bambooCard?.completeSetupRoute).toBeUndefined();
-    });
 });

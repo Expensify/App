@@ -181,14 +181,11 @@ function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConne
     }
 }
 
-/** Display label for the admin's chosen Merge HR groups: list of names, the localized "All" label for an empty array, or undefined when nothing is chosen yet. */
-function getMergeHRGroupsSummary(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
+/** Display label for the admin's chosen Merge HR groups: list of names, or undefined when no specific groups have been chosen yet. */
+function getMergeHRGroupsLabel(policy: OnyxEntry<Policy>): string | undefined {
     const groups = policy?.connections?.merge_hris?.config?.groups;
-    if (groups === null || groups === undefined) {
+    if (!groups?.length) {
         return undefined;
-    }
-    if (groups.length === 0) {
-        return translate('common.all');
     }
     const available = policy?.connections?.merge_hris?.data?.groups ?? [];
     const names = groups.map((id) => available.find((group) => group.id === id)?.name).filter((name): name is string => !!name);
@@ -323,7 +320,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                       {
                           field: 'groups',
                           description: translate('workspace.hr.mergeHR.groups.title'),
-                          title: getMergeHRGroupsSummary(policy, translate),
+                          title: getMergeHRGroupsLabel(policy),
                           route: groupsRoute,
                           pendingAction: mergeConfig?.pendingFields?.groups,
                           errors: mergeConfig?.errorFields?.groups,

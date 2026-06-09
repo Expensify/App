@@ -125,6 +125,7 @@ function MergeHRGroupsPage({
                             success
                             text={translate('common.save')}
                             onPress={handleSave}
+                            isDisabled={selectedIds.size === 0}
                         />
                     </FixedFooter>
                 </View>

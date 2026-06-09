@@ -205,7 +205,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-/** Updates which groups to import employees from. When an empty array is passed, all employees are synced regardless of groups. */
+/** Updates which groups to import employees from. */
 function updateMergeHRGroups(policyID: string, groups: string[], currentGroups?: string[] | null) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {

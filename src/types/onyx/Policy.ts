@@ -1586,9 +1586,8 @@ type MergeHRConnectionConfig = HRConnectionConfigBase &
 
         /**
          * Groups the admin chose to import employees from.
-         * - `string[]` with one or more IDs — sync only those groups.
-         * - `[]` (empty array) — sync all employees regardless of group.
-         * - `null` — the admin hasn't finished setup yet.
+         * - `string[]` with one or more IDs — setup complete, sync only those groups.
+         * - `null` — setup not yet complete.
          */
         groups: string[] | null;
     }>;
