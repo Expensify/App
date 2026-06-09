@@ -2074,11 +2074,6 @@ function createGroupChat(
         resourceID: reportID,
     };
 
-    // Clear group chat data after navigation dismissed so we don't see stale data
-    InteractionManager.runAfterInteractions(() => {
-        clearGroupChat();
-    });
-
     API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
         checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
     });
@@ -2233,18 +2228,33 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
  * Navigates to a report, handling modal dismissal and delayed navigation for composer focus.
  *
  * @param reportID The ID of the report to navigate to
- * @param shouldDismissModal Whether to dismiss the modal before navigating
+ * @param options.shouldDismissModal Whether to dismiss the modal before navigating (defaults to true)
+ * @param options.afterTransition Callback to run after the navigate transition completes
  */
-function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
+function navigateToReport(reportID: string | undefined, options?: {shouldDismissModal?: boolean; afterTransition?: () => void}) {
+    const shouldDismissModal = options?.shouldDismissModal ?? true;
+
     if (shouldDismissModal) {
+        if (!reportID) {
+            Navigation.dismissModal({afterTransition: options?.afterTransition});
+            return;
+        }
         Navigation.dismissModal();
     }
+
     if (!reportID) {
         return;
     }
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+        Navigation.isNavigationReady().then(() => {
+            const route = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+            if (options?.afterTransition) {
+                Navigation.navigate(route, {afterTransition: options.afterTransition});
+            } else {
+                Navigation.navigate(route);
+            }
+        });
     }, 0);
 }
 
@@ -2264,6 +2274,7 @@ function navigateToAndOpenReport(
     betas: OnyxEntry<Beta[]>,
     shouldDismissModal = true,
     shouldRevalidateExistingChat = false,
+    linkToOptions?: LinkToOptions,
 ) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
@@ -2289,7 +2300,7 @@ function navigateToAndOpenReport(
             betas,
         });
 
-        navigateToReport(fallbackChat.reportID, shouldDismissModal);
+        navigateToReport(fallbackChat.reportID, {shouldDismissModal, ...linkToOptions});
     };
 
     if (isEmptyObject(chat) || isReportNotFound(chat)) {
@@ -2298,7 +2309,7 @@ function navigateToAndOpenReport(
     }
 
     if (!shouldRevalidateExistingChat) {
-        navigateToReport(chat.reportID, shouldDismissModal);
+        navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
     }
 
@@ -2324,7 +2335,7 @@ function navigateToAndOpenReport(
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
     openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas});
-    navigateToReport(chat.reportID, shouldDismissModal);
+    navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
 function navigateToAndCreateGroupChat(
@@ -2345,7 +2356,7 @@ function navigateToAndCreateGroupChat(
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
 
-    navigateToReport(newChat.reportID);
+    navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
 
 /**
@@ -2390,7 +2401,7 @@ function navigateToAndOpenReportWithAccountIDs(
             betas,
         });
 
-        navigateToReport(fallbackChat.reportID, false);
+        navigateToReport(fallbackChat.reportID, {shouldDismissModal: false});
     };
 
     if (!chat || isReportNotFound(chat)) {
@@ -2399,7 +2410,7 @@ function navigateToAndOpenReportWithAccountIDs(
     }
 
     if (!shouldRevalidateExistingChat) {
-        navigateToReport(chat.reportID, false);
+        navigateToReport(chat.reportID, {shouldDismissModal: false});
         return;
     }
 
@@ -2425,7 +2436,7 @@ function navigateToAndOpenReportWithAccountIDs(
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
     openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas});
-    navigateToReport(chat.reportID, false);
+    navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
 /**
@@ -3916,10 +3927,25 @@ function navigateToConciergeChat(
                 return;
             }
             // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails ?? allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal);
+            navigateToAndOpenReport(
+                [CONST.EMAIL.CONCIERGE],
+                personalDetails ?? allPersonalDetails,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                shouldDismissModal,
+                false,
+                linkToOptions,
+            );
         });
     } else if (shouldDismissModal) {
-        Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
+        const reportParams = {reportID: conciergeReportID, reportActionID};
+        if (linkToOptions?.afterTransition) {
+            Navigation.dismissModalWithReport(reportParams, undefined, {afterTransition: linkToOptions.afterTransition});
+        } else {
+            Navigation.dismissModalWithReport(reportParams);
+        }
     } else {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
     }
@@ -4399,11 +4425,18 @@ function navigateToConciergeChatAndDeleteReport(
         Navigation.goBack();
     }
     const personalDetails = buildPersonalDetailsList([reportOwnerPersonalDetail, currentUserPersonalDetail, conciergePersonalDetail]);
-    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, undefined, undefined, undefined, personalDetails);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        deleteReport(reportID, shouldDeleteChildReports);
-    });
+    navigateToConciergeChat(
+        conciergeReportID,
+        introSelected,
+        currentUserAccountID,
+        isSelfTourViewed,
+        betas,
+        false,
+        undefined,
+        {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
+        undefined,
+        personalDetails,
+    );
 }
 
 function clearCreateChatError(
@@ -5398,6 +5431,7 @@ type CompleteOnboardingProps = {
     selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
+    personalTrackGoal?: string;
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
@@ -5417,6 +5451,7 @@ async function completeOnboarding({
     selectedInterestedFeatures,
     isInvitedAccountant,
     onboardingPurposeSelected,
+    personalTrackGoal,
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
     isSelfTourViewed,
@@ -5454,6 +5489,7 @@ async function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
         optimisticConciergeReportActionID,
         selectedInterestedFeatures: selectedInterestedFeatures && selectedInterestedFeatures.length > 0 ? JSON.stringify(selectedInterestedFeatures) : undefined,
+        personalTrackGoal,
     };
 
     if (shouldWaitForRHPVariantInitialization) {
