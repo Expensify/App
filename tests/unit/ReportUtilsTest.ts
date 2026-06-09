@@ -14405,7 +14405,13 @@ describe('ReportUtils', () => {
                 childMoneyRequestCount: 0,
             };
             const reportAttributes: ReportAttributesDerivedValue['reports'] = {
-                [report.reportID]: {reportName: 'Computed Report Name'},
+                [report.reportID]: {
+                    reportName: 'Computed Report Name',
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
             };
 
             // When called with reportAttributes that provide a report name, it should be preferred over the report's own name
