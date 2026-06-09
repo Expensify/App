@@ -1,4 +1,4 @@
-import {parseCSVDate} from '@libs/CSVDateUtils';
+import parseCSVDate from '@libs/CSVDateUtils';
 
 describe('CSVDateUtils', () => {
     describe('parseCSVDate', () => {

@@ -52,7 +52,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const [selectedKey, setSelectedKey] = useState<ExclusionOptionKey>(
         existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE : 'disabled',
     );
-    const [fixedDistanceInput, setFixedDistanceInput] = useState<string>(existingCommuterExclusions?.fixedDistance != null ? String(existingCommuterExclusions.fixedDistance) : '');
+    const [fixedDistanceInput, setFixedDistanceInput] = useState<string>(() => (existingCommuterExclusions?.fixedDistance != null ? String(existingCommuterExclusions.fixedDistance) : ''));
     const [inlineError, setInlineError] = useState<string>('');
 
     // Lowercased to match design copy ("miles" / "kilometers"); the existing translation keys are already lowercase.
