@@ -420,7 +420,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 (isDefaultRoom && isChatThread && isPolicyEmployee) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !isPublicRoomUtil(report))))) &&
-            !isConciergeChatReport(report) &&
+            !isConciergeChatReport(report, conciergeReportID) &&
             !isSystemChat &&
             activeChatMembers.length > 0
         ) {
@@ -686,6 +686,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         iouTransaction,
         parentReport,
         delegateEmail,
+        conciergeReportID,
     ]);
 
     const icons = useMemo(
