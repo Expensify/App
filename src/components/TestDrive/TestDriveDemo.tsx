@@ -113,8 +113,7 @@ function TestDriveDemo() {
                     return;
                 }
                 if (isAdminRoom(onboardingReport)) {
-                    console.log('XYZ admin new');
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID), {waitForTransition: true});
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
                 }
             },
             waitForUpcomingTransition: true,
