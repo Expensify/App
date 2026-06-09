@@ -45,7 +45,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
-    }, [domainAccountID, isDomainVerified, doesDomainExist, redirectTo]);
+    }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
 
     if (isLoadingOnyxValue(domainMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
