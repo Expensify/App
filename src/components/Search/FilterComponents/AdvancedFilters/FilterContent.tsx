@@ -70,12 +70,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, onCh
                 large={fullscreen}
                 text={translate('common.confirm')}
                 pressOnEnter
-                onPress={() => {
-                    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-                        setSearchContext(true);
-                    }
-                    onChange({[filterKey]: value});
-                }}
+                onPress={() => onChange({[filterKey]: value})}
             />
         </View>
     );
