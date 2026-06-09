@@ -7909,9 +7909,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
-        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) => {
-            return `alterou a alíquota de imposto padrão da categoria "${categoryName}" para "${newTax}" (antes "${oldTax}")`;
-        },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `alterou a alíquota de imposto padrão da categoria "${categoryName}" para "${newTax}" (antes "${oldTax}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

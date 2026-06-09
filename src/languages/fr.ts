@@ -7992,9 +7992,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
-        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) => {
-            return `a modifié le taux de taxe par défaut de la catégorie « ${categoryName} » en « ${newTax} » (auparavant « ${oldTax} »)`;
-        },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `a modifié le taux de taxe par défaut de la catégorie « ${categoryName} » en « ${newTax} » (auparavant « ${oldTax} »)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
