@@ -3436,6 +3436,13 @@ function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, 
     return translate('workspaceActions.updatedAutoPayApprovedReports', {enabled: !!enabled});
 }
 
+function formatTax(taxName?: string, taxPercentage?: string): string {
+    if (!taxName) {
+        return '';
+    }
+    return taxPercentage ? `${taxName} (${taxPercentage})` : taxName;
+}
+
 function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {categoryName, oldTaxName, oldTaxPercentage, newTaxName, newTaxPercentage} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE>) ?? {};
@@ -3444,8 +3451,8 @@ function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: Report
         return getReportActionText(action);
     }
 
-    const oldTax = oldTaxPercentage ? `${oldTaxName} (${oldTaxPercentage})` : (oldTaxName ?? '');
-    const newTax = newTaxPercentage ? `${newTaxName} (${newTaxPercentage})` : newTaxName;
+    const oldTax = formatTax(oldTaxName, oldTaxPercentage);
+    const newTax = formatTax(newTaxName, newTaxPercentage);
 
     return translate('workspaceActions.updatedCategoryTaxRate', {
         categoryName: getDecodedCategoryName(categoryName),
