@@ -10,7 +10,6 @@ import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import {getChangeTransactionsReportData, getTransactionViolationsForChangeReport} from '@hooks/useChangeTransactionsReportData';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -118,11 +117,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             const transactions = transactionIDs
                 .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
                 .filter((transaction): transaction is NonNullable<typeof transaction> => !!transaction);
-            const violationsByTransactionID = getTransactionViolationsForChangeReport(transactionIDs, transactionViolations);
-            const {currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = getChangeTransactionsReportData(
-                transactions,
-                violationsByTransactionID,
-            );
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
                     transactionIDs,
@@ -136,9 +130,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     policyTagList,
                     transactions,
                     transactionViolations,
-                    currentTransactionViolations,
-                    transactionDuplicatesByTransactionID,
-                    siblingNonDuplicatedViolationsByTransactionID,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

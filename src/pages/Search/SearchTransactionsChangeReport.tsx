@@ -4,7 +4,6 @@ import {InteractionManager} from 'react-native';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
-import {getChangeTransactionsReportData, getTransactionViolationsForChangeReport} from '@hooks/useChangeTransactionsReportData';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -48,11 +47,6 @@ function SearchTransactionsChangeReport() {
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const violationsByTransactionID = getTransactionViolationsForChangeReport(selectedTransactionsKeys, transactionViolations);
-    const {currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = useMemo(
-        () => getChangeTransactionsReportData(transactions, violationsByTransactionID),
-        [transactions, violationsByTransactionID],
-    );
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -119,9 +113,6 @@ function SearchTransactionsChangeReport() {
                 policyTagList,
                 transactions,
                 transactionViolations,
-                currentTransactionViolations,
-                transactionDuplicatesByTransactionID,
-                siblingNonDuplicatedViolationsByTransactionID,
             });
             clearSelectedTransactions();
         });
@@ -199,9 +190,6 @@ function SearchTransactionsChangeReport() {
             policyTagList,
             transactions,
             transactionViolations,
-            currentTransactionViolations,
-            transactionDuplicatesByTransactionID,
-            siblingNonDuplicatedViolationsByTransactionID,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -224,9 +212,6 @@ function SearchTransactionsChangeReport() {
             policyTagList,
             transactions,
             transactionViolations,
-            currentTransactionViolations,
-            transactionDuplicatesByTransactionID,
-            siblingNonDuplicatedViolationsByTransactionID,
         });
         clearSelectedTransactions();
         Navigation.goBack();

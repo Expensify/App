@@ -3,7 +3,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
-import useChangeTransactionsReportData from '@hooks/useChangeTransactionsReportData';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
@@ -22,7 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -73,7 +73,14 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const {transactions, currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = useChangeTransactionsReportData(transactionIDs);
+    const [transactions = getEmptyArray<Transaction>()] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: (allTransactions) =>
+                transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction),
+        },
+        [transactionIDs],
+    );
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -96,9 +103,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 policyTagList,
                 transactions,
                 transactionViolations,
-                currentTransactionViolations,
-                transactionDuplicatesByTransactionID,
-                siblingNonDuplicatedViolationsByTransactionID,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -121,9 +125,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             policyTagList,
             transactions,
             transactionViolations,
-            currentTransactionViolations,
-            transactionDuplicatesByTransactionID,
-            siblingNonDuplicatedViolationsByTransactionID,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

@@ -4,7 +4,6 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
-import useChangeTransactionsReportData from '@hooks/useChangeTransactionsReportData';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
@@ -19,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -109,12 +109,13 @@ function useReportSelectionActions({
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const targetTransactionIDs = useMemo(() => (transaction ? [transaction.transactionID] : []), [transaction]);
-    const {
-        transactions: targetTransactions,
-        currentTransactionViolations,
-        transactionDuplicatesByTransactionID,
-        siblingNonDuplicatedViolationsByTransactionID,
-    } = useChangeTransactionsReportData(targetTransactionIDs);
+    const [targetTransactions = getEmptyArray<Transaction>()] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: (allTransactions) => targetTransactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((item): item is Transaction => !!item),
+        },
+        [targetTransactionIDs],
+    );
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
@@ -211,9 +212,6 @@ function useReportSelectionActions({
                         policyTagList,
                         transactions: targetTransactions,
                         transactionViolations,
-                        currentTransactionViolations,
-                        transactionDuplicatesByTransactionID,
-                        siblingNonDuplicatedViolationsByTransactionID,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -237,9 +235,6 @@ function useReportSelectionActions({
                 policyTagList,
                 transactions: targetTransactions,
                 transactionViolations,
-                currentTransactionViolations,
-                transactionDuplicatesByTransactionID,
-                siblingNonDuplicatedViolationsByTransactionID,
             });
             removeTransaction(transaction.transactionID);
         });

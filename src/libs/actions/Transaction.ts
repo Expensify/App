@@ -821,6 +821,74 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
+type ChangeTransactionsReportDerivedData = {
+    currentTransactionViolations: Record<string, TransactionViolation[]>;
+    transactionDuplicatesByTransactionID: Record<string, string[] | undefined>;
+    siblingNonDuplicatedViolationsByTransactionID: Record<string, TransactionViolation[]>;
+};
+
+function getTransactionViolationsForChangeReport(transactionIDs: string[], transactionViolations: OnyxCollection<TransactionViolation[]>): Record<string, TransactionViolation[]> {
+    const violationsByTransactionID: Record<string, TransactionViolation[]> = {};
+    for (const id of transactionIDs) {
+        violationsByTransactionID[id] = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+    }
+
+    const siblingIDs = new Set<string>();
+    for (const id of transactionIDs) {
+        const duplicateViolation = violationsByTransactionID[id].find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        if (duplicateViolation?.data?.duplicates) {
+            for (const siblingID of duplicateViolation.data.duplicates) {
+                siblingIDs.add(siblingID);
+            }
+        }
+    }
+
+    for (const siblingID of siblingIDs) {
+        if (siblingID in violationsByTransactionID) {
+            continue;
+        }
+        violationsByTransactionID[siblingID] = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingID}`] ?? [];
+    }
+
+    return violationsByTransactionID;
+}
+
+function getChangeTransactionsReportData(transactions: Transaction[], violationsByTransactionID: Record<string, TransactionViolation[]>): ChangeTransactionsReportDerivedData {
+    const currentTransactionViolations = transactions.reduce<Record<string, TransactionViolation[]>>((acc, transaction) => {
+        acc[transaction.transactionID] = violationsByTransactionID[transaction.transactionID] ?? [];
+        return acc;
+    }, {});
+
+    const transactionDuplicatesByTransactionID = transactions.reduce<Record<string, string[] | undefined>>((acc, transaction) => {
+        const duplicateViolation = currentTransactionViolations[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        acc[transaction.transactionID] = duplicateViolation?.data?.duplicates;
+        return acc;
+    }, {});
+
+    const siblingIDs = [
+        ...new Set(
+            Object.values(transactionDuplicatesByTransactionID)
+                .filter((ids): ids is string[] => !!ids)
+                .flat(),
+        ),
+    ];
+
+    const siblingNonDuplicatedViolationsByTransactionID = siblingIDs.reduce<Record<string, TransactionViolation[]>>((acc, id) => {
+        const siblingViolations = violationsByTransactionID[id] ?? [];
+        const nonDuplicatedViolations = siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        if (nonDuplicatedViolations.length > 0) {
+            acc[id] = nonDuplicatedViolations;
+        }
+        return acc;
+    }, {});
+
+    return {
+        currentTransactionViolations,
+        transactionDuplicatesByTransactionID,
+        siblingNonDuplicatedViolationsByTransactionID,
+    };
+}
+
 type ChangeTransactionsReportProps = {
     transactionIDs: string[];
     isASAPSubmitBetaEnabled: boolean;
@@ -831,16 +899,9 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
-    /** The transactions being moved. Pre-resolved by the caller (typically via useChangeTransactionsReportData). */
     transactions: Transaction[];
     /** Full TRANSACTION_VIOLATIONS Onyx collection — still needed for `hasViolationsReportUtils` lookups across reports outside the move batch. */
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-    /** Per-transactionID lookup of that transaction's current violations (bare-id keys). Used for failure rollback and downstream callbacks. */
-    currentTransactionViolations: Record<string, TransactionViolation[]>;
-    /** Per-transactionID lookup of the IDs of the transactions it is a duplicate of (`undefined` if no DUPLICATED_TRANSACTION violation). */
-    transactionDuplicatesByTransactionID: Record<string, string[] | undefined>;
-    /** Per-sibling-id lookup of that sibling's violations with the DUPLICATED_TRANSACTION marker stripped. Only contains sibling IDs that are referenced from `transactionDuplicatesByTransactionID`. */
-    siblingNonDuplicatedViolationsByTransactionID: Record<string, TransactionViolation[]>;
 };
 
 function changeTransactionsReport({
@@ -855,9 +916,6 @@ function changeTransactionsReport({
     policyTagList,
     transactions,
     transactionViolations,
-    currentTransactionViolations,
-    transactionDuplicatesByTransactionID,
-    siblingNonDuplicatedViolationsByTransactionID,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -869,6 +927,11 @@ function changeTransactionsReport({
     const staleReportIDs = new Set<string>();
     const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
     const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
+    const violationsByTransactionID = getTransactionViolationsForChangeReport(transactionIDs, transactionViolations);
+    const {currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = getChangeTransactionsReportData(
+        transactions,
+        violationsByTransactionID,
+    );
 
     const optimisticData: Array<
         OnyxUpdate<

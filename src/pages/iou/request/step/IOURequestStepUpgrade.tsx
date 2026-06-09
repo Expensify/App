@@ -9,7 +9,6 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useActivePolicy from '@hooks/useActivePolicy';
-import {getChangeTransactionsReportData, getTransactionViolationsForChangeReport} from '@hooks/useChangeTransactionsReportData';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -95,12 +94,6 @@ function IOURequestStepUpgrade({
         .map((transactionItem) => transactionItem.transaction)
         .filter((item): item is Transaction => !!item);
 
-    const violationsByTransactionID = getTransactionViolationsForChangeReport(selectedTransactionsKeys, transactionViolations);
-    const {currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = useMemo(
-        () => getChangeTransactionsReportData(transactions, violationsByTransactionID),
-        [transactions, violationsByTransactionID],
-    );
-
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -146,9 +139,6 @@ function IOURequestStepUpgrade({
                 policyTagList,
                 transactions,
                 transactionViolations,
-                currentTransactionViolations,
-                transactionDuplicatesByTransactionID,
-                siblingNonDuplicatedViolationsByTransactionID,
             });
 
             clearSelectedTransactions();
@@ -240,9 +230,6 @@ function IOURequestStepUpgrade({
         session?.email,
         ownerPersonalDetails,
         transactions,
-        currentTransactionViolations,
-        transactionDuplicatesByTransactionID,
-        siblingNonDuplicatedViolationsByTransactionID,
         betas,
         iouType,
         isTrack,
