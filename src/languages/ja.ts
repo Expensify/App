@@ -6838,7 +6838,7 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>距離レートはCollectプランで利用できます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用になれます</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: '監査人',
                 description: '監査担当者は、可視性とコンプライアンス監視を徹底するため、すべてのレポートを閲覧専用で確認できます。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>

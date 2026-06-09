@@ -6927,7 +6927,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Entfernungsraten sind im Collect-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: 'Prüfer',
                 description: 'Prüfer erhalten schreibgeschützten Zugriff auf alle Berichte für vollständige Transparenz und Compliance-Überwachung.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>

@@ -6889,7 +6889,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Afstandstarieven zijn beschikbaar in het Collect-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: 'Auditor',
                 description: 'Auditors krijgen alleen-lezen-toegang tot alle rapporten voor volledige transparantie en nalevingsbewaking.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>

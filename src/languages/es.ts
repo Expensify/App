@@ -6876,7 +6876,7 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las tasas de distancia están disponibles en el plan Recopilar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: 'Auditor',
                 description: 'Los auditores tienen acceso de lectura a todos los informes para una visibilidad completa y la supervisión del cumplimiento.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>

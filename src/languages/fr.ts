@@ -6954,7 +6954,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les taux de distance sont disponibles avec l’abonnement Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: 'Auditeur',
                 description: 'Les auditeurs obtiennent un accès en lecture seule à toutes les notes de frais pour une visibilité complète et le suivi de la conformité.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>

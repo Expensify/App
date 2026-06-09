@@ -94,15 +94,16 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
+        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
         const hasControlPolicyOnlyRole =
             membersRolesColumn !== -1 &&
             spreadsheet?.data?.at(membersRolesColumn)?.some((role, index) => {
                 const memberRole = containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '');
-                return memberRole === CONST.POLICY.ROLE.AUDITOR || memberRole === CONST.POLICY.ROLE.CARD_ADMIN;
+                return controlPolicyOnlyRoles.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === memberRole);
             });
 
         if (hasControlPolicyOnlyRole && !isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias, Navigation.getActiveRoute()));
             return;
         }
 

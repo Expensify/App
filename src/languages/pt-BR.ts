@@ -6887,7 +6887,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Tarifas por distância estão disponíveis no plano Collect, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: 'Auditor',
                 description: 'Auditores têm acesso somente leitura a todos os relatórios para total visibilidade e monitoramento de conformidade.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>

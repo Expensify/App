@@ -6713,7 +6713,7 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>里程费率适用于 Collect 方案，起始价格为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: '审计员',
                 description: '审计员将获得所有报表的只读访问权限，以实现全面可见性和合规监控。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>

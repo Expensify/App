@@ -6883,7 +6883,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Stawki za przejazdy są dostępne w planie Collect, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: 'Audytor',
                 description: 'Biegli rewidentci otrzymują dostęp tylko do odczytu do wszystkich raportów, aby zapewnić pełną widoczność i monitorowanie zgodności.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>

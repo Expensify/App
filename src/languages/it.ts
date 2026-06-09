@@ -6911,7 +6911,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Le tariffe chilometriche sono disponibili con il piano Collect, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
-            auditor: {
+            controlPolicyRoles: {
                 title: 'Revisore',
                 description: 'I revisori ottengono accesso in sola lettura a tutti i report per garantire completa visibilità e monitoraggio della conformità.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
