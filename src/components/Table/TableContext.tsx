@@ -82,6 +82,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     isEmptyResult: false,
     shouldUseNarrowTableLayout: false,
+    isMobileSelectionEnabled: false,
 };
 
 const TableContext = createContext(defaultTableContextValue);
