@@ -638,7 +638,7 @@ function MoneyRequestReceiptView({
                                             image={receiptURIs?.image}
                                             isLocalFile={receiptURIs?.isLocalFile}
                                             filename={receiptURIs?.filename}
-                                            transaction={updatedTransaction ?? transaction}
+                                            transaction={displayedTransaction}
                                             enablePreviewModal
                                             readonly={readonly || !canEditReceipt}
                                             mergeTransactionID={mergeTransactionID}

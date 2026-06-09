@@ -17,6 +17,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
@@ -74,11 +75,17 @@ function TransactionListItem<TItem extends ListItem>({
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
     const [activePolicyIDFromOnyx] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+
     // Use report's policyID as fallback when transaction doesn't have policyID directly
-    // Use active policy as final fallback for SelfDM (tracking expenses)
+    // Use moving-expense policy as final fallback for SelfDM tracking expenses.
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyIDFromOnyx;
+    const explicitPolicyID = transactionItem.policyID || snapshotReport?.policyID;
+    let policyID = explicitPolicyID || activePolicyIDFromOnyx;
+    if (!policyID && transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        policyID = policyForMovingExpensesID;
+    }
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
@@ -202,6 +209,7 @@ function TransactionListItem<TItem extends ListItem>({
         handleActionButtonPress,
         transactionPreviewData,
         exportedReportActions,
+        policyCategories,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
     };
