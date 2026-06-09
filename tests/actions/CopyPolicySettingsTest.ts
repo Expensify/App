@@ -105,6 +105,18 @@ function findPolicyFailure(updates: ReturnType<typeof buildCopyPolicySettingsDat
     return updates.find((u) => u.key === POLICY_KEY && u.onyxMethod === Onyx.METHOD.SET);
 }
 
+type CopyPolicySettingsUpdate = ReturnType<typeof buildCopyPolicySettingsData>['optimisticData'][number];
+
+// An Onyx update value is typed as a union across every key these updates touch. These helpers
+// narrow it once at a single typed boundary so the policy/lifecycle shapes can be read directly.
+function getPolicyValue(update: CopyPolicySettingsUpdate | undefined): Policy {
+    return update?.value as Policy;
+}
+
+function getLifecycleValue(update: CopyPolicySettingsUpdate | undefined): {currentStep?: string | null} {
+    return update?.value as {currentStep?: string | null};
+}
+
 describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
         describe('per-part field patches and pendingFields', () => {
@@ -161,7 +173,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const targetPolicy = makeTargetPolicy();
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview'], {}, {});
-                const value = findPolicyOptimistic(optimisticData)?.value as Record<string, unknown>;
+                const value = getPolicyValue(findPolicyOptimistic(optimisticData));
 
                 expect(value.areCategoriesEnabled).toEqual(targetPolicy.areCategoriesEnabled);
                 expect(value.employeeList).toEqual(targetPolicy.employeeList);
@@ -235,7 +247,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const failure = findPolicyFailure(failureData);
                 expect(failure?.onyxMethod).toBe(Onyx.METHOD.SET);
-                const value = failure?.value as Record<string, unknown> & {errors?: unknown};
+                const value = getPolicyValue(failure);
 
                 expect(value.outputCurrency).toBe('EUR');
                 expect(value.maxExpenseAmount).toBe(1000);
@@ -251,11 +263,11 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const sourceFailure = failureData.find((u) => u.key === sourcePolicyKey && u.onyxMethod === Onyx.METHOD.MERGE);
                 expect(sourceFailure).toBeDefined();
-                expect((sourceFailure?.value as {errors?: unknown})?.errors).toBeDefined();
+                expect(getPolicyValue(sourceFailure).errors).toBeDefined();
 
                 const sourceSuccess = successData.find((u) => u.key === sourcePolicyKey && u.onyxMethod === Onyx.METHOD.MERGE);
                 expect(sourceSuccess).toBeDefined();
-                expect((sourceSuccess?.value as {errors?: unknown})?.errors).toBeNull();
+                expect(getPolicyValue(sourceSuccess).errors).toBeNull();
             });
         });
 
@@ -289,7 +301,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
 
-                const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>; pendingFields?: Record<string, unknown>};
+                const value = getPolicyValue(findPolicyOptimistic(optimisticData));
                 expect(value.customUnits).toBeDefined();
                 expect(Object.keys(value.customUnits ?? {})).toEqual([targetExistingDistanceID]);
                 expect(value.customUnits?.[targetExistingDistanceID]?.customUnitID).toBe(targetExistingDistanceID);
@@ -303,7 +315,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
 
-                const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>};
+                const value = getPolicyValue(findPolicyOptimistic(optimisticData));
                 const unitIDs = Object.keys(value.customUnits ?? {});
                 expect(unitIDs).toHaveLength(1);
                 expect(unitIDs.at(0)).not.toBe(sourceDistanceUnit.customUnitID);
@@ -337,7 +349,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates', 'perDiem'], {}, {});
 
-                const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>};
+                const value = getPolicyValue(findPolicyOptimistic(optimisticData));
                 expect(Object.keys(value.customUnits ?? {}).sort()).toEqual([targetExistingDistanceID, targetExistingPerDiemID].sort());
                 expect(value.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
                 expect(value.customUnits?.[targetExistingPerDiemID]?.rates).toEqual(sourcePerDiemUnit.rates);
@@ -385,8 +397,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const failLifecycle = failureData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS);
                 const successLifecycle = successData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS);
 
-                expect((optLifecycle?.value as {currentStep?: string | null})?.currentStep).toBe(CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING);
-                expect((failLifecycle?.value as {currentStep?: string | null})?.currentStep).toBeNull();
+                expect(getLifecycleValue(optLifecycle).currentStep).toBe(CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING);
+                expect(getLifecycleValue(failLifecycle).currentStep).toBeNull();
                 // Success leaves currentStep alone — the backend transitions it to 'complete' via NVP.
                 expect(successLifecycle).toBeUndefined();
             });
@@ -398,7 +410,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const targetPolicy = makeTargetPolicy({address: {addressStreet: '2 Tgt Ave', city: 'Berlin', country: 'DE', state: 'BE', zipCode: '10115'}});
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview'], {}, {});
-                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                const value = getPolicyValue(findPolicyOptimistic(optimisticData));
 
                 expect(value.address).toEqual(sourcePolicy.address);
                 expect(value.address).not.toHaveProperty('extraField');
@@ -425,7 +437,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const targetPolicy = makeTargetPolicy({customUnits: {[targetDistanceUnit.customUnitID]: targetDistanceUnit}});
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
-                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                const value = getPolicyValue(findPolicyOptimistic(optimisticData));
 
                 // The optimistic unit is keyed by target's existing ID, with source's rates (no old rates)
                 const optimisticUnit = value.customUnits?.[targetDistanceUnit.customUnitID];
@@ -446,7 +458,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
                 const failure = findPolicyFailure(failureData);
-                const value = failure?.value as Policy;
+                const value = getPolicyValue(failure);
 
                 // Failure restores the full original target — which had no customUnits
                 expect(value.customUnits).toEqual({});
@@ -462,12 +474,12 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const {optimisticData, successData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['timeTracking'], {}, {});
 
-                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                const value = getPolicyValue(findPolicyOptimistic(optimisticData));
                 expect(value.units?.time).toEqual({enabled: true, rate: 75});
                 expect(value.pendingFields?.isTimeTrackingEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                 expect(value.pendingFields?.timeTrackingDefaultRate).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
-                const successValue = successData.find((update) => update.key === POLICY_KEY && update.onyxMethod === Onyx.METHOD.MERGE)?.value as Policy;
+                const successValue = getPolicyValue(successData.find((update) => update.key === POLICY_KEY && update.onyxMethod === Onyx.METHOD.MERGE));
                 expect(successValue.pendingFields?.isTimeTrackingEnabled).toBeNull();
                 expect(successValue.pendingFields?.timeTrackingDefaultRate).toBeNull();
             });
@@ -481,7 +493,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 });
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['taxes'], {}, {});
-                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                const value = getPolicyValue(findPolicyOptimistic(optimisticData));
 
                 expect(value.tax).toEqual(sourcePolicy.tax);
             });
@@ -491,7 +503,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const {successData} = buildCopyPolicySettingsData(makeSourcePolicy(), [targetPolicy], ['overview'], {}, {});
 
                 const targetSuccess = successData.find((u) => u.key === POLICY_KEY && u.onyxMethod === Onyx.METHOD.MERGE);
-                const value = targetSuccess?.value as {errors?: unknown; pendingFields?: Record<string, unknown>};
+                const value = getPolicyValue(targetSuccess);
 
                 expect(value.errors).toBeNull();
                 expect(value.pendingFields?.outputCurrency).toBeNull();

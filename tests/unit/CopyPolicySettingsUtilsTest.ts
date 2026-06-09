@@ -11,6 +11,7 @@ import {
     isTargetCompatibleForAccountingPart,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
+import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -25,6 +26,8 @@ function makePolicyWithConnection(connectionName: ConnectionName, connectionPayl
         },
     } as Policy;
 }
+
+const mockTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
 describe('CopyPolicySettingsUtils', () => {
     describe('getConnectionCompanyID', () => {
@@ -201,27 +204,17 @@ describe('CopyPolicySettingsUtils', () => {
         });
 
         it('describes time tracking without currency when a default rate exists', () => {
-            const translate = ((key: string) => {
-                if (key === 'common.enabled') {
-                    return 'Enabled';
-                }
-                if (key === 'workspace.moreFeatures.timeTracking.defaultHourlyRate') {
-                    return 'Default hourly rate';
-                }
-                return key;
-            }) as LocalizedTranslate;
             const policy = createRandomPolicy(7);
             policy.units = {time: {enabled: true, rate: 75}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled, Default hourly rate: 75');
+            expect(getTimeTrackingCopySettingsDescription(policy, mockTranslate)).toBe('Enabled, Default hourly rate: 75');
         });
 
         it('describes time tracking as enabled when no default rate is set', () => {
-            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
             const policy = createRandomPolicy(8);
             policy.units = {time: {enabled: true}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled');
+            expect(getTimeTrackingCopySettingsDescription(policy, mockTranslate)).toBe('Enabled');
         });
 
         it('hides distance rates when the feature flag is off even if rates exist', () => {
