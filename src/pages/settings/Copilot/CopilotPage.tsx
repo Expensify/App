@@ -126,15 +126,19 @@ function CopilotPage() {
         });
     }, [delegateButtonRef]);
 
+    const captureDelegateButtonRef = useCallback((nativeEvent: GestureResponderEvent | KeyboardEvent) => {
+        delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+    }, []);
+
     const showPopoverMenu = useCallback(
         (nativeEvent: GestureResponderEvent | KeyboardEvent, delegate: Delegate) => {
-            delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+            captureDelegateButtonRef(nativeEvent);
             setMenuPosition();
             setShouldShowDelegatePopoverMenu(true);
             setSelectedDelegate(delegate);
             setSelectedEmail(delegate.email);
         },
-        [setMenuPosition],
+        [captureDelegateButtonRef, setMenuPosition],
     );
 
     useLayoutEffect(() => {
@@ -151,7 +155,7 @@ function CopilotPage() {
     }, [setMenuPosition]);
 
     const showDelegatorPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegator: Delegate) => {
-        delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+        captureDelegateButtonRef(nativeEvent);
         setMenuPosition();
         setShouldShowDelegatorPopoverMenu(true);
         setSelectedDelegator(delegator);
@@ -387,6 +391,8 @@ function CopilotPage() {
         openSecuritySettingsPage();
     }, []);
 
+    const delegateAnchorRef = delegateButtonRef as RefObject<View | null>;
+
     return (
         <ScreenWrapper
             testID="CopilotPage"
@@ -469,7 +475,7 @@ function CopilotPage() {
                             </Section>
                             <PopoverMenu
                                 isVisible={shouldShowDelegatePopoverMenu}
-                                anchorRef={delegateButtonRef as RefObject<View | null>}
+                                anchorRef={delegateAnchorRef}
                                 anchorPosition={anchorPosition}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -483,7 +489,7 @@ function CopilotPage() {
                             />
                             <PopoverMenu
                                 isVisible={shouldShowDelegatorPopoverMenu}
-                                anchorRef={delegateButtonRef as RefObject<View | null>}
+                                anchorRef={delegateAnchorRef}
                                 anchorPosition={anchorPosition}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
