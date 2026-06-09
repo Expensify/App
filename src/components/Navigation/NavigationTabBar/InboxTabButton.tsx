@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -11,7 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +20,18 @@ import type {Report, ReportActions} from '@src/types/onyx';
 import getLastRoute from './getLastRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
+
+function getStringParam(params: unknown, key: string): string | undefined {
+    if (!params || typeof params !== 'object') {
+        return undefined;
+    }
+    for (const [k, v] of Object.entries(params)) {
+        if (k === key && typeof v === 'string') {
+            return v;
+        }
+    }
+    return undefined;
+}
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
@@ -52,7 +63,7 @@ function InboxTabButton({selectedTab, isWideLayout, statusIndicatorColor, chatTa
             return undefined;
         }
         const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
-        return (route?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
+        return getStringParam(route?.params, 'reportID');
     });
 
     const lastReportRouteReportActionID = useRootNavigationState((rootState) => {
@@ -60,14 +71,16 @@ function InboxTabButton({selectedTab, isWideLayout, statusIndicatorColor, chatTa
             return undefined;
         }
         const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
-        return (route?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportActionID;
+        return getStringParam(route?.params, 'reportActionID');
     });
 
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
 
-    // Wrap factory in useMemo so the selector identity is stable per actionID
-    const doesLastReportActionExistSelector = useMemo(() => makeDoesLastReportActionExistSelector(lastReportRouteReportActionID), [lastReportRouteReportActionID]);
-    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector}, [lastReportRouteReportID]);
+    const doesLastReportActionExistSelector = makeDoesLastReportActionExistSelector(lastReportRouteReportActionID);
+    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector}, [
+        lastReportRouteReportID,
+        lastReportRouteReportActionID,
+    ]);
 
     const inboxAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.INBOX};
 
@@ -86,7 +99,10 @@ function InboxTabButton({selectedTab, isWideLayout, statusIndicatorColor, chatTa
             const rootState = navigationRef.getRootState();
             const lastRoute = rootState ? getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT) : undefined;
             if (lastRoute) {
-                const {reportID, reportActionID, referrer, backTo} = lastRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+                const reportID = getStringParam(lastRoute.params, 'reportID');
+                const reportActionID = getStringParam(lastRoute.params, 'reportActionID');
+                const referrer = getStringParam(lastRoute.params, 'referrer');
+                const backTo = getStringParam(lastRoute.params, 'backTo');
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo));
                 return;
             }
