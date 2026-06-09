@@ -221,6 +221,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -326,6 +327,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -415,6 +417,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -468,6 +471,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -549,6 +553,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -602,6 +607,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -687,6 +693,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -740,6 +747,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -823,6 +831,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -876,6 +885,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -978,6 +988,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1032,6 +1043,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1094,6 +1106,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             };
         }
 
@@ -1314,6 +1327,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1403,6 +1417,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1740,6 +1755,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1772,6 +1788,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1826,6 +1843,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1871,6 +1889,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1918,6 +1937,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
+                currentUserLocalCurrency: undefined,
             });
 
             // Then result should be valid
@@ -1956,6 +1976,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -2213,6 +2234,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2516,6 +2538,7 @@ describe('actions/IOU/TrackExpense', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 

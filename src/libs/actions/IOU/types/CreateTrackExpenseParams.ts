@@ -37,6 +37,7 @@ type CreateTrackExpenseParams = {
     // TODO: Make it required once we complete refactoring the trackExpense function to use hasCompletedGuidedSetupFlow. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
     defaultWorkspaceName?: string;
+    currentUserLocalCurrency: string | undefined;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;

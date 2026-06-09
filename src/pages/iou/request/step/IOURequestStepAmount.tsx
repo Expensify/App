@@ -351,6 +351,7 @@ function IOURequestStepAmount({
                             hasCompletedGuidedSetupFlow,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                         });
                     } else {
                         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
