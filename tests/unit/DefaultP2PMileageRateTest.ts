@@ -6,7 +6,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getStoredDefaultP2PMileageRate from '@libs/getStoredDefaultP2PMileageRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('Default P2P mileage rate', () => {
@@ -57,12 +57,10 @@ describe('Default P2P mileage rate', () => {
             await waitForBatchedUpdates();
 
             const transaction = {
-                amount: 100,
-                merchant: 'Test',
-                created: new Date().toISOString(),
+                ...createRandomTransaction(1),
                 currency: CONST.CURRENCY.USD,
                 comment: {customUnit: {defaultP2PRate: 99}},
-            } as unknown as Transaction;
+            };
 
             const result = DistanceRequestUtils.getRateForP2P(CONST.CURRENCY.USD, transaction);
 
