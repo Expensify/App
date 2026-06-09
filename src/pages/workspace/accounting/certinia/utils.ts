@@ -39,9 +39,10 @@ function getCertiniaExportStatusValue(status: string | undefined): CertiniaExpor
         return undefined;
     }
 
-    const normalizedStatus = status.trim().toUpperCase().replace(/\s+/g, '_');
-    if ((Object.values(CONST.CERTINIA_EXPORT_STATUS) as string[]).includes(normalizedStatus)) {
-        return normalizedStatus as CertiniaExportStatus;
+    const normalizedStatus = status.trim().toUpperCase().replaceAll(/\s+/g, '_');
+    const found = Object.values(CONST.CERTINIA_EXPORT_STATUS).find((s) => s === normalizedStatus);
+    if (found !== undefined) {
+        return found;
     }
 
     return undefined;
