@@ -606,7 +606,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, rolePreFilter);
 
     const handleSearchChange = (value: string) => {
-        setSelectedEmployees([]);
         setInputValue(value);
     };
 
