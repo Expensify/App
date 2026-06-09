@@ -23,6 +23,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
 import type {CardFeedListItem} from '@hooks/useOtherFeedsForFeedSelector';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,6 +31,7 @@ import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
@@ -40,7 +42,7 @@ import {clearAddNewCardFlow, linkCardFeedToPolicy} from '@userActions/CompanyCar
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -61,6 +63,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
+    const {canWrite: canWriteCompanyCards} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const [feedWithError, setFeedWithError] = useState<{feed?: string; error?: Errors} | undefined>(undefined);
 
@@ -119,7 +122,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             );
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path));
     };
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
@@ -161,7 +164,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         setFeedWithError(undefined);
     };
 
-    const otherMenuItemFeeds = (
+    const otherMenuItemFeeds = canWriteCompanyCards ? (
         <View style={[styles.w100, styles.flexColumn]}>
             <MenuItem
                 title={translate('workspace.companyCards.addCards')}
@@ -196,7 +199,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 </>
             )}
         </View>
-    );
+    ) : null;
 
     return (
         <AccessOrNotFoundWrapper

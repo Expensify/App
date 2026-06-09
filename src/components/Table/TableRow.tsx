@@ -2,7 +2,6 @@ import React from 'react';
 import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import Checkbox from '@components/Checkbox';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,9 +9,6 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -65,21 +61,13 @@ export default function TableRow({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isMobileSelectionEnabled = useMobileSelectionMode();
-    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled} = useTableContext();
+    const {processedData, columns, shouldUseNarrowTableLayout} = useTableContext();
 
-    const item = processedData.at(rowIndex);
+    const rowCount = processedData.length;
     const isFirstRow = rowIndex === 0;
-    const isLastRow = rowIndex === processedData.length - 1;
+    const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
-    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
-
-    if (selectionEnabled && isSelectionCheckboxVisible) {
-        gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
-    }
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: !!shouldAnimateInHighlight,
@@ -87,27 +75,23 @@ export default function TableRow({
         backgroundColor: theme.transparent,
     });
 
-    if (!item) {
-        return null;
-    }
-
     const tableRowPressableStyles = [
-        !shouldUseNarrowTableLayout && styles.mh5,
+        styles.mh5,
         styles.appBG,
         isInteractive && styles.userSelectNone,
         !isFirstRow && [styles.borderTop, {borderColor: theme.borderLight}],
-        isLastRow && [styles.borderBottom, {borderColor: theme.borderLight}],
-        item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
+        isLastRow && styles.tableBottomRadius,
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
 
     const tableRowContentContainerStyles = [
         styles.flex1,
         styles.gap3,
-        shouldUseNarrowTableLayout ? styles.ph5 : styles.ph3,
+        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         animatedHighlightStyle,
+        isLastRow && styles.tableBottomRadius,
     ];
 
     const tableRowContentStyles = [
@@ -118,18 +102,8 @@ export default function TableRow({
         styles.gap3,
         styles.dFlex,
         // Use Grid on web when available (will override flex if supported)
-        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
+        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns}],
     ];
-
-    const tableRowPressableHoverStyle = (() => {
-        if (!isInteractive) {
-            return undefined;
-        }
-        if (item.selected) {
-            return styles.activeComponentBG;
-        }
-        return {backgroundColor: theme.hoverLight};
-    })();
 
     const renderChildren = (state: PressableStateCallbackType) => {
         if (typeof children === 'function') {
@@ -137,36 +111,6 @@ export default function TableRow({
         }
 
         return children;
-    };
-
-    const handleCheckboxPress = (event?: MouseEvent) => {
-        if (event && event.shiftKey) {
-            tableMethods.handleMultipleRowSelection(item.keyForList);
-            return;
-        }
-
-        tableMethods.handleSingleRowSelection(item.keyForList);
-    };
-
-    const handleRowPress = (event?: MouseEvent) => {
-        if (!isInteractive) {
-            return;
-        }
-
-        if (shouldUseNarrowLayout && isMobileSelectionEnabled) {
-            handleCheckboxPress(event);
-            return;
-        }
-
-        onPress?.();
-    };
-
-    const handleRowLongPress = () => {
-        if (!isInteractive || !selectionEnabled || isMobileSelectionEnabled) {
-            return;
-        }
-
-        tableMethods.setIsMobileSelectionModalVisible(true);
     };
 
     return (
@@ -180,11 +124,10 @@ export default function TableRow({
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={isInteractive}
-                hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={isInteractive ? undefined : 1}
+                hoverStyle={isInteractive && styles.hoveredComponentBG}
                 role={isInteractive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-                onLongPress={handleRowLongPress}
-                onPress={(event) => handleRowPress(event as unknown as MouseEvent)}
+                onPress={onPress}
                 {...props}
             >
                 {(state) => (
@@ -201,18 +144,7 @@ export default function TableRow({
                                 </SkeletonViewContentLoader>
                             </View>
                         ) : (
-                            <View style={tableRowContentStyles}>
-                                {!!isSelectionCheckboxVisible && (
-                                    <Checkbox
-                                        style={styles.flex1}
-                                        disabled={item.disabled}
-                                        isChecked={!!item.selected}
-                                        accessibilityLabel={translate('common.select')}
-                                        onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
-                                    />
-                                )}
-                                {renderChildren(state)}
-                            </View>
+                            <View style={tableRowContentStyles}>{renderChildren(state)}</View>
                         )}
 
                         {!!offlineWithFeedback?.errors && (

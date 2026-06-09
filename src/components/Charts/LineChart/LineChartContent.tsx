@@ -14,6 +14,7 @@ import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
+    ChartFontsProvider,
     useChartFontManager,
     useChartInteractions,
     useChartLabelFormats,
@@ -48,7 +49,7 @@ type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
-function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontMgr = useChartFontManager();
@@ -309,6 +310,14 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                 />
             </Animated.View>
         </GestureDetector>
+    );
+}
+
+function LineChartContent(props: LineChartProps) {
+    return (
+        <ChartFontsProvider>
+            <LineChartContentBody {...props} />
+        </ChartFontsProvider>
     );
 }
 

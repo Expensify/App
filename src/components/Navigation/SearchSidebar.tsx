@@ -1,13 +1,14 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
 import SidebarRightIcon from '@assets/images/sidebar-right.svg';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
+import Tooltip from '@components/Tooltip';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,7 +20,13 @@ import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import {useSearchSidebarCollapse} from './SearchSidebarCollapseStore';
+import {
+    useSearchSidebarCollapse,
+    useSearchSidebarCollapseFadeStyle,
+    useSearchSidebarLayoutWidthStyle,
+    useSearchSidebarToggleButtonStyle,
+    useSearchSidebarVisualWidthStyle,
+} from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -33,7 +40,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {collapseProgress, peekProgress, isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
+    const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
+    const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
+    const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
@@ -51,36 +62,13 @@ function SearchSidebar({state}: SearchSidebarProps) {
         setLastSearchType(searchType);
     }, [lastSearchType, setLastSearchType, searchType]);
 
-    // Layout spacer: tracks only collapseProgress so screen content marginLeft stays in lockstep.
-    const layoutSpacerStyle = useAnimatedStyle(() => {
-        const progress = collapseProgress.get();
-        return {
-            width: variables.searchSidebarExpandedWidth + (variables.searchSidebarCollapsedWidth - variables.searchSidebarExpandedWidth) * progress,
-        };
-    });
+    useEffect(() => {
+        if (shouldUseNarrowLayout) {
+            endPeek();
+        }
 
-    // Visual overlay: width grows during peek without affecting layout.
-    const overlayAnimatedStyle = useAnimatedStyle(() => {
-        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
-        return {
-            width: variables.searchSidebarCollapsedWidth + (variables.searchSidebarExpandedWidth - variables.searchSidebarCollapsedWidth) * visualExpansion,
-        };
-    });
-
-    // Shift the chevron button left so it sits at the sidebar's horizontal center when fully collapsed.
-    // 10px = chevron's right-anchored center (sidebar - mr3 - chevronHalfWidth = 76 - 12 - 16 = 48) minus sidebar center (76/2 = 38).
-    const chevronContainerAnimatedStyle = useAnimatedStyle(() => {
-        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
-        return {transform: [{translateX: -10 * (1 - visualExpansion)}]};
-    });
-
-    const breadcrumbAnimatedStyle = useAnimatedStyle(() => {
-        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
-        return {
-            opacity: visualExpansion,
-            transform: [{translateX: -8 * (1 - visualExpansion)}],
-        };
-    });
+        return endPeek;
+    }, [endPeek, shouldUseNarrowLayout]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -88,31 +76,31 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return null;
     }
 
+    const toggleButtonLabel = translate(isCollapsed ? 'reportActionCompose.expand' : 'reportActionCompose.collapse');
     const toggleButton = (
-        <Animated.View style={chevronContainerAnimatedStyle}>
-            <PressableWithoutFeedback
-                accessibilityLabel="Toggle sidebar"
-                onPress={toggleSidebar}
-                sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
-                style={[styles.p2, styles.br2]}
-            >
-                <Icon
-                    src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
-                    fill={theme.icon}
-                />
-            </PressableWithoutFeedback>
-        </Animated.View>
+        <Tooltip text={toggleButtonLabel}>
+            <Animated.View style={toggleButtonAnimatedStyle}>
+                <PressableWithoutFeedback
+                    accessibilityLabel={toggleButtonLabel}
+                    onPress={toggleSidebar}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SIDEBAR_TOGGLE}
+                    style={[styles.p2, styles.br2]}
+                >
+                    <Icon
+                        src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
+            </Animated.View>
+        </Tooltip>
     );
 
     return (
-        <Animated.View style={[{height: '100%'}, layoutSpacerStyle]}>
-            <Hoverable
-                onHoverIn={startPeek}
-                onHoverOut={endPeek}
-            >
-                <Animated.View style={[styles.searchSidebar, overlayAnimatedStyle, {position: 'absolute', top: 0, left: 0, bottom: 0, zIndex: 1}]}>
+        <Animated.View style={layoutSpacerStyle}>
+            <Hoverable onHoverOut={endPeek}>
+                <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                     <View style={styles.flex1}>
                         <TopBar
                             shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
@@ -123,7 +111,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
                         >
                             {toggleButton}
                         </TopBar>
-                        <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                        <Hoverable onHoverIn={startPeek}>
+                            <View style={styles.flex1}>
+                                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                            </View>
+                        </Hoverable>
                     </View>
                 </Animated.View>
             </Hoverable>

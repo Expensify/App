@@ -135,7 +135,6 @@ jest.mock('@components/Pressable', () => ({
 
 // Sample data types for testing
 type TestItem = {
-    keyForList: string;
     id: string;
     name: string;
     category: string;
@@ -146,11 +145,11 @@ type TestColumnKey = 'name' | 'category' | 'value';
 
 // Sample test data
 const mockData: TestItem[] = [
-    {keyForList: '1', id: '1', name: 'Apple', category: 'fruit', value: 100},
-    {keyForList: '2', id: '2', name: 'Banana', category: 'fruit', value: 200},
-    {keyForList: '3', id: '3', name: 'Carrot', category: 'vegetable', value: 50},
-    {keyForList: '4', id: '4', name: 'Date', category: 'fruit', value: 150},
-    {keyForList: '5', id: '5', name: 'Eggplant', category: 'vegetable', value: 75},
+    {id: '1', name: 'Apple', category: 'fruit', value: 100},
+    {id: '2', name: 'Banana', category: 'fruit', value: 200},
+    {id: '3', name: 'Carrot', category: 'vegetable', value: 50},
+    {id: '4', name: 'Date', category: 'fruit', value: 150},
+    {id: '5', name: 'Eggplant', category: 'vegetable', value: 75},
 ];
 
 const mockColumns: Array<TableColumn<TestColumnKey>> = [
@@ -322,7 +321,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -340,7 +339,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -363,7 +362,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -386,7 +385,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -411,7 +410,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -437,7 +436,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -461,7 +460,7 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -704,7 +703,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -734,7 +733,7 @@ describe('Table', () => {
                     compareItems={props.compareItems}
                     filters={filterConfig}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.FilterButtons />
                     <Table.Header />
                     <Table.Body />
@@ -757,7 +756,7 @@ describe('Table', () => {
                     isItemInSearch={props.isItemInSearch}
                 >
                     <Table.Header />
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -801,7 +800,7 @@ describe('Table', () => {
                     isItemInFilter={isItemInFilter}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -825,7 +824,6 @@ describe('Table', () => {
     describe('performance and edge cases', () => {
         it('should handle large datasets', () => {
             const largeData: TestItem[] = Array.from({length: 100}, (_, i) => ({
-                keyForList: String(i + 1),
                 id: String(i + 1),
                 name: `Item ${i + 1}`,
                 category: i % 2 === 0 ? 'fruit' : 'vegetable',
@@ -859,7 +857,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -883,7 +881,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="" />
+                    <Table.SearchBar label="Search" />
                     <Table.Body />
                 </Table>,
             );

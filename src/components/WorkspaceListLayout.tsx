@@ -1,4 +1,3 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/core';
 import type {PropsWithChildren} from 'react';
 import React from 'react';
 import {View} from 'react-native';
@@ -19,20 +18,19 @@ import TabSelectorBase from './TabSelector/TabSelectorBase';
 
 type WorkspaceListLayoutProps = PropsWithChildren<{
     headerButton?: React.ReactNode;
+    activeTabKey: 'workspaces' | 'domains';
 }>;
 
-export default function WorkspaceListLayout({children, headerButton}: WorkspaceListLayoutProps) {
+export default function WorkspaceListLayout({children, activeTabKey, headerButton}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
-    const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const isWorkspacesListPage = activeRoute === SCREENS.WORKSPACES_LIST;
+    const isWorkspacesListPage = activeTabKey === 'workspaces';
     const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
-    const activeNarrowLayoutTabKey = isWorkspacesListPage ? 'workspaces' : 'domains';
     const activeTabLabel = isWorkspacesListPage ? translate('common.workspaces') : translate('common.domains');
 
     const navigationOptions = [
@@ -84,7 +82,7 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
                         <TabSelectorBase
                             tabs={navigationOptions}
-                            activeTabKey={activeNarrowLayoutTabKey}
+                            activeTabKey={activeTabKey}
                             onTabPress={onTabPress}
                         />
                         {shouldDisplayButtonsInSeparateLine && headerButton}

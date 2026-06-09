@@ -65,12 +65,23 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
         shouldUseNarrowTableLayout ? styles.gap1 : styles.gap2,
     ];
 
+    const accessibilityLabel = [
+        translate('domain.addDomain.domainName'),
+        item.title,
+        item.isValidated && item.isAdmin && translate('common.verified'),
+        !item.isValidated && item.isAdmin && translate('domain.notVerified'),
+    ]
+        .filter(Boolean)
+        .join(', ');
+
     return (
         <TableRow
             interactive
             rowIndex={rowIndex}
-            skeletonReasonAttributes={{context: 'domainTableRow'}}
             onPress={item.action}
+            disabled={item.disabled}
+            accessibilityLabel={accessibilityLabel}
+            skeletonReasonAttributes={{context: 'domainTableRow'}}
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,

@@ -1,5 +1,5 @@
 import React from 'react';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -30,9 +30,10 @@ function ChatListItem<TItem extends ListItem>({
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
-    const personalDetails = usePersonalDetails();
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isSelected} = useRowSelection(item.keyForList);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -46,7 +47,7 @@ function ChatListItem<TItem extends ListItem>({
         styles.overflowHidden,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
-        item.isSelected && styles.searchRowSelectedBG,
+        isSelected && styles.searchRowSelectedBG,
         styles.mh0,
         item.cursorStyle,
     ];
@@ -73,12 +74,13 @@ function ChatListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            hoverStyle={item.isSelected && styles.searchRowSelectedBG}
+            hoverStyle={isSelected && styles.searchRowSelectedBG}
             forwardedFSClass={fsClass}
         >
             <ReportActionItem
                 action={reportActionItem}
                 report={reportStable}
+                transactionThreadReport={transactionThreadReport}
                 onPress={handlePress}
                 parentReportAction={undefined}
                 displayAsGroup={false}
@@ -86,7 +88,6 @@ function ChatListItem<TItem extends ListItem>({
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 shouldShowBorder
-                personalDetails={personalDetails}
             />
         </BaseListItem>
     );

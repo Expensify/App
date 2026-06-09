@@ -1,20 +1,16 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ViewProps} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
-import type {TableColumn, TableData} from './types';
+import type {TableColumn} from './types';
 
 /**
  * Number of times a column can be toggled before sorting is reset.
@@ -34,7 +30,7 @@ type TableHeaderProps = ViewProps;
  * Clicking a column header toggles sorting: ascending -> descending -> reset.
  * The currently sorted column displays an arrow icon indicating sort direction.
  *
- * @template DataType - The type of items in the table's data array.
+ * @template T - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  *
  * @example
@@ -50,14 +46,10 @@ type TableHeaderProps = ViewProps;
  * </Table>
  * ```
  */
-function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
+function TableHeader<T, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isMobileSelectionEnabled = useMobileSelectionMode();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData} = useTableContext<DataType, ColumnKey>();
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+    const {columns, isEmptyResult, title, processedData, shouldUseNarrowTableLayout} = useTableContext<T, ColumnKey>();
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
@@ -67,33 +59,18 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         return null;
     }
 
-    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
-
-    if (isSelectionCheckboxVisible) {
-        gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
-    }
-
-    let isSelectionIndeterminate = false;
-    let isEverySelectableRowSelected = true;
-
-    // We exclude disabled rows from the 'select all' behavior, so if a disabled row is not selected, we still
-    // consider all active rows to be selected
-    if (isSelectionCheckboxVisible) {
-        for (const row of processedData) {
-            isSelectionIndeterminate ||= row.selected;
-            isEverySelectableRowSelected &&= !!(row.selected || row.disabled);
-        }
-    }
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
 
     return (
         <View
             style={[
                 styles.pv2,
-                shouldUseNarrowTableLayout ? styles.ph5 : styles.ph3,
-                !shouldUseNarrowTableLayout && styles.mh5,
+                styles.ph3,
+                styles.mh5,
                 styles.appBG,
                 styles.borderBottom,
                 {borderColor: theme.borderLight},
+                styles.tableTopRadius,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,
@@ -101,23 +78,13 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 styles.gap3,
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
-                !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
+                !shouldUseNarrowTableLayout && {gridTemplateColumns},
                 style,
             ]}
             {...props}
         >
             {shouldUseNarrowTableLayout && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
-                    {!!isSelectionCheckboxVisible && (
-                        <Checkbox
-                            isChecked={isEverySelectableRowSelected}
-                            isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
-                            onPress={tableMethods.handleSelectAll}
-                            accessibilityLabel={translate('workspace.common.selectAll')}
-                            style={styles.pl1}
-                        />
-                    )}
-
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight]}>
                     <Text
                         numberOfLines={1}
                         color={theme.textSupporting}
@@ -128,27 +95,15 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 </View>
             )}
 
-            {!shouldUseNarrowTableLayout && (
-                <>
-                    {!!selectionEnabled && (
-                        <Checkbox
-                            isChecked={isEverySelectableRowSelected}
-                            isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
-                            onPress={tableMethods.handleSelectAll}
-                            accessibilityLabel={translate('workspace.common.selectAll')}
+            {!shouldUseNarrowTableLayout &&
+                columns.map((column) => {
+                    return (
+                        <TableHeaderColumn
+                            column={column}
+                            key={column.key}
                         />
-                    )}
-
-                    {columns.map((column) => {
-                        return (
-                            <TableHeaderColumn
-                                column={column}
-                                key={column.key}
-                            />
-                        );
-                    })}
-                </>
-            )}
+                    );
+                })}
         </View>
     );
 }
@@ -156,10 +111,10 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 /**
  * Renders a single sortable column header.
  *
- * @template DataType - The type of items in the table's data array.
+ * @template T - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
-function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
+function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
@@ -167,7 +122,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     const {
         activeSorting,
         tableMethods: {updateSorting, toggleColumnSorting},
-    } = useTableContext<DataType, ColumnKey>();
+    } = useTableContext<T, ColumnKey>();
     const isSortingByColumn = column.key === activeSorting.columnKey;
     const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
 
@@ -202,9 +157,9 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
-            disabled={!column.sortable}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={tableHeaderStyles}
+            disabled={!column.sortable}
             onPress={() => toggleSorting(column.key)}
         >
             <Text

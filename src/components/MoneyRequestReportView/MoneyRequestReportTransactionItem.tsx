@@ -15,19 +15,21 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {CardList, Policy, Report} from '@src/types/onyx';
+import type {CardList, Policy, Report, TransactionViolations} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
+
+    /** Pre-filtered violations for this transaction. Computed once at the parent so each row doesn't subscribe to Onyx individually. */
+    violations: TransactionViolations;
 
     /** Report to which the transaction belongs */
     report: Report;
@@ -79,6 +81,10 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether the list is horizontally scrollable */
     shouldScrollHorizontally?: boolean;
+
+    /** Precomputed transaction-thread report ID for this transaction. Lets the RBR row early-return for clean rows
+     * instead of mounting the heavy RBR inner; the parent computes it once so rows don't scan report actions individually. */
+    transactionThreadReportID?: string;
 };
 
 type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionItemProps & {
@@ -91,6 +97,7 @@ type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionI
 
 function MoneyRequestReportTransactionItemBody({
     transaction,
+    violations,
     report,
     policy,
     isSelectionModeEnabled,
@@ -108,6 +115,7 @@ function MoneyRequestReportTransactionItemBody({
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
     shouldScrollHorizontally = false,
+    transactionThreadReportID,
     inlineEdit,
     animatedHighlightStyle,
 }: MoneyRequestReportTransactionItemBodyProps) {
@@ -122,8 +130,6 @@ function MoneyRequestReportTransactionItemBody({
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
-    // Filter violations based on user visibility and dismissal state at the row level.
-    const filteredViolations = useTransactionViolations(transaction.transactionID);
 
     // On narrow layouts `inlineEdit` is undefined (the parent skips the hook). The fallback ref
     // keeps the press handler shape identical without ever being mutated on narrow.
@@ -185,9 +191,10 @@ function MoneyRequestReportTransactionItemBody({
                 {({hovered}) => (
                     <TransactionItemRow
                         transactionItem={transaction}
-                        violations={filteredViolations}
+                        violations={violations}
                         report={report}
                         policy={policy}
+                        transactionThreadReportID={transactionThreadReportID}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}

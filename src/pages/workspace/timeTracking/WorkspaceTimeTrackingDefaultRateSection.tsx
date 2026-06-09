@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {policyTimeTrackingSelector} from '@src/selectors/Policy';
 
-function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string}) {
+function WorkspaceTimeTrackingDefaultRateSection({policyID, canWriteMoreFeatures}: {policyID: string; canWriteMoreFeatures: boolean}) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -34,10 +34,11 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string})
                 <MenuItemWithTopDescription
                     shouldShowLoadingSpinnerIcon={!policy}
                     key={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={canWriteMoreFeatures}
                     title={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
                     description={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID))}
+                    interactive={canWriteMoreFeatures}
                     style={styles.sectionMenuItemTopDescription}
                 />
             </OfflineWithFeedback>

@@ -7,7 +7,6 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TableData} from '.';
 import {useTableContext} from './TableContext';
 
 /**
@@ -46,16 +45,16 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
+function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, listRef, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<DataType>();
+    const {processedData: filteredAndSortedData, activeSearchString, listProps, listRef, shouldUseNarrowTableLayout, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: false,
-        addOfflineIndicatorBottomSafeAreaPadding: false,
-        style: styles.pb4,
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
 
     // Determine the message based on what caused the empty result
@@ -89,14 +88,14 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
             style={[styles.flex1, styles.mnh0, style]}
             {...props}
         >
-            <FlashList<DataType>
+            <FlashList<T>
                 ref={listRef}
                 data={filteredAndSortedData}
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
+                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
                 {...restListProps}
             />

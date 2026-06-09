@@ -14,6 +14,7 @@ type SearchMultipleSelectionPickerItem<T> = {
     name: string;
     value: T;
     leftElement?: React.ReactNode;
+    searchableText?: string;
 };
 
 type SearchMultipleSelectionPickerProps<T> = {
@@ -51,7 +52,7 @@ function SearchMultipleSelectionPicker<T extends string | string[]>({
     const searchLower = debouncedSearchTerm.toLowerCase();
     const sectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: T; leftElement?: React.ReactNode}> = [];
     for (const item of items) {
-        if (!item.name.toLowerCase().includes(searchLower)) {
+        if (!item.name.toLowerCase().includes(searchLower) && !item.searchableText?.toLowerCase().includes(searchLower)) {
             continue;
         }
         const isSelected = selectedItemIDs.has(item.value.toString());

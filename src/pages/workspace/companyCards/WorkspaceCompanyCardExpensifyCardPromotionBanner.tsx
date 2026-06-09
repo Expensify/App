@@ -15,9 +15,11 @@ import type {Policy} from '@src/types/onyx';
 
 type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
     policy: OnyxEntry<Policy>;
+    canWriteCompanyCards: boolean;
+    onReadOnlyAction: () => void;
 };
 
-function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
+function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompanyCards, onReadOnlyAction}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -47,14 +49,16 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
-                    onPress={handleLearnMore}
+                    onPress={canWriteCompanyCards ? handleLearnMore : onReadOnlyAction}
                     style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
+                    innerStyles={!canWriteCompanyCards ? styles.buttonOpacityDisabled : undefined}
+                    hoverStyles={!canWriteCompanyCards ? styles.buttonOpacityDisabled : undefined}
                     text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
                     accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
                 />
             </View>
         );
-    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, handleLearnMore]);
+    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canWriteCompanyCards, handleLearnMore, onReadOnlyAction]);
 
     return (
         <View style={[styles.mb4]}>

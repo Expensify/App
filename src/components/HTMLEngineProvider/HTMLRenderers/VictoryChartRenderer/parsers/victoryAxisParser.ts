@@ -13,8 +13,10 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
     const orientation = parseAttribute<string>(tnode.attributes.orientation);
     const tickCount = parseAttribute<number>(tnode.attributes.tickcount) ?? 0;
-    const tickValues = parseAttribute<number[]>(tnode.attributes.tickvalues);
-    const tickFormat = parseAttribute<string[]>(tnode.attributes.tickformat);
+    const rawTickValues = parseAttribute<number[]>(tnode.attributes.tickvalues);
+    const tickValues = Array.isArray(rawTickValues) ? rawTickValues : undefined;
+    const rawTickFormat = parseAttribute<string[]>(tnode.attributes.tickformat);
+    const tickFormat = Array.isArray(rawTickFormat) ? rawTickFormat : undefined;
     const formatLabel = (label: string | number) => tickFormat?.[tickValues?.indexOf(Number(label)) ?? -1] ?? String(label);
     const style = parseAttribute<RawAxisStyle>(tnode.attributes.style);
     const lineColor = style?.grid?.stroke;
@@ -23,7 +25,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const labelColor = style?.tickLabels?.fill !== undefined ? String(style.tickLabels.fill) : undefined;
     const labelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
     const fontSize = style?.tickLabels?.fontSize !== undefined ? Number(style.tickLabels.fontSize) : undefined;
-    const font = typeface ? Skia.Font(typeface, fontSize) : null;
+    const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
 
     if (isDependentAxis) {
         return isHorizontal

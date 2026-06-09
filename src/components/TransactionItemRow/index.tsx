@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardDescription} from '@libs/CardUtils';
@@ -10,7 +10,6 @@ import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
-    getAttendees,
     getDescription,
     getExchangeRate,
     getMerchant,
@@ -66,6 +65,9 @@ function TransactionItemRow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    shouldStopRadioButtonMouseDownPropagation = false,
+    radioButtonContainerStyle,
+    radioButtonWrapperStyle,
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
@@ -75,6 +77,7 @@ function TransactionItemRow({
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     reportActions,
+    transactionThreadReportID: transactionThreadReportIDProp,
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
     isAttendeesEnabledForMovingPolicy,
@@ -96,8 +99,9 @@ function TransactionItemRow({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const transactionThreadReportID =
+        transactionThreadReportIDProp ?? (reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined);
+    const transactionAttendees = useAttendees(transactionItem);
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.searchRowSelectedBG : EMPTY_ACTIVE_STYLE;
     const merchant = getMerchantName(transactionItem, translate);
@@ -137,6 +141,7 @@ function TransactionItemRow({
         const narrowForwardedProps = {
             transactionItem,
             report,
+            policy,
             isSelected,
             shouldShowTooltip,
             onCheckboxPress,
@@ -145,6 +150,9 @@ function TransactionItemRow({
             isInSingleTransactionReport,
             shouldShowRadioButton,
             onRadioButtonPress,
+            shouldStopRadioButtonMouseDownPropagation,
+            radioButtonContainerStyle,
+            radioButtonWrapperStyle,
             shouldShowErrors,
             isDisabled,
             violations,
@@ -191,6 +199,8 @@ function TransactionItemRow({
         isInSingleTransactionReport,
         shouldShowRadioButton,
         onRadioButtonPress,
+        shouldStopRadioButtonMouseDownPropagation,
+        radioButtonContainerStyle,
         shouldShowErrors,
         shouldHighlightItemWhenSelected,
         isDisabled,
@@ -221,7 +231,6 @@ function TransactionItemRow({
     const description = getDescription(transactionItem);
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
-    const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 

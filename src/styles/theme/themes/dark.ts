@@ -43,6 +43,7 @@ const darkTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
     overlay: colors.productDark400,
@@ -165,10 +166,6 @@ const darkTheme = {
         },
         [SCREENS.SETTINGS.TROUBLESHOOT]: {
             backgroundColor: colors.productDark100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.DYNAMIC_REFERRAL_DETAILS]: {
-            backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {

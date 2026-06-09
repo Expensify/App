@@ -27,6 +27,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MerchantRulesSectionProps = {
     policyID: string;
+    canWriteRules: boolean;
+    showReadOnlyModal: () => void;
 };
 
 type FieldLabels = {
@@ -69,7 +71,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     return actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
 }
 
-function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
+function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: MerchantRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -189,8 +191,14 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 icon={expensifyIcons.Plus}
                 iconHeight={20}
                 iconWidth={20}
-                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
-                onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                onPress={() => {
+                    if (!canWriteRules) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+                }}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
             />
         </Section>

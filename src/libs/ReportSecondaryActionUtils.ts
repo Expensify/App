@@ -15,7 +15,6 @@ import type {
     TransactionViolation,
 } from '@src/types/onyx';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
-import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -113,8 +112,9 @@ function isSplitAction(
     originalTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    policy?: OnyxEntry<Policy>,
-    parentReport?: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy> | undefined,
+    parentReport: OnyxEntry<Report> | undefined,
+    isProduction: boolean,
 ): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
@@ -144,7 +144,8 @@ function isSplitAction(
     }
 
     if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
-        return true;
+        // Hide the self-DM split entry-point in production
+        return !isProduction;
     }
 
     if (!isExpenseReportUtils(report)) {
@@ -607,7 +608,7 @@ function isHoldActionForTransaction(
     return true;
 }
 
-function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, currentUserLogin: string, reportActions?: ReportAction[]): boolean {
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, currentUserLogin: string, submitterLogin: string | undefined, reportActions?: ReportAction[]): boolean {
     // We can't move the iou report to the workspace if both users from the iou report create the expense
     if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report)) {
         return false;
@@ -620,14 +621,13 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
         return false;
     }
 
-    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const isReportSettled = isSettled(report);
 
     // Find available policies - stop early once we find 2 or after checking all
     let firstAvailablePolicy: Policy | undefined;
     let availablePoliciesCount = 0;
     for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isWorkspaceEligibleForReportChange(submitterEmail, policy, report)) {
+        if (!policy || !isWorkspaceEligibleForReportChange(submitterLogin, policy, report)) {
             continue;
         }
 
@@ -664,6 +664,7 @@ function shouldShowEditSplitInDeleteAction(
     reportTransactions: Transaction[],
     reportActions: ReportAction[] | undefined,
     originalTransaction: OnyxEntry<Transaction>,
+    isProduction: boolean,
 ): boolean {
     if (reportTransactions.length !== 1) {
         return false;
@@ -675,7 +676,7 @@ function shouldShowEditSplitInDeleteAction(
     }
 
     const isSelfDMSplit = isSelfDMReportUtils(report);
-    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) && isDeleteAction(report, reportTransactions, reportActions);
+    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit, isProduction) && isDeleteAction(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -888,6 +889,7 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
 function getSecondaryReportActions({
     currentUserLogin,
     currentUserAccountID,
+    submitterLogin,
     report,
     chatReport,
     reportTransactions,
@@ -902,9 +904,11 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
     parentReport,
+    isProduction,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
+    submitterLogin: string | undefined;
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -920,6 +924,7 @@ function getSecondaryReportActions({
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
+    isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -1019,8 +1024,8 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport) &&
-        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction)
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport, isProduction) &&
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, isProduction)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -1043,7 +1048,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
 
-    if (isChangeWorkspaceAction(report, policies, currentUserLogin, reportActions)) {
+    if (isChangeWorkspaceAction(report, policies, currentUserLogin, submitterLogin, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
@@ -1119,6 +1124,7 @@ function getSecondaryTransactionThreadActions({
     outstandingReportsByPolicyID,
     isChatReportArchived,
     grandParentReport,
+    isProduction,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1131,6 +1137,7 @@ function getSecondaryTransactionThreadActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     isChatReportArchived?: boolean;
     grandParentReport?: OnyxEntry<Report>;
+    isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1147,8 +1154,8 @@ function getSecondaryTransactionThreadActions({
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport) &&
-        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction)
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport, isProduction) &&
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, isProduction)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }

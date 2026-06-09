@@ -261,6 +261,7 @@ const config = defineConfig([
             '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-non-null-assertion': 'error',
+            '@typescript-eslint/no-unsafe-type-assertion': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
             '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
             '@typescript-eslint/no-floating-promises': 'off',
@@ -736,10 +737,19 @@ const config = defineConfig([
     },
 
     {
-        files: ['server/**/*.ts'],
+        files: ['server/**/*.ts', 'server/**/*.tsx'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/tsconfig.json'),
+            },
+        },
+    },
+
+    {
+        files: ['server/victory-chart-renderer/**/*.ts', 'server/victory-chart-renderer/**/*.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
             },
         },
     },

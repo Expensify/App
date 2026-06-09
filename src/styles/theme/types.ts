@@ -49,6 +49,7 @@ type ThemeColors = {
     transparent: Color;
     signInPage: Color;
     darkSupportingText: Color;
+    receiptPlaceholderPlus: Color;
 
     // Additional keys
     overlay: Color;

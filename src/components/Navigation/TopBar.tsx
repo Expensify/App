@@ -1,8 +1,9 @@
 import React, {useContext} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
-import type {AnimatedStyle, StyleProps} from 'react-native-reanimated';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -43,7 +44,7 @@ type TopBarProps = {
     /** Whether the account avatar should render in the selected/active state (green ring). */
     isAccountAvatarSelected?: boolean;
 
-    breadcrumbAnimatedStyle?: AnimatedStyle<StyleProps>;
+    breadcrumbAnimatedStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 };
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};

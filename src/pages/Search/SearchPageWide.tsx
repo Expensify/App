@@ -2,18 +2,18 @@ import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import {collapseProgress} from '@components/Navigation/SearchSidebarCollapseStore';
+import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import Search from '@components/Search';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
 import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
+import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useNetwork from '@hooks/useNetwork';
@@ -24,7 +24,6 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
-import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
@@ -91,13 +90,7 @@ function SearchPageWide({
     }, [shouldShowFooter, styles]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-
-    const splitContainerAnimatedStyle = useAnimatedStyle(() => {
-        const progress = collapseProgress.get();
-        return {
-            marginLeft: variables.searchSidebarExpandedWidth + (variables.searchSidebarCollapsedWidth - variables.searchSidebarExpandedWidth) * progress,
-        };
-    });
+    const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
 
     return (
         <Animated.View
@@ -141,7 +134,7 @@ function SearchPageWide({
                                         }}
                                     />
                                 ) : (
-                                    <Search
+                                    <SearchWithNavigationDeferredMount
                                         key={queryJSON.hash}
                                         queryJSON={queryJSON}
                                         searchResults={searchResults}

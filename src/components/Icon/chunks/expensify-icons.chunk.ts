@@ -175,6 +175,7 @@ import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
+import Moon from '@assets/images/moon.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
 import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
@@ -418,6 +419,7 @@ const Expensicons = {
     MoneyWaving,
     MoneyHourglass,
     Monitor,
+    Moon,
     Mute,
     ExpensifyLogoNew,
     NewWindow,

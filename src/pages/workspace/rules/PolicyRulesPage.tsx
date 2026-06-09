@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -36,6 +37,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
@@ -53,6 +55,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
@@ -60,6 +63,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
+                policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
@@ -78,9 +82,23 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                             style={styles.mb5}
                         />
                     )}
-                    <IndividualExpenseRulesSection policyID={policyID} />
-                    <MerchantRulesSection policyID={policyID} />
-                    {!!policy?.areExpensifyCardsEnabled && <SpendRulesSection policyID={policyID} />}
+                    <IndividualExpenseRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        withReadOnlyFallback={withReadOnlyFallback}
+                    />
+                    <MerchantRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                    />
+                    {!!policy?.areExpensifyCardsEnabled && (
+                        <SpendRulesSection
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
+                        />
+                    )}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

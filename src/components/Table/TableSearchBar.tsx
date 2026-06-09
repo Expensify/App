@@ -26,13 +26,16 @@ import {useTableContext} from './TableContext';
  *     item.name.toLowerCase().includes(searchString.toLowerCase())
  *   }
  * >
- *   <Table.SearchBar />
+ *   <Table.SearchBar label="Find item" />
  *   <Table.Body />
  * </Table>
  * ```
  */
 type TableSearchBarProps = {
+    /** Label and accessibility label for the search input. */
     label: string;
+
+    /** Optional style for the search bar container. */
     style?: StyleProp<ViewStyle>;
 };
 

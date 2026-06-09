@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,8 +33,6 @@ import type SCREENS from '@src/SCREENS';
 import HRProviderCard from './HRProviderCard';
 import type {HRCardDescriptor} from './utils';
 import {getHRCards} from './utils';
-
-const HR_BETAS = [CONST.BETAS.GUSTO, CONST.BETAS.ZENEFITS, CONST.BETAS.MERGE_HR] as const;
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
 
@@ -85,7 +84,7 @@ function WorkspaceHRPage({
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
 
-    const shouldBeBlocked = !HR_BETAS.some(isBetaEnabled);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const handleConnect = (setupLink: string | undefined) => {
         if (!setupLink) {
@@ -112,7 +111,7 @@ function WorkspaceHRPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={shouldBeBlocked}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -159,6 +158,8 @@ function WorkspaceHRPage({
                                         card={card}
                                         policy={policy}
                                         handleConnect={() => handleConnect(card.setupLink)}
+                                        canWriteMoreFeatures={canWriteMoreFeatures}
+                                        showReadOnlyModal={showReadOnlyModal}
                                     />
                                 ))}
                                 {connectedCards.length === 0 &&
@@ -168,6 +169,8 @@ function WorkspaceHRPage({
                                             card={card}
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
+                                            canWriteMoreFeatures={canWriteMoreFeatures}
+                                            showReadOnlyModal={showReadOnlyModal}
                                         />
                                     ))}
                             </View>
@@ -185,6 +188,8 @@ function WorkspaceHRPage({
                                             card={card}
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
+                                            canWriteMoreFeatures={canWriteMoreFeatures}
+                                            showReadOnlyModal={showReadOnlyModal}
                                         />
                                     ))}
                                 </CollapsibleSection>

@@ -2,7 +2,6 @@ import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
-import isTabNavigatorReady from '@libs/Navigation/helpers/isTabNavigatorReady';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -32,16 +31,6 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             continuePlaidOAuth(url);
             return;
         }
-        // Skip forwarding URLs while TabNavigator is mounting — its child
-        // router hasn't run useNavigationBuilder yet, so React Navigation
-        // can't handle nested NAVIGATE actions and throws an unhandled-action
-        // error. Protected-screen deep links will be handled separately by
-        // openReportFromDeepLink via waitForProtectedRoutes().
-        const state = navigationRef.current?.getRootState();
-        if (!isTabNavigatorReady(state)) {
-            return;
-        }
-
         listener(url);
     });
     return () => subscription.remove();

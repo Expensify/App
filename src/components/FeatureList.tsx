@@ -66,6 +66,12 @@ type FeatureListProps = {
 
     /** Override styles for the outer Section container (e.g. to zero out marginHorizontal). */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles to apply to the CTA button inner container */
+    buttonInnerStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles to apply to the CTA button on hover */
+    buttonHoverStyles?: StyleProp<ViewStyle>;
 };
 
 function FeatureList({
@@ -83,6 +89,8 @@ function FeatureList({
     contentPaddingOnLargeScreens,
     footer,
     isButtonDisabled = false,
+    buttonInnerStyles,
+    buttonHoverStyles,
     renderSubtitle,
     containerStyles,
 }: FeatureListProps) {
@@ -131,6 +139,8 @@ function FeatureList({
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
+                        innerStyles={buttonInnerStyles}
+                        hoverStyles={buttonHoverStyles}
                         success
                         isDisabled={isButtonDisabled}
                         large

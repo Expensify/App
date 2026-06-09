@@ -80,6 +80,31 @@ describe('ComposerLocalTime', () => {
         expect(screen.getByText(/Normal/)).toBeTruthy();
     });
 
+    it('returns null when the composer is full size', async () => {
+        const report = buildReport([CURRENT_USER_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID]);
+        const personalDetails: PersonalDetailsList = {
+            [RECIPIENT_ACCOUNT_ID]: {
+                accountID: RECIPIENT_ACCOUNT_ID,
+                login: 'normaluser@expensify.com',
+                displayName: 'Normal User',
+                firstName: 'Normal',
+                validated: true,
+                timezone: {automatic: true, selected: 'America/New_York'},
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
+        await waitForBatchedUpdates();
+
+        const {toJSON} = renderWithProviders(<ComposerLocalTime />, REPORT_ID);
+
+        await waitForBatchedUpdates();
+
+        expect(toJSON()).toBeNull();
+    });
+
     it('returns null for an agent participant', async () => {
         const report = buildReport([CURRENT_USER_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID]);
         const personalDetails: PersonalDetailsList = {

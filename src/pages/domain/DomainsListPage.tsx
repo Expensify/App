@@ -57,13 +57,13 @@ function DomainsListPage() {
             const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
 
             domainRows.push({
-                keyForList: String(domain.accountID),
                 isAdmin: isDomainAdmin,
                 isValidated: domain.validated,
                 domainAccountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
                 errors: domainErrors?.errors,
                 pendingAction: domain.pendingAction,
+                disabled: domain.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
             });
@@ -87,7 +87,10 @@ function DomainsListPage() {
     );
 
     return (
-        <WorkspaceListLayout headerButton={headerButton}>
+        <WorkspaceListLayout
+            activeTabKey="domains"
+            headerButton={headerButton}
+        >
             <View style={styles.flex1}>
                 {shouldShowLoadingIndicator && (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
