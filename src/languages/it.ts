@@ -334,6 +334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Seleziona una valuta',
         selectSymbolOrCurrency: 'Seleziona un simbolo o una valuta',
         card: 'Carta',
+        mcc: 'MCC',
+        categoryGLCode: 'Codice CO categoria',
         whyDoWeAskForThis: 'Perché lo chiediamo?',
         required: 'Obbligatorio',
         automatic: 'Automatico',

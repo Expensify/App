@@ -351,6 +351,8 @@ const translations = {
         selectCurrency: 'Select a currency',
         selectSymbolOrCurrency: 'Select a symbol or currency',
         card: 'Card',
+        mcc: 'MCC',
+        categoryGLCode: 'Category GL code',
         whyDoWeAskForThis: 'Why do we ask for this?',
         required: 'Required',
         automatic: 'Automatic',
