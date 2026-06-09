@@ -8,6 +8,7 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {SpendRuleSummaryPart} from '@libs/SpendRulesUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -348,6 +349,20 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         accessible?: boolean;
     };
 
+type SpendRuleListItemType = ListItem & {
+    /** The action for this rule */
+    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+
+    /** The cards that the spend rule applies to */
+    summary: string;
+
+    /** The summary parts for the spend rule */
+    summaryParts: SpendRuleSummaryPart[];
+
+    /** A list of relevant tokens for searching for specific spend rules */
+    searchTokens: string[];
+};
+
 /**
  * Props for SelectableListItem, which extends BaseListItem with selection button support.
  */
@@ -398,6 +413,8 @@ type SplitListItemType = ListItem &
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type SpendRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -432,6 +449,8 @@ type TravelDomainListItemProps<TItem extends ListItem> = SelectableListItemProps
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 export type {
+    SpendRuleListItemType,
+    SpendRuleListItemProps,
     BaseListItemProps,
     ExtendedTargetedEvent,
     ListItem,

@@ -43,6 +43,13 @@ type TagPickerProps = {
 
     /** Indicates which tag list index was selected */
     tagListIndex: number;
+
+    /**
+     * Extra tag names to always surface as selectable options, on top of the policy's own tags.
+     * Used to keep "orphaned" tags from a deleted source workspace selectable in flows like
+     * split-edit where the active workspace no longer carries the original tag value.
+     */
+    additionalTagsToInclude?: string[];
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -68,6 +75,7 @@ function TagPicker({
     shouldShowDisabledAndSelectedOption = false,
     shouldOrderListByTagName = false,
     onSubmit,
+    additionalTagsToInclude,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
@@ -80,9 +88,25 @@ function TagPicker({
     const policyTagList = getTagList(policyTags, tagListIndex);
     const selectedOptions = getSelectedOptions(selectedTag);
 
+    // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
+    const policyTagsWithAdditions = useMemo<PolicyTags>(() => {
+        const baseTags = policyTagList.tags ?? {};
+        if (!additionalTagsToInclude?.length) {
+            return baseTags;
+        }
+        const extras: PolicyTags = {};
+        for (const name of additionalTagsToInclude) {
+            if (!name || baseTags[name]) {
+                continue;
+            }
+            extras[name] = {name, enabled: true} as PolicyTag;
+        }
+        return Object.keys(extras).length ? {...baseTags, ...extras} : baseTags;
+    }, [policyTagList.tags, additionalTagsToInclude]);
+
     const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
         if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
-            return policyTagList.tags;
+            return policyTagsWithAdditions;
         }
 
         if (!shouldShowDisabledAndSelectedOption && hasDependentTags) {
@@ -91,10 +115,10 @@ function TagPicker({
                 .slice(0, tagListIndex)
                 .join(':');
 
-            return Object.values(policyTagList.tags).filter((policyTag) => {
+            return Object.values(policyTagsWithAdditions).filter((policyTag) => {
                 const filterRegex = policyTag.rules?.parentTagsFilter;
                 if (!filterRegex) {
-                    return policyTagList.tags;
+                    return policyTagsWithAdditions;
                 }
 
                 const regex = new RegExp(filterRegex);
@@ -104,7 +128,7 @@ function TagPicker({
 
         const selectedNames = new Set(selectedOptions.map((s) => s.name));
 
-        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
+        return [...selectedOptions, ...Object.values(policyTagsWithAdditions).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
     };
 
     const enabledTags = getEnabledTags();

@@ -385,7 +385,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const failLifecycle = failureData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS);
                 const successLifecycle = successData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS);
 
-                expect((optLifecycle?.value as {currentStep?: string | null})?.currentStep).toBe('loading');
+                expect((optLifecycle?.value as {currentStep?: string | null})?.currentStep).toBe(CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING);
                 expect((failLifecycle?.value as {currentStep?: string | null})?.currentStep).toBeNull();
                 // Success leaves currentStep alone — the backend transitions it to 'complete' via NVP.
                 expect(successLifecycle).toBeUndefined();
@@ -450,6 +450,26 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 // Failure restores the full original target — which had no customUnits
                 expect(value.customUnits).toEqual({});
+            });
+
+            it('copies units.time and pending fields for timeTracking', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    units: {time: {enabled: true, rate: 75}},
+                });
+                const targetPolicy = makeTargetPolicy({
+                    units: {time: {enabled: false, rate: 10}},
+                });
+
+                const {optimisticData, successData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['timeTracking'], {}, {});
+
+                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                expect(value.units?.time).toEqual({enabled: true, rate: 75});
+                expect(value.pendingFields?.isTimeTrackingEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expect(value.pendingFields?.timeTrackingDefaultRate).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+                const successValue = successData.find((update) => update.key === POLICY_KEY && update.onyxMethod === Onyx.METHOD.MERGE)?.value as Policy;
+                expect(successValue.pendingFields?.isTimeTrackingEnabled).toBeNull();
+                expect(successValue.pendingFields?.timeTrackingDefaultRate).toBeNull();
             });
 
             it('target with nested keys not in source — after optimistic, selected fields match source', () => {

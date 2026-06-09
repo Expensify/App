@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import MenuItem from '@components/MenuItem';
-import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
+import type {SearchAmountFilterKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -13,7 +13,7 @@ import BasePopup from './BasePopup';
 type AmountPopupProps = {
     filterKey: SearchAmountFilterKeys;
     label: string;
-    value: SearchAmountValues;
+    value: Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
     closeOverlay: () => void;
 };
@@ -41,7 +41,7 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
         >
             <AmountWithoutCurrencyInput
                 containerStyles={[styles.ph4, styles.mb2]}
-                defaultValue={value}
+                defaultValue={amount}
                 onInputChange={setAmount}
                 label={title}
                 accessibilityLabel={title}
@@ -109,7 +109,7 @@ function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: 
         );
     }
 
-    const onChange = (values: SearchAmountValues) => {
+    const onChange = (values: Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>) => {
         const formValues: Record<string, string | undefined> = {};
         formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO];
         formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];

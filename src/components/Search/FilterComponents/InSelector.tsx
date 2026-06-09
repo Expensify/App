@@ -1,10 +1,8 @@
 import React, {useEffect} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import type {TextInputOptions} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -18,13 +16,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import ListFilterView from './ListFilterViewWrapper';
 
-type InSelectorProps = SearchFilterSelectionListProps & {
+type InSelectorProps = {
     value: string[] | undefined;
     onChange: (ins: string[]) => void;
 };
@@ -41,14 +40,14 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
     return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
-function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: InSelectorProps) {
+function InSelector({value = [], onChange}: InSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {options, areOptionsInitialized} = useOptionsList();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const sortedActions = useSortedActions();
 
@@ -69,7 +68,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
-        const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, privateIsArchived, reportPolicy, reportAttributesDerived));
+        const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, privateIsArchived, reportPolicy, sortedActions, reportAttributesDerived));
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
@@ -92,7 +91,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
               policyCollection: allPolicies,
               sortedActions,
               conciergeReportID,
-          });
+          }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
         selectedOptions,
@@ -154,15 +153,11 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const isLoadingNewOptions = !!isSearchingForReports;
     const shouldShowLoadingPlaceholder = !areOptionsInitialized || !value || !personalDetails;
 
-    const textInputOptions: TextInputOptions = {
+    const textInputOptions = {
         value: searchTerm,
         label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage,
-        style: {
-            containerStyle: selectionListTextInputStyle,
-        },
-        disableAutoFocus: !autoFocus,
     };
 
     const itemCount = sections.flatMap((section) => section.data).length;
@@ -182,8 +177,6 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
-                style={selectionListStyle}
-                footerContent={footer}
             />
         </ListFilterView>
     );
