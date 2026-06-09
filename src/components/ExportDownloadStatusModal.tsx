@@ -9,6 +9,7 @@ import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -71,7 +72,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
         const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
         const url = `${baseURL}secure?secureType=csvexport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(fileName)}&email=${encodeURIComponent(currentUserLogin)}`;
-        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName);
+        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari());
     };
 
     useEffect(() => {
