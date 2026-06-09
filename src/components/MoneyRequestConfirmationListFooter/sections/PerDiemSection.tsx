@@ -9,9 +9,6 @@ import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type PerDiemSectionProps = {
-    /** Whether the active transaction is a per-diem request (gate for rendering this section) */
-    isPerDiemRequest: boolean;
-
     /** Active policy (used to resolve the per-diem custom unit) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -22,15 +19,15 @@ type PerDiemSectionProps = {
     formError: string;
 };
 
-type PerDiemSectionContentProps = Omit<PerDiemSectionProps, 'isPerDiemRequest'>;
+type PerDiemSectionContentProps = PerDiemSectionProps;
 
 /**
- * Two-level guard: the outer component checks the prop-level gate (`isPerDiemRequest` + action)
+ * Two-level guard: the outer component checks the context-level gate (`isPerDiemRequest` + action)
  * without subscribing to anything. The inner component is the only place that subscribes to the
  * transaction slice, so non-per-diem flows avoid the extra Onyx subscriptions.
  */
-function PerDiemSection({isPerDiemRequest, policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
-    const {action} = useConfirmationFields();
+function PerDiemSection({policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
+    const {action, isPerDiemRequest} = useConfirmationFields();
     if (!isPerDiemRequest || action === CONST.IOU.ACTION.SUBMIT) {
         return null;
     }

@@ -7,7 +7,7 @@ import DistanceField from '@components/MoneyRequestConfirmationList/sections/Dis
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
-import type {AmountDisplay, DistanceData, DistanceFlags, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FieldVisibility} from './fieldVisibility';
@@ -15,9 +15,6 @@ import type {FieldVisibility} from './fieldVisibility';
 type TransactionDetailsFieldsProps = {
     /** Active policy (read by Amount/Description/Rate/Merchant) */
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Distance-mode discriminators (manual / odometer / GPS) */
-    distanceFlags: DistanceFlags;
 
     /** Pre-formatted amount values consumed by Amount/Attendee fields */
     amountDisplay: AmountDisplay;
@@ -55,7 +52,6 @@ type TransactionDetailsFieldsProps = {
 
 function TransactionDetailsFields({
     policy,
-    distanceFlags,
     amountDisplay,
     distanceData,
     requiredFlags,
@@ -68,7 +64,20 @@ function TransactionDetailsFields({
     onSubmitForm,
     isParticipantPickerVisible,
 }: TransactionDetailsFieldsProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled, isPolicyExpenseChat} = useConfirmationFields();
+    const {
+        action,
+        iouType,
+        transactionID,
+        reportID,
+        reportActionID,
+        isReadOnly,
+        didConfirm,
+        isNewManualExpenseFlowEnabled,
+        isPolicyExpenseChat,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isGPSDistanceRequest,
+    } = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
     return (
@@ -135,9 +144,9 @@ function TransactionDetailsFields({
                     distance={distanceData.distance}
                     unit={distanceData.unit}
                     rate={distanceData.rate}
-                    isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
-                    isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
-                    isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
+                    isManualDistanceRequest={isManualDistanceRequest}
+                    isOdometerDistanceRequest={isOdometerDistanceRequest}
+                    isGPSDistanceRequest={isGPSDistanceRequest}
                     isReadOnly={isReadOnly}
                     didConfirm={didConfirm}
                     transactionID={transactionID}
