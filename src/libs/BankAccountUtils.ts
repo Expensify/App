@@ -136,6 +136,7 @@ function hasPersonalBankAccountMissingInfo(bankAccountList: OnyxEntry<OnyxTypes.
 export {
     getBankAccountSearchLabel,
     getSearchEligibleBankAccounts,
+    isSearchEligibleBankAccount,
     getDefaultCompanyWebsite,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
