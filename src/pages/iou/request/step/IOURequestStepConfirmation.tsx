@@ -23,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -247,6 +248,8 @@ function IOURequestStepConfirmation({
         setMoneyRequestParticipantsFromReport(transaction.transactionID, transactionReport, currentUserPersonalDetails.accountID);
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
+    const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
+
     const participants = useMemo(
         () =>
             transaction?.participants?.map((participant) => {
@@ -255,14 +258,15 @@ function IOURequestStepConfirmation({
                 }
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
+                const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
                 // Phone contacts always have an optimistic accountID but no reportID; getReportOption
                 // is designed for report-backed participants and discards participant.text, so route
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
+                    : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;

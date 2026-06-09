@@ -206,6 +206,7 @@ const WRITE_COMMANDS = {
     COMPLETE_TASK: 'CompleteTask',
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
+    SET_NAME_VALUE_PAIRS: 'SetNameValuePairs',
     SET_REPORT_DETAILS_COLUMNS: 'SetReportDetailsColumns',
     SET_REPORT_FIELD: 'Report_SetFields',
     DELETE_REPORT_FIELD: 'RemoveReportField',
@@ -624,6 +625,7 @@ const WRITE_COMMANDS = {
     SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
     UPGRADE_SUBMIT: 'UpgradeSubmit',
+    UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -819,6 +821,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
     [WRITE_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
+    [WRITE_COMMANDS.SET_NAME_VALUE_PAIRS]: Parameters.SetNameValuePairsParams;
     [WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS]: Parameters.SetReportDetailsColumnsParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
@@ -1048,6 +1051,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
+    [WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS]: Parameters.UploadUserKYBDocsParams;
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH]: Parameters.ApproveMoneyRequestOnSearchParams;

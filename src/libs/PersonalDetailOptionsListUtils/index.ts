@@ -298,8 +298,9 @@ function getValidOptions(
             !personalDetail.login ||
             !personalDetail.accountID ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN
+            // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN
         ) {
             return false;
         }
@@ -388,8 +389,9 @@ function getValidOptions(
             !personalDetail.accountID ||
             !!personalDetail.isOptimisticPersonalDetail ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN ||
+            // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN ||
             // Exclude any recent options from the personal details
             recentOptionsByAccountID.has(personalDetail.accountID)
         ) {
