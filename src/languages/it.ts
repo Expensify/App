@@ -334,6 +334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Seleziona una valuta',
         selectSymbolOrCurrency: 'Seleziona un simbolo o una valuta',
         card: 'Carta',
+        mcc: 'MCC',
+        categoryGLCode: 'Codice CO categoria',
         whyDoWeAskForThis: 'Perché lo chiediamo?',
         required: 'Obbligatorio',
         automatic: 'Automatico',
@@ -4105,6 +4107,38 @@ ${amount} per ${merchant} - ${date}`,
         weTake: 'Prendiamo molto sul serio la tua sicurezza. Configura ora l’autenticazione a due fattori (2FA) per aggiungere un ulteriore livello di protezione al tuo account.',
         secure: 'Proteggi il tuo account',
     },
+    documentsStep: {
+        beforeYouGo: 'Prima di continuare, abbiamo bisogno di alcuni documenti per verificare alcune informazioni',
+        subheader: 'Verifica',
+        verificationFailed: 'La verifica non è riuscita, quindi avremo bisogno di documenti aggiuntivi per verificare te e la tua azienda',
+        taxIDVerification: 'Verifica dell’ID fiscale',
+        taxIDVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Lettera di assegnazione TIN/EIN dell’IRS
+        • Conferma della richiesta TIN/EIN dell’IRS (di solito indica "Congratulations! The EIN has been successfully assigned")
+        • Lettera di esenzione fiscale dell’IRS con nome dell’azienda ed EIN`),
+        nameChangeDocument: 'Documento di cambio nome',
+        nameChangeDocumentDescription:
+            'Se il nome della tua azienda è cambiato dopo la richiesta del TIN/EIN, abbiamo bisogno di questo documento per verificare il numero di ID fiscale fornito',
+        companyAddressVerification: 'Verifica dell’indirizzo aziendale',
+        companyAddressVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Bolletta recente con nome e indirizzo dell’azienda
+        • Estratto conto bancario con nome e indirizzo dell’azienda
+        • Contratto di locazione attuale con pagina firme che mostri nome e indirizzo attuale dell’azienda
+        • Documento assicurativo con nome e indirizzo dell’azienda
+        • Documento di assegnazione TIN con nome e indirizzo dell’azienda`),
+        userAddressVerification: 'Verifica dell’indirizzo',
+        userAddressVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Tessera elettorale
+        • Patente di guida
+        • Estratto conto bancario
+        • Bolletta`),
+        userDOBVerification: 'Verifica della data di nascita',
+        userDOBVerificationDescription: 'Carica un documento di identità rilasciato negli Stati Uniti',
+        finishViaChat: 'Completa via chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
         explanationLine: 'Stiamo esaminando le tue informazioni. Potrai procedere con i prossimi passaggi a breve.',
@@ -5617,8 +5651,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             emptyCategories: {
                 title: 'Nessuna categoria ancora',
                 subtitle: 'Aggiungi una categoria per organizzare le tue spese.',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Le tue categorie sono attualmente importate da una connessione contabile. Vai alla sezione <a href="${accountingPageURL}">contabilità</a> per apportare modifiche.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Le tue categorie sono attualmente importate da una connessione contabile.${canManage ? ` Vai alla sezione <a href="${accountingPageURL}">contabilità</a> per apportare modifiche.` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Si è verificato un errore durante l’aggiornamento della categoria, riprova per favore',
             createFailureMessage: 'Si è verificato un errore durante la creazione della categoria, riprova per favore',
@@ -5985,14 +6019,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             editTags: 'Modifica tag',
             findTag: 'Trova tag',
             subtitle: 'I tag aggiungono modi più dettagliati per classificare i costi.',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>I tag aggiungono modi più dettagliati per classificare i costi. Stai usando i <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tag dipendenti</a>. Puoi <a href="${importSpreadsheetLink}">importare nuovamente un foglio di calcolo</a> per aggiornare i tuoi tag.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string, canReimport = true) =>
+                `<muted-text>I tag aggiungono modi più dettagliati per classificare i costi. Stai usando i <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tag dipendenti</a>.${canReimport ? ` Puoi <a href="${importSpreadsheetLink}">importare nuovamente un foglio di calcolo</a> per aggiornare i tuoi tag.` : ''}</muted-text>`,
             emptyTags: {
                 title: 'Nessun tag ancora',
                 subtitle: 'Aggiungi un tag per tenere traccia di progetti, sedi, reparti e altro ancora.',
                 subtitleHTML: `<muted-text><centered-text>Aggiungi tag per tenere traccia di progetti, sedi, reparti e altro ancora. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Scopri di più</a> sulla formattazione dei file dei tag da importare.</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>I tuoi tag vengono attualmente importati da una connessione di contabilità. Vai alla sezione <a href="${accountingPageURL}">Contabilità</a> per apportare qualsiasi modifica.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>I tuoi tag vengono attualmente importati da una connessione di contabilità.${canManage ? ` Vai alla sezione <a href="${accountingPageURL}">Contabilità</a> per apportare qualsiasi modifica.` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'Elimina tag',
             deleteTags: 'Elimina tag',

@@ -638,7 +638,6 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
-    conciergeReportID,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -651,7 +650,6 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-    conciergeReportID: string | undefined;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -714,7 +712,6 @@ function createExpenseByType({
                 },
                 hasViolations: false,
                 customUnitPolicyID,
-                conciergeReportID,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -757,7 +754,6 @@ type DuplicateExpenseTransactionParams = {
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     shouldPlaySound?: boolean;
     shouldDeferAutoSubmit?: boolean;
-    conciergeReportID: string | undefined;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
@@ -783,7 +779,6 @@ function duplicateExpenseTransaction({
     targetPolicyTags,
     shouldPlaySound = true,
     shouldDeferAutoSubmit = false,
-    conciergeReportID,
     existingIOUReport,
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
@@ -894,7 +889,6 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
-        conciergeReportID,
     });
 }
 
@@ -916,7 +910,6 @@ type DuplicateReportParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-    conciergeReportID: string | undefined;
     currentUserLogin: string;
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
@@ -940,7 +933,6 @@ function duplicateReport({
     transactionViolations,
     translate,
     recentWaypoints,
-    conciergeReportID,
     currentUserAccountID,
     currentUserLogin,
     shouldPlaySound = true,
@@ -1048,7 +1040,6 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
-            conciergeReportID,
         });
 
         if (result?.iouReport) {
@@ -1078,7 +1069,6 @@ type BulkDuplicateExpensesParams = {
     transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-    conciergeReportID: string | undefined;
     currentUser: CurrentUser;
 };
 
@@ -1099,7 +1089,6 @@ function bulkDuplicateExpenses({
     transactionDrafts,
     betas,
     recentWaypoints,
-    conciergeReportID,
     currentUser,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
@@ -1192,7 +1181,6 @@ function bulkDuplicateExpenses({
             targetPolicyTags,
             shouldPlaySound: false,
             shouldDeferAutoSubmit,
-            conciergeReportID,
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
@@ -1229,7 +1217,6 @@ type BulkDuplicateReportsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-    conciergeReportID: string | undefined;
     currentUserLogin: string;
     currentUserAccountID: number;
 };
@@ -1253,7 +1240,6 @@ function bulkDuplicateReports({
     transactionViolations,
     translate,
     recentWaypoints,
-    conciergeReportID,
     currentUserLogin,
     currentUserAccountID,
 }: BulkDuplicateReportsParams) {
@@ -1330,7 +1316,6 @@ function bulkDuplicateReports({
             shouldPlaySound: false,
             currentUserAccountID,
             currentUserLogin,
-            conciergeReportID,
         });
     }
 
