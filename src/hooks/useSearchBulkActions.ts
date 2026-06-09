@@ -409,14 +409,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             ...new Set(
                 Object.values(selectedTransactions)
                     .map((transaction) => transaction.reportID)
-                    .filter((reportID) => reportID !== undefined),
+                    .filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID),
             ),
         ],
         [selectedTransactions],
     );
     const selectedReportIDs = Object.values(selectedReports)
         .map((report) => report.reportID)
-        .filter((reportID) => reportID !== undefined);
+        .filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
 
     const selectedPolicyIDs = useMemo(
@@ -524,8 +524,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (!selectedReport) {
                         return false;
                     }
-                    const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-                    return (fullReport?.transactionCount ?? 0) === 0;
+                    const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`] as Report | undefined;
+                    return !!fullReport && (fullReport.transactionCount ?? 0) === 0;
                 }) ?? [];
             const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
 
@@ -634,11 +634,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                 return;
             }
-            const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
             queueExportSearchItemsToCSV({
                 query: status,
                 jsonQuery: serializedQuery,
-                reportIDList,
+                reportIDList: selectedReportIDs,
                 transactionIDList: selectedTransactionsKeys,
             });
             selectAllMatchingItems(false);
@@ -648,12 +647,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
         let didFail = false;
-        const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
         await exportSearchItemsToCSV(
             {
                 query: status,
                 jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : serializedQuery,
-                reportIDList: isGroupExport ? [] : reportIDList,
+                reportIDList: isGroupExport ? [] : selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs,
                 transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
             },
             () => {
