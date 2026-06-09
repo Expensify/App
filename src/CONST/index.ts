@@ -172,6 +172,13 @@ const onboardingCompanySize = {
     LARGE: '1001+',
 } as const;
 
+const onboardingPersonalTrackGoals = {
+    INVESTMENT_TRACKING: 'InvestmentTracking',
+    HOUSEHOLD_TRACKING: 'HouseholdTracking',
+    SIDEPROJECT_TRACKING: 'SideprojectTracking',
+    SOMETHING_ELSE: 'SomethingElse',
+} as const;
+
 type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
 const EMAIL_WITH_OPTIONAL_DOMAIN =
@@ -6287,6 +6294,7 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
+    ONBOARDING_PERSONAL_TRACK_GOALS: {...onboardingPersonalTrackGoals},
     ONBOARDING_RHP_VARIANT: {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',
