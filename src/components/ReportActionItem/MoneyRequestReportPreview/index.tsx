@@ -4,6 +4,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {createTransactionThreadReport} from '@libs/actions/Report';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIOUActionForReportID,
@@ -49,6 +51,7 @@ function MoneyRequestReportPreview({
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {markReportIDAsExpense} = useWideRHPActions();
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -143,6 +146,13 @@ function MoneyRequestReportPreview({
                 return;
             }
 
+            // A report with a single expense opens the report itself, not the lone expense — opening the
+            // expense directly would skip the report the user expects to land on.
+            if (transactions.length <= 1) {
+                openReportFromPreview();
+                return;
+            }
+
             // Resolve the target transaction thread report. If the thread has not been materialized yet,
             // create it inline so the click never lands on a dead route.
             let childReportID = transactionIOUAction?.childReportID;
@@ -172,10 +182,9 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            // On narrow layouts (mobile), push the report on top of the chat first and then the
-            // transaction thread on top of the report, so the back button returns the user to the report.
-            // On wide layouts the transaction thread opens in the RHP next to the report, so a single
-            // navigation is enough.
+            // On narrow layouts push the report onto the stack first and then the expense on top, so the
+            // back button returns to the report. On wide layouts mark the expense report so it opens in the
+            // wide RHP with the report shown alongside it, matching how an expense opens from the report view.
             if (isSmallScreenWidth) {
                 if (iouReportID) {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
@@ -184,9 +193,14 @@ function MoneyRequestReportPreview({
                 return;
             }
 
+            if (iouReportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+            }
+            markReportIDAsExpense(childReportID);
+            setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
         },
-        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, iouReportID, isSmallScreenWidth, openReportFromPreview],
+        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, iouReportID, isSmallScreenWidth, markReportIDAsExpense, openReportFromPreview, transactions],
     );
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => {
