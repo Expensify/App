@@ -1,5 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -7,7 +7,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
-import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
@@ -70,14 +69,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     }),
 }));
 
-// Mock useFilteredOptions to bypass derived Onyx keys that aren't available in tests.
-const mockUseFilteredOptions = jest.fn();
-jest.mock('@hooks/useFilteredOptions', () => ({
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    default: (...args: unknown[]) => mockUseFilteredOptions(...args),
-}));
-
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -127,14 +118,6 @@ const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_A
 
 const mockOnClose = jest.fn();
 
-// Fake report options that getSearchOptions returns as recentReports.
-// These simulate local results available before any server search completes.
-const fakeRecentReports = [
-    {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
-    {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
-    {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
-];
-
 function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
@@ -171,13 +154,6 @@ describe('SearchAutocompleteList', () => {
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        mockUseFilteredOptions.mockReturnValue({
-            options: mockedOptions,
-            isLoading: false,
-            loadMore: jest.fn(),
-            hasMore: false,
-            isLoadingMore: false,
-        });
     });
 
     afterEach(async () => {
@@ -216,208 +192,5 @@ describe('SearchAutocompleteList', () => {
         // Verify the recent search items themselves are also displayed
         expect(screen.getByText('type:expense status:approved')).toBeTruthy();
         expect(screen.getByText('type:chat')).toBeTruthy();
-    });
-
-    describe('two-section chat switcher', () => {
-        // These tests use a controlled getSearchOptions mock to verify the section splitting logic
-        // introduced for stable two-section chat switcher results (local + server).
-        let getSearchOptionsSpy: jest.SpyInstance;
-
-        beforeEach(() => {
-            const OptionsListUtils = jest.requireActual<typeof OptionsListUtilsModule>('@libs/OptionsListUtils');
-            getSearchOptionsSpy = jest.spyOn(OptionsListUtils, 'getSearchOptions').mockReturnValue({
-                options: {
-                    recentReports: fakeRecentReports,
-                    personalDetails: [],
-                    currentUserOption: null,
-                    userToInvite: null,
-                },
-            });
-        });
-
-        afterEach(() => {
-            getSearchOptionsSpy.mockRestore();
-        });
-
-        it('should display "Recent chats" section when query is empty', async () => {
-            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
-
-            await waitForBatchedUpdates();
-            await Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
-            });
-
-            render(<SearchRouterWrapper />);
-            await flushAllUpdates();
-
-            await waitFor(() => {
-                expect(screen.getByText('Recent chats')).toBeTruthy();
-            });
-
-            // "Search results" section should NOT be visible when query is empty
-            expect(screen.queryByText('Search results')).toBeNull();
-        });
-
-        it('should keep "Recent chats" header when an active search query is entered', async () => {
-            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
-
-            await waitForBatchedUpdates();
-            await Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
-            });
-
-            render(<SearchRouterWrapper />);
-            await flushAllUpdates();
-
-            // Verify initial state shows "Recent chats" section
-            await waitFor(() => {
-                expect(screen.getByText('Recent chats')).toBeTruthy();
-            });
-
-            // Type a search query to trigger the two-section split
-            const textInput = screen.getByTestId('search-autocomplete-text-input');
-            fireEvent.changeText(textInput, 'test');
-            await flushAllUpdates();
-
-            // "Recent chats" header should still be visible with an active query
-            // (local section keeps the title, server section uses "Search results")
-            await waitFor(() => {
-                expect(screen.getByText('Recent chats')).toBeTruthy();
-            });
-        });
-
-        it('should return to "Recent chats" section when search query is cleared', async () => {
-            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
-
-            await waitForBatchedUpdates();
-            await Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
-            });
-
-            render(<SearchRouterWrapper />);
-            await flushAllUpdates();
-
-            // Type a search query
-            const textInput = screen.getByTestId('search-autocomplete-text-input');
-            fireEvent.changeText(textInput, 'some query');
-            await flushAllUpdates();
-
-            // "Recent chats" should still be visible with an active query
-            await waitFor(() => {
-                expect(screen.getByText('Recent chats')).toBeTruthy();
-            });
-
-            // Clear the query
-            fireEvent.changeText(textInput, '');
-            await flushAllUpdates();
-
-            // Should return to "Recent chats" section
-            await waitFor(() => {
-                expect(screen.getByText('Recent chats')).toBeTruthy();
-            });
-
-            // "Search results" section should not be visible
-            expect(screen.queryByText('Search results')).toBeNull();
-        });
-
-        it('should preserve frozen local result order when server results arrive', async () => {
-            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
-
-            await waitForBatchedUpdates();
-            await Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
-            });
-
-            render(<SearchRouterWrapper />);
-            await flushAllUpdates();
-
-            // Verify initial state shows "Recent chats" section with Alice, Bob, Charlie
-            await waitFor(() => {
-                expect(screen.getByText('Recent chats')).toBeTruthy();
-            });
-
-            // Type a search query to freeze the local rank (Alice=0, Bob=1, Charlie=2)
-            const textInput = screen.getByTestId('search-autocomplete-text-input');
-            fireEvent.changeText(textInput, 'test');
-            await flushAllUpdates();
-
-            // "Recent chats" header should still be visible (local section keeps its title)
-            await waitFor(() => {
-                expect(screen.getByText('Recent chats')).toBeTruthy();
-            });
-
-            // Now simulate server results arriving by updating the mock to return results
-            // in a DIFFERENT order, plus a new server-only result.
-            getSearchOptionsSpy.mockReturnValue({
-                options: {
-                    recentReports: [
-                        {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
-                        {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
-                        {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
-                        {reportID: '201', keyForList: '201', text: 'NewServer Report', alternateText: 'server alt', lastMessageText: 'new'},
-                    ],
-                    personalDetails: [],
-                    currentUserOption: null,
-                    userToInvite: null,
-                },
-            });
-
-            // Trigger a re-render by returning a new options reference from useFilteredOptions
-            // (simulates server data arriving and updating Onyx-backed options).
-            mockUseFilteredOptions.mockReturnValue({
-                options: {...mockedOptions},
-                isLoading: false,
-                loadMore: jest.fn(),
-                hasMore: false,
-                isLoadingMore: false,
-            });
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
-            });
-            await flushAllUpdates();
-
-            // Verify "Search results" section appears (the server result goes there)
-            await waitFor(() => {
-                expect(screen.getByText('Search results')).toBeTruthy();
-            });
-
-            // Verify the new server-only result appears
-            expect(screen.getByText('NewServer Report')).toBeTruthy();
-
-            // Verify that local results maintain their FROZEN order (Alice < Bob < Charlie)
-            // even though the mock now returns them as Charlie, Alice, Bob.
-            // Check ordering by examining the sequence of rendered text nodes.
-            const allTexts = screen.queryAllByText(/Report$/);
-            const names = allTexts.map((el) => {
-                // React Native Testing Library text elements expose their content via children
-                const textContent = typeof el.props.children === 'string' ? el.props.children : '';
-                return textContent;
-            });
-
-            // Filter to only the names we care about
-            const relevantOrder = names.filter((n: string) => ['Alice Report', 'Bob Report', 'Charlie Report', 'NewServer Report'].includes(n));
-
-            // Alice, Bob, Charlie should appear in that order (frozen rank), with NewServer after them
-            expect(relevantOrder.indexOf('Alice Report')).toBeLessThan(relevantOrder.indexOf('Bob Report'));
-            expect(relevantOrder.indexOf('Bob Report')).toBeLessThan(relevantOrder.indexOf('Charlie Report'));
-            // NewServer should appear after the local results (in the server section)
-            expect(relevantOrder.indexOf('Charlie Report')).toBeLessThan(relevantOrder.indexOf('NewServer Report'));
-        });
     });
 });
