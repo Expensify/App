@@ -60,7 +60,7 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                 {iconNode}
                 <Text
                     numberOfLines={1}
-                    style={[styles.flex1, isSelected ? styles.textBold : styles.textSupporting]}
+                    style={[styles.flex1, isSelected ? styles.textBold : !isHovered && styles.textSupporting]}
                 >
                     {label}
                 </Text>

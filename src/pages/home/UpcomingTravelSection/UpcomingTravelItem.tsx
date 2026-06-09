@@ -113,12 +113,12 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={
-                <View style={[styles.homeWidgetIconContainer, StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG)]}>
+                <View style={[styles.homeWidgetIconContainer, StyleUtils.getBackgroundColorStyle(theme.reportStatusBadge.draft.backgroundColor)]}>
                     <Icon
                         src={reservationIcon}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
-                        fill={theme.icon}
+                        fill={theme.reportStatusBadge.draft.textColor}
                     />
                 </View>
             }

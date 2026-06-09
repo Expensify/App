@@ -1,3 +1,4 @@
+import type {NavigationState, PartialState} from '@react-navigation/routers';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,17 +18,20 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getInsightConfig, getInsightTabFromUrlSlug, INSIGHTS_TAB_ORDER} from '@libs/InsightsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
+import SearchTypeMenuItem from '@pages/Search/SearchTypeMenuItem';
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import getLastRoute from './getLastRoute';
@@ -44,6 +48,58 @@ type NavigationTabBarProps = {
 function doesLastReportExistSelector(report: OnyxEntry<Report>) {
     return !!report?.reportID;
 }
+
+// Walks the focused branch of the navigation tree to find the `tab` param on the active
+// screen inside INSIGHTS_NAVIGATOR. We can't use getLastRoute here because that helper
+// reads from getPreservedNavigatorState, which the Insights stack doesn't populate.
+function findActiveInsightsTabSlug(state: NavigationState | PartialState<NavigationState> | undefined): string | undefined {
+    if (!state || state.index === undefined) {
+        return undefined;
+    }
+    const route = state.routes.at(state.index);
+    if (!route) {
+        return undefined;
+    }
+    if (route.name === NAVIGATORS.INSIGHTS_NAVIGATOR) {
+        const nestedState = route.state;
+        if (!nestedState || nestedState.index === undefined) {
+            return (route.params as {tab?: string} | undefined)?.tab;
+        }
+        const focusedRoute = nestedState.routes.at(nestedState.index);
+        return (focusedRoute?.params as {tab?: string} | undefined)?.tab;
+    }
+    return findActiveInsightsTabSlug(route.state);
+}
+
+// Finds the focused list screen inside WORKSPACE_NAVIGATOR so the rail can highlight
+// Workspaces vs. Domains. Returns undefined if the user is drilled into a specific
+// workspace (split navigator) so neither sub-item shows as active.
+function findActiveWorkspaceListScreen(state: NavigationState | PartialState<NavigationState> | undefined): string | undefined {
+    if (!state || state.index === undefined) {
+        return undefined;
+    }
+    const route = state.routes.at(state.index);
+    if (!route) {
+        return undefined;
+    }
+    if (route.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+        const nestedState = route.state;
+        if (!nestedState || nestedState.index === undefined) {
+            return undefined;
+        }
+        const focusedRoute = nestedState.routes.at(nestedState.index);
+        if (focusedRoute?.name === SCREENS.WORKSPACES_LIST || focusedRoute?.name === SCREENS.DOMAINS_LIST) {
+            return focusedRoute.name;
+        }
+        return undefined;
+    }
+    return findActiveWorkspaceListScreen(route.state);
+}
+
+const WORKSPACES_SUB_NAV_ITEMS = [
+    {screen: SCREENS.WORKSPACES_LIST, translationPath: 'common.workspaces' as const, route: ROUTES.WORKSPACES_LIST.getRoute()},
+    {screen: SCREENS.DOMAINS_LIST, translationPath: 'common.domains' as const, route: ROUTES.DOMAINS_LIST.getRoute()},
+];
 
 function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
     const theme = useTheme();
@@ -79,6 +135,10 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchQueryJSON} = useSearchQueryContext();
+
+    const insightsTabSlug = useRootNavigationState(findActiveInsightsTabSlug);
+    const activeInsightsScreen = getInsightTabFromUrlSlug(insightsTabSlug);
+    const activeWorkspaceListScreen = useRootNavigationState(findActiveWorkspaceListScreen);
 
     let inboxStatusIndicatorColor: string | undefined;
     if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
@@ -237,10 +297,43 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                 />
                             )}
                         </PressableWithFeedback>
+                        {selectedTab === NAVIGATION_TABS.INSIGHTS && (
+                            <View style={styles.leftNavigationTabBarSubMenu}>
+                                <View style={{marginLeft: 28}}>
+                                    {INSIGHTS_TAB_ORDER.map((screen) => {
+                                        const config = getInsightConfig(screen);
+                                        return (
+                                            <SearchTypeMenuItem
+                                                key={screen}
+                                                title={translate(config.translationPath)}
+                                                icon={undefined}
+                                                focused={activeInsightsScreen === screen}
+                                                onPress={() => Navigation.navigate(config.route as Route)}
+                                            />
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        )}
                         <WorkspacesTabButton
                             selectedTab={selectedTab}
                             isWideLayout
                         />
+                        {selectedTab === NAVIGATION_TABS.WORKSPACES && (
+                            <View style={styles.leftNavigationTabBarSubMenu}>
+                                <View style={{marginLeft: 28}}>
+                                    {WORKSPACES_SUB_NAV_ITEMS.map((item) => (
+                                        <SearchTypeMenuItem
+                                            key={item.screen}
+                                            title={translate(item.translationPath)}
+                                            icon={undefined}
+                                            focused={activeWorkspaceListScreen === item.screen}
+                                            onPress={() => Navigation.navigate(item.route as Route)}
+                                        />
+                                    ))}
+                                </View>
+                            </View>
+                        )}
                     </ScrollView>
                 </View>
             </>

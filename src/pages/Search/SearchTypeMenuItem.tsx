@@ -114,7 +114,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                     )}
                     <Animated.View style={[styles.justifyContentCenter, styles.flex1, SHOW_ICON && styles.ml3, labelAnimatedStyle]}>
                         <Text
-                            style={[styles.popoverMenuText, focused ? styles.textStrong : styles.textSupporting]}
+                            style={[styles.popoverMenuText, focused ? styles.textStrong : !hovered && styles.textSupporting]}
                             numberOfLines={1}
                         >
                             {title}

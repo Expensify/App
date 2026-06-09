@@ -125,6 +125,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Used to apply styles specifically to the title */
         titleStyle?: StyleProp<TextStyle>;
 
+        /** Styles applied to the title when the item is hovered. Overrides `titleStyle` while hovered. */
+        titleStyleHovered?: StyleProp<TextStyle>;
+
         /** Any additional styles to apply on the badge element */
         badgeStyle?: StyleProp<ViewStyle>;
 
@@ -494,6 +497,7 @@ function MenuItem({
     outerWrapperStyle,
     containerStyle,
     titleStyle,
+    titleStyleHovered,
     labelStyle,
     descriptionTextStyle,
     badgeStyle,
@@ -665,22 +669,23 @@ function MenuItem({
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
-    const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
-        [
-            styles.flexShrink1,
-            styles.popoverMenuText,
-            // eslint-disable-next-line no-nested-ternary
-            shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
-            focused ? styles.textStrong : {},
-            numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
-            interactive && disabled ? {...styles.userSelectNone} : {},
-            styles.ltr,
-            isDeleted ? styles.offlineFeedbackDeleted : {},
-            shouldBreakWord ? styles.breakWord : {},
-            styles.mw100,
-        ],
-        (titleStyle ?? {}) as TextStyle,
-    );
+    const getCombinedTitleTextStyle = (isHovered: boolean) =>
+        StyleUtils.combineStyles<TextStyle>(
+            [
+                styles.flexShrink1,
+                styles.popoverMenuText,
+                // eslint-disable-next-line no-nested-ternary
+                shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
+                focused ? styles.textStrong : {},
+                numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
+                interactive && disabled ? {...styles.userSelectNone} : {},
+                styles.ltr,
+                isDeleted ? styles.offlineFeedbackDeleted : {},
+                shouldBreakWord ? styles.breakWord : {},
+                styles.mw100,
+            ],
+            ((isHovered && titleStyleHovered ? titleStyleHovered : titleStyle) ?? {}) as TextStyle,
+        );
 
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
@@ -763,7 +768,7 @@ function MenuItem({
 
     const hasPressableRightComponent = (iconRight ?? icons.ArrowRight) || (shouldShowRightComponent && rightComponent);
 
-    const renderTitleContent = () => {
+    const renderTitleContent = (isHovered: boolean) => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
@@ -782,7 +787,7 @@ function MenuItem({
             return (
                 <TextWithEmojiFragment
                     message={convertToLTR(title) || ''}
-                    style={combinedTitleTextStyle}
+                    style={getCombinedTitleTextStyle(isHovered)}
                     alignCustomEmoji
                 />
             );
@@ -1034,12 +1039,12 @@ function MenuItem({
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
-                                                                        style={combinedTitleTextStyle}
+                                                                        style={getCombinedTitleTextStyle(isHovered)}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
-                                                                        {renderTitleContent()}
+                                                                        {renderTitleContent(isHovered)}
                                                                     </Text>
                                                                 )}
                                                                 {!!shouldShowTitleIcon && !!titleIcon && (

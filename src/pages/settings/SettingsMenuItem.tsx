@@ -1,6 +1,8 @@
 import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {MenuData} from './InitialSettingsPage';
@@ -17,6 +19,8 @@ type SettingsMenuItemProps = {
 
 function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle}: SettingsMenuItemProps) {
     const popoverAnchor = useRef(null);
+    const styles = useThemeStyles();
+    const theme = useTheme();
 
     const onSecondaryInteraction = item.link
         ? (event: GestureResponderEvent | MouseEvent) => {
@@ -66,6 +70,8 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             onSecondaryInteraction={onSecondaryInteraction}
             shouldShowContextMenuHint={!!item.link}
             focused={isFocused}
+            titleStyle={isFocused ? undefined : styles.textSupporting}
+            titleStyleHovered={isFocused ? undefined : {color: theme.text}}
             role={CONST.ROLE.TAB}
             isPaneMenu
             sentryLabel={item.sentryLabel}

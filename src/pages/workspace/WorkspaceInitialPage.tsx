@@ -24,6 +24,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -94,6 +95,7 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -512,24 +514,29 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
-                            {workspaceMenuItems.map((item) => (
-                                <HighlightableMenuItem
-                                    key={item.translationKey}
-                                    disabled={hasPolicyCreationError || isExecuting}
-                                    interactive={!hasPolicyCreationError}
-                                    title={translate(item.translationKey)}
-                                    icon={item.icon}
-                                    onPress={item.action}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                    wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                                    highlighted={!!item?.highlighted}
-                                    focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                    role={CONST.ROLE.TAB}
-                                    badgeText={item.badgeText}
-                                    shouldIconUseAutoWidthStyle
-                                    sentryLabel={item.sentryLabel}
-                                />
-                            ))}
+                            {workspaceMenuItems.map((item) => {
+                                const isItemFocused = !!(item.screenName && activeRoute?.startsWith(item.screenName));
+                                return (
+                                    <HighlightableMenuItem
+                                        key={item.translationKey}
+                                        disabled={hasPolicyCreationError || isExecuting}
+                                        interactive={!hasPolicyCreationError}
+                                        title={translate(item.translationKey)}
+                                        icon={item.icon}
+                                        onPress={item.action}
+                                        brickRoadIndicator={item.brickRoadIndicator}
+                                        wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+                                        highlighted={!!item?.highlighted}
+                                        focused={isItemFocused}
+                                        titleStyle={isItemFocused ? undefined : styles.textSupporting}
+                                        titleStyleHovered={isItemFocused ? undefined : {color: theme.text}}
+                                        role={CONST.ROLE.TAB}
+                                        badgeText={item.badgeText}
+                                        shouldIconUseAutoWidthStyle
+                                        sentryLabel={item.sentryLabel}
+                                    />
+                                );
+                            })}
                         </View>
                     </OfflineWithFeedback>
                 </ScrollView>

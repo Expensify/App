@@ -19,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {openDomainPage} from '@libs/actions/Domain';
@@ -53,6 +54,7 @@ type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainInitialPage({route}: DomainInitialPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield', 'User', 'Users']);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -149,21 +151,26 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                             In this case where user can click on menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                         */}
-                        {domainMenuItems.map((item) => (
-                            <HighlightableMenuItem
-                                key={item.translationKey}
-                                disabled={isExecuting}
-                                title={translate(item.translationKey)}
-                                icon={item.icon}
-                                onPress={item.action}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                                highlighted={!!item?.highlighted}
-                                focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                badgeText={item.badgeText}
-                                shouldIconUseAutoWidthStyle
-                            />
-                        ))}
+                        {domainMenuItems.map((item) => {
+                            const isItemFocused = !!(item.screenName && activeRoute?.startsWith(item.screenName));
+                            return (
+                                <HighlightableMenuItem
+                                    key={item.translationKey}
+                                    disabled={isExecuting}
+                                    title={translate(item.translationKey)}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                    wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+                                    highlighted={!!item?.highlighted}
+                                    focused={isItemFocused}
+                                    titleStyle={isItemFocused ? undefined : styles.textSupporting}
+                                    titleStyleHovered={isItemFocused ? undefined : {color: theme.text}}
+                                    badgeText={item.badgeText}
+                                    shouldIconUseAutoWidthStyle
+                                />
+                            );
+                        })}
                     </View>
                 </ScrollView>
             </FullPageNotFoundView>
