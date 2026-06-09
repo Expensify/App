@@ -946,9 +946,8 @@ function addMembersToWorkspace(
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUser: CurrentUser,
+    reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
