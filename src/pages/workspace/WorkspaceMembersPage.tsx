@@ -65,7 +65,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
     getConnectionExporters,
@@ -218,7 +218,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
         return translate('workspace.people.removeMembersPrompt', {
             count: selectedEmployees.length,
-            memberName: formatPhoneNumber(newGetPersonalDetailsByIDs([firstSelectedEmployeeAccountID], personalDetails).at(0)?.displayName ?? ''),
+            memberName: formatPhoneNumber(getPersonalDetailsByID(firstSelectedEmployeeAccountID, personalDetails)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
     /**
