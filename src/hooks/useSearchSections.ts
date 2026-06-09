@@ -3,7 +3,7 @@ import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilterPendingDeleteReports from './useFilterPendingDeleteReports';
@@ -29,7 +29,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributesDerivedValue = useReportAttributes();
 
@@ -52,7 +52,7 @@ function useSearchSections(): UseSearchSectionsResult {
             bankAccountList,
             groupBy,
             currentSearch: searchKey,
-            archivedReportsIDList: archivedReportsIdSet,
+            archivedReportsIDList: archivedReportsIDSet,
             isActionLoadingSet,
             cardFeeds,
             cardList: nonPersonalAndWorkspaceCards,
