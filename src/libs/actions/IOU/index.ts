@@ -36,6 +36,7 @@ Onyx.connect({
     },
 });
 
+// TODO: https://github.com/Expensify/App/issues/66512
 let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -124,6 +125,10 @@ function getAllTransactions(): NonNullable<OnyxCollection<OnyxTypes.Transaction>
     return allTransactions;
 }
 
+/**
+ * @deprecated Use `useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)` in components and pass the data down as a parameter instead.
+ */
+// TODO: https://github.com/Expensify/App/issues/66512
 function getAllTransactionViolations(): NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> {
     return allTransactionViolations;
 }
@@ -214,6 +219,7 @@ function getMoneyRequestPolicyTags({
 export {
     getAllPersonalDetails,
     getAllTransactions,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getAllTransactionViolations,
     getAllReports,
     getAllReportActionsFromIOU,

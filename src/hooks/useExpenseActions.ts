@@ -8,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
+import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -19,7 +20,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -64,7 +65,6 @@ import useReportIsArchived from './useReportIsArchived';
 import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
-import useTransactionThreadReport from './useTransactionThreadReport';
 import useTransactionViolations from './useTransactionViolations';
 
 type UseExpenseActionsParams = {
@@ -99,7 +99,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
-    const {transactionThreadReportID, transactionThreadReport, reportActions} = useTransactionThreadReport(reportID);
+    const {iouTransactionID, requestParentReportAction, transactionThreadReportID, transactionThreadReport, reportActions} = useMoneyReportTransactionThread();
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
@@ -113,11 +113,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     }
 
     const currentTransaction = transactions.at(0);
-    const requestParentReportAction =
-        reportActions?.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport?.parentReportActionID) ??
-        null;
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
@@ -140,7 +135,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Billing keys
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -251,12 +245,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyCategories: activePolicyCategories,
                 targetReport: activePolicyExpenseChat,
                 existingTransactionDraft,
-                draftTransactionIDs,
                 betas,
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
             });
         }
@@ -411,12 +403,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         personalDetails,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                        draftTransactionIDs,
                         isSelfTourViewed,
                         transactionViolations: allTransactionViolations,
                         translate,
                         recentWaypoints: recentWaypoints ?? [],
-                        conciergeReportID,
                         currentUserAccountID: currentUserPersonalDetails?.accountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
@@ -511,6 +501,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
                             transaction.transactionID,
                             requestParentReportAction,
+                            transactionThreadReport,
                             iouReport,
                             chatIOUReport,
                             isChatIOUReportArchived,
@@ -555,19 +546,18 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.goBack(backToRoute, {
-                        afterTransition: () => {
-                            deleteAppReport({
-                                report: moneyRequestReport,
-                                selfDMReport,
-                                currentUserEmailParam: email ?? '',
-                                currentUserAccountIDParam: accountID,
-                                reportTransactions,
-                                allTransactionViolations,
-                                bankAccountList,
-                                hash: currentSearchHash,
-                            });
-                        },
+                    Navigation.goBack(backToRoute);
+                    InteractionManager.runAfterInteractions(() => {
+                        deleteAppReport({
+                            report: moneyRequestReport,
+                            selfDMReport,
+                            currentUserEmailParam: email ?? '',
+                            currentUserAccountIDParam: accountID,
+                            reportTransactions,
+                            allTransactionViolations,
+                            bankAccountList,
+                            hash: currentSearchHash,
+                        });
                     });
                 });
             },
