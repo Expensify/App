@@ -468,7 +468,9 @@ describe('actions/IOU/Hold', () => {
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, [
+                        {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                    ]);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -542,7 +544,9 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     mockFetch.fail();
                     mockFetch?.resume?.();
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, [
+                        {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                    ]);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

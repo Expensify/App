@@ -44,6 +44,9 @@ jobs:
       - name: Verify compiled binary is executable
         run: test -x server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64
 
+      - name: Smoke-test compiled binary
+        run: ./server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64 --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/top-categories-6.xml)" --out /tmp/vcr-smoke.png && test -s /tmp/vcr-smoke.png
+
       - name: Upload victory-chart-renderer Linux x64 artifact
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
