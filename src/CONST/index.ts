@@ -4283,6 +4283,14 @@ const CONST = {
             START_DATE: 'startDate',
             END_DATE: 'endDate',
         },
+        RATE_CHANGELOG_UPDATED_FIELD: {
+            NAME: 'name',
+            RATE: 'rate',
+            TAX_RATE_EXTERNAL_ID: 'taxRateExternalID',
+            TAX_CLAIMABLE_PERCENTAGE: 'taxClaimablePercentage',
+            ENABLED: 'enabled',
+            DATE_RANGE: 'dateRange',
+        },
     },
 
     TERMS: {
