@@ -24,6 +24,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import {isAnonymousUser} from './actions/Session';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
 import {
@@ -185,6 +186,7 @@ import {
     isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
+    isPublicRoom,
     isSelfDM,
     isSystemChat as isSystemChatUtil,
     isTaskReport,
@@ -328,6 +330,10 @@ function shouldDisplayReportInLHN({
         !!draftComment ||
         hasErrorsOtherThanFailedReceipt ||
         isFocused ||
+        // An anonymous user can only access public rooms, and such a room's notification preference
+        // defaults to `hidden`. Without this, opening a thread inside the room (which steals focus)
+        // drops the room from the LHN, leaving the anon user unable to return to it. See #92672.
+        (isPublicRoom(report) && isAnonymousUser()) ||
         isSystemChat ||
         !!report.isPinned ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
