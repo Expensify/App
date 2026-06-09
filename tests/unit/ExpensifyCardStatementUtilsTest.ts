@@ -155,6 +155,38 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getExpensifyCardStatementParams(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
+    it('hides the export when a transaction-narrowing filter is active', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        const narrowedQueryJSON: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                ...expensifyCardStatementQueryJSON.flatFilters,
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Starbucks'}]},
+            ],
+        };
+
+        expect(getExpensifyCardStatementSelection(narrowedQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('keeps the export when only statement-scope filters are active', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        const scopedQueryJSON: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                ...expensifyCardStatementQueryJSON.flatFilters,
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, value: '2026-05-01'}]},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'policy1'}]},
+            ],
+        };
+
+        const selection = getExpensifyCardStatementSelection(scopedQueryJSON, selectedTransactions, searchData);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
+    });
+
     it('excludes failed settlements from the selection', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 1);

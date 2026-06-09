@@ -51,6 +51,23 @@ function isExpensifyCardStatementSearch(queryJSON: SearchQueryJSON | undefined):
     return withdrawalTypeFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD) ?? false;
 }
 
+// Filters that define WHICH statement to generate (the settlements and the workspace), not what is shown inside a
+// settlement. The PDF is the whole settlement scoped to the workspace, so any other (transaction-narrowing) filter
+// would make the on-screen rows disagree with the PDF - in that case we hide the export instead.
+const STATEMENT_SCOPE_FILTER_KEYS = new Set<string>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+]);
+
+function hasOnlyStatementScopeFilters(queryJSON: SearchQueryJSON | undefined): boolean {
+    return queryJSON?.flatFilters?.every((filter) => STATEMENT_SCOPE_FILTER_KEYS.has(filter.key)) ?? true;
+}
+
 function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
     if (!searchData) {
         return [];
@@ -92,6 +109,12 @@ function getExpensifyCardStatementSelection(
     searchData: SearchResultDataType | undefined,
 ): ExpensifyCardStatementSelection | undefined {
     if (!isExpensifyCardStatementSearch(queryJSON) || !selectedTransactions) {
+        return undefined;
+    }
+
+    // A transaction-narrowing filter (merchant, category, amount, etc.) would make the PDF disagree with the
+    // on-screen rows, so the export is only offered for the unfiltered settlement view (workspace scope aside).
+    if (!hasOnlyStatementScopeFilters(queryJSON)) {
         return undefined;
     }
 
