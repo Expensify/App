@@ -570,11 +570,6 @@ function SearchAutocompleteList({
         reports,
     ]);
 
-    // Derive the highlight reference text from the actual first result rather than a fixed section index.
-    // After the two-section ("Recent chats" / "Search results") switcher, sections.at(1) can be the empty
-    // local section when a result is server-only, which would leave the first result unhighlighted.
-    const sectionItemText = styledRecentReports.at(0)?.text ?? '';
-    const normalizedReferenceText = sectionItemText.toLowerCase();
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
     const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
@@ -584,28 +579,36 @@ function SearchAutocompleteList({
     const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
-    const firstRecentReportKey = styledRecentReports.at(0)?.keyForList;
+    // Locate the first recent report row in the order it is actually rendered. The two-section switcher sorts the
+    // local "Recent chats" rows by a frozen rank, so the rendered order can differ from styledRecentReports (the
+    // unsorted combined local + server list). Walking sections keeps the focused row, its reference text, and the
+    // initially focused key all pointing at the first row the user actually sees.
+    const recentReportKeys = new Set(styledRecentReports.map((report) => report.keyForList));
+    let firstRecentReportKey: string | undefined;
+    let firstRecentReportText = '';
     let firstRecentReportFlatIndex = -1;
-    if (firstRecentReportKey) {
-        let flatIndex = 0;
-        for (const section of sections) {
-            const hasData = (section.data?.length ?? 0) > 0;
-            const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
-            if (hasHeader) {
-                flatIndex++;
-            }
-            for (const item of section.data ?? []) {
-                if (item.keyForList === firstRecentReportKey) {
-                    firstRecentReportFlatIndex = flatIndex;
-                    break;
-                }
-                flatIndex++;
-            }
-            if (firstRecentReportFlatIndex !== -1) {
+    let flatIndex = 0;
+    for (const section of sections) {
+        const hasData = (section.data?.length ?? 0) > 0;
+        const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
+        if (hasHeader) {
+            flatIndex++;
+        }
+        for (const item of section.data ?? []) {
+            if (item.keyForList && recentReportKeys.has(item.keyForList)) {
+                firstRecentReportKey = item.keyForList;
+                firstRecentReportText = item.text ?? '';
+                firstRecentReportFlatIndex = flatIndex;
                 break;
             }
+            flatIndex++;
+        }
+        if (firstRecentReportFlatIndex !== -1) {
+            break;
         }
     }
+
+    const normalizedReferenceText = firstRecentReportText.toLowerCase();
 
     // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
