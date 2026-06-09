@@ -1080,16 +1080,14 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * ⚠️ BILLING / PAID-ONLY. Returns true only for paid plans (Collect/Control).
+ * Returns true only for paid plans (Collect/Control). Use this only for billing/paid-only concerns:
+ * subscriptions, payments and reimbursement, company cards, Expensify Card, Travel, Invoices, and
+ * "do I own a paid workspace" checks.
  *
- * Use this ONLY to gate billing/paid-only concerns: subscriptions, payments & reimbursement,
- * company cards, Expensify Card, Travel, Invoices, "do I own a paid workspace" checks.
- *
- * For "does this workspace have group features?" gating (violations, report fields, workspace
- * chat, report creation, expense-workspace usability) use `isGroupPolicy` instead — otherwise
- * free group plans like Submit (submit2026) are incorrectly excluded and you reintroduce
- * access bugs. For report-based call sites, the equivalents are `ReportUtils.isPaidGroupPolicy`
- * (paid-only) vs `ReportUtils.isReportInGroupPolicy` (group).
+ * For workspace feature gating (violations, report fields, workspace chat, report creation,
+ * expense-workspace usability) use `isGroupPolicy` instead, otherwise free group plans like Submit
+ * (submit2026) are wrongly excluded. The report-based counterparts are `ReportUtils.isPaidGroupPolicy`
+ * (paid-only) and `ReportUtils.isReportInGroupPolicy` (group).
  */
 function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
@@ -1122,13 +1120,13 @@ function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: stri
 }
 
 /**
- * ✅ GROUP-FEATURE gating. Returns true for any group workspace: paid (Collect/Control) or Submit.
+ * Returns true for any group workspace: paid (Collect/Control) or Submit.
  *
- * Prefer this over `isPaidGroupPolicy` whenever the check is about workspace *features* rather than
- * billing — violations, report fields, workspace chat, report creation, expense-workspace usability —
- * so free group plans like Submit (submit2026) aren't wrongly excluded. It's a strict superset of
+ * Prefer this over `isPaidGroupPolicy` whenever the check is about workspace features rather than
+ * billing (violations, report fields, workspace chat, report creation, expense-workspace usability),
+ * so free group plans like Submit (submit2026) are not excluded. It is a strict superset of
  * `isPaidGroupPolicy`, so switching a feature check to it never changes Collect/Control/Personal
- * behavior. Only use `isPaidGroupPolicy` when the concern is genuinely billing/paid-only.
+ * behavior. Use `isPaidGroupPolicy` only when the concern is genuinely billing/paid-only.
  *
  * For report-based call sites, use `ReportUtils.isReportInGroupPolicy(report)`, which delegates here.
  */

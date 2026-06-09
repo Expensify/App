@@ -1741,20 +1741,18 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * ✅ GROUP-FEATURE gating. Whether the report belongs to a group policy (Collect, Control, or Submit).
- *
- * Report-based counterpart of `PolicyUtils.isGroupPolicy`. Prefer this over `isPaidGroupPolicy(report)`
- * for feature gating (violations, report fields, etc.) so free group plans like Submit aren't excluded.
+ * Whether the report belongs to a group policy (Collect, Control, or Submit). Report-based counterpart
+ * of `PolicyUtils.isGroupPolicy`. Prefer this over `isPaidGroupPolicy(report)` for feature gating
+ * (violations, report fields, etc.) so free group plans like Submit are not excluded.
  */
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
     return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
 }
 
 /**
- * ⚠️ BILLING / PAID-ONLY. Whether the report belongs to a paid policy (Collect/Control) only.
- *
- * Report-based counterpart of `PolicyUtils.isPaidGroupPolicy`. For group-feature gating use
- * `isReportInGroupPolicy` instead, or Submit workspaces will be wrongly excluded.
+ * Whether the report belongs to a paid policy (Collect/Control) only. Report-based counterpart of
+ * `PolicyUtils.isPaidGroupPolicy`. For group-feature gating use `isReportInGroupPolicy` instead,
+ * otherwise Submit workspaces are wrongly excluded.
  */
 function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
     const policyType = getPolicyType(report, allPolicies);
