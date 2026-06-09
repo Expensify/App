@@ -6661,6 +6661,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             }),
             enableRate: 'Tarief inschakelen',
             status: 'Status',
+            statusActive: 'Actief',
+            statusFuture: 'Toekomstig',
+            statusExpired: 'Verlopen',
+            statusInactive: 'Inactief',
             unit: 'Eenheid',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Belastingen moeten in de workspace zijn ingeschakeld om deze functie te gebruiken. Ga naar <a href="#">Meer functies</a> om dat te wijzigen.</muted-text>',

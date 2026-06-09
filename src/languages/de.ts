@@ -6696,6 +6696,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             }),
             enableRate: 'Kurs aktivieren',
             status: 'Status',
+            statusActive: 'Aktiv',
+            statusFuture: 'Zukünftig',
+            statusExpired: 'Abgelaufen',
+            statusInactive: 'Inaktiv',
             unit: 'Einheit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Steuern müssen im Workspace aktiviert sein, um diese Funktion zu verwenden. Gehe zu <a href="#">Weitere Funktionen</a>, um das zu ändern.</muted-text>',

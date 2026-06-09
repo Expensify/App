@@ -1,7 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -11,24 +9,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
-type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate';
+type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
 type WorkspaceDistanceRatesTableProps = {
     customUnitRates: Record<string, Rate>;
     unitTranslation: string;
-    selectedDistanceRates: string[];
-    canSelectMultiple: boolean;
-    onToggleRate: (rateID: string) => void;
-    onToggleAllRates: () => void;
+    selectionEnabled: boolean;
+    selectedKeys: string[];
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
     onPressRate: (rateID: string) => void;
-    onLongPressRate?: (rateID: string) => void;
     onDismissError: (rateID: string) => void;
+    onToggleEnabled: (value: boolean, rateID: string) => void;
+    canDisableOrDeleteRate: (rateID: string) => boolean;
     pendingAction?: OnyxCommon.PendingAction;
     pendingFields?: OnyxCommon.PendingFields<string>;
 };
@@ -43,13 +42,13 @@ const STATUS_ORDER: Record<string, number> = {
 function WorkspaceDistanceRatesTable({
     customUnitRates,
     unitTranslation,
-    selectedDistanceRates,
-    canSelectMultiple,
-    onToggleRate,
-    onToggleAllRates,
+    selectionEnabled,
+    selectedKeys,
+    onRowSelectionChange,
     onPressRate,
-    onLongPressRate,
     onDismissError,
+    onToggleEnabled,
+    canDisableOrDeleteRate,
     pendingAction,
     pendingFields,
 }: WorkspaceDistanceRatesTableProps) {
@@ -61,34 +60,46 @@ function WorkspaceDistanceRatesTable({
     const tableRef = useRef<TableHandle<DistanceRateTableItemData, DistanceRatesTableColumnKey>>(null);
 
     const columns: Array<TableColumn<DistanceRatesTableColumnKey>> = [
-        {key: 'status', label: translate('workspace.distanceRates.status')},
-        {key: 'name', label: translate('common.name')},
-        {key: 'rate', label: translate('workspace.distanceRates.rate')},
-        {key: 'startDate', label: translate('workspace.distanceRates.startDate')},
-        {key: 'endDate', label: translate('workspace.distanceRates.endDate')},
+        {key: 'status', label: translate('workspace.distanceRates.status'), sortable: true, width: variables.tableStatusColumnWidth},
+        {key: 'name', label: translate('common.name'), sortable: true},
+        {key: 'rate', label: translate('workspace.distanceRates.rate'), sortable: true},
+        {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
+        {key: 'endDate', label: translate('workspace.distanceRates.endDate'), sortable: true},
+        {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {containerStyles: [styles.justifyContentEnd]}},
+        {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 
-    const ratesData: DistanceRateTableItemData[] = Object.values(customUnitRates).map((rate) => {
-        const resolvedPendingAction =
-            rate.pendingAction ??
-            rate.pendingFields?.rate ??
-            rate.pendingFields?.enabled ??
-            rate.pendingFields?.currency ??
-            rate.pendingFields?.name ??
-            pendingFields?.attributes ??
-            (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? pendingAction : undefined);
+    const ratesData: DistanceRateTableItemData[] = useMemo(
+        () =>
+            Object.values(customUnitRates).map((rate) => {
+                const resolvedPendingAction =
+                    rate.pendingAction ??
+                    rate.pendingFields?.rate ??
+                    rate.pendingFields?.enabled ??
+                    rate.pendingFields?.currency ??
+                    rate.pendingFields?.name ??
+                    pendingFields?.attributes ??
+                    (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? pendingAction : undefined);
 
-        return {
-            rateID: rate.customUnitRateID,
-            rate,
-            formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
-            pendingAction: resolvedPendingAction ?? undefined,
-            errors: rate.errors ?? undefined,
-            onDismissError: () => onDismissError(rate.customUnitRateID),
-        };
-    });
+                const isDeleting = resolvedPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const keyExtractor = (item: DistanceRateTableItemData) => item.rateID;
+                return {
+                    keyForList: rate.customUnitRateID,
+                    rateID: rate.customUnitRateID,
+                    rate,
+                    disabled: isDeleting,
+                    enabled: !!rate.enabled,
+                    isLocked: !selectionEnabled || !canDisableOrDeleteRate(rate.customUnitRateID) || isDeleting,
+                    formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
+                    pendingAction: resolvedPendingAction ?? undefined,
+                    errors: rate.errors ?? undefined,
+                    action: () => onPressRate(rate.customUnitRateID),
+                    dismissError: () => onDismissError(rate.customUnitRateID),
+                    onToggleEnabled: (value: boolean) => onToggleEnabled(value, rate.customUnitRateID),
+                };
+            }),
+        [customUnitRates, unitTranslation, pendingFields?.attributes, pendingAction, onPressRate, onDismissError, onToggleEnabled, canDisableOrDeleteRate, selectionEnabled],
+    );
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -125,6 +136,10 @@ function WorkspaceDistanceRatesTable({
             return localeCompare(a.rate.endDate ?? '', b.rate.endDate ?? '') * orderMultiplier;
         }
 
+        if (activeSorting.columnKey === 'enabled') {
+            return ((a.enabled ? 1 : 0) - (b.enabled ? 1 : 0)) * orderMultiplier;
+        }
+
         return 0;
     };
 
@@ -148,11 +163,6 @@ function WorkspaceDistanceRatesTable({
             key={item.rateID}
             item={item}
             rowIndex={index}
-            isSelected={selectedDistanceRates.includes(item.rateID)}
-            canSelectMultiple={canSelectMultiple}
-            onToggle={() => onToggleRate(item.rateID)}
-            onPress={() => onPressRate(item.rateID)}
-            onLongPress={onLongPressRate ? () => onLongPressRate(item.rateID) : undefined}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             statusLabels={statusLabels}
         />
@@ -181,54 +191,25 @@ function WorkspaceDistanceRatesTable({
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
-    const allSelected = ratesData.length > 0 && ratesData.every((item) => selectedDistanceRates.includes(item.rateID));
-    const someSelected = selectedDistanceRates.length > 0 && !allSelected;
-
-    const SelectAllHeader = canSelectMultiple ? (
-        <View style={[styles.mr3, styles.alignSelfCenter]}>
-            <Checkbox
-                isChecked={allSelected}
-                isIndeterminate={someSelected}
-                onPress={onToggleAllRates}
-                accessibilityLabel={translate('accessibilityHints.selectAllDistanceRates')}
-            />
-        </View>
-    ) : null;
-
     const shouldShowSearchBar = Object.keys(customUnitRates).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
-    const ListHeader = (
-        <>
-            {shouldShowSearchBar && <Table.SearchBar />}
-            {!shouldUseNarrowTableLayout && <Table.Header />}
-        </>
-    );
 
     return (
         <Table
             ref={tableRef}
             data={ratesData}
             columns={columns}
+            selectionEnabled={selectionEnabled}
+            selectedKeys={selectedKeys}
+            onRowSelectionChange={onRowSelectionChange}
             renderItem={renderItem}
-            keyExtractor={keyExtractor}
+            keyExtractor={(item) => item.keyForList}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="name"
             title={translate('workspace.common.distanceRates')}
-            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
         >
-            {!shouldUseNarrowTableLayout && (
-                <>
-                    {shouldShowSearchBar && <Table.SearchBar />}
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5]}>
-                        {SelectAllHeader}
-                        <View style={[styles.flex1]}>
-                            <Table.Header />
-                        </View>
-                    </View>
-                </>
-            )}
-
+            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
+            <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>
     );

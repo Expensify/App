@@ -6659,6 +6659,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             }),
             enableRate: 'Ativar tarifa',
             status: 'Status',
+            statusActive: 'Ativo',
+            statusFuture: 'Futuro',
+            statusExpired: 'Expirado',
+            statusInactive: 'Inativo',
             unit: 'Unidade',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Os impostos precisam estar ativados no workspace para usar este recurso. Vá até <a href="#">Mais recursos</a> para fazer essa alteração.</muted-text>',

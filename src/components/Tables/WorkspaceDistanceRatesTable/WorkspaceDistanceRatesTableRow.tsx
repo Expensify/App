@@ -1,10 +1,10 @@
 import {format, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import Switch from '@components/Switch';
 import Table from '@components/Table';
-import Text from '@components/Text';
+import type {TableData} from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -16,50 +16,39 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 
-type DistanceRateTableItemData = {
+type DistanceRateTableItemData = TableData & {
     rateID: string;
     rate: Rate;
     formattedRate: string;
+    enabled: boolean;
+    isLocked: boolean;
     pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
-    onDismissError?: () => void;
+    action: () => void;
+    dismissError: () => void;
+    onToggleEnabled: (value: boolean) => void;
 };
 
 type WorkspaceDistanceRatesTableRowProps = {
     item: DistanceRateTableItemData;
     rowIndex: number;
-    isSelected: boolean;
-    canSelectMultiple: boolean;
-    onToggle: () => void;
-    onPress: () => void;
-    onLongPress?: () => void;
     shouldUseNarrowTableLayout: boolean;
     statusLabels: Record<string, string>;
 };
 
-function formatDateColumn(dateString: string | undefined): string {
+function formatDateColumn(dateString: string | null | undefined): string {
     if (!dateString) {
         return '';
     }
     return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }
 
-function WorkspaceDistanceRatesTableRow({
-    item,
-    rowIndex,
-    isSelected,
-    canSelectMultiple,
-    onToggle,
-    onPress,
-    onLongPress,
-    shouldUseNarrowTableLayout,
-    statusLabels,
-}: WorkspaceDistanceRatesTableRowProps) {
+function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLayout, statusLabels}: WorkspaceDistanceRatesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const {rate, formattedRate, pendingAction, errors, onDismissError} = item;
+    const {rate, formattedRate, pendingAction, errors} = item;
     const isDeleting = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const status = getRateStatus(rate);
@@ -73,26 +62,14 @@ function WorkspaceDistanceRatesTableRow({
         <Table.Row
             interactive
             rowIndex={rowIndex}
-            disabled={isDeleting}
+            disabled={item.disabled}
             skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
-            offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
-            onPress={onPress}
-            onLongPress={onLongPress}
+            offlineWithFeedback={{errors, pendingAction, dismissError: item.dismissError, shouldHideOnDelete: false}}
+            onPress={item.action}
         >
             {({hovered}) => (
                 <>
-                    {canSelectMultiple && (
-                        <View style={[styles.mr3]}>
-                            <Checkbox
-                                isChecked={isSelected}
-                                onPress={onToggle}
-                                accessibilityLabel={rate.name ?? ''}
-                                disabled={isDeleting}
-                            />
-                        </View>
-                    )}
-
                     <View style={[styles.flex1]}>
                         <TextWithTooltip
                             text={statusLabels[status] ?? ''}
@@ -108,52 +85,58 @@ function WorkspaceDistanceRatesTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
-                            <Text
+                            <TextWithTooltip
                                 numberOfLines={1}
+                                text={rate.name ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {rate.name}
-                            </Text>
+                            />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
-                            <Text
+                            <TextWithTooltip
                                 numberOfLines={1}
+                                text={formattedRate}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {formattedRate}
-                            </Text>
+                            />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
-                            <Text
+                            <TextWithTooltip
                                 numberOfLines={1}
+                                text={formatDateColumn(rate.startDate)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {formatDateColumn(rate.startDate)}
-                            </Text>
+                            />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
-                            <Text
+                            <TextWithTooltip
                                 numberOfLines={1}
+                                text={formatDateColumn(rate.endDate)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {formatDateColumn(rate.endDate)}
-                            </Text>
+                            />
                         </View>
                     )}
+
+                    <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
+                        <Switch
+                            isOn={item.enabled}
+                            showLockIcon={item.isLocked}
+                            disabled={item.disabled}
+                            accessibilityLabel={rate.name ?? ''}
+                            onToggle={item.onToggleEnabled}
+                        />
+                    </View>
 
                     <Icon
                         src={Expensicons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

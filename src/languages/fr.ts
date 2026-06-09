@@ -6723,6 +6723,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             }),
             enableRate: 'Activer le taux',
             status: 'Statut',
+            statusActive: 'Actif',
+            statusFuture: 'Futur',
+            statusExpired: 'Expiré',
+            statusInactive: 'Inactif',
             unit: 'Unité',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Les taxes doivent être activées sur l’espace de travail pour utiliser cette fonctionnalité. Rendez-vous dans <a href="#">Plus de fonctionnalités</a> pour effectuer cette modification.</muted-text>',
