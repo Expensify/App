@@ -11,7 +11,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,8 +70,7 @@ export default function TableRow({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isMobileSelectionEnabled = useMobileSelectionMode();
-    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled} = useTableContext();
+    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext();
 
     const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
@@ -211,6 +209,7 @@ export default function TableRow({
                             <View style={tableRowContentStyles}>
                                 {!!isSelectionCheckboxVisible && (
                                     <Checkbox
+                                        shouldStopMouseDownPropagation
                                         containerStyle={styles.m0}
                                         style={styles.flex1}
                                         disabled={item.disabled}

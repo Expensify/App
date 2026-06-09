@@ -256,7 +256,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         return approverEmails;
     }, [categories, policy?.rules?.approvalRules]);
 
-    const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']);
+    const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled && Object.keys(categoryApproverEmails).length > 0;
 
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
@@ -276,7 +276,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 keyForList: value.name,
                 name: getDecodedCategoryName(value.name),
                 glCode: value['GL Code'],
-                disabled: isDisabled || !canWriteCategories,
+                disabled: isDisabled,
                 approverAvatar,
                 approverAccountID,
                 approverDisplayName,
