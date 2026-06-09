@@ -401,6 +401,43 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate VSB users to Onboarding employees page when merge is blocked and Got it is pressed', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const gotItButton = screen.getByText(TestHelper.translateLocal('common.buttonConfirm'));
+
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: gotItButton,
+            currentTarget: gotItButton,
+        };
+
+        fireEvent.press(gotItButton, mockEvent);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should still navigate to Onboarding work email validation page when caller is on a public domain', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -749,6 +786,44 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.subtitle', workEmail))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate VSB users to Onboarding employees page from validation when merge is blocked and Got it is pressed', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const gotItButton = screen.getByText(TestHelper.translateLocal('common.buttonConfirm'));
+
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: gotItButton,
+            currentTarget: gotItButton,
+        };
+
+        fireEvent.press(gotItButton, mockEvent);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
         });
 
         unmount();

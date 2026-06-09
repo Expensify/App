@@ -185,7 +185,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 email: currentUserPersonalDetails.email,
                 avatar: currentUserPersonalDetails.avatar,
             },
-            undefined,
             filteredReportActions,
         );
         completeOnboarding(true);
