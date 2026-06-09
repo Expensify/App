@@ -141,6 +141,7 @@ type BulkPaySelectionData = {
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
+type SearchSortBy = SearchColumnType | ValueOf<typeof CONST.SEARCH.SORT_BY_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
@@ -320,7 +321,7 @@ type SearchQueryString = string;
 type SearchQueryAST = {
     type: SearchDataTypes;
     status: SearchStatus;
-    sortBy: SearchColumnType;
+    sortBy: SearchSortBy;
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     view: SearchView;
@@ -411,6 +412,7 @@ export type {
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
+    SearchSortBy,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchDateKey,
