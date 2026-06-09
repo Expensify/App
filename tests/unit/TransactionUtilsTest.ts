@@ -631,6 +631,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isMapBasedDistanceRequest', () => {
+        const waypoints = {
+            waypoint0: {keyForList: 'start_waypoint', address: 'A'},
+            waypoint1: {keyForList: 'stop_waypoint', address: 'B'},
+        };
+
+        it('returns false when the transaction is empty', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(undefined)).toBe(false);
+        });
+
+        it('returns false for a non-distance expense', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+
+        it('returns false for an odometer distance expense (no map), even if it somehow carries waypoints', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, comment: {waypoints}});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+
+        it('returns false for a pure manual distance expense with no waypoints', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {}});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+
+        it('returns true for a manual distance expense that carries waypoints (e.g. merged from a map expense)', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {waypoints}});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
+        });
+
+        it('returns true for a map distance expense', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
+        });
+
+        it('returns true for a GPS distance expense', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);

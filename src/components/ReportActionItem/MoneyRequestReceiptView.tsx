@@ -57,12 +57,11 @@ import {
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
-    getWaypoints,
     hasEReceipt,
     hasReceiptSource,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
-    isManualDistanceRequest,
+    isMapBasedDistanceRequest,
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
@@ -176,10 +175,9 @@ function MoneyRequestReceiptView({
     const displayedTransaction = updatedTransaction ?? transaction;
     const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
 
-    // A merged distance expense can be typed `distance-manual` while still carrying the map waypoints/route from the
-    // expense it was merged with, so fall back to the presence of waypoints to still surface the distance e-receipt.
-    const hasDistanceWaypoints = Object.keys(getWaypoints(displayedTransaction) ?? {}).length > 0;
-    const isMapDistanceRequest = !!displayedTransaction && isDistanceRequest && (!isManualDistanceRequest(displayedTransaction) || hasDistanceWaypoints);
+    // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
+    // map/route-based distance expenses. Odometer and pure-manual distance expenses have no map and must be excluded.
+    const isMapDistanceRequest = isMapBasedDistanceRequest(displayedTransaction);
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);

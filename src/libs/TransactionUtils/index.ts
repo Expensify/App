@@ -178,6 +178,20 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
+/**
+ * Whether a distance expense's receipt is a map/route receipt (as opposed to an odometer photo or a
+ * pure manual entry that has no route). Used to decide whether the full distance e-receipt (map +
+ * amount + waypoints) should be shown. A merged distance expense can be typed `distance-manual` yet
+ * still carry waypoints, so the presence of waypoints keeps those included.
+ */
+function isMapBasedDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    if (!isDistanceRequest(transaction) || isOdometerDistanceRequest(transaction)) {
+        return false;
+    }
+    const hasWaypoints = Object.keys(getWaypoints(transaction) ?? {}).length > 0;
+    return isMapDistanceRequest(transaction) || isGPSDistanceRequest(transaction) || hasWaypoints;
+}
+
 function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'>>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
@@ -2947,6 +2961,7 @@ export {
     haveWaypointAddressesChanged,
     isDistanceRequest,
     isMapDistanceRequest,
+    isMapBasedDistanceRequest,
     isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
