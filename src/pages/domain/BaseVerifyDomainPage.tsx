@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {PropsWithChildren} from 'react';
 import React, {useEffect} from 'react';
@@ -63,12 +64,12 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
-    useEffect(() => {
-        if (!doesDomainExist || domain?.validated) {
+    useFocusEffect(() => {
+        if (!doesDomainExist || domain?.validated || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
-    }, [domainAccountID, domainName, doesDomainExist, domain?.validated]);
+    });
 
     useEffect(() => {
         if (!doesDomainExist || domain?.validated) {
