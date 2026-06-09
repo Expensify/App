@@ -47,9 +47,10 @@ function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
     if (!mergeHR) {
         return false;
     }
+    const syncDone = mergeHR.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.DONE;
     const hasGroups = (mergeHR.data?.groups?.length ?? 0) > 0;
     const setupComplete = !!mergeHR.config?.groups;
-    return hasGroups && !setupComplete;
+    return syncDone && hasGroups && !setupComplete;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
