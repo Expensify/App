@@ -1,6 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -14,12 +14,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
-import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
-import updateSessionUser from './Session/updateSessionUser';
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -276,16 +274,24 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
         .then((response) => {
+            const restoreToStashed = () =>
+                restoreDelegateSession({
+                    authToken: stashedSession?.authToken,
+                    encryptedAuthToken: stashedSession?.encryptedAuthToken,
+                    accountID: stashedSession?.accountID,
+                    email: stashedSession?.email,
+                    stashedCredentials,
+                    stashedSession,
+                });
+
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession ?? {});
-                return;
+                return restoreToStashed();
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession ?? {});
-                return;
+                return restoreToStashed();
             }
 
             clearPreservedSearchNavigatorStates();
@@ -293,42 +299,25 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
             return SequentialQueue.waitForIdle()
-                .then(() => {
-                    return Promise.all([
-                        Onyx.set(ONYXKEYS.SESSION, {
-                            ...stashedSession,
-                            accountID: response.requesterID,
-                            email: requesterEmail,
-                            authToken,
-                            encryptedAuthToken: response.encryptedAuthToken,
-                        }),
-                        Onyx.merge(ONYXKEYS.ACCOUNT, {
-                            primaryLogin: requesterEmail,
-                        }),
-                    ]);
-                })
-                .then(() => {
-                    NetworkStore.setAuthToken(response?.authToken ?? null);
-                    return clearOnyxForDelegateTransition();
-                })
-                .then(() => {
-                    Onyx.set(ONYXKEYS.CREDENTIALS, {
-                        ...stashedCredentials,
+                .then(() =>
+                    restoreDelegateSession({
+                        authToken,
+                        encryptedAuthToken: response.encryptedAuthToken,
                         accountID: response.requesterID,
-                    });
-                    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
-                    Onyx.set(ONYXKEYS.STASHED_SESSION, {});
-                    confirmReadyToOpenApp();
-                    openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP) {
-                            return;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: requesterEmail,
-                            authToken,
-                            policyID: '',
-                            accountID: '',
-                        });
+                        email: requesterEmail,
+                        stashedCredentials,
+                        stashedSession,
+                    }),
+                )
+                .then(() => {
+                    if (!CONFIG.IS_HYBRID_APP) {
+                        return;
+                    }
+                    HybridAppModule.switchAccount({
+                        newDotCurrentAccountEmail: requesterEmail,
+                        authToken,
+                        policyID: '',
+                        accountID: '',
                     });
                 });
         })
@@ -677,17 +666,43 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
-function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Response<TKey>) {
-    clearOnyxForDelegateTransition().then(() => {
-        updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
-        updateSessionUser(authenticateResponse?.accountID, authenticateResponse?.email);
+type RestoreDelegateSessionParams = {
+    authToken?: string;
+    encryptedAuthToken?: string;
+    accountID?: number;
+    email?: string;
+    stashedCredentials?: Credentials;
+    stashedSession?: Session;
+};
 
-        NetworkStore.setAuthToken(authenticateResponse.authToken ?? null);
-        NetworkStore.setIsAuthenticating(false);
+function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email, stashedCredentials, stashedSession}: RestoreDelegateSessionParams) {
+    // Write SESSION before the clear: SESSION is in KEYS_TO_PRESERVE_DELEGATE_ACCESS, so clearing
+    // preserves the value at clear time. If we cleared first, an interrupted flow would leave
+    // SESSION holding the prior delegate-restricted auth token. See Expensify/App#80073.
+    return Onyx.set(ONYXKEYS.SESSION, {
+        ...(stashedSession ?? {}),
+        accountID,
+        email,
+        authToken,
+        encryptedAuthToken,
+    })
+        .then(() => {
+            NetworkStore.setAuthToken(authToken ?? null);
+            return clearOnyxForDelegateTransition();
+        })
+        .then(() => {
+            Onyx.set(ONYXKEYS.CREDENTIALS, {
+                ...(stashedCredentials ?? {}),
+                accountID,
+            });
+            Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
+            Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
-        confirmReadyToOpenApp();
-        openApp();
-    });
+            NetworkStore.setIsAuthenticating(false);
+
+            confirmReadyToOpenApp();
+            return openApp();
+        });
 }
 
 function openSecuritySettingsPage() {
