@@ -135,7 +135,7 @@ function IOURequestStepAmount({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = !!guidedSetupAndTourStatus?.isSelfTourViewed;
-    const hasCompletedGuidedSetupFlow = !!guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const betas = useContext(BetasContext);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();

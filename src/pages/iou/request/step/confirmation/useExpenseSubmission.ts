@@ -256,7 +256,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = !!guidedSetupAndTourStatus?.isSelfTourViewed;
-    const hasCompletedGuidedSetupFlow = !!guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
