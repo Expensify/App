@@ -34,6 +34,8 @@ type CreateTrackExpenseParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
+    // TODO: Make it required once we complete refactoring the trackExpense function to use hasCompletedGuidedSetupFlow. Refactor issue: https://github.com/Expensify/App/issues/66424
+    hasCompletedGuidedSetupFlow?: boolean;
     defaultWorkspaceName?: string;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)

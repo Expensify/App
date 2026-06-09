@@ -182,6 +182,8 @@ type GetTrackExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
+    // TODO: Make it required once we complete refactoring the getTrackExpenseInformation function to use hasCompletedGuidedSetupFlow. Refactor issue: https://github.com/Expensify/App/issues/66424
+    hasCompletedGuidedSetupFlow?: boolean;
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
@@ -830,6 +832,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,
+        hasCompletedGuidedSetupFlow,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -978,6 +981,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             hasActiveAdminPolicies: undefined,
             betas,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
         createdWorkspaceParams = workspaceData.params;
         onyxData.optimisticData?.push(...(workspaceData.optimisticData ?? []));
@@ -2321,6 +2325,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         recentWaypoints = [],
         betas,
         isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         defaultWorkspaceName,
         previousOdometerDraft,
         delegateAccountID,
@@ -2481,6 +2486,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
         betas,
         isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         defaultWorkspaceName,
         optimisticChatReportID,
         delegateAccountID,

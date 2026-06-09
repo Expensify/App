@@ -1962,6 +1962,102 @@ describe('actions/IOU/TrackExpense', () => {
             expect(resultWithoutTourViewed.chatReport).toBeDefined();
             expect(resultWithoutTourViewed.transaction).toBeDefined();
         });
+
+        it('should pass hasCompletedGuidedSetupFlow: true to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-guided-setup-1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with hasCompletedGuidedSetupFlow: true
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 11000, merchant: 'Guided Setup Complete Merchant'}),
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(11000);
+            expect(createdTransaction?.merchant).toBe('Guided Setup Complete Merchant');
+        });
+
+        it('should pass hasCompletedGuidedSetupFlow: false to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-guided-setup-2',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with hasCompletedGuidedSetupFlow: false
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 8000, merchant: 'Guided Setup Incomplete Merchant'}),
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(8000);
+            expect(createdTransaction?.merchant).toBe('Guided Setup Incomplete Merchant');
+        });
+
+        it('should pass hasCompletedGuidedSetupFlow: undefined to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-guided-setup-3',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called without hasCompletedGuidedSetupFlow (undefined)
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 6000, merchant: 'Guided Setup Undefined Merchant'}),
+                hasCompletedGuidedSetupFlow: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(6000);
+            expect(createdTransaction?.merchant).toBe('Guided Setup Undefined Merchant');
+        });
     });
 
     describe('requestMoney', () => {

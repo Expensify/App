@@ -232,6 +232,8 @@ type BuildPolicyDataOptions = {
     type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
+    // TODO: Make it required once we complete refactoring the buildPolicyData function to use hasCompletedGuidedSetupFlow. Refactor issue: https://github.com/Expensify/App/issues/66424
+    hasCompletedGuidedSetupFlow?: boolean;
     hasActiveAdminPolicies: boolean | undefined;
     betas?: OnyxEntry<Beta[]>;
 };
@@ -2570,6 +2572,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldCreateControlPolicy = false,
         type,
         isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         hasActiveAdminPolicies,
     } = options;
 
@@ -3048,6 +3051,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
