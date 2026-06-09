@@ -1290,7 +1290,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `将 ${formattedAmount} 标记为已支付` : `标记为已支付`),
         confirmPaymentReceivedModalTitle: '确认已收到付款',
         receivedPayment: '已收到付款',
-        receivedPaymentReportAction: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}已收到付款`,
+        receivedPaymentReportAction: '已收到付款',
         receivedPaymentConfirmation: '仅当您已在 Expensify 之外收到付款时才继续。',
         confirmReceivedPayment: '是的，我已收到付款。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `使用个人账户 ${last4Digits} 支付了 ${amount}` : `使用个人账户支付`),

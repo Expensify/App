@@ -1319,7 +1319,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} を支払済みにする` : `支払い済みにする`),
         confirmPaymentReceivedModalTitle: '支払いを受領したことを確認',
         receivedPayment: '支払い受領済み',
-        receivedPaymentReportAction: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}支払いを受け取りました`,
+        receivedPaymentReportAction: '支払いを受け取りました',
         receivedPaymentConfirmation: 'Expensify以外で支払いを受け取っている場合のみ続行してください。',
         confirmReceivedPayment: 'はい、支払いを受け取りました。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント（下4桁 ${last4Digits}）で ${amount} を支払いました` : `個人アカウントで支払い済み`),

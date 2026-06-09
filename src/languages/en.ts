@@ -1393,7 +1393,7 @@ const translations = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
         confirmPaymentReceivedModalTitle: 'Confirm payment received',
         receivedPayment: 'Received payment',
-        receivedPaymentReportAction: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}received payment`,
+        receivedPaymentReportAction: 'received payment',
         receivedPaymentConfirmation: "Please proceed only if you've already received payment outside of Expensify.",
         confirmReceivedPayment: "Yes, I've received payment",
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
