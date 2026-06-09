@@ -11,7 +11,6 @@ import {
     isTargetCompatibleForAccountingPart,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
-import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -27,7 +26,17 @@ function makePolicyWithConnection(connectionName: ConnectionName, connectionPayl
     } as Policy;
 }
 
-const mockTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+// `parameters` is unused but required so the function matches the generic LocalizedTranslate signature.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const mockTranslate: LocalizedTranslate = (path, ...parameters): string => {
+    if (path === 'common.enabled') {
+        return 'Enabled';
+    }
+    if (path === 'workspace.moreFeatures.timeTracking.defaultHourlyRate') {
+        return 'Default hourly rate';
+    }
+    return path;
+};
 
 describe('CopyPolicySettingsUtils', () => {
     describe('getConnectionCompanyID', () => {
