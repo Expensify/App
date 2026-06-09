@@ -69,7 +69,7 @@ function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalPr
                     title={translate('workspace.hr.syncResults.title', providerDisplayName)}
                     onBackButtonPress={hideModal}
                 />
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]} style={styles.scrollbarGutter}>
                     <View style={[styles.alignItemsCenter, styles.mt4, styles.mb4, styles.pRelative]}>
                         <Icon
                             src={illustrations.SyncUsers}
