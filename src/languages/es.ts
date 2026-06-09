@@ -466,6 +466,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
+        enableNotifications: {
+            prompt: '¿Quieres que te avisemos cuando Concierge responda?',
+            cta: 'Notificar',
+        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -2895,6 +2899,14 @@ ${amount} para ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar gastos de mi negocio',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizar mis gastos personales',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
+        },
+        personalTrackGoal: {
+            title: '¿Qué estás buscando organizar?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Costes de una propiedad de inversión',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Gastos del hogar',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Gastos de proyectos secundarios',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Otra cosa',
+            somethingElsePlaceholder: '¿Qué estás organizando?',
         },
         employees: {
             title: '¿Cuántos empleados tienes?',
