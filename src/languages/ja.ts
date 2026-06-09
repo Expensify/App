@@ -513,6 +513,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '推論を折りたたむ',
         expandReasoning: '推論を展開',
+        enableNotifications: {
+            prompt: 'Conciergeから返信があったときに通知を受け取りますか？',
+            cta: '通知',
+        },
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -2988,6 +2992,14 @@ ${date} の ${merchant} への ${amount}`,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'ビジネスの経費を記録',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '個人の支出を管理',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'その他',
+        },
+        personalTrackGoal: {
+            title: '何を管理したいですか？',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: '投資用不動産の費用',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: '家計費',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'サイドプロジェクト経費',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'その他',
+            somethingElsePlaceholder: '何を記録しますか？',
         },
         employees: {
             title: '従業員は何人いますか？',

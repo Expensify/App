@@ -485,6 +485,9 @@ const ONYXKEYS = {
     /** Onboarding company size selected by the user during Onboarding flow */
     ONBOARDING_COMPANY_SIZE: 'onboardingCompanySize',
 
+    /** Onboarding personal track goal selected by the user during Onboarding flow */
+    ONBOARDING_PERSONAL_TRACK_GOAL: 'onboardingPersonalTrackGoal',
+
     /** Onboarding user reported integration selected by the user during Onboarding flow */
     ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
 
@@ -580,6 +583,9 @@ const ONYXKEYS = {
 
     /** Stores the information if mobile selection mode is active */
     RAM_ONLY_MOBILE_SELECTION_MODE: 'mobileSelectionMode',
+
+    /** Session-scoped flag: user dismissed the "enable notifications" banner in the Concierge chat */
+    RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER: 'hasDismissedConciergeNotificationBanner',
 
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',
 
@@ -1577,6 +1583,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnyxTypes.OnboardingPurpose;
     [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySize;
+    [ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL]: string;
     [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnyxTypes.OnboardingPurpose[] | [];
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY]: TranslationPaths;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
@@ -1611,6 +1618,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ADD_NEW_PERSONAL_CARD]: OnyxTypes.AddNewPersonalCard;
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE]: boolean;
+    [ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER]: boolean;
     [ONYXKEYS.DUPLICATE_WORKSPACE]: OnyxTypes.DuplicateWorkspace;
     [ONYXKEYS.COPY_POLICY_SETTINGS]: OnyxTypes.CopyPolicySettings;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;

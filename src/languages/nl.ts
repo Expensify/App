@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
+        enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -3013,6 +3014,14 @@ ${amount} voor ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Zakelijke uitgaven bijhouden',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Mijn persoonlijke uitgaven organiseren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Iets anders',
+        },
+        personalTrackGoal: {
+            title: 'Wat wil je bijhouden?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Kosten voor een beleggingspand',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Huishoudelijke uitgaven',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Kosten voor nevenproject',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Iets anders',
+            somethingElsePlaceholder: 'Wat volg je?',
         },
         employees: {
             title: 'Hoeveel medewerkers heb je?',
