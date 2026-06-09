@@ -105,6 +105,7 @@ import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
+import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -203,6 +204,8 @@ import {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowApproveFailedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
     isForwardedAction,
     isIntegrationMessageAction,
@@ -265,6 +268,7 @@ import {
     getExchangeRate,
     getFormattedCreated,
     getFormattedPostedDate,
+    getMCCForDisplay,
     getMCCGroup,
     getMerchant,
     getMerchantOrDescription,
@@ -12894,6 +12898,30 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
     return reportActionList.some((action) => isRetractedAction(action));
 }
 
+function selectFilteredReportActions(
+    reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
+): Record<string, ReportAction[]> | undefined {
+    if (!reportActions) {
+        return {};
+    }
+
+    return Object.fromEntries(
+        Object.entries(reportActions).map(([reportID, actionsGroup]) => {
+            const actions = Object.values(actionsGroup ?? {});
+            const filteredActions = actions.filter(
+                (action): action is ReportAction =>
+                    isExportIntegrationAction(action) ||
+                    isIntegrationMessageAction(action) ||
+                    isDynamicExternalWorkflowSubmitFailedAction(action) ||
+                    isDynamicExternalWorkflowApproveFailedAction(action) ||
+                    isSubmittedAction(action) ||
+                    isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED),
+            );
+            return [reportID, filteredActions];
+        }),
+    );
+}
+
 /**
  * Returns the necessary reportAction onyx data to indicate that the transaction has been rejected optimistically
  * @param [created] - Action created time
@@ -13187,6 +13215,8 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+    CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL,
@@ -13194,6 +13224,8 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
     CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
     CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.MCC,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,
@@ -13213,7 +13245,7 @@ function isSortableColumnName(key: unknown): key is SortableColumnName {
  * Get the sortable value for a transaction based on the column type.
  * Used for sorting transactions in MoneyRequestReportTransactionList.
  */
-function getTransactionSortValue(transaction: Transaction, key: SortableColumnName, report: Report, policy: OnyxEntry<Policy>): string | number {
+function getTransactionSortValue(transaction: Transaction, key: SortableColumnName, report: Report, policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories): string | number {
     switch (key) {
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
             return getTransactionCreated(transaction);
@@ -13221,6 +13253,9 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
             return getMerchant(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             return getCategory(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+        case CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE:
+            return getCategoryGLCode(policyCategories, getCategory(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return getTag(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
@@ -13237,6 +13272,10 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
             return getExchangeRate(transaction, report?.currency);
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             return getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+        case CONST.SEARCH.TABLE_COLUMNS.MCC:
+            return getMCCForDisplay(transaction.mcc);
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+            return transaction.taxCode ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
             return getTaxAmount(transaction, isExpenseReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
@@ -13529,6 +13568,7 @@ export {
     parseReportRouteParams,
     parseReportActionHtmlToText,
     requiresAttentionFromCurrentUser,
+    selectFilteredReportActions,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
     shouldDisableDetailPage,
