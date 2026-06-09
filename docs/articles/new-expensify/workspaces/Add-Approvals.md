@@ -106,7 +106,7 @@ Even with auto-approvals enabled, you can route a percentage of compliant report
 
 ---
 
-# Category and Tag approvers
+# Set Category and Tag approvers
 
 In addition to the workspace approval workflow, Control plan workspaces can assign an approver to a specific **Category** or **Tag**. When a report contains an expense that uses one of these categories or tags, the report is routed to the Category and Tag approvers *before* it continues through the workspace's normal approval workflow.
 
