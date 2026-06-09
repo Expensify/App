@@ -81,6 +81,10 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
     if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
         return false;
     }
+    // Add the new guard clause here
+    if (reportMetadata?.isApprovalPending) {
+        return false;
+    }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report);
