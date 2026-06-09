@@ -5,7 +5,6 @@ import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/Adv
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setSearchContext} from '@libs/actions/Search';
 import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
