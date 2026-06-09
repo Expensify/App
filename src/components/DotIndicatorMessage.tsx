@@ -65,6 +65,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
+
     const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
