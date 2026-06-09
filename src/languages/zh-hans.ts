@@ -7814,6 +7814,10 @@ ${reportName}
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `所有导入的 CSV 卡片${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 travelInvoicing: '差旅开票',
             },
+            bankAccount: {
+                banks: '银行账户',
+                closedBankAccounts: '已关闭的银行账户',
+            },
             reportField: (name: string, value: string) => `${name} 为 ${value}`,
             current: '当前',
             past: '过去',
