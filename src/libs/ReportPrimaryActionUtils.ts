@@ -9,6 +9,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
@@ -123,11 +124,13 @@ function isSubmitAction(
         return false;
     }
 
-    if (!isPaidGroupPolicy(policy)) {
+    if (!isGroupPolicy(policy)) {
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction) || isScanning(transaction))) {
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+
+    if (isAnyReceiptBeingScanned) {
         return false;
     }
 
@@ -198,6 +201,9 @@ function isPrimaryPayAction({
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
+    if (isExpenseReport && !isPaidGroupPolicy(policy)) {
+        return false;
+    }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
@@ -421,7 +427,7 @@ function getAllExpensesToHoldIfApplicable(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
 ) {
-    if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
+    if (!report || !reportActions || !hasOnlyHeldExpenses(reportTransactions)) {
         return [];
     }
 
@@ -455,7 +461,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     } = params;
 
     // The expense report of personal policy shouldn't have any action
-    if (isExpenseReportUtils(report) && !isPaidGroupPolicy(policy)) {
+    if (isExpenseReportUtils(report) && !isGroupPolicy(policy)) {
         return '';
     }
 
@@ -475,7 +481,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-        }) && hasOnlyHeldExpenses(report?.reportID);
+        }) && hasOnlyHeldExpenses(reportTransactions);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {

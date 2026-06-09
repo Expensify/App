@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -20,7 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditWorkspaceSettings, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +59,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether to show this page to non admin policy members */
         shouldShowNonAdmin?: boolean;
+
+        /** Policy feature permission needed to show this page */
+        policyFeature?: PolicyFeature;
 
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
@@ -123,6 +127,7 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    policyFeature,
     shouldEnableMaxHeight = true,
     headerContent,
     testID,
@@ -145,26 +150,25 @@ function WorkspacePageWithSections({
         selector: emailSelector,
     });
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
+    const isLoading = isPageLoading ? true : !shouldSkipVBBACall && (reimbursementAccount?.isLoading ?? false);
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const content = typeof children === 'function' ? children(policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
     const prevPolicy = usePrevious(policy);
-
-    useEffect(() => {
-        // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
-        firstRender.current = false;
-    }, []);
+    // Because isLoading is false before merging in Onyx, show the loading page while the policy data is still empty.
+    const shouldShowInitialLoading = showLoadingAsFirstRender && isEmptyObject(policy);
 
     useEffect(() => {
         fetchData(policyID, shouldSkipVBBACall);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    let hasAccessToPolicyFeature: boolean | undefined;
+    if (policyFeature) {
+        hasAccessToPolicyFeature = canMemberRead(policy, currentUserLogin ?? '', policyFeature);
+    }
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 
@@ -182,9 +186,11 @@ function WorkspacePageWithSections({
         }
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !canEditWorkspaceSettings(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
+        const canShowPage = hasAccessToPolicyFeature ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
+
+        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [currentUserLogin, hasAccessToPolicyFeature, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {
@@ -237,7 +243,7 @@ function WorkspacePageWithSections({
                 >
                     {headerContent}
                 </HeaderWithBackButton>
-                {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
+                {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -245,7 +251,7 @@ function WorkspacePageWithSections({
                                 {
                                     context: 'WorkspacePageWithSections',
                                     isLoading,
-                                    isFirstRender: firstRender.current,
+                                    shouldShowInitialLoading,
                                 } satisfies SkeletonSpanReasonAttributes
                             }
                         />

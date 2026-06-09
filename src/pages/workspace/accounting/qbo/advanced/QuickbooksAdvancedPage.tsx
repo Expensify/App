@@ -14,6 +14,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import TravelInvoicingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelInvoicingContinuousReconciliationSection';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -200,6 +201,12 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     onCloseError={() => clearQBOErrorField(policyID, item.subscribedSetting)}
                 />
             ))}
+            <TravelInvoicingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+                isAutoSyncEnabled={!!qboConfig?.autoSync?.enabled}
+                toggleWrapperStyle={styles.mv3}
+            />
             <Accordion
                 isExpanded={isAccordionExpanded}
                 isToggleTriggered={shouldAnimateAccordionSection}

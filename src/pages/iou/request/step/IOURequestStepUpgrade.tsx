@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useActivePolicy from '@hooks/useActivePolicy';
@@ -24,7 +24,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {navigateToCreatedReportInReports} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -80,8 +80,8 @@ function IOURequestStepUpgrade({
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
-    const {selectedTransactions} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactions} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -151,6 +151,7 @@ function IOURequestStepUpgrade({
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 allTransactions,
                 policyTagList,
+                allTransactionViolation: transactionViolations,
             });
 
             clearSelectedTransactions();
@@ -185,32 +186,30 @@ function IOURequestStepUpgrade({
 
                 Navigation.goBack(backToRoute, {compareParams: false});
 
-                // For track expense, we want to create the expense inside self dm (which is not expenseReportID).
-                if (!isTrack) {
+                // For track or split-expense, the existing transaction must stay anchored to its current
+                // (self-DM) report — the new workspace only owns the freshly-created rate, not the expense
+                // itself. Only the submit flow needs to relocate the optimistic transaction.
+                const shouldKeepOriginalReport = isTrack || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
+                if (!shouldKeepOriginalReport) {
                     setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                     // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                     setCustomUnitRateID(transactionID, '-1', undefined, undefined);
                     Navigation.setParams({reportID: expenseReportID});
                 }
 
-                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, isTrack ? reportID : expenseReportID, iouType, action));
+                navigateWithMicrotask(
+                    ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, shouldKeepOriginalReport ? reportID : expenseReportID, iouType, action),
+                );
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
                 if (action === CONST.IOU.ACTION.CREATE && policyID) {
-                    // "Create report" with no workspace: open the report where the user started.
                     const {reportID: newReportID} = createReportForCurrentUser(policyID);
-                    if (isSearchTopmostFullScreenRoute()) {
-                        // Spend/Search tab: replace the upgrade screen within the RHP (same navigator,
-                        // so forceReplace holds). Back returns to Spend > Reports.
-                        Navigation.setNavigationActionToMicrotaskQueue(() => {
-                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: newReportID}), {forceReplace: true});
-                        });
-                    } else {
-                        // Elsewhere (e.g. FAB): dismiss the upgrade RHP first, then open in Inbox,
-                        // so back doesn't return to the upgrade step.
-                        Navigation.dismissModalWithReport({reportID: newReportID});
-                    }
+                    Navigation.goBack();
+                    // Wait until the upgrade RHP is closed before opening the created report from Reports.
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        navigateToCreatedReportInReports(newReportID);
+                    });
                 } else {
                     Navigation.goBack();
                     navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
@@ -249,6 +248,7 @@ function IOURequestStepUpgrade({
         isTrack,
         allPolicyTags,
         createReportForCurrentUser,
+        transactionViolations,
     ]);
 
     const participant = transaction?.participants?.[0];

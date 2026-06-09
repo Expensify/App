@@ -37,7 +37,7 @@ To grant someone access to your account:
 4. Choose the access level:
    - **Full Access** – Grants complete access to all areas and actions.
    - **Limited Access** – Excludes approvals, payments, rejections, holds, retractions, and reopens.
-5. Click **Add Copilot**.
+5. Click **Add a copilot**.
 
 💡 **Note:** You can invite someone who doesn't have an Expensify account. They'll receive an invite to create one.
 

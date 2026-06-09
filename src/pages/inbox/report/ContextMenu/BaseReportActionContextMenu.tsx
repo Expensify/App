@@ -181,13 +181,11 @@ function BaseReportActionContextMenu({
     // Needed to compute the one-transaction thread for the context menu's report so isUnreadChat is correct
     // for expense/IOU reports shown directly in the LHN (where unread state is based on the thread's lastVisibleActionCreated).
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions);
+    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions, isOffline);
     const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
-    const [harvestReport] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID))}`,
-        {},
-    );
+    const harvestReportOriginalID = getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID));
+    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${harvestReportOriginalID}`, {});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
@@ -236,6 +234,7 @@ function BaseReportActionContextMenu({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
     const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUTransactionID;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const iouReportID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUReportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
@@ -410,6 +409,7 @@ function BaseReportActionContextMenu({
                                 policyTags,
                                 translate,
                                 harvestReport,
+                                harvestReportOriginalID,
                                 introSelected,
                                 isSelfTourViewed,
                                 betas,
@@ -419,6 +419,7 @@ function BaseReportActionContextMenu({
                                 currentUserPersonalDetails,
                                 encryptedAuthToken,
                                 iouTransaction,
+                                iouTransactionViolations,
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,

@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
@@ -20,13 +19,10 @@ import searchOptions from '@libs/searchOptions';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 
 type CountryStepProps = {
     policyID?: string;
@@ -34,7 +30,6 @@ type CountryStepProps = {
 
 function SelectCountryStep({policyID}: CountryStepProps) {
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {currencyList} = useCurrencyListState();
@@ -70,10 +65,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        if (route?.params?.backTo) {
-            Navigation.navigate(route.params.backTo);
-            return;
-        }
         Navigation.goBack();
     };
 
@@ -135,7 +126,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
-                shouldScrollToFocusedIndex={false}
                 shouldScrollToFocusedIndexOnMount={false}
                 addBottomSafeAreaPadding
                 shouldStopPropagation

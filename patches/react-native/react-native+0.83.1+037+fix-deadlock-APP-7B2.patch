@@ -1,0 +1,20 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
+index 4838b3b..d23701f 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
+@@ -30,7 +30,6 @@ ComponentDescriptorRegistry::ComponentDescriptorRegistry(
+ 
+ void ComponentDescriptorRegistry::add(
+     const ComponentDescriptorProvider& componentDescriptorProvider) const {
+-  std::unique_lock lock(mutex_);
+ 
+   auto componentDescriptor = componentDescriptorProvider.constructor(
+       {.eventDispatcher = parameters_.eventDispatcher,
+@@ -44,6 +43,7 @@ void ComponentDescriptorRegistry::add(
+ 
+   auto sharedComponentDescriptor = std::shared_ptr<const ComponentDescriptor>(
+       std::move(componentDescriptor));
++  std::unique_lock lock(mutex_);
+   _registryByHandle[componentDescriptorProvider.handle] =
+       sharedComponentDescriptor;
+   _registryByName[componentDescriptorProvider.name] = sharedComponentDescriptor;
