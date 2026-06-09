@@ -4,16 +4,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Domain, ExpensifyCardSettings, Policy} from '@src/types/onyx';
 import {createRandomExpensifyCard} from '../utils/collections/card';
-import createRandomPolicy from '../utils/collections/policies';
 
 const fundID = 5555;
 const policyID = 'policy_other';
+const workspacePolicyID = 'WS1';
 
 function createDomain(email: string, accountID: number): Domain {
     return {
         validated: true,
         accountID,
         email,
+        domain_defaultSecurityGroupID: '0',
     };
 }
 
@@ -24,14 +25,20 @@ function createCardList(...cards: Card[]): CardList {
     }, {});
 }
 
-function createPolicyWithAccountID(accountID: number, overrides?: Partial<Policy>): Policy {
+function createAdminPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Policy {
     return {
-        ...createRandomPolicy(1),
+        name: 'Test Workspace',
         role: CONST.POLICY.ROLE.ADMIN,
+        type: CONST.POLICY.TYPE.TEAM,
         owner: 'admin@workspace.com',
-        policyAccountID: accountID,
+        outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: false,
         ...overrides,
     };
+}
+
+function createPolicyCollection(policies: Policy[]): OnyxCollection<Policy> {
+    return Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id.toUpperCase()}`, policy]));
 }
 
 describe('getExpensifyCardFeedDescription', () => {
@@ -73,9 +80,12 @@ describe('getExpensifyCardFeedDescription', () => {
 
     it('falls back to workspace policy owner domain when fundID matches policyAccountID', () => {
         const settings: ExpensifyCardSettings = {isEnabled: true};
-        const policies: OnyxCollection<Policy> = {
-            [`${ONYXKEYS.COLLECTION.POLICY}${policyID.toUpperCase()}`]: createPolicyWithAccountID(fundID),
-        };
+        const policies = createPolicyCollection([
+            createAdminPolicy({
+                id: policyID,
+                policyAccountID: fundID,
+            }),
+        ]);
 
         expect(getExpensifyCardFeedDescription(settings, policies, {}, fundID)).toBe('workspace.com');
     });
@@ -88,9 +98,12 @@ describe('getAdminExpensifyCardFeedEntries', () => {
     const cardSettingsCollection: OnyxCollection<ExpensifyCardSettings> = {
         [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${orphanFundID}`]: orphanFeedSettings,
     };
-    const adminPolicyForFund: OnyxCollection<Policy> = {
-        [`${ONYXKEYS.COLLECTION.POLICY}WS1`]: createPolicyWithAccountID(orphanFundID, {id: 'WS1'}),
-    };
+    const adminPolicyForFund = createPolicyCollection([
+        createAdminPolicy({
+            id: workspacePolicyID,
+            policyAccountID: orphanFundID,
+        }),
+    ]);
 
     it('shows an orphan feed when the fund has an issued Expensify Card', () => {
         const cardList = createCardList(createRandomExpensifyCard(1, {fundID: orphanFundID.toString()}));
@@ -111,7 +124,7 @@ describe('getAdminExpensifyCardFeedEntries', () => {
 
     it('still shows a feed with a preferredPolicy even when the fund has no issued Expensify Card', () => {
         const settingsWithPreferredPolicy: OnyxCollection<ExpensifyCardSettings> = {
-            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${orphanFundID}`]: {...orphanFeedSettings, preferredPolicy: 'WS1'},
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${orphanFundID}`]: {...orphanFeedSettings, preferredPolicy: workspacePolicyID},
         };
 
         const entries = getAdminExpensifyCardFeedEntries(settingsWithPreferredPolicy, adminPolicyForFund, {}, currentUserAccountID, {});
@@ -121,7 +134,7 @@ describe('getAdminExpensifyCardFeedEntries', () => {
 
     it('still shows a feed with linkedPolicyIDs even when the fund has no issued Expensify Card', () => {
         const settingsWithLinkedPolicies: OnyxCollection<ExpensifyCardSettings> = {
-            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${orphanFundID}`]: {...orphanFeedSettings, linkedPolicyIDs: ['WS1']},
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${orphanFundID}`]: {...orphanFeedSettings, linkedPolicyIDs: [workspacePolicyID]},
         };
 
         const entries = getAdminExpensifyCardFeedEntries(settingsWithLinkedPolicies, adminPolicyForFund, {}, currentUserAccountID, {});
