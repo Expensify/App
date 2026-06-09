@@ -663,7 +663,11 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
+            // Collapse the destination tab to the new leaf so the RHP dismiss reveals only the new
+            // workspace, without the prior WorkspacesList briefly flashing underneath.
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {
+                collapseTabToLeaf: true,
+            });
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }
