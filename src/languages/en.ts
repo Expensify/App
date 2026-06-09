@@ -534,6 +534,10 @@ const translations = {
     concierge: {
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
+        enableNotifications: {
+            prompt: 'Want to be notified when Concierge responds?',
+            cta: 'Notify',
+        },
     },
     supportalNoAccess: {
         title: 'Not so fast',
