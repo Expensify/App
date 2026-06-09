@@ -59,7 +59,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     } = useReportPaymentContext({
         reportID,
         chatReportPolicyID: chatReport?.policyID,
-        invoiceReceiverPolicyID: chatReport?.policyID,
+        invoiceReceiverPolicyID,
     });
 
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
