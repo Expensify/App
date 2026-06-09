@@ -6846,7 +6846,6 @@ ${reportName}
                 description: '承認機能を有効にして、全メンバーの提出先を一括設定しましょう。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>承認機能は、Collect プランおよび Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
-                approveReport: {title: 'レポートを承認', description: '精算プランにアップグレードして、レポートを承認し社員へ精算しましょう。'},
             },
             companyCardSubmit: {
                 title: '会社カード',

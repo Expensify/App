@@ -6900,7 +6900,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 description: 'Configure centralmente para quem todos os membros enviam relatórios ativando as aprovações.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>As aprovações estão disponíveis nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
-                approveReport: {title: 'Aprovar relatórios', description: 'Aprove relatórios e reembolse funcionários fazendo upgrade para o plano Collect.'},
             },
             companyCardSubmit: {
                 title: 'Cartões corporativos',

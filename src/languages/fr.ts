@@ -6967,7 +6967,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 description: 'Configurez de manière centralisée à qui tous les membres soumettent en activant les approbations.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les validations sont disponibles avec les forfaits Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
-                approveReport: {title: 'Approuver les notes de frais', description: 'Approuvez les notes de frais et remboursez les employé·es en passant au forfait Collect.'},
             },
             companyCardSubmit: {
                 title: 'Cartes d’entreprise',
