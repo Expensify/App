@@ -62,8 +62,8 @@ function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined, trimmedEn
 }
 
 function getGPSRoutes(gpsDraftDetails: GpsDraftDetails | undefined): Routes {
-    const distanceInMeters = roundToTwoDecimalPlaces(gpsDraftDetails?.distanceInMeters ?? 0);
-    const gpsCoordinates = getGpsPoints(gpsDraftDetails);
+    const distanceInMeters = roundToTwoDecimalPlaces(gpsDraftDetails?.modifiedDistance ?? gpsDraftDetails?.distanceInMeters ?? 0);
+    const gpsCoordinates = getTrimmedGpsTrip(gpsDraftDetails);
     const coordinates: Array<Array<[number, number]>> = gpsCoordinates.map((points) => points.map(({lat, long}) => [long, lat]));
 
     return {
@@ -77,8 +77,38 @@ function getGPSRoutes(gpsDraftDetails: GpsDraftDetails | undefined): Routes {
     };
 }
 
+/**
+ * Returns the GPS coordinates as a stringified array of arrays of {lng, lat} objects.
+ * If the trimmed end point is not set, returns the original GPS coordinates.
+ * If the trimmed end point is set, it is added to the recorded GPS coordinates according to the data
+ * saved in trimmedEndPoint - this is a backend requirement to make the receipt generation easier.
+ */
 function getStringifiedGPSCoordinates(gpsDraftDetails: GpsDraftDetails | undefined): string | undefined {
-    return gpsDraftDetails?.gpsPoints ? JSON.stringify(gpsDraftDetails.gpsPoints.map((points) => points.map(({lat, long}) => ({lng: long, lat})))) : undefined;
+    const trimmedEndPoint = gpsDraftDetails?.trimmedEndPoint;
+    const gpsPoints = gpsDraftDetails?.gpsPoints;
+
+    if (!trimmedEndPoint || !gpsPoints) {
+        return JSON.stringify(gpsDraftDetails?.gpsPoints?.map((points) => points.map(({lat, long}) => ({lng: long, lat}))));
+    }
+
+    const trimmedEndPointSegment = trimmedEndPoint.segmentIndex;
+    const trimmedEndPointPrecedingPointIndex = trimmedEndPoint.precedingPointIndex;
+
+    const segment = gpsPoints.at(trimmedEndPointSegment);
+
+    // Type safety check - if the segment is not found, return the original GPS coordinates.
+    if (!segment) {
+        return JSON.stringify(gpsPoints.map((points) => points.map(({lat, long}) => ({lng: long, lat}))));
+    }
+
+    // Update the trimmed end point segment to include the trimmed end point as it is interpolated.
+    const updatedSegment = [...segment.slice(0, trimmedEndPointPrecedingPointIndex + 1), trimmedEndPoint, ...segment.slice(trimmedEndPointPrecedingPointIndex + 1)];
+    const updatedGpsPoints = gpsPoints
+        .slice(0, trimmedEndPointSegment)
+        .concat([updatedSegment])
+        .concat(gpsPoints.slice(trimmedEndPointSegment + 1));
+
+    return JSON.stringify(updatedGpsPoints.map((points) => points.map(({lat, long}) => ({lng: long, lat}))));
 }
 
 function calculateGPSDistance(distanceInMeters: number, unit: Unit): number {
@@ -86,7 +116,7 @@ function calculateGPSDistance(distanceInMeters: number, unit: Unit): number {
 }
 
 function getGPSConvertedDistance(gpsDraftDetails: GpsDraftDetails | undefined, unit: Unit): number {
-    const distanceInMeters = gpsDraftDetails?.distanceInMeters ?? 0;
+    const distanceInMeters = gpsDraftDetails?.modifiedDistance ?? gpsDraftDetails?.distanceInMeters ?? 0;
     return calculateGPSDistance(distanceInMeters, unit);
 }
 
