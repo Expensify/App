@@ -89,7 +89,7 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
     if (!t) {
         return undefined;
     }
-    return getTagForDisplay({tag: t.tag} as OnyxEntry<Transaction>, tagIndex);
+    return getTagForDisplay({tag: t.tag}, tagIndex);
 };
 
 // --- CategoryField ---
@@ -200,7 +200,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard'>;
 
-const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
         return undefined;
     }
@@ -211,26 +211,26 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transac
         reportID: t.reportID,
         managedCard: t.managedCard,
     };
-    return slice as Transaction;
+    return slice;
 };
 
 // --- ConfirmationFieldList: useFooterTagVisibility ---
 
 type TagSlice = Pick<Transaction, 'tag'>;
 
-const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<TagSlice> => {
     if (!t) {
         return undefined;
     }
     const slice: TagSlice = {tag: t.tag};
-    return slice as Transaction;
+    return slice;
 };
 
 // --- InvoiceSenderSection ---
 
 type InvoiceSenderSlice = Pick<Transaction, 'isFromGlobalCreate' | 'transactionID'>;
 
-const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<InvoiceSenderSlice> => {
     if (!t) {
         return undefined;
     }
@@ -238,7 +238,7 @@ const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transa
         isFromGlobalCreate: t.isFromGlobalCreate,
         transactionID: t.transactionID,
     };
-    return slice as Transaction;
+    return slice;
 };
 
 // --- DistanceMapSection ---
