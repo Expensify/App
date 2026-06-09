@@ -22,6 +22,7 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [accountManagerData] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => ({
             accountManagerReportID: account?.accountManagerReportID,
@@ -35,7 +36,7 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
     });
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
-    if (!accountManagerReportID || !isConciergeChatReport(report) || !isBannerVisible) {
+    if (!accountManagerReportID || !isConciergeChatReport(report, conciergeReportID) || !isBannerVisible) {
         return null;
     }
     const displayName = getDisplayNameOrDefault(participantPersonalDetail);
