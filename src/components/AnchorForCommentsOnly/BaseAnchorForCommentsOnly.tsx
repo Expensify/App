@@ -102,6 +102,7 @@ function BaseAnchorForCommentsOnly({
                         if (!linkProps.onPress) {
                             return;
                         }
+                        e?.stopPropagation();
                         e?.preventDefault();
                         linkProps.onPress();
                     }}
