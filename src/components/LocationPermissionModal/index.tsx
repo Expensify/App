@@ -4,7 +4,6 @@ import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +20,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker' as IllustrationName));
+    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
@@ -83,7 +82,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                     if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                         onGrant();
                     } else {
-                        onDeny?.();
+                        onDeny(false);
                     }
                 });
             }
@@ -100,7 +99,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                     onGrant();
                 } else {
-                    onDeny();
+                    onDeny(false);
                 }
             })
             .finally(() => {
@@ -111,7 +110,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny();
+        onDeny(true);
         setShowModal(false);
         setHasError(false);
     };

@@ -180,7 +180,7 @@ function BaseReportActionContextMenu({
     // Needed to compute the one-transaction thread for the context menu's report so isUnreadChat is correct
     // for expense/IOU reports shown directly in the LHN (where unread state is based on the thread's lastVisibleActionCreated).
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions);
+    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions, isOffline);
     const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const harvestReportOriginalID = getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID));
@@ -233,6 +233,7 @@ function BaseReportActionContextMenu({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
     const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUTransactionID;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const iouReportID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUReportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
@@ -415,6 +416,7 @@ function BaseReportActionContextMenu({
                                 currentUserPersonalDetails,
                                 encryptedAuthToken,
                                 iouTransaction,
+                                iouTransactionViolations,
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,
