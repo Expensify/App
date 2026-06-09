@@ -846,7 +846,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate VSB users to Onboarding employees page from validation when merge is blocked and Got it is pressed', async () => {
+    it('should navigate VSB users to Onboarding interested features page from validation when merge is blocked and Got it is pressed', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -877,7 +877,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         fireEvent.press(gotItButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
         });
 
         unmount();
