@@ -188,7 +188,6 @@ function getCardConfig(policy: OnyxEntry<Policy>, connectionName: HRConnectionNa
 const STATIC_HR_PROVIDERS = [
     {
         key: 'gusto',
-        beta: undefined,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
         titleKey: 'workspace.hr.gusto.title',
         iconParam: 'gustoIcon',
