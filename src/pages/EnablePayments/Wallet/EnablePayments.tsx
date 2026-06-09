@@ -93,9 +93,8 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
     }, [isOffline, hasFreshData, userWallet?.isLoading]);
 
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const enablePaymentsStep = !hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}, hasActivatedWallet)
-        ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT
-        : (userWallet?.currentStep ?? CONST.WALLET.STEP.ADDITIONAL_DETAILS);
+    const userWalletCurrentStep = userWallet?.currentStep ? userWallet.currentStep : CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+    const enablePaymentsStep = !hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}, hasActivatedWallet) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWalletCurrentStep;
 
     const canonicalPage = useMemo(() => pages.find((p) => p.serverSteps.includes(enablePaymentsStep))?.pageName, [enablePaymentsStep]);
 
