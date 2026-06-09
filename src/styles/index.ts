@@ -703,7 +703,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            width: variables.navigationTabBarWidth + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -739,9 +739,13 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.sidebarHover,
         },
 
+        navigationTabBarItemSelected: {
+            backgroundColor: theme.borderLight,
+        },
+
         leftNavigationTabBarContainer: {
             height: '100%',
-            width: variables.navigationTabBarSize,
+            width: variables.navigationTabBarWidth,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.borderLight,
@@ -749,11 +753,29 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         leftNavigationTabBarItem: {
-            height: variables.navigationTabBarSize,
-            display: 'flex',
-            justifyContent: 'center',
+            height: variables.navigationTabBarRowHeight,
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
             alignItems: 'center',
-            paddingHorizontal: 4,
+            paddingHorizontal: 12,
+            gap: 12,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadius,
+        },
+
+        leftNavigationTabBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: 64,
+            paddingHorizontal: 20,
+            paddingVertical: 8,
+        },
+
+        leftNavigationTabBarSubMenu: {
+            paddingLeft: 16,
+            paddingRight: 8,
+            paddingVertical: 4,
         },
 
         leftNavigationTabBarFAB: {
@@ -5771,11 +5793,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchTypeMenuItemPadding: {
+            paddingLeft: 12,
             paddingRight: 12,
         },
 
         searchTypeMenuAccordionPadding: {
-            paddingLeft: 8,
+            paddingLeft: 12,
             paddingRight: 12,
             paddingVertical: 8,
         },
@@ -6278,12 +6301,12 @@ const dynamicStyles = (theme: ThemeColors) =>
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
             }) satisfies ViewStyle,
 
-        createMenuPositionSidebar: (windowHeight: number) =>
+        createMenuPositionSidebar: () =>
             ({
-                horizontal: 16,
-                // Menu should be displayed 8px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (16px) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (8px)
-                vertical: windowHeight - 16 - variables.componentSizeNormal - 8,
+                // FAB sits at the top-right of a 64-tall header with 20px horizontal / 8px vertical padding,
+                // centered in the 48px-tall content area. Menu is anchored top-left to land 8px below it.
+                horizontal: variables.navigationTabBarWidth - 20 - 32,
+                vertical: 8 + (48 - 32) / 2 + 32 + 8,
             }) satisfies AnchorPosition,
 
         createMenuPositionSearchBar: (windowHeight: number) =>

@@ -123,6 +123,8 @@ export default {
     searchSidebarExpandedWidth: 280,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    navigationTabBarWidth: 260,
+    navigationTabBarRowHeight: 44,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,

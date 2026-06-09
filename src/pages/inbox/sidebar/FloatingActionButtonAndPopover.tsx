@@ -1,6 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {View as ViewType} from 'react-native';
 import useDragoverDismiss from '@hooks/useDragoverDismiss';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +28,7 @@ function FloatingActionButtonAndPopover() {
     const isFocused = useIsFocused();
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const fabRef = useRef<HTMLDivElement>(null);
+    const fabRef = useRef<HTMLDivElement | ViewType>(null);
 
     const [reportID] = useState(() => generateReportID());
 
@@ -59,7 +60,7 @@ function FloatingActionButtonAndPopover() {
     };
 
     return (
-        <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
+        <View style={shouldUseNarrowLayout ? [styles.justifyContentCenter, styles.flexGrow1, styles.gap3, styles.w100] : undefined}>
             <FABPopoverMenu
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 onClose={hideCreateMenu}

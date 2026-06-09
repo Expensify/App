@@ -7,13 +7,14 @@ import FloatingGPSButton from '@components/FloatingGPSButton';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScrollView from '@components/ScrollView';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,6 +23,7 @@ import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
+import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +51,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const {translate} = useLocalize();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox', 'ChartPie']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Home', 'Inbox', 'ChartPie']);
 
     const lastReportRouteReportID = useRootNavigationState((rootState) => {
         if (!rootState) {
@@ -76,8 +78,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const StyleUtils = useStyleUtils();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
 
     let inboxStatusIndicatorColor: string | undefined;
     if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
@@ -138,27 +139,38 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     style={styles.leftNavigationTabBarContainer}
                     testID="NavigationTabBar"
                 >
-                    <View style={styles.flex1}>
-                        <PressableWithFeedback
-                            role={CONST.ROLE.LINK}
-                            accessibilityLabel={translate('common.home')}
-                            accessible
-                            testID="ExpensifyLogoButton"
-                            onPress={navigateToNewDotHome}
-                            wrapperStyle={styles.leftNavigationTabBarItem}
-                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
-                        >
-                            <ImageSVG
-                                style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
-                                src={expensifyIcons.ExpensifyAppIcon}
-                                aria-hidden
-                            />
-                        </PressableWithFeedback>
+                    <ScrollView
+                        style={styles.flex1}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.leftNavigationTabBarHeader}>
+                            <PressableWithFeedback
+                                role={CONST.ROLE.LINK}
+                                accessibilityLabel={translate('common.home')}
+                                accessible
+                                testID="ExpensifyLogoButton"
+                                onPress={navigateToNewDotHome}
+                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
+                            >
+                                <ImageSVG
+                                    width={100}
+                                    height={(100 * 19) / 78}
+                                    src={expensifyIcons.ExpensifyWordmark}
+                                    fill={theme.text}
+                                    aria-hidden
+                                />
+                            </PressableWithFeedback>
+                            {shouldShowFloatingButtons && <NavigationTabBarFloatingActionButton />}
+                        </View>
                         <PressableWithFeedback
                             onPress={navigateToNewDotHome}
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.home')}
-                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            style={({hovered}) => [
+                                styles.leftNavigationTabBarItem,
+                                selectedTab === NAVIGATION_TABS.HOME && styles.navigationTabBarItemSelected,
+                                hovered && selectedTab !== NAVIGATION_TABS.HOME && styles.navigationTabBarItemHovered,
+                            ]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                         >
                             {({hovered}) => (
@@ -167,6 +179,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     label={translate('common.home')}
                                     isSelected={selectedTab === NAVIGATION_TABS.HOME}
                                     isHovered={hovered}
+                                    isHorizontal
                                 />
                             )}
                         </PressableWithFeedback>
@@ -175,7 +188,11 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
                             accessibilityState={inboxAccessibilityState}
-                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            style={({hovered}) => [
+                                styles.leftNavigationTabBarItem,
+                                selectedTab === NAVIGATION_TABS.INBOX && styles.navigationTabBarItemSelected,
+                                hovered && selectedTab !== NAVIGATION_TABS.INBOX && styles.navigationTabBarItemHovered,
+                            ]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                         >
                             {({hovered}) => (
@@ -186,6 +203,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     isHovered={hovered}
                                     statusIndicatorColor={inboxStatusIndicatorColor}
                                     statusIndicatorBorderColor={theme.hoverLight}
+                                    isHorizontal
                                 />
                             )}
                         </PressableWithFeedback>
@@ -193,11 +211,20 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             selectedTab={selectedTab}
                             isWideLayout
                         />
+                        {selectedTab === NAVIGATION_TABS.SEARCH && (
+                            <View style={styles.leftNavigationTabBarSubMenu}>
+                                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                            </View>
+                        )}
                         <PressableWithFeedback
                             onPress={navigateToInsights}
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.insights')}
-                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            style={({hovered}) => [
+                                styles.leftNavigationTabBarItem,
+                                selectedTab === NAVIGATION_TABS.INSIGHTS && styles.navigationTabBarItemSelected,
+                                hovered && selectedTab !== NAVIGATION_TABS.INSIGHTS && styles.navigationTabBarItemHovered,
+                            ]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                         >
                             {({hovered}) => (
@@ -206,6 +233,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     label={translate('common.insights')}
                                     isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
                                     isHovered={hovered}
+                                    isHorizontal
                                 />
                             )}
                         </PressableWithFeedback>
@@ -213,10 +241,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             selectedTab={selectedTab}
                             isWideLayout
                         />
-                    </View>
-                    <View style={styles.leftNavigationTabBarFAB}>
-                        <NavigationTabBarFloatingActionButton />
-                    </View>
+                    </ScrollView>
                 </View>
             </>
         );

@@ -26,9 +26,10 @@ import ROUTES from '@src/ROUTES';
 
 const GLOBAL_NAV_BAR_HEIGHT = 52;
 
+// Tabs that render their own LHN to the right of the rail still get a bottom border on the
+// top app bar. Home and Spend don't render a right-side LHN (Spend's lives inside the rail).
 const NAVIGATORS_WITH_LHN = new Set<string>([
     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
     NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
     NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
@@ -118,7 +119,7 @@ function GlobalNavBar() {
             style={{
                 position: 'absolute',
                 top: 0,
-                left: variables.navigationTabBarSize,
+                left: variables.navigationTabBarWidth,
                 right: 0,
                 height: GLOBAL_NAV_BAR_HEIGHT,
                 backgroundColor: theme.appBG,

@@ -11,7 +11,6 @@ import Tooltip from '@components/Tooltip';
 import TooltipSense from '@components/Tooltip/TooltipSense';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
@@ -38,13 +37,16 @@ type SearchTypeMenuItemProps = {
 const COLLAPSED_BADGE_INITIAL_SCALE = 0.5;
 const COLLAPSED_BADGE_EXIT_DURATION_MS = 90;
 
+// Spend sub-menu rows in the global nav rail render icon-less for a tighter row height.
+// Flip this back to true to bring icons back.
+const SHOW_ICON = false;
+
 /**
  * Menu item row for Search type menu
  */
 function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const labelAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -80,14 +82,14 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
-                hovered && !focused && !pressed && styles.hoveredComponentBG,
-                focused && {backgroundColor: theme.borderLight},
+                {height: 36},
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, false, true), true),
+                hovered && !pressed && styles.hoveredComponentBG,
             ]}
         >
             {({hovered, pressed}) => (
                 <>
-                    {icon != null && (
+                    {SHOW_ICON && icon != null && (
                         <View style={[styles.popoverMenuIcon, styles.wAuto, styles.pRelative]}>
                             <Icon
                                 src={icon}
@@ -110,20 +112,21 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                             )}
                         </View>
                     )}
-                    <Animated.View style={[styles.justifyContentCenter, styles.flex1, styles.ml3, labelAnimatedStyle]}>
+                    <Animated.View style={[styles.justifyContentCenter, styles.flex1, SHOW_ICON && styles.ml3, labelAnimatedStyle]}>
                         <Text
-                            style={[styles.popoverMenuText, focused && styles.textStrong]}
+                            style={[styles.popoverMenuText, focused ? styles.textStrong : styles.textSupporting]}
                             numberOfLines={1}
                         >
                             {title}
                         </Text>
                     </Animated.View>
                     {!!badgeText && (
-                        <Animated.View style={[styles.searchTypeMenuAccessoryBox, inlineBadgeAnimatedStyle]}>
+                        <Animated.View style={inlineBadgeAnimatedStyle}>
                             <Badge
                                 text={badgeText}
-                                badgeStyles={[styles.todoBadge, styles.ml0]}
+                                badgeStyles={styles.ml0}
                                 success
+                                isCondensed
                             />
                         </Animated.View>
                     )}

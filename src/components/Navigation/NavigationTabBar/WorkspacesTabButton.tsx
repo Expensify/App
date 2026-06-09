@@ -27,13 +27,14 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const workspacesStatusIndicatorColor = workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined;
 
     if (isWideLayout) {
+        const isSelected = selectedTab === NAVIGATION_TABS.WORKSPACES;
         return (
             <PressableWithFeedback
                 onPress={navigateToWorkspaces}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                 accessibilityState={workspacesAccessibilityState}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [styles.leftNavigationTabBarItem, isSelected && styles.navigationTabBarItemSelected, hovered && !isSelected && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
             >
                 {({hovered}) => (
@@ -44,6 +45,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
                         isHovered={hovered}
                         statusIndicatorColor={workspacesStatusIndicatorColor}
                         numberOfLines={preferredLocale === CONST.LOCALES.DE || preferredLocale === CONST.LOCALES.NL ? 1 : 2}
+                        isHorizontal
                     />
                 )}
             </PressableWithFeedback>

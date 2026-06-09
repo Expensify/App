@@ -1,5 +1,6 @@
 import React from 'react';
 import type {ValueOf} from 'type-fest';
+import Badge from '@components/Badge';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +19,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import todosReportCountsSelector from '@src/selectors/Todos';
 import getLastRoute from './getLastRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
@@ -32,7 +34,14 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [reportCounts] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
+    const totalSpendBadgeCount = reportCounts
+        ? reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT] +
+          reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE] +
+          reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY] +
+          reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT]
+        : 0;
 
     const navigateToSearch = () => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
@@ -72,22 +81,34 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     };
 
     if (isWideLayout) {
+        const isSelected = selectedTab === NAVIGATION_TABS.SEARCH;
         return (
             <PressableWithFeedback
                 onPress={navigateToSearch}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.spend')}
                 accessibilityState={searchAccessibilityState}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [styles.leftNavigationTabBarItem, isSelected && styles.navigationTabBarItemSelected, hovered && !isSelected && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
             >
                 {({hovered}) => (
-                    <TabBarItem
-                        icon={expensifyIcons.ReceiptMultiple}
-                        label={translate('common.spend')}
-                        isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
-                        isHovered={hovered}
-                    />
+                    <>
+                        <TabBarItem
+                            icon={expensifyIcons.ReceiptMultiple}
+                            label={translate('common.spend')}
+                            isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
+                            isHovered={hovered}
+                            isHorizontal
+                        />
+                        {!isSelected && totalSpendBadgeCount > 0 && (
+                            <Badge
+                                text={String(totalSpendBadgeCount)}
+                                badgeStyles={styles.ml0}
+                                success
+                                isCondensed
+                            />
+                        )}
+                    </>
                 )}
             </PressableWithFeedback>
         );

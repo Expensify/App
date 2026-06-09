@@ -15,6 +15,7 @@ type TabBarItemProps = {
     statusIndicatorColor?: string;
     statusIndicatorBorderColor?: string;
     numberOfLines?: number;
+    isHorizontal?: boolean;
 };
 
 function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<typeof useTheme>) {
@@ -27,30 +28,49 @@ function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<
     return theme.icon;
 }
 
-function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, statusIndicatorBorderColor, numberOfLines = 2}: TabBarItemProps) {
+function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, statusIndicatorBorderColor, numberOfLines = 2, isHorizontal = false}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
+    const iconSize = isHorizontal ? variables.iconSizeNormal : variables.iconBottomBar;
+    const iconNode = (
+        <View>
+            <Icon
+                src={icon}
+                fill={getIconFill(isSelected, isHovered, theme)}
+                width={iconSize}
+                height={iconSize}
+            />
+            {!!statusIndicatorColor && (
+                <View
+                    style={[
+                        styles.navigationTabBarStatusIndicator,
+                        styles.statusIndicatorColor(statusIndicatorColor),
+                        !!statusIndicatorBorderColor && {borderColor: statusIndicatorBorderColor},
+                        isHovered && {borderColor: theme.sidebarHover},
+                    ]}
+                />
+            )}
+        </View>
+    );
+
+    if (isHorizontal) {
+        return (
+            <>
+                {iconNode}
+                <Text
+                    numberOfLines={1}
+                    style={[styles.flex1, isSelected ? styles.textBold : styles.textSupporting]}
+                >
+                    {label}
+                </Text>
+            </>
+        );
+    }
+
     return (
         <>
-            <View>
-                <Icon
-                    src={icon}
-                    fill={getIconFill(isSelected, isHovered, theme)}
-                    width={variables.iconBottomBar}
-                    height={variables.iconBottomBar}
-                />
-                {!!statusIndicatorColor && (
-                    <View
-                        style={[
-                            styles.navigationTabBarStatusIndicator,
-                            styles.statusIndicatorColor(statusIndicatorColor),
-                            !!statusIndicatorBorderColor && {borderColor: statusIndicatorBorderColor},
-                            isHovered && {borderColor: theme.sidebarHover},
-                        ]}
-                    />
-                )}
-            </View>
+            {iconNode}
             <Text
                 numberOfLines={numberOfLines}
                 style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, isSelected ? styles.textBold : styles.textSupporting, styles.navigationTabBarLabel]}
