@@ -41,7 +41,7 @@ import {
     resolveSplitItemReportID,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU/SplitExpenseItems';
-import {getExpenseReportChatContext, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -276,18 +276,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext);
     };
-
-    const {fallbackPolicyParentChatReport, participants} = getExpenseReportChatContext({allReportsList: allReports, expenseReport, currentUserPersonalDetails});
-    const policyIDByReportID: Record<string, string | undefined> = {};
-    for (const splitExpense of splitExpenses) {
-        if (!splitExpense.reportID) {
-            continue;
-        }
-        policyIDByReportID[splitExpense.reportID] =
-            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID ??
-            fallbackPolicyParentChatReport?.policyID ??
-            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participants.at(0)?.reportID}`]?.policyID;
-    }
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
