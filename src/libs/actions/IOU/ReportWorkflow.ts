@@ -16,7 +16,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -121,6 +121,10 @@ function canApproveIOU(
 
     const isOnSubmitAndClosePolicy = isSubmitAndClose(policy);
     if (isOnSubmitAndClosePolicy) {
+        return false;
+    }
+
+    if (isSubmitPolicy(policy)) {
         return false;
     }
 
