@@ -64,12 +64,6 @@ In the exported file:
 
 > **Note:** If you expand the groups and select the individual expenses instead of the groups, each expense is exported as its own row without grouping.
 
-<!-- SCREENSHOT:
-Suggestion: The Spend > Expenses page with Group by set to Category and the "1 selected" button open showing Basic export
-Location: After step 6 in the Export grouped expenses section
-Purpose: Show users where the Group by control and the Basic export option appear when exporting grouped results
--->
-
 # Export as PDF
 
 1. Open the individual report you want to export.
