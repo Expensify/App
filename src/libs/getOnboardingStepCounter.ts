@@ -30,6 +30,7 @@ const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
     [ONBOARDING.PERSONAL_DETAILS]: ONBOARDING.PERSONAL_DETAILS,
     [ONBOARDING.WORKSPACES]: ONBOARDING.WORKSPACES,
     [ONBOARDING.PURPOSE]: ONBOARDING.PURPOSE,
+    [ONBOARDING.PERSONAL_TRACK_GOAL]: ONBOARDING.PERSONAL_TRACK_GOAL,
     [ONBOARDING.EMPLOYEES]: ONBOARDING.EMPLOYEES,
     [ONBOARDING.ACCOUNTING]: ONBOARDING.ACCOUNTING,
     [ONBOARDING.INTERESTED_FEATURES]: ONBOARDING.INTERESTED_FEATURES,
@@ -45,7 +46,7 @@ const TRACK_PURPOSE_SUFFIXES = [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPAC
 const purposeSuffixes = {
     [ONBOARDING_CHOICES.MANAGE_TEAM]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
     [ONBOARDING_CHOICES.TRACK_BUSINESS]: TRACK_PURPOSE_SUFFIXES,
-    [ONBOARDING_CHOICES.TRACK_PERSONAL]: TRACK_PURPOSE_SUFFIXES,
+    [ONBOARDING_CHOICES.TRACK_PERSONAL]: [ONBOARDING.PERSONAL_TRACK_GOAL, ...TRACK_PURPOSE_SUFFIXES],
     [ONBOARDING_CHOICES.PERSONAL_SPEND]: TRACK_PURPOSE_SUFFIXES,
     [ONBOARDING_CHOICES.EMPLOYER]: [ONBOARDING.PERSONAL_DETAILS],
     [ONBOARDING_CHOICES.CHAT_SPLIT]: [ONBOARDING.PERSONAL_DETAILS],
@@ -78,9 +79,10 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
         if (context.isMergeAccountStepSkipped === false) {
             return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
         }
-        // User skipped the work email step — they never see WORK_EMAIL_VALIDATION
+        // The user skipped the work email step, so it is no longer a reachable part of the flow: navigating back to it
+        // immediately redirects forward again. Excluding it keeps the step counter accurate and prevents a dead back button.
         if (context.isMergeAccountStepSkipped === true) {
-            return [ONBOARDING.WORK_EMAIL];
+            return [];
         }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
