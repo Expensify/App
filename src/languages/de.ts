@@ -1691,6 +1691,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
+        categoryDisabledAlert: {
+            title: 'Kategorie deaktiviert',
+            prompt: 'Aktivieren Sie Kategorien im Arbeitsbereich, um die Ausgabendetails zu bearbeiten oder die Kategorie aus dieser Ausgabe zu löschen.',
+            confirmText: 'Kategorie löschen',
+        },
+        tagDisabledAlert: {
+            title: 'Tag deaktiviert',
+            prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
+            confirmText: 'Tag löschen',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4125,28 +4135,31 @@ ${amount} für ${merchant} – ${date}`,
         verificationFailed: 'Die Verifizierung ist fehlgeschlagen, daher benötigen wir zusätzliche Dokumente, um dich und dein Unternehmen zu überprüfen',
         taxIDVerification: 'Steuer-ID-Verifizierung',
         taxIDVerificationDescription: dedent(`
-        Bitte lade eine der folgenden Dateien hoch:
-        • IRS TIN/EIN-Zuweisungsschreiben
-        • IRS TIN/EIN-Antragsbestätigung (enthält normalerweise „Congratulations! The EIN has been successfully assigned“)
-        • IRS-Steuerbefreiungsschreiben mit Firmenname und EIN`),
+            Bitte lade eine der folgenden Dateien hoch:
+            • IRS TIN/EIN-Zuweisungsschreiben
+            • IRS TIN/EIN-Antragsbestätigung (enthält normalerweise „Congratulations! The EIN has been successfully assigned“)
+            • IRS-Steuerbefreiungsschreiben mit Firmenname und EIN
+        `),
         nameChangeDocument: 'Dokument zur Namensänderung',
         nameChangeDocumentDescription:
             'Wenn sich der Name deines Unternehmens seit der Beantragung der TIN/EIN geändert hat, benötigen wir dieses Dokument zur Verifizierung der angegebenen Steuer-ID',
         companyAddressVerification: 'Verifizierung der Unternehmensadresse',
         companyAddressVerificationDescription: dedent(`
-        Bitte lade eine der folgenden Dateien hoch:
-        • Aktuelle Strom-, Wasser- oder Gasrechnung mit Firmenname und Adresse
-        • Kontoauszug mit Firmenname und Adresse
-        • Aktueller Miet- oder Leasingvertrag inkl. Unterschriftsseite mit Firmenname und aktueller Adresse
-        • Versicherungsnachweis mit Firmenname und Adresse
-        • TIN-Zuweisungsdokument mit Firmenname und Adresse`),
+            Bitte lade eine der folgenden Dateien hoch:
+            • Aktuelle Strom-, Wasser- oder Gasrechnung mit Firmenname und Adresse
+            • Kontoauszug mit Firmenname und Adresse
+            • Aktueller Miet- oder Leasingvertrag inkl. Unterschriftsseite mit Firmenname und aktueller Adresse
+            • Versicherungsnachweis mit Firmenname und Adresse
+            • TIN-Zuweisungsdokument mit Firmenname und Adresse
+        `),
         userAddressVerification: 'Adressverifizierung',
         userAddressVerificationDescription: dedent(`
-        Bitte lade eine der folgenden Dateien hoch:
-        • Wählerregistrierungskarte
-        • Führerschein
-        • Kontoauszug
-        • Versorgungsrechnung`),
+            Bitte lade eine der folgenden Dateien hoch:
+            • Wählerregistrierungskarte
+            • Führerschein
+            • Kontoauszug
+            • Versorgungsrechnung
+        `),
         userDOBVerification: 'Geburtsdatumsverifizierung',
         userDOBVerificationDescription: 'Bitte lade einen in den USA ausgestellten Ausweis hoch',
         finishViaChat: 'Über Chat abschließen',

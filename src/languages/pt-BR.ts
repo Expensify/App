@@ -1682,6 +1682,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
+        categoryDisabledAlert: {
+            title: 'Categoria desativada',
+            prompt: 'Ative as categorias no workspace para editar os detalhes da despesa ou excluir a categoria desta despesa.',
+            confirmText: 'Excluir categoria',
+        },
+        tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
     },
     transactionMerge: {
         listPage: {
@@ -4101,27 +4107,30 @@ ${amount} para ${merchant} - ${date}`,
         verificationFailed: 'A verificação falhou, então precisaremos de documentos adicionais para verificar você e sua empresa',
         taxIDVerification: 'Verificação de ID fiscal',
         taxIDVerificationDescription: dedent(`
-        Envie um dos seguintes arquivos:
-        • Carta de atribuição de TIN/EIN do IRS
-        • Confirmação de solicitação de TIN/EIN do IRS (normalmente contém "Congratulations! The EIN has been successfully assigned")
-        • Carta de isenção fiscal do IRS com o nome da empresa e o EIN`),
+            Envie um dos seguintes arquivos:
+            • Carta de atribuição de TIN/EIN do IRS
+            • Confirmação de solicitação de TIN/EIN do IRS (normalmente contém "Congratulations! The EIN has been successfully assigned")
+            • Carta de isenção fiscal do IRS com o nome da empresa e o EIN
+        `),
         nameChangeDocument: 'Documento de alteração de nome',
         nameChangeDocumentDescription: 'Se o nome da sua empresa mudou desde a solicitação do TIN/EIN, precisamos deste documento para verificar o número de identificação fiscal informado',
         companyAddressVerification: 'Verificação de endereço da empresa',
         companyAddressVerificationDescription: dedent(`
-        Envie um dos seguintes arquivos:
-        • Conta recente de serviços públicos com nome e endereço da empresa
-        • Extrato bancário com nome e endereço da empresa
-        • Contrato de locação atual incluindo a página de assinatura com nome e endereço atual da empresa
-        • Apólice ou declaração de seguro com nome e endereço da empresa
-        • Documento de atribuição de TIN com nome e endereço da empresa`),
+            Envie um dos seguintes arquivos:
+            • Conta recente de serviços públicos com nome e endereço da empresa
+            • Extrato bancário com nome e endereço da empresa
+            • Contrato de locação atual incluindo a página de assinatura com nome e endereço atual da empresa
+            • Apólice ou declaração de seguro com nome e endereço da empresa
+            • Documento de atribuição de TIN com nome e endereço da empresa
+        `),
         userAddressVerification: 'Verificação de endereço',
         userAddressVerificationDescription: dedent(`
-        Envie um dos seguintes arquivos:
-        • Título de eleitor
-        • Carteira de motorista
-        • Extrato bancário
-        • Conta de serviços públicos`),
+            Envie um dos seguintes arquivos:
+            • Título de eleitor
+            • Carteira de motorista
+            • Extrato bancário
+            • Conta de serviços públicos
+        `),
         userDOBVerification: 'Verificação de data de nascimento',
         userDOBVerificationDescription: 'Envie um documento de identidade emitido nos EUA',
         finishViaChat: 'Finalizar pelo chat',

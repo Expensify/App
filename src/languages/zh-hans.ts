@@ -1630,6 +1630,8 @@ const translations: TranslationDeepObject<typeof en> = {
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
         bulkDuplicateLimit: `您一次最多可以复制 ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 笔报销。请减少选择的报销数量后重试。`,
         deleted: '已删除',
+        categoryDisabledAlert: {title: '类别已禁用', prompt: '在工作区中启用类别，以编辑报销详情或从此报销中删除该类别。', confirmText: '删除类别'},
+        tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
     },
     transactionMerge: {
         listPage: {
@@ -4010,27 +4012,30 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         verificationFailed: '验证失败，因此我们需要额外的文件来验证你及你的企业',
         taxIDVerification: '税务识别号验证',
         taxIDVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • IRS TIN/EIN 分配函
-        • IRS TIN/EIN 申请确认函（通常包含“Congratulations! The EIN has been successfully assigned”）
-        • 显示公司名称和 EIN 的 IRS 免税函`),
+            请上传以下任一文件：
+            • IRS TIN/EIN 分配函
+            • IRS TIN/EIN 申请确认函（通常包含“Congratulations! The EIN has been successfully assigned”）
+            • 显示公司名称和 EIN 的 IRS 免税函
+        `),
         nameChangeDocument: '名称变更文件',
         nameChangeDocumentDescription: '如果你的公司名称在申请 TIN/EIN 后发生更改，我们需要此文件来验证你提供的税务识别号',
         companyAddressVerification: '公司地址验证',
         companyAddressVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • 显示公司名称和地址的近期水电账单
-        • 显示公司名称和地址的银行对账单
-        • 包含签字页的有效租赁协议，显示公司名称和当前地址
-        • 显示公司名称和地址的保险声明
-        • 显示公司名称和地址的 TIN 分配文件`),
+            请上传以下任一文件：
+            • 显示公司名称和地址的近期水电账单
+            • 显示公司名称和地址的银行对账单
+            • 包含签字页的有效租赁协议，显示公司名称和当前地址
+            • 显示公司名称和地址的保险声明
+            • 显示公司名称和地址的 TIN 分配文件
+        `),
         userAddressVerification: '地址验证',
         userAddressVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • 选民登记卡
-        • 驾驶证
-        • 银行对账单
-        • 水电账单`),
+            请上传以下任一文件：
+            • 选民登记卡
+            • 驾驶证
+            • 银行对账单
+            • 水电账单
+        `),
         userDOBVerification: '出生日期验证',
         userDOBVerificationDescription: '请上传美国签发的身份证件',
         finishViaChat: '通过聊天完成',

@@ -1685,6 +1685,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Możesz jednocześnie zduplikować maksymalnie ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} wydatków. Wybierz mniej wydatków i spróbuj ponownie.`,
         deleted: 'Usunięto',
+        categoryDisabledAlert: {
+            title: 'Kategoria wyłączona',
+            prompt: 'Włącz kategorie w przestrzeni roboczej, żeby edytować szczegóły wydatku lub usunąć kategorię z tego wydatku.',
+            confirmText: 'Usuń kategorię',
+        },
+        tagDisabledAlert: {
+            title: 'Tag wyłączony',
+            prompt: 'Włącz tagi w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć ten tag z tego wydatku.',
+            confirmText: 'Usuń znacznik',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4101,27 +4111,30 @@ ${amount} dla ${merchant} - ${date}`,
         verificationFailed: 'Weryfikacja nie powiodła się, dlatego potrzebujemy dodatkowych dokumentów do potwierdzenia Twojej tożsamości i firmy',
         taxIDVerification: 'Weryfikacja numeru podatkowego',
         taxIDVerificationDescription: dedent(`
-        Prześlij jeden z poniższych plików:
-        • List przydziału TIN/EIN z IRS
-        • Potwierdzenie wniosku TIN/EIN z IRS (zwykle zawiera „Congratulations! The EIN has been successfully assigned”)
-        • Pismo o zwolnieniu podatkowym z IRS zawierające nazwę firmy i EIN`),
+            Prześlij jeden z poniższych plików:
+            • List przydziału TIN/EIN z IRS
+            • Potwierdzenie wniosku TIN/EIN z IRS (zwykle zawiera „Congratulations! The EIN has been successfully assigned”)
+            • Pismo o zwolnieniu podatkowym z IRS zawierające nazwę firmy i EIN
+        `),
         nameChangeDocument: 'Dokument zmiany nazwy',
         nameChangeDocumentDescription: 'Jeśli nazwa firmy zmieniła się od momentu złożenia wniosku o TIN/EIN, dokument ten jest wymagany do weryfikacji podanego numeru podatkowego',
         companyAddressVerification: 'Weryfikacja adresu firmy',
         companyAddressVerificationDescription: dedent(`
-        Prześlij jeden z poniższych plików:
-        • Aktualny rachunek za media z nazwą i adresem firmy
-        • Wyciąg bankowy z nazwą i adresem firmy
-        • Aktualna umowa najmu z podpisaną stroną zawierającą nazwę i adres firmy
-        • Dokument ubezpieczeniowy z nazwą i adresem firmy
-        • Dokument przydziału TIN z nazwą i adresem firmy`),
+            Prześlij jeden z poniższych plików:
+            • Aktualny rachunek za media z nazwą i adresem firmy
+            • Wyciąg bankowy z nazwą i adresem firmy
+            • Aktualna umowa najmu z podpisaną stroną zawierającą nazwę i adres firmy
+            • Dokument ubezpieczeniowy z nazwą i adresem firmy
+            • Dokument przydziału TIN z nazwą i adresem firmy
+        `),
         userAddressVerification: 'Weryfikacja adresu',
         userAddressVerificationDescription: dedent(`
-        Prześlij jeden z poniższych plików:
-        • Karta rejestracji wyborcy
-        • Prawo jazdy
-        • Wyciąg bankowy
-        • Rachunek za media`),
+            Prześlij jeden z poniższych plików:
+            • Karta rejestracji wyborcy
+            • Prawo jazdy
+            • Wyciąg bankowy
+            • Rachunek za media
+        `),
         userDOBVerification: 'Weryfikacja daty urodzenia',
         userDOBVerificationDescription: 'Prześlij dokument tożsamości wydany w USA',
         finishViaChat: 'Zakończ przez czat',
