@@ -33,11 +33,23 @@ function AddBankAccount() {
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const kycWallRef = useContext(KYCWallContext);
 
+    // The bank account was already created on a previous Confirm (e.g. the user advanced, navigated back, and pressed Confirm again).
+    // currentStep is moved off the bank account step only after a successful add.
+    const isBankAccountAlreadyAdded = !!userWallet?.currentStep && userWallet.currentStep !== CONST.WALLET.STEP.ADD_BANK_ACCOUNT;
+
     const submit = useCallback(() => {
+        // Re-submitting an already added bank account fails with a "bank account already exists" error,
+        // so skip the API call and just continue to the next step of the flow.
+        if (isBankAccountAlreadyAdded) {
+            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: CONST.ENABLE_PAYMENTS.PAGE_NAMES.PERSONAL_INFO}));
+            return;
+        }
+
         const bankAccounts = plaidData?.bankAccounts ?? [];
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccountDraft?.plaidAccountID);
 
@@ -50,7 +62,7 @@ function AddBankAccount() {
                   };
             addPersonalBankAccount(bankAccountWithToken, personalPolicyID);
         }
-    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken, personalPolicyID]);
+    }, [isBankAccountAlreadyAdded, personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken, personalPolicyID]);
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
