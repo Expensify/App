@@ -268,7 +268,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     // Pin items that were already selected when the list opened to the top (long lists only); rows toggled afterwards stay in place.
     const sections = useFrozenPreSelection<OptionWithKey>(baseSections, {
-        initialSelectedValues: selectedOptions.map((option) => option.login ?? String(option.accountID ?? '')),
+        initialSelectedValues: selectedOptions.map((option) => option.login ?? (option.accountID ? String(option.accountID) : undefined)).filter((value): value is string => !!value),
         canCapture: areOptionsInitialized,
         getKey: (item) => item.login ?? (item.accountID ? String(item.accountID) : undefined),
     });

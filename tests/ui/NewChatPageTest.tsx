@@ -40,6 +40,8 @@ jest.mock('react-native-permissions', () => ({
     },
 }));
 
+const triggerTransitionEnd = () => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+
 const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>
         <HTMLEngineProvider>
@@ -75,7 +77,7 @@ describe('NewChatPage', () => {
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
         act(() => {
-            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+            triggerTransitionEnd();
         });
         const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
         const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
@@ -92,7 +94,7 @@ describe('NewChatPage', () => {
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
         act(() => {
-            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+            triggerTransitionEnd();
         });
 
         const getRenderedNames = () => screen.getAllByText(/^Email /).map((node) => String(node.props.children));
@@ -108,7 +110,10 @@ describe('NewChatPage', () => {
         const addButtons = screen.getAllByText(translateLocal('newChatPage.addToGroup'));
         const targetIndex = 2;
         const targetName = namesBefore.at(targetIndex);
-        fireEvent.press(addButtons[targetIndex]);
+        const targetButton = addButtons.at(targetIndex);
+        if (targetButton) {
+            fireEvent.press(targetButton);
+        }
         await waitForBatchedUpdatesWithAct();
 
         // The selected user should stay in place rather than jumping to the top of the list.
@@ -133,7 +138,7 @@ describe('NewChatPage', () => {
             render(<NewChatPage />, {wrapper});
             await waitForBatchedUpdatesWithAct();
             act(() => {
-                (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+                triggerTransitionEnd();
             });
 
             // And email is entered into the search input
