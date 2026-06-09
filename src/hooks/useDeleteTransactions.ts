@@ -29,6 +29,9 @@ import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import {getSplitEffectivePolicy} from './useSplitEffectivePolicy';
 
 type UseDeleteTransactionsParams = {
     /** Report object (optional, can be used for context) */
@@ -81,6 +84,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
 
@@ -154,7 +160,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseEditTransaction.reportID}`];
                 const selfDMReport = isSelfDM(report) ? report : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
                 const splitExpenseEditTransactionReport = transactionReport ?? selfDMReport;
-                initSplitExpense(splitExpenseEditTransaction, policy, splitExpenseEditTransactionReport, currentUserPersonalDetails.accountID, {
+                const splitEffectivePolicy = getSplitEffectivePolicy({
+                    policy,
+                    transaction: splitExpenseEditTransaction,
+                    allPolicies,
+                    fallbackPolicy: policyForMovingExpenses,
+                });
+                initSplitExpense(splitExpenseEditTransaction, splitExpenseEditTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {
                     navigateToEditSplitExpense: true,
                     isProduction,
                 });
@@ -351,6 +363,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyTags,
             personalDetails,
             selfDMReportID,
+            allPolicies,
+            policyForMovingExpenses,
+            restrictedActionPolicyID,
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
             isProduction,

@@ -4849,7 +4849,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4874,7 +4874,7 @@ describe('initSplitExpense', () => {
     });
     it('should not initialize split expense for null transaction', async () => {
         const transaction: Transaction | undefined = undefined;
-        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined);
         await waitForBatchedUpdates();
 
         expect(transaction).toBeFalsy();
@@ -4898,7 +4898,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4968,7 +4968,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, policy, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        initSplitExpense(transaction, undefined, policy, undefined, undefined);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -5041,7 +5041,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user initiates a split on the remaining transaction
-        initSplitExpense(remainingTransaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+        initSplitExpense(remainingTransaction, undefined, undefined, undefined, undefined);
         await waitForBatchedUpdates();
 
         // Then a fresh split is started keyed by the remaining transaction (2 new splits)
@@ -5102,7 +5102,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user opens the edit-splits flow from one of the children
-        initSplitExpense(secondChildTransaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+        initSplitExpense(secondChildTransaction, undefined, undefined, undefined, undefined);
         await waitForBatchedUpdates();
 
         // Then the edit-splits draft is keyed by the original transaction and rebuilt from the existing children
@@ -5113,6 +5113,100 @@ describe('initSplitExpense', () => {
         // And no fresh split was started keyed by the child the user opened it from
         const freshDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${secondChildTransactionID}`);
         expect(freshDraft).toBeFalsy();
+    });
+
+    it('redirects to the restricted action page and does not create a split draft when the workspace is billing-restricted', async () => {
+        const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
+        (Navigation.navigate as jest.Mock).mockClear();
+        const transaction: Transaction = {
+            transactionID: 'restricted-1',
+            amount: -100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: 'Test comment',
+                splitExpenses: [],
+                attendees: [],
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When the workspace is billing-restricted, the caller passes the restricted policy ID
+        initSplitExpense(transaction, undefined, undefined, undefined, '7');
+        await waitForBatchedUpdates();
+
+        // Then the user is redirected to the restricted action page and no split draft is created
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute('7'));
+        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+        expect(draftTransaction).toBeFalsy();
+    });
+
+    it('uses the effectivePolicy mileage rate to build distance split amounts', async () => {
+        const customUnitRateID = 'rate-200';
+        const customUnitID = 'distance-unit';
+        // effectivePolicy carries a known rate of 200, distinct from the transaction-derived rate,
+        // so we can assert the split distance (quantity) is computed from this policy's rate.
+        const effectivePolicy: Policy = {
+            ...createRandomPolicy(2),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [customUnitRateID]: {
+                            customUnitRateID,
+                            currency: CONST.CURRENCY.USD,
+                            rate: 200,
+                            enabled: true,
+                            name: 'Default Rate',
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicy.id}`, effectivePolicy);
+        await waitForBatchedUpdates();
+
+        const transaction: Transaction = {
+            transactionID: 'distance-effective-policy',
+            amount: -20000,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                comment: 'Distance expense',
+                splitExpenses: [],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    customUnitRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 200,
+                },
+            },
+            category: 'Car',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined);
+        await waitForBatchedUpdates();
+
+        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+        expect(draftTransaction).toBeTruthy();
+        const splitExpenses = draftTransaction?.comment?.splitExpenses;
+        expect(splitExpenses).toHaveLength(2);
+        // Each half is 10000; with the policy rate of 200 the distance is 10000 / 200 = 50.
+        expect(splitExpenses?.[0].customUnit?.quantity).toBe(50);
+        expect(splitExpenses?.[1].customUnit?.quantity).toBe(50);
+        expect(splitExpenses?.[0].merchant).toContain('50');
+        expect(splitExpenses?.[1].merchant).toContain('50');
     });
 });
 
