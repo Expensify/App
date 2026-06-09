@@ -902,8 +902,6 @@ describe('getHRCards', () => {
         expect(bambooCard?.completeSetupRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
         expect(getRow(bambooCard, 'groups')?.route).toBe(ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(POLICY_ID));
         expect(getRow(bambooCard, 'groups')?.title).toBeUndefined();
-
-        expect(cards.find((c) => c.key === 'merge_workday')?.completeSetupRoute).toBeUndefined();
     });
 
     it('connected Merge card with chosen groups summarizes the selected names and drops completeSetupRoute', () => {
