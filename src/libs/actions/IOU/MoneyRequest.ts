@@ -82,6 +82,7 @@ type CreateTransactionParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
+    currentUserLocalCurrency: string | undefined;
 };
 
 function createTransaction({
@@ -109,6 +110,7 @@ function createTransaction({
     recentWaypoints,
     optimisticTransactionIDs,
     optimisticChatReportID,
+    currentUserLocalCurrency,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -155,6 +157,7 @@ function createTransaction({
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                currentUserLocalCurrency,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -237,6 +240,9 @@ type InitMoneyRequestParams = {
     isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
     draftTransactionIDs?: string[];
+    /** New manual expense flow only: seed the fresh transaction with participants so the embedded confirmation step's
+     * auto-assign useEffect short-circuits and doesn't re-fire after a tab-switch cleanup. */
+    defaultParticipants?: Participant[];
 };
 
 /**
@@ -264,6 +270,7 @@ function initMoneyRequest({
     currentUserPersonalDetails,
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
+    defaultParticipants,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -352,12 +359,14 @@ function initMoneyRequest({
         isFromGlobalCreate,
         isFromFloatingActionButton,
         merchant: defaultMerchant,
+        // Seed participants when provided (new manual flow) so the embedded confirmation's auto-assign useEffect
+        // short-circuits and doesn't re-fire on subsequent renders/cleanups.
+        ...(defaultParticipants && defaultParticipants.length > 0 ? {participants: defaultParticipants, participantsAutoAssigned: true} : {}),
     };
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, newTransaction);
-
     return newTransaction;
 }
 
