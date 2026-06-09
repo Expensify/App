@@ -32,7 +32,7 @@ type BaseFloatingCameraButtonProps = {
 };
 
 function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
-    const {textLight} = useTheme();
+    const {floatingActionButtonIcon} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -108,7 +108,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
                 testID="floating-camera-button-container"
             >
                 <Icon
-                    fill={textLight}
+                    fill={floatingActionButtonIcon}
                     src={icon}
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
