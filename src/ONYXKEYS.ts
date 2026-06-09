@@ -120,9 +120,6 @@ const ONYXKEYS = {
     /** Contains metadata (partner, login, validation date) for all of the user's logins */
     LOGINS: 'logins',
 
-    /** Contains metadata (partner, login, validation date) for all of the user's logins */
-    LOGIN_LIST: 'loginList',
-
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
@@ -484,6 +481,9 @@ const ONYXKEYS = {
 
     /** Onboarding company size selected by the user during Onboarding flow */
     ONBOARDING_COMPANY_SIZE: 'onboardingCompanySize',
+
+    /** Onboarding personal track goal selected by the user during Onboarding flow */
+    ONBOARDING_PERSONAL_TRACK_GOAL: 'onboardingPersonalTrackGoal',
 
     /** Onboarding user reported integration selected by the user during Onboarding flow */
     ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
@@ -1482,7 +1482,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.COUNTRY]: string;
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGINS]: OnyxTypes.Logins;
-    [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
     [ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE]: OnyxTypes.ValidateDomainTwoFactorCode;
@@ -1585,6 +1584,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnyxTypes.OnboardingPurpose;
     [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySize;
+    [ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL]: string;
     [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnyxTypes.OnboardingPurpose[] | [];
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY]: TranslationPaths;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
