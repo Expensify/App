@@ -40,10 +40,8 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const doesDomainExist = !!domain;
 
-    const isDomainVerified = domain?.validated ?? domain?.hasValidationSucceeded;
-
     useEffect(() => {
-        if (!doesDomainExist || isDomainVerified) {
+        if (!doesDomainExist || domain?.validated) {
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
