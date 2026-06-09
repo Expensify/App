@@ -153,7 +153,7 @@ function FeatureTrainingModalCarouselBody({
             // The array is static for the modal's lifetime, so the index is a stable key.
             // eslint-disable-next-line react/no-array-index-key
             key={`carousel-dot-${index}`}
-            style={StyleUtils.getFeatureTrainingCarouselDotStyle(CAROUSEL_DOT_SIZE, theme.highlightBG, index === currentPage)}
+            style={StyleUtils.getFeatureTrainingCarouselDotStyle(CAROUSEL_DOT_SIZE, theme.buttonSuccessText, index === currentPage)}
         />
     ));
 
@@ -243,7 +243,7 @@ function FeatureTrainingModalCarouselBody({
                             >
                                 <Icon
                                     src={expensifyIcons.Close}
-                                    fill={theme.highlightBG}
+                                    fill={theme.buttonSuccessText}
                                 />
                             </PressableWithFeedback>
                         </Tooltip>
