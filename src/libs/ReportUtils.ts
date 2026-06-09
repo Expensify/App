@@ -1741,14 +1741,20 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a paid group or Submit policy
+ * ✅ GROUP-FEATURE gating. Whether the report belongs to a group policy (Collect, Control, or Submit).
+ *
+ * Report-based counterpart of `PolicyUtils.isGroupPolicy`. Prefer this over `isPaidGroupPolicy(report)`
+ * for feature gating (violations, report fields, etc.) so free group plans like Submit aren't excluded.
  */
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
     return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
 }
 
 /**
- * Whether the provided report belongs to a Control or Collect policy
+ * ⚠️ BILLING / PAID-ONLY. Whether the report belongs to a paid policy (Collect/Control) only.
+ *
+ * Report-based counterpart of `PolicyUtils.isPaidGroupPolicy`. For group-feature gating use
+ * `isReportInGroupPolicy` instead, or Submit workspaces will be wrongly excluded.
  */
 function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
     const policyType = getPolicyType(report, allPolicies);
@@ -9260,18 +9266,18 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
         return false;
     }
 
-    const isPaidGroupPolicyReport = isExpenseReport(report) && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
-    if (!isPaidGroupPolicyReport && !isInvoiceReport(report)) {
+    const isGroupPolicyReport = isGroupPolicyExpenseReport(report);
+    if (!isGroupPolicyReport && !isInvoiceReport(report)) {
         return false;
     }
 
     // We only show the RBR to the submitter for expense reports
-    if (isPaidGroupPolicyReport && !isCurrentUserSubmitter(report)) {
+    if (isGroupPolicyReport && !isCurrentUserSubmitter(report)) {
         return false;
     }
 
     // Allow both open and processing reports to show RBR for field violations (expense reports only)
-    if (isPaidGroupPolicyReport && !isOpenOrProcessingReport(report)) {
+    if (isGroupPolicyReport && !isOpenOrProcessingReport(report)) {
         return false;
     }
 
