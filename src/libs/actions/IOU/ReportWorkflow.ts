@@ -63,6 +63,7 @@ import {
     isScanning,
     isScanningTransaction,
 } from '@libs/TransactionUtils';
+import {isValidAccountRoute} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -70,7 +71,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactionViolations} from '.';
+import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 
 type ApproveMoneyRequestFunctionParams = {
@@ -329,14 +330,12 @@ function getIOUReportActionWithBadge(
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    allReportActionsParam?: OnyxCollection<OnyxTypes.ReportActions>,
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
 ): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
-    const chatReportActions = (allReportActionsParam ?? getAllReportActionsFromIOU())?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
-
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
 
-    for (const action of Object.values(chatReportActions)) {
+    for (const action of Object.values(chatReportActions ?? {})) {
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             continue;
         }
@@ -1311,6 +1310,7 @@ function submitReport({
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
     const managerID = getSubmitReportManagerAccountID(policy, expenseReport);
+    const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
         expenseReport?.total ?? 0,
@@ -1336,6 +1336,7 @@ function submitReport({
               hasViolations,
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
+              bypassNextApproverID: optimisticNextStepApproverID,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -1348,6 +1349,7 @@ function submitReport({
               hasViolations,
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
+              bypassNextApproverID: optimisticNextStepApproverID,
           });
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
