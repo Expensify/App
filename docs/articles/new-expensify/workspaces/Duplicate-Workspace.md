@@ -36,6 +36,7 @@ Follow these steps to create a new workspace based on an existing one:
    - Per Diem  
    - Invoices
    - Travel
+   - Time
 5. If you choose to copy Members, review and confirm your selections before proceeding.  
 6. Click **Continue** to create your new workspace.
 
