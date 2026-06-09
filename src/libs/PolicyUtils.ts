@@ -1087,6 +1087,10 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
+function isSubmitterApproveBlockedOnSubmitWorkspace(policy: OnyxInputOrEntry<Policy>, reportOwnerAccountID: number | undefined, approverAccountID: number): boolean {
+    return isSubmitPolicy(policy) && reportOwnerAccountID === approverAccountID;
+}
+
 /**
  * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
  *
@@ -2601,6 +2605,7 @@ export {
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
 };
 
 export type {MemberEmailsToAccountIDs, PolicyFeature};
