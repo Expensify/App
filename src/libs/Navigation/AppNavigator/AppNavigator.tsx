@@ -1,8 +1,8 @@
 import React, {lazy, memo, Suspense} from 'react';
 import lazyRetry from '@src/utils/lazyRetry';
 
-const AuthScreens = lazy(() => lazyRetry(() => import(/* webpackChunkName: "authScreens.prefetch" */ './AuthScreens')));
-const PublicScreens = lazy(() => lazyRetry(() => import(/* webpackMode: "eager" */ './PublicScreens')));
+const AuthScreens = lazy(() => lazyRetry(() => import(/* webpackChunkName: "authScreens.prefetch" */ './AuthScreens'), 'authScreens'));
+const PublicScreens = lazy(() => lazyRetry(() => import(/* webpackMode: "eager" */ './PublicScreens'), 'publicScreens'));
 
 type AppNavigatorProps = {
     /** If we have an authToken this is true */
