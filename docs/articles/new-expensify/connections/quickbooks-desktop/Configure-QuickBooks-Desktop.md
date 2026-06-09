@@ -81,12 +81,13 @@ These settings control how Expensify exports reports and transactions to QuickBo
   * **Credit card** (default)
   * **Debit card**
   * **Vendor bill**
-* Configure accounts based on your selection:
+* Configure accounts based on your selection. No account or vendor is selected by default, so you must choose one:
 
   * **Credit card account**: Select a credit card account from the imported list
   * **Debit card account**: Select a bank account from the imported list
   * **Accounts payable account**: Select an Accounts Payable account (for vendor bills)
   * **Default vendor**: Select a vendor from the imported list (for vendor bills)
+* If you change the export type, any previously selected account and default vendor are cleared, so you'll need to select them again.
 
 **Expensify Card Transactions:**
 
