@@ -513,6 +513,14 @@ function resolveReportForMoneyRequest({
     return routeReport;
 }
 
+/**
+ * Check whether a money-request participant represents a P2P chat (i.e. another user, not a
+ * policy-expense chat and not a self DM).
+ */
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -531,6 +539,7 @@ export {
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
+    isParticipantP2P,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
 };
