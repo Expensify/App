@@ -498,10 +498,7 @@ function PureReportActionItem({
                             }
                             Keyboard.dismiss();
                         }}
-                        style={[
-                            styles.textAlignLeft,
-                            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto,
-                        ]}
+                        style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
                         onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onSecondaryInteraction={showPopover}
