@@ -106,14 +106,15 @@ function TestDriveDemo() {
         setIsVisible(false);
         TransitionTracker.runAfterTransitions({
             callback: () => {
-                Navigation.goBack(undefined);
+                Navigation.goBack();
 
                 if (shouldOpenRHPVariant()) {
                     Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
                     return;
                 }
                 if (isAdminRoom(onboardingReport)) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
+                    console.log('XYZ admin new');
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID), {waitForTransition: true});
                 }
             },
             waitForUpcomingTransition: true,
