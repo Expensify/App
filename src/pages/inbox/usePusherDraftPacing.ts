@@ -220,14 +220,10 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     if (nextVisibleMarkdown.bodyMarkdown !== visibleBodyMarkdownRef.current || nextVisibleMarkdown.sourceOffset !== visibleSourceOffsetRef.current) {
         const isTargetFullyVisible = nextVisibleMarkdown.sourceOffset >= targetBodyMarkdown.length;
         const status = completedEvent && !hasQueuedTarget && isTargetFullyVisible ? 'completed' : 'updated';
+        const shouldPreserveElapsedDebt = (isTargetFullyVisible && hasQueuedTarget) || (!isTargetFullyVisible && revealedUnits >= elapsedIntervals);
+
         // Only consume time for the units we actually revealed; keep the rest for the next target.
-        lastPaceTickTimeRef.current = getNextLastPaceTickTime(
-            now,
-            paceStartTime,
-            elapsedIntervals,
-            revealedUnits,
-            (isTargetFullyVisible && hasQueuedTarget) || (!isTargetFullyVisible && revealedUnits >= elapsedIntervals),
-        );
+        lastPaceTickTimeRef.current = getNextLastPaceTickTime(now, paceStartTime, elapsedIntervals, revealedUnits, shouldPreserveElapsedDebt);
         publishVisibleEvent(runtime, status === 'completed' && completedEvent ? completedEvent : latestEvent, nextVisibleMarkdown, status);
 
         if (status === 'completed') {
@@ -642,12 +638,18 @@ function usePusherDraftPacing(reportID: string) {
 
         resumeCachedPusherDraftPace(runtime);
         const unsubscribeVisibility = Visibility.onVisibilityChange(() => {
+            if (!Visibility.isVisible()) {
+                return;
+            }
+
             if (completedPusherDraftEventRef.current) {
+                // Completion may arrive while the tab is hidden. Reveal the full target on visibility return
+                // so final HTML is not delayed by throttled timers.
                 revealFullPusherDraftTarget(runtime);
                 return;
             }
 
-            if (!Visibility.isVisible() || !pusherPaceIntervalRef.current) {
+            if (!pusherPaceIntervalRef.current) {
                 return;
             }
 
