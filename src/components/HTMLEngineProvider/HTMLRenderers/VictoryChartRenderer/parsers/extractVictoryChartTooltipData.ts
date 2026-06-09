@@ -1,10 +1,9 @@
 import type {TNode} from 'react-native-render-html';
-import type {BarGroupLayout, BarSeriesConfig, BarTooltipEntry, PieTooltipEntry, RawChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {BarGroupLayout, BarSeriesConfig, BarTooltipEntry, PieTooltipEntry, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import {parseVictoryBarTooltips} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/buildBarTooltipEntries';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
-import isNonNullObject from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/isNonNullObject';
-import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseArrayAttribute';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import {parseAttributeAsNumber, parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseRawChartData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawChartData';
 
 type ExtractVictoryChartTooltipContext = {
     isHorizontal?: boolean;
@@ -27,8 +26,8 @@ function extractVictoryBarGroupLayout(tnode: TNode): BarGroupLayout | null {
         return null;
     }
 
-    const barWidth = firstBarChild.attributes.barwidth !== undefined ? Number(parseAttribute(firstBarChild.attributes.barwidth)) : undefined;
-    const offset = tnode.attributes.offset !== undefined ? Number(parseAttribute(tnode.attributes.offset)) : 0;
+    const barWidth = parseAttributeAsNumber(firstBarChild.attributes.barwidth);
+    const offset = parseAttributeAsNumber(tnode.attributes.offset) ?? 0;
 
     return {
         yKeys: barChildren.map((child) => getYKey(child)),
@@ -38,8 +37,8 @@ function extractVictoryBarGroupLayout(tnode: TNode): BarGroupLayout | null {
 }
 
 function extractVictoryPieTooltipEntries(tnode: TNode): PieTooltipEntry[] {
-    const categories = parseArrayAttribute<RawChartData>(tnode.attributes.data).filter(isNonNullObject<RawChartData>);
-    const labels = parseArrayAttribute<string>(tnode.attributes.labels);
+    const categories = parseRawChartData(tnode.attributes.data);
+    const labels = parseAttributeAsStringArray(tnode.attributes.labels) ?? [];
 
     return categories.map((category, index) => {
         const explicitLabel = labels.at(index);

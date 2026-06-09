@@ -1,11 +1,10 @@
 import type {TNode} from 'react-native-render-html';
-import type {BarSeriesConfig, BarTooltipEntry, RawChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {BarSeriesConfig, BarTooltipEntry, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import formatBarTooltipLabel from './formatBarTooltipLabel';
 import getBarTooltipKey from './getBarTooltipKey';
 import getYKey from './getYKey';
-import isNonNullObject from './isNonNullObject';
-import parseArrayAttribute from './parseArrayAttribute';
-import parseAttribute from './parseAttribute';
+import {parseAttributeAsNumber, parseAttributeAsStringArray} from './parseAttribute';
+import parseRawChartData from './parseRawChartData';
 
 type BuildBarTooltipEntriesParams = {
     tnode: TNode;
@@ -21,9 +20,9 @@ function buildBarTooltipEntries({tnode, yKey, isHorizontal, categories}: BuildBa
     entries: BarTooltipEntry[];
     seriesConfig: BarSeriesConfig;
 } {
-    const points = parseArrayAttribute<RawChartData>(tnode.attributes.data).filter(isNonNullObject<RawChartData>);
-    const labels = parseArrayAttribute<string>(tnode.attributes.labels);
-    const barWidth = parseAttribute<number>(tnode.attributes.barwidth);
+    const points = parseRawChartData(tnode.attributes.data);
+    const labels = parseAttributeAsStringArray(tnode.attributes.labels) ?? [];
+    const barWidth = parseAttributeAsNumber(tnode.attributes.barwidth);
 
     const entries: BarTooltipEntry[] = points.map((point, index) => {
         const explicitLabel = labels.at(index);
@@ -48,7 +47,7 @@ function buildBarTooltipEntries({tnode, yKey, isHorizontal, categories}: BuildBa
     return {
         entries,
         seriesConfig: {
-            barWidth: typeof barWidth === 'number' ? barWidth : undefined,
+            barWidth,
         },
     };
 }
