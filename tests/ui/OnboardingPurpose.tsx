@@ -193,9 +193,9 @@ describe('OnboardingPurpose Page', () => {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
             });
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-                [testEmail]: {
-                    partnerName: 'expensify.com',
+            await Onyx.merge(ONYXKEYS.LOGINS, {
+                [`1_${testEmail}`]: {
+                    partnerID: 1,
                     partnerUserID: testEmail,
                     validatedDate: 'fake-validatedDate',
                 },
