@@ -955,6 +955,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
+                    if (!isNegated && filterKey === FILTER_KEYS.TAG && filterValueArray.length === 1 && filterValueArray.at(0) === CONST.SEARCH.TAG_EMPTY_VALUE) {
+                        return `-${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}:${CONST.SEARCH.HAS_VALUES.TAG}`;
+                    }
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
@@ -1098,7 +1101,21 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ExpenseTypeValue)) as ExpenseTypeValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
+            const validHasFilters = filterList.filter((item) => VALID_HAS_TYPES.has(item.value as HasFilterValue));
+            const positiveHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
+            const negatedHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
+            const hasNegatedTagFilter = negatedHasFilters.includes(CONST.SEARCH.HAS_VALUES.TAG);
+            const remainingNegatedHasFilters = negatedHasFilters.filter((hasType) => hasType !== CONST.SEARCH.HAS_VALUES.TAG);
+
+            if (hasNegatedTagFilter) {
+                filtersForm[FILTER_KEYS.TAG] = [CONST.SEARCH.TAG_EMPTY_VALUE];
+            }
+            if (positiveHasFilters.length > 0) {
+                filtersForm[FILTER_KEYS.HAS] = positiveHasFilters;
+            }
+            if (remainingNegatedHasFilters.length > 0) {
+                filtersForm[FILTER_KEYS.HAS_NOT] = remainingNegatedHasFilters;
+            }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             filtersForm[key as typeof filterKey] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as IsFilterValue)) as IsFilterValues;
