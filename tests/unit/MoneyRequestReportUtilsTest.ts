@@ -227,7 +227,7 @@ describe('MoneyRequestReportUtils', () => {
             expect(result.size).toBe(0);
         });
 
-        test('flags only the transactions that show an RBR, leaving clean ones unprioritized', () => {
+        test('flags only the transactions that show an RBR and not the clean ones', () => {
             const errored = createCleanTransaction('1', {errors: {error1: 'boom'}});
             const cleanA = createCleanTransaction('2');
             const cleanB = createCleanTransaction('3');
