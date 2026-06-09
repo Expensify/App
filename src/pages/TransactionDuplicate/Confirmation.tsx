@@ -114,7 +114,12 @@ function Confirmation() {
             Navigation.dismissToSuperWideRHP();
             return;
         }
-        Navigation.goBack(keptReportRoute);
+        const topmostReportID = Navigation.getTopmostReportId?.();
+        if (topmostReportID === mergeParams.reportID) {
+            Navigation.dismissModal();
+        } else {
+            Navigation.goBack(keptReportRoute);
+        }
     }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed]);
 
     const handleResolveDuplicates = useCallback(() => {

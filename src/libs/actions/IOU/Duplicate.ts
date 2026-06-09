@@ -76,6 +76,26 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
     );
 }
 
+type DiscardedSource = {
+    amount: number;
+    actions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
+};
+
+function buildSoftDeleteReportActionUpdate(
+    reportAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
+    deletedTime: string | null,
+): NullishDeep<PartialDeep<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>> {
+    if (deletedTime === null) {
+        return {originalMessage: {deleted: null}, message: reportAction.message};
+    }
+    const firstMessage = Array.isArray(reportAction.message) ? reportAction.message.at(0) : null;
+    return {
+        originalMessage: {deleted: deletedTime},
+        ...(firstMessage && {message: [{...firstMessage, deleted: deletedTime}, ...(Array.isArray(reportAction.message) ? reportAction.message.slice(1) : [])]}),
+        ...(!Array.isArray(reportAction.message) && {message: {deleted: deletedTime}}),
+    };
+}
+
 type DuplicateTransactionParams = {
     transactionID: string | undefined;
     originalSelectedTransaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -213,7 +233,7 @@ function mergeDuplicates({
 
     // Group each discarded duplicate's IOU action and amount by its own source report so the
     // soft-delete MERGE and total decrement target the correct keys when duplicates span reports.
-    const sources = new Map<string, {amount: number; actions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>}>();
+    const sources = new Map<string, DiscardedSource>();
     for (const id of params.transactionIDList) {
         const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
         if (!transaction?.reportID) {
@@ -239,25 +259,12 @@ function mergeDuplicates({
         expenseReportActionsOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
-            value: actions.reduce<Record<string, PartialDeep<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, reportAction) => {
-                const firstMessage = Array.isArray(reportAction.message) ? reportAction.message.at(0) : null;
-                // eslint-disable-next-line no-param-reassign
-                val[reportAction.reportActionID] = {
-                    originalMessage: {deleted: deletedTime},
-                    ...(firstMessage && {message: [{...firstMessage, deleted: deletedTime}, ...(Array.isArray(reportAction.message) ? reportAction.message.slice(1) : [])]}),
-                    ...(!Array.isArray(reportAction.message) && {message: {deleted: deletedTime}}),
-                };
-                return val;
-            }, {}),
+            value: Object.fromEntries(actions.map((a) => [a.reportActionID, buildSoftDeleteReportActionUpdate(a, deletedTime)])),
         });
         expenseReportActionsFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
-            value: actions.reduce<Record<string, NullishDeep<PartialDeep<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
-                // eslint-disable-next-line no-param-reassign
-                val[reportAction.reportActionID] = {originalMessage: {deleted: null}, message: reportAction.message};
-                return val;
-            }, {}),
+            value: Object.fromEntries(actions.map((a) => [a.reportActionID, buildSoftDeleteReportActionUpdate(a, null)])),
         });
 
         // Reset the report-preview accumulator per source so each source report's chat parent
