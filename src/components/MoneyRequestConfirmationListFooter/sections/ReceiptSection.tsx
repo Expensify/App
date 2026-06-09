@@ -1,6 +1,8 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {receiptSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import ConfirmationReceiptThumbnail from '@components/MoneyRequestConfirmationListFooter/ConfirmationReceiptThumbnail';
 import useCompactReceiptDimensions from '@components/MoneyRequestConfirmationListFooter/hooks/useCompactReceiptDimensions';
 import useReceiptThumbnailSource from '@components/MoneyRequestConfirmationListFooter/hooks/useReceiptThumbnailSource';
@@ -17,9 +19,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type ReceiptSectionProps = {
-    /** Active transaction (drives receipt source resolution + scan-mode compact dimensions) */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Active policy (used to decide whether the receipt empty state should render) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -61,7 +60,6 @@ type ReceiptSectionProps = {
 };
 
 function ReceiptSection({
-    transaction,
     policy,
     isPerDiemRequest,
     isDistanceRequest,
@@ -80,6 +78,7 @@ function ReceiptSection({
     const {windowWidth} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {action, iouType, transactionID, reportID, isReadOnly} = useConfirmationFields();
+    const transaction = useTransactionSelector(transactionID, receiptSliceSelector);
 
     const receiptSource = useReceiptThumbnailSource({transaction, receiptPath, receiptFilename});
 
