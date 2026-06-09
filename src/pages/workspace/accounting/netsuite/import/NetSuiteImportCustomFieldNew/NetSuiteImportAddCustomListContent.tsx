@@ -137,6 +137,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
                     onNext={handleNextScreen}
                     onMove={moveTo}
                     policy={policy}
+                    policyIDParam={policyIDParam}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
                     netSuiteCustomFieldFormValues={values}
                     customLists={customLists}
