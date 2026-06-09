@@ -103,7 +103,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             route: ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID),
         });
 
-        return {shouldShowSection: true, items};
+        const areAllItemsComplete = items.every(item => item.isComplete);
+    return {shouldShowSection: !areAllItemsComplete, items};
     }
 
     const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
@@ -149,7 +150,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         });
     }
 
-    return {shouldShowSection: true, items};
+    const areAllItemsComplete = items.every(item => item.isComplete);
+    return {shouldShowSection: !areAllItemsComplete, items};
 }
 
 export default useGettingStartedItems;
