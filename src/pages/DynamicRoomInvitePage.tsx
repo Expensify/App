@@ -122,9 +122,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const reportID = report?.reportID;
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
     const reportDetailsRoute = reportID ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)) : undefined;
-    const roomMembersRoute = reportDetailsRoute ? createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path, reportDetailsRoute) : undefined;
-    const backRoute = reportID && (!isPolicyEmployee || isReportArchived ? reportDetailsRoute : backPath || roomMembersRoute);
-
+    const backRoute = reportID && (!isPolicyEmployee || isReportArchived) ? reportDetailsRoute : backPath;
     const reportName = getReportName(report, reportAttributes);
 
     const ancestors = useAncestors(report);
@@ -162,7 +160,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                     inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
                 }
             };
-            Navigation.goBack(backRoute ?? backPath, {afterTransition});
+            Navigation.goBack(backRoute, {afterTransition});
         }
     };
 
@@ -217,12 +215,12 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived}
                 subtitleKey={subtitleKey}
-                onBackButtonPress={() => Navigation.goBack(backRoute ?? backPath)}
+                onBackButtonPress={() => Navigation.goBack(backRoute)}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
                     subtitle={reportName}
-                    onBackButtonPress={() => Navigation.goBack(backRoute ?? backPath)}
+                    onBackButtonPress={() => Navigation.goBack(backRoute)}
                 />
                 <SelectionListWithSections
                     sections={sections}
