@@ -11,6 +11,16 @@ const totalDistance = 1000;
 const taxClaimablePercentage = 0.5;
 const distanceUnit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 const customUnitRateIDWithOutTaxClaimablePercentage = 'EB515052039A4';
+const distanceCustomUnitBase = {
+    attributes: {
+        taxEnabled: true,
+        unit: distanceUnit,
+    },
+    customUnitID: 'C9031B6F4725D',
+    defaultCategory: '',
+    enabled: true,
+    name: 'Distance',
+};
 const FAKE_POLICY: Policy = {
     id: 'CEEEDB0EC660F71A',
     name: 'Test',
@@ -21,14 +31,7 @@ const FAKE_POLICY: Policy = {
     isPolicyExpenseChatEnabled: true,
     customUnits: {
         C9031B6F4725D: {
-            attributes: {
-                taxEnabled: true,
-                unit: distanceUnit,
-            },
-            customUnitID: 'C9031B6F4725D',
-            defaultCategory: '',
-            enabled: true,
-            name: 'Distance',
+            ...distanceCustomUnitBase,
             rates: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '222AAF6B93BCB': {
@@ -93,7 +96,7 @@ const DATE_BOUND_POLICY: Policy = {
     ...FAKE_POLICY,
     customUnits: {
         C9031B6F4725D: {
-            ...FAKE_POLICY.customUnits!.C9031B6F4725D,
+            ...distanceCustomUnitBase,
             rates: {
                 DEFAULT_RATE_ID: {
                     attributes: {},
@@ -319,7 +322,7 @@ describe('DistanceRequestUtils', () => {
                 ...DATE_BOUND_POLICY,
                 customUnits: {
                     C9031B6F4725D: {
-                        ...DATE_BOUND_POLICY.customUnits!.C9031B6F4725D,
+                        ...distanceCustomUnitBase,
                         rates: {
                             DEFAULT_RATE_ID: {
                                 attributes: {},

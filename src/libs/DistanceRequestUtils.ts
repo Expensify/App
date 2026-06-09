@@ -372,6 +372,14 @@ function getBoundednessScore(rate: MileageRate): number {
     return 0;
 }
 
+function getFullyBoundedDateRangeMs(rate: MileageRate): number | undefined {
+    if (!rate.startDate || !rate.endDate) {
+        return undefined;
+    }
+
+    return new Date(rate.endDate).getTime() - new Date(rate.startDate).getTime();
+}
+
 /**
  * Finds the best eligible rate for a given expense date from a set of mileage rates.
  * Selection order per design doc:
@@ -395,9 +403,9 @@ function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseD
         }
 
         if (aScore === 2 && bScore === 2) {
-            const aRange = new Date(a.endDate!).getTime() - new Date(a.startDate!).getTime();
-            const bRange = new Date(b.endDate!).getTime() - new Date(b.startDate!).getTime();
-            if (aRange !== bRange) {
+            const aRange = getFullyBoundedDateRangeMs(a);
+            const bRange = getFullyBoundedDateRangeMs(b);
+            if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
                 return aRange - bRange;
             }
         }
@@ -447,7 +455,7 @@ function getCustomUnitRateID({
     isTrackDistanceExpense?: boolean;
     expenseDate?: string;
 }): string {
-    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    const customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (!reportID) {
         return customUnitRateID;
