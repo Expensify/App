@@ -261,7 +261,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -592,7 +591,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
-                conciergeReportID,
             });
             const targetReportID = backToReport ?? activeReportID;
             if (shouldHandleNavigation && result && targetReportID) {
