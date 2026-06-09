@@ -234,6 +234,7 @@ const translations = {
         percentage: 'Percentage',
         progressBarLabel: 'Onboarding progress',
         converted: 'Converted',
+        off: 'Off',
         error: {
             invalidAmount: 'Invalid amount',
             acceptTerms: 'You must accept the Terms of Service to continue',
