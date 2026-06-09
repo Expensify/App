@@ -9107,6 +9107,7 @@ const CONST = {
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
             },
             CATEGORIES: {
+                ROW: 'WorkspaceCategories-Row',
                 ADD_BUTTON: 'WorkspaceCategories-AddButton',
                 MORE_DROPDOWN: 'WorkspaceCategories-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCategories-BulkActionsDropdown',
