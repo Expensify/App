@@ -28,6 +28,10 @@ jest.mock('@hooks/useLocalize', () => ({
         translate: (key: string) => key,
     }),
 }));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: 123, login: 'test@example.com'}),
+}));
 
 const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
 const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
@@ -110,7 +114,7 @@ describe('ExportDownloadStatusModal', () => {
         await waitForBatchedUpdatesWithAct();
 
         const expectedURLPart = `secure?secureType=csvexport&filename=${encodeURIComponent(FILE_NAME)}&downloadName=${encodeURIComponent(FILE_NAME)}`;
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), FILE_NAME);
+        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), FILE_NAME, expect.anything(), expect.anything());
     });
 
     it('shows ready state with Download and Close buttons', async () => {
