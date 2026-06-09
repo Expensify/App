@@ -67,8 +67,9 @@ type SearchAutocompleteListProps = {
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
 
-    /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
-    onHighlightFirstItem?: () => void;
+    /** Whether to highlight the first matched result so Enter selects it. Only the SearchRouter (Cmd+K) uses this;
+     *  the search page input keeps focus on the search-query row to match production behavior. */
+    shouldHighlightFirstItem?: boolean;
 
     /** Ref for the external text input */
     textInputRef?: RefObject<AnimatedTextInputRef | null>;
@@ -144,7 +145,7 @@ function SearchAutocompleteList({
     getAdditionalSections,
     onListItemPress,
     shouldSubscribeToArrowKeyEvents = true,
-    onHighlightFirstItem,
+    shouldHighlightFirstItem = false,
     textInputRef,
     autocompleteSubstitutions,
     ref,
@@ -272,8 +273,8 @@ function SearchAutocompleteList({
                 // effect can re-fire and correctly focus the first focusable item (skipping section headers).
                 hasSetInitialFocusRef.current = false;
             } else {
-                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top
-                // onHighlightFirstItem will switch focus to the first result when there's a good match
+                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top.
+                // The highlight effect below switches focus to the first result when there's a good match.
                 innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
             }
         }
@@ -569,7 +570,10 @@ function SearchAutocompleteList({
         reports,
     ]);
 
-    const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
+    // Derive the highlight reference text from the actual first result rather than a fixed section index.
+    // After the two-section ("Recent chats" / "Search results") switcher, sections.at(1) can be the empty
+    // local section when a result is server-only, which would leave the first result unhighlighted.
+    const sectionItemText = styledRecentReports.at(0)?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
     const isLoading = !isRecentSearchesDataLoaded;
@@ -618,10 +622,13 @@ function SearchAutocompleteList({
     useEffect(() => {
         const targetText = autocompleteQueryValue;
 
-        if (shouldHighlight(normalizedReferenceText, targetText)) {
-            onHighlightFirstItem?.();
+        if (!shouldHighlightFirstItem || firstRecentReportFlatIndex === -1 || !shouldHighlight(normalizedReferenceText, targetText)) {
+            return;
         }
-    }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
+        // Focus the header-aware flat index of the first result. A fixed index (e.g. searchQueryItems.length)
+        // lands on the "Recent chats" section header row after the two-section switcher was introduced.
+        innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
+    }, [autocompleteQueryValue, firstRecentReportFlatIndex, normalizedReferenceText, shouldHighlightFirstItem]);
 
     if (isLoading) {
         return (
