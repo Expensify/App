@@ -314,7 +314,7 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to personal details page when user selects TRACK_PERSONAL and is from public domain', async () => {
+    it('should navigate to personal track goal page when user selects TRACK_PERSONAL and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -334,7 +334,7 @@ describe('OnboardingPurpose Page', () => {
         await user.press(trackPersonalOption);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(''));
         });
 
         unmount();
