@@ -119,20 +119,16 @@ type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: 
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
-type TransactionSelectionContext = {
+type MapTransactionItemToSelectedEntryParams = {
+    item: TransactionListItemType;
+    itemTransaction: OnyxEntry<Transaction>;
+    originalItemTransaction: OnyxEntry<Transaction>;
     currentUserLogin: string;
     currentUserAccountID: number;
     archivedReportsIDSet: ArchivedReportsIDSet;
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
     selfDMReport: OnyxEntry<Report>;
     isProduction: boolean;
-};
-
-type MapTransactionItemToSelectedEntryParams = {
-    item: TransactionListItemType;
-    itemTransaction: OnyxEntry<Transaction>;
-    originalItemTransaction: OnyxEntry<Transaction>;
-    transactionSelectionContext: TransactionSelectionContext;
     allowNegativeAmount: boolean;
     parentReport: OnyxEntry<Report> | undefined;
 };
@@ -141,11 +137,15 @@ function mapTransactionItemToSelectedEntry({
     item,
     itemTransaction,
     originalItemTransaction,
-    transactionSelectionContext,
+    currentUserLogin,
+    currentUserAccountID,
+    archivedReportsIDSet,
+    outstandingReportsByPolicyID,
+    selfDMReport,
+    isProduction,
     allowNegativeAmount,
     parentReport,
 }: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
-    const {currentUserLogin, currentUserAccountID, archivedReportsIDSet, outstandingReportsByPolicyID, selfDMReport, isProduction} = transactionSelectionContext;
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
@@ -243,11 +243,28 @@ type PrepareTransactionsListParams = {
     itemTransaction: OnyxEntry<Transaction>;
     originalItemTransaction: OnyxEntry<Transaction>;
     selectedTransactions: SelectedTransactions;
-    transactionSelectionContext: TransactionSelectionContext;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    archivedReportsIDSet: ArchivedReportsIDSet;
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+    selfDMReport: OnyxEntry<Report>;
+    isProduction: boolean;
     parentReport: OnyxEntry<Report> | undefined;
 };
 
-function prepareTransactionsList({item, itemTransaction, originalItemTransaction, selectedTransactions, transactionSelectionContext, parentReport}: PrepareTransactionsListParams) {
+function prepareTransactionsList({
+    item,
+    itemTransaction,
+    originalItemTransaction,
+    selectedTransactions,
+    currentUserLogin,
+    currentUserAccountID,
+    archivedReportsIDSet,
+    outstandingReportsByPolicyID,
+    selfDMReport,
+    isProduction,
+    parentReport,
+}: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
@@ -258,7 +275,12 @@ function prepareTransactionsList({item, itemTransaction, originalItemTransaction
         item,
         itemTransaction,
         originalItemTransaction,
-        transactionSelectionContext,
+        currentUserLogin,
+        currentUserAccountID,
+        archivedReportsIDSet,
+        outstandingReportsByPolicyID,
+        selfDMReport,
+        isProduction,
         allowNegativeAmount: false,
         parentReport,
     });
@@ -335,17 +357,6 @@ function Search({
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const archivedReportsIDSet = useArchivedReportsIDSet();
-    const transactionSelectionContext = useMemo<TransactionSelectionContext>(
-        () => ({
-            currentUserLogin: email ?? '',
-            currentUserAccountID: accountID,
-            archivedReportsIDSet,
-            outstandingReportsByPolicyID,
-            selfDMReport,
-            isProduction,
-        }),
-        [accountID, archivedReportsIDSet, email, isProduction, outstandingReportsByPolicyID, selfDMReport],
-    );
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // Only the boolean derived from policyForMovingExpenses is consumed by row components downstream.
@@ -1071,7 +1082,12 @@ function Search({
                     itemTransaction,
                     originalItemTransaction,
                     selectedTransactions,
-                    transactionSelectionContext,
+                    currentUserLogin: email ?? '',
+                    currentUserAccountID: accountID,
+                    archivedReportsIDSet,
+                    outstandingReportsByPolicyID,
+                    selfDMReport,
+                    isProduction,
                     parentReport: itemParentReport,
                 });
 
@@ -1149,7 +1165,12 @@ function Search({
                                 item: transactionItem,
                                 itemTransaction,
                                 originalItemTransaction,
-                                transactionSelectionContext,
+                                currentUserLogin: email ?? '',
+                                currentUserAccountID: accountID,
+                                archivedReportsIDSet,
+                                outstandingReportsByPolicyID,
+                                selfDMReport,
+                                isProduction,
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
                             });
@@ -1160,7 +1181,21 @@ function Search({
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, searchResults?.data, transactionSelectionContext, areItemsGrouped, filteredData],
+        [
+            selectedTransactions,
+            setSelectedTransactions,
+            updateSelectAllMatchingItemsState,
+            transactions,
+            searchResults?.data,
+            email,
+            accountID,
+            archivedReportsIDSet,
+            outstandingReportsByPolicyID,
+            selfDMReport,
+            isProduction,
+            areItemsGrouped,
+            filteredData,
+        ],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
@@ -1468,7 +1503,12 @@ function Search({
                             item: transactionItem,
                             itemTransaction,
                             originalItemTransaction,
-                            transactionSelectionContext,
+                            currentUserLogin: email ?? '',
+                            currentUserAccountID: accountID,
+                            archivedReportsIDSet,
+                            outstandingReportsByPolicyID,
+                            selfDMReport,
+                            isProduction,
                             allowNegativeAmount: true,
                             parentReport: itemParentReport,
                         });
@@ -1489,7 +1529,12 @@ function Search({
                             item: transactionItem,
                             itemTransaction,
                             originalItemTransaction,
-                            transactionSelectionContext,
+                            currentUserLogin: email ?? '',
+                            currentUserAccountID: accountID,
+                            archivedReportsIDSet,
+                            outstandingReportsByPolicyID,
+                            selfDMReport,
+                            isProduction,
                             allowNegativeAmount: true,
                             parentReport: itemParentReport,
                         });
@@ -1507,7 +1552,12 @@ function Search({
         clearSelectedTransactions,
         transactions,
         searchResults?.data,
-        transactionSelectionContext,
+        email,
+        accountID,
+        archivedReportsIDSet,
+        outstandingReportsByPolicyID,
+        selfDMReport,
+        isProduction,
     ]);
 
     const onLayoutBase = useCallback(() => {
