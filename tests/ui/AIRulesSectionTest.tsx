@@ -66,12 +66,14 @@ const mockedNavigate = jest.mocked(Navigation.navigate);
 const POLICY_ID = 'POLICY_ID_1';
 
 function setPolicyAIRules(aiRules: Record<string, unknown> | undefined) {
-    mockedUsePolicy.mockReturnValue({rules: {aiRules}} as ReturnType<typeof usePolicy>);
+    (mockedUsePolicy as jest.Mock).mockReturnValue({rules: {aiRules}});
 }
 
 function getRuleTitles(): string[] {
-    return mockedMenuItemWithTopDescription.mock.calls.map((call) => call.at(0)?.title as string);
+    return mockedMenuItemWithTopDescription.mock.calls.map((call) => String(call.at(0)?.title ?? ''));
 }
+
+const mockKeyboardEvent = new KeyboardEvent('keydown');
 
 describe('AIRulesSection', () => {
     beforeEach(() => {
@@ -223,7 +225,7 @@ describe('AIRulesSection', () => {
             );
 
             const onPress = mockedMenuItem.mock.calls.at(0)?.at(0)?.onPress;
-            onPress?.({} as never);
+            onPress?.(mockKeyboardEvent);
 
             expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.RULES_AI_NEW.getRoute(POLICY_ID));
         });
@@ -241,7 +243,7 @@ describe('AIRulesSection', () => {
             );
 
             const onPress = mockedMenuItem.mock.calls.at(0)?.at(0)?.onPress;
-            onPress?.({} as never);
+            onPress?.(mockKeyboardEvent);
 
             expect(showReadOnlyModal).toHaveBeenCalledTimes(1);
             expect(mockedNavigate).not.toHaveBeenCalled();
@@ -263,7 +265,7 @@ describe('AIRulesSection', () => {
             );
 
             const onPress = mockedMenuItemWithTopDescription.mock.calls.at(0)?.at(0)?.onPress;
-            onPress?.({} as never);
+            onPress?.(mockKeyboardEvent);
 
             expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.RULES_AI_EDIT.getRoute(POLICY_ID, 'r1'));
         });
@@ -283,7 +285,7 @@ describe('AIRulesSection', () => {
             );
 
             const onPress = mockedMenuItemWithTopDescription.mock.calls.at(0)?.at(0)?.onPress;
-            onPress?.({} as never);
+            onPress?.(mockKeyboardEvent);
 
             expect(showReadOnlyModal).toHaveBeenCalledTimes(1);
             expect(mockedNavigate).not.toHaveBeenCalled();
