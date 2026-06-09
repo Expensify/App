@@ -562,6 +562,7 @@ const SCREENS = {
             DYNAMIC_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense',
             DYNAMIC_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Select',
             QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Non_Reimbursable_Default_Vendor_Select',
+            QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Non_Reimbursable_Credit_Card_Default_Vendor_Select',
             DYNAMIC_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Configuration',
@@ -794,7 +795,7 @@ const SCREENS = {
         REPORT_FIELDS_VALUE_SETTINGS: 'Workspace_ReportFields_ValueSettings',
         REPORT_FIELDS_EDIT_VALUE: 'Workspace_ReportFields_EditValue',
         REPORT_FIELDS_EDIT_INITIAL_VALUE: 'Workspace_ReportFields_EditInitialValue',
-        REPORT_FIELDS_TYPE_SELECTOR: 'Workspace_ReportFields_TypeSelector',
+        DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE: 'Dynamic_Report_Fields_Initial_List_Value',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',
@@ -961,6 +962,7 @@ const SCREENS = {
         WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
         WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
+        PERSONAL_TRACK_GOAL: 'Onboarding_Personal_Track_Goal',
     },
 
     CURRENCY: {
