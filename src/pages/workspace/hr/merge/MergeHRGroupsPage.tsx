@@ -13,7 +13,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMergeHRGroups} from '@libs/actions/connections/MergeHR';
-import {getAvailableMergeHRGroups, isMergeHRConnected} from '@libs/HRUtils';
+import {isMergeHRConnected} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -39,12 +39,13 @@ function MergeHRGroupsPage({
     const {isBetaEnabled} = usePermissions();
 
     const policy = usePolicy(policyID);
-    const groups = getAvailableMergeHRGroups(policy);
+    const availableGroups = policy?.connections?.merge_hris?.data?.groups ?? [];
+    const currentGroups = policy?.connections?.merge_hris?.config?.groups;
 
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(policy?.connections?.merge_hris?.config?.groups ?? []));
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(currentGroups ?? []));
     const [searchText, setSearchText] = useState('');
 
-    const filteredGroups = tokenizedSearch(groups, searchText, (group) => [group.name, group.type]);
+    const filteredGroups = tokenizedSearch(availableGroups, searchText, (group) => [group.name, group.type]);
 
     const listData: GroupListItem[] = filteredGroups.map((group) => ({
         text: group.name,
@@ -82,7 +83,7 @@ function MergeHRGroupsPage({
     };
 
     const handleSave = () => {
-        updateMergeHRGroups(policyID, [...selectedIds], policy?.connections?.merge_hris?.config?.groups);
+        updateMergeHRGroups(policyID, [...selectedIds], currentGroups);
         Navigation.goBack();
     };
 

@@ -5,7 +5,7 @@ import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
 import type {HRConnectionErrorFieldName} from '@libs/actions/connections/MergeHR';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
-import {getAvailableMergeHRGroups, getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
+import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import type {HRConnectionName} from '@libs/HRUtils';
 import {formatList} from '@libs/Localize';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -190,7 +190,7 @@ function getMergeHRGroupsSummary(policy: OnyxEntry<Policy>, translate: LocaleCon
     if (groups.length === 0) {
         return translate('common.all');
     }
-    const available = getAvailableMergeHRGroups(policy);
+    const available = policy?.connections?.merge_hris?.data?.groups ?? [];
     const names = groups.map((id) => available.find((group) => group.id === id)?.name).filter((name): name is string => !!name);
     return formatList(names);
 }
