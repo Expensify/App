@@ -145,6 +145,25 @@ function updateSplitTransactions({
     }
 
     const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
+
+    // Determine if the original transaction is in a selfDM report (used for first IOU action handling)
+    let isOriginalTransactionInSelfDM = false;
+    let originalSelfDMReportID: string | undefined;
+
+    if (isSelfDM(transactionReport)) {
+        isOriginalTransactionInSelfDM = true;
+        originalSelfDMReportID = transactionReport?.reportID;
+    } else if (isSelfDM(parentTransactionReport)) {
+        isOriginalTransactionInSelfDM = true;
+        originalSelfDMReportID = parentTransactionReport?.reportID;
+    } else if (isSelfDM(chatReport)) {
+        isOriginalTransactionInSelfDM = true;
+        originalSelfDMReportID = chatReport?.reportID;
+    }
+
+    const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+    const originalTransactionDetails = getTransactionDetails(originalTransaction);
     const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const fallbackPolicyParticipant =
         autoParticipants.length === 0 && !chatReport && expenseReport?.chatReportID && expenseReport?.policyID
@@ -174,25 +193,6 @@ function updateSplitTransactions({
     }
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
-
-    // Determine if the original transaction is in a selfDM report (used for first IOU action handling)
-    let isOriginalTransactionInSelfDM = false;
-    let originalSelfDMReportID: string | undefined;
-
-    if (isSelfDM(transactionReport)) {
-        isOriginalTransactionInSelfDM = true;
-        originalSelfDMReportID = transactionReport?.reportID;
-    } else if (isSelfDM(parentTransactionReport)) {
-        isOriginalTransactionInSelfDM = true;
-        originalSelfDMReportID = parentTransactionReport?.reportID;
-    } else if (isSelfDM(chatReport)) {
-        isOriginalTransactionInSelfDM = true;
-        originalSelfDMReportID = chatReport?.reportID;
-    }
-
-    const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    const originalTransactionDetails = getTransactionDetails(originalTransaction);
 
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
