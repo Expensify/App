@@ -66,6 +66,8 @@ function EditAgentPage({route}: EditAgentPageProps) {
         chatWithAgent(accountID);
     };
     const handleCopilotPress = () => {
+        ModalActions.closeModal();
+        Navigation.replace(ROUTES.SETTINGS_PROFILE);
         switchToDelegator(agentLogin);
     };
 
