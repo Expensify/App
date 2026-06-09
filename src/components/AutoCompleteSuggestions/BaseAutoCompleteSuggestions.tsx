@@ -4,6 +4,7 @@ import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -28,6 +29,8 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
     const fadeInOpacity = useSharedValue(0);
     const scrollRef = useRef<FlatList<TSuggestion>>(null);
+    const getOnPress = useStableIndexedHandler(onSelect);
+
     /**
      * Render a suggestion menu item component.
      */
@@ -37,7 +40,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
                 hoverDimmingValue={1}
                 onMouseDown={(e) => e.preventDefault()}
-                onPress={() => onSelect(index)}
+                onPress={getOnPress(index)}
                 onLongPress={() => {}}
                 accessibilityLabel={accessibilityLabelExtractor(item, index)}
                 role={CONST.ROLE.MENUITEM}
@@ -46,7 +49,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 {renderSuggestionMenuItem(item, index)}
             </PressableWithFeedback>
         ),
-        [accessibilityLabelExtractor, renderSuggestionMenuItem, StyleUtils, highlightedSuggestionIndex, onSelect],
+        [accessibilityLabelExtractor, renderSuggestionMenuItem, StyleUtils, highlightedSuggestionIndex, getOnPress],
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
