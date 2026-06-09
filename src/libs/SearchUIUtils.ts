@@ -5361,18 +5361,26 @@ function getWithdrawalStatusDisplayText(value: SearchWithdrawalStatus | undefine
         .join(', ');
 }
 
+/**
+ * A `PolicyCategoriesLookup` can either be a single policy's categories or an Onyx collection of
+ * many policies' categories keyed by `policy_categories_<policyID>`. A collection is the only
+ * variant whose keys start with that prefix, so we use that to discriminate the union.
+ */
+function isPolicyCategoriesCollection(policyCategories: NonNullable<PolicyCategoriesLookup>): policyCategories is NonNullable<OnyxCollection<OnyxTypes.PolicyCategories>> {
+    return Object.keys(policyCategories).some((key) => key.startsWith(ONYXKEYS.COLLECTION.POLICY_CATEGORIES));
+}
+
 function getPolicyCategoriesForPolicyID(policyCategories: PolicyCategoriesLookup | undefined, policyID?: string): OnyxEntry<OnyxTypes.PolicyCategories> {
     if (!policyCategories) {
         return undefined;
     }
 
-    const policyCategoriesKey = policyID ? `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` : undefined;
-    if (policyCategoriesKey && Object.prototype.hasOwnProperty.call(policyCategories, policyCategoriesKey)) {
-        return (policyCategories as OnyxCollection<OnyxTypes.PolicyCategories>)?.[policyCategoriesKey];
+    if (!isPolicyCategoriesCollection(policyCategories)) {
+        return policyCategories;
     }
 
-    const isPolicyCategoriesCollection = Object.keys(policyCategories).some((key) => key.startsWith(ONYXKEYS.COLLECTION.POLICY_CATEGORIES));
-    return isPolicyCategoriesCollection ? undefined : (policyCategories as OnyxEntry<OnyxTypes.PolicyCategories>);
+    const policyCategoriesKey = policyID ? `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` : undefined;
+    return policyCategoriesKey ? policyCategories[policyCategoriesKey] : undefined;
 }
 
 /**

@@ -774,7 +774,7 @@
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	73
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/getSearchReportName"	1
-"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
+"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	69
 "../../src/libs/SelectionScraper/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Sound/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
