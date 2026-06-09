@@ -88,7 +88,7 @@ describe('buildConfirmAction', () => {
 
     it('does not navigate to company-info step for an invalid (e.g. $0) invoice with no invoicing details', () => {
         const policyMock = jest.requireMock<{hasInvoicingDetails: typeof hasInvoicingDetails}>('@userActions/Policy/Policy');
-        (policyMock.hasInvoicingDetails as jest.Mock).mockReturnValueOnce(false);
+        jest.mocked(policyMock.hasInvoicingDetails).mockReturnValueOnce(false);
         const params = makeBase({iouType: CONST.IOU.TYPE.INVOICE, validate: jest.fn(() => ({errorKey: 'common.error.invalidAmount'}))});
         buildConfirmAction(params)({paymentType: undefined});
         expect(params.setFormError).toHaveBeenCalledWith('common.error.invalidAmount');
