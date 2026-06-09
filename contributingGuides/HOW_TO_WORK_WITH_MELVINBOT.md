@@ -25,8 +25,8 @@ Only Expensify employees, C+ members, and backend contributors can trigger Melvi
 Issue opened → Melvin posts proposal → C+ reviews proposal(s)
     → Accepted: C+ asks Melvin to implement
     → Not accepted: C+ explains why
-→ Melvin opens draft PR → C+ tweaks, tests, completes Author checklist, self-reviews (including Reviewer checklist)
-→ C+ submits PR for review as human author → CME reviews and merges
+→ Melvin opens draft PR → C+ tweaks, tests, posts PR body/checklist in issue comment, asks Melvin to apply it, self-reviews (including Reviewer checklist)
+→ C+ submits PR for review as human author → CME reviews and merges (PR body and/or C+ comment)
 ```
 
 ## Phase 1: Proposal review
@@ -56,24 +56,65 @@ When a C+ accepts a proposal, they may also post `🎀👀🎀` on the issue to 
 
 ## Phase 2: C+ owns the pull request
 
-Melvin opens a draft PR linked to the issue. MelvinBot remains the GitHub author on that branch until the C+ takes ownership.
+Melvin opens a draft PR linked to the issue. MelvinBot remains the GitHub author on GitHub until the C+ takes ownership of the work. Because MelvinBot is the PR author, most C+ members **cannot edit the PR description directly** (GitHub only allows the author or users with write access to edit a pull request body).
 
 Before requesting final review, the assigned C+ must:
 
 1. **Manually tweak the PR** if Melvin's implementation needs corrections.
 2. **Test the change** on all required platforms (see [CONTRIBUTING.md](./CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)).
-3. **Complete every step** in the PR Author Checklist.
+3. **Complete every step** in the PR Author Checklist (see [Updating the PR description and checklist](#updating-the-pr-description-and-checklist) below).
 4. **Self-review the code** against [PR Review Guidelines](./PR_REVIEW_GUIDELINES.md), [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md), and complete the [Reviewer Checklist](./REVIEWER_CHECKLIST.md) as part of that self-review.
 5. **Submit the PR for review** and become the **official human author** of record for that change.
 
 The C+ is accountable for the PR quality, the same as any contributor who authored a PR.
+
+### Updating the PR description and checklist
+
+C+ members who cannot edit the PR body directly should use this workaround:
+
+1. On the **linked GitHub issue** (not the PR), post a comment with the exact content you want in the PR description. Put the full body inside a `<details>` block so the issue thread stays readable. Include the complete [PR template](https://github.com/Expensify/App/blob/main/.github/PULL_REQUEST_TEMPLATE.md) when possible: Explanation of Change, Fixed Issues, Tests, Offline tests, QA Steps, a fully checked PR Author Checklist, and Screenshots/Videos sections as needed.
+2. In the same comment, ask Melvin to copy that content into the pull request body, for example:
+
+```
+@MelvinBot please set the PR body to the content in the details section above
+```
+
+To update only the checklist, post the checklist section in a `<details>` block and ask Melvin to set just that portion of the PR body.
+
+Example:
+
+```markdown
+<details>
+<summary>PR body for MelvinBot to apply</summary>
+
+### Explanation of Change
+...
+
+### Fixed Issues
+$ https://github.com/Expensify/App/issues/12345
+
+### Tests
+1. ...
+
+### PR Author Checklist
+- [x] I linked the correct issue in the `### Fixed Issues` section above
+...
+
+</details>
+
+@MelvinBot please set the PR body to the content in the details section above
+```
+
+3. Confirm Melvin updated the PR description before marking the pull request ready for review.
+
+The C+ comment is the **source of truth** for what was tested and checked. CMEs may review that comment directly when the PR body is incomplete, out of date, or hard to verify.
 
 ## Phase 3: CME review and merge
 
 After the C+ submits the PR for review:
 
 1. A **CME** (internal engineer) is assigned to review and merge.
-2. The CME follows the normal internal review process.
+2. The CME follows the normal internal review process. Review the **PR body** when Melvin has applied the C+ content, or review the C+ **issue comment** (with the `<details>` block) directly for testing steps and checklist completion.
 3. Payment and regression checklists follow the standard rules in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ### No additional contributor or C+ PR review
@@ -87,6 +128,7 @@ We intentionally do **not** add a second round of contributor or C+ PR review on
 | Open a PR before a proposal is accepted | Wastes contributor and reviewer time if the approach is wrong |
 | Skip C+ proposal review because Melvin wrote it | Melvin proposals need the same validation as human proposals |
 | Send Melvin's draft PR for CME review without testing and checklist completion | The C+ is the human author and owns quality |
+| Assume you can edit Melvin's PR description in the GitHub UI | Post the body in an issue comment and ask `@MelvinBot` to apply it |
 | Expect a second C+ or contributor review after C+ submission | Only the CME reviews before merge |
 
 ## Related documentation
