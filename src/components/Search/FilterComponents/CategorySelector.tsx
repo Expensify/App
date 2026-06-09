@@ -70,7 +70,7 @@ function CategorySelector({value = [], policyIDs = [], selectionListTextInputSty
                 const decodedCategoryName = getDecodedCategoryName(categoryName);
                 return {text: decodedCategoryName, value: categoryName};
             })
-            .toSorted((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare)),
+            .toSorted((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare)),
     );
 
     return (

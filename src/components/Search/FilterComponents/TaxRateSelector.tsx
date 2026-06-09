@@ -33,7 +33,7 @@ function TaxRateSelector({value = [], policyIDs = [], selectionListTextInputStyl
             text: taxRateName,
             value: taxRateKeys.toString(),
         }))
-        .toSorted((a, b) => localeCompare(a.value.toString(), b.value.toString()));
+        .toSorted((a, b) => localeCompare(a.text.toString(), b.text.toString()));
     const selectedTaxRates = taxItems.filter((tax) => value.includes(tax.value.toString()));
 
     return (

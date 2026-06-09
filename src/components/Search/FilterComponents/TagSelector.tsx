@@ -42,7 +42,7 @@ function TagSelector({value = [], policyIDs = [], selectionListTextInputStyle, s
     tagItems.push(
         ...Array.from(uniqueTagNames)
             .map((tagName) => ({text: getCleanedTagName(tagName), value: tagName}))
-            .toSorted((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare)),
+            .toSorted((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare)),
     );
 
     const selectedTagsItems = value.map((tag) => {

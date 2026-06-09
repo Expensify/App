@@ -129,7 +129,7 @@ function ExportedToSelector({value = [], policyIDs = [], selectionListTextInputS
         return [...connectedIntegrationPickerItems, ...standardAndIntegrationCustomTemplatePickerItems];
     })();
     const selectedExportedTo = exportedToPickerOptions.filter((option) => value.includes(option.value));
-    const sortedExportedToPickerOptions = exportedToPickerOptions.toSorted((a, b) => localeCompare(a.value.toString(), b.value.toString()));
+    const sortedExportedToPickerOptions = exportedToPickerOptions.toSorted((a, b) => localeCompare(a.text.toString(), b.text.toString()));
 
     return (
         <MultiSelect
