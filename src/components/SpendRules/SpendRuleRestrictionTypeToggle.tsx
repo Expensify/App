@@ -8,61 +8,56 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SpendRuleRestrictionTypeToggleProps = {
-    restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null;
-    onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => void;
+    restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+    onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION>) => void;
 };
 
 function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRuleRestrictionTypeToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const isOffSelected = restrictionAction === null;
+    const isOffSelected = restrictionAction === CONST.SPEND_RULES.ACTION.OFF;
     const isAllowSelected = restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW;
     const isBlockSelected = restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK;
 
-    const restrictionTypeHelperText = isAllowSelected ? translate('workspace.rules.spendRules.restrictionTypeHelpAllow') : translate('workspace.rules.spendRules.restrictionTypeHelpBlock');
-
     return (
-        <>
-            <View style={[styles.flexRow]}>
-                <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{translate('workspace.rules.spendRules.restrictionType')}</Text>
-                <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
-                    <Button
-                        text={translate('common.off')}
-                        small
-                        style={styles.ph0}
-                        innerStyles={!isOffSelected ? styles.bgTransparent : undefined}
-                        textStyles={[styles.alignSelfCenter, !isAllowSelected ? styles.textSupporting : undefined]}
-                        accessibilityLabel={translate('common.off')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
-                        onPress={() => onSelect(null)}
-                    />
-                    <Button
-                        text={translate('workspace.rules.spendRules.allow')}
-                        success={isAllowSelected}
-                        small
-                        style={styles.ph0}
-                        innerStyles={!isAllowSelected ? styles.bgTransparent : undefined}
-                        textStyles={[styles.alignSelfCenter, !isAllowSelected ? styles.textSupporting : undefined]}
-                        accessibilityLabel={translate('workspace.rules.spendRules.allow')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
-                        onPress={() => onSelect(CONST.SPEND_RULES.ACTION.ALLOW)}
-                    />
-                    <Button
-                        text={translate('workspace.rules.spendRules.block')}
-                        danger={isBlockSelected}
-                        small
-                        style={styles.ph0}
-                        innerStyles={!isBlockSelected ? styles.bgTransparent : undefined}
-                        textStyles={[styles.alignSelfCenter, !isBlockSelected ? styles.textSupporting : undefined]}
-                        accessibilityLabel={translate('workspace.rules.spendRules.block')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
-                        onPress={() => onSelect(CONST.SPEND_RULES.ACTION.BLOCK)}
-                    />
-                </View>
+        <View style={[styles.flexRow]}>
+            <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{translate('workspace.rules.spendRules.restrictionType')}</Text>
+            <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
+                <Button
+                    text={translate('common.off')}
+                    small
+                    style={styles.ph0}
+                    innerStyles={!isOffSelected ? styles.bgTransparent : undefined}
+                    textStyles={[styles.alignSelfCenter, !isAllowSelected ? styles.textSupporting : undefined]}
+                    accessibilityLabel={translate('common.off')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
+                    onPress={() => onSelect(CONST.SPEND_RULES.ACTION.OFF)}
+                />
+                <Button
+                    text={translate('workspace.rules.spendRules.allow')}
+                    success={isAllowSelected}
+                    small
+                    style={styles.ph0}
+                    innerStyles={!isAllowSelected ? styles.bgTransparent : undefined}
+                    textStyles={[styles.alignSelfCenter, !isAllowSelected ? styles.textSupporting : undefined]}
+                    accessibilityLabel={translate('workspace.rules.spendRules.allow')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
+                    onPress={() => onSelect(CONST.SPEND_RULES.ACTION.ALLOW)}
+                />
+                <Button
+                    text={translate('workspace.rules.spendRules.block')}
+                    danger={isBlockSelected}
+                    small
+                    style={styles.ph0}
+                    innerStyles={!isBlockSelected ? styles.bgTransparent : undefined}
+                    textStyles={[styles.alignSelfCenter, !isBlockSelected ? styles.textSupporting : undefined]}
+                    accessibilityLabel={translate('workspace.rules.spendRules.block')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
+                    onPress={() => onSelect(CONST.SPEND_RULES.ACTION.BLOCK)}
+                />
             </View>
-            <Text style={[styles.mutedNormalTextLabel, styles.pt3]}>{restrictionTypeHelperText}</Text>
-        </>
+        </View>
     );
 }
 
