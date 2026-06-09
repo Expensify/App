@@ -1996,6 +1996,10 @@ const CONST = {
             CATEGORY: 'mcc',
             TAG: 'tag',
         },
+        LAYOUT_OPTION: {
+            DETAILED: 'detailed',
+            MATRIX: 'matrix',
+        },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
