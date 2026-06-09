@@ -13490,7 +13490,6 @@ export {
     isOpenExpenseReport,
     isOpenTaskReport,
     isOptimisticPersonalDetail,
-    isPaidGroupPolicy,
     isPaidGroupPolicyExpenseReport,
     isGroupPolicyExpenseReport,
     isPayer,
