@@ -76,4 +76,4 @@ function parseCSVDate(input: string): string | null {
     return null;
 }
 
-export {CSV_DATE_FORMATS, parseCSVDate};
+export {parseCSVDate};
