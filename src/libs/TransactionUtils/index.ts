@@ -2514,16 +2514,30 @@ function compareDuplicateTransactionFields(
                     processChanges(fieldName, transactions, keys);
                 }
             } else if (fieldName === 'taxCode') {
-                const differentValues = getDifferentValues(transactions, keys);
+                const differentValues = [
+                    ...new Set(
+                        getDifferentValues(transactions, keys).map((taxID) => {
+                            if (typeof taxID !== 'string') {
+                                return taxID;
+                            }
+                            return resolveCurrentTaxCode(policy, taxID);
+                        }),
+                    ),
+                ];
                 const validTaxes = differentValues?.filter((taxID) => {
-                    const tax = getTaxByID(policy, (taxID as string) ?? '');
+                    if (typeof taxID !== 'string') {
+                        return false;
+                    }
+                    const tax = getTaxByID(policy, taxID);
                     return tax?.name && !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 });
+                const areAllTaxCodesEqual = areAllFieldsEqual(transactions, (item) => resolveCurrentTaxCode(policy, item?.taxCode ?? ''));
 
-                if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
+                if (!areAllTaxCodesEqual && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
                 } else {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+                    const taxCodeToKeep = firstTransaction?.taxCode;
+                    keep[fieldName] = taxCodeToKeep ? resolveCurrentTaxCode(policy, taxCodeToKeep) : taxCodeToKeep;
                 }
             } else if (fieldName === 'category') {
                 const differentValues = getDifferentValues(transactions, keys);
