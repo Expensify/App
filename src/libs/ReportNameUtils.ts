@@ -899,7 +899,7 @@ function computeReportName({
     conciergeReportID,
     reportAttributes,
 }: ComputeReportName): string {
-    if (!report?.reportID) {
+    if (!report?.reportID || !reportAttributesDerivedValue) {
         return '';
     }
 
@@ -1049,7 +1049,7 @@ function computeReportName({
  * Do NOT compute any part of the name here. Adjust `computeReportName` (internal) function if any change to report name are required.
  */
 function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
-    if (!report?.reportID) {
+    if (!report?.reportID || !reportAttributesDerivedValue) {
         return '';
     }
     return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';
