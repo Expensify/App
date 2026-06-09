@@ -246,14 +246,14 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const ancestors = useAncestors(report);
 
     const chatRoomSubtitle = useMemo(() => {
-        const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
+        const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived);
 
         if (subtitle) {
             return subtitle;
         }
 
         return '';
-    }, [isReportArchived, report]);
+    }, [isReportArchived, report, policy]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
@@ -298,6 +298,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' &&
@@ -419,7 +420,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 (isDefaultRoom && isChatThread && isPolicyEmployee) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !isPublicRoomUtil(report))))) &&
-            !isConciergeChatReport(report) &&
+            !isConciergeChatReport(report, conciergeReportID) &&
             !isSystemChat &&
             activeChatMembers.length > 0
         ) {
@@ -685,6 +686,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         iouTransaction,
         parentReport,
         delegateEmail,
+        conciergeReportID,
     ]);
 
     const icons = useMemo(
@@ -1007,6 +1009,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
                     iouTransactionID,
                     requestParentReportAction,
+                    requestParentReportActionChildReport,
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
@@ -1021,7 +1024,17 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
-    }, [requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
+    }, [
+        requestParentReportAction,
+        route.params.reportID,
+        moneyRequestReport,
+        iouTransactionID,
+        iouReport,
+        chatIOUReport,
+        isChatIOUReportArchived,
+        isSingleTransactionView,
+        requestParentReportActionChildReport,
+    ]);
 
     const showDeleteModal = useCallback(async () => {
         const {action} = await showConfirmModal({

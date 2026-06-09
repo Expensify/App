@@ -53,7 +53,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) are assertable.
+// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) can be asserted.
 jest.mock('@libs/shouldUseDefaultExpensePolicy', () => {
     const actual = jest.requireActual<{default: typeof shouldUseDefaultExpensePolicy}>('@libs/shouldUseDefaultExpensePolicy');
     return {
@@ -66,7 +66,7 @@ jest.mock('@libs/getCurrentPosition');
 
 // Fire executeWrite synchronously so downstream writes can be asserted.
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
-// Cleanup helpers are spies so the move-from-track cleanup-id contract is assertable.
+// Cleanup helpers are spies so the move-from-track cleanup-id contract can be asserted.
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
@@ -133,6 +133,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionIDs: ['mock-txn-id'],
             optimisticChatReportID: undefined,
+            currentUserLocalCurrency: undefined,
         };
 
         beforeEach(async () => {
@@ -613,6 +614,7 @@ describe('MoneyRequest', () => {
             conciergeReportID: undefined,
             action: CONST.IOU.ACTION.CREATE,
             reportDraft: undefined,
+            currentUserLocalCurrency: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1299,7 +1301,7 @@ describe('MoneyRequest', () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate, TEST_USER_ACCOUNT_ID)).toBe(false);
 
             await Onyx.clear();
         });

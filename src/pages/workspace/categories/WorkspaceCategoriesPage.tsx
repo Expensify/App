@@ -93,7 +93,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {canWrite: canWriteCategories, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -282,7 +282,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             <Switch
                                 isOn={value.enabled}
                                 disabled={isDisabled || !canWriteCategories}
-                                disabledAction={!canWriteCategories ? showReadOnlyModal : undefined}
+                                disabledAction={withReadOnlyFallback()}
                                 accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
@@ -299,7 +299,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Switch
                         isOn={value.enabled}
                         disabled={isDisabled || !canWriteCategories}
-                        disabledAction={!canWriteCategories ? showReadOnlyModal : undefined}
+                        disabledAction={withReadOnlyFallback()}
                         accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
@@ -328,7 +328,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         switchContainerStyle,
         shouldShowApproverColumn,
         canWriteCategories,
-        showReadOnlyModal,
+        withReadOnlyFallback,
         styles.alignItemsCenter,
         styles.flexRow,
         styles.mr3,
@@ -386,7 +386,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.approver')}</Text>
                         </View>
                     )}
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), canWriteCategories && styles.mr5]}>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
                     </View>
                 </View>
@@ -404,16 +404,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightCaret={canWriteCategories}
+                shouldShowRightCaret
             />
         );
     };
 
     const navigateToCategorySettings = (category: ListItem) => {
-        if (!canWriteCategories) {
-            return;
-        }
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (canWriteCategories && isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleCategory(category);
             return;
         }
@@ -738,10 +735,23 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         return (
             <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
-                <RenderHTML html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`)} />
+                <RenderHTML
+                    html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`, canWriteCategories)}
+                />
             </View>
         );
-    }, [policyHasAccountingConnections, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.textSupporting, styles.textNormal, translate, environmentURL, policyId]);
+    }, [
+        policyHasAccountingConnections,
+        styles.renderHTML,
+        styles.textAlignCenter,
+        styles.alignItemsCenter,
+        styles.textSupporting,
+        styles.textNormal,
+        translate,
+        environmentURL,
+        policyId,
+        canWriteCategories,
+    ]);
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -808,7 +818,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onDismissError={dismissError}
                         showScrollIndicator={false}
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret={canWriteCategories}
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (

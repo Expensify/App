@@ -120,7 +120,14 @@ function IOURequestStepDistanceManual({
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
+        iouType,
+        defaultExpensePolicy,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        currentUserAccountIDParam,
+    );
 
     // to make sure the correct distance amount and unit will be shown we use distance unit
     // from defaultExpensePolicy or current report's policy instead of from transaction and
@@ -230,6 +237,7 @@ function IOURequestStepDistanceManual({
             manualDistance: distanceAsFloat,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             backTo,
             backToReport,
             shouldSkipConfirmation,

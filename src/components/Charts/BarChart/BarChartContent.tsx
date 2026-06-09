@@ -6,11 +6,13 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
+    ChartFontsProvider,
     useChartFontManager,
     useChartInteractions,
     useChartLabelFormats,
@@ -28,9 +30,6 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
-/** Inner padding between bars (0.3 = 30% of bar width) */
-const BAR_INNER_PADDING = 0.3;
-
 /** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
  * We need bottom: 1 for proper display of the bottom label
  */
@@ -44,7 +43,7 @@ type BarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontMgr = useChartFontManager();
@@ -301,6 +300,13 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     );
 }
 
+function BarChartContent(props: BarChartProps) {
+    return (
+        <ChartFontsProvider>
+            <BarChartContentBody {...props} />
+        </ChartFontsProvider>
+    );
+}
+
 export default BarChartContent;
 export type {BarChartProps};
-export {BAR_INNER_PADDING};
