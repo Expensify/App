@@ -121,11 +121,6 @@ function IOURequestStepAmount({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isIouReport = isMoneyRequestReport(report);
-    const policyTags = useMoneyRequestPolicyTags({
-        moneyRequestReportID: isIouReport ? report?.reportID : undefined,
-        parentChatReportPolicyID: isMovingTransactionFromTrackExpense(action) ? undefined : report?.policyID,
-        participantReportID: transaction?.participants?.at(0)?.reportID,
-    });
     const iouOrExpenseReport = useReportOrReportDraft(report?.chatReportID);
     const actualChatReportID = iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) ? iouOrExpenseReport.chatReportID : undefined;
     const actualChatReport = useReportOrReportDraft(actualChatReportID);
@@ -235,6 +230,21 @@ function IOURequestStepAmount({
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
+    const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
+    const participants = selectedParticipants.map((participant) => {
+        const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+        return participantAccountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
+    });
+    const participant = participants.at(0);
+    const policyTags = useMoneyRequestPolicyTags({
+        moneyRequestReportID: isIouReport ? report?.reportID : undefined,
+        parentChatReportPolicyID: isMovingTransactionFromTrackExpense(action) ? undefined : report?.policyID,
+        participantReportID: participant?.reportID,
+    });
+
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
@@ -263,18 +273,9 @@ function IOURequestStepAmount({
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
         if (report?.reportID && !isReportArchived && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
-            const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-                return participantAccountID
-                    ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
-            });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
-                const participant = participants.at(0);
                 const defaultReimbursable = calculateDefaultReimbursable({
                     iouType,
                     policy,
@@ -283,10 +284,7 @@ function IOURequestStepAmount({
                     transactionReportID: report?.reportID,
                 });
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
-                    const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
-                        [participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam],
-                        report,
-                    );
+                    const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam], report);
                     const sendMoneyParams = {
                         report,
                         quickAction,
@@ -294,7 +292,7 @@ function IOURequestStepAmount({
                         currency: selectedCurrency,
                         comment: '',
                         currentUserAccountID: currentUserAccountIDParam,
-                        recipient: participants.at(0) ?? {},
+                        recipient: participant ?? {},
                         optimisticChatReportID,
                         shouldStartTracking: false,
                     };
@@ -322,7 +320,7 @@ function IOURequestStepAmount({
                     return;
                 }
                 const optimisticTransactionID = rand64();
-                const {optimisticChatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam], report);
+                const {optimisticChatReportID} = resolveOptimisticChatReportID([participant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam], report);
                 if (iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.REQUEST && iouType !== CONST.IOU.TYPE.TRACK) {
                     return;
                 }
@@ -335,7 +333,7 @@ function IOURequestStepAmount({
                             participantParams: {
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,
-                                participant: participants.at(0) ?? {},
+                                participant: participant ?? {},
                             },
                             transactionParams: {
                                 amount: backendAmount,
@@ -362,7 +360,7 @@ function IOURequestStepAmount({
                             report,
                             betas,
                             participantParams: {
-                                participant: participants.at(0) ?? {},
+                                participant: participant ?? {},
                                 payeeEmail: currentUserEmailParam,
                                 payeeAccountID: currentUserAccountIDParam,
                             },

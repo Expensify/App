@@ -206,12 +206,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Policy-scoped Onyx data
     const policyID = policy?.id;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const isIouReport = isMoneyRequestReport(report);
-    const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
-        moneyRequestReportID: isIouReport ? report?.reportID : undefined,
-        parentChatReportPolicyID: isMovingTransactionFromTrackExpense ? undefined : report?.policyID,
-        participantReportID: participants?.at(0)?.reportID,
-    });
+    const isIouReport = isMoneyRequestReportReportUtils(report);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrenciesOnyx] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -229,6 +224,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
     const selectedParticipants = participants.filter((participant) => participant.selected);
+    const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
+        moneyRequestReportID: isIouReport ? report?.reportID : undefined,
+        parentChatReportPolicyID: isMovingTransactionFromTrackExpense ? undefined : report?.policyID,
+        participantReportID: selectedParticipants?.at(0)?.reportID,
+    });
     // Filter out participants with an amount equal to O
     let splitParticipants = selectedParticipants;
     if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
