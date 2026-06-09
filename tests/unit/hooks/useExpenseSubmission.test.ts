@@ -9,6 +9,8 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 
 const mockRequestMoneyAction = jest.fn();
 const mockTrackExpenseAction = jest.fn();
+const mockSubmitPerDiemExpenseAction = jest.fn();
+const mockSubmitPerDiemExpenseForSelfDMAction = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
@@ -16,6 +18,11 @@ const mockResolveChatTargetForSubmitCleanup = jest.fn();
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
     trackExpense: (...args: unknown[]) => mockTrackExpenseAction(...args),
+}));
+
+jest.mock('@userActions/IOU/PerDiem', () => ({
+    submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
+    submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
 }));
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
@@ -104,6 +111,29 @@ function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
         comment: {comment: ''},
         ...overrides,
     } as Transaction;
+}
+
+function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transaction {
+    return buildTransaction({
+        amount: 200,
+        merchant: 'Per diem',
+        comment: {
+            comment: 'Trip per diem',
+            customUnit: {
+                customUnitID: 'per-diem-custom-unit',
+                customUnitRateID: 'per-diem-rate',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                subRates: [{id: 'sub-rate-1', name: 'Meals', quantity: 1, rate: 200}],
+                attributes: {
+                    dates: {
+                        start: '2026-04-24',
+                        end: '2026-04-24',
+                    },
+                },
+            },
+        },
+        ...overrides,
+    } as Transaction);
 }
 
 function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[0]> = {}): Parameters<typeof useExpenseSubmission>[0] {
@@ -244,6 +274,57 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockResolveChatTargetForSubmitCleanup).not.toHaveBeenCalled();
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'iou-chat-77'}));
         });
+
+        it('routes tracked per diem SUBMIT through requestMoney so the original tracked expense is moved', async () => {
+            const existingTrackedTransactionID = 'tracked-per-diem-transaction-1';
+            const linkedTrackedExpenseReportAction = {
+                reportActionID: 'tracked-per-diem-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: 'tracked-per-diem-thread-1',
+                created: '2026-04-24',
+                originalMessage: {
+                    IOUTransactionID: existingTrackedTransactionID,
+                    IOUReportID: 'tracked-per-diem-report-1',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            } as unknown as ReportAction;
+            const perDiemTransaction = buildPerDiemTransaction({
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID: 'tracked-per-diem-report-1',
+            });
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        action: CONST.IOU.ACTION.SUBMIT,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
+            expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    action: CONST.IOU.ACTION.SUBMIT,
+                    existingTransaction: perDiemTransaction,
+                    transactionParams: expect.objectContaining({
+                        linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: 'tracked-per-diem-report-1',
+                    }),
+                }),
+            );
+            expect(mockSubmitPerDiemExpenseAction).not.toHaveBeenCalled();
+            expect(mockSubmitPerDiemExpenseForSelfDMAction).not.toHaveBeenCalled();
+        });
     });
 
     describe('trackExpense path', () => {
@@ -291,6 +372,33 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
+        });
+    });
+
+    describe('per diem path', () => {
+        it('keeps initial self-DM per diem tracking on submitPerDiemExpenseForSelfDM', async () => {
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSubmitPerDiemExpenseForSelfDMAction).toHaveBeenCalledTimes(1);
+            expect(mockRequestMoneyAction).not.toHaveBeenCalled();
         });
     });
 });

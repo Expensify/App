@@ -9,7 +9,7 @@ import {convertAmountToDisplayString, convertToFrontendAmountAsString} from '@li
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getExistingTransactionID, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -58,11 +58,9 @@ import {
 } from './MoneyRequestBuilder';
 import type {MoneyRequestInformation} from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import {getMoveTrackedExpenseInformation} from './TrackExpense';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
-import type TrackedExpenseSubmitParams from './types/TrackedExpenseSubmitParams';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
@@ -204,12 +202,11 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
     return subRateComments.join(', ');
 }
 
-type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> &
-    TrackedExpenseSubmitParams & {
-        attendees?: Attendee[];
-        customUnit: TransactionCustomUnit;
-        comment?: string;
-    };
+type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
+    attendees?: Attendee[];
+    customUnit: TransactionCustomUnit;
+    comment?: string;
+};
 
 type RecentlyUsedParams = {
     destinations?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
@@ -915,20 +912,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticTransactionID,
         delegateAccountID,
     } = submitPerDiemExpenseInformation;
-    const {
-        currency,
-        comment = '',
-        category,
-        tag,
-        created,
-        customUnit,
-        attendees,
-        isFromGlobalCreate,
-        actionableWhisperReportActionID,
-        linkedTrackedExpenseReportAction,
-        linkedTrackedExpenseReportID,
-        isLinkedTrackedExpenseReportArchived,
-    } = transactionParams;
+    const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
     if (
         isEmptyObject(policyParams.policy) ||
@@ -990,28 +974,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         name: customUnitRate?.name,
     };
 
-    let modifiedExpenseReportActionID: string | undefined;
-    const sourceTransactionID = getExistingTransactionID(linkedTrackedExpenseReportAction);
-
-    if (sourceTransactionID && linkedTrackedExpenseReportAction && linkedTrackedExpenseReportID) {
-        const linkedTrackedExpenseThreadReportID = linkedTrackedExpenseReportAction.childReportID ?? transactionThreadReportID;
-        const moveTrackedExpenseInformation = getMoveTrackedExpenseInformation(
-            sourceTransactionID,
-            actionableWhisperReportActionID,
-            linkedTrackedExpenseReportAction,
-            linkedTrackedExpenseReportID,
-            linkedTrackedExpenseThreadReportID,
-            CONST.IOU.ACTION.SUBMIT,
-            isLinkedTrackedExpenseReportArchived,
-            currentUserAccountIDParam,
-        );
-
-        onyxData.optimisticData?.push(...moveTrackedExpenseInformation.optimisticData);
-        onyxData.successData?.push(...moveTrackedExpenseInformation.successData);
-        onyxData.failureData?.push(...moveTrackedExpenseInformation.failureData);
-        modifiedExpenseReportActionID = moveTrackedExpenseInformation.modifiedExpenseReportActionID;
-    }
-
     const parameters: CreatePerDiemRequestParams = {
         policyID: policyParams.policy.id,
         customUnitID: customUnit.customUnitID,
@@ -1029,8 +991,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         reportActionID: iouAction.reportActionID,
         createdChatReportActionID,
         createdIOUReportActionID,
-        actionableWhisperReportActionID,
-        modifiedExpenseReportActionID,
         reportPreviewReportActionID: reportPreviewAction.reportActionID,
         category,
         tag,

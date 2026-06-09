@@ -1164,9 +1164,10 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     };
 }
 
-const getMoveTrackedExpenseInformation = (
+const getConvertTrackedExpenseInformation = (
     transactionID: string | undefined,
     actionableWhisperReportActionID: string | undefined,
+    moneyRequestReportID: string | undefined,
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string | undefined,
@@ -1471,9 +1472,10 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     successData?.push(...(onyxData.successData ?? []));
     failureData?.push(...(onyxData.failureData ?? []));
 
-    const convertTrackedExpenseInformation = getMoveTrackedExpenseInformation(
+    const convertTrackedExpenseInformation = getConvertTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
+        iouParams.reportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -2101,16 +2103,23 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
-    const {actionableWhisperReportActionID, linkedTrackedExpenseReportAction, linkedTrackedExpenseReportID, transactionThreadReportID, isLinkedTrackedExpenseReportArchived} =
-        reportInformation;
+    const {
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+        isLinkedTrackedExpenseReportArchived,
+    } = reportInformation;
     const {
         optimisticData: moveTransactionOptimisticData,
         successData: moveTransactionSuccessData,
         failureData: moveTransactionFailureData,
         modifiedExpenseReportActionID,
-    } = getMoveTrackedExpenseInformation(
+    } = getConvertTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
+        moneyRequestReportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -2201,9 +2210,10 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         isLinkedTrackedExpenseReportArchived,
     } = reportInformation;
 
-    const convertTrackedExpenseInformation = getMoveTrackedExpenseInformation(
+    const convertTrackedExpenseInformation = getConvertTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
+        moneyRequestReportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -2819,7 +2829,6 @@ export {
     convertBulkTrackedExpensesToIOU,
     deleteTrackExpense,
     getDeleteTrackExpenseInformation,
-    getMoveTrackedExpenseInformation,
     getNavigationUrlAfterTrackExpenseDelete,
     getTrackExpenseInformation,
     hasManualDistanceOverride,
