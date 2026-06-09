@@ -90,19 +90,36 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.justifyContentCenter]}>
-                        <StatusBadge
-                            text={statusLabels[status] ?? ''}
-                            backgroundColor={statusColors.backgroundColor}
-                            textColor={statusColors.textColor}
-                        />
-                        {shouldUseNarrowTableLayout && (
+                    {shouldUseNarrowTableLayout && (
+                        <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <TextWithTooltip
-                                text={`${rate.name ?? ''} · ${formattedRate}`}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
+                                text={rate.name ?? ''}
+                                style={[styles.optionDisplayName, styles.pre]}
                             />
-                        )}
-                    </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.gap2]}>
+                                <StatusBadge
+                                    text={statusLabels[status] ?? ''}
+                                    backgroundColor={statusColors.backgroundColor}
+                                    textColor={statusColors.textColor}
+                                />
+                                <TextWithTooltip
+                                    text={[formattedRate, formatDateColumn(rate.startDate), formatDateColumn(rate.endDate)].filter(Boolean).join(' · ')}
+                                    numberOfLines={1}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
+                                />
+                            </View>
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && (
+                        <View style={[styles.justifyContentCenter]}>
+                            <StatusBadge
+                                text={statusLabels[status] ?? ''}
+                                backgroundColor={statusColors.backgroundColor}
+                                textColor={statusColors.textColor}
+                            />
+                        </View>
+                    )}
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
