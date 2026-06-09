@@ -21,6 +21,7 @@ const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
         cancel: 'Cancelar',
+        enableWebGLToDisplayCharts: 'Para mostrar gráficos, habilita WebGL en la configuración de tu navegador.',
         dismiss: 'Descartar',
         proceed: 'Proceder',
         unshare: 'Dejar de compartir',

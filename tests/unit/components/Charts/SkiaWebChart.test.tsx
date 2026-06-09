@@ -6,14 +6,25 @@ import isSkiaWebSupported from '@components/Charts/SkiaWebChart/isSkiaWebSupport
 
 jest.mock('@components/Charts/SkiaWebChart/isSkiaWebSupported', () => jest.fn());
 
-jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({chartWebFallback: {}})));
+jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({chartWebFallback: {}, textSupporting: {}, textAlignCenter: {}})));
+
+jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
+
+jest.mock('@components/Text', () => {
+    const ReactLib = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    return {
+        __esModule: true,
+        default: ({children}: {children: React.ReactNode}) => ReactLib.createElement(Text, null, children),
+    };
+});
 
 jest.mock('@components/ActivityIndicator', () => {
     const ReactLib = require('react') as typeof React;
     const {View} = require('react-native') as {View: typeof RNView};
     return {
         __esModule: true,
-        default: () => ReactLib.createElement(View, {testID: 'skia-fallback'}),
+        default: () => ReactLib.createElement(View, {testID: 'skia-loading'}),
     };
 });
 
@@ -34,7 +45,7 @@ describe('SkiaWebChart', () => {
         jest.clearAllMocks();
     });
 
-    it('should render the fallback without mounting Skia when WebGL is unsupported', () => {
+    it('should show the enable-WebGL message without mounting Skia when WebGL is unsupported', () => {
         mockIsSkiaWebSupported.mockReturnValue(false);
 
         render(
@@ -45,7 +56,7 @@ describe('SkiaWebChart', () => {
             />,
         );
 
-        expect(screen.getByTestId('skia-fallback')).toBeTruthy();
+        expect(screen.getByText('common.enableWebGLToDisplayCharts')).toBeTruthy();
         expect(screen.queryByTestId('with-skia-web')).toBeNull();
     });
 
