@@ -28,6 +28,7 @@ type SpendRuleValues = {
     maxAmount?: string;
     categories?: string[];
     merchantNames?: string[];
+    currencies?: string[];
     restrictionAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
     merchantMatchTypes?: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
 };
@@ -35,6 +36,7 @@ type SpendRuleValues = {
 function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: string): ExpensifyCardRule | undefined {
     const merchantNames = (spendRuleValues.merchantNames ?? []).map((merchant) => merchant.trim()).filter((merchant) => merchant !== '');
     const merchantMatchTypes = spendRuleValues.merchantMatchTypes ?? [];
+    const currencies = spendRuleValues.currencies ?? [];
     const categories = (spendRuleValues.categories ?? []).map((category) => category.trim()).filter((category) => category !== '');
     const maxAmount = spendRuleValues.maxAmount?.trim() ?? '';
 
@@ -75,7 +77,16 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
               }
             : undefined;
 
-    const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.OR);
+    const currencyNode =
+        currencies.length > 0
+            ? {
+                  left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                  operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                  right: currencies,
+              }
+            : undefined;
+
+    const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode, currencyNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.OR);
     const amountNode =
         maxAmount !== ''
             ? {
@@ -120,6 +131,7 @@ function getSpendRuleFormValuesFromCardRule(cardRule?: ExpensifyCardRule): Spend
         restrictionAction: cardRule.action,
         merchantNames: [],
         merchantMatchTypes: [],
+        currencies: [],
         categories: [],
         maxAmount: '',
     };
@@ -154,6 +166,11 @@ function getSpendRuleFormValuesFromCardRule(cardRule?: ExpensifyCardRule): Spend
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             formValues.categories = rightValues.filter(isSpendRuleCategory);
+            return;
+        }
+
+        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
+            formValues.currencies = rightValues;
             return;
         }
 
