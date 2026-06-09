@@ -258,26 +258,30 @@ function MoneyRequestConfirmationList({
 
     const prevCreated = usePrevious(transaction?.created);
     const prevRateID = usePrevious(customUnitRateID);
-    const [pendingDateChange, setPendingDateChange] = useState(false);
+    const pendingDateChangeRef = useRef(false);
     const [shouldShowRateAutoUpdatedTooltip, setShouldShowRateAutoUpdatedTooltip] = useState(false);
-    const dateChanged = prevCreated !== undefined && prevCreated !== transaction?.created;
-    const rateChanged = prevRateID !== undefined && prevRateID !== customUnitRateID;
 
-    if (dateChanged && !rateChanged && !pendingDateChange) {
-        setPendingDateChange(true);
-    }
+    useEffect(() => {
+        if (!isDistanceRequest) {
+            return;
+        }
 
-    if (dateChanged || rateChanged) {
-        const newShouldShow = isDistanceRequest && rateChanged && (dateChanged || pendingDateChange);
-        if (newShouldShow && pendingDateChange && !dateChanged) {
-            setPendingDateChange(false);
+        const dateJustChanged = prevCreated !== undefined && prevCreated !== transaction?.created;
+        const rateJustChanged = prevRateID !== undefined && prevRateID !== customUnitRateID;
+
+        if (dateJustChanged && !rateJustChanged) {
+            pendingDateChangeRef.current = true;
+            return;
         }
-        if (newShouldShow !== shouldShowRateAutoUpdatedTooltip) {
-            setShouldShowRateAutoUpdatedTooltip(newShouldShow);
+
+        if (rateJustChanged) {
+            const wasDateTriggered = dateJustChanged || pendingDateChangeRef.current;
+            pendingDateChangeRef.current = false;
+            if (wasDateTriggered) {
+                setShouldShowRateAutoUpdatedTooltip(true);
+            }
         }
-    } else if (pendingDateChange) {
-        setPendingDateChange(false);
-    }
+    }, [isDistanceRequest, prevCreated, prevRateID, transaction?.created, customUnitRateID]);
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const prevSubRates = usePrevious(subRates);
