@@ -49,7 +49,7 @@ function MergeHRGroupsPage({
 
     const listData: GroupListItem[] = filteredGroups.map((group) => ({
         text: group.name,
-        alternateText: group.type.toLowerCase().replaceAll(/\b\w/g, (c) => c.toUpperCase()),
+        alternateText: group.type.charAt(0).toUpperCase() + group.type.slice(1).toLowerCase(),
         keyForList: group.id,
         value: group.id,
         isSelected: selectedIds.has(group.id),
