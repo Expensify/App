@@ -1,3 +1,4 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -64,7 +65,7 @@ function IOURequestStepDistanceRate({
 }: IOURequestStepDistanceRateProps) {
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
     const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
-        selector: (policyValue) => policyValue?.type,
+        selector: policyTypeSelector,
     });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);

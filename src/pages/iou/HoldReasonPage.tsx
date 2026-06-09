@@ -1,3 +1,4 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import {getReportOwnerAccountID} from '@selectors/Report';
 import React, {useCallback, useEffect} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -39,7 +40,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const ancestors = useAncestors(report);
 
     const [policyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
-        selector: (policyValue) => policyValue?.type,
+        selector: policyTypeSelector,
     });
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
 

@@ -1,4 +1,4 @@
-import {Str} from 'expensify-common';
+import {policyTypeSelector} from '@selectors/Policy';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -422,7 +422,7 @@ function MoneyRequestView({
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
     const [moneyRequestReportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {
-        selector: (policyValue) => policyValue?.type,
+        selector: policyTypeSelector,
     });
     const isPolicyExpenseChat = isGroupPolicyByType(moneyRequestReportPolicyType);
     const policyTagLists = getTagLists(policyTagList);

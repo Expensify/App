@@ -2487,7 +2487,6 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
-    isPaidGroupPolicyByType,
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
@@ -2615,7 +2614,6 @@ export {
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
-    isSubmitPolicyByType,
 };
 
 export type {MemberEmailsToAccountIDs, PolicyFeature};

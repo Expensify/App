@@ -1,3 +1,4 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -119,7 +120,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
     const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {
-        selector: (policyValue) => policyValue?.type,
+        selector: policyTypeSelector,
     });
     const isPolicyExpenseChat = isGroupPolicyByType(draftTransactionPolicyType);
 
