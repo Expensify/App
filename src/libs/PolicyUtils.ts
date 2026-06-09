@@ -2335,7 +2335,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
  * Returns if the policy has the Time Tracking feature enabled.
  */
 function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.units?.time?.enabled;
+    return !!policy?.units?.time?.enabled && policy?.features?.timeTracking === true;
 }
 
 /**
