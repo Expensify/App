@@ -43,7 +43,7 @@ function ForYouSkeleton({reasonAttributes}: Props) {
             const iconY = 12;
             const titleX = iconX + 40 + gap;
             const titleWidth = getTitleSkeletonWidth(args.itemIndex);
-            const buttonWidth = styles.widgetItemButton.minWidth ?? 0;
+            const buttonWidth = styles.widgetItemButton.minWidth;
             const buttonHeight = 28;
             const buttonX = pageWidth - horizontalPadding - buttonWidth;
             const buttonY = (ITEM_HEIGHT - buttonHeight) / 2;
