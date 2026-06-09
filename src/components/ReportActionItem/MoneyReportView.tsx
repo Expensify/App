@@ -115,7 +115,8 @@ function MoneyReportView({
     // The reimbursable/non-reimbursable rows duplicate the Total for a single non-reimbursable expense, so suppress only those rows.
     // Billable and tax rows convey distinct information and must still show.
     const shouldShowReimbursabilityBreakdown = !isSingleNonReimbursableExpense && !!nonReimbursableSpend;
-    const shouldShowBreakdown = shouldShowReimbursabilityBreakdown || !!billableTotal || (!!taxTotal && isTaxEnabled);
+    const isSingleExpense = isSingleTransactionReport(report, visibleTransactions);
+    const shouldShowBreakdown = (shouldShowReimbursabilityBreakdown || !!billableTotal || (!!taxTotal && isTaxEnabled)) && !isSingleExpense;
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
