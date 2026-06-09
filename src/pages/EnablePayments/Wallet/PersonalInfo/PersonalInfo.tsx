@@ -1,11 +1,10 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import {clearPersonalBankAccount} from '@libs/actions/BankAccounts';
 import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
@@ -40,11 +39,6 @@ function PersonalInfoPage() {
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
-
-    useEffect(() => {
-        // if we're at this step, then we have already added a bank account so we need to clear ONYX keys for the bank account
-        clearPersonalBankAccount();
-    }, []);
 
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
