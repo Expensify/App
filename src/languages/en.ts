@@ -7443,6 +7443,18 @@ const translations = {
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Travel agencies',
                 },
             },
+            aiRules: {
+                title: 'AI Rules',
+                subtitle: 'Describe flexible rules that run when you need them',
+                addRule: 'Add AI rule',
+                findRule: 'Find AI rule',
+                addRuleTitle: 'Add rule',
+                editRuleTitle: 'Edit rule',
+                deleteRule: 'Delete rule',
+                deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
+                describeRuleTitle: 'Describe your rule',
+                describeRuleSubtitle: 'Describe your rule and Concierge will build it',
+            },
         },
         planTypePage: {
             planTypes: {

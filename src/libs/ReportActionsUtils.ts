@@ -174,8 +174,6 @@ const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
 const POLICY_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
 
-const ROOM_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
-
 const MEMBER_CHANGE_ARRAY = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
     CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
@@ -696,10 +694,6 @@ function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction 
 
 function isRejectedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);
-}
-
-function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
-    return reportAction?.actionName ? ROOM_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
 
 function isInviteOrRemovedAction(
@@ -4740,7 +4734,6 @@ export {
     isPayAction,
     isPendingRemove,
     getModerationFlagState,
-    isPolicyChangeLogAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
@@ -4748,7 +4741,6 @@ export {
     isReportPreviewAction,
     isReversedTransaction,
     getMentionedAccountIDsFromAction,
-    isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,

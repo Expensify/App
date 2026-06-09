@@ -1,7 +1,6 @@
 /** Onyx selectors used by the confirmation field leaves. */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
-import getReportNameValuePairsForReports from '@libs/ReportNameValuePairsUtils';
 import {
     getCategory,
     getCreated,
@@ -302,7 +301,6 @@ type ReportFieldTransactionState = {
     isFromGlobalCreate: boolean;
     participantReportID: string | undefined;
 };
-type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
     if (!t) {
@@ -317,15 +315,6 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
 
 const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
     derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
-
-const createOutstandingReportsNVPsSelector =
-    (outstandingReports: OutstandingReportsForPolicy | undefined) =>
-    (allNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): OnyxCollection<OnyxTypes.ReportNameValuePairs> | undefined => {
-        if (!outstandingReports || !allNVPs) {
-            return undefined;
-        }
-        return getReportNameValuePairsForReports(outstandingReports, allNVPs);
-    };
 
 // --- InvoiceSenderField ---
 
@@ -350,7 +339,6 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
-    createOutstandingReportsNVPsSelector,
     createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
