@@ -682,7 +682,7 @@
 "../../src/libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtensionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/DebugTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
+"../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../src/libs/Navigation/Navigation.ts"	"no-restricted-imports"	1
 "../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1606,6 +1606,7 @@
 "../../tests/actions/ReimbursementAccountTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/actions/ReplaceOptimisticReportWithActualReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/ReportFieldTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/actions/ReportLayoutTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/ReportPreviewActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	28
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	80
@@ -1952,6 +1953,7 @@
 "../../tests/unit/hooks/useFreeTrial.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/hooks/useGettingStartedItems.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/hooks/useHasAnyAdminExpensifyCardFeed.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/unit/hooks/useHoldRejectActionsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useIsAllowedToIssueCompanyCard.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/hooks/useIsBlockedToAddFeed.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/hooks/useIsSidebarRouteActive.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
