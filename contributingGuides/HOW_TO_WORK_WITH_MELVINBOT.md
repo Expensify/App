@@ -25,8 +25,8 @@ Only Expensify employees, C+ members, and backend contributors can trigger Melvi
 Issue opened → Melvin posts proposal → C+ reviews proposal(s)
     → Accepted: C+ asks Melvin to implement
     → Not accepted: C+ explains why
-→ Melvin opens draft PR → C+ tweaks, tests, posts PR body/checklist in issue comment, asks Melvin to apply it, self-reviews (including Reviewer checklist)
-→ C+ submits PR for review as human author → CME reviews and merges (PR body and/or C+ comment)
+→ Melvin opens draft PR → C+ tweaks, tests, posts PR body/checklist in a PR comment, asks Melvin to apply it, self-reviews (including Reviewer checklist)
+→ C+ submits PR for review as human author → CME reviews and merges (PR body and/or C+ PR comment)
 ```
 
 ## Phase 1: Proposal review
@@ -72,7 +72,7 @@ The C+ is accountable for the PR quality, the same as any contributor who author
 
 C+ members who cannot edit the PR body directly should use this workaround:
 
-1. On the **linked GitHub issue** (not the PR), post a comment with the exact content you want in the PR description. Put the full body inside a `<details>` block so the issue thread stays readable. Include the complete [PR template](https://github.com/Expensify/App/blob/main/.github/PULL_REQUEST_TEMPLATE.md) when possible: Explanation of Change, Fixed Issues, Tests, Offline tests, QA Steps, a fully checked PR Author Checklist, and Screenshots/Videos sections as needed.
+1. On the **pull request**, post a comment with the exact content you want in the PR description. Put the full body inside a `<details>` block so the PR thread stays readable. Include the complete [PR template](https://github.com/Expensify/App/blob/main/.github/PULL_REQUEST_TEMPLATE.md) when possible: Explanation of Change, Fixed Issues, Tests, Offline tests, QA Steps, a fully checked PR Author Checklist, and Screenshots/Videos sections as needed.
 2. In the same comment, ask Melvin to copy that content into the pull request body, for example:
 
 ```
@@ -107,14 +107,14 @@ $ https://github.com/Expensify/App/issues/12345
 
 3. Confirm Melvin updated the PR description before marking the pull request ready for review.
 
-The C+ comment is the **source of truth** for what was tested and checked. CMEs may review that comment directly when the PR body is incomplete, out of date, or hard to verify.
+The C+ PR comment is the **source of truth** for what was tested and checked. CMEs may review that comment directly when the PR body is incomplete, out of date, or hard to verify.
 
 ## Phase 3: CME review and merge
 
 After the C+ submits the PR for review:
 
 1. A **CME** (internal engineer) is assigned to review and merge.
-2. The CME follows the normal internal review process. Review the **PR body** when Melvin has applied the C+ content, or review the C+ **issue comment** (with the `<details>` block) directly for testing steps and checklist completion.
+2. The CME follows the normal internal review process. Review the **PR body** when Melvin has applied the C+ content, or review the C+ **PR comment** (with the `<details>` block) directly for testing steps and checklist completion.
 3. Payment and regression checklists follow the standard rules in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ### No additional contributor or C+ PR review
@@ -128,7 +128,7 @@ We intentionally do **not** add a second round of contributor or C+ PR review on
 | Open a PR before a proposal is accepted | Wastes contributor and reviewer time if the approach is wrong |
 | Skip C+ proposal review because Melvin wrote it | Melvin proposals need the same validation as human proposals |
 | Send Melvin's draft PR for CME review without testing and checklist completion | The C+ is the human author and owns quality |
-| Assume you can edit Melvin's PR description in the GitHub UI | Post the body in an issue comment and ask `@MelvinBot` to apply it |
+| Assume you can edit Melvin's PR description in the GitHub UI | Post the body in a PR comment and ask `@MelvinBot` to apply it |
 | Expect a second C+ or contributor review after C+ submission | Only the CME reviews before merge |
 
 ## Related documentation
