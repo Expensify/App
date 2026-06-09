@@ -478,7 +478,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             // When the caller passes ROLE.USER for a Submit workspace
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -511,7 +511,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             // When the caller passes ROLE.USER on a non-Submit workspace
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser);
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -554,7 +554,7 @@ describe('actions/PolicyMember', () => {
 
             // When inviting a new member on a Submit workspace (role is forced to Editor)
             mockFetch?.pause?.();
-          Member.addMembersToWorkspace({ [editorEmail]: editorAccountID }, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
+            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
 
             await waitForBatchedUpdates();
 
