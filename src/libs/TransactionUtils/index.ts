@@ -1167,6 +1167,18 @@ function getMCCGroup(transaction: Transaction): ValueOf<typeof CONST.MCC_GROUPS>
     return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup;
 }
 
+function getMCCForDisplay(mcc: number | string | null | undefined): string {
+    if (!mcc || mcc === CONST.DEFAULT_NUMBER_ID || mcc === String(CONST.DEFAULT_NUMBER_ID)) {
+        return '';
+    }
+
+    return String(mcc);
+}
+
+function hasDisplayableMCC(mcc: number | string | null | undefined): boolean {
+    return getMCCForDisplay(mcc) !== '';
+}
+
 /**
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
@@ -3023,6 +3035,8 @@ export {
     willFieldBeAutomaticallyFilled,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getMCCForDisplay,
+    hasDisplayableMCC,
     getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,

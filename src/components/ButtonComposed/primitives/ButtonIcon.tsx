@@ -25,7 +25,12 @@ function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
     const theme = useTheme();
     const {isHovered, variant, size} = useButtonContext();
 
-    const defaultFill = variant === 'success' || variant === 'danger' ? theme.textLight : theme.buttonIcon;
+    let defaultFill = theme.buttonIcon;
+    if (variant === 'danger') {
+        defaultFill = theme.buttonDangerText;
+    } else if (variant === 'success') {
+        defaultFill = theme.textLight;
+    }
     const propsFill = isHovered ? hoverFill : fill;
     return (
         <View style={style}>

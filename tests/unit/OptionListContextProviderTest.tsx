@@ -294,7 +294,7 @@ describe('OptionListContextProvider', () => {
         mockUsePersonalDetails.mockReturnValue(updatedPersonalDetails);
         rerender({shouldInitialize: false});
 
-        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, true, undefined, undefined, {showPersonalDetails: true});
+        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, true, undefined, undefined, undefined, {showPersonalDetails: true});
     });
 
     it('does not reset options when called before initialization', () => {
