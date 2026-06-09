@@ -187,7 +187,7 @@ function TaskAssigneeSelectorModal() {
                     isOptimisticReport,
                 });
             }
-            Navigation.goBack(taskEditBackPath, {waitForTransition: true});
+            Navigation.goBack(taskEditBackPath);
             // If there's no report, we're creating a new task
         } else if (option.accountID) {
             setAssigneeValue(
@@ -197,7 +197,7 @@ function TaskAssigneeSelectorModal() {
                 undefined, // passing null as report is null in this condition
                 isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList, currentUserEmail),
             );
-            Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo), {waitForTransition: true});
+            Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
         }
     };
 
