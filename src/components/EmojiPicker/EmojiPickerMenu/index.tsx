@@ -12,6 +12,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -158,6 +159,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         isActive: true,
         allowNegativeIndexes: true,
     });
+
+    const getOnFocus = useStableIndexedHandler(setFocusedIndex);
 
     const filterCallbackRef = useRef<(searchTerm: string) => void>(undefined);
     filterCallbackRef.current = (searchTerm: string) => {
@@ -357,7 +360,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         setIsUsingKeyboardMovement(false);
                     }}
                     emoji={emojiCode ?? ''}
-                    onFocus={() => setFocusedIndex(index)}
+                    onFocus={getOnFocus(index)}
                     isFocused={isEmojiFocused}
                     isHighlighted={shouldFirstEmojiBeHighlighted || shouldEmojiBeHighlighted}
                 />
@@ -375,7 +378,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             windowWidth,
             translate,
             onEmojiSelected,
-            setFocusedIndex,
+            getOnFocus,
             activeEmoji,
             getHeaderRef,
             handleHeaderLayout,
