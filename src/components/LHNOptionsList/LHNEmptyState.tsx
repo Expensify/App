@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
+import Text from '@components/Text';
 import TextBlock from '@components/TextBlock';
+import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
@@ -24,15 +26,24 @@ function LHNEmptyState() {
 
     if (activeTab === CONST.INBOX_TAB.UNREAD || activeTab === CONST.INBOX_TAB.TODO) {
         const title = activeTab === CONST.INBOX_TAB.UNREAD ? translate('common.emptyLHN.noUnreadChats') : translate('common.emptyLHN.noTodos');
+        const caughtUpSubtitle = (
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('common.emptyLHN.caughtUp')}</Text>
+                <TextLink
+                    onPress={() => setActiveTab(CONST.INBOX_TAB.ALL)}
+                    style={[styles.link, styles.mt5, styles.ph4, styles.textAlignCenter]}
+                >
+                    {translate('common.emptyLHN.seeAllChats')}
+                </TextLink>
+            </View>
+        );
 
         return (
             <BlockingView
                 {...(emptyLHNIllustration as BlockingViewProps)}
                 title={title}
-                subtitle={translate('common.emptyLHN.caughtUp')}
-                subtitleStyle={styles.textSupporting}
-                linkTranslationKey="common.emptyLHN.seeAllChats"
-                onLinkPress={() => setActiveTab(CONST.INBOX_TAB.ALL)}
+                titleStyles={styles.mb2}
+                CustomSubtitle={caughtUpSubtitle}
                 accessibilityLabel={title}
             />
         );
