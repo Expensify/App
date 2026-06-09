@@ -84,11 +84,24 @@ describe('WorkspaceReportFieldUtils.getUnsupportedReportFieldFormulaParts', () =
 });
 
 describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
+    const baseNameField: PolicyReportField = {
+        fieldID: '',
+        name: '',
+        type: 'text',
+        values: [],
+        disabledOptions: [],
+        defaultValue: '',
+        orderWeight: 0,
+        deletable: false,
+        keys: [],
+        externalIDs: [],
+        isTax: false,
+    };
     const fieldList: Record<string, PolicyReportField> = {
-        field1: {name: 'Field1', type: 'text'} as PolicyReportField,
-        field2: {name: 'Field2', type: 'date'} as PolicyReportField,
-        field3: {name: 'Field3', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE} as PolicyReportField,
-        field4: {name: 'Field3', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE} as PolicyReportField,
+        field1: {...baseNameField, name: 'Field1', type: 'text'},
+        field2: {...baseNameField, name: 'Field2', type: 'date'},
+        field3: {...baseNameField, name: 'Field3', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE},
+        field4: {...baseNameField, name: 'Field3', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE},
     };
 
     it('should return false when field name does not exist', () => {
