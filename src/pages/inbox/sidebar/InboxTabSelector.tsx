@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
@@ -44,7 +43,12 @@ function InboxTabSelector() {
                 <TabSelectorBase
                     tabs={tabs}
                     activeTabKey={activeTab}
-                    onTabPress={(key) => setActiveTab(key as ValueOf<typeof CONST.INBOX_TAB>)}
+                    onTabPress={(key) => {
+                        if (key !== CONST.INBOX_TAB.ALL && key !== CONST.INBOX_TAB.UNREAD && key !== CONST.INBOX_TAB.TODO) {
+                            return;
+                        }
+                        setActiveTab(key);
+                    }}
                     equalWidth
                     contentContainerStyles={styles.pb1}
                 />

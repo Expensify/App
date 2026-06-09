@@ -20,7 +20,7 @@ function LHNEmptyState() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
-    const emptyLHNIllustration = useEmptyLHNIllustration();
+    const emptyLHNIllustration = useEmptyLHNIllustration() as BlockingViewProps;
     const {activeTab} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
 
@@ -40,7 +40,7 @@ function LHNEmptyState() {
 
         return (
             <BlockingView
-                {...(emptyLHNIllustration as BlockingViewProps)}
+                {...emptyLHNIllustration}
                 title={title}
                 titleStyles={styles.mb2}
                 CustomSubtitle={caughtUpSubtitle}
@@ -87,7 +87,7 @@ function LHNEmptyState() {
 
     return (
         <BlockingView
-            {...(emptyLHNIllustration as BlockingViewProps)}
+            {...emptyLHNIllustration}
             title={translate('common.emptyLHN.title')}
             CustomSubtitle={subtitle}
             accessibilityLabel={translate('common.emptyLHN.title')}
