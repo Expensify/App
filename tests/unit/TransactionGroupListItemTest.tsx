@@ -51,6 +51,36 @@ jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: unde
 
 jest.mock('@hooks/useResponsiveLayout');
 
+jest.mock('@hooks/usePaymentContext', () => {
+    const mockPaymentContextValue = {
+        currentUserAccountID: 1,
+        currentUserLogin: 'test@example.com',
+        email: 'test@example.com',
+        localCurrencyCode: 'USD',
+        introSelected: undefined,
+        betas: undefined,
+        isSelfTourViewed: false,
+        activePolicyID: undefined,
+        activePolicy: undefined,
+        conciergeReportID: undefined,
+        defaultWorkspaceName: 'Test Workspace',
+        userBillingGracePeriodEnds: undefined,
+        amountOwed: undefined,
+        ownerBillingGracePeriodEnd: undefined,
+    };
+
+    return {
+        __esModule: true,
+        default: () => mockPaymentContextValue,
+        useReportPaymentContext: () => ({
+            ...mockPaymentContextValue,
+            nextStep: undefined,
+            chatReportPolicy: undefined,
+            existingB2BInvoiceReport: undefined,
+        }),
+    };
+});
+
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
     chatReportID: '4735435600700077',

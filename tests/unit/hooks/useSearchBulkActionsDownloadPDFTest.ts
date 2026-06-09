@@ -56,6 +56,26 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     })),
 }));
 
+jest.mock('@hooks/usePaymentContext', () => ({
+    __esModule: true,
+    default: () => ({
+        currentUserAccountID: 1,
+        currentUserLogin: 'test@example.com',
+        email: 'test@example.com',
+        localCurrencyCode: 'USD',
+        introSelected: undefined,
+        betas: undefined,
+        isSelfTourViewed: false,
+        activePolicyID: undefined,
+        activePolicy: undefined,
+        conciergeReportID: undefined,
+        defaultWorkspaceName: 'Test Workspace',
+        userBillingGracePeriodEnds: undefined,
+        amountOwed: undefined,
+        ownerBillingGracePeriodEnd: undefined,
+    }),
+}));
+
 // ---- helpers ----
 
 const expenseReportQueryJSON: SearchQueryJSON = {
