@@ -20,7 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useTheme from '@hooks/useTheme';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
@@ -63,7 +63,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const bank = getCompanyCardFeed(feedName);
 
     const {translate, getLocalDateFromDatetime} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -72,6 +71,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const {showConfirmModal} = useConfirmModal();
 
     const policy = usePolicy(policyID);
+    const {canWrite: canWriteCompanyCards} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
@@ -82,7 +82,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const [isUnassigning, setIsUnassigning] = useState(false);
 
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
 
@@ -141,6 +141,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -184,19 +185,19 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
                     >
                         <CardDetailsActionButtons>
-                            <CardDetailsActionButton
-                                text={translate('workspace.moreFeatures.companyCards.updateCard')}
-                                icon={expensifyIcons.Sync}
-                                iconFill={theme.icon}
-                                onPress={updateCard}
-                                isDisabled={isOffline || card?.isLoadingLastUpdated}
-                                isLoading={card?.isLoadingLastUpdated}
-                                style={styles.flexShrink0}
-                            />
+                            {canWriteCompanyCards && (
+                                <CardDetailsActionButton
+                                    text={translate('workspace.moreFeatures.companyCards.updateCard')}
+                                    icon={expensifyIcons.Sync}
+                                    onPress={updateCard}
+                                    isDisabled={isOffline || card?.isLoadingLastUpdated}
+                                    isLoading={card?.isLoadingLastUpdated}
+                                    style={styles.flexShrink0}
+                                />
+                            )}
                             <CardDetailsActionButton
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
-                                iconFill={theme.icon}
                                 onPress={navigateToTransactions}
                                 style={styles.flexShrink0}
                             />
@@ -210,10 +211,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.cardName')}
-                            title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
-                            shouldShowRightIcon
+                            title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.displayName)}
+                            shouldShowRightIcon={canWriteCompanyCards}
                             brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}
+                            interactive={canWriteCompanyCards}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_NAME}
                         />
                     </OfflineWithFeedback>
@@ -239,8 +241,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <MenuItemWithTopDescription
                                 description={exportMenuItem.description}
                                 title={exportMenuItem.title}
-                                shouldShowRightIcon
+                                numberOfLinesTitle={2}
+                                shouldShowRightIcon={canWriteCompanyCards}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
+                                interactive={canWriteCompanyCards}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
                             />
                         </OfflineWithFeedback>
@@ -254,13 +258,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                             title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteCompanyCards}
                             brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                            interactive={canWriteCompanyCards}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
                         />
                     </OfflineWithFeedback>
-                    {shouldShowBreakConnection && (
+                    {canWriteCompanyCards && shouldShowBreakConnection && (
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
                             disabled={isOffline || card?.isLoadingLastUpdated}
@@ -268,28 +273,30 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             onPress={breakConnection}
                         />
                     )}
-                    <MenuItem
-                        icon={expensifyIcons.RemoveMembers}
-                        title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                        style={styles.mb1}
-                        onPress={() => {
-                            showConfirmModal({
-                                shouldSetModalVisibility: false,
-                                title: translate('workspace.moreFeatures.companyCards.unassignCard'),
-                                prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
-                                confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
-                                cancelText: translate('common.cancel'),
-                                danger: true,
-                            }).then((result) => {
-                                if (result.action !== ModalActions.CONFIRM) {
-                                    return;
-                                }
+                    {canWriteCompanyCards && (
+                        <MenuItem
+                            icon={expensifyIcons.RemoveMembers}
+                            title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                            style={styles.mb1}
+                            onPress={() => {
+                                showConfirmModal({
+                                    shouldSetModalVisibility: false,
+                                    title: translate('workspace.moreFeatures.companyCards.unassignCard'),
+                                    prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
+                                    confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                }).then((result) => {
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
 
-                                unassignCard();
-                            });
-                        }}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                    />
+                                    unassignCard();
+                                });
+                            }}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
+                        />
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

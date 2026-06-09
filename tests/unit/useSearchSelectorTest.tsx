@@ -18,8 +18,8 @@ const EMPTY_OPTIONS = {recentReports: [], personalDetails: [], userToInvite: nul
 jest.mock('@libs/OptionsListUtils', () => ({
     __esModule: true,
     ...jest.requireActual('@libs/OptionsListUtils'),
-    getValidOptions: jest.fn(() => EMPTY_OPTIONS),
-    getSearchOptions: jest.fn(() => EMPTY_OPTIONS),
+    getValidOptions: jest.fn(() => ({options: EMPTY_OPTIONS, hasMore: false})),
+    getSearchOptions: jest.fn(() => ({options: EMPTY_OPTIONS, hasMore: false})),
 }));
 
 const MOCK_ACCOUNT_ID = 12345;
@@ -305,10 +305,12 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('keeps selected contacts in availableOptions.personalDetails when shouldKeepSelectedInAvailableOptions is true', async () => {
         const optionsWithSelected = {
-            recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithSelected);
 
@@ -330,10 +332,12 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('filters out selected contacts from availableOptions.personalDetails when shouldKeepSelectedInAvailableOptions is false', async () => {
         const optionsWithSelected = {
-            recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithSelected);
 
@@ -356,10 +360,12 @@ describe('useSearchSelector selection and non-existing options', () => {
     it('populates selectedNonExistingOptions with selected users not in personalDetails when shouldSeparateNonExistingSelectedOptions is true', async () => {
         // Return contacts that do NOT include the non-existing user
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [EXISTING_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [EXISTING_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
@@ -385,10 +391,12 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('returns empty selectedNonExistingOptions when shouldSeparateNonExistingSelectedOptions is false', async () => {
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [EXISTING_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [EXISTING_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
@@ -408,10 +416,12 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('does not include existing contacts in selectedNonExistingOptions', async () => {
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
@@ -436,10 +446,12 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('adds non-existing user to selectedNonExistingOptions after toggleSelection', async () => {
         const optionsWithUserToInvite = {
-            recentReports: [],
-            personalDetails: [EXISTING_CONTACT],
-            userToInvite: NON_EXISTING_USER_TO_INVITE,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [EXISTING_CONTACT],
+                userToInvite: NON_EXISTING_USER_TO_INVITE,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithUserToInvite);
 
@@ -472,10 +484,12 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('removes non-existing user from selectedNonExistingOptions after deselection', async () => {
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [EXISTING_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [EXISTING_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
@@ -504,10 +518,12 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('handles mix of existing and non-existing selected users correctly', async () => {
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [{...EXISTING_CONTACT, isSelected: true}],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 

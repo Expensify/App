@@ -6,15 +6,12 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
-import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import Text from '@components/Text';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -31,7 +28,7 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
+import {getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -56,6 +53,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
 } from './ListItem/types';
+import SearchSelectAllMenu from './SearchSelectAllMenu';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
@@ -234,11 +232,11 @@ function SearchList({
         return data;
     }, [data, groupBy, type]);
     const emptyReports = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            return data.filter((item) => item.transactions.length === 0);
+        if (isTransactionGroupListItemArray(data)) {
+            return data.filter((item) => item.transactions.length === 0 && item.keyForList);
         }
         return [];
-    }, [data, type]);
+    }, [data]);
 
     const selectedItemsLength = useMemo(() => {
         const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
@@ -246,7 +244,7 @@ function SearchList({
             return acc + (isTransactionSelected ? 1 : 0);
         }, 0);
 
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
+        if (isTransactionGroupListItemArray(data)) {
             const selectedEmptyReports = emptyReports.reduce((acc, item) => {
                 const isEmptyReportSelected = !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
                 return acc + (isEmptyReportSelected ? 1 : 0);
@@ -256,10 +254,10 @@ function SearchList({
         }
 
         return selectedTransactionsCount;
-    }, [flattenedItems, type, data, emptyReports, selectedTransactions]);
+    }, [flattenedItems, data, emptyReports, selectedTransactions]);
 
     const totalItems = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
+        if (isTransactionGroupListItemArray(data)) {
             const selectableEmptyReports = emptyReports.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const selectableTransactions = flattenedItems.filter((item) => {
                 if ('pendingAction' in item) {
@@ -277,7 +275,7 @@ function SearchList({
             return true;
         });
         return selectableTransactions.length;
-    }, [data, type, flattenedItems, emptyReports]);
+    }, [data, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -434,8 +432,6 @@ function SearchList({
             const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
             const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
-            // Apply selection lazily per row so we don't rebuild a list-wide wrapper structure on every render.
-            const {itemWithSelection} = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
 
             return (
                 <Animated.View
@@ -451,7 +447,7 @@ function SearchList({
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
-                        item={itemWithSelection}
+                        item={item}
                         columns={columns}
                         isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         isDisabled={isDisabled}
@@ -493,7 +489,6 @@ function SearchList({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,
-            selectedTransactions,
             ListFooterComponent,
             isAttendeesEnabledForMovingPolicy,
             handleUndelete,
@@ -516,34 +511,17 @@ function SearchList({
                     ]}
                 >
                     {canSelectMultiple && (
-                        <Checkbox
-                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                            isChecked={isSelectAllChecked}
+                        <SearchSelectAllMenu
+                            isSelectAllChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
-                            onPress={() => {
-                                onAllCheckboxPress();
-                            }}
-                            disabled={totalItems === 0}
-                            containerStyle={styles.m0}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
+                            selectedItemsLength={selectedItemsLength}
+                            totalItems={totalItems}
+                            shouldShowTextButton={selectAllButtonVisible}
+                            onAllCheckboxPress={onAllCheckboxPress}
                         />
                     )}
 
                     {SearchTableHeader}
-
-                    {selectAllButtonVisible && (
-                        <PressableWithFeedback
-                            style={[styles.userSelectNone, styles.alignItemsCenter]}
-                            onPress={onAllCheckboxPress}
-                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_BUTTON}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                        >
-                            <Text style={[styles.textMicroSupporting, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                        </PressableWithFeedback>
-                    )}
                 </View>
             )}
             <BaseSearchList
