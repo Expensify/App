@@ -372,17 +372,19 @@ describe('MoneyRequestReportPreview', () => {
             mockResponsiveLayoutOverride = undefined;
         });
 
-        it('opens the report and then the pressed expense on top on wide layouts', async () => {
+        it('opens the report in the wide RHP and then the pressed expense on top on wide layouts', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
-            // The report opens first so it sits below the expense, then the pressed expense opens on top.
+            // The report opens in the wide RHP first so it sits below, then the pressed expense opens on top
+            // of it (back returns to the report, not the Inbox).
+            const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
             expect(navigateSpy).toHaveBeenCalledTimes(2);
-            expect(navigateSpy).toHaveBeenNthCalledWith(1, ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
-            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+            expect(navigateSpy).toHaveBeenNthCalledWith(1, reportRoute);
+            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
         it('pushes the report then the expense on narrow layouts so back returns to the report', async () => {

@@ -51,7 +51,7 @@ function MoneyRequestReportPreview({
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense} = useWideRHPActions();
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -183,8 +183,7 @@ function MoneyRequestReportPreview({
             });
 
             // On narrow layouts push the report onto the stack first and then the expense on top, so the
-            // back button returns to the report. On wide layouts mark the expense report so it opens in the
-            // wide RHP with the report shown alongside it, matching how an expense opens from the report view.
+            // back button returns to the report (the wide RHP is not available on narrow layouts).
             if (isSmallScreenWidth) {
                 if (iouReportID) {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
@@ -193,14 +192,40 @@ function MoneyRequestReportPreview({
                 return;
             }
 
+            // On wide layouts open the expense report itself in the wide RHP (super wide for multi-expense
+            // reports) and show the pressed expense on top of it — mirroring how an expense opens from the
+            // report view — rather than navigating to the report in the Inbox. Back returns to the report,
+            // and back again to the chat.
             if (iouReportID) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+                const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()});
+                markReportIDAsMultiTransactionExpense(iouReportID);
+                Navigation.navigate(reportRoute);
+                setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
+                    markReportIDAsExpense(childReportID);
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                });
+                return;
             }
-            markReportIDAsExpense(childReportID);
-            setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
+
+            // Fallback when the parent report is unknown: open the pressed expense alone in the wide RHP.
+            setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
+                markReportIDAsExpense(childReportID);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
+            });
         },
-        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, iouReportID, isSmallScreenWidth, markReportIDAsExpense, openReportFromPreview, transactions],
+        [
+            betas,
+            currentUserAccountID,
+            currentUserEmail,
+            introSelected,
+            iouReport,
+            iouReportID,
+            isSmallScreenWidth,
+            markReportIDAsExpense,
+            markReportIDAsMultiTransactionExpense,
+            openReportFromPreview,
+            transactions,
+        ],
     );
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => {
