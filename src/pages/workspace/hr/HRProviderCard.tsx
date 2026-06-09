@@ -173,7 +173,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
             {card.isConnected && !card.isInitialSyncInProgress && !!card.configRows?.some((row) => !card.completeSetupRoute || !!row.errors) && (
                 <View style={styles.mt2}>
                     {card.configRows
-                        ?.filter((row) => !card.completeSetupRoute || !!row.errors)
+                        .filter((row) => !card.completeSetupRoute || !!row.errors)
                         .map((row) => (
                             <OfflineWithFeedback
                                 key={row.field}

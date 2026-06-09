@@ -99,10 +99,7 @@ function MergeHRGroupsPage({
                 shouldEnableMaxHeight
                 testID="MergeHRGroupsPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.hr.mergeHR.groups.title')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButton title={translate('workspace.hr.mergeHR.groups.title')} />
                 <View style={styles.flex1}>
                     <Text style={[styles.ph5, styles.mb5]}>{translate('workspace.hr.mergeHR.groups.description')}</Text>
                     <SelectionList
