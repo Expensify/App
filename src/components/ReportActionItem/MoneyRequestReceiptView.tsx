@@ -619,6 +619,14 @@ function MoneyRequestReceiptView({
                             ref={receiptContainerRef}
                             style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
+                            // Keep `hovered` in sync while moving over the receipt so the distance e-receipt overlay
+                            // (rendered below when `hovered`) stays visible while zooming.
+                            onMouseMove={() => {
+                                if (isLoading || hovered) {
+                                    return;
+                                }
+                                hoverBind.onMouseEnter();
+                            }}
                             onMouseLeave={hoverBind.onMouseLeave}
                         >
                             <View style={[styles.flex1, isReceiptOfflinePending && styles.offlineFeedbackPending]}>
