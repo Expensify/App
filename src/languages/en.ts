@@ -7190,6 +7190,23 @@ const translations = {
             goToSubscription: 'Go to Subscription',
         },
         rules: {
+            tabs: {
+                general: 'General',
+                cardRestrictions: 'Card restrictions',
+                expenseDefaults: 'Expense defaults',
+            },
+            generalTab: {
+                title: 'Basic rules',
+                subtitle: 'Common rules to control spend',
+                expensesOlderThan: 'Expenses older than',
+                expensesAboveAmount: 'Expenses above amount',
+                receiptRequirements: 'Receipt or itemized receipt requirements',
+                cashExpenses: 'Cash expenses',
+                billableExpenses: 'Billable expenses',
+                trackAttendees: 'Track attendees',
+                autoCreateEReceipts: 'Auto-create eReceipts',
+                autoCreateEReceiptsDescription: 'For most USD credit transactions.',
+            },
             individualExpenseRules: {
                 title: 'Expenses',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
