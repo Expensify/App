@@ -82,7 +82,7 @@ function MergeHRGroupsPage({
     };
 
     const handleSave = () => {
-        updateMergeHRGroups(policyID, [...selectedIds]);
+        updateMergeHRGroups(policyID, [...selectedIds], policy?.connections?.merge_hris?.config?.groups);
         Navigation.goBack();
     };
 
