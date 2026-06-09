@@ -1196,6 +1196,10 @@ const ONYXKEYS = {
         EDIT_AGENT_NAME_FORM_DRAFT: 'editAgentNameFormDraft',
         EDIT_AGENT_PROMPT_FORM: 'editAgentPromptForm',
         EDIT_AGENT_PROMPT_FORM_DRAFT: 'editAgentPromptFormDraft',
+        ADD_AI_RULE_FORM: 'addAIRuleForm',
+        ADD_AI_RULE_FORM_DRAFT: 'addAIRuleFormDraft',
+        EDIT_AI_RULE_FORM: 'editAIRuleForm',
+        EDIT_AI_RULE_FORM_DRAFT: 'editAIRuleFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1347,6 +1351,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM]: FormTypes.DomainGroupCreateForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM]: FormTypes.EditAgentNameForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
+    [ONYXKEYS.FORMS.ADD_AI_RULE_FORM]: FormTypes.AddAIRuleForm;
+    [ONYXKEYS.FORMS.EDIT_AI_RULE_FORM]: FormTypes.EditAIRuleForm;
 };
 
 type OnyxFormDraftValuesMapping = {

@@ -4791,7 +4791,6 @@ const CONST = {
             BLOCK: 'block',
         },
     },
-
     get SUBSCRIPTION_PRICES() {
         return {
             [this.PAYMENT_CARD_CURRENCY.USD]: {
@@ -9159,6 +9158,10 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
+                AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
+                ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
+                AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
+                AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
