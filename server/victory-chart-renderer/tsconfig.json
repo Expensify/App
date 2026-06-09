@@ -1,4 +1,7 @@
 {
     "extends": "../tsconfig.json",
-    "include": ["src", "tests", "scripts"]
+    "compilerOptions": {
+        "types": ["react-native", "react-native-web", "node"]
+    },
+    "include": ["src", "tests", "scripts", "../../src/types"]
 }

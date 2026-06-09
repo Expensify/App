@@ -33,7 +33,7 @@ function FeesAndTerms() {
         });
         clearPersonalBankAccount();
         resetWalletAdditionalDetailsDraft();
-        Navigation.navigate(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 
     const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
