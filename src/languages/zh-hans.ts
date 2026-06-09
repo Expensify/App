@@ -334,6 +334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: '选择货币',
         selectSymbolOrCurrency: '选择符号或货币',
         card: '卡片',
+        mcc: 'MCC',
+        categoryGLCode: '类别总账科目代码',
         whyDoWeAskForThis: '我们为什么要询问这个？',
         required: '必填',
         automatic: '自动',
@@ -507,6 +509,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
+        enableNotifications: {
+            prompt: '希望在Concierge回复时收到通知吗？',
+            cta: '通知',
+        },
     },
     supportalNoAccess: {
         title: '先别急',

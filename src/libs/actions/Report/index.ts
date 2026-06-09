@@ -9,6 +9,7 @@ import type {PartialDeep, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
 import type {
@@ -60,7 +61,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
 import * as CollectionUtils from '@libs/CollectionUtils';
-import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as Environment from '@libs/Environment/Environment';
@@ -678,7 +678,7 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string | undefined) {
 
 /**
  * Subscribe to conciergeReasoning Pusher events for a report.
- * Tracks subscriptions to avoid duplicates and updates ConciergeReasoningStore with reasoning data.
+ * Tracks subscriptions to avoid duplicates and updates AgentZeroReasoningStore with reasoning data.
  */
 function subscribeToReportReasoningEvents(reportID: string) {
     if (!reportID || reasoningSubscriptions.has(reportID)) {
@@ -688,9 +688,13 @@ function subscribeToReportReasoningEvents(reportID: string) {
     const pusherChannelName = getReportChannelName(reportID);
 
     const handle = Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
-        const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number};
+        const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number; actorAccountID?: number};
 
-        ConciergeReasoningStore.addReasoning(reportID, {
+        // Attribute the reasoning to the agent the server names (Concierge or a custom agent).
+        // Older backends omit actorAccountID; those payloads default to Concierge.
+        const agentAccountID = typeof eventData.actorAccountID === 'number' && eventData.actorAccountID > 0 ? eventData.actorAccountID : CONST.ACCOUNT_ID.CONCIERGE;
+
+        AgentZeroReasoningStore.addReasoning(reportID, agentAccountID, {
             reasoning: eventData.reasoning,
             agentZeroRequestID: eventData.agentZeroRequestID,
             loopCount: eventData.loopCount,
@@ -720,18 +724,19 @@ function unsubscribeFromReportReasoningChannel(reportID: string) {
     // Use the per-callback handle for precise cleanup instead of the global
     // Pusher.unsubscribe which removes ALL callbacks for the event on the channel.
     handle.unsubscribe();
-    ConciergeReasoningStore.clearReasoning(reportID);
+    AgentZeroReasoningStore.clearReportReasoning(reportID);
     reasoningSubscriptions.delete(reportID);
 }
 
 /**
- * Clear the AgentZero processing indicator for a report.
+ * Clear the AgentZero processing indicator for a single agent in a report.
  * Used by the safety timeout (lease pattern) and network reconnect handler
- * to auto-clear stale indicators when the CLEAR update was missed.
+ * to auto-clear stale indicators when the CLEAR update was missed. Only the given
+ * agent's slot is cleared so a co-resident agent's indicator stays intact.
  */
-function clearAgentZeroProcessingIndicator(reportID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: null});
-    ConciergeReasoningStore.clearReasoning(reportID);
+function clearAgentZeroProcessingIndicator(reportID: string, agentAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: {[agentAccountID]: null}});
+    AgentZeroReasoningStore.clearReasoning(reportID, agentAccountID);
 }
 
 // New action subscriber array for report pages

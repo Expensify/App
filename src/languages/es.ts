@@ -290,6 +290,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Selecciona una moneda',
         selectSymbolOrCurrency: 'Selecciona un símbolo o moneda',
         card: 'Tarjeta',
+        mcc: 'MCC',
+        categoryGLCode: 'Código de Libro Mayor de categoría',
         whyDoWeAskForThis: '¿Por qué pedimos esto?',
         required: 'Obligatorio',
         automatic: 'Automático',
@@ -464,6 +466,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
+        enableNotifications: {
+            prompt: '¿Quieres que te avisemos cuando Concierge responda?',
+            cta: 'Notificar',
+        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',
