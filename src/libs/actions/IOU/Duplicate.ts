@@ -743,6 +743,7 @@ type DuplicateExpenseTransactionParams = {
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
+    currentUserLocalCurrency: string | undefined;
 };
 
 function duplicateExpenseTransaction({
@@ -768,6 +769,7 @@ function duplicateExpenseTransaction({
     existingIOUReport,
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
+    currentUserLocalCurrency,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -853,6 +855,7 @@ function duplicateExpenseTransaction({
             recentWaypoints,
             betas,
             isSelfTourViewed,
+            currentUserLocalCurrency,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -1056,6 +1059,7 @@ type BulkDuplicateExpensesParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
+    currentUserLocalCurrency: string | undefined;
 };
 
 function bulkDuplicateExpenses({
@@ -1076,6 +1080,7 @@ function bulkDuplicateExpenses({
     betas,
     recentWaypoints,
     currentUser,
+    currentUserLocalCurrency,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1170,6 +1175,7 @@ function bulkDuplicateExpenses({
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
+            currentUserLocalCurrency,
         });
 
         if (result?.iouReport) {
