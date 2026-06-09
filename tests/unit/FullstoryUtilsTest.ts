@@ -8,6 +8,7 @@ describe('FullstoryUtils', () => {
         const policy = {
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test Workspace'),
             role: CONST.POLICY.ROLE.ADMIN,
+            pendingAction: undefined,
             employeeList: {
                 1: {email: 'a@test.com'},
                 2: {email: 'b@test.com'},
