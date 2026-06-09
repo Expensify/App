@@ -48,7 +48,17 @@ type TableBodyProps = ViewProps & {
 function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, listRef, shouldUseNarrowTableLayout, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
+    const {
+        processedData: filteredAndSortedData,
+        originalDataLength,
+        activeSearchString,
+        listProps,
+        listRef,
+        shouldUseNarrowTableLayout,
+        hasActiveFilters,
+        hasSearchString,
+        isEmptyResult,
+    } = useTableContext<T>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -72,18 +82,25 @@ function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) 
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    // When the list transitions from empty to populated, reset the scroll position to the top so the first row is visible.
-    // While the list is empty its content container is stretched with flexGrow1, so in a short (landscape) viewport the empty
-    // state content can be taller than the viewport and leave the list scrolled past the top. FlashList does not reset that
+    // When the underlying data transitions from empty to populated, reset the scroll position to the top so the first row is
+    // visible. While the list is empty its content container is stretched with flexGrow1, so in a short (landscape) viewport the
+    // empty-state content can be taller than the viewport and leave the list scrolled past the top. FlashList does not reset that
     // offset on the empty -> populated transition, which hides the newly added first row until the user scrolls.
-    const previousDataLengthRef = useRef(filteredAndSortedData.length);
+    //
+    // We key off originalDataLength (the unfiltered count) rather than the processed length so that clearing a search/filter from
+    // a zero-result state does not also trigger the reset — only genuine data arriving (e.g. creating the first workspace) does.
+    // The reset is deferred to the next frame with requestAnimationFrame so it lands after FlashList has laid out the newly added
+    // first row, rather than racing the render that reveals it.
+    const previousOriginalDataLengthRef = useRef(originalDataLength);
     useEffect(() => {
-        const previousDataLength = previousDataLengthRef.current;
-        previousDataLengthRef.current = filteredAndSortedData.length;
-        if (previousDataLength === 0 && filteredAndSortedData.length > 0) {
-            listRef?.current?.scrollToOffset({offset: 0, animated: false});
+        const previousOriginalDataLength = previousOriginalDataLengthRef.current;
+        previousOriginalDataLengthRef.current = originalDataLength;
+        if (previousOriginalDataLength !== 0 || originalDataLength === 0) {
+            return;
         }
-    }, [filteredAndSortedData.length, listRef]);
+        const rafId = requestAnimationFrame(() => listRef?.current?.scrollToOffset({offset: 0, animated: false}));
+        return () => cancelAnimationFrame(rafId);
+    }, [originalDataLength, listRef]);
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
