@@ -2,8 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -329,9 +328,7 @@ function BaseReportActionContextMenu({
      */
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser() && !isAnonymousAction) {
-            hideContextMenu(false);
-
-            InteractionManager.runAfterInteractions(() => {
+            hideContextMenu(false, () => {
                 signOutAndRedirectToSignIn();
             });
         } else {

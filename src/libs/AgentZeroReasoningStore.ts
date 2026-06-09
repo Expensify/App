@@ -1,7 +1,9 @@
 /**
- * Ephemeral in-memory store for managing Concierge reasoning summaries per report.
- * This data is transient UI feedback and is NOT persisted to Onyx.
+ * Ephemeral in-memory store for managing agent reasoning summaries, keyed by `(reportID,
+ * agentAccountID)` so each agent in a room keeps its own reasoning history. This data is
+ * transient UI feedback and is NOT persisted to Onyx.
  */
+import getAgentStoreKey from './AgentZeroStoreUtils';
 
 type ReasoningEntry = {
     reasoning: string;
@@ -20,9 +22,9 @@ type ReportState = {
     entries: ReasoningEntry[];
 };
 
-type Listener = (reportID: string, state: ReasoningEntry[]) => void;
+type Listener = (reportID: string, agentAccountID: number, state: ReasoningEntry[]) => void;
 
-// In-memory store
+// In-memory store, keyed by `${reportID}:${agentAccountID}`.
 const store = new Map<string, ReportState>();
 const listeners = new Set<Listener>();
 
@@ -34,35 +36,36 @@ const EMPTY_ENTRIES: ReasoningEntry[] = [];
 /**
  * Notify all subscribers of state changes
  */
-function notifyListeners(reportID: string, entries: ReasoningEntry[]) {
+function notifyListeners(reportID: string, agentAccountID: number, entries: ReasoningEntry[]) {
     for (const listener of listeners) {
-        listener(reportID, entries);
+        listener(reportID, agentAccountID, entries);
     }
 }
 
 /**
- * Add a reasoning entry to a report's history.
+ * Add a reasoning entry to an agent's history within a report.
  * If the agentZeroRequestID differs from the current state, resets all entries (new request).
  * Skips duplicates (same loopCount + same reasoning text).
  */
-function addReasoning(reportID: string, data: ReasoningData) {
+function addReasoning(reportID: string, agentAccountID: number, data: ReasoningData) {
     // Ignore empty reasoning strings
     if (!data.reasoning.trim()) {
         return;
     }
 
-    const currentState = store.get(reportID);
+    const key = getAgentStoreKey(reportID, agentAccountID);
+    const currentState = store.get(key);
 
     // If agentZeroRequestID differs, reset all entries (new request)
     if (currentState && currentState.agentZeroRequestID !== data.agentZeroRequestID) {
-        store.set(reportID, {
+        store.set(key, {
             agentZeroRequestID: data.agentZeroRequestID,
             entries: [],
         });
     }
 
     // Get or create state
-    const state = store.get(reportID) ?? {
+    const state = store.get(key) ?? {
         agentZeroRequestID: data.agentZeroRequestID,
         entries: [],
     };
@@ -84,30 +87,45 @@ function addReasoning(reportID: string, data: ReasoningData) {
             agentZeroRequestID: state.agentZeroRequestID,
             entries: newEntries,
         };
-        store.set(reportID, newState);
-        notifyListeners(reportID, newEntries);
+        store.set(key, newState);
+        notifyListeners(reportID, agentAccountID, newEntries);
     }
 }
 
 /**
- * Remove all reasoning entries for a report.
- * Called when the final Concierge message arrives or when unsubscribing.
+ * Remove all reasoning entries for an agent in a report.
+ * Called when that agent's final message arrives.
  */
-function clearReasoning(reportID: string) {
-    store.delete(reportID);
-    notifyListeners(reportID, []);
+function clearReasoning(reportID: string, agentAccountID: number) {
+    store.delete(getAgentStoreKey(reportID, agentAccountID));
+    notifyListeners(reportID, agentAccountID, []);
 }
 
 /**
- * Get the reasoning history for a report
+ * Remove reasoning entries for every agent in a report. Called when unsubscribing from the
+ * report's reasoning channel (the report is no longer open).
  */
-function getReasoningHistory(reportID: string): ReasoningEntry[] {
-    return store.get(reportID)?.entries ?? EMPTY_ENTRIES;
+function clearReportReasoning(reportID: string) {
+    const prefix = `${reportID}:`;
+    for (const key of store.keys()) {
+        if (!key.startsWith(prefix)) {
+            continue;
+        }
+        store.delete(key);
+        notifyListeners(reportID, Number(key.slice(prefix.length)), []);
+    }
+}
+
+/**
+ * Get the reasoning history for an agent in a report
+ */
+function getReasoningHistory(reportID: string, agentAccountID: number): ReasoningEntry[] {
+    return store.get(getAgentStoreKey(reportID, agentAccountID))?.entries ?? EMPTY_ENTRIES;
 }
 
 /**
  * Subscribe to state changes.
- * Listener receives (reportID, state) on every change.
+ * Listener receives (reportID, agentAccountID, state) on every change.
  * Returns an unsubscribe function.
  */
 function subscribe(listener: Listener): () => void {
@@ -120,6 +138,7 @@ function subscribe(listener: Listener): () => void {
 export default {
     addReasoning,
     clearReasoning,
+    clearReportReasoning,
     getReasoningHistory,
     subscribe,
 };
