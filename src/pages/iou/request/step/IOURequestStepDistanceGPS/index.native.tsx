@@ -192,9 +192,7 @@ function IOURequestStepDistanceGPS({
     }, [gpsDraftDetails]);
 
     const gpsWaypointMarkers = useGPSWaypointMarkers({gpsDraftDetails});
-    const directionCoordinates: Coordinate[][] = getTrimmedGpsRoute(getGpsPoints(gpsDraftDetails), gpsDraftDetails?.trimmedEndPoint).map((points): Coordinate[] =>
-        points.map(({lat, long}) => [long, lat]),
-    );
+    const directionCoordinates: Coordinate[][] = getTrimmedGpsRoute(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
 
     return (
         <StepScreenWrapper

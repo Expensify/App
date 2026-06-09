@@ -30,31 +30,32 @@ function getEffectiveEndPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPS
     return gpsDraftDetails?.trimmedEndPoint ?? gpsDraftDetails?.gpsPoints?.at(-1)?.at(-1);
 }
 
-function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined, trimmedEndPointProp?: TrimmedGPSPoint): GPSWaypointCollection {
-    const gpsCoordinates = getGpsPoints(gpsDraftDetails);
-    // const trimmedEndPoint = trimmedEndPointProp ?? gpsDraftDetails?.trimmedEndPoint;
-    const trimmedEndPoint = trimmedEndPointProp;
+function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined, trimmedEndPoint?: TrimmedGPSPoint): GPSWaypointCollection {
+    const gpsTrip = getTrimmedGpsRoute(gpsDraftDetails, trimmedEndPoint);
 
     const waypointCollection: GPSWaypointCollection = {};
     let waypointsCounter = 0;
 
-    const gpsTrip = trimmedEndPoint ? getTrimmedGpsRoute(gpsCoordinates, trimmedEndPoint) : gpsCoordinates;
-
     for (const segment of gpsTrip) {
-        if (segment.length <= 1) {
+        if (segment.length < 1) {
             continue;
         }
 
         const firstSegmentPoint = segment.at(0);
-        const lastSegmentPoint = segment.at(-1);
+        const lastSegmentPoint = segment.length > 1 ? segment.at(-1) : undefined;
 
-        if (!firstSegmentPoint || !lastSegmentPoint) {
+        if (firstSegmentPoint && !lastSegmentPoint) {
+            waypointCollection[`waypoint${waypointsCounter}`] = getGPSWaypoint(firstSegmentPoint, waypointsCounter);
+            waypointsCounter += 1;
             continue;
         }
 
-        waypointCollection[`waypoint${waypointsCounter}`] = getGPSWaypoint(firstSegmentPoint, waypointsCounter);
-        waypointCollection[`waypoint${waypointsCounter + 1}`] = getGPSWaypoint(lastSegmentPoint, waypointsCounter + 1);
-        waypointsCounter += 2;
+        if (firstSegmentPoint && lastSegmentPoint) {
+            waypointCollection[`waypoint${waypointsCounter}`] = getGPSWaypoint(firstSegmentPoint, waypointsCounter);
+            waypointCollection[`waypoint${waypointsCounter + 1}`] = getGPSWaypoint(lastSegmentPoint, waypointsCounter + 1);
+            waypointsCounter += 2;
+            continue;
+        }
     }
 
     return waypointCollection;
@@ -194,7 +195,7 @@ function getLastGpsPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint
     return gpsDraftDetails?.gpsPoints?.at(-1)?.at(-1);
 }
 
-function calculateTrimmedEndPoint(gpsPoints: GpsDraftDetails['gpsPoints'], targetDistanceMeters: number): TrimmedGPSPoint | null {
+function calculateTrimmedEndPoint(gpsPoints: GPSPoint[][], targetDistanceMeters: number): TrimmedGPSPoint | null {
     let cumulativeDistance = 0;
 
     for (let segmentIndex = 0; segmentIndex < gpsPoints.length; segmentIndex++) {
@@ -230,7 +231,12 @@ function calculateTrimmedEndPoint(gpsPoints: GpsDraftDetails['gpsPoints'], targe
     return null;
 }
 
-function getTrimmedGpsRoute(gpsPoints: GpsDraftDetails['gpsPoints'], trimmedEndPoint: TrimmedGPSPoint | undefined): GpsDraftDetails['gpsPoints'] {
+function getTrimmedGpsRoute(gpsDraftDetails: GpsDraftDetails | undefined, trimmedEndPoint?: TrimmedGPSPoint): GPSPoint[][];
+function getTrimmedGpsRoute(gpsPoints: GPSPoint[][], trimmedEndPoint: TrimmedGPSPoint | undefined): GPSPoint[][];
+function getTrimmedGpsRoute(gpsData: GPSPoint[][] | GpsDraftDetails | undefined, trimmedEndPointProp?: TrimmedGPSPoint | undefined): GPSPoint[][] {
+    const gpsPoints = Array.isArray(gpsData) ? gpsData : getGpsPoints(gpsData);
+    const trimmedEndPoint = trimmedEndPointProp ?? (Array.isArray(gpsData) ? undefined : gpsData?.trimmedEndPoint);
+
     if (!trimmedEndPoint) {
         return gpsPoints;
     }
