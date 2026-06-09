@@ -201,8 +201,8 @@ function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, sel
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
-            const isSingleSelectFilterValue = (value: FilterComponentsProps['value']): value is SingleSelectFilterComponentsProps['value'] => {
-                return typeof value === 'string';
+            const isSingleSelectFilterValue = (v: FilterComponentsProps['value']): v is SingleSelectFilterComponentsProps['value'] => {
+                return typeof v === 'string';
             };
 
             return (
