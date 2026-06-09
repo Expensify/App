@@ -9,7 +9,7 @@ internalScope: Audience is Expensify members transitioning from Expensify Classi
 
 New Expensify introduces new capabilities and expands several workflows that were more limited in Expensify Classic. This article highlights some of the most notable changes and links to detailed help articles where you can learn more.
 
-If you're still getting familiar with navigation or looking for a side-by-side mapping of familiar Classic workflows, see [Coming from Expensify Classic for Submitters and Approvers](/articles/new-expensify/getting-started/Coming-from-Expensify-Classic-for-Submitters-and-Approvers) or [Coming from Expensify Classic for Workspace Admins](/articles/new-expensify/getting-started/Coming-from-Expensify-Classic-for-Workspace-Admins).
+If you're still getting familiar with navigation or looking for a side-by-side mapping of familiar Classic workflows, see [Coming from Expensify Classic for Submitters and Approvers](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Coming-from-Expensify-Classic-for-Submitters-and-Approvers) or [Coming from Expensify Classic for Workspace Admins](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Coming-from-Expensify-Classic-for-Workspace-Admins).
 
 ---
 
