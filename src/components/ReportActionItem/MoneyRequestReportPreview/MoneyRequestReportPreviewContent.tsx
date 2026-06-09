@@ -184,12 +184,14 @@ function MoneyRequestReportPreviewContent({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [methodID, setMethodID] = useState<number>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
 
-    const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean) => {
+    const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean, holdMethodID?: number) => {
         setRequestType(holdRequestType as ActionHandledType);
         setPaymentType(holdPaymentType);
+        setMethodID(holdMethodID);
         setShouldShowPayButton(!!canPay);
         setIsHoldMenuVisible(true);
     };
@@ -786,6 +788,7 @@ function MoneyRequestReportPreviewContent({
                                 onClose={() => setIsHoldMenuVisible(false)}
                                 isVisible={isHoldMenuVisible}
                                 paymentType={paymentType}
+                                methodID={methodID}
                                 chatReport={chatReport}
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}
