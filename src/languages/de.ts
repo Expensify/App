@@ -334,6 +334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Wähle eine Währung',
         selectSymbolOrCurrency: 'Wähle ein Symbol oder eine Währung aus',
         card: 'Karte',
+        mcc: 'MCC',
+        categoryGLCode: 'Kategorie-GL-Code',
         whyDoWeAskForThis: 'Warum fragen wir danach?',
         required: 'Erforderlich',
         automatic: 'Automatisch',
@@ -487,9 +489,11 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Quartal',
         vacationDelegate: 'Urlaubsvertretung',
         expensifyLogo: 'Expensify-Logo',
-        concierge: {sidePanelGreeting: 'Hallo, wie kann ich helfen?', showHistory: 'Verlauf anzeigen'},
+        concierge: {greeting: 'Hallo, wie kann ich helfen?', showHistory: 'Verlauf anzeigen'},
         duplicateReport: 'Duplizierten Bericht',
         approver: 'Genehmiger',
+        goToConcierge: 'Zu Concierge',
+        allSet: 'Alles erledigt!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `Ziffer ${digitIndex} von ${totalDigits} eingeben`,
         copyOfReportName: (reportName: string) => `Kopie von ${reportName}`,
         previousMonth: 'Vorheriger Monat',
@@ -497,6 +501,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        editor: 'Editor',
         restrictions: 'Beschränkungen',
     },
     socials: {
@@ -2143,7 +2148,7 @@ const translations: TranslationDeepObject<typeof en> = {
             partnerManager: 'Partnermanager',
             yourPartnerManager: 'Ihre Partnermanagerin / Ihr Partnermanager',
             partnerManagerDescription: 'Nutzen Sie Ihre Partnerschaft optimal und fördern Sie Empfehlungen',
-            guideDescription: 'Ihre Einrichtungsspezialist/in',
+            guideDescription: 'Ihre Account Managerin / Ihr Account Manager',
             approvedPartnerTeamTitle: 'Lernen Sie Ihr Approved!-Partnerventeam kennen',
             approvedPartnerTeamDescription:
                 'Ein engagiertes Team, das sich darauf konzentriert, Ihrem Unternehmen beim Wachstum zu helfen, Kund:innen schneller einzuarbeiten und Ihnen jederzeit fachkundige Unterstützung zu bieten.',
@@ -2930,6 +2935,8 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
         highContrastMode: 'Hoher Kontrast',
+        enableHighContrast: 'Hohen Kontrast aktivieren',
+        disableHighContrast: 'Hohen Kontrast deaktivieren',
         chooseThemeBelowOrSync: 'Wählen Sie unten ein Design aus oder synchronisieren Sie es mit den Einstellungen Ihres Geräts.',
     },
     termsOfUse: {
@@ -3092,7 +3099,7 @@ ${amount} für ${merchant} – ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,
-                description: 'Erstelle einen Arbeitsbereich und konfiguriere die Einstellungen mit Hilfe deiner Einrichtungsexpertin/deines Einrichtungsexperten!',
+                description: 'Erstellen Sie einen Workspace und konfigurieren Sie die Einstellungen mit Hilfe Ihrer Account Executive!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `[Workspace] erstellen (${workspaceSettingsLink})`,
@@ -3309,12 +3316,12 @@ ${amount} für ${merchant} – ${date}`,
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
                     ? dedent(`
-                        # Ihre kostenlose Testphase hat begonnen! Lassen Sie uns mit der Einrichtung starten.
-                        👋 Hallo, ich bin Ihre Expensify-Einrichtungsspezialist*in. Ich habe bereits einen Arbeitsbereich erstellt, um die Belege und Ausgaben Ihres Teams zu verwalten. Um Ihre 30-tägige kostenlose Testphase optimal zu nutzen, folgen Sie einfach den restlichen untenstehenden Einrichtungsschritten!
+                        # Ihre kostenlose Testversion hat begonnen! Lassen Sie uns mit der Einrichtung starten.
+                        👋 Hallo, ich bin Ihre Expensify Account Executive. Ich habe bereits einen Arbeitsbereich erstellt, um die Belege und Ausgaben Ihres Teams zu verwalten. Um das Beste aus Ihrer 30-tägigen kostenlosen Testversion herauszuholen, folgen Sie einfach den verbleibenden Einrichtungsschritten unten!
                     `)
                     : dedent(`
-                        # Deine kostenlose Testversion hat begonnen! Lass uns alles einrichten.
-                        👋 Hallo, ich bin deine Expensify-Einrichtungsspezialist*in. Nachdem du jetzt einen Arbeitsbereich erstellt hast, nutze deine 30-tägige kostenlose Testversion optimal, indem du die folgenden Schritte befolgst!
+                        # Ihre kostenlose Testversion hat begonnen! Lassen Sie uns mit der Einrichtung starten.
+                        👋 Hallo, ich bin Ihre Expensify-Ansprechperson. Jetzt, da Sie einen Workspace erstellt haben, nutzen Sie Ihre 30-tägige kostenlose Testversion optimal, indem Sie die folgenden Schritte ausführen!
                     `),
             onboardingTrackWorkspaceMessage: 'Um das Beste aus Ihrer 30-tägigen kostenlosen Testversion zu machen, folgen Sie den verbleibenden Schritten unten:',
             onboardingChatSplitMessage: 'Rechnungen mit Freund*innen zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
@@ -4112,6 +4119,38 @@ ${amount} für ${merchant} – ${date}`,
         weTake: 'Wir nehmen Ihre Sicherheit ernst. Bitte richten Sie jetzt 2FA ein, um Ihrem Konto eine zusätzliche Schutzebene hinzuzufügen.',
         secure: 'Schütze dein Konto',
     },
+    documentsStep: {
+        beforeYouGo: 'Bevor du fortfährst, benötigen wir einige Dokumente, um bestimmte Angaben zu überprüfen',
+        subheader: 'Verifizierung',
+        verificationFailed: 'Die Verifizierung ist fehlgeschlagen, daher benötigen wir zusätzliche Dokumente, um dich und dein Unternehmen zu überprüfen',
+        taxIDVerification: 'Steuer-ID-Verifizierung',
+        taxIDVerificationDescription: dedent(`
+        Bitte lade eine der folgenden Dateien hoch:
+        • IRS TIN/EIN-Zuweisungsschreiben
+        • IRS TIN/EIN-Antragsbestätigung (enthält normalerweise „Congratulations! The EIN has been successfully assigned“)
+        • IRS-Steuerbefreiungsschreiben mit Firmenname und EIN`),
+        nameChangeDocument: 'Dokument zur Namensänderung',
+        nameChangeDocumentDescription:
+            'Wenn sich der Name deines Unternehmens seit der Beantragung der TIN/EIN geändert hat, benötigen wir dieses Dokument zur Verifizierung der angegebenen Steuer-ID',
+        companyAddressVerification: 'Verifizierung der Unternehmensadresse',
+        companyAddressVerificationDescription: dedent(`
+        Bitte lade eine der folgenden Dateien hoch:
+        • Aktuelle Strom-, Wasser- oder Gasrechnung mit Firmenname und Adresse
+        • Kontoauszug mit Firmenname und Adresse
+        • Aktueller Miet- oder Leasingvertrag inkl. Unterschriftsseite mit Firmenname und aktueller Adresse
+        • Versicherungsnachweis mit Firmenname und Adresse
+        • TIN-Zuweisungsdokument mit Firmenname und Adresse`),
+        userAddressVerification: 'Adressverifizierung',
+        userAddressVerificationDescription: dedent(`
+        Bitte lade eine der folgenden Dateien hoch:
+        • Wählerregistrierungskarte
+        • Führerschein
+        • Kontoauszug
+        • Versorgungsrechnung`),
+        userDOBVerification: 'Geburtsdatumsverifizierung',
+        userDOBVerificationDescription: 'Bitte lade einen in den USA ausgestellten Ausweis hoch',
+        finishViaChat: 'Über Chat abschließen',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Einen Moment',
         explanationLine: 'Wir überprüfen gerade Ihre Angaben. Sie können in Kürze mit den nächsten Schritten fortfahren.',
@@ -4376,6 +4415,8 @@ ${amount} für ${merchant} – ${date}`,
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Prüfer';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
@@ -5629,8 +5670,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             emptyCategories: {
                 title: 'Noch keine Kategorien',
                 subtitle: 'Füge eine Kategorie hinzu, um deine Ausgaben zu organisieren.',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Ihre Kategorien werden derzeit über eine Buchhaltungsverbindung importiert. Gehen Sie zu <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Ihre Kategorien werden derzeit über eine Buchhaltungsverbindung importiert.${canManage ? ` Gehen Sie zu <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Beim Aktualisieren der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             createFailureMessage: 'Beim Erstellen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
@@ -5988,14 +6029,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             editTags: 'Tags bearbeiten',
             findTag: 'Tag finden',
             subtitle: 'Tags bieten detailliertere Möglichkeiten, Kosten zu klassifizieren.',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>Tags bieten detailliertere Möglichkeiten, Kosten zu klassifizieren. Sie verwenden <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">abhängige Tags</a>. Sie können <a href="${importSpreadsheetLink}">eine Tabelle erneut importieren</a>, um Ihre Tags zu aktualisieren.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string, canReimport = true) =>
+                `<muted-text>Tags bieten detailliertere Möglichkeiten, Kosten zu klassifizieren. Sie verwenden <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">abhängige Tags</a>.${canReimport ? ` Sie können <a href="${importSpreadsheetLink}">eine Tabelle erneut importieren</a>, um Ihre Tags zu aktualisieren.` : ''}</muted-text>`,
             emptyTags: {
                 title: 'Noch keine Tags',
                 subtitle: 'Füge ein Tag hinzu, um Projekte, Standorte, Abteilungen und mehr zu verfolgen.',
                 subtitleHTML: `<muted-text><centered-text>Fügen Sie Tags hinzu, um Projekte, Standorte, Abteilungen und mehr nachzuverfolgen. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Erfahren Sie mehr</a> über das Formatieren von Tag-Dateien für den Import.</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Ihre Tags werden derzeit über eine Buchhaltungsverbindung importiert. Gehen Sie zu <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Ihre Tags werden derzeit über eine Buchhaltungsverbindung importiert.${canManage ? ` Gehen Sie zu <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'Tag löschen',
             deleteTags: 'Tags löschen',
@@ -6140,6 +6181,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             confirmWorkflows: {
                 continue: 'Ohne Mitglieder fortfahren',
                 description: 'Das Kopieren von Workflows ohne Mitglieder kopiert keine Genehmigungs-Workflows. Einreichungs- und Zahlungseinstellungen werden trotzdem kopiert.',
+            },
+            progress: {
+                copyInProgressTitle: 'Kopieren läuft ...',
+                copyInProgressDescription: 'Sie können entweder warten, bis der Vorgang abgeschlossen ist, oder Concierge kann Sie benachrichtigen, sobald er fertig ist.',
+                letMeKnowPrompt: 'Sagen Sie mir Bescheid, wenn es fertig ist',
+                conciergeNotificationTitle: 'Concierge wird Sie benachrichtigen',
+                conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
+                copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
             },
         },
         emptyWorkspace: {
@@ -6297,7 +6346,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chatte mit deiner Einrichtungsexpertin/deinem Einrichtungsexperten.',
+            talkYourOnboardingSpecialist: 'Chatten Sie mit Ihrer Kundenbetreuung.',
             talkYourAccountManager: 'Chatte mit deiner/deinem Account Manager/in.',
             talkToConcierge: 'Chatte mit Concierge.',
             needAnotherAccounting: 'Benötigen Sie eine weitere Buchhaltungssoftware?',
@@ -6888,8 +6937,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             upgradeToUnlock: 'Diese Funktion freischalten',
             completed: {
                 headline: `Du hast deinen Arbeitsbereich aktualisiert!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Du hast ${policyName} erfolgreich auf den Control-Tarif hochgestuft! <a href="${subscriptionLink}">Abonnement ansehen</a> für mehr Details.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Du hast ${policyName} erfolgreich auf den ${planName}-Tarif hochgestuft! <a href="${subscriptionLink}">Abonnement ansehen</a> für mehr Details.</centered-text>`,
                 categorizeMessage: `Du hast erfolgreich auf den Collect‑Tarif upgegradet. Jetzt kannst du deine Ausgaben kategorisieren!`,
                 travelMessage: `Du hast erfolgreich auf den Collect‑Tarif upgegradet. Jetzt kannst du mit dem Buchen und Verwalten von Reisen beginnen!`,
                 distanceRateMessage: `Du hast erfolgreich auf den Collect-Tarif upgegradet. Jetzt kannst du den Kilometersatz ändern!`,
@@ -8018,6 +8067,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             newChat: 'Neuer Chat-Bildschirm',
             copy: 'Kommentar kopieren',
             openDebug: 'Testeinstellungen öffnen',
+            expenseReportSearch: 'Spesenberichte suchen',
+            goToWorkspace: 'Zum Workspace des aktuellen Berichts gehen',
         },
     },
     guides: {
@@ -8226,6 +8277,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         withdrawalType: 'Auszahlungsart',
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
+        serverResults: 'Suchergebnisse',
         searchIn: 'Suchen in',
         askConcierge: (message: string) => `Frage Concierge „${message}“`,
         searchPlaceholder: 'Nach etwas suchen...',
@@ -8759,8 +8811,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Chatte mit deiner Setup-Fachperson in <a href="${href}">${adminReportName}</a>, um Hilfe zu erhalten`,
-        default: `Sende eine Nachricht an <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link>, um Hilfe bei der Einrichtung zu erhalten`,
+            `Chatten Sie mit Ihrer Kundenbetreuung in <a href="${href}">${adminReportName}</a>, um Hilfe zu erhalten`,
+        default: `Schreiben Sie eine Nachricht an <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> für Hilfe bei der Einrichtung`,
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',
@@ -9411,7 +9463,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         confirmation: {
             title: 'Anruf bestätigen',
             description: 'Stell sicher, dass die Details unten für dich gut aussehen. Sobald du den Anruf bestätigst, senden wir dir eine Einladung mit weiteren Informationen.',
-            setupSpecialist: 'Ihre*e*r Einrichtungsspezialist*in',
+            setupSpecialist: 'Ihre Account Managerin / Ihr Account Manager',
             meetingLength: 'Meetingdauer',
             dateTime: 'Datum & Uhrzeit',
             minutes: '30 Minuten',
