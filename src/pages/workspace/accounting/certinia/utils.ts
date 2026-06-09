@@ -19,6 +19,7 @@ const CERTINIA_DIMENSION_PARAMS = [
 type CertiniaDimensionParam = TupleToUnion<typeof CERTINIA_DIMENSION_PARAMS>;
 
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+type CertiniaExportStatus = ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
 
 function dimensionParamToNumber(dimension: string): number {
     return Number(dimension.replace('dimension', ''));
@@ -31,6 +32,19 @@ function getDisplayTypeLabel(mappingValue: CertiniaMappingValue | undefined, tra
 
 function getDimensionLabel(dimension: CertiniaDimensionParam, translate: LocaleContextProps['translate']): string {
     return translate(`workspace.certinia.import.dimensions.${dimension}` as TranslationPaths);
+}
+
+function getCertiniaExportStatusValue(status: string | undefined): CertiniaExportStatus | undefined {
+    if (!status) {
+        return undefined;
+    }
+
+    const normalizedStatus = status.trim().toUpperCase().replace(/\s+/g, '_');
+    if ((Object.values(CONST.CERTINIA_EXPORT_STATUS) as string[]).includes(normalizedStatus)) {
+        return normalizedStatus as CertiniaExportStatus;
+    }
+
+    return undefined;
 }
 
 function updateFinancialForceDimensionMapping(policyID: string | undefined, dimension: CertiniaDimensionParam, value: CertiniaMappingValue, previousValue: CertiniaMappingValue | null) {
@@ -60,5 +74,13 @@ function isCertiniaDimensionParam(dimension: string): dimension is CertiniaDimen
     return (CERTINIA_DIMENSION_PARAMS as readonly string[]).includes(dimension);
 }
 
-export {CERTINIA_DIMENSION_PARAMS, dimensionParamToNumber, getDimensionLabel, getDisplayTypeLabel, isCertiniaDimensionParam, updateFinancialForceDimensionMapping};
-export type {CertiniaDimensionParam, CertiniaMappingValue};
+export {
+    CERTINIA_DIMENSION_PARAMS,
+    dimensionParamToNumber,
+    getCertiniaExportStatusValue,
+    getDimensionLabel,
+    getDisplayTypeLabel,
+    isCertiniaDimensionParam,
+    updateFinancialForceDimensionMapping,
+};
+export type {CertiniaDimensionParam, CertiniaExportStatus, CertiniaMappingValue};

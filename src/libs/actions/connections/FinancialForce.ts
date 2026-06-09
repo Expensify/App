@@ -10,6 +10,87 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FinancialForceConnectionConfig} from '@src/types/onyx/Policy';
 
+type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
+type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
+
+function prepareOnyxDataForFinancialForceCredentialsUpdate<K extends keyof FinancialForceConnectionConfig['credentials']>(
+    policyID: string,
+    settingName: K,
+    settingValue: FinancialForceConnectionConfig['credentials'][K],
+    oldSettingValue?: FinancialForceConnectionConfig['credentials'][K],
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            credentials: {
+                                [settingName]: settingValue,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            credentials: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, failureData, successData};
+}
+
 function prepareOnyxDataForFinancialForceCodingUpdate<K extends keyof FinancialForceConnectionConfig['coding']>(
     policyID: string,
     settingName: K,
@@ -166,6 +247,84 @@ function prepareOnyxDataForFinancialForceExportUpdate<K extends keyof FinancialF
     return {optimisticData, failureData, successData};
 }
 
+function prepareOnyxDataForFinancialForceAdvancedUpdate<K extends keyof FinancialForceConnectionConfig['advanced']>(
+    policyID: string,
+    settingName: K,
+    settingValue: FinancialForceConnectionConfig['advanced'][K],
+    oldSettingValue?: FinancialForceConnectionConfig['advanced'][K],
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            advanced: {
+                                [settingName]: settingValue,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            advanced: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, failureData, successData};
+}
+
 function getFinancialForceSetupLink(policyID: string, isSandbox = false) {
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_FINANCIAL_FORCE,
@@ -244,9 +403,38 @@ function updateFinancialForceDimension4Mapping(
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING, {policyID, mappingType}, {optimisticData, failureData, successData});
 }
 
+function updateFinancialForceCompany(policyID: string, companyID: string, previousCompanyID: string | null) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCredentialsUpdate(
+        policyID,
+        CONST.CERTINIA_CONFIG.COMPANY_ID,
+        companyID,
+        previousCompanyID ?? undefined,
+    );
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_COMPANY, {policyID, companyID}, {optimisticData, failureData, successData});
+}
+
 function updateFinancialForceSyncTax(policyID: string, enabled: boolean, previousValue?: boolean) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(policyID, CONST.CERTINIA_CONFIG.SYNC_TAX, enabled, previousValue);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_TAX, {policyID, enabled}, {optimisticData, failureData, successData});
+}
+
+function updateFinancialForceParentTagMapping(
+    policyID: string,
+    parentTagMapping: ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>,
+    previousParentTagMapping: ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING> | null,
+) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(
+        policyID,
+        CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING,
+        parentTagMapping,
+        previousParentTagMapping ?? undefined,
+    );
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, parentTagMapping}, {optimisticData, failureData, successData});
+}
+
+function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, previousValue?: boolean) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(policyID, CONST.CERTINIA_CONFIG.SYNC_MILESTONES, enabled, previousValue);
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_MILESTONES, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceExporter(policyID: string, exporter: string, previousExporter: string | null) {
@@ -254,7 +442,7 @@ function updateFinancialForceExporter(policyID: string, exporter: string, previo
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORTER, {policyID, email: exporter}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceExportStatus(policyID: string, status: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
+function updateFinancialForceExportStatus(policyID: string, status: FinancialForceFFAExportStatus, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_STATUS, status, previousStatus ?? undefined);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS, {policyID, exportStatus: status}, {optimisticData, failureData, successData});
 }
@@ -272,6 +460,16 @@ function updateFinancialForceDefaultVendor(policyID: string, vendorAccountID: st
         previousVendorAccountID ?? undefined,
     );
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR, {policyID, vendorAccount: vendorAccountID}, {optimisticData, failureData, successData});
+}
+
+function updateFinancialForceReportExportStatus(policyID: string, status: FinancialForceReportExportStatus, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(
+        policyID,
+        CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS,
+        status,
+        previousStatus ?? undefined,
+    );
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS, {policyID, exportStatus: status}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceAutoSync(policyID: string, enabled: boolean, previousValue?: boolean) {
@@ -420,18 +618,34 @@ function updateFinancialForceSyncReimbursedReports(policyID: string, enabled: bo
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
+function updateFinancialForceTaxNonBillable(policyID: string, enabled: boolean, previousValue?: boolean) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceAdvancedUpdate(policyID, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, enabled, previousValue);
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE, {policyID, enabled}, {optimisticData, failureData, successData});
+}
+
+function updateFinancialForceExportForeignCurrency(policyID: string, enabled: boolean, previousValue?: boolean) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceAdvancedUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY, enabled, previousValue);
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY, {policyID, enabled}, {optimisticData, failureData, successData});
+}
+
 export {
     clearFinancialForceErrorField,
     connectPolicyToFinancialForce,
     updateFinancialForceAutoSync,
+    updateFinancialForceCompany,
     updateFinancialForceDefaultVendor,
     updateFinancialForceDimension1Mapping,
     updateFinancialForceDimension2Mapping,
     updateFinancialForceDimension3Mapping,
     updateFinancialForceDimension4Mapping,
     updateFinancialForceExportDate,
+    updateFinancialForceExportForeignCurrency,
     updateFinancialForceExporter,
     updateFinancialForceExportStatus,
+    updateFinancialForceParentTagMapping,
+    updateFinancialForceReportExportStatus,
     updateFinancialForceSyncReimbursedReports,
+    updateFinancialForceSyncMilestones,
     updateFinancialForceSyncTax,
+    updateFinancialForceTaxNonBillable,
 };
