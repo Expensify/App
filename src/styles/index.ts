@@ -1750,16 +1750,15 @@ const staticStyles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.sideBarWithLHBWidth,
         },
 
-        sidebarContainer: {
-            width: variables.sideBarWithLHBWidth,
+        searchSidebar: {
             height: '100%',
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
+            overflow: 'hidden',
         },
 
         // Sidebar Styles
@@ -3585,6 +3584,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         zIndex10: {
             zIndex: 10,
+        },
+
+        zIndex1: {
+            zIndex: 1,
         },
 
         height4: {
@@ -5761,6 +5764,12 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.w28,
         },
 
+        searchTypeMenuCollapsedBadge: {
+            position: 'absolute',
+            bottom: -6,
+            right: -8,
+        },
+
         searchTypeMenuItemPadding: {
             paddingRight: 12,
         },
@@ -5771,11 +5780,30 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 8,
         },
 
+        searchTypeMenuAccordionCollapsedDividerContainer: {
+            flex: 1,
+            height: variables.iconSizeSmall,
+            justifyContent: 'center',
+        },
+
+        searchTypeMenuAccordionCollapsedDivider: {
+            height: 1,
+            width: '100%',
+            backgroundColor: theme.border,
+        },
+
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
             left: 0,
             right: 0,
+        },
+
+        stickToLeft: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
         },
 
         stickToTop: {
@@ -6144,6 +6172,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: variables.qrShareHorizontalPadding,
             flexDirection: 'row',
             flexWrap: 'wrap',
+        },
+        pieChartCenterLabel: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 16,
         },
         pieChartLegendDot: {
             borderRadius: '50%',

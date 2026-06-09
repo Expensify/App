@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getRequiredKYBDocuments} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
@@ -15,6 +16,7 @@ import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import Country from './Country';
+import KYBDocuments from './KYBDocuments';
 import RequestorStep from './Requestor/RequestorStep';
 import VerifyIdentity from './Requestor/VerifyIdentity/VerifyIdentity';
 import type USDPageProps from './types';
@@ -61,6 +63,7 @@ const pages: PageEntry[] = [
         firstSubPage: COMPLETE_VERIFICATION_SUB_PAGES.CONFIRM_AGREEMENTS,
         lastSubPage: COMPLETE_VERIFICATION_SUB_PAGES.CONFIRM_AGREEMENTS,
     },
+    {pageName: PAGE_NAMES.KYB_DOCS, component: KYBDocuments as React.ComponentType<USDPageProps>},
     {pageName: PAGE_NAMES.VALIDATION, component: ConnectBankAccount as React.ComponentType<USDPageProps>},
 ];
 
@@ -77,6 +80,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const requestorStepRef = useRef<View>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
+    const isKYBDocumentsRequired = getRequiredKYBDocuments(reimbursementAccount?.achData?.verifications?.externalApiResponses).length > 0;
 
     const currentPageIndex = useMemo(() => {
         const index = pages.findIndex((p) => p.pageName === currentPage);
@@ -89,9 +93,15 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const shouldSkipVerifyIdentity = useCallback((pageName?: string) => pageName === PAGE_NAMES.VERIFY_IDENTITY && isOnfidoSetupComplete, [isOnfidoSetupComplete]);
 
+    // Skip the KYB documents page unless the backend's verification checks flagged documents that still need to be uploaded.
+    const shouldSkipKYBDocs = useCallback((pageName?: string) => pageName === PAGE_NAMES.KYB_DOCS && !isKYBDocumentsRequired, [isKYBDocumentsRequired]);
+
     const onSubmit = useCallback(() => {
         let nextIndex = currentPageIndex + 1;
         if (shouldSkipVerifyIdentity(pages.at(nextIndex)?.pageName)) {
+            nextIndex += 1;
+        }
+        if (shouldSkipKYBDocs(pages.at(nextIndex)?.pageName)) {
             nextIndex += 1;
         }
         if (nextIndex >= pages.length) {
@@ -100,11 +110,14 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         }
         const nextPage = pages.at(nextIndex);
         Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: nextPage?.firstSubPage, backTo}));
-    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity]);
+    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity, shouldSkipKYBDocs]);
 
     const onBackButtonPress = useCallback(() => {
         let prevIndex = currentPageIndex - 1;
         if (shouldSkipVerifyIdentity(pages.at(prevIndex)?.pageName)) {
+            prevIndex -= 1;
+        }
+        if (shouldSkipKYBDocs(pages.at(prevIndex)?.pageName)) {
             prevIndex -= 1;
         }
         if (prevIndex < 0) {
@@ -113,7 +126,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         }
         const prevPage = pages.at(prevIndex);
         Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
-    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity]);
+    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity, shouldSkipKYBDocs]);
 
     return (
         <View style={[styles.flex1, styles.appBG]}>

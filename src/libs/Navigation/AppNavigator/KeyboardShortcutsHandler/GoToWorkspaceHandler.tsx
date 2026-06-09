@@ -20,7 +20,7 @@ function GoToWorkspaceHandler() {
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             callFunctionIfActionIsAllowed(() => {
-                const reportID = Navigation.getTopmostReportId();
+                const reportID = Navigation.getTopmostSuperWideRHPReportID() ?? Navigation.getTopmostReportId();
                 if (!reportID) {
                     return;
                 }
