@@ -136,6 +136,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.SESSION,
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
@@ -663,7 +664,11 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
+            // Collapse the destination tab to the new leaf so the RHP dismiss reveals only the new
+            // workspace, without the prior WorkspacesList briefly flashing underneath.
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {
+                collapseTabToLeaf: true,
+            });
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }

@@ -1,7 +1,7 @@
 ---
 title: Create an Expense
 description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding]
+keywords: [New Expensify, create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding, email receipt, forward receipt, forward email receipt, email receipts@expensify.com, scan receipt, receipt email]
 internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
 ---
 
@@ -187,9 +187,9 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 If your company uses **Proofpoint Hosted Email Security**, you may be unable to forward receipts to receipts@expensify.com. This is caused by an issue on Proofpoint's side. Contact Proofpoint for resolution. In the meantime, you can upload receipts in the Expensify app or on the web, or text a receipt photo to 47777 (US numbers only) after [adding your phone number as a contact method](https://new.expensify.com/settings/profile/contact-methods).
 
-## Can I attach multiple receipts to one expense?
+## Can I add multiple receipts to one expense?
 
-No. Only one receipt image is allowed per expense. Combine receipts into a single PDF or attach additional files to the report.
+Yes. Each expense has only one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed. [Learn how to attach additional receipts to an expense](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#how-to-add-additional-receipts-to-an-expense). 
 
 ## Can I edit an expense after submission?
 

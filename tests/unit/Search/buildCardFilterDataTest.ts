@@ -310,6 +310,7 @@ const illustrationsMock = {
     GenericCompanyCard: jest.fn(),
     GenericCompanyCardLarge: jest.fn(),
     GenericCSVCompanyCardLarge: jest.fn(),
+    ExpensifyApprovedBadge: jest.fn(),
 };
 const companyCardIconsMock = {
     VisaCompanyCardDetailLarge: jest.fn(),
