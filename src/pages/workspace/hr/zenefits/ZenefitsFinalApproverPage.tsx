@@ -6,7 +6,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
 import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
-import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 type ZenefitsFinalApproverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER>;
