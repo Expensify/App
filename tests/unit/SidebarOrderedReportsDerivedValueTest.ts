@@ -4,7 +4,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import sidebarOrderedReportsConfig from '@src/libs/actions/OnyxDerived/configs/sidebarOrderedReports';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Network, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Beta, Network, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 
 type ConfigArgs = Parameters<typeof sidebarOrderedReportsConfig.compute>[0];
@@ -29,13 +29,13 @@ function makeReport(id: string, millisAgo: number, overrides: Partial<Report> = 
 
 function buildArgs(
     reports: OnyxCollection<Report>,
-    overrides: Partial<{priorityMode: PriorityMode; betas: Beta[]; network: Network; locale: string; reportAttributes: ReportAttributesDerivedValue}> = {},
+    overrides: Partial<{priorityMode: PriorityMode; betas: Beta[]; network: Network; locale: string; reportAttributes: ReportAttributesDerivedValue; policies: OnyxCollection<Policy>}> = {},
 ): ConfigArgs {
     const priorityMode: OnyxEntry<PriorityMode> = overrides.priorityMode ?? (CONST.PRIORITY_MODE.DEFAULT as PriorityMode);
     const betas: OnyxEntry<Beta[]> = overrides.betas ?? [];
     const network: OnyxEntry<Network> = overrides.network ?? {};
     const locale = overrides.locale ?? 'en';
-    return [reports, undefined, undefined, undefined, undefined, undefined, priorityMode, betas, network, locale, overrides.reportAttributes] as unknown as ConfigArgs;
+    return [reports, undefined, undefined, undefined, undefined, overrides.policies, priorityMode, betas, network, locale, overrides.reportAttributes] as unknown as ConfigArgs;
 }
 
 function makeAttributes(entries: Array<[reportID: string, requiresAttention: boolean]>): ReportAttributesDerivedValue {
@@ -143,8 +143,9 @@ describe('SidebarOrderedReports Derived Value', () => {
         expect(callArgs?.updatedReportsKeys).toEqual([`${ONYXKEYS.COLLECTION.REPORT}42`]);
     });
 
-    it('cascades a POLICY change to every report under that policy', () => {
+    it('cascades a relevant POLICY field change to every report under that policy', () => {
         const policyID = 'POL1';
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
         const reports: Record<string, Report> = {
             [`${ONYXKEYS.COLLECTION.REPORT}a`]: makeReport('a', 1_000, {policyID}),
             [`${ONYXKEYS.COLLECTION.REPORT}b`]: makeReport('b', 2_000, {policyID}),
@@ -158,16 +159,54 @@ describe('SidebarOrderedReports Derived Value', () => {
             },
             orderedReportIDs: ['a', 'b', 'c'],
         };
-        const updateSpy = jest.spyOn(SidebarUtils, 'updateReportsToDisplayInLHN');
 
-        sidebarOrderedReportsConfig.compute(buildArgs(reports), {
+        // Seed the module-level policy snapshot so the next compute can diff the renamed policy against it.
+        const basePolicies: OnyxCollection<Policy> = {[policyKey]: {name: 'Workspace'} as Policy};
+        sidebarOrderedReportsConfig.compute(buildArgs(reports, {policies: basePolicies}), EMPTY_CONTEXT);
+
+        const updateSpy = jest.spyOn(SidebarUtils, 'updateReportsToDisplayInLHN');
+        const renamedPolicies: OnyxCollection<Policy> = {[policyKey]: {name: 'Renamed Workspace'} as Policy};
+
+        sidebarOrderedReportsConfig.compute(buildArgs(reports, {policies: renamedPolicies}), {
             currentValue: seededCurrent,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {}}} as never,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: renamedPolicies[policyKey]}} as never,
         });
 
         const callArgs = updateSpy.mock.calls.at(0)?.at(0);
         const keys = (callArgs?.updatedReportsKeys ?? []).slice().sort();
         expect(keys).toEqual([`${ONYXKEYS.COLLECTION.REPORT}a`, `${ONYXKEYS.COLLECTION.REPORT}b`]);
+    });
+
+    it('does not cascade a POLICY update when no LHN-relevant field changed', () => {
+        const policyID = 'POL1';
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+        const reports: Record<string, Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}a`]: makeReport('a', 1_000, {policyID}),
+            [`${ONYXKEYS.COLLECTION.REPORT}b`]: makeReport('b', 2_000, {policyID}),
+        };
+        const seededCurrent = {
+            reportsToDisplay: {
+                [`${ONYXKEYS.COLLECTION.REPORT}a`]: reports[`${ONYXKEYS.COLLECTION.REPORT}a`],
+                [`${ONYXKEYS.COLLECTION.REPORT}b`]: reports[`${ONYXKEYS.COLLECTION.REPORT}b`],
+            },
+            orderedReportIDs: ['a', 'b'],
+        };
+
+        // The LHN only depends on a policy's type/name/avatar/member list. A new object with identical tracked
+        // fields (e.g. an unrelated field churned) must not re-evaluate every report under the policy.
+        const basePolicies: OnyxCollection<Policy> = {[policyKey]: {name: 'Workspace'} as Policy};
+        sidebarOrderedReportsConfig.compute(buildArgs(reports, {policies: basePolicies}), EMPTY_CONTEXT);
+
+        const updateSpy = jest.spyOn(SidebarUtils, 'updateReportsToDisplayInLHN');
+        const unchangedPolicies: OnyxCollection<Policy> = {[policyKey]: {name: 'Workspace'} as Policy};
+
+        sidebarOrderedReportsConfig.compute(buildArgs(reports, {policies: unchangedPolicies}), {
+            currentValue: seededCurrent,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: unchangedPolicies[policyKey]}} as never,
+        });
+
+        const callArgs = updateSpy.mock.calls.at(0)?.at(0);
+        expect(callArgs?.updatedReportsKeys ?? []).toEqual([]);
     });
 
     it('takes the incremental path on a REPORT_ATTRIBUTES change, re-evaluating only the reports whose attributes changed', () => {

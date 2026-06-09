@@ -1,11 +1,12 @@
 import {shallowEqual} from 'fast-equals';
+import type {OnyxCollection} from 'react-native-onyx';
 import {getIsOffline} from '@libs/NetworkState';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
+import type {Policy, ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {SidebarOrderedReportsDerivedValue, SidebarReportForLHN} from '@src/types/onyx/DerivedValues';
 
 const EMPTY_VALUE: SidebarOrderedReportsDerivedValue = {reportsToDisplay: {}, orderedReportIDs: []};
@@ -18,6 +19,22 @@ let cachedCollatorLocale: string | undefined;
 // attributes-only update triggers a recompute. The attributes derived value preserves object references for
 // unchanged reports, so a reference comparison cheaply identifies exactly the reports that changed.
 let previousReportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+
+// Snapshot of the policies from the previous compute, used to diff which policy fields changed. LHN rows only
+// depend on a policy's type/name/avatar/member list, so unrelated policy writes (e.g. connection sync metadata)
+// should not trigger re-evaluation of every report under the policy.
+let previousPolicies: OnyxCollection<Policy>;
+
+// Returns true when a policy field that the LHN actually surfaces has changed between two snapshots.
+function hasSidebarRelevantPolicyFieldChanged(prev: Policy | null | undefined, next: Policy | null | undefined): boolean {
+    if (!prev && !next) {
+        return false;
+    }
+    if (!prev || !next) {
+        return true;
+    }
+    return prev.type !== next.type || prev.name !== next.name || prev.avatarURL !== next.avatarURL || prev.employeeList !== next.employeeList;
+}
 
 // Returns the full report keys whose attributes entry changed between two attributes snapshots (added, removed, or
 // a different object reference). Attributes are keyed by bare reportID, so the keys are mapped to full report keys.
@@ -89,11 +106,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
     ],
     compute: (
-        [reports, reportNameValuePairs, transactions, transactionViolations, reportsDrafts, , priorityMode, betas, , locale, reportAttributesDerived, session],
+        [reports, reportNameValuePairs, transactions, transactionViolations, reportsDrafts, policies, priorityMode, betas, , locale, reportAttributesDerived, session],
         {currentValue, sourceValues},
     ): SidebarOrderedReportsDerivedValue => {
         if (!reports || Object.keys(reports).length === 0) {
             previousReportAttributes = undefined;
+            previousPolicies = undefined;
             return EMPTY_VALUE;
         }
 
@@ -124,6 +142,19 @@ export default createOnyxDerivedValueConfig({
         const canDiffAttributes = attributesTriggered && previousReportAttributes !== undefined;
         const attributeReportKeys = canDiffAttributes ? getChangedReportAttributeKeys(previousReportAttributes, reportAttributes) : [];
         previousReportAttributes = reportAttributes;
+
+        // Diff sourced policy updates against the previous snapshot before overwriting it, so the incremental cascade
+        // below only re-evaluates reports when an LHN-relevant policy field actually changed.
+        const policySourceUpdates = collectionUpdates[ONYXKEYS.COLLECTION.POLICY];
+        const changedSidebarPolicyIDs = new Set<string>();
+        if (policySourceUpdates) {
+            for (const policyKey of Object.keys(policySourceUpdates)) {
+                if (hasSidebarRelevantPolicyFieldChanged(previousPolicies?.[policyKey], policies?.[policyKey])) {
+                    changedSidebarPolicyIDs.add(policyKey.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                }
+            }
+        }
+        previousPolicies = policies;
 
         const canIncremental = !!currentValue && (hasCollectionUpdate || canDiffAttributes) && Object.keys(currentValue.reportsToDisplay).length > 0;
 
@@ -174,11 +205,9 @@ export default createOnyxDerivedValueConfig({
                 }
             }
 
-            const policyUpdates = collectionUpdates[ONYXKEYS.COLLECTION.POLICY];
-            if (policyUpdates) {
-                const updatedPolicyIDs = new Set(Object.keys(policyUpdates).map((policyKey) => policyKey.replace(ONYXKEYS.COLLECTION.POLICY, '')));
+            if (changedSidebarPolicyIDs.size > 0) {
                 for (const [reportKey, report] of Object.entries(reports)) {
-                    if (report?.policyID && updatedPolicyIDs.has(report.policyID)) {
+                    if (report?.policyID && changedSidebarPolicyIDs.has(report.policyID)) {
                         updatedReportsKeys.add(reportKey);
                     }
                 }
@@ -235,16 +264,18 @@ export default createOnyxDerivedValueConfig({
             reportAttributes,
         );
 
-        // Preserve referential stability when nothing meaningful changed downstream.
-        const stableReportsToDisplay = currentValue && reportsToDisplay === currentValue.reportsToDisplay ? currentValue.reportsToDisplay : reportsToDisplay;
+        // On the incremental path `updateReportsToDisplayInLHN` returns the same `reportsToDisplay` reference when no
+        // displayed entry changed, so a reference check recognizes a no-op compute. `orderedReportIDs` is separately
+        // stabilized by shallow comparison. When both are unchanged we return the existing value so downstream
+        // `useOnyx` consumers don't re-render.
         const stableOrderedReportIDs = currentValue && shallowEqual(nextOrderedReportIDs, currentValue.orderedReportIDs) ? currentValue.orderedReportIDs : nextOrderedReportIDs;
 
-        if (stableReportsToDisplay === currentValue?.reportsToDisplay && stableOrderedReportIDs === currentValue?.orderedReportIDs) {
+        if (currentValue && reportsToDisplay === currentValue.reportsToDisplay && stableOrderedReportIDs === currentValue.orderedReportIDs) {
             return currentValue;
         }
 
         return {
-            reportsToDisplay: stableReportsToDisplay,
+            reportsToDisplay,
             orderedReportIDs: stableOrderedReportIDs,
         };
     },
