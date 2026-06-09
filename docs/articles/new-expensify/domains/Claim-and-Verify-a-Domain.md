@@ -19,10 +19,22 @@ To claim a private domain, you must:
 - Be logged in with an email address from that domain
 - Have verified your contact method with a magic code
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces** then choose **Domains**.
-2. Click **New**.
-4. Enter the name the private domain (e.g., `yourcompany.com`). 
-5. Click **Continue**.
+1. From the left-hand menu, select **Workspaces**, then select the **Domains** tab.
+2. Click **New domain**.
+   - If you have already claimed one or more domains, click **New** in the upper right to add a new domain.
+3. Enter the name of your private domain (e.g., `yourcompany.com`) in the form.
+4. Click **Continue**.
+
+## Where to find Domain settings
+
+From the left-hand menu, select **Workspaces**, then select the **Domains** tab.
+
+If you haven't claimed a domain yet, you'll see an empty state titled **Enhance your security with domains** explaining the benefits of domain control. Once you claim a domain, it's listed on the **Domains** tab.
+
+Each domain is listed in its own row, showing:
+- Domain name
+- Verification status (Verified, Not verified)
+- The three dots **(⋮)** with management options
 
 ## What happens after claiming a domain?
 
@@ -43,7 +55,7 @@ To unlock advanced security settings and enable SAML, the domain must be verifie
 **Note**: This process may be managed by your IT department or web consultant.
 1. Log in to your DNS service provider (e.g., Namecheap, GoDaddy, Amazon Route 53).
 2. Locate the DNS Records page (sometimes labeled as DNS Management or Zone File Editor).
-3. Add a TXT record with the verification value provided in Expensify. To find it, go to the **Domains** tab, select the three dots **(⋮)** for your domain, then select **Verify domain**.
+3. Add a TXT record with the verification value provided in Expensify. To find it, go to the **Domains** tab, select the three dots **(⋮)** next to your domain, then select **Verify domain**.
 4. Save your changes.
 
 Once verified, you’ll see a confirmation message and your domain will be marked as **Verified**.
