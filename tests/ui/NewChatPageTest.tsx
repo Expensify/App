@@ -85,6 +85,38 @@ describe('NewChatPage', () => {
         }
     });
 
+    it('should not move a selected user to the top of the list', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+        });
+
+        const getRenderedNames = () => screen.getAllByText(/^Email /).map((node) => String(node.props.children));
+
+        // Wait until the contacts list has rendered more than one selectable user.
+        const namesBefore = await waitFor(() => {
+            const names = getRenderedNames();
+            expect(names.length).toBeGreaterThan(2);
+            return names;
+        });
+
+        // Select a user that is not first in the list by pressing its "Add to group" button.
+        const addButtons = screen.getAllByText(translateLocal('newChatPage.addToGroup'));
+        const targetIndex = 2;
+        const targetName = namesBefore.at(targetIndex);
+        fireEvent.press(addButtons[targetIndex]);
+        await waitForBatchedUpdatesWithAct();
+
+        // The selected user should stay in place rather than jumping to the top of the list.
+        const namesAfter = getRenderedNames();
+        expect(namesAfter.at(0)).toBe(namesBefore.at(0));
+        expect(namesAfter.indexOf(targetName ?? '')).toBe(targetIndex);
+    });
+
     describe('should not display "Add to group" button on expensify emails', () => {
         const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE && value !== CONST.EMAIL.NOTIFICATIONS).map((email) => [email]);
 

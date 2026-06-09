@@ -19,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,7 +32,7 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -111,11 +112,10 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         },
     );
 
-    const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
-
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
+    // Keep selected options in the list (don't filter them out) so they stay in place when toggled, rather than jumping to a separate section at the top.
+    const options = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -214,34 +214,64 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions(reportAttributesDerived);
 
-    const sections: Array<Section<OptionWithKey>> = [];
+    const cleanSearchTermLower = debouncedSearchTerm.trim().toLowerCase();
 
-    const selectedSection =
-        debouncedSearchTerm === ''
-            ? selectedOptions
-            : selectedOptions.filter((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, debouncedSearchTerm.trim().toLowerCase()));
+    const selectedAccountIDs = new Set(selectedOptions.map((option) => option.accountID).filter((accountID): accountID is number => !!accountID && accountID !== CONST.DEFAULT_NUMBER_ID));
+    const selectedLogins = new Set(selectedOptions.map((option) => option.login).filter((login): login is string => !!login));
+    const isOptionSelected = (option: OptionWithKey) =>
+        (!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && selectedAccountIDs.has(option.accountID)) || (!!option.login && selectedLogins.has(option.login));
+    // Mark rows as selected in place so the checkmark stays with the row instead of moving it to the top of the list.
+    const markSelection = (option: OptionWithKey): OptionWithKey => (isOptionSelected(option) ? {...option, isSelected: true, selected: true} : option);
 
-    sections.push({data: selectedSection, title: undefined, sectionIndex: 0});
+    const recentReportsData = (selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports).map(markSelection);
+    const personalDetailsData = personalDetails.map(markSelection);
 
-    sections.push({
+    // Selected items that aren't visible in Recents/Contacts (e.g. dropped by pagination) — surface them above, but only if they match the search term.
+    const visibleAccountIDs = new Set(
+        [...recentReportsData, ...personalDetailsData].map((option) => option.accountID).filter((accountID): accountID is number => !!accountID && accountID !== CONST.DEFAULT_NUMBER_ID),
+    );
+    const visibleLogins = new Set([...recentReportsData, ...personalDetailsData].map((option) => option.login).filter((login): login is string => !!login));
+    const extraSelectedOptions = selectedOptions
+        .filter(
+            (option) =>
+                !(!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && visibleAccountIDs.has(option.accountID)) &&
+                !(!!option.login && visibleLogins.has(option.login)) &&
+                (cleanSearchTermLower === '' || doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTermLower)),
+        )
+        .map((option): OptionWithKey => ({...option, isSelected: true, selected: true}));
+
+    const baseSections: Array<Section<OptionWithKey>> = [];
+
+    if (extraSelectedOptions.length > 0) {
+        baseSections.push({data: extraSelectedOptions, title: undefined, sectionIndex: 0});
+    }
+
+    baseSections.push({
         title: translate('common.recents'),
-        data: selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports,
+        data: recentReportsData,
         sectionIndex: 1,
     });
 
-    sections.push({
+    baseSections.push({
         title: translate('common.contacts'),
-        data: personalDetails,
+        data: personalDetailsData,
         sectionIndex: 2,
     });
 
     if (userToInvite) {
-        sections.push({
+        baseSections.push({
             title: undefined,
             data: [userToInvite],
             sectionIndex: 3,
         });
     }
+
+    // Pin items that were already selected when the list opened to the top (long lists only); rows toggled afterwards stay in place.
+    const sections = useFrozenPreSelection<OptionWithKey>(baseSections, {
+        initialSelectedValues: selectedOptions.map((option) => option.login ?? String(option.accountID ?? '')),
+        canCapture: areOptionsInitialized,
+        getKey: (item) => item.login ?? (item.accountID ? String(item.accountID) : undefined),
+    });
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
