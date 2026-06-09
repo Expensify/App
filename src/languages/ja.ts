@@ -6892,6 +6892,12 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>請求書発行機能は、Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'レポートを承認',
+                description: '経費を確認・承認し、支出を一元管理できます。承認ワークフローを使うと、コストの管理、社内ポリシーの順守、従業員への迅速な立替精算が可能になります。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>レポートの承認機能は Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `月あたりメンバー1人につき。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {

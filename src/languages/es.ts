@@ -6909,6 +6909,13 @@ ${amount} para ${merchant} - ${date}`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Su empresa ha restringido la creación de espacios de trabajo. Por favor, contacte a un administrador para obtener ayuda.',
             },
+            approvalSubmitReport: {
+                title: 'Aprobar informes',
+                description:
+                    'Revisa, aprueba y mantén los gastos bajo control en un solo lugar. Los flujos de aprobación te ayudan a controlar los costos, hacer cumplir las políticas de la empresa y reembolsar a tus empleados más rápido.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los informes de aprobación están disponibles en los planes Recopilar y Controlar, desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
