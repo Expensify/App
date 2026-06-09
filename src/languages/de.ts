@@ -84,6 +84,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Anhang',
         attachments: 'Anhänge',
         center: 'Zentrieren',
+        resetMapToNorth: 'Karte nach Norden ausrichten',
         from: 'Von',
         to: 'AnAn',
         in: 'In',

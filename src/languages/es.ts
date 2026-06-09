@@ -42,6 +42,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nueva función',
         beta: 'Beta',
         center: 'Centrar',
+        resetMapToNorth: 'Restablecer el mapa al norte',
         search: 'Buscar',
         reports: 'Informes',
         spend: 'Gastos',

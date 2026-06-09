@@ -5189,6 +5189,8 @@ const CONST = {
         WAYPOINT: {width: 40, height: 40},
     },
 
+    MAP_VIEW_COMPASS_SIZE: {width: 44, height: 44},
+
     QUICK_REACTIONS: [
         {
             name: '+1',
@@ -8936,6 +8938,9 @@ const CONST = {
         },
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
+        },
+        MAP_VIEW: {
+            COMPASS: 'compass',
         },
         MONEY_REQUEST: {
             AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
