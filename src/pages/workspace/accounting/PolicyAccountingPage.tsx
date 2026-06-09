@@ -208,7 +208,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             startIntegrationFlow,
             isSageIntacct,
             hasAuthError,
-            shouldShowReconnect,
             credentialsMenuTextKey,
             policyID,
         ],
