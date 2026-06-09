@@ -93,6 +93,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.OFF;
     const merchantNames = spendRuleForm?.merchantNames ?? [];
     const categories = spendRuleForm?.categories ?? [];
+    const currencies = spendRuleForm?.currencies ?? [];
     const maxAmount = spendRuleForm?.maxAmount ?? '';
 
     const clearError = () => {
@@ -145,6 +146,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
     const cardsMenuTitle = getCardsMenuTitle(cardIDs);
     const categoriesMenuTitle = getCategoryMenuTitle(categories);
+    const merchantsMenuTitle = getMerchantMenuTitle(merchantNames);
+    const currenciesMenuTitle = currencies.length > 0 ? currencies.join(', ') : undefined;
 
     const hasSelectedCards = !!cardIDs?.length;
     const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '');
@@ -250,7 +253,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                             navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES, {policyID, ruleID: currentRuleID});
                         }}
                         shouldShowRightIcon
-                        title={maxAmountMenuTitle}
+                        title={currenciesMenuTitle}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
                     />
@@ -297,7 +300,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 }
                                 shouldShowRightIcon={canWriteRules}
                                 interactive={canWriteRules}
-                                title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
+                                title={merchantsMenuTitle}
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
