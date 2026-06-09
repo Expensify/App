@@ -164,6 +164,20 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     })),
 }));
 
+jest.mock('@hooks/usePaymentContext', () => ({
+    __esModule: true,
+    default: () => ({
+        introSelected: undefined,
+        betas: undefined,
+        isSelfTourViewed: false,
+        activePolicy: undefined,
+        defaultWorkspaceName: 'Test Workspace',
+        userBillingGracePeriodEnds: undefined,
+        amountOwed: undefined,
+        ownerBillingGracePeriodEnd: undefined,
+    }),
+}));
+
 const baseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense status:all',
     hash: 12345,
