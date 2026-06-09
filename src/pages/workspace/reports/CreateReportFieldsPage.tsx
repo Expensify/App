@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -269,14 +269,11 @@ function WorkspaceCreateReportFieldsPage({
                             )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && (
-                                <>
-                                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
-                                    <InputWrapper
-                                        InputComponent={InitialListValueSelector}
-                                        inputID={INPUT_IDS.INITIAL_VALUE}
-                                        label={translate('common.initialValue')}
-                                    />
-                                </>
+                                <InputWrapper
+                                    InputComponent={InitialListValueSelector}
+                                    inputID={INPUT_IDS.INITIAL_VALUE}
+                                    label={translate('common.initialValue')}
+                                />
                             )}
                         </View>
                     )}
