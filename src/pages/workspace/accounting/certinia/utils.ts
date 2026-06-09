@@ -83,4 +83,4 @@ export {
     isCertiniaDimensionParam,
     updateFinancialForceDimensionMapping,
 };
-export type {CertiniaDimensionParam, CertiniaExportStatus, CertiniaMappingValue};
+export type {CertiniaDimensionParam, CertiniaMappingValue};
