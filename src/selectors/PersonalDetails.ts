@@ -38,12 +38,14 @@ function isPersonalDetailOptimistic(personalDetail: PersonalDetails | null | und
     return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
 }
 
-const isOptimisticPersonalDetailSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean => {
-    if (!personalDetailsList) {
-        return true;
-    }
-    return isPersonalDetailOptimistic(personalDetailsList[accountID]);
-};
+const isOptimisticPersonalDetailSelector =
+    (accountID: number) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean => {
+        if (!personalDetailsList) {
+            return true;
+        }
+        return isPersonalDetailOptimistic(personalDetailsList[accountID]);
+    };
 
 export {
     personalDetailsSelector,
