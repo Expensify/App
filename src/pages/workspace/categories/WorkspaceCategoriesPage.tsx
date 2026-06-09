@@ -613,6 +613,34 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         canWriteCategories,
     ]);
 
+    const emptyStateContent = (
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+            <GenericEmptyStateComponent
+                {...genericIllustration}
+                title={translate('workspace.categories.emptyCategories.title')}
+                subtitleText={subtitleText}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                buttons={
+                    !policyHasAccountingConnections
+                        ? [
+                              {
+                                  icon: icons.Table,
+                                  buttonText: translate('common.import'),
+                                  buttonAction: navigateToImportSpreadsheet,
+                              },
+                              {
+                                  icon: icons.Plus,
+                                  buttonText: translate('workspace.categories.addCategory'),
+                                  buttonAction: navigateToCreateCategoryPage,
+                                  success: true,
+                              },
+                          ]
+                        : undefined
+                }
+            />
+        </ScrollView>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -663,20 +691,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     />
                 )}
 
-                {hasVisibleCategories && !isLoading && (
+                {!isLoading && (
                     <>
-                        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            {!hasSyncError && isConnectionVerified && currentConnectionName ? (
-                                <ImportedFromAccountingSoftware
-                                    policyID={policyId}
-                                    currentConnectionName={currentConnectionName}
-                                    connectedIntegration={connectedIntegration}
-                                    translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
-                                />
-                            ) : (
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                            )}
-                        </View>
+                        {hasVisibleCategories && (
+                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                                    <ImportedFromAccountingSoftware
+                                        policyID={policyId}
+                                        currentConnectionName={currentConnectionName}
+                                        connectedIntegration={connectedIntegration}
+                                        translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
+                                    />
+                                ) : (
+                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                                )}
+                            </View>
+                        )}
 
                         <WorkspaceCategoriesTable
                             categories={categoryRows}
@@ -685,35 +715,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
                             onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
+                            EmptyStateComponent={emptyStateContent}
                         />
                     </>
-                )}
-                {!hasVisibleCategories && !isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                        <GenericEmptyStateComponent
-                            {...genericIllustration}
-                            title={translate('workspace.categories.emptyCategories.title')}
-                            subtitleText={subtitleText}
-                            headerStyles={styles.emptyStateCardIllustrationContainer}
-                            buttons={
-                                !policyHasAccountingConnections
-                                    ? [
-                                          {
-                                              icon: icons.Table,
-                                              buttonText: translate('common.import'),
-                                              buttonAction: navigateToImportSpreadsheet,
-                                          },
-                                          {
-                                              icon: icons.Plus,
-                                              buttonText: translate('workspace.categories.addCategory'),
-                                              buttonAction: navigateToCreateCategoryPage,
-                                              success: true,
-                                          },
-                                      ]
-                                    : undefined
-                            }
-                        />
-                    </ScrollView>
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

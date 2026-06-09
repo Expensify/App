@@ -38,6 +38,7 @@ type WorkspaceCategoriesTableProps = {
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    EmptyStateComponent: React.ReactElement;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -48,6 +49,7 @@ export default function WorkspaceCategoriesTable({
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
     onRowSelectionChange,
+    EmptyStateComponent,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -134,6 +136,8 @@ export default function WorkspaceCategoriesTable({
         />
     );
 
+    const isEmpty = categories.length === 0;
+
     return (
         <Table
             ref={ref}
@@ -149,9 +153,14 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
-            <Table.Header />
-            <Table.Body />
+            {isEmpty && EmptyStateComponent}
+            {!isEmpty && (
+                <>
+                    {categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }
