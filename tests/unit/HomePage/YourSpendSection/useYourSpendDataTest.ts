@@ -14,8 +14,8 @@ import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@libs/YourSpendQueryUtils';
 import {YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/const';
-import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
 import {useYourSpendData} from '@pages/home/YourSpendSection/useYourSpendData';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +51,7 @@ const THIRD_PARTY_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PART
 
 // Module mocks
 
-jest.mock('@pages/home/YourSpendSection/queries', () => ({
+jest.mock('@libs/YourSpendQueryUtils', () => ({
     buildAwaitingApprovalQuery: jest.fn(),
     buildRepaidLast30DaysQuery: jest.fn(),
     buildRecentCardTransactionsQuery: jest.fn(),
