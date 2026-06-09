@@ -1042,6 +1042,7 @@ describe('ReportNameUtils', () => {
                 report,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
+                policy: undefined,
                 currentUserAccountID,
             });
 
@@ -1060,6 +1061,7 @@ describe('ReportNameUtils', () => {
                 report,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
+                policy: undefined,
                 currentUserAccountID,
             });
 

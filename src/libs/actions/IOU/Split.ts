@@ -66,7 +66,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags} from './index';
+import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -1062,7 +1062,7 @@ function completeSplitBill(
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
             // delegateAccountID: will be threaded in PR 11; buildOptimisticReportPreview falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, undefined, undefined);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, undefined);
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1769,7 +1769,7 @@ function createSplitsAndOnyxData({
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
@@ -1907,7 +1907,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         previousOdometerDraft,
         delegateAccountID,
     } = distanceRequestInformation;
-    const {policy, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+    const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
     const {
@@ -2054,7 +2054,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyParams: {
                 policy,
                 policyCategories,
-                policyTagList: getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport: currentChatReport, participant}),
+                policyTagList,
                 policyRecentlyUsedCategories,
                 policyRecentlyUsedTags,
             },

@@ -3,13 +3,23 @@
     "compilerOptions": {
         "types": ["@types/bun"],
         "paths": {
-            "@libs/*": ["./libs/*"],
-            "@plugins/*": ["./plugins/*"],
+            "@assets/*": ["../assets/*"],
+            "@components/*": ["../src/components/*"],
+            "@github/*": ["../.github/*"],
+            "@hooks/*": ["../src/hooks/*"],
+            "@libs/*": ["../src/libs/*"],
+            "@navigation/*": ["../src/libs/Navigation/*"],
+            "@pages/*": ["../src/pages/*"],
+            "@prompts/*": ["../prompts/*"],
             "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
+            "@selectors/*": ["../src/selectors/*"],
+            "@server/*": ["./*"],
             "@src/*": ["../src/*"],
-            "canvaskit-wasm/bin/full/canvaskit.wasm": ["./victory-chart-renderer/src/canvaskit-wasm.d.ts"]
+            "@styles/*": ["../src/styles/*"],
+            "@userActions/*": ["../src/libs/actions/*"],
+            "tests/*": ["../tests/*"]
         }
     },
-    "include": ["libs", "plugins", "stubs", "victory-chart-renderer"],
+    "include": ["libs", "plugins", "stubs"],
     "exclude": ["victory-chart-renderer/dist", "victory-chart-renderer/.dev"]
 }
