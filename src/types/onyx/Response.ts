@@ -37,9 +37,6 @@ type Response<TKey extends OnyxKey> = {
      */
     shouldPauseQueue?: boolean;
 
-    /** Whether client-side Onyx updates should be skipped for this response. */
-    shouldSkipOnyxUpdates?: boolean;
-
     /** User session auth token */
     authToken?: string;
 

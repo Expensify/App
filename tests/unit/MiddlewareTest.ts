@@ -16,6 +16,7 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
+import type OnyxRequest from '@src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -54,38 +55,62 @@ beforeEach(async () => {
 
 describe('Middleware', () => {
     describe('Reauthentication', () => {
-        test('marks failed reauthentication responses to skip original request Onyx updates', async () => {
+        test('clears original request failure updates when failed reauthentication redirects to sign-in', async () => {
             const mockedReauthenticate = reauthenticate as jest.MockedFunction<typeof reauthenticate>;
             mockedReauthenticate.mockResolvedValueOnce(false);
+
+            const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+                command: 'TestCommand',
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.NETWORK,
+                        value: {shouldFailAllRequests: true},
+                    },
+                ],
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.NETWORK,
+                        value: {shouldForceOffline: true},
+                    },
+                ],
+            };
 
             const response = await Reauthentication(
                 Promise.resolve({
                     jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                 }),
-                {
-                    command: 'TestCommand',
-                    data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
-                },
+                request,
                 false,
             );
 
             expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
-            expect(response?.shouldSkipOnyxUpdates).toBe(true);
+            expect(request.failureData).toBeUndefined();
+            expect(request.finallyData).toBeUndefined();
         });
     });
 
     describe('SaveResponseInOnyx', () => {
-        test('skips request failure data when response requests Onyx updates to be skipped', async () => {
+        test('does not apply original request failure data after failed reauthentication redirects to sign-in', async () => {
+            const mockedReauthenticate = reauthenticate as jest.MockedFunction<typeof reauthenticate>;
+            mockedReauthenticate.mockResolvedValueOnce(false);
+
             let shouldFailAllRequests: boolean | undefined;
+            let shouldForceOffline: boolean | undefined;
             Onyx.connect({
                 key: ONYXKEYS.NETWORK,
-                callback: (val) => (shouldFailAllRequests = val?.shouldFailAllRequests),
+                callback: (val) => {
+                    shouldFailAllRequests = val?.shouldFailAllRequests;
+                    shouldForceOffline = val?.shouldForceOffline;
+                },
             });
 
+            Request.addMiddleware(Reauthentication);
             Request.addMiddleware(SaveResponseInOnyx);
             jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
-                jsonCode: 407,
-                shouldSkipOnyxUpdates: true,
+                jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
             });
 
             const response = await Request.processWithMiddleware({
@@ -98,11 +123,19 @@ describe('Middleware', () => {
                         value: {shouldFailAllRequests: true},
                     },
                 ],
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.NETWORK,
+                        value: {shouldForceOffline: true},
+                    },
+                ],
             });
             await waitForBatchedUpdates();
 
-            expect(response?.shouldSkipOnyxUpdates).toBe(true);
+            expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
             expect(shouldFailAllRequests).toBeFalsy();
+            expect(shouldForceOffline).toBeFalsy();
         });
 
         test('preserves the response for side-effect requests when the update is already applied', async () => {

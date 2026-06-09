@@ -43,7 +43,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean, isIncompleteSignIn?: boolean): Promise<void> {
+function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
     // flashes of unwanted default state.
@@ -75,8 +75,8 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
     // When the user is in the middle of a 2FA sign-in flow (they've entered their magic code but not yet completed
     // 2FA), we want to preserve their credentials and account state so that after a page refresh they are still
     // prompted to enter their 2FA code rather than being sent back to the initial sign-in page.
-    const shouldPreserveIncompleteSignIn = isIncompleteSignIn ?? (!currentSessionAuthToken && !!currentCredentialsValidateCode);
-    if (shouldPreserveIncompleteSignIn) {
+    const isIncompleteSignIn = !currentSessionAuthToken && !!currentCredentialsValidateCode;
+    if (isIncompleteSignIn) {
         keysToPreserve.push(ONYXKEYS.CREDENTIALS);
         keysToPreserve.push(ONYXKEYS.ACCOUNT);
     }
@@ -121,15 +121,9 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
  */
 function redirectToSignIn(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
-    const isIncompleteSignIn = !currentSessionAuthToken && !!currentCredentialsValidateCode;
-
-    // Clear the auth token first so the app can switch to the sign-in stack
-    // immediately, then finish the broader logout cleanup.
-    return Onyx.merge(ONYXKEYS.SESSION, {authToken: null, encryptedAuthToken: null})
-        .then(() => clearStorageAndRedirect(errorMessage, isSAMLReauthentication, isIncompleteSignIn))
-        .then(() => {
-            clearSessionStorage();
-        });
+    return clearStorageAndRedirect(errorMessage, isSAMLReauthentication).then(() => {
+        clearSessionStorage();
+    });
 }
 
 export default redirectToSignIn;
