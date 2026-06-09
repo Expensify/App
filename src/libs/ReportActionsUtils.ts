@@ -3447,7 +3447,7 @@ function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: Report
     const {categoryName, oldTaxName, oldTaxPercentage, newTaxName, newTaxPercentage} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE>) ?? {};
 
-    if (!categoryName || !newTaxName) {
+    if (!categoryName || !newTaxName || !oldTaxName) {
         return getReportActionText(action);
     }
 
