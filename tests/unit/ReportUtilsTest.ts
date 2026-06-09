@@ -14633,13 +14633,13 @@ describe('ReportUtils', () => {
     describe('getReportFieldMaps', () => {
         it('should read invoice field values from report name value pairs keyed by raw field ID', async () => {
             const reportID = 'getReportFieldMapsRawKey';
-            const report = {
+            const report: Report = {
                 reportID,
                 policyID: '1',
                 type: CONST.REPORT.TYPE.INVOICE,
                 fieldList: {},
-            } as Report;
-            const policyFieldList = {
+            };
+            const policyFieldList: Record<string, PolicyReportField> = {
                 expensify_field_id_LIST: {
                     type: 'dropdown',
                     values: ['policy default'],
@@ -14647,23 +14647,32 @@ describe('ReportUtils', () => {
                     fieldID: 'field_id_LIST',
                     name: 'Client',
                     defaultValue: 'policy default',
+                    orderWeight: 0,
+                    deletable: true,
+                    keys: [],
+                    externalIDs: [],
+                    isTax: false,
                     target: CONST.REPORT_FIELD_TARGETS.INVOICE,
                 },
-            } as unknown as Record<string, PolicyReportField>;
-            const reportNameValuePairs = {
-                field_id_LIST: {
-                    type: 'dropdown',
-                    values: ['policy default'],
-                    disabledOptions: [false],
-                    fieldID: 'field_id_LIST',
-                    name: 'Client',
-                    value: 'persisted value',
-                    target: CONST.REPORT_FIELD_TARGETS.INVOICE,
-                },
-            } as unknown as ReportNameValuePairs;
+            };
+            const reportNameValuePairField: PolicyReportField = {
+                type: 'dropdown',
+                values: ['policy default'],
+                disabledOptions: [false],
+                fieldID: 'field_id_LIST',
+                name: 'Client',
+                defaultValue: 'policy default',
+                orderWeight: 0,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                value: 'persisted value',
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+            };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, reportNameValuePairs);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {field_id_LIST: reportNameValuePairField});
 
             const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
 
@@ -14673,13 +14682,13 @@ describe('ReportUtils', () => {
 
         it('should not read expense field values from report name value pairs', async () => {
             const reportID = 'getReportFieldMapsExpenseField';
-            const report = {
+            const report: Report = {
                 reportID,
                 policyID: '1',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 fieldList: {},
-            } as Report;
-            const policyFieldList = {
+            };
+            const policyFieldList: Record<string, PolicyReportField> = {
                 expensify_field_id_LIST: {
                     type: 'dropdown',
                     values: ['policy default'],
@@ -14687,23 +14696,32 @@ describe('ReportUtils', () => {
                     fieldID: 'field_id_LIST',
                     name: 'Client',
                     defaultValue: 'policy default',
+                    orderWeight: 0,
+                    deletable: true,
+                    keys: [],
+                    externalIDs: [],
+                    isTax: false,
                     target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
                 },
-            } as unknown as Record<string, PolicyReportField>;
-            const reportNameValuePairs = {
-                field_id_LIST: {
-                    type: 'dropdown',
-                    values: ['policy default'],
-                    disabledOptions: [false],
-                    fieldID: 'field_id_LIST',
-                    name: 'Client',
-                    value: 'persisted value',
-                    target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
-                },
-            } as unknown as ReportNameValuePairs;
+            };
+            const reportNameValuePairField: PolicyReportField = {
+                type: 'dropdown',
+                values: ['policy default'],
+                disabledOptions: [false],
+                fieldID: 'field_id_LIST',
+                name: 'Client',
+                defaultValue: 'policy default',
+                orderWeight: 0,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                value: 'persisted value',
+                target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+            };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, reportNameValuePairs);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {field_id_LIST: reportNameValuePairField});
 
             const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
 

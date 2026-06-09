@@ -23,6 +23,7 @@ import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
 import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
+    getReportFieldFromReportNameValuePairs,
     getReportFieldKey,
     getTitleFieldWithFallback,
     hasViolations as hasViolationsReportUtils,
@@ -36,7 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyReportField, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
@@ -57,8 +58,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
-    const reportNameValuePairsRecord = reportNameValuePairs as Record<string, PolicyReportField> | undefined;
-    const reportFieldFromNVP = reportNameValuePairsRecord?.[fieldKey] ?? reportNameValuePairsRecord?.[route.params.fieldID];
+    const reportFieldFromNVP = getReportFieldFromReportNameValuePairs(reportNameValuePairs, fieldKey) ?? getReportFieldFromReportNameValuePairs(reportNameValuePairs, route.params.fieldID);
     let reportField =
         reportFieldFromNVP ?? report?.fieldList?.[fieldKey] ?? report?.fieldList?.[route.params.fieldID] ?? policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID];
     let policyField = policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID] ?? reportField;
