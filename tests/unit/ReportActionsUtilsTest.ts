@@ -3360,17 +3360,21 @@ describe('ReportActionsUtils', () => {
     describe('getForwardedReportActionMessage', () => {
         const buildForwardedAction = (
             originalMessage: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>['originalMessage']> = {},
-        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> =>
-            ({
-                ...createRandomReportAction(1),
+        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2026-06-05 10:00:00',
+                reportActionID: '1',
                 originalMessage: {
                     amount: 10000,
                     currency: CONST.CURRENCY.USD,
                     expenseReportID: '1',
                     ...originalMessage,
                 },
-            }) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>;
+            };
+
+            return action;
+        };
 
         it('should include the memo for a non-DEW forwarded action', () => {
             const memo = 'Testing approval memo';
