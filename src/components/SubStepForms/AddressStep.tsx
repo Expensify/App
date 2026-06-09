@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -8,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidAddress, isValidZipCode} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import {setDraftValues} from '@userActions/FormActions';
@@ -30,6 +31,11 @@ type AddressInputIDs = {
     state: string;
     zipCode: string;
     country?: string;
+};
+
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
 };
 
 type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
@@ -145,14 +151,28 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (shouldValidateZipCodeFormat && zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
+            const selectedCountry = inputFieldsIDs.country ? (values[inputFieldsIDs.country as keyof typeof values] as Country | undefined) : undefined;
+            const countryRegexDetails = selectedCountry ? (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[selectedCountry] as CountryZipRegex) : undefined;
+            const countrySpecificZipRegex = countryRegexDetails?.regex;
+            const trimmedZipCode = (zipCode as string | undefined)?.trim().toUpperCase() ?? '';
+
+            const isInvalidZipCode =
+                !!zipCode &&
+                shouldValidateZipCodeFormat &&
+                (shouldDisplayCountrySelector
+                    ? countrySpecificZipRegex
+                        ? !countrySpecificZipRegex.test(trimmedZipCode)
+                        : !COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(trimmedZipCode)
+                    : !isValidZipCode(zipCode as string));
+
+            if (isInvalidZipCode) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
         },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
+        [inputFieldsIDs.country, inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
     );
 
     return (

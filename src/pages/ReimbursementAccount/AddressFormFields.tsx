@@ -10,8 +10,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
+};
 
 type AddressInputKeys = {
     street: string;
@@ -119,6 +125,7 @@ function AddressFormFields({
     const [countryInEditMode, setCountryInEditMode] = useState<string>(defaultValues?.country ?? CONST.COUNTRY.US);
     // When draft values are not being saved we need to relay on local state to determine the currently selected country
     const currentlySelectedCountry = shouldSaveDraft ? defaultValues?.country : countryInEditMode;
+    const zipSampleFormat = (currentlySelectedCountry && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[currentlySelectedCountry as Country] as CountryZipRegex)?.samples) ?? '';
 
     const handleCountryChange = (country: unknown) => {
         if (typeof country === 'string' && country !== '') {
@@ -186,11 +193,11 @@ function AddressFormFields({
                 label={translate('common.zip')}
                 accessibilityLabel={translate('common.zip')}
                 role={CONST.ROLE.PRESENTATION}
-                inputMode={shouldValidateZipCodeFormat ? CONST.INPUT_MODE.NUMERIC : undefined}
+                inputMode={shouldValidateZipCodeFormat && currentlySelectedCountry === CONST.COUNTRY.US ? CONST.INPUT_MODE.NUMERIC : undefined}
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
-                hint={translate('common.zipCodeExampleFormat', COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples)}
+                hint={translate('common.zipCodeExampleFormat', zipSampleFormat)}
                 containerStyles={styles.mt3}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="postal-code"
