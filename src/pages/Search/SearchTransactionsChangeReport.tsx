@@ -1,27 +1,28 @@
-import React, {useMemo} from 'react';
+import React, { useEffect, useMemo } from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionList/types';
+import { InteractionManager } from 'react-native';
+import type { OnyxCollection } from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import { usePersonalDetails, useSession } from '@components/OnyxListItemProvider';
+import { useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext } from '@components/Search/SearchContext';
+import type { ListItem } from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import {createNewReport} from '@libs/actions/Report';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import { createNewReport } from '@libs/actions/Report';
+import { changeTransactionsReport } from '@libs/actions/Transaction';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import { generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils } from '@libs/ReportUtils';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import ROUTES, { DYNAMIC_ROUTES } from '@src/ROUTES';
+import type { PersonalDetails, Report, Transaction } from '@src/types/onyx';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -29,8 +30,9 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {selectedTransactions} = useSearchSelectionContext();
-    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const { selectedTransactions } = useSearchSelectionContext();
+    const { clearSelectedTransactions } = useSearchSelectionActions();
+    const { currentSearchResults } = useSearchResultsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const transactions = useMemo(
         () =>
@@ -56,7 +58,7 @@ function SearchTransactionsChangeReport() {
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const {isBetaEnabled} = usePermissions();
+    const { isBetaEnabled } = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
@@ -70,7 +72,7 @@ function SearchTransactionsChangeReport() {
     // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
     // This ensures the "Create report" button shows the correct workspace instead of the user's default
     const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReportPolicyID);
+    const { policyForMovingExpensesID, shouldSelectPolicy } = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReportPolicyID);
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
@@ -97,6 +99,49 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+
+    useEffect(() => {
+        const snapshotData = currentSearchResults?.data;
+        if (!snapshotData) {
+            return;
+        }
+
+        const onyxUpdates: Array<{
+            onyxMethod: typeof Onyx.METHOD.MERGE;
+            key: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+            value: Report;
+        }> = [];
+
+        for (const key of Object.keys(snapshotData)) {
+            if (
+                !key.startsWith(ONYXKEYS.COLLECTION.REPORT) ||
+                key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ||
+                key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)
+            ) {
+                continue;
+            }
+
+            const typedKey = key as `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+            if (allReports?.[typedKey]) {
+                continue;
+            }
+
+            const report = snapshotData[key as keyof typeof snapshotData] as Report | undefined;
+            if (report) {
+                onyxUpdates.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: typedKey,
+                    value: report,
+                });
+            }
+        }
+
+        if (onyxUpdates.length > 0) {
+            Onyx.update(onyxUpdates);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(
             targetOwnerPersonalDetails,
@@ -128,7 +173,7 @@ function SearchTransactionsChangeReport() {
         Navigation.goBack();
     };
 
-    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
+    const { handleCreateReport } = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
