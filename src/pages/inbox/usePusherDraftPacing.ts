@@ -220,6 +220,7 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     if (nextVisibleMarkdown.bodyMarkdown !== visibleBodyMarkdownRef.current || nextVisibleMarkdown.sourceOffset !== visibleSourceOffsetRef.current) {
         const isTargetFullyVisible = nextVisibleMarkdown.sourceOffset >= targetBodyMarkdown.length;
         const status = completedEvent && !hasQueuedTarget && isTargetFullyVisible ? 'completed' : 'updated';
+        // Only consume time for the units we actually revealed; keep the rest for the next target.
         lastPaceTickTimeRef.current = getNextLastPaceTickTime(
             now,
             paceStartTime,
