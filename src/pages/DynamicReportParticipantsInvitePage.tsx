@@ -10,18 +10,18 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchSelector from '@hooks/useSearchSelector';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getGroupChatName} from '@libs/ReportNameUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,15 +51,13 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         excludedUsers[login] = true;
     }
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} =
-        useSearchSelector({
-            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-            includeUserToInvite: true,
-            excludeLogins: excludedUsers,
-            includeRecentReports: true,
-            shouldInitialize: didScreenTransitionEnd,
-        });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        includeUserToInvite: true,
+        excludeLogins: excludedUsers,
+        includeRecentReports: true,
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     useEffect(() => {
         updateUserSearchPhrase(debouncedSearchTerm);
@@ -69,19 +67,19 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const sections: Sections = [];
     if (areOptionsInitialized) {
         // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
+        if (availableOptions.selectedOptions.length > 0) {
             sections.push({
                 title: undefined,
-                data: selectedOptionsForDisplay,
+                data: availableOptions.selectedOptions,
                 sectionIndex: 0,
             });
         }
 
         // Recent reports section
-        if (availableOptions.recentReports.length > 0) {
+        if (availableOptions.recentOptions.length > 0) {
             sections.push({
                 title: translate('common.recents'),
-                data: availableOptions.recentReports,
+                data: availableOptions.recentOptions,
                 sectionIndex: 1,
             });
         }
@@ -133,26 +131,21 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     };
 
     const getHeaderMessageText = () => {
+        if (sections.length > 0) {
+            return '';
+        }
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();
-        const expensifyEmails = CONST.EXPENSIFY_EMAILS;
-        if (!availableOptions.userToInvite && expensifyEmails.includes(processedLogin)) {
+        if (CONST.EXPENSIFY_EMAILS_OBJECT[processedLogin]) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
-            !availableOptions.userToInvite &&
             excludedUsers[
                 parsePhoneNumber(appendCountryCode(processedLogin, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCode)) : processedLogin
             ]
         ) {
             return translate('messages.userIsAlreadyMember', processedLogin, reportName ?? '');
         }
-        return getHeaderMessage(
-            selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
-            !!availableOptions.userToInvite,
-            processedLogin,
-            countryCode,
-            false,
-        );
+        return getHeaderMessage(translate, processedLogin, countryCode);
     };
 
     const footerContent = (
@@ -200,7 +193,6 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
-                onEndReached={onListEndReached}
             />
         </ScreenWrapper>
     );
