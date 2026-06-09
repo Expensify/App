@@ -36,6 +36,8 @@ type SearchSidebarProps = {
     state: PlatformStackNavigationState<ParamListBase>;
 };
 
+const PEEK_DISMISS_AFTER_MODAL_CLOSE_DELAY_MS = Math.max(CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB, CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_OUT_WEB) + 50;
+
 function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -47,6 +49,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const [isAnyModalActive = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
     const isAnyModalActiveRef = useRef(false);
     const wasAnyModalActiveRef = useRef(false);
+    const delayedPeekDismissUntilRef = useRef(0);
     const sidebarRef = useRef<React.ComponentRef<typeof Animated.View>>(null);
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
@@ -78,7 +81,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     }, [endPeek, shouldUseNarrowLayout]);
 
     const endPeekIfPointerIsOutsideSidebar = () => {
-        if (!isPeeking || isAnyModalActiveRef.current || typeof document === 'undefined') {
+        if (!isPeeking || isAnyModalActiveRef.current || Date.now() < delayedPeekDismissUntilRef.current || typeof document === 'undefined') {
             return;
         }
 
@@ -91,7 +94,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     };
 
     const endPeekWhenNoModalIsActive = () => {
-        if (isAnyModalActiveRef.current) {
+        if (isAnyModalActiveRef.current || Date.now() < delayedPeekDismissUntilRef.current) {
             return;
         }
 
@@ -122,10 +125,22 @@ function SearchSidebar({state}: SearchSidebarProps) {
             return;
         }
 
-        const animationFrame = window.requestAnimationFrame(endPeekIfPointerIsOutsideSidebar);
+        const dismissPeekAt = Date.now() + PEEK_DISMISS_AFTER_MODAL_CLOSE_DELAY_MS;
+        delayedPeekDismissUntilRef.current = dismissPeekAt;
+        const timeout = window.setTimeout(() => {
+            if (delayedPeekDismissUntilRef.current === dismissPeekAt) {
+                delayedPeekDismissUntilRef.current = 0;
+            }
+
+            endPeekIfPointerIsOutsideSidebar();
+        }, PEEK_DISMISS_AFTER_MODAL_CLOSE_DELAY_MS);
 
         return () => {
-            window.cancelAnimationFrame(animationFrame);
+            if (delayedPeekDismissUntilRef.current === dismissPeekAt) {
+                delayedPeekDismissUntilRef.current = 0;
+            }
+
+            window.clearTimeout(timeout);
         };
     }, [endPeekIfPointerIsOutsideSidebar, isAnyModalActive]);
 
