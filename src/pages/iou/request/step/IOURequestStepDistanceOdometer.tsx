@@ -65,6 +65,8 @@ import useOdometerImageHandlers from './IOURequestStepDistance/hooks/useOdometer
 import useOdometerNavigation from './IOURequestStepDistance/hooks/useOdometerNavigation';
 import useOdometerReadingsState from './IOURequestStepDistance/hooks/useOdometerReadingsState';
 import useOdometerTransactionBackup from './IOURequestStepDistance/hooks/useOdometerTransactionBackup';
+import type {OdometerResyncState} from './IOURequestStepDistance/odometerResync';
+import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from './IOURequestStepDistance/odometerResync';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -226,42 +228,33 @@ function IOURequestStepDistanceOdometer({
     useEffect(() => {
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;
-
-        const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
-        const hasLocalState = startReadingRef.current || endReadingRef.current;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
 
-        // External resync: txn was edited elsewhere with no in-flight typing here, making it the new baseline.
-        // Includes image URI diffs so an isEditingConfirmation Save that only touched the photos still resyncs.
-        const isExternalResync =
-            hasTransactionData &&
-            hasInitializedRefs.current &&
-            !userHasUnsavedTypingRef.current &&
-            (startValue !== startReadingRef.current ||
-                endValue !== endReadingRef.current ||
-                getOdometerImageUri(currentTransaction?.comment?.odometerStartImage) !== getOdometerImageUri(initialStartImageRef.current) ||
-                getOdometerImageUri(currentTransaction?.comment?.odometerEndImage) !== getOdometerImageUri(initialEndImageRef.current));
+        const resyncState: OdometerResyncState = {
+            transactionStartValue: startValue,
+            transactionEndValue: endValue,
+            localStartValue: startReadingRef.current,
+            localEndValue: endReadingRef.current,
+            transactionStartImageUri: getOdometerImageUri(currentTransaction?.comment?.odometerStartImage),
+            transactionEndImageUri: getOdometerImageUri(currentTransaction?.comment?.odometerEndImage),
+            baselineStartImageUri: getOdometerImageUri(initialStartImageRef.current),
+            baselineEndImageUri: getOdometerImageUri(initialEndImageRef.current),
+            hasTransactionData: (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined),
+            hasLocalState: !!(startReadingRef.current || endReadingRef.current),
+            hasInitialized: hasInitializedRefs.current,
+            isUserTyping: userHasUnsavedTypingRef.current,
+            isEditing,
+        };
 
-        // Only initialize if:
-        // 1. We haven't initialized yet AND transaction has data, OR
-        // 2. We're editing and transaction has data (to load existing values), OR
-        // 3. Transaction has data but local state is empty (user navigated back from another page), OR
-        // 4. An external resync arrived - the typing-flag inside isExternalResync avoids clobbering
-        //    in-progress keystrokes here.
-        const shouldInitialize =
-            (!hasInitializedRefs.current && hasTransactionData) ||
-            (isEditing && hasTransactionData && !hasLocalState) ||
-            (hasTransactionData && !hasLocalState && hasInitializedRefs.current) ||
-            isExternalResync;
+        const isExternalResync = isExternalOdometerResync(resyncState);
 
-        if (shouldInitialize) {
-            if (startValue || endValue) {
-                setStartReading(startValue);
-                setEndReading(endValue);
-                startReadingRef.current = startValue;
-                endReadingRef.current = endValue;
-            }
+        // Sync the local readings up from the transaction (but never clobber in-progress typing)
+        if (shouldInitializeOdometerFromTransaction(resyncState, isExternalResync) && (startValue || endValue)) {
+            setStartReading(startValue);
+            setEndReading(endValue);
+            startReadingRef.current = startValue;
+            endReadingRef.current = endValue;
         }
 
         // Slide the discard-changes baseline up so leaving doesn't flag the externally-saved value as unsaved
