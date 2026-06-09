@@ -57,6 +57,14 @@ type VisibleConciergeDraftMarkdown = {
     sourceOffset: number;
 };
 
+const CONCIERGE_DRAFT_STATUS = {
+    STARTED: 'started',
+    UPDATED: 'updated',
+    COMPLETED: 'completed',
+    FAILED: 'failed',
+    CLEARED: 'cleared',
+} as const satisfies Record<string, ConciergeDraftEvent['status']>;
+
 const CODE_BLOCK_DELIMITER = '```';
 const INLINE_CODE_DELIMITER = '`';
 const BOLD_DELIMITER = '**';
@@ -678,11 +686,11 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
         return currentDraft;
     }
 
-    if (!isSameStreamSession && currentDraft && event.status !== 'started' && event.status !== 'updated') {
+    if (!isSameStreamSession && currentDraft && event.status !== CONCIERGE_DRAFT_STATUS.STARTED && event.status !== CONCIERGE_DRAFT_STATUS.UPDATED) {
         return currentDraft;
     }
 
-    if (event.status === 'failed' || event.status === 'cleared') {
+    if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
         return isSameStreamSession ? null : currentDraft;
     }
 
@@ -710,5 +718,13 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftBodyMarkdown, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown};
+export {
+    applyConciergeDraftEvent,
+    CONCIERGE_DRAFT_STATUS,
+    getCachedDraft,
+    getNextVisibleConciergeDraftBodyMarkdown,
+    getNextVisibleConciergeDraftMarkdown,
+    setCachedDraft,
+    stripIncompleteMarkdown,
+};
 export type {ConciergeDraft};
