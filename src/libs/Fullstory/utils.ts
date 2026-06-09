@@ -8,6 +8,10 @@ import type {Account, IntroSelected, LoginList, Onboarding, Policy, Session, Use
 import FS from '.';
 import type {FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars} from './types';
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const EXPIRED_THRESHOLD_DAYS = -30;
+const EXPIRING_SOON_THRESHOLD_DAYS = 14;
+
 type BuildFullstoryUserVarsParams = {
     account: OnyxEntry<Account>;
     activePolicy: OnyxEntry<Policy>;
@@ -76,20 +80,20 @@ function getDaysTillDate(dateString: string | undefined): number | undefined {
         return;
     }
 
-    return Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return Math.ceil((endDate.getTime() - Date.now()) / MS_PER_DAY);
 }
 
 function getFreeTrialStatus(daysTillTrialEnd: number | undefined): FullstoryUserVars['free_trial_status'] {
     if (daysTillTrialEnd === undefined) {
         return;
     }
-    if (daysTillTrialEnd < -30) {
+    if (daysTillTrialEnd < EXPIRED_THRESHOLD_DAYS) {
         return 'expired';
     }
     if (daysTillTrialEnd < 0) {
         return 'expired_last30days';
     }
-    if (daysTillTrialEnd <= 14) {
+    if (daysTillTrialEnd <= EXPIRING_SOON_THRESHOLD_DAYS) {
         return 'expiring_soon';
     }
     return 'active';
