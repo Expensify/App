@@ -9,8 +9,10 @@ import Table from '@components/Table';
 import type {TableData} from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -38,11 +40,11 @@ type WorkspaceDistanceRatesTableRowProps = {
     statusLabels: Record<string, string>;
 };
 
-function formatDateColumn(dateString: string | null | undefined): string {
+function formatDate(dateString: string | null | undefined): string {
     if (!dateString) {
         return '';
     }
-    return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
 }
 
 function useRateStatusColors(status: string): {backgroundColor: ColorValue; textColor: ColorValue} {
@@ -65,6 +67,7 @@ function useRateStatusColors(status: string): {backgroundColor: ColorValue; text
 function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLayout, statusLabels}: WorkspaceDistanceRatesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {rate, formattedRate, pendingAction, errors} = item;
@@ -72,6 +75,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
 
     const status = getRateStatus(rate);
     const statusColors = useRateStatusColors(status);
+    const dateLabelText = DistanceRequestUtils.getRateDateLabel({...rate, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}, translate);
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'WorkspaceDistanceRatesTableItem',
@@ -103,7 +107,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     textColor={statusColors.textColor}
                                 />
                                 <TextWithTooltip
-                                    text={[formattedRate, formatDateColumn(rate.startDate), formatDateColumn(rate.endDate)].filter(Boolean).join(' · ')}
+                                    text={[formattedRate, dateLabelText].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `)}
                                     numberOfLines={1}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
                                 />
@@ -145,7 +149,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
                                 numberOfLines={1}
-                                text={formatDateColumn(rate.startDate)}
+                                text={formatDate(rate.startDate)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
@@ -155,7 +159,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
                                 numberOfLines={1}
-                                text={formatDateColumn(rate.endDate)}
+                                text={formatDate(rate.endDate)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
