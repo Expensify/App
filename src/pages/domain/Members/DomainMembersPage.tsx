@@ -16,6 +16,7 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Dro
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
