@@ -1,8 +1,8 @@
 ---
 title: Create and Manage Expense Tags
 description: Add tags to use for coding expenses.
-keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code]
-internalScope: Audience is Workspace Admins. Covers enabling, creating, importing, activating, and managing expense tags, including multi-level tags and tag GL codes. Does not cover personal expense rules or accounting system configuration.
+keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code, tag approver, tag rules, tag approval]
+internalScope: Audience is Workspace Admins. Covers enabling, creating, importing, activating, and managing expense tags, including multi-level tags, tag GL codes, and tag approvers (Tag Rules) and how Tag/Category/workspace approvers combine in the approval chain. Does not cover personal expense rules or accounting system configuration.
 ---
 
 # Create and Manage Expense Tags
@@ -170,6 +170,40 @@ Workspaces on the Control plan can assign a GL code to each tag for exporting pu
 Expensify may suggest Tags based on how similar expenses were coded previously.
 
 **Note:** Manually applied tags are not overwritten automatically. Suggestions may vary by member and by merchant.
+
+---
+
+## How to assign an approver to a tag
+
+On the Control plan, you can require a specific person to approve any expense that uses a particular tag. This is useful when certain projects, departments, or cost centers need sign-off from a designated owner.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
+2. Select **Tags**.
+3. Select a tag to open its detail panel.
+4. Under **Tag Rules**, select **Approver**.
+5. Choose the member who should approve expenses with this tag, then select **Save**.
+
+Once set, any report that contains an expense with this tag is automatically routed to the Tag approver as part of the report's approval chain.
+
+**Note:** Tag approvers are available on the **Control** plan only.
+
+---
+
+## How Tag approvers work with Category and workspace approvers
+
+A [Category approver](/articles/new-expensify/workspaces/Create-expense-categories) and a Tag approver don't replace your workspace's [approval workflow](/articles/new-expensify/workspaces/Add-Approvals) — they're **added** to the front of it. When a report contains expenses with a Category approver and/or a Tag approver, the report routes through those approvers first, then continues through the workspace's normal approval workflow.
+
+The approval order is:
+
+1. **Category approver(s)** – approve first.
+2. **Tag approver(s)** – approve next.
+3. **Workspace workflow approver(s)** – the default or custom approval workflow runs last, ending with the final approver.
+
+Additional details:
+
+- If a report has expenses across several categories or tags, each of those approvers is added to the chain (Category approvers before Tag approvers).
+- If the same person is both a Category/Tag approver and a workspace workflow approver, they only need to approve once.
+- A submitter is never asked to approve their own report, even if they're listed as a Category or Tag approver.
 
 ---
 
