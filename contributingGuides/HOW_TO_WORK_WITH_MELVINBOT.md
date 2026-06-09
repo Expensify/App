@@ -1,0 +1,97 @@
+# Working with MelvinBot on App Issues
+
+MelvinBot (Melvin) is Expensify's AI agent for App GitHub issues. On many open-source jobs, Melvin posts the first proposal automatically. This guide explains how contributors, Contributor+ (C+), and internal engineers work together on those issues.
+
+For general contributor workflow (proposals, payment, PR standards), see [CONTRIBUTING.md](./CONTRIBUTING.md). For C+ responsibilities, see [HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md](./HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md).
+
+## Why this process exists
+
+Melvin can open pull requests before a human has validated the approach. Without a clear process, contributors waste time on unapproved work, and internal engineers may review PRs that should not have been started. Proposal review must happen **before** implementation.
+
+## Roles
+
+| Role | Responsibility on Melvin issues |
+|------|----------------------------------|
+| **MelvinBot** | Posts the first proposal on the issue. Implements the accepted solution when asked. Opens a draft PR with MelvinBot as the GitHub author. |
+| **Contributor** | May submit their own proposal if they have a meaningfully different approach. Must not open a PR until a proposal is accepted and they are hired on the job. |
+| **Contributor+ (C+)** | Reviews proposals (Melvin's and any contributor proposals) using the same standards as any other job. If Melvin's proposal is accepted, asks Melvin to implement, then owns the PR as the human author before sending it for final review. |
+| **Contributor Manager Engineer (CME)** | Internal engineer assigned to review and merge the PR. |
+
+Only Expensify employees, C+ members, and backend contributors can trigger Melvin with `@MelvinBot` comments on GitHub.
+
+## Workflow overview
+
+```
+Issue opened → Melvin posts proposal → C+ reviews proposal(s)
+    → Accepted: C+ asks Melvin to implement
+    → Not accepted: C+ explains why
+→ Melvin opens draft PR → C+ tweaks, tests, completes Author checklist, self-reviews
+→ C+ submits PR for review as human author → CME reviews and merges
+```
+
+## Phase 1: Proposal review
+
+Melvin's proposal will always be the first on the issue. Follow the **same proposal review process** as any other App job:
+
+1. Use the [proposal template](./PROPOSAL_TEMPLATE.md) criteria: clear root cause, concrete solution, no code diffs.
+2. C+ reviews Melvin's proposal with the same rigor as a contributor proposal. Do not approve proposals that lack a satisfying root-cause explanation.
+3. Contributors may still post proposals if they have a **meaningfully different** approach (see [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job)).
+4. **No one opens a pull request** until a proposal is accepted.
+
+### If Melvin's proposal is accepted
+
+The assigned C+ comments on the issue asking Melvin to implement, for example:
+
+```
+@MelvinBot please implement your proposal
+```
+
+Adjust the wording if needed, but the comment must mention `@MelvinBot` and clearly request implementation.
+
+### If Melvin's proposal is not accepted
+
+The C+ explains **why** the proposal was not accepted (wrong root cause, incomplete solution, better alternative exists, etc.). If a contributor's proposal is accepted instead, follow the standard contributor hiring and implementation flow in [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+When a C+ accepts a proposal, they may also post `🎀👀🎀` on the issue to trigger CME assignment for the job.
+
+## Phase 2: C+ owns the pull request
+
+Melvin opens a draft PR linked to the issue. MelvinBot remains the GitHub author on that branch until the C+ takes ownership.
+
+Before requesting final review, the assigned C+ must:
+
+1. **Manually tweak the PR** if Melvin's implementation needs corrections.
+2. **Test the change** on all required platforms (see [CONTRIBUTING.md](./CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)).
+3. **Complete every step** in the PR Author Checklist.
+4. **Self-review the code** against [PR Review Guidelines](./PR_REVIEW_GUIDELINES.md) and [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md).
+5. **Submit the PR for review** and become the **official human author** of record for that change.
+
+The C+ is accountable for the PR quality, the same as any contributor who authored a PR.
+
+## Phase 3: CME review and merge
+
+After the C+ submits the PR for review:
+
+1. A **CME** (internal engineer) is assigned to review and merge.
+2. The CME follows the normal internal review process.
+3. Payment and regression checklists follow the standard rules in [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+### No additional contributor or C+ PR review
+
+We intentionally do **not** add a second round of contributor or C+ PR review on top of the CME review. Prior discussions did not surface a problem that extra review would solve, and an additional review step would add cost and delay without clear benefit. The C+ self-review before submission, combined with CME review, is the intended quality gate.
+
+## Quick reference: what not to do
+
+| Do not | Why |
+|--------|-----|
+| Open a PR before a proposal is accepted | Wastes contributor and reviewer time if the approach is wrong |
+| Skip C+ proposal review because Melvin wrote it | Melvin proposals need the same validation as human proposals |
+| Send Melvin's draft PR for CME review without testing and checklist completion | The C+ is the human author and owns quality |
+| Expect a second C+ or contributor review after C+ submission | Only the CME reviews before merge |
+
+## Related documentation
+
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — full contributor workflow
+- [PROPOSAL_TEMPLATE.md](./PROPOSAL_TEMPLATE.md) — proposal format and C+ review instructions
+- [AI Etiquette](./AI_ETIQUETTE.md) — accountability for AI-assisted work
+- [AI Reviewer philosophy](./philosophies/AI-REVIEWER.md) — automated PR feedback vs human review

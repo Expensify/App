@@ -4,6 +4,9 @@ Welcome! Thanks for checking out the New Expensify app and taking the time to co
 ## Getting Started
 If you would like to become an Expensify contributor, the first step is to read this document in its **entirety**. The second step is to review the README guidelines [here](https://github.com/Expensify/App/blob/main/README.md) to understand our coding philosophy and for a general overview of the code repository (i.e. how to run the app locally, testing, storage, our app philosophy, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
+### MelvinBot issues (read this)
+Many App jobs use [MelvinBot](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_WORK_WITH_MELVINBOT.md) (Melvin), our AI agent that posts the first proposal on an issue. **Do not open a pull request until a proposal is accepted.** Contributors, C+, and internal engineers each have specific responsibilities on these jobs. See **[How to Work with MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md)** before working on any issue where Melvin has posted a proposal.
+
 ### Test Accounts
 You can create as many accounts as needed in order to test your changes directly from [the app](https://new.expensify.com/). An initial account can be created when logging in for the first time, and additional accounts can be created by opening the "New Chat" or "Group Chat" pages via the Global Create menu, inputting a valid email or phone number, and tapping the user's avatar. Do not use Expensify employee or customer accounts for testing.
 
@@ -153,6 +156,7 @@ This helps future investigators understand the history and current status of err
 
 ### Propose a solution for the job
 4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed. Do not post proposals in Slack.
+    - On issues where [MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md) has posted a proposal, Melvin's proposal will be first. Follow the same review standards and **do not open a PR** until a proposal is accepted. C+ members: see [How to Work with MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md) for your implementation and PR ownership steps.
 5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program. 
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
@@ -241,3 +245,4 @@ During communication with Expensify, you will come across a variety of acronyms 
 - **QA:** Quality Assurance
 - **GH:** GitHub
 - **LGTM:*** Looks good to me
+- **Melv / MelvinBot:** Expensify's AI agent for App GitHub issues (posts proposals, implements accepted solutions). See [How to Work with MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md).
