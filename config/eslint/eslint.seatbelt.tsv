@@ -454,7 +454,7 @@
 "../../src/components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/TagPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TaxPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/TestDrive/Modal/AdminTestDriveModal.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/components/TestDrive/Modal/AdminTestDriveModal.tsx"	"no-restricted-imports"	1
 "../../src/components/TestDrive/Modal/EmployeeTestDriveModal.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/components/TestDrive/TestDriveDemo.tsx"	"no-restricted-imports"	1
 "../../src/components/TextInput/BaseTextInput/implementation/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1265,11 +1265,11 @@
 "../../src/pages/settings/Profile/TimezoneSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Report/ReportDetailsColumnsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/settings/Security/MergeAccounts/AccountDetailsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Security/MergeAccounts/AccountValidatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/AddDelegate/ConfirmDelegateMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/ConfirmDelegatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/settings/Security/MergeAccounts/AccountDetailsPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/settings/Security/MergeAccounts/AccountValidatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/MergeAccounts/MergeResultPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/TwoFactorAuth/DynamicVerifyPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
