@@ -214,7 +214,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     >
                                                         <View
                                                             style={[styles.flexRow, styles.flex1]}
-                                                            pointerEvents="none"
+                                                            pointerEvents={isScreenReaderActive ? 'none' : 'auto'}
                                                             accessibilityElementsHidden
                                                             importantForAccessibility="no-hide-descendants"
                                                         >
