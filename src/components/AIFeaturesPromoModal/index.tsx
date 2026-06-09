@@ -20,7 +20,7 @@ function AIFeaturesPromoModal() {
     const canUseCustomAgent = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
 
     const customAgentPromoTitle = (
-        <View style={[styles.dFlex, styles.flexRow, styles.gap4]}>
+        <View style={[styles.dFlex, styles.flexRow]}>
             <Text style={styles.textHeadlineH1}>{translate('aiFeaturesPromoModal.customAgents.title')}</Text>
             <Badge
                 isStrong
