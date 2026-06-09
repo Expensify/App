@@ -137,6 +137,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL]: {
+                    path: ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.route,
+                    exact: true,
+                },
             },
         },
         [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
@@ -1208,6 +1212,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
                             path: ROUTES.WORKSPACE_CREATE_REPORT_FIELD.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path,
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
                         },

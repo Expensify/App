@@ -172,6 +172,13 @@ const onboardingCompanySize = {
     LARGE: '1001+',
 } as const;
 
+const onboardingPersonalTrackGoals = {
+    INVESTMENT_TRACKING: 'InvestmentTracking',
+    HOUSEHOLD_TRACKING: 'HouseholdTracking',
+    SIDEPROJECT_TRACKING: 'SideprojectTracking',
+    SOMETHING_ELSE: 'SomethingElse',
+} as const;
+
 type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
 const EMAIL_WITH_OPTIONAL_DOMAIN =
@@ -1549,6 +1556,7 @@ const CONST = {
             DELETE: 'delete',
             REJECT: 'reject',
             REJECT_BULK: 'rejectBulk',
+            REJECT_REPORT: 'rejectReport',
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
@@ -1994,6 +2002,10 @@ const CONST = {
         GROUP_BY: {
             CATEGORY: 'mcc',
             TAG: 'tag',
+        },
+        LAYOUT_OPTION: {
+            DETAILED: 'detailed',
+            MATRIX: 'matrix',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -4273,6 +4285,14 @@ const CONST = {
             START_DATE: 'startDate',
             END_DATE: 'endDate',
         },
+        RATE_CHANGELOG_UPDATED_FIELD: {
+            NAME: 'name',
+            RATE: 'rate',
+            TAX_RATE_EXTERNAL_ID: 'taxRateExternalID',
+            TAX_CLAIMABLE_PERCENTAGE: 'taxClaimablePercentage',
+            ENABLED: 'enabled',
+            DATE_RANGE: 'dateRange',
+        },
     },
 
     TERMS: {
@@ -6283,6 +6303,7 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
+    ONBOARDING_PERSONAL_TRACK_GOALS: {...onboardingPersonalTrackGoals},
     ONBOARDING_RHP_VARIANT: {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',
@@ -7203,6 +7224,9 @@ const CONST = {
             ASC: 'asc',
             DESC: 'desc',
         },
+        SORT_BY_COLUMNS: {
+            CATEGORY_GL_CODE: 'glcode',
+        },
         GROUP_BY: {
             FROM: 'from',
             CARD: 'card',
@@ -7232,6 +7256,7 @@ const CONST = {
                     POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
                     CARD: this.TABLE_COLUMNS.CARD,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                    CATEGORY_GL_CODE: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
                     ATTENDEES: this.TABLE_COLUMNS.ATTENDEES,
                     TOTAL_PER_ATTENDEE: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
                     TAG: this.TABLE_COLUMNS.TAG,
@@ -7241,6 +7266,8 @@ const CONST = {
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
                     REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
                     BILLABLE: this.TABLE_COLUMNS.BILLABLE,
+                    MCC: this.TABLE_COLUMNS.MCC,
+                    TAX_CODE: this.TABLE_COLUMNS.TAX_CODE,
                     TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                     TITLE: this.TABLE_COLUMNS.TITLE,
@@ -7282,10 +7309,13 @@ const CONST = {
                 DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
                 CARD: this.TABLE_COLUMNS.CARD,
                 CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                CATEGORY_GL_CODE: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
                 TAG: this.TABLE_COLUMNS.TAG,
                 EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
                 REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
                 BILLABLE: this.TABLE_COLUMNS.BILLABLE,
+                MCC: this.TABLE_COLUMNS.MCC,
+                TAX_CODE: this.TABLE_COLUMNS.TAX_CODE,
                 TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                 TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                 AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
@@ -7479,6 +7509,9 @@ const CONST = {
             COMMENTS: 'comments',
             CARD: 'card',
             POLICY_NAME: 'policyname',
+            MCC: 'mcc',
+            TAX_CODE: 'taxCode',
+            CATEGORY_GL_CODE: 'categoryGLCode',
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',
@@ -7689,6 +7722,9 @@ const CONST = {
                 [this.TABLE_COLUMNS.COMMENTS]: 'comments',
                 [this.TABLE_COLUMNS.CARD]: 'card',
                 [this.TABLE_COLUMNS.POLICY_NAME]: 'policy-name',
+                [this.TABLE_COLUMNS.MCC]: 'mcc',
+                [this.TABLE_COLUMNS.TAX_CODE]: 'tax-code',
+                [this.TABLE_COLUMNS.CATEGORY_GL_CODE]: 'category-gl-code',
                 [this.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawal-id',
                 [this.TABLE_COLUMNS.AVATAR]: 'avatar',
                 [this.TABLE_COLUMNS.STATUS]: 'status',
@@ -7786,7 +7822,6 @@ const CONST = {
         SELECTION_MODE_MULTI: 'multi',
         SEARCH_CONTEXT_GENERAL: 'general',
         SEARCH_CONTEXT_SEARCH: 'search',
-        SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
         SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
         SEARCH_CONTEXT_ATTENDEES: 'attendees',
     },
@@ -8222,6 +8257,7 @@ const CONST = {
         MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags',
         MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
+        IMPORT_TRANSACTIONS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet',
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
@@ -9456,6 +9492,7 @@ const CONST = {
     },
 
     PARTNER_ID: {
+        EXPENSIFY: 1,
         IPHONE: 14,
         ANDROID: 16,
         NEWDOT: 83,
