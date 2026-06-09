@@ -24,6 +24,7 @@ import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
+import useCenteredRHPModalStyle from '@libs/Navigation/AppNavigator/useCenteredRHPModalStyle';
 import useIsCenteredRHPModal from '@libs/Navigation/AppNavigator/useIsCenteredRHPModal';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
@@ -48,12 +49,6 @@ type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, t
 const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
 const singleRHPWidth = variables.sideBarWidth;
-
-// PoC: sizing for "small" RHPs rendered as a centered modal on wide layout.
-// Width matches the inner RHP content card width (set in useModalStackScreenOptions) so there is no transparent side gutter.
-const CENTERED_MODAL_WIDTH = variables.rhpCenteredModalWidth;
-const CENTERED_MODAL_MAX_HEIGHT = 720;
-const CENTERED_MODAL_VERTICAL_MARGIN = 20;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
@@ -113,7 +108,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const screenOptions = useRHPScreenOptions();
     const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();
@@ -151,18 +146,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     // PoC: render "small" RHPs (everything except the wide/super-wide expense & report panes) as a centered modal on wide layout.
     const isCenteredModal = useIsCenteredRHPModal();
-
-    const centeredModalStyle = useMemo(() => {
-        // Cap the height so the modal keeps a modal-like aspect ratio instead of stretching into a tall sliver on large screens.
-        const modalHeight = Math.min(windowHeight - 2 * CENTERED_MODAL_VERTICAL_MARGIN, CENTERED_MODAL_MAX_HEIGHT);
-        return {
-            width: CENTERED_MODAL_WIDTH,
-            height: modalHeight,
-            top: (windowHeight - modalHeight) / 2,
-            left: (windowWidth - CENTERED_MODAL_WIDTH) / 2,
-            borderRadius: variables.componentBorderRadiusLarge,
-        };
-    }, [windowHeight, windowWidth]);
+    const centeredModalStyle = useCenteredRHPModalStyle();
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
 
