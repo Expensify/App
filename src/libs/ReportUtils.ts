@@ -1764,6 +1764,15 @@ function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Whether the provided report belongs to a group policy (Collect, Control, or Submit) and is an expense report.
+ * Use this instead of `isPaidGroupPolicyExpenseReport` for features that Submit workspaces also support
+ * (e.g. report fields), so the free Submit plan isn't incorrectly excluded.
+ */
+function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
+    return isExpenseReport(report) && isReportInGroupPolicy(report);
+}
+
+/**
  * Checks if the supplied report is an invoice report in Open state and status.
  */
 function isOpenInvoiceReport(report: OnyxEntry<Report>): boolean {
@@ -4527,7 +4536,7 @@ function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isPaidGroupPolicyPolicyUtils(policy);
+    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
 }
 
 /**
@@ -11653,7 +11662,7 @@ function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): Outsta
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(iouReport.policyID);
-    const shouldBeManuallySubmitted = isPaidGroupPolicyPolicyUtils(policy) && !policy?.harvesting?.enabled && isOpenReport(iouReport);
+    const shouldBeManuallySubmitted = isGroupPolicyPolicyUtils(policy) && !policy?.harvesting?.enabled && isOpenReport(iouReport);
     if (shouldBeManuallySubmitted) {
         return {
             hasOutstandingChildRequest: true,
@@ -12602,7 +12611,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
+    return isGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
 }
 
 /**
@@ -13480,6 +13489,7 @@ export {
     isOptimisticPersonalDetail,
     isPaidGroupPolicy,
     isPaidGroupPolicyExpenseReport,
+    isGroupPolicyExpenseReport,
     isPayer,
     isPolicyAdmin,
     isPolicyExpenseChat,

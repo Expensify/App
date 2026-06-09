@@ -12,15 +12,7 @@ import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import {hasDynamicExternalWorkflow} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {
-    hasActionWithErrorsForTransaction,
-    hasReceiptError,
-    isExpenseReport,
-    isPaidGroupPolicyExpenseReport,
-    isPaidGroupPolicy as isPaidGroupPolicyUtil,
-    isReportApproved,
-    isSettled,
-} from './ReportUtils';
+import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isPaidGroupPolicyExpenseReport, isReportApproved, isReportInGroupPolicy, isSettled} from './ReportUtils';
 import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -240,9 +232,9 @@ function getTransactionPreviewTextAndTranslationPaths({
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
+    const isGroupPolicyReport = isReportInGroupPolicy(iouReport);
 
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicy;
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isGroupPolicyReport;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -257,7 +249,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isPaidGroupPolicy);
+    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isGroupPolicyReport);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
     }
@@ -404,7 +396,7 @@ function createTransactionPreviewConditionals({
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
     const hasViolationsOfTypeNotice =
-        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
+        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isReportInGroupPolicy(iouReport);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -491,7 +483,7 @@ function transactionHasRBR(
     }
 
     // Check for notice-type violations (only on paid group policies)
-    if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicyUtil(iouReport)) {
+    if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) && isReportInGroupPolicy(iouReport)) {
         return true;
     }
 

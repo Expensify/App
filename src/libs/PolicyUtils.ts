@@ -1112,9 +1112,9 @@ function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: stri
 /**
  * Returns true for any group workspace: paid (Team/Corporate) or Submit.
  *
- * Note: not to be confused with `ReportUtils.isGroupPolicy(policyType: string)`,
- * which excludes Submit. Use this helper when Submit workspaces should be treated
- * like paid workspaces (e.g. access gating for shared workspace pages).
+ * Use this helper when Submit workspaces should be treated like paid workspaces
+ * (e.g. access gating for shared workspace pages). For report-based call sites,
+ * use `ReportUtils.isReportInGroupPolicy(report)`, which delegates to this helper.
  */
 function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
