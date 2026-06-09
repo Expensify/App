@@ -198,7 +198,7 @@ const STATIC_HR_PROVIDERS = [
     },
     {
         key: 'zenefits',
-        beta: CONST.BETAS.ZENEFITS,
+        beta: undefined,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.ZENEFITS,
         titleKey: 'workspace.hr.zenefits.title',
         iconParam: 'trinetIcon',

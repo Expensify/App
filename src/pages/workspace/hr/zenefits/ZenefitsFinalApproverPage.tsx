@@ -20,7 +20,6 @@ function ZenefitsFinalApproverPage({
 
     const config: HRFinalApproverProviderConfig = {
         testID: 'ZenefitsFinalApproverPage',
-        beta: CONST.BETAS.ZENEFITS,
         isConnected: isZenefitsConnected,
         getCurrentFinalApprover: (policy) => policy?.connections?.zenefits?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
