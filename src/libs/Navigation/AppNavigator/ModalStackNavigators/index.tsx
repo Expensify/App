@@ -3,6 +3,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useIsCenteredRHPModal from '@libs/Navigation/AppNavigator/useIsCenteredRHPModal';
 import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -55,6 +56,7 @@ import type {
     WorkspaceDuplicateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,
 } from '@navigation/types';
+import variables from '@styles/variables';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -130,6 +132,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         const {isSmallScreenWidth} = useResponsiveLayout();
+        const isCenteredModal = useIsCenteredRHPModal();
 
         const getScreenOptions = useCallback<typeof screenOptions>(
             ({route: optionRoute}) => {
@@ -144,8 +147,10 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
+            // PoC: when shown as a centered modal it is widened to the centered-modal width, so the content card (which measures
+            // this container) renders at the centered size instead of the default sideBarWidth.
             <View
-                style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}
+                style={[styles.modalStackNavigatorContainer, isCenteredModal ? {width: variables.rhpCenteredModalWidth} : styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}
                 accessibilityViewIsModal={isSmallScreenWidth}
                 aria-modal={isSmallScreenWidth || undefined}
                 role={isSmallScreenWidth ? 'dialog' : undefined}

@@ -6,8 +6,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
+import useIsCenteredRHPModal from '@libs/Navigation/AppNavigator/useIsCenteredRHPModal';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 function useWideModalStackScreenOptions() {
@@ -20,6 +22,13 @@ function useWideModalStackScreenOptions() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
+
+    // PoC: when the RHP is a centered modal the content card needs its own rounded corners, because the fixed-positioned
+    // card escapes the container's borderRadius clip.
+    const isCenteredModal = useIsCenteredRHPModal();
+    const navigationScreenCardStyle = isCenteredModal
+        ? {...styles.navigationScreenCardStyle, borderRadius: variables.componentBorderRadiusLarge, overflow: 'hidden' as const}
+        : styles.navigationScreenCardStyle;
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
@@ -43,6 +52,7 @@ function useWideModalStackScreenOptions() {
                         cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
                     });
                 }
+                // Otherwise (no wide pane in the stack) the small RHP is a centered modal and uses the base interpolator.
             }
 
             return {
@@ -50,10 +60,10 @@ function useWideModalStackScreenOptions() {
                 headerShown: false,
                 animationTypeForReplace: 'pop',
                 native: {
-                    contentStyle: styles.navigationScreenCardStyle,
+                    contentStyle: navigationScreenCardStyle,
                 },
                 web: {
-                    cardStyle: styles.navigationScreenCardStyle,
+                    cardStyle: navigationScreenCardStyle,
                     cardStyleInterpolator,
                     transitionSpec: {
                         open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB}},
@@ -62,7 +72,7 @@ function useWideModalStackScreenOptions() {
                 },
             };
         },
-        [isSmallScreenWidth, modalCardStyleInterpolator, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
+        [isSmallScreenWidth, modalCardStyleInterpolator, navigationScreenCardStyle, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
 }
 
