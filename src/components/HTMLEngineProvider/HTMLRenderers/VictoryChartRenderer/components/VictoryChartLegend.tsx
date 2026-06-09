@@ -5,7 +5,9 @@ import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
-type VictoryChartLegendProps = LegendItem;
+type VictoryChartLegendProps = LegendItem & {
+    chartWidth?: number;
+};
 
 type ProcessedEntry = {
     symbolX: number;
@@ -23,7 +25,7 @@ type ProcessedEntry = {
  * Renders Skia legend symbols and labels (from `<victorylegend>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartLegendProps) {
+function VictoryChartLegend({x, y, entries, gutter, symbolSpacer, chartWidth}: VictoryChartLegendProps) {
     const typefaces = useChartTypefaces();
     const processedEntries = entries.reduce(
         (acc, {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize}) => {
@@ -53,6 +55,17 @@ function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartL
         },
         {entries: [] as ProcessedEntry[], x},
     );
+
+    if (chartWidth) {
+        const legendTotalWidth = processedEntries.x - x - (gutter ?? 0);
+        const centeredX = (chartWidth - legendTotalWidth) / 2;
+        const offset = centeredX - x;
+        for (const entry of processedEntries.entries) {
+            entry.symbolX += offset;
+            entry.textX += offset;
+        }
+    }
+
     return processedEntries.entries.map(({symbolX, symbolY, symbolSize, symbolColor, textX, textY, text, font, color}) => {
         return (
             <Fragment key={`legend-${textX}-${textY}`}>
