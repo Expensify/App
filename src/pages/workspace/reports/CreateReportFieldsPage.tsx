@@ -1,8 +1,7 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import FormValueWatcher from '@components/Form/FormValueWatcher';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,6 +11,7 @@ import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,6 +34,8 @@ import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
 type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
+
+const defaultDate = DateUtils.extractDate(new Date().toString());
 
 function WorkspaceCreateReportFieldsPage({
     policy,
@@ -71,7 +73,6 @@ function WorkspaceCreateReportFieldsPage({
                 disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
                 policyExpenseReportIDs,
             });
-            setInitialCreateReportFieldsForm();
             Navigation.goBack();
         },
         [availableListValuesLength, formDraft, policy, policyExpenseReportIDs],
@@ -157,6 +158,10 @@ function WorkspaceCreateReportFieldsPage({
         [],
     );
 
+    useEffect(() => {
+        setInitialCreateReportFieldsForm();
+    }, []);
+
     const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
     return (
@@ -190,15 +195,6 @@ function WorkspaceCreateReportFieldsPage({
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
-                            <FormValueWatcher
-                                values={inputValues}
-                                onValuesChange={(current, previous) => {
-                                    if (current[INPUT_IDS.TYPE] === previous[INPUT_IDS.TYPE]) {
-                                        return;
-                                    }
-                                    formRef.current?.resetForm(current);
-                                }}
-                            />
                             <InputWrapper
                                 InputComponent={TextPicker}
                                 inputID={INPUT_IDS.NAME}
@@ -213,14 +209,29 @@ function WorkspaceCreateReportFieldsPage({
                                 required
                                 customValidate={validateName}
                                 shouldUseStrictHtmlTagValidation
-                                shouldSaveDraft
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
                                 inputID={INPUT_IDS.TYPE}
                                 label={translate('common.type')}
+                                subtitle={translate('workspace.reportFields.typeInputSubtitle')}
                                 rightLabel={translate('common.required')}
-                                policyID={policyID}
+                                onTypeSelected={(type) => {
+                                    let initialValue;
+                                    if (type === CONST.REPORT_FIELD_TYPES.DATE) {
+                                        initialValue = defaultDate;
+                                    } else if (type === CONST.REPORT_FIELD_TYPES.FORMULA) {
+                                        initialValue = '{report:id}';
+                                    } else {
+                                        initialValue = '';
+                                    }
+
+                                    formRef.current?.resetForm({
+                                        ...inputValues,
+                                        type,
+                                        initialValue,
+                                    });
+                                }}
                             />
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
@@ -245,7 +256,6 @@ function WorkspaceCreateReportFieldsPage({
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
                                     onValueCommitted={handleOnValueCommitted(inputValues)}
-                                    shouldSaveDraft
                                 />
                             )}
 
@@ -264,7 +274,6 @@ function WorkspaceCreateReportFieldsPage({
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
                                     subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
-                                    shouldSaveDraft
                                 />
                             )}
                         </View>
