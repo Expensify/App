@@ -1,20 +1,18 @@
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useOnyx from '@hooks/useOnyx';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import InitialListValueSelectorModal from './InitialListValueSelectorModal';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
     /** Currently selected value */
     value?: string;
-
-    /** Subtitle to display on field */
-    subtitle?: string;
 
     /** Function to call when the user selects a value */
     onInputChange?: (value: string) => void;
@@ -23,24 +21,8 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
     ref: ForwardedRef<View>;
 };
 
-function InitialListValueSelector({value = '', label = '', rightLabel, subtitle = '', errorText = '', onInputChange, ref}: InitialListValueSelectorProps) {
+function InitialListValueSelector({value = '', label = '', rightLabel, errorText = '', onInputChange, ref}: InitialListValueSelectorProps) {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
-
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
-
-    const showPickerModal = () => {
-        setIsPickerVisible(true);
-    };
-
-    const hidePickerModal = () => {
-        setIsPickerVisible(false);
-        blurActiveElement();
-    };
-
-    const updateValueInput = (initialValue: string) => {
-        onInputChange?.(value === initialValue ? '' : initialValue);
-        hidePickerModal();
-    };
 
     useEffect(() => {
         const currentValueIndex = Object.values(formDraft?.listValues ?? {}).findIndex((listValue) => listValue === value);
@@ -61,15 +43,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
                 rightLabel={rightLabel}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
-                onPress={showPickerModal}
-            />
-            <InitialListValueSelectorModal
-                isVisible={isPickerVisible}
-                currentValue={value}
-                onClose={hidePickerModal}
-                onValueSelected={updateValueInput}
-                label={label}
-                subtitle={subtitle}
+                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path))}
             />
         </View>
     );
