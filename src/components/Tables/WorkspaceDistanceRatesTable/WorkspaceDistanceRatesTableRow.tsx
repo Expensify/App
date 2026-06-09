@@ -1,7 +1,9 @@
 import {format, parseISO} from 'date-fns';
-import React from 'react';
+import React, {useMemo} from 'react';
+import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+import StatusBadge from '@components/StatusBadge';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
@@ -43,6 +45,23 @@ function formatDateColumn(dateString: string | null | undefined): string {
     return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }
 
+function useRateStatusColors(status: string): {backgroundColor: ColorValue; textColor: ColorValue} {
+    const theme = useTheme();
+    return useMemo(() => {
+        switch (status) {
+            case CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE:
+                return theme.reportStatusBadge.paid;
+            case CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE:
+                return theme.reportStatusBadge.draft;
+            case CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED:
+                return theme.reportStatusBadge.outstanding;
+            case CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE:
+            default:
+                return {backgroundColor: theme.badgeDefaultBG, textColor: theme.text};
+        }
+    }, [status, theme]);
+}
+
 function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLayout, statusLabels}: WorkspaceDistanceRatesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -52,6 +71,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
     const isDeleting = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const status = getRateStatus(rate);
+    const statusColors = useRateStatusColors(status);
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'WorkspaceDistanceRatesTableItem',
@@ -70,15 +90,17 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1]}>
-                        <TextWithTooltip
+                    <View style={[styles.justifyContentCenter]}>
+                        <StatusBadge
                             text={statusLabels[status] ?? ''}
-                            style={[styles.optionDisplayName, styles.pre]}
+                            backgroundColor={statusColors.backgroundColor}
+                            textColor={statusColors.textColor}
+                            badgeStyles={styles.alignSelfStart}
                         />
                         {shouldUseNarrowTableLayout && (
                             <TextWithTooltip
                                 text={`${rate.name ?? ''} · ${formattedRate}`}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
                             />
                         )}
                     </View>
