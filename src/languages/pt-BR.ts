@@ -336,6 +336,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Selecione uma moeda',
         selectSymbolOrCurrency: 'Selecione um símbolo ou moeda',
         card: 'Cartão',
+        mcc: 'MCC',
+        categoryGLCode: 'Código contábil da categoria',
         whyDoWeAskForThis: 'Por que pedimos isso?',
         required: 'Obrigatório',
         automatic: 'Automático',
@@ -512,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
+        enableNotifications: {prompt: 'Quer ser avisado quando o Concierge responder?', cta: 'Notificar'},
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -3022,6 +3025,14 @@ ${amount} para ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizar meus gastos pessoais',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Outra coisa',
         },
+        personalTrackGoal: {
+            title: 'O que você quer acompanhar?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Custos de um imóvel para investimento',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Despesas domésticas',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Despesas de projeto paralelo',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Outra coisa',
+            somethingElsePlaceholder: 'O que você está rastreando?',
+        },
         employees: {
             title: 'Quantos funcionários você tem?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 funcionários',
@@ -4111,6 +4122,37 @@ ${amount} para ${merchant} - ${date}`,
         enable2FA: 'Ative a autenticação em duas etapas (2FA) para evitar fraudes',
         weTake: 'Levamos sua segurança a sério. Ative a autenticação em duas etapas (2FA) agora para adicionar uma camada extra de proteção à sua conta.',
         secure: 'Proteja sua conta',
+    },
+    documentsStep: {
+        beforeYouGo: 'Antes de continuar, precisamos de alguns documentos para verificar algumas informações',
+        subheader: 'Verificação',
+        verificationFailed: 'A verificação falhou, então precisaremos de documentos adicionais para verificar você e sua empresa',
+        taxIDVerification: 'Verificação de ID fiscal',
+        taxIDVerificationDescription: dedent(`
+        Envie um dos seguintes arquivos:
+        • Carta de atribuição de TIN/EIN do IRS
+        • Confirmação de solicitação de TIN/EIN do IRS (normalmente contém "Congratulations! The EIN has been successfully assigned")
+        • Carta de isenção fiscal do IRS com o nome da empresa e o EIN`),
+        nameChangeDocument: 'Documento de alteração de nome',
+        nameChangeDocumentDescription: 'Se o nome da sua empresa mudou desde a solicitação do TIN/EIN, precisamos deste documento para verificar o número de identificação fiscal informado',
+        companyAddressVerification: 'Verificação de endereço da empresa',
+        companyAddressVerificationDescription: dedent(`
+        Envie um dos seguintes arquivos:
+        • Conta recente de serviços públicos com nome e endereço da empresa
+        • Extrato bancário com nome e endereço da empresa
+        • Contrato de locação atual incluindo a página de assinatura com nome e endereço atual da empresa
+        • Apólice ou declaração de seguro com nome e endereço da empresa
+        • Documento de atribuição de TIN com nome e endereço da empresa`),
+        userAddressVerification: 'Verificação de endereço',
+        userAddressVerificationDescription: dedent(`
+        Envie um dos seguintes arquivos:
+        • Título de eleitor
+        • Carteira de motorista
+        • Extrato bancário
+        • Conta de serviços públicos`),
+        userDOBVerification: 'Verificação de data de nascimento',
+        userDOBVerificationDescription: 'Envie um documento de identidade emitido nos EUA',
+        finishViaChat: 'Finalizar pelo chat',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Um momento',
@@ -5617,8 +5659,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             emptyCategories: {
                 title: 'Ainda não há categorias',
                 subtitle: 'Adicione uma categoria para organizar seus gastos.',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Suas categorias estão sendo importadas de uma conexão de contabilidade. Vá até <a href="${accountingPageURL}">contabilidade</a> para fazer qualquer alteração.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Suas categorias estão sendo importadas de uma conexão de contabilidade.${canManage ? ` Vá até <a href="${accountingPageURL}">contabilidade</a> para fazer qualquer alteração.` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Ocorreu um erro ao atualizar a categoria, tente novamente',
             createFailureMessage: 'Ocorreu um erro ao criar a categoria, tente novamente.',
@@ -5982,14 +6024,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             editTags: 'Editar tags',
             findTag: 'Encontrar tag',
             subtitle: 'As tags acrescentam maneiras mais detalhadas de classificar custos.',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>As tags acrescentam maneiras mais detalhadas de classificar custos. Você está usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dependentes</a>. Você pode <a href="${importSpreadsheetLink}">reimportar uma planilha</a> para atualizar suas tags.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string, canReimport = true) =>
+                `<muted-text>As tags acrescentam maneiras mais detalhadas de classificar custos. Você está usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dependentes</a>.${canReimport ? ` Você pode <a href="${importSpreadsheetLink}">reimportar uma planilha</a> para atualizar suas tags.` : ''}</muted-text>`,
             emptyTags: {
                 title: 'Ainda não há tags',
                 subtitle: 'Adicione uma tag para acompanhar projetos, locais, departamentos e mais.',
                 subtitleHTML: `<muted-text><centered-text>Adicione tags para acompanhar projetos, locais, departamentos e mais. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Saiba mais</a> sobre como formatar arquivos de tags para importação.</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Suas tags estão sendo importadas de uma conexão contábil. Vá até a página de <a href="${accountingPageURL}">contabilidade</a> para fazer alterações.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Suas tags estão sendo importadas de uma conexão contábil.${canManage ? ` Vá até a página de <a href="${accountingPageURL}">contabilidade</a> para fazer alterações.` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'Excluir etiqueta',
             deleteTags: 'Excluir tags',
@@ -6883,8 +6925,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             upgradeToUnlock: 'Desbloquear este recurso',
             completed: {
                 headline: `Você atualizou seu workspace!`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Você atualizou o plano ${policyName} para o Control com sucesso! <a href="${subscriptionLink}">Veja sua assinatura</a> para mais detalhes.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Você atualizou o plano ${policyName} para o ${planName} com sucesso! <a href="${subscriptionLink}">Veja sua assinatura</a> para mais detalhes.</centered-text>`,
                 categorizeMessage: `Você fez upgrade com sucesso para o plano Collect. Agora você pode categorizar suas despesas!`,
                 travelMessage: `Você fez upgrade com sucesso para o plano Collect. Agora você pode começar a reservar e gerenciar viagens!`,
                 distanceRateMessage: `Você fez upgrade com sucesso para o plano Collect. Agora você pode alterar a taxa de distância!`,
@@ -7551,7 +7593,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `alterou o campo ${updatedField} da unidade personalizada ${customUnitName} para "${newValue}" (antes "${oldValue}")`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `rastreamento de impostos em taxas de distância ${newValue ? 'ativado' : 'desativado'}`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `adicionou uma nova taxa de ${customUnitName} "${rateName}"`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `adicionou a taxa de ${customUnitName} "${rateName}"`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `alterou a taxa de ${customUnitName} ${updatedField} "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
@@ -7946,6 +7988,22 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `adicionou a taxa "${rateName}" de ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) =>
+            `adicionou a taxa "${rateName}" de ${rateValue}, válida a partir de ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `adicionou a taxa "${rateName}" de ${rateValue}, válida até ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `adicionou a tarifa "${rateName}" de ${rateValue}, válida de ${startDate} a ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `atualizou a data de início da tarifa "${rateName}" para ${newDate} (antes ${oldDate})` : `definir data de início da tarifa "${rateName}" para ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `atualizou a data de término da tarifa "${rateName}" para ${newDate} (antes ${oldDate})` : `definir data de término da tarifa "${rateName}" para ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `atualizou a data de início e término da tarifa "${rateName}" para ${newStartDate} - ${newEndDate} (antes ${oldStartDate} - ${oldEndDate})`
+                : `define a data de início e de término da tarifa "${rateName}" para ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `removeu a data de início da tarifa "${rateName}" (antes ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `removeu a data de término da tarifa "${rateName}" (anteriormente ${oldDate})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
