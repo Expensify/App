@@ -37,11 +37,9 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
     const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
 
@@ -74,10 +72,8 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             isSelfTourViewed,
             transactionDrafts,
-            draftTransactionIDs,
             betas,
             recentWaypoints,
-            conciergeReportID,
             currentUser: {accountID, email: currentUserLogin ?? ''},
         });
 

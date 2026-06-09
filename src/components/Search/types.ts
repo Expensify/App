@@ -88,6 +88,9 @@ type SelectedTransactionInfo = {
     reportAction?: ReportAction;
 
     report?: Report;
+
+    /** The group key this transaction belongs to when in a grouped view */
+    groupKey?: string;
 };
 
 /** Model of selected transactions */
@@ -98,7 +101,10 @@ type SelectedReports = {
     reportID: string | undefined;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
-    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
+    canPay: boolean;
+    canApprove: boolean;
+    canSubmit: boolean;
+    canChangeApprover: boolean;
     total: number;
     currency?: string;
     chatReportID: string | undefined;
@@ -135,6 +141,7 @@ type BulkPaySelectionData = {
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
+type SearchSortBy = SearchColumnType | ValueOf<typeof CONST.SEARCH.SORT_BY_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
@@ -202,7 +209,6 @@ type SearchSelectionContextValue = {
     shouldTurnOffSelectionMode: boolean;
     /** True when at least one transaction is selected. */
     hasSelectedTransactions: boolean;
-    shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
 };
 
@@ -224,7 +230,6 @@ type SearchSelectionActionsValue = {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
 };
 
@@ -316,7 +321,7 @@ type SearchQueryString = string;
 type SearchQueryAST = {
     type: SearchDataTypes;
     status: SearchStatus;
-    sortBy: SearchColumnType;
+    sortBy: SearchSortBy;
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     view: SearchView;
@@ -407,6 +412,7 @@ export type {
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
+    SearchSortBy,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchDateKey,

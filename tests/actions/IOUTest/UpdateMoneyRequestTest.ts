@@ -10,6 +10,8 @@ import {
     updateMoneyRequestCategory,
     updateMoneyRequestDate,
     updateMoneyRequestDistance,
+    updateMoneyRequestMerchant,
+    updateMoneyRequestReimbursable,
     updateMoneyRequestTag,
 } from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -676,6 +678,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: '',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                isOffline: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -710,6 +713,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: '',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                isOffline: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -771,6 +775,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                isOffline: false,
                 delegateAccountID: undefined,
             });
 
@@ -1367,6 +1372,327 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             expect(transaction2AfterUpdate?.transactionID).toBe(transactionID2);
         });
+    });
+
+    describe('updateMoneyRequestReimbursable', () => {
+        it.each([
+            [true, false],
+            [false, true],
+        ])('should set the modified reimbursable to %s when starting from %s', async (newValue, originalValue) => {
+            // Given an expense transaction with the original reimbursable value
+            const transactionID = `txnReimbursable_${String(newValue)}`;
+            const transactionThreadReportID = `threadReimbursable_${String(newValue)}`;
+            const parentReportID = `parentReimbursable_${String(newValue)}`;
+            const policyID = '30';
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: parentReportID,
+                reimbursable: originalValue,
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            // When updating reimbursable to the new value
+            updateMoneyRequestReimbursable({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                value: newValue,
+                policy: fakePolicy,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the transaction reimbursable should match the input value
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionAfter?.reimbursable).toBe(newValue);
+        });
+
+        it('should not update anything when transactionID is undefined', async () => {
+            // Given a transaction with reimbursable = false
+            const transactionID = 'txnReimbursableNoOp';
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reimbursable: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+
+            // When updateMoneyRequestReimbursable is called with an undefined transactionID
+            updateMoneyRequestReimbursable({
+                transactionID: undefined,
+                transactionThreadReport: {reportID: '1'},
+                parentReport: undefined,
+                value: true,
+                policy: undefined,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the existing transaction reimbursable value should remain unchanged
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionAfter?.reimbursable).toBe(false);
+        });
+    });
+
+    describe('updateMoneyRequestMerchant', () => {
+        it('should set modifiedMerchant to the new value', async () => {
+            // Given an expense transaction with an original merchant
+            const transactionID = 'txnMerchant1';
+            const transactionThreadReportID = 'threadMerchant1';
+            const parentReportID = 'parentMerchant1';
+            const policyID = '40';
+            const originalMerchant = 'Old Merchant';
+            const newMerchant = 'New Merchant';
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: parentReportID,
+                merchant: originalMerchant,
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            // When updating the merchant
+            updateMoneyRequestMerchant({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                value: newMerchant,
+                policy: fakePolicy,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then modifiedMerchant should hold the new merchant string
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionAfter?.modifiedMerchant).toBe(newMerchant);
+        });
+
+        it('should set modifiedMerchant for a self-DM track expense', async () => {
+            // Given a track-expense transaction inside a Self-DM (track-expense flow)
+            const transactionID = 'txnMerchantTrack1';
+            const transactionThreadReportID = 'threadMerchantTrack1';
+            const parentReportID = 'parentMerchantTrack1';
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                iouReportID: undefined,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: parentReportID,
+                merchant: 'Old Merchant',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+
+            // When updating merchant for the track-expense
+            updateMoneyRequestMerchant({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                value: 'Track Merchant',
+                policy: undefined,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then modifiedMerchant should be set to the track-expense merchant
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionAfter?.modifiedMerchant).toBe('Track Merchant');
+        });
+    });
+
+    describe('isOffline param', () => {
+        it.each([
+            ['push', false],
+            ['skip', true],
+        ])(
+            'should %s the lastReadTime update on the parent IOU report when isOffline=%s and the parent has one normal IOU action plus a DELETE-pending IOU action',
+            async (_label, isOffline) => {
+                // Given a parent IOU report with one normal IOU action and one DELETE-pending IOU action,
+                // pointing to a single visible transaction. With isOffline=false the DELETE-pending action
+                // is filtered out (one-transaction-thread → lastReadTime is pushed). With isOffline=true,
+                // both actions are visible (not a one-transaction-thread → lastReadTime is NOT pushed).
+                const transactionID = `txnIsOffline_${String(isOffline)}`;
+                const transactionThreadReportID = `threadIsOffline_${String(isOffline)}`;
+                const parentReportID = `parentIsOffline_${String(isOffline)}`;
+                const normalActionID = `normal_${String(isOffline)}`;
+                const deletedActionID = `deleted_${String(isOffline)}`;
+                const policyID = '50';
+                const initialLastReadTime = '2025-01-01 00:00:00.000';
+
+                const parentReport: Report = {
+                    ...createRandomReport(1, undefined),
+                    reportID: parentReportID,
+                    type: CONST.REPORT.TYPE.IOU,
+                    policyID,
+                    chatReportID: parentReportID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    lastReadTime: initialLastReadTime,
+                };
+                const transactionThreadReport: Report = {
+                    ...createRandomReport(2, undefined),
+                    reportID: transactionThreadReportID,
+                    parentReportID,
+                    parentReportActionID: normalActionID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const fakeTransaction: Transaction = {
+                    ...createRandomTransaction(3),
+                    transactionID,
+                    reportID: parentReportID,
+                    merchant: 'Initial',
+                };
+                const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [normalActionID]: {
+                        reportActionID: normalActionID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-02-01 00:00:00.000',
+                        childReportID: transactionThreadReportID,
+                        actorAccountID: RORY_ACCOUNT_ID,
+                        message: [{type: 'TEXT', text: 'iou action', html: 'iou action'}],
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: transactionID,
+                            amount: 100,
+                            currency: CONST.CURRENCY.USD,
+                            IOUReportID: parentReportID,
+                        },
+                    },
+                    [deletedActionID]: {
+                        reportActionID: deletedActionID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-02-02 00:00:00.000',
+                        actorAccountID: RORY_ACCOUNT_ID,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        message: [{type: 'TEXT', text: '', html: '', deleted: '2025-02-02 00:00:00.000'}],
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: `${transactionID}_extra`,
+                            amount: 200,
+                            currency: CONST.CURRENCY.USD,
+                            IOUReportID: parentReportID,
+                        },
+                    },
+                });
+
+                // When updating the merchant with the given isOffline value
+                updateMoneyRequestMerchant({
+                    transactionID,
+                    transactionThreadReport,
+                    parentReport,
+                    value: `Updated_${String(isOffline)}`,
+                    policy: fakePolicy,
+                    policyTagList: {},
+                    policyCategories: {},
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    isASAPSubmitBetaEnabled: false,
+                    parentReportNextStep: undefined,
+                    isOffline,
+                    delegateAccountID: undefined,
+                });
+
+                await waitForBatchedUpdates();
+
+                // Then lastReadTime is pushed only when isOffline=false (i.e. one-transaction-thread)
+                const parentReportAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+                if (isOffline) {
+                    expect(parentReportAfter?.lastReadTime).toBe(initialLastReadTime);
+                } else {
+                    expect(parentReportAfter?.lastReadTime).not.toBe(initialLastReadTime);
+                }
+            },
+        );
     });
 
     describe('getUpdateTrackExpenseParams', () => {

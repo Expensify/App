@@ -3,6 +3,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {shouldUpdateGpsNotificationUnit, updateGpsTripNotificationLanguage, updateGpsTripNotificationUnit} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
@@ -43,6 +44,7 @@ function useUpdateGpsNotificationOnUnitChange() {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const personalPolicy = usePersonalPolicy();
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         CONST.IOU.TYPE.CREATE,
         defaultExpensePolicy,
@@ -52,7 +54,11 @@ function useUpdateGpsNotificationOnUnitChange() {
         currentUserPersonalDetails.accountID,
     );
 
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : undefined}).unit;
+    const unit = DistanceRequestUtils.getRate({
+        transaction,
+        policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : undefined,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+    }).unit;
 
     useEffect(() => {
         if (!shouldUpdateGpsNotificationUnit()) {

@@ -1,6 +1,7 @@
 /** Onyx selectors used by the confirmation field leaves. */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
+import getReportNameValuePairsForReports from '@libs/ReportNameValuePairsUtils';
 import {
     getCategory,
     getCreated,
@@ -21,7 +22,7 @@ type Transaction = OnyxTypes.Transaction;
 
 // --- DateField ---
 
-type DateState = {iouCreated: string; isMissing: boolean};
+type DateState = {iouCreated: string; isMissing: boolean; hasReceipt: boolean};
 
 const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => {
     if (!t) {
@@ -30,6 +31,7 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
     return {
         iouCreated: getCreated(t),
         isMissing: isCreatedMissing(t),
+        hasReceipt: hasReceipt(t),
     };
 };
 
@@ -106,7 +108,7 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
 
 // --- MerchantField ---
 
-type MerchantState = {merchant: string; isMissing: boolean; hasReceipt: boolean};
+type MerchantState = {merchant: string; isMerchantSet: boolean; isMissing: boolean; hasReceipt: boolean};
 
 const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undefined => {
     if (!t) {
@@ -114,6 +116,7 @@ const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undef
     }
     return {
         merchant: getMerchant(t),
+        isMerchantSet: t.isMerchantSet ?? false,
         isMissing: isMerchantMissing(t),
         hasReceipt: hasReceipt(t),
     };
@@ -145,6 +148,7 @@ type AmountSlice = {
     comment: {type: NonNullable<Transaction['comment']>['type']; customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined;
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
+    taxCode: Transaction['taxCode'];
 };
 
 const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined => {
@@ -161,6 +165,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         comment: t.comment ? {type: t.comment.type, customUnit: t.comment.customUnit} : undefined,
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
+        taxCode: t.taxCode,
     };
 };
 
@@ -191,9 +196,113 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
     };
 };
 
+// --- ConfirmationFieldList: useFooterDerivedFlags ---
+
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard'>;
+
+const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: DerivedFlagsSlice = {
+        modifiedCurrency: t.modifiedCurrency,
+        currency: t.currency,
+        iouRequestType: t.iouRequestType,
+        reportID: t.reportID,
+        managedCard: t.managedCard,
+    };
+    return slice as Transaction;
+};
+
+// --- ConfirmationFieldList: useFooterTagVisibility ---
+
+type TagSlice = Pick<Transaction, 'tag'>;
+
+const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: TagSlice = {tag: t.tag};
+    return slice as Transaction;
+};
+
+// --- InvoiceSenderSection ---
+
+type InvoiceSenderSlice = Pick<Transaction, 'isFromGlobalCreate' | 'transactionID'>;
+
+const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: InvoiceSenderSlice = {
+        isFromGlobalCreate: t.isFromGlobalCreate,
+        transactionID: t.transactionID,
+    };
+    return slice as Transaction;
+};
+
+// --- DistanceMapSection ---
+
+type DistanceMapSlice = Pick<Transaction, 'pendingFields' | 'errors' | 'errorFields' | 'routes'> & {
+    comment: {waypoints: NonNullable<Transaction['comment']>['waypoints']} | undefined;
+};
+
+const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: DistanceMapSlice = {
+        pendingFields: t.pendingFields,
+        errors: t.errors,
+        errorFields: t.errorFields,
+        routes: t.routes,
+        comment: t.comment ? {waypoints: t.comment.waypoints} : undefined,
+    };
+    return slice as Transaction;
+};
+
+// --- PerDiemSection ---
+
+type PerDiemSlice = {comment: {customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined};
+
+const perDiemSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: PerDiemSlice = {
+        comment: t.comment ? {customUnit: t.comment.customUnit} : undefined,
+    };
+    return slice as Transaction;
+};
+
+// --- ReceiptSection ---
+
+type ReceiptSlice = Pick<Transaction, 'iouRequestType' | 'receipt' | 'hasEReceipt' | 'transactionID' | 'pendingFields' | 'errors' | 'errorFields'>;
+
+const receiptSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+    if (!t) {
+        return undefined;
+    }
+    const slice: ReceiptSlice = {
+        iouRequestType: t.iouRequestType,
+        receipt: t.receipt,
+        hasEReceipt: t.hasEReceipt,
+        transactionID: t.transactionID,
+        pendingFields: t.pendingFields,
+        errors: t.errors,
+        errorFields: t.errorFields,
+    };
+    return slice as Transaction;
+};
+
 // --- ReportField ---
 
-type ReportFieldTransactionState = {reportID: Transaction['reportID']; isFromGlobalCreate: boolean};
+type ReportFieldTransactionState = {
+    reportID: Transaction['reportID'];
+    isFromGlobalCreate: boolean;
+    participantReportID: string | undefined;
+};
+type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
     if (!t) {
@@ -202,11 +311,21 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     return {
         reportID: t.reportID,
         isFromGlobalCreate: !!t.isFromGlobalCreate,
+        participantReportID: t.participants?.at(0)?.reportID,
     };
 };
 
 const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
     derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
+
+const createOutstandingReportsNVPsSelector =
+    (outstandingReports: OutstandingReportsForPolicy | undefined) =>
+    (allNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): OnyxCollection<OnyxTypes.ReportNameValuePairs> | undefined => {
+        if (!outstandingReports || !allNVPs) {
+            return undefined;
+        }
+        return getReportNameValuePairsForReports(outstandingReports, allNVPs);
+    };
 
 // --- InvoiceSenderField ---
 
@@ -231,15 +350,21 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
+    createOutstandingReportsNVPsSelector,
     createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
+    derivedFlagsSliceSelector,
     descriptionStateSelector,
+    distanceMapSliceSelector,
+    invoiceSenderSliceSelector,
     invoiceSenderWorkspaceSelector,
     merchantStateSelector,
+    perDiemSliceSelector,
+    receiptSliceSelector,
     reportFieldTransactionStateSelector,
+    tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,
     toggleStateSelector,
 };
-export type {AmountSlice, AttendeeSlice, CategoryState, DateState, DescriptionState, InvoiceSenderWorkspace, MerchantState, ReportFieldTransactionState, TaxSlice, TimeState, ToggleState};
