@@ -318,7 +318,7 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number, agentEmail?: string, allPolicies?: OnyxCollection<Policy>) {
+function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -353,18 +353,18 @@ function deleteAgent(accountID: number, agentEmail?: string, allPolicies?: OnyxC
 
     // Mark the agent's row pending-delete on every policy it belongs to so workflow cards render
     // the agent's approver row with strikethrough/RBR while DELETE_AGENT is in flight.
-    if (agentEmail && allPolicies) {
+    if (agentLogin && allPolicies) {
         for (const policy of Object.values(allPolicies)) {
-            if (!policy?.id || !policy.employeeList?.[agentEmail]) {
+            if (!policy?.id || !policy.employeeList?.[agentLogin]) {
                 continue;
             }
             const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
             const optimisticEmployees: OnyxCollectionInputValue<PolicyEmployee> = {
-                [agentEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                [agentLogin]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
             };
-            const successEmployees: OnyxCollectionInputValue<PolicyEmployee> = {[agentEmail]: null};
+            const successEmployees: OnyxCollectionInputValue<PolicyEmployee> = {[agentLogin]: null};
             const failureEmployees: OnyxCollectionInputValue<PolicyEmployee> = {
-                [agentEmail]: {
+                [agentLogin]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
