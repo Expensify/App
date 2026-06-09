@@ -963,6 +963,7 @@ const SCREENS = {
         WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
         WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
+        PERSONAL_TRACK_GOAL: 'Onboarding_Personal_Track_Goal',
     },
 
     CURRENCY: {
