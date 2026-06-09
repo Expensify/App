@@ -21,7 +21,7 @@ import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {CardList, Policy, Report, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, PolicyCategories, Report, TransactionViolations} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -36,6 +36,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Policy to which the transaction belongs */
     policy: OnyxEntry<Policy>;
+
+    /** Categories for the policy to which the transaction belongs */
+    policyCategories?: PolicyCategories;
 
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
@@ -100,6 +103,7 @@ function MoneyRequestReportTransactionItemBody({
     violations,
     report,
     policy,
+    policyCategories,
     isSelectionModeEnabled,
     toggleTransaction,
     isSelected,
@@ -196,6 +200,7 @@ function MoneyRequestReportTransactionItemBody({
                         violations={violations}
                         report={report}
                         policy={policy}
+                        policyCategories={policyCategories}
                         transactionThreadReportID={transactionThreadReportID}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
