@@ -1,5 +1,4 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import type {ImageStyle, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -27,12 +26,13 @@ import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
@@ -71,13 +71,14 @@ type EmptySearchViewItem = {
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections} = useSearchTypeMenuSections();
+    const {isBetaEnabled} = usePermissions();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies);
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, isBetaEnabled(CONST.BETAS.SUBMIT_2026));
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -132,10 +133,8 @@ function EmptySearchViewContent({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
-        selector: accountIDSelector,
-    });
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
+    const {accountID} = useCurrentUserPersonalDetails();
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
@@ -330,12 +329,21 @@ function EmptySearchViewContent({
                 }
                 break;
             // We want to display the default nothing to show message if there is any filter applied.
-            case CONST.SEARCH.DATA_TYPES.INVOICE:
+            case CONST.SEARCH.DATA_TYPES.INVOICE: {
+                const userCanSendInvoice = canSendInvoice(allPolicies, currentUserPersonalDetails.login);
+                let subtitleKey: TranslationPaths = 'search.searchResults.emptyInvoiceResults.subtitle';
+                if (!userCanSendInvoice && hasSeenTour) {
+                    subtitleKey = 'search.searchResults.emptyInvoiceResults.subtitleCannotSend';
+                } else if (!userCanSendInvoice) {
+                    subtitleKey = 'search.searchResults.emptyInvoiceResults.subtitleCannotSendWithTestDrive';
+                } else if (hasSeenTour) {
+                    subtitleKey = 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton';
+                }
                 if (!content && !hasResults) {
                     content = {
                         ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
-                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
+                        subtitle: translate(subtitleKey),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
@@ -345,15 +353,20 @@ function EmptySearchViewContent({
                                       },
                                   ]
                                 : []),
-                            {
-                                buttonText: translate('workspace.invoices.sendInvoice'),
-                                buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
-                                success: true,
-                            },
+                            ...(userCanSendInvoice
+                                ? [
+                                      {
+                                          buttonText: translate('workspace.invoices.sendInvoice'),
+                                          buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
+                                          success: true,
+                                      },
+                                  ]
+                                : []),
                         ],
                     };
                 }
                 break;
+            }
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 if (!content) {

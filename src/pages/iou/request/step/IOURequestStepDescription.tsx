@@ -139,8 +139,6 @@ function IOURequestStepDescription({
             return;
         }
 
-        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
-
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
                 transactionID: transaction?.transactionID,
@@ -156,6 +154,8 @@ function IOURequestStepDescription({
                 parentReportNextStep,
                 delegateAccountID,
             });
+        } else {
+            setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
         }
 
         setIsSaved(true);

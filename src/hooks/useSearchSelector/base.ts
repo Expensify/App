@@ -12,6 +12,7 @@ import type {GetOptionsConfig, Option, Options, SearchOption} from '@libs/Option
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -82,6 +83,9 @@ type UseSearchSelectorConfig = {
 
     /** Whether to keep selected options in availableOptions instead of filtering them out */
     shouldKeepSelectedInAvailableOptions?: boolean;
+
+    /** Whether to separate selected options that are not in availableOptions.personalDetails (e.g. non-existing users invited by email) */
+    shouldSeparateNonExistingSelectedOptions?: boolean;
 };
 
 type ContactState = {
@@ -96,9 +100,6 @@ type ContactState = {
 
     /** Function to trigger contact import */
     importContacts: () => void;
-
-    /** Function to initiate contact import and set state */
-    initiateContactImportAndSetState: () => void;
 
     /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
@@ -125,6 +126,9 @@ type UseSearchSelectorReturn = {
 
     /** Currently selected options used for list display. This prop can be used in selection list to display selected options that are filtered by search term */
     selectedOptionsForDisplay: OptionData[];
+
+    /** Selected options that are not present in availableOptions.personalDetails (e.g. non-existing users invited by email). Only populated when shouldSeparateNonExistingSelectedOptions is true */
+    selectedNonExistingOptions?: OptionData[];
 
     /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;
@@ -174,6 +178,7 @@ function useSearchSelectorBase({
     recentAttendees,
     shouldAllowNameOnlyOptions = false,
     shouldKeepSelectedInAvailableOptions = false,
+    shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -195,7 +200,7 @@ function useSearchSelectorBase({
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
@@ -210,7 +215,7 @@ function useSearchSelectorBase({
     const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
 
-    const baseOptions = (() => {
+    const {options: baseOptions, hasMore} = (() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
@@ -332,26 +337,8 @@ function useSearchSelectorBase({
         }
     })();
 
-    const optionsCounters: Required<Record<keyof Options, (options: Options) => number>> = {
-        recentReports: (options) => options.recentReports?.length ?? 0,
-        personalDetails: (options) => options.personalDetails?.length ?? 0,
-        userToInvite: (options) => (options.userToInvite ? 1 : 0),
-        currentUserOption: (options) => (options.currentUserOption ? 1 : 0),
-        workspaceChats: (options) => options.workspaceChats?.length ?? 0,
-        selfDMChat: (options) => (options.selfDMChat ? 1 : 0),
-    };
-
     const onListEndReached = useDebounce(() => {
-        if (!areOptionsInitialized) {
-            return;
-        }
-
-        let optionsCount = 0;
-        for (const optionsCounter of Object.values(optionsCounters)) {
-            optionsCount += optionsCounter(baseOptions);
-        }
-
-        if (optionsCount < maxResults) {
+        if (!areOptionsInitialized || !hasMore) {
             return;
         }
 
@@ -444,6 +431,13 @@ function useSearchSelectorBase({
         );
     });
 
+    const selectedNonExistingOptions = shouldSeparateNonExistingSelectedOptions
+        ? (() => {
+              const personalDetailLogins = new Set(filteredPersonalDetails.map((option) => option.login).filter(Boolean));
+              return selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
+          })()
+        : [];
+
     return {
         searchTerm,
         debouncedSearchTerm,
@@ -457,6 +451,7 @@ function useSearchSelectorBase({
         contactState: undefined,
         onListEndReached,
         selectedOptionsForDisplay,
+        selectedNonExistingOptions,
     };
 }
 

@@ -22,6 +22,7 @@ import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
+import OnboardingPersonalTrackGoal from '@pages/OnboardingPersonalTrackGoal';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
@@ -98,7 +99,7 @@ function OnboardingModalNavigator() {
             gestureDirection: 'horizontal',
             web: {
                 // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props}) : CardStyleInterpolators.forHorizontalIOS,
+                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}}) : CardStyleInterpolators.forHorizontalIOS,
                 gestureDirection: 'horizontal',
                 cardStyle: {
                     height: '100%',
@@ -179,6 +180,10 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORKSPACE_INVITE}
                                 component={OnboardingWorkspaceInvite}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL}
+                                component={OnboardingPersonalTrackGoal}
                             />
                         </Stack.Navigator>
                     </OnboardingModalNavigatorContentWrapper>

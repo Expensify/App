@@ -25,6 +25,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -35,7 +36,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type TaskViewProps = {
@@ -143,7 +144,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                             (e.currentTarget as HTMLElement).blur();
                                         }
 
-                                        Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
                                     })}
                                     style={({pressed}) => [
                                         styles.ph5,
@@ -203,7 +204,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 shouldRenderAsHTML
                                 description={translate('task.description')}
                                 title={report?.description ?? ''}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
                                 shouldShowRightIcon={!isDisableInteractive}
                                 disabled={disableState}
                                 wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -223,7 +224,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                     iconType={CONST.ICON_TYPE_AVATAR}
                                     avatarSize={CONST.AVATAR_SIZE.SMALLER}
                                     titleStyle={styles.assigneeTextStyle}
-                                    onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
                                     shouldShowRightIcon={!isDisableInteractive}
                                     disabled={disableState}
                                     wrapperStyle={[styles.pv2]}
@@ -237,7 +238,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             ) : (
                                 <MenuItemWithTopDescription
                                     description={translate('task.assignee')}
-                                    onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
                                     shouldShowRightIcon={!isDisableInteractive}
                                     disabled={disableState}
                                     wrapperStyle={[styles.pv2]}

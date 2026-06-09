@@ -95,8 +95,6 @@ function IOURequestStepDate({
 
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
-        setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
-
         if (isEditing) {
             updateMoneyRequestDate({
                 transactionID,
@@ -115,6 +113,8 @@ function IOURequestStepDate({
                 isOffline,
                 delegateAccountID,
             });
+        } else {
+            setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
         }
 
         navigateBack();

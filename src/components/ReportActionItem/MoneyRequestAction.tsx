@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport} from '@libs/actions/Report';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -22,7 +23,7 @@ import {
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {useReportActionItemActions, useReportActionItemState} from '@pages/inbox/report/ReportActionItemContext';
+import {useReportActionItemActions} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +56,6 @@ type MoneyRequestActionProps = {
 };
 
 function MoneyRequestAction({action, chatReportID, requestReportID, reportID, isHovered = false, style, isWhisper = false}: MoneyRequestActionProps) {
-    const {shouldOpenReportInRHP} = useReportActionItemState();
     const {onPreviewPressed} = useReportActionItemActions();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -102,20 +102,11 @@ function MoneyRequestAction({action, chatReportID, requestReportID, reportID, is
                 iouReport,
                 iouReportAction: action,
             });
-            if (shouldOpenReportInRHP) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
-                return;
-            }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReport?.reportID, undefined, undefined, Navigation.getActiveRoute()));
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: transactionThreadReport?.reportID}));
             return;
         }
 
-        if (shouldOpenReportInRHP) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: action?.childReportID, backTo: Navigation.getActiveRoute()}));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: action?.childReportID}));
     };
 
     const isDeletedParentAction = isDeletedParentActionReportActionsUtils(action);

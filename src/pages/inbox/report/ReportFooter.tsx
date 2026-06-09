@@ -31,11 +31,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
+import EnableNotificationsBanner, {BANNER_COMPOSER_OVERLAP_PX} from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
+import useShouldShowEnableNotificationsBanner from './useShouldShowEnableNotificationsBanner';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
+
+const composerOverlapStyle = {marginTop: -BANNER_COMPOSER_OVERLAP_PX};
 
 /**
  * Footer component that decides between the composer and
@@ -71,6 +75,7 @@ function ReportFooter() {
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
+    const shouldShowEnableNotificationsBanner = useShouldShowEnableNotificationsBanner(report);
 
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!isLoadingInitialReportActions;
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
@@ -88,9 +93,21 @@ function ReportFooter() {
 
     // Happy path — user can compose
     if (!shouldHideComposer) {
+        const composer = (
+            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                <ReportActionCompose reportID={reportIDFromRoute} />
+            </SwipeableView>
+        );
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                <ComposerSwipeable reportID={reportIDFromRoute} />
+                {shouldShowEnableNotificationsBanner ? (
+                    <>
+                        <EnableNotificationsBanner />
+                        <View style={[composerOverlapStyle, isComposerFullSize && styles.flex1]}>{composer}</View>
+                    </>
+                ) : (
+                    composer
+                )}
             </View>
         );
     }
@@ -159,10 +176,9 @@ function ReportFooter() {
             <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 {isEditingWithComposer && (
                     <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
-                        <ComposerSwipeable
-                            reportID={reportIDFromRoute}
-                            isEditOnly
-                        />
+                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
+                        </SwipeableView>
                     </View>
                 )}
                 <Banner
@@ -205,17 +221,6 @@ function ReportFooter() {
     }
 
     return null;
-}
-
-function ComposerSwipeable({reportID, isEditOnly = false}: {reportID: string; isEditOnly?: boolean}) {
-    return (
-        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-            <ReportActionCompose
-                reportID={reportID}
-                isEditOnly={isEditOnly}
-            />
-        </SwipeableView>
-    );
 }
 
 export default ReportFooter;

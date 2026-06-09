@@ -108,7 +108,7 @@ function checkIfShouldUseNewPartnerName(partnerUserID?: string): boolean {
     return false;
 }
 
-const AGENT_EMAIL_REGEX = /^agent_\d+@expensify\.ai$/;
+const AGENT_EMAIL_REGEX = /^agent_\d+@expensify\.ai$/i;
 
 function isAgentEmail(email?: string): boolean {
     if (!email) {

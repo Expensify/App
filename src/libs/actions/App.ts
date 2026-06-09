@@ -1,4 +1,5 @@
 // Issue - https://github.com/Expensify/App/issues/26719
+import {findFocusedRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
@@ -16,6 +17,7 @@ import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateTo
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
+import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -133,6 +135,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.SESSION,
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
@@ -243,10 +246,17 @@ function saveCurrentPathBeforeBackground() {
             return;
         }
 
+        // Honor the same exclusion list as parseAndLogRoute in NavigationRoot, so screens that
+        // shouldn't be restored on relaunch (transient/RAM-dependent routes) aren't persisted here either.
+        const focusedRoute = findFocusedRoute(currentState);
+        if (focusedRoute && CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute.name)) {
+            return;
+        }
+
         const currentPath = getPathFromState(currentState);
 
         if (currentPath) {
-            Log.info('Saving current path before background', false, {currentPath});
+            Log.info('Saving current path before background', false, {currentPath: sanitizeUrlForLogging(currentPath)});
             updateLastVisitedPath(currentPath);
         }
     } catch (error) {
@@ -603,7 +613,17 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyIDWithDefault, makeMeAdmin, currency, file, type);
+    createDraftInitialWorkspace({
+        introSelected,
+        workspaceName: policyName,
+        currentUserAccountID: currentUserAccountIDParam,
+        currentUserEmail: currentUserEmailParam,
+        currency,
+        policyID: policyIDWithDefault,
+        makeMeAdmin,
+        file,
+        type,
+    });
     Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
             // We must call goBack() to remove the /transition route from history
@@ -669,7 +689,16 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         hasActiveAdminPolicies,
     } = params;
 
-    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyID, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace({
+        introSelected,
+        workspaceName: policyName,
+        currentUserAccountID: currentUserAccountIDParam,
+        currentUserEmail: currentUserEmailParam,
+        currency,
+        policyID,
+        makeMeAdmin,
+        file,
+    });
     savePolicyDraftByNewWorkspace({
         policyID,
         policyName,

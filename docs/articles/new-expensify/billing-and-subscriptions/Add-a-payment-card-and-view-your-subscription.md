@@ -113,9 +113,8 @@ Only Workspace Admins can transfer billing ownership to themselves - it’s not 
 
 # What to do if you can’t update a subscription
 
-If you’re blocked from updating billing settings, requesting to canceling your subscription, or deleting a workspace, it’s likely because you’re not the billing owner.
-If you're blocked from updating billing settings, requesting to cancel your subscription, or deleting a workspace, it's likely because you're not the billing owner.
-If you are a Workspace Admin, you can transfer billing ownership to yourself by following the steps to [transfer billing ownership](LINK).
+If you’re blocked from updating billing settings, requesting cancellation of your subscription, or deleting a workspace, it’s likely because you’re not the billing owner.
+If you are a Workspace Admin, you can transfer billing ownership to yourself by following the steps to [transfer billing ownership](/articles/new-expensify/billing-and-subscriptions/Billing-Overview#how-to-transfer-billing-ownership).
 
 ---
 

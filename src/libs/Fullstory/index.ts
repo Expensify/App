@@ -1,5 +1,5 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
-import * as Session from '@userActions/Session';
+import {isSupportAuthToken} from '@userActions/Session';
 import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
 import {getChatFSClass, shouldInitializeFullstory} from './common';
@@ -17,7 +17,7 @@ const FS: Fullstory = {
 
     init: () => {},
 
-    onReady: () =>
+    onReady: async () =>
         new Promise((resolve) => {
             if (!isInitialized()) {
                 init({orgId: 'o-1WN56P-na1'}, resolve);
@@ -32,7 +32,7 @@ const FS: Fullstory = {
             }
         }),
 
-    shouldInitialize: (userMetadata, envName) => shouldInitializeFullstory(userMetadata, envName) && !Session.isSupportAuthToken(),
+    shouldInitialize: (userMetadata, envName) => shouldInitializeFullstory(userMetadata, envName) && !isSupportAuthToken(),
 
     consent: (shouldConsent) => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {consent: shouldConsent}),
 

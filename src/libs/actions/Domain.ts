@@ -1845,11 +1845,11 @@ function clearChangeDomainSecurityGroupError(domainAccountID: number, memberEmai
 }
 
 function setDomainMembersSelectedForMove(memberAccountIDs: string[]) {
-    Onyx.set(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, memberAccountIDs);
+    Onyx.set(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE, memberAccountIDs);
 }
 
 function clearDomainMembersSelectedForMove() {
-    Onyx.set(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, []);
+    Onyx.set(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE, []);
 }
 
 /**
