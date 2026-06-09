@@ -972,6 +972,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'groupCurrency':
         case 'transactionType':
         case 'transactionThreadReportID':
+        case 'mcc':
         case 'withdrawalID':
             return validateString(value);
         case 'created':
@@ -1113,6 +1114,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     status: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hasEReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    mcc: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     mccGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedMCCGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
