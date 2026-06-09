@@ -27,20 +27,12 @@ type FeatureTrainingModalBodyProps = BaseFeatureTrainingModalProps &
 
         /** A callback to call when we want to navigate back to the previous page in carousel mode */
         onBack?: () => void;
-
-        /** Pagination dot nodes overlaid on the bottom of the illustration in carousel mode */
-        paginationDots?: React.ReactNode;
     };
 
 function FeatureTrainingModalBody({
-    animation,
-    animationStyle,
     illustrationInnerContainerStyle,
     illustrationOuterContainerStyle,
-    videoURL,
     illustrationAspectRatio: illustrationAspectRatioProp,
-    image,
-    contentFitImage,
     width,
     title = '',
     subtitle = '',
@@ -54,8 +46,6 @@ function FeatureTrainingModalBody({
     children,
     contentInnerContainerStyles,
     contentOuterContainerStyles,
-    imageWidth,
-    imageHeight,
     shouldRenderSVG = true,
     shouldRenderHTMLDescription = false,
     shouldShowConfirmationLoader = false,
@@ -70,26 +60,19 @@ function FeatureTrainingModalBody({
     confirmModal,
     shouldShowBackButton = false,
     onBack,
-    paginationDots,
+    ...props
 }: FeatureTrainingModalBodyProps) {
     const StyleUtils = useStyleUtils();
 
     return (
         <View style={width ? StyleUtils.getWidthStyle(width) : undefined}>
             <FeatureTrainingModalIllustration
-                animation={animation}
-                animationStyle={animationStyle}
-                videoURL={videoURL}
-                image={image}
-                contentFitImage={contentFitImage}
-                imageWidth={imageWidth}
-                imageHeight={imageHeight}
                 illustrationAspectRatio={illustrationAspectRatioProp}
                 illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                 illustrationOuterContainerStyle={illustrationOuterContainerStyle}
                 shouldRenderSVG={shouldRenderSVG}
                 modalPadding={modalPadding}
-                paginationDots={paginationDots}
+                {...props}
             />
             <FeatureTrainingModalContent
                 title={title}

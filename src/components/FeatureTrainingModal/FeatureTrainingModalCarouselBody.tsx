@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import FeatureTrainingModalContent from './FeatureTrainingModalContent';
 import FeatureTrainingModalIllustration from './FeatureTrainingModalIllustration';
-import type {BaseFeatureTrainingModalProps, FeatureTrainingModalPageProps} from './index';
+import type {BaseFeatureTrainingModalProps, FeatureTrainingModalCarouselProps, FeatureTrainingModalPageProps} from './index';
 
 // A page is considered "viewable" — and `currentPage` updates — only once it occupies at least
 // 95% of the viewport. The viewability event fires for both user swipes and programmatic
@@ -33,6 +33,7 @@ type FeatureTrainingModalCarouselBodyProps = Pick<
     | 'illustrationAspectRatio'
     | 'illustrationInnerContainerStyle'
     | 'illustrationOuterContainerStyle'
+    | 'titleStyles'
     | 'shouldRenderSVG'
     | 'shouldRenderHTMLDescription'
     | 'shouldShowDismissModalOption'
@@ -46,37 +47,36 @@ type FeatureTrainingModalCarouselBodyProps = Pick<
     | 'contentInnerContainerStyles'
     | 'contentOuterContainerStyles'
     | 'width'
-> & {
-    /** The carousel pages */
-    pages: FeatureTrainingModalPageProps[];
+> &
+    FeatureTrainingModalCarouselProps & {
+        /** Padding for the modal */
+        modalPadding: number;
 
-    /** Padding for the modal */
-    modalPadding: number;
+        /** Styles for the wrapper */
+        wrapperStyles?: StyleProp<ViewStyle>;
 
-    /** Style for the title */
-    titleStyles?: StyleProp<TextStyle>;
+        /** Whether the modal should be shown again */
+        willShowAgain: boolean;
 
-    /** Whether the modal should be shown again */
-    willShowAgain: boolean;
+        /** Callback when the "Don't show me this again" option is toggled */
+        toggleWillShowAgain: () => void;
 
-    /** Callback when the "Don't show me this again" option is toggled */
-    toggleWillShowAgain: () => void;
+        /** Callback to close the modal */
+        closeModal: (didPressHelpButton?: boolean) => void;
 
-    /** Callback to close the modal */
-    closeModal: (didPressHelpButton?: boolean) => void;
+        /** Callback fired when the user presses the confirm button on the LAST page */
+        onConfirm: () => void;
 
-    /** Callback fired when the user presses the confirm button on the LAST page */
-    onConfirm: () => void;
-
-    /** Called when the user swipes to a different page */
-    onPageChange?: (index: number) => void;
-};
+        /** Called when the user swipes to a different page */
+        onPageChange?: (index: number) => void;
+    };
 
 function FeatureTrainingModalCarouselBody({
     pages,
     modalPadding,
     width = variables.featureTrainingModalWidth,
     titleStyles,
+    wrapperStyles,
     illustrationAspectRatio,
     illustrationInnerContainerStyle,
     illustrationOuterContainerStyle,
@@ -164,6 +164,7 @@ function FeatureTrainingModalCarouselBody({
             style={[
                 styles.flex1,
                 onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                wrapperStyles,
                 isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
             ]}
             onLayout={(e: LayoutChangeEvent) => {
@@ -190,19 +191,14 @@ function FeatureTrainingModalCarouselBody({
                         renderItem={({item: page}) => (
                             <View style={{width: carouselViewportWidth}}>
                                 <FeatureTrainingModalIllustration
-                                    animation={page.animation}
-                                    animationStyle={page.animationStyle}
-                                    videoURL={page.videoURL}
-                                    image={page.image}
-                                    contentFitImage={page.contentFitImage}
-                                    imageWidth={page.imageWidth}
-                                    imageHeight={page.imageHeight}
                                     illustrationAspectRatio={illustrationAspectRatio}
                                     illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                                     illustrationOuterContainerStyle={illustrationOuterContainerStyle}
                                     shouldRenderSVG={shouldRenderSVG}
                                     modalPadding={modalPadding}
                                     paginationDots={carouselPaginationDots}
+                                    shouldAutoPlay={false}
+                                    {...page}
                                 />
                             </View>
                         )}

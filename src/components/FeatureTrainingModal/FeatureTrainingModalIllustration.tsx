@@ -1,14 +1,11 @@
-import type {ImageContentFit} from 'expo-image';
 import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, ImageSourcePropType} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import ImageSVG from '@components/ImageSVG';
-import type ImageSVGProps from '@components/ImageSVG/types';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
 import VideoPlayer from '@components/VideoPlayer';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
@@ -18,7 +15,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Accessibility from '@libs/Accessibility';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {FeatureTrainingModalIllustrationProps as BaseFeatureTrainingModalIllustrationProps, BaseFeatureTrainingModalProps} from './index';
 
 // Aspect ratio and height of the video.
 // Useful before video loads to reserve space.
@@ -31,46 +28,20 @@ const PAGINATION_DOTS_BOTTOM_OFFSET = 12;
 
 type VideoStatus = 'video' | 'animation';
 
-type FeatureTrainingModalIllustrationProps = {
-    /** Animation to show when video is unavailable. Useful when app is offline */
-    animation?: DotLottieAnimation;
+type FeatureTrainingModalIllustrationProps = Pick<
+    BaseFeatureTrainingModalProps,
+    'shouldRenderSVG' | 'illustrationAspectRatio' | 'illustrationInnerContainerStyle' | 'illustrationOuterContainerStyle'
+> &
+    BaseFeatureTrainingModalIllustrationProps & {
+        /** Padding for the modal */
+        modalPadding: number;
 
-    /** Additional styles for the animation */
-    animationStyle?: StyleProp<ViewStyle>;
+        /** Pagination dot nodes overlaid on the bottom of the illustration in carousel mode */
+        paginationDots?: React.ReactNode;
 
-    /** URL for the video */
-    videoURL?: string;
-
-    /** Expensicon for the page */
-    image?: IconAsset;
-
-    /** Determines how the image should be resized to fit its container */
-    contentFitImage?: ImageContentFit;
-
-    /** The width of the image */
-    imageWidth?: ImageSVGProps['width'];
-
-    /** The height of the image */
-    imageHeight?: ImageSVGProps['height'];
-
-    /** The aspect ratio to preserve for the icon, video or animation */
-    illustrationAspectRatio?: number;
-
-    /** Style for the inner container of the animation */
-    illustrationInnerContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Style for the outer container of the animation */
-    illustrationOuterContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the modal image is a SVG */
-    shouldRenderSVG?: boolean;
-
-    /** Padding for the modal */
-    modalPadding: number;
-
-    /** Pagination dot nodes overlaid on the bottom of the illustration in carousel mode */
-    paginationDots?: React.ReactNode;
-};
+        /** Should the animation auto play or only starts playing when the page is focused */
+        shouldAutoPlay?: boolean;
+    };
 
 function FeatureTrainingModalIllustration({
     animation,
@@ -86,6 +57,7 @@ function FeatureTrainingModalIllustration({
     shouldRenderSVG = true,
     modalPadding,
     paginationDots,
+    shouldAutoPlay = true,
 }: FeatureTrainingModalIllustrationProps) {
     const styles = useThemeStyles();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
@@ -174,7 +146,7 @@ function FeatureTrainingModalIllustration({
                                 source={animation ?? LottieAnimations.Hands}
                                 style={styles.h100}
                                 webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                                autoPlay
+                                autoPlay={shouldAutoPlay}
                                 loop
                             />
                         )}

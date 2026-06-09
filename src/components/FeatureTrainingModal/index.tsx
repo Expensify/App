@@ -165,7 +165,7 @@ type FeatureTrainingModalCarouselProps = {
      * When provided (and length > 1), the modal renders a horizontal paging carousel.
      * The primary button advances to the next page until the last page, where it fires `onConfirm`.
      */
-    pages?: FeatureTrainingModalPageProps[];
+    pages: FeatureTrainingModalPageProps[];
 
     /** Called when the user swipes to a different page. */
     onPageChange?: (index: number) => void;
@@ -343,6 +343,7 @@ function FeatureTrainingModal({
                     modalPadding={MODAL_PADDING}
                     width={width}
                     titleStyles={titleStyles}
+                    wrapperStyles={wrapperStyles.containerStyle}
                     illustrationAspectRatio={illustrationAspectRatioProp}
                     illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                     illustrationOuterContainerStyle={illustrationOuterContainerStyle}
@@ -421,4 +422,11 @@ function FeatureTrainingModal({
 
 export default FeatureTrainingModal;
 
-export type {BaseFeatureTrainingModalProps, FeatureTrainingModalProps, FeatureTrainingModalPageProps};
+export type {
+    BaseFeatureTrainingModalProps,
+    FeatureTrainingModalProps,
+    FeatureTrainingModalCarouselProps,
+    FeatureTrainingModalContentProps,
+    FeatureTrainingModalPageProps,
+    FeatureTrainingModalIllustrationProps,
+};

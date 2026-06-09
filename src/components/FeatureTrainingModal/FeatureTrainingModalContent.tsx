@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -10,80 +9,43 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {FeatureTrainingModalContentProps as BaseFeatureTrainingModalContentProps, BaseFeatureTrainingModalProps} from './index';
 
-type FeatureTrainingModalContentProps = {
-    /** Title for the modal */
-    title?: string | React.ReactNode;
+type FeatureTrainingModalContentProps = Pick<
+    BaseFeatureTrainingModalProps,
+    | 'helpText'
+    | 'onHelp'
+    | 'shouldCallOnHelpWhenModalHidden'
+    | 'helpSentryLabel'
+    | 'confirmSentryLabel'
+    | 'shouldShowDismissModalOption'
+    | 'shouldShowConfirmationLoader'
+    | 'canConfirmWhileOffline'
+    | 'titleStyles'
+    | 'contentInnerContainerStyles'
+    | 'contentOuterContainerStyles'
+    | 'shouldRenderHTMLDescription'
+    | 'children'
+> &
+    BaseFeatureTrainingModalContentProps & {
+        /** Whether the modal should be shown again (drives the dismiss checkbox state) */
+        willShowAgain: boolean;
 
-    /** Subtitle rendered above the title */
-    subtitle?: string;
+        /** Callback when the "Don't show me this again" option is toggled */
+        toggleWillShowAgain: () => void;
 
-    /** Describe what is showing */
-    description?: string;
+        /** Callback to close the modal */
+        closeModal: (didPressHelpButton?: boolean) => void;
 
-    /** Secondary description rendered with additional space */
-    secondaryDescription?: string;
+        /** Callback when the user presses the confirm button */
+        confirmModal: () => void;
 
-    /** Text to show on primary (confirm) button */
-    confirmText: string;
+        /** Whether to render a Back button (carousel mode, non-first pages) */
+        shouldShowBackButton?: boolean;
 
-    /** Text to show on secondary (help) button */
-    helpText?: string;
-
-    /** Callback when the user wants to learn more */
-    onHelp?: () => void;
-
-    /** Whether `onHelp` should run only after the modal finishes closing */
-    shouldCallOnHelpWhenModalHidden?: boolean;
-
-    /** Sentry label for the help button */
-    helpSentryLabel?: string;
-
-    /** Sentry label for the confirm/back buttons */
-    confirmSentryLabel?: string;
-
-    /** Whether to show the "Don't show me this again" option */
-    shouldShowDismissModalOption?: boolean;
-
-    /** Whether the modal should be shown again (drives the dismiss checkbox state) */
-    willShowAgain: boolean;
-
-    /** Callback when the "Don't show me this again" option is toggled */
-    toggleWillShowAgain: () => void;
-
-    /** Callback to close the modal */
-    closeModal: (didPressHelpButton?: boolean) => void;
-
-    /** Callback when the user presses the confirm button */
-    confirmModal: () => void;
-
-    /** Whether to render a Back button (carousel mode, non-first pages) */
-    shouldShowBackButton?: boolean;
-
-    /** Callback when the Back button is pressed */
-    onBack?: () => void;
-
-    /** Whether the confirm button should show a loading spinner */
-    shouldShowConfirmationLoader?: boolean;
-
-    /** Whether the user can confirm while offline */
-    canConfirmWhileOffline?: boolean;
-
-    /** Style for the title text */
-    titleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for the inner content container */
-    contentInnerContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for the outer content container */
-    contentOuterContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Whether the description is HTML and should be rendered with RenderHTML */
-    shouldRenderHTMLDescription?: boolean;
-
-    /** Optional nodes rendered between description and dismiss/help/confirm buttons */
-    children?: React.ReactNode;
-};
+        /** Callback when the Back button is pressed */
+        onBack?: () => void;
+    };
 
 function FeatureTrainingModalContent({
     title = '',
