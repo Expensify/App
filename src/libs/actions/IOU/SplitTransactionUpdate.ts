@@ -161,10 +161,12 @@ function updateSplitTransactions({
         originalSelfDMReportID = chatReport?.reportID;
     }
 
+    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
     const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    // Delegate split edit can reach this flow without the workspace expense chat in Onyx.
     const fallbackPolicyParticipant =
         autoParticipants.length === 0 && !chatReport && expenseReport?.chatReportID && expenseReport?.policyID
             ? {
@@ -176,7 +178,6 @@ function updateSplitTransactions({
               }
             : undefined;
     const participants = fallbackPolicyParticipant ? [fallbackPolicyParticipant] : autoParticipants;
-    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
 
     let fallbackPolicyParentChatReport = expenseReportParentChat;
     if (!fallbackPolicyParentChatReport && chatReport && isPolicyExpenseChatReportUtil(chatReport)) {

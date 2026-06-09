@@ -462,7 +462,6 @@ describe('actions/Transaction', () => {
                 });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const policyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportID}`)) ?? {};
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
@@ -490,11 +489,10 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
-                    policyTagListByReportID: {},
                     isOffline: false,
                 });
                 await waitForBatchedUpdates();
@@ -642,7 +640,6 @@ describe('actions/Transaction', () => {
                 });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const policyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportID}`)) ?? {};
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
@@ -670,11 +667,10 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
-                    policyTagListByReportID: {},
                     isOffline: false,
                 });
                 await waitForBatchedUpdates();
@@ -835,7 +831,6 @@ describe('actions/Transaction', () => {
                 });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const policyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportID}`)) ?? {};
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 // it should use splitExpensesTotal in its calculation
@@ -864,11 +859,10 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
-                    policyTagListByReportID: {},
                     isOffline: false,
                 });
                 await waitForBatchedUpdates();
@@ -1052,7 +1046,6 @@ describe('actions/Transaction', () => {
                 });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const policyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportID}`)) ?? {};
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 // When splitting the held expense
@@ -1081,11 +1074,10 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
-                    policyTagListByReportID: {},
                     isOffline: false,
                 });
 

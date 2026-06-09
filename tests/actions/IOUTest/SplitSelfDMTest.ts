@@ -208,11 +208,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags: {},
+            allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
-            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -296,11 +295,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags: {},
+            allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
-            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -405,11 +403,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags: {},
+            allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
-            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -499,11 +496,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags: {},
+            allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
-            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -559,11 +555,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags: {},
+            allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
-            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -650,11 +645,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            policyTags: {},
+            allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
-            policyTagListByReportID: {},
             isOffline: false,
         });
 
