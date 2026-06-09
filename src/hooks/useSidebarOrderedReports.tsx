@@ -45,14 +45,7 @@ type SidebarOrderedReportsActionsContextValue = {
     setStickyReportID: (reportID: string) => void;
 };
 
-type ReportsToDisplayInLHN = Record<
-    string,
-    OnyxTypes.Report & {
-        hasErrorsOtherThanFailedReceipt?: boolean;
-        requiresAttention?: boolean;
-        isUnreadReport?: boolean;
-    }
->;
+type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean; isUnreadReport?: boolean}>;
 
 const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
     filteredReports: [],
@@ -364,17 +357,6 @@ function SidebarOrderedReportsContextProvider({
         },
         [activeTab],
     );
-
-    // Navigating to a report from somewhere other than the LHN (e.g. opening the parent chat from a
-    // report's header subtitle) should also keep that report visible in the active To-do/Unread tab,
-    // just like opening one from the LHN does. We only react to the focused report changing, not to a
-    // tab switch, so switching tabs while a report is open doesn't pin that report to the new tab.
-    useEffect(() => {
-        if (activeTab === CONST.INBOX_TAB.ALL || !derivedCurrentReportID || derivedCurrentReportID === '-1' || derivedCurrentReportID === prevDerivedCurrentReportID) {
-            return;
-        }
-        setStickyReport({reportID: derivedCurrentReportID, tab: activeTab});
-    }, [activeTab, derivedCurrentReportID, prevDerivedCurrentReportID]);
 
     const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
