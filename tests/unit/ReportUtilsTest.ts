@@ -10716,6 +10716,261 @@ describe('ReportUtils', () => {
             const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
             expect(hasTransactionMerge).toBe(false);
         });
+
+        it('should clear the taxOutOfPolicy violation when tax tracking is re-enabled and the tax code is valid', async () => {
+            // A stale taxOutOfPolicy left over from when tax tracking was disabled is cleared optimistically once
+            // tracking is turned back on, instead of lingering until the report reloads from the server.
+            const fakePolicyID = '0';
+            const taxCode = 'id_TAX_RATE_1';
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresCategory: false,
+                requiresTag: false,
+                tax: {trackingEnabled: true},
+                taxRates: {
+                    taxes: {[taxCode]: {name: 'Tax Rate 1', value: '5'}},
+                    name: '',
+                    defaultExternalID: '',
+                    defaultValue: '',
+                    foreignTaxDefault: '',
+                },
+            };
+
+            const openReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
+                ...mockTransaction,
+                reportID: openReport.reportID,
+                taxCode,
+                category: '',
+                tag: '',
+            });
+            // Stale violation left over from when tax tracking was disabled.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, [
+                {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ]);
+
+            await waitForBatchedUpdates();
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionViolationsOnyxData(onyxData, result.current, {tax: {trackingEnabled: true}}, {}, {});
+
+            const violationsUpdate = onyxData.optimisticData.find(
+                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+            ) as {value: TransactionViolation[]} | undefined;
+            expect(violationsUpdate?.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY}));
+        });
+
+        it('should add the taxOutOfPolicy violation when tax tracking is disabled and the transaction still has tax', async () => {
+            // Disabling tax tracking surfaces the violation so the user can remove the now-stale tax.
+            const fakePolicyID = '0';
+            const taxCode = 'id_TAX_RATE_1';
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresCategory: false,
+                requiresTag: false,
+                tax: {trackingEnabled: true},
+                taxRates: {
+                    taxes: {[taxCode]: {name: 'Tax Rate 1', value: '5'}},
+                    name: '',
+                    defaultExternalID: '',
+                    defaultValue: '',
+                    foreignTaxDefault: '',
+                },
+            };
+
+            const openReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
+                ...mockTransaction,
+                reportID: openReport.reportID,
+                taxCode,
+                category: '',
+                tag: '',
+            });
+            // Start with no violation so the test demonstrates it being added when tracking is turned off.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, []);
+
+            await waitForBatchedUpdates();
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionViolationsOnyxData(onyxData, result.current, {tax: {trackingEnabled: false}}, {}, {});
+
+            const violationsUpdate = onyxData.optimisticData.find(
+                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+            ) as {value: TransactionViolation[]} | undefined;
+            expect(violationsUpdate?.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY}));
+        });
+
+        it('should not add the taxOutOfPolicy violation when toggling categories while tax tracking is unchanged', async () => {
+            // A category/tag toggle leaves tax tracking and tax rates untouched, so it must never surface a tax
+            // violation, even when the client-side recompute would treat the transaction's tax code as out of policy.
+            const fakePolicyID = '0';
+            const taxCode = 'id_TAX_RATE_1';
+            const categoryName = 'Office';
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresCategory: true,
+                requiresTag: false,
+                areCategoriesEnabled: true,
+                tax: {trackingEnabled: true},
+                taxRates: {
+                    taxes: {[taxCode]: {name: 'Tax Rate 1', value: '5'}},
+                    name: '',
+                    defaultExternalID: '',
+                    defaultValue: '',
+                    foreignTaxDefault: '',
+                },
+            };
+
+            const openReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`, {[categoryName]: {name: categoryName, enabled: true}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
+                ...mockTransaction,
+                reportID: openReport.reportID,
+                // A tax code the client recompute treats as out of policy even though tax tracking is enabled.
+                taxCode: 'UNKNOWN_TAX',
+                category: categoryName,
+                tag: '',
+            });
+            // No tax violation before the toggle.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, []);
+
+            await waitForBatchedUpdates();
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+            // Disable categories — the policy update does not touch tax tracking.
+            pushTransactionViolationsOnyxData(onyxData, result.current, {areCategoriesEnabled: false, requiresCategory: false}, {[categoryName]: {enabled: false}}, {});
+
+            const violationsUpdate = onyxData.optimisticData.find(
+                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+            ) as {value: TransactionViolation[]} | undefined;
+            expect(violationsUpdate?.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY}));
+        });
+
+        it('should add the missingCategory violation when categories are enabled and the transaction has no category', async () => {
+            // Bug 6: enabling categories must immediately surface "Missing category" on the preview for an
+            // uncategorized expense, instead of only after the report detail loads.
+            const fakePolicyID = '0';
+            const categoryName = 'Office';
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresCategory: true,
+                requiresTag: false,
+                areCategoriesEnabled: true,
+            };
+
+            const openReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`, {[categoryName]: {name: categoryName, enabled: true}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
+                ...mockTransaction,
+                reportID: openReport.reportID,
+                category: '',
+                tag: '',
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, []);
+
+            await waitForBatchedUpdates();
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+            // Enable categories — the policy update does not touch tax tracking.
+            pushTransactionViolationsOnyxData(onyxData, result.current, {areCategoriesEnabled: true, requiresCategory: true}, {[categoryName]: {enabled: true}}, {});
+
+            const violationsUpdate = onyxData.optimisticData.find(
+                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+            ) as {value: TransactionViolation[]} | undefined;
+            expect(violationsUpdate?.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.MISSING_CATEGORY}));
+        });
+
+        it('should remove the stale missingCategory violation when categories are disabled', async () => {
+            // Bug 5: disabling categories must immediately clear a stale "Missing category" from the preview,
+            // instead of leaving it until the report detail loads.
+            const fakePolicyID = '0';
+            const categoryName = 'Office';
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresCategory: true,
+                requiresTag: false,
+                areCategoriesEnabled: true,
+            };
+
+            const openReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`, {[categoryName]: {name: categoryName, enabled: true}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
+                ...mockTransaction,
+                reportID: openReport.reportID,
+                category: '',
+                tag: '',
+            });
+            // Stale violation left over from when categories were still required.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, [
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ]);
+
+            await waitForBatchedUpdates();
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+            // Disable categories — the policy update does not touch tax tracking.
+            pushTransactionViolationsOnyxData(onyxData, result.current, {areCategoriesEnabled: false, requiresCategory: false}, {[categoryName]: {enabled: false}}, {});
+
+            const violationsUpdate = onyxData.optimisticData.find(
+                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+            ) as {value: TransactionViolation[]} | undefined;
+            expect(violationsUpdate?.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.MISSING_CATEGORY}));
+        });
     });
 
     describe('canLeaveChat', () => {

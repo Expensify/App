@@ -448,6 +448,10 @@ const ViolationsUtils = {
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
+        } else if (transactionViolations.some((violation) => violation.name === 'missingCategory')) {
+            // Categories aren't required and none is set, so a leftover 'missingCategory' is stale (e.g. after the
+            // workspace disables categories). Remove it so the optimistic state matches the backend.
+            newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
         }
 
         // Calculate client-side tag violations
@@ -733,7 +737,9 @@ const ViolationsUtils = {
         }
 
         const hasTransactionTaxData = !!updatedTransaction.taxCode || !!updatedTransaction.taxValue || !!updatedTransaction.taxAmount;
-        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !isTaxInPolicy : hasTransactionTaxData);
+        // When tax tracking is enabled, only a non-empty tax code that isn't a current policy rate is out of policy.
+        // A transaction with no tax code (e.g. its tax was deleted) must not be flagged.
+        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxInPolicy : hasTransactionTaxData);
 
         if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});

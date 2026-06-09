@@ -2296,6 +2296,11 @@ function pushTransactionViolationsOnyxData(
         return;
     }
 
+    // taxOutOfPolicy depends only on tax tracking, tax rates and the transaction's own tax data — none of
+    // which a category/tag/rules toggle changes. Only let the recompute touch it when the update concerns
+    // tax tracking, otherwise an unrelated toggle would flash a spurious "tax no longer valid" violation.
+    const isTaxTrackingUpdate = policyUpdate.tax !== undefined;
+
     for (const {
         transactionsAndViolations: {transactions, violations},
     } of nonInvoiceReportItems) {
@@ -2313,6 +2318,13 @@ function pushTransactionViolationsOnyxData(
                 hasDependentTags: hasDependentTagsValue,
                 isInvoiceTransaction: false,
             });
+
+            // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
+            const recomputedViolations = optimisticViolations.value;
+            if (!isTaxTrackingUpdate && Array.isArray(recomputedViolations)) {
+                const preservedTaxViolations = (existingViolations ?? []).filter((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
+                optimisticViolations.value = [...recomputedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAX_OUT_OF_POLICY), ...preservedTaxViolations];
+            }
 
             if (!isEmptyObject(optimisticViolations)) {
                 onyxData.optimisticData?.push(optimisticViolations);

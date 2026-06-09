@@ -405,10 +405,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, policy?.taxRates);
+                                    enablePolicyTaxes(policyID, true, policy?.taxRates, policyData);
                                     return;
                                 }
-                                enablePolicyTaxes(policyID, false);
+                                enablePolicyTaxes(policyID, false, undefined, policyData);
                             }}
                             onPress={() => {
                                 if (!policyID) {

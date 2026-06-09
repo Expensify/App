@@ -4942,9 +4942,9 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 }
 
-function enablePolicyTaxes(policyID: string, enabled: true, currentTaxRates: TaxRatesWithDefault | undefined): void;
-function enablePolicyTaxes(policyID: string, enabled: false): void;
-function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?: TaxRatesWithDefault) {
+function enablePolicyTaxes(policyID: string, enabled: true, currentTaxRates: TaxRatesWithDefault | undefined, policyData?: PolicyData): void;
+function enablePolicyTaxes(policyID: string, enabled: false, currentTaxRates?: undefined, policyData?: PolicyData): void;
+function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?: TaxRatesWithDefault, policyData?: PolicyData) {
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
     const taxRatesData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -5051,6 +5051,12 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?:
         successData,
         failureData,
     };
+
+    // Recompute transaction violations so toggling tax tracking immediately clears/adds the tax violation,
+    // instead of leaving a stale one until the report reloads.
+    if (policyData) {
+        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {tax: {trackingEnabled: enabled}});
+    }
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
     if (shouldAddDefaultTaxRatesData) {

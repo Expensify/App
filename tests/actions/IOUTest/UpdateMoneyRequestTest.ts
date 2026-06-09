@@ -791,6 +791,64 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(newTag);
         });
+
+        it('should remove the existing tagOutOfPolicy violation when the tag is unset and tags are not required', async () => {
+            const transactionID = '1';
+            const policyID = '2';
+            const transactionThreadReportID = '3';
+            const transactionThreadReport = {reportID: transactionThreadReportID};
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                requiresTag: false,
+                requiresCategory: false,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                amount: 100,
+                transactionID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                    data: {},
+                    showInReview: true,
+                },
+            ]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+
+            // When unsetting the tag
+            updateMoneyRequestTag({
+                transactionID,
+                transactionThreadReport,
+                parentReport: undefined,
+                tag: '',
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyRecentlyUsedTags: undefined,
+                policyCategories: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // The stale tagOutOfPolicy is stripped optimistically even though the recompute skips tag logic when
+            // tags aren't required and the tag is now empty.
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    callback: (transactionViolations) => {
+                        Onyx.disconnect(connection);
+                        expect(transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY)).toBe(false);
+                        resolve();
+                    },
+                });
+            });
+        });
     });
 
     describe('updateMoneyRequestDate', () => {

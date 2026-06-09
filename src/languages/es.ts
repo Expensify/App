@@ -1640,6 +1640,16 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
             confirmText: 'Eliminar impuesto',
         },
+        categoryDisabledAlert: {
+            title: 'Categoría deshabilitada',
+            prompt: 'Habilita las categorías en el espacio de trabajo para editar los detalles del gasto o eliminar la categoría de este gasto.',
+            confirmText: 'Eliminar categoría',
+        },
+        tagDisabledAlert: {
+            title: 'Etiqueta deshabilitada',
+            prompt: 'Habilita las etiquetas en el espacio de trabajo para editar los detalles del gasto o eliminar la etiqueta de este gasto.',
+            confirmText: 'Eliminar etiqueta',
+        },
     },
     transactionMerge: {
         listPage: {

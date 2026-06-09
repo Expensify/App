@@ -1731,6 +1731,16 @@ const translations = {
             prompt: 'Enable tax tracking on the workspace to edit the expense details or delete the tax from this expense.',
             confirmText: 'Delete tax',
         },
+        categoryDisabledAlert: {
+            title: 'Category disabled',
+            prompt: 'Enable categories on the workspace to edit the expense details or delete the category from this expense.',
+            confirmText: 'Delete category',
+        },
+        tagDisabledAlert: {
+            title: 'Tag disabled',
+            prompt: 'Enable tags on the workspace to edit the expense details or delete the tag from this expense.',
+            confirmText: 'Delete tag',
+        },
     },
     transactionMerge: {
         listPage: {
