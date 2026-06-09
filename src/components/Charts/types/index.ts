@@ -11,9 +11,6 @@ type ChartDataPoint = {
 
     /** Query string for navigation when data point is clicked (optional) */
     onClickQuery?: string;
-
-    /** When true, the tooltip shows only the label without a separate amount or percentage */
-    isLabelOnly?: boolean;
 };
 
 /**

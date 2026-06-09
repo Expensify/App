@@ -3,7 +3,7 @@ import type {ChartDataPoint} from '@components/Charts/types';
 type TooltipData = {
     label: string;
     amount: string;
-    percentage?: string;
+    percentage: string;
 };
 
 /**
@@ -19,14 +19,6 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], formatA
     const dataPoint = data.at(activeDataIndex);
     if (!dataPoint) {
         return null;
-    }
-
-    if (dataPoint.isLabelOnly) {
-        return {
-            label: dataPoint.label,
-            amount: '',
-            percentage: undefined,
-        };
     }
 
     const percent = totalSum > 0 ? Math.round((Math.abs(dataPoint.total) / totalSum) * 100) : 0;
