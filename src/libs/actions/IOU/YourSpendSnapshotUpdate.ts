@@ -196,5 +196,4 @@ function getYourSpendSnapshotTotalUpdates({transaction, updatedTransaction, iouR
     return result;
 }
 
-export {getYourSpendSnapshotTotalUpdates, transactionMatchesAwaitingApprovalQuery, transactionMatchesRepaidLast30DaysQuery};
-export type {GetYourSpendSnapshotTotalUpdatesParams, YourSpendSnapshotOnyxData};
+export {getYourSpendSnapshotTotalUpdates, transactionMatchesAwaitingApprovalQuery};
