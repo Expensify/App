@@ -31,7 +31,7 @@ function LHNEmptyState() {
                 <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('common.emptyLHN.caughtUp')}</Text>
                 <TextLink
                     onPress={() => setActiveTab(CONST.INBOX_TAB.ALL)}
-                    style={[styles.link, styles.mt5, styles.ph4, styles.textAlignCenter]}
+                    style={[styles.textStrong, styles.mt5, styles.ph4, styles.textAlignCenter]}
                 >
                     {translate('common.emptyLHN.seeAllChats')}
                 </TextLink>
