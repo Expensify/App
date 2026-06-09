@@ -1,5 +1,4 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
@@ -26,14 +25,9 @@ function useSearchSections(): UseSearchSectionsResult {
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: selectFilteredReportActions,
-    });
-
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -57,16 +51,14 @@ function useSearchSections(): UseSearchSectionsResult {
             formatPhoneNumber,
             bankAccountList,
             groupBy,
-            reportActions: exportReportActions,
             currentSearch: searchKey,
             archivedReportsIDList: archivedReportsIdSet,
             isActionLoadingSet,
             cardFeeds,
             cardList: nonPersonalAndWorkspaceCards,
-            allReportMetadata,
             conciergeReportID,
-            reportAttributesDerivedValue,
             convertToDisplayString,
+            reportAttributesDerivedValue,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
