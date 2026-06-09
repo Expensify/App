@@ -206,7 +206,7 @@ describe('ConciergeDraftContext', () => {
         }
     });
 
-    it('trickles short finalRenderedHTML-only Pusher events instead of completing immediately', async () => {
+    it('reveals short finalRenderedHTML-only Pusher events immediately', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
@@ -214,32 +214,21 @@ describe('ConciergeDraftContext', () => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
         });
 
-        jest.useFakeTimers();
-        try {
-            act(() => {
-                emitPusherEvent(
-                    Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
-                    createDraftEvent('', {
-                        status: 'started',
-                        bodyMarkdown: undefined,
-                        finalRenderedHTML: SHORT_FINAL_RENDERED_HTML,
-                    }),
-                );
-            });
+        act(() => {
+            emitPusherEvent(
+                Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
+                createDraftEvent('', {
+                    status: 'started',
+                    bodyMarkdown: undefined,
+                    finalRenderedHTML: SHORT_FINAL_RENDERED_HTML,
+                }),
+            );
+        });
 
-            expect(getFirstMessageText(result.current.draftReportAction)).toBe('O');
-            expect(result.current.isDraftPendingCompletion).toBe(true);
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
+        expect(result.current.isDraftPendingCompletion).toBe(false);
 
-            act(() => {
-                jest.advanceTimersByTime(1_000);
-            });
-
-            expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
-            expect(result.current.isDraftPendingCompletion).toBe(false);
-        } finally {
-            unmount();
-            jest.useRealTimers();
-        }
+        unmount();
     });
 
     it('paces bodyMarkdown from a completed Pusher event before applying final HTML', async () => {
@@ -337,7 +326,7 @@ describe('ConciergeDraftContext', () => {
         unmount();
     });
 
-    it('trickles finalRenderedHTML-only batched Pusher draft events', async () => {
+    it('reveals short finalRenderedHTML-only batched Pusher draft events immediately', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
@@ -345,32 +334,21 @@ describe('ConciergeDraftContext', () => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
         });
 
-        jest.useFakeTimers();
-        try {
-            act(() => {
-                emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {
-                    events: [
-                        createDraftEvent('', {
-                            status: 'started',
-                            bodyMarkdown: undefined,
-                            finalRenderedHTML: SHORT_FINAL_RENDERED_HTML,
-                        }),
-                    ],
-                });
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {
+                events: [
+                    createDraftEvent('', {
+                        status: 'started',
+                        bodyMarkdown: undefined,
+                        finalRenderedHTML: SHORT_FINAL_RENDERED_HTML,
+                    }),
+                ],
             });
+        });
 
-            expect(getFirstMessageText(result.current.draftReportAction)).toBe('O');
-            expect(result.current.isDraftPendingCompletion).toBe(true);
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
+        expect(result.current.isDraftPendingCompletion).toBe(false);
 
-            act(() => {
-                jest.advanceTimersByTime(1_000);
-            });
-
-            expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
-            expect(result.current.isDraftPendingCompletion).toBe(false);
-        } finally {
-            unmount();
-            jest.useRealTimers();
-        }
+        unmount();
     });
 });
