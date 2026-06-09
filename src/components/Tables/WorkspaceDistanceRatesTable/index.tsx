@@ -222,4 +222,3 @@ function WorkspaceDistanceRatesTable({
 }
 
 export default WorkspaceDistanceRatesTable;
-export type {DistanceRateTableItemData, DistanceRatesTableColumnKey};
