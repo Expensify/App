@@ -20,7 +20,7 @@ Once connected, the integration can:
 
 ## Who can connect TriNet to Expensify
 
-To connect TriNet, you must be a **Workspace Admin** on a Control Workspace in Expensify and: 
+To connect TriNet, you must be a **Workspace Admin** on a workspace with the Control plan in Expensify and: 
 
 - Be an admin in TriNet.
 - Ensure every employee record in TriNet includes their work email address.
@@ -57,6 +57,8 @@ Expensify also runs a daily auto-sync to keep employee data up to date:
 - Employee and manager data is updated to match TriNet.
 - Terminated employees in TriNet are removed from the workspace automatically.
 
+---
+
 ## How to configure the approval mode for TriNet
 
 After connecting TriNet, choose an approval mode that determines how expense reports are routed for approval:
@@ -90,9 +92,10 @@ To refresh the sync manually:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace connected to TriNet.
-3. In the left menu, click **Members**.
-4. Click the **Re-sync** button in the TriNet section.
-5. Wait for the sync to complete. The sync results will display a summary of any changes.
+3. In the left menu, click **HR**.
+4. Next to **TriNet**, click the more options icon (three dots).
+5. Click **Sync now**.
+6. Wait for the sync to complete. The sync results will display a summary of any changes.
 
 ---
 
