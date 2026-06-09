@@ -31,7 +31,7 @@ function getEffectiveEndPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPS
 }
 
 function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined, trimmedEndPoint?: TrimmedGPSPoint): GPSWaypointCollection {
-    const gpsTrip = getTrimmedGpsRoute(gpsDraftDetails, trimmedEndPoint);
+    const gpsTrip = getTrimmedGpsTrip(gpsDraftDetails, trimmedEndPoint);
 
     const waypointCollection: GPSWaypointCollection = {};
     let waypointsCounter = 0;
@@ -231,9 +231,9 @@ function calculateTrimmedEndPoint(gpsPoints: GPSPoint[][], targetDistanceMeters:
     return null;
 }
 
-function getTrimmedGpsRoute(gpsDraftDetails: GpsDraftDetails | undefined, trimmedEndPoint?: TrimmedGPSPoint): GPSPoint[][];
-function getTrimmedGpsRoute(gpsPoints: GPSPoint[][], trimmedEndPoint: TrimmedGPSPoint | undefined): GPSPoint[][];
-function getTrimmedGpsRoute(gpsData: GPSPoint[][] | GpsDraftDetails | undefined, trimmedEndPointProp?: TrimmedGPSPoint | undefined): GPSPoint[][] {
+function getTrimmedGpsTrip(gpsDraftDetails: GpsDraftDetails | undefined, trimmedEndPoint?: TrimmedGPSPoint): GPSPoint[][];
+function getTrimmedGpsTrip(gpsPoints: GPSPoint[][], trimmedEndPoint: TrimmedGPSPoint | undefined): GPSPoint[][];
+function getTrimmedGpsTrip(gpsData: GPSPoint[][] | GpsDraftDetails | undefined, trimmedEndPointProp?: TrimmedGPSPoint | undefined): GPSPoint[][] {
     const gpsPoints = Array.isArray(gpsData) ? gpsData : getGpsPoints(gpsData);
     const trimmedEndPoint = trimmedEndPointProp ?? (Array.isArray(gpsData) ? undefined : gpsData?.trimmedEndPoint);
 
@@ -269,7 +269,7 @@ export {
     getGpsPoints,
     getFirstGpsPoint,
     getLastGpsPoint,
-    getTrimmedGpsRoute,
+    getTrimmedGpsTrip,
     calculateTrimmedEndPoint,
     getEffectiveDistance,
     getEffectiveEndPoint,

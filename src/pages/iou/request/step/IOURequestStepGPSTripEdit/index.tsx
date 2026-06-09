@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {applyTrimmedTrip, resetTripTrim} from '@libs/actions/GPSDraftDetails';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateTrimmedEndPoint, getGpsPoints, getTrimmedGpsRoute} from '@libs/GPSDraftDetailsUtils';
+import {calculateTrimmedEndPoint, getGpsPoints, getTrimmedGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import useGPSWaypointMarkers from '@pages/iou/request/step/IOURequestStepDistanceGPS/useGPSWaypointMarkers';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -48,7 +48,7 @@ function IOURequestStepGPSTripEdit({
         if (!trimmedEndPoint) {
             return gpsPoints.map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
         }
-        const trimmedCoords = getTrimmedGpsRoute(gpsPoints, trimmedEndPoint);
+        const trimmedCoords = getTrimmedGpsTrip(gpsPoints, trimmedEndPoint);
         return trimmedCoords.map((seg): Coordinate[] => seg.map(({lat, long}) => [long, lat]));
     });
 
@@ -84,7 +84,7 @@ function IOURequestStepGPSTripEdit({
 
         setTrimmedEndPoint(newTrimmedEndPoint);
 
-        const trimmedCoords = getTrimmedGpsRoute(gpsPointsRef.current, newTrimmedEndPoint);
+        const trimmedCoords = getTrimmedGpsTrip(gpsPointsRef.current, newTrimmedEndPoint);
         setTrimmedDirectionCoords(trimmedCoords.map((seg): Coordinate[] => seg.map(({lat, long}) => [long, lat])));
     };
 
