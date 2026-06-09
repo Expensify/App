@@ -197,13 +197,13 @@ Yes. You can edit tags until the expense is approved or reimbursed.
 
 Approvers can also edit tags after approval by taking control of the report.
 
-## How does a Tag approver fit into the overall approval workflow? 
+## How does a Tag approver fit into the Workspace approval workflow?
 
 Tag approvers are added to the beginning of a Workspace's approval workflow. When a report contains expenses assigned to a Tag with an approver, that approver must approve the report before it moves through the Workspace's standard approval workflow.
 
 If a Category approver is also assigned, the Category approver approves before the Tag approver.
 
-To learn how Category approvers, Tag approvers, and Workspace approvers work together, see [How Category and Tag approvers work with Workspace approvers](/articles/new-expensify/workspaces/Add-Approvals#how-category-and-tag-approvers-work-with-workspace-approvers)
+To learn how Category approvers, Tag approvers, and Workspace approvers work together, see [Set Category and Tag approvers](/articles/new-expensify/workspaces/Add-Approvals#set-category-and-tag-approvers)
 
 ## Can I see an audit trail of tag changes?
 
