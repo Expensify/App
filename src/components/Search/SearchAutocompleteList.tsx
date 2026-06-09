@@ -67,9 +67,6 @@ type SearchAutocompleteListProps = {
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
 
-    /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
-    onHighlightFirstItem?: () => void;
-
     /** Ref for the external text input */
     textInputRef?: RefObject<AnimatedTextInputRef | null>;
 
@@ -144,7 +141,6 @@ function SearchAutocompleteList({
     getAdditionalSections,
     onListItemPress,
     shouldSubscribeToArrowKeyEvents = true,
-    onHighlightFirstItem,
     textInputRef,
     autocompleteSubstitutions,
     ref,
@@ -272,8 +268,8 @@ function SearchAutocompleteList({
                 // effect can re-fire and correctly focus the first focusable item (skipping section headers).
                 hasSetInitialFocusRef.current = false;
             } else {
-                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top
-                // onHighlightFirstItem will switch focus to the first result when there's a good match
+                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top.
+                // The highlight effect below switches focus to the first result when there's a good match.
                 innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
             }
         }
@@ -569,7 +565,7 @@ function SearchAutocompleteList({
         reports,
     ]);
 
-    const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
+    const sectionItemText = styledRecentReports.at(0)?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
     const isLoading = !isRecentSearchesDataLoaded;
@@ -616,12 +612,16 @@ function SearchAutocompleteList({
     }, [isLoadingOptions, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
 
     useEffect(() => {
-        const targetText = autocompleteQueryValue;
-
-        if (shouldHighlight(normalizedReferenceText, targetText)) {
-            onHighlightFirstItem?.();
+        if (firstRecentReportFlatIndex === -1) {
+            return;
         }
-    }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
+
+        // Focus the first matched result row. Its flat index already accounts for the section headers
+        // ("Recent chats" / "Search results") so the keyboard highlight lands on the row, not a header.
+        if (shouldHighlight(normalizedReferenceText, autocompleteQueryValue)) {
+            innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
+        }
+    }, [autocompleteQueryValue, normalizedReferenceText, firstRecentReportFlatIndex]);
 
     if (isLoading) {
         return (
