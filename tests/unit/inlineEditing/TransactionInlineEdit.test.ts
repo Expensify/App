@@ -148,6 +148,7 @@ describe('getTransactionEditPermissions', () => {
             const distanceTransaction: Transaction = {
                 ...baseTransaction,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -348,6 +349,7 @@ describe('getTransactionEditPermissions', () => {
                 ...baseUnreportedParams,
                 transaction: {
                     ...unreportedTransaction,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     comment: {
                         type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                         customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE},

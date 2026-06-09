@@ -1,6 +1,7 @@
 /** Onyx selectors used by the confirmation field leaves. */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
+import getReportNameValuePairsForReports from '@libs/ReportNameValuePairsUtils';
 import {
     getCategory,
     getCreated,
@@ -21,7 +22,7 @@ type Transaction = OnyxTypes.Transaction;
 
 // --- DateField ---
 
-type DateState = {iouCreated: string; isMissing: boolean};
+type DateState = {iouCreated: string; isMissing: boolean; hasReceipt: boolean};
 
 const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => {
     if (!t) {
@@ -30,6 +31,7 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
     return {
         iouCreated: getCreated(t),
         isMissing: isCreatedMissing(t),
+        hasReceipt: hasReceipt(t),
     };
 };
 
@@ -106,7 +108,7 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
 
 // --- MerchantField ---
 
-type MerchantState = {merchant: string; isMissing: boolean; hasReceipt: boolean};
+type MerchantState = {merchant: string; isMerchantSet: boolean; isMissing: boolean; hasReceipt: boolean};
 
 const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undefined => {
     if (!t) {
@@ -114,6 +116,7 @@ const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undef
     }
     return {
         merchant: getMerchant(t),
+        isMerchantSet: t.isMerchantSet ?? false,
         isMissing: isMerchantMissing(t),
         hasReceipt: hasReceipt(t),
     };
@@ -145,6 +148,7 @@ type AmountSlice = {
     comment: {type: NonNullable<Transaction['comment']>['type']; customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined;
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
+    taxCode: Transaction['taxCode'];
 };
 
 const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined => {
@@ -161,6 +165,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         comment: t.comment ? {type: t.comment.type, customUnit: t.comment.customUnit} : undefined,
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
+        taxCode: t.taxCode,
     };
 };
 
@@ -193,7 +198,12 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ReportField ---
 
-type ReportFieldTransactionState = {reportID: Transaction['reportID']; isFromGlobalCreate: boolean};
+type ReportFieldTransactionState = {
+    reportID: Transaction['reportID'];
+    isFromGlobalCreate: boolean;
+    participantReportID: string | undefined;
+};
+type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
     if (!t) {
@@ -202,11 +212,21 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     return {
         reportID: t.reportID,
         isFromGlobalCreate: !!t.isFromGlobalCreate,
+        participantReportID: t.participants?.at(0)?.reportID,
     };
 };
 
 const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
     derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
+
+const createOutstandingReportsNVPsSelector =
+    (outstandingReports: OutstandingReportsForPolicy | undefined) =>
+    (allNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): OnyxCollection<OnyxTypes.ReportNameValuePairs> | undefined => {
+        if (!outstandingReports || !allNVPs) {
+            return undefined;
+        }
+        return getReportNameValuePairsForReports(outstandingReports, allNVPs);
+    };
 
 // --- InvoiceSenderField ---
 
@@ -231,6 +251,7 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
+    createOutstandingReportsNVPsSelector,
     createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
@@ -242,4 +263,3 @@ export {
     timeStateSelector,
     toggleStateSelector,
 };
-export type {AmountSlice, AttendeeSlice, CategoryState, DateState, DescriptionState, InvoiceSenderWorkspace, MerchantState, ReportFieldTransactionState, TaxSlice, TimeState, ToggleState};

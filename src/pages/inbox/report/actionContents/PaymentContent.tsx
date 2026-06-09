@@ -72,6 +72,4 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
     return <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
 }
 
-PaymentContent.displayName = 'PaymentContent';
-
 export default PaymentContent;

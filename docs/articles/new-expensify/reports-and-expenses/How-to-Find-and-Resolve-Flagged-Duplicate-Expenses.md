@@ -45,11 +45,12 @@ Within the report, duplicate expenses will show the label **Potential duplicate*
 2. Click the expense labeled **Potential duplicate**.
 3. Click **Review duplicates**. 
 4. Review the list of matched expenses flagged as duplicates.
-5. Choose how to proceed:
+5. Select the expense you want to keep using the radio button next to it.
+6. Choose how to proceed:
    - **Keep all** retains all matched expenses and removes the hold.
-   - **Keep this one** keeps the current expense and discards the duplicates.
-6. If there are differences between the expenses (such as categories or tags), choose which values to keep.
-7. Click **Confirm** to save your selection and remove the hold on your expense.
+   - **Keep selected** keeps the selected expense and discards the duplicates.
+7. If there are differences between the expenses (such as categories or tags), choose which values to keep.
+8. Click **Confirm** to save your selection and remove the hold on your expense.
 
 ---
 
@@ -62,7 +63,7 @@ Within the report, duplicate expenses will show the label **Potential duplicate*
 The hold is removed from the expense. Depending on your choice:
 
 - If you selected **Keep all**, all matched expenses remain on the report as separate entries.
-- If you selected **Keep this one**, the current expense is kept and the duplicates are discarded.
+- If you selected **Keep selected**, the selected expense is kept and the duplicates are discarded.
 
 ---
 
