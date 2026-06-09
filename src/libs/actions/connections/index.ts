@@ -28,7 +28,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
             | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN
-            | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_GROUP_SELECTOR_AUTO_SHOWN
+            | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_COMPLETE_SETUP_AUTO_NAVIGATED
         >
     > = [
         {
@@ -76,7 +76,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_GROUP_SELECTOR_AUTO_SHOWN}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_COMPLETE_SETUP_AUTO_NAVIGATED}${policyID}`,
                 value: null,
             },
         );

@@ -1586,11 +1586,11 @@ type MergeHRConnectionConfig = HRConnectionConfigBase &
 
         /**
          * Groups the admin chose to import employees from.
-         * - `string[]` — one or more Merge group ids.
-         * - `'all'`  — sync all employees regardless of group.
-         * - `null`   — the admin hasn't finished setup yet.
+         * - `string[]` with one or more IDs — sync only those groups.
+         * - `[]` (empty array) — sync all employees regardless of group.
+         * - `null` — the admin hasn't finished setup yet.
          */
-        groups: string[] | typeof CONST.MERGE_HR.GROUPS_ALL | null;
+        groups: string[] | null;
     }>;
 
 /** TriNet (Zenefits) connection data */

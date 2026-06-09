@@ -170,26 +170,28 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !card.isInitialSyncInProgress && !card.completeSetupRoute && !!card.configRows?.length && (
+            {card.isConnected && !card.isInitialSyncInProgress && !!card.configRows?.some((row) => !card.completeSetupRoute || !!row.errors) && (
                 <View style={styles.mt2}>
-                    {card.configRows.map((row) => (
-                        <OfflineWithFeedback
-                            key={row.field}
-                            pendingAction={row.pendingAction}
-                            errors={row.errors}
-                            onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, row.field)}
-                        >
-                            <MenuItemWithTopDescription
-                                description={row.description}
-                                title={row.title}
-                                style={styles.sectionMenuItemTopDescription}
-                                shouldShowRightIcon={canWriteMoreFeatures}
-                                brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                onPress={() => Navigation.navigate(row.route)}
-                                interactive={canWriteMoreFeatures}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
+                    {card.configRows
+                        ?.filter((row) => !card.completeSetupRoute || !!row.errors)
+                        .map((row) => (
+                            <OfflineWithFeedback
+                                key={row.field}
+                                pendingAction={row.pendingAction}
+                                errors={row.errors}
+                                onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, row.field)}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={row.description}
+                                    title={row.title}
+                                    style={styles.sectionMenuItemTopDescription}
+                                    shouldShowRightIcon={canWriteMoreFeatures}
+                                    brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    onPress={() => Navigation.navigate(row.route)}
+                                    interactive={canWriteMoreFeatures}
+                                />
+                            </OfflineWithFeedback>
+                        ))}
                 </View>
             )}
         </>

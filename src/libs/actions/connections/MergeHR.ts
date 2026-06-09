@@ -205,8 +205,8 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-/** Updated which groups to import employees from. */
-function updateMergeHRGroups(policyID: string, groups: string[] | typeof CONST.MERGE_HR.GROUPS_ALL) {
+/** Updates which groups to import employees from. When an empty array is passed, all employees are synced regardless of groups. */
+function updateMergeHRGroups(policyID: string, groups: string[]) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -267,7 +267,7 @@ function setMergeHRInitialSyncModalShown(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
 }
 
-function setMergeHRGroupSelectorAutoShown(policyID: string) {
+function setMergeHRCompleteSetupAutoNavigated(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_GROUP_SELECTOR_AUTO_SHOWN}${policyID}`, true);
 }
 
@@ -297,7 +297,7 @@ export {
     updateMergeHRGroups,
     clearHRConnectionErrorField,
     setMergeHRInitialSyncModalShown,
-    setMergeHRGroupSelectorAutoShown,
+    setMergeHRCompleteSetupAutoNavigated,
 };
 export type {HRConnectionErrorFieldName};
 

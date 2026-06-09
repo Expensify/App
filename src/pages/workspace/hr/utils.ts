@@ -5,7 +5,7 @@ import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
 import type {HRConnectionErrorFieldName} from '@libs/actions/connections/MergeHR';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
-import {getAvailableMergeHRGroups, getConnectedHRProvider, getHRApprovalMode, isMergeHRSetupComplete} from '@libs/HRUtils';
+import {getAvailableMergeHRGroups, getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import type {HRConnectionName} from '@libs/HRUtils';
 import {formatList} from '@libs/Localize';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -181,13 +181,13 @@ function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConne
     }
 }
 
-/** Display label for the admin's chosen Merge HR groups: list of names or the localized "All" label for the 'all' value, or undefined when nothing is chosen. */
+/** Display label for the admin's chosen Merge HR groups: list of names, the localized "All" label for an empty array, or undefined when nothing is chosen yet. */
 function getMergeHRGroupsSummary(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
     const groups = policy?.connections?.merge_hris?.config?.groups;
-    if (!groups) {
+    if (groups === null || groups === undefined) {
         return undefined;
     }
-    if (groups === CONST.MERGE_HR.GROUPS_ALL) {
+    if (groups.length === 0) {
         return translate('common.all');
     }
     const available = getAvailableMergeHRGroups(policy);
@@ -315,7 +315,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
         for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
             const mergeConfig = state.isConnected ? policy?.connections?.merge_hris?.config : undefined;
-            const needsSetup = state.isConnected && !isMergeHRSetupComplete(policy);
+            const needsSetup = state.isConnected && isMergeHRCompleteSetupNeeded(policy);
             const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
 
             const configRows: HRConfigRow[] = state.isConnected
