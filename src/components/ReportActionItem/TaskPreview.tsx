@@ -185,6 +185,15 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}
                             onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
+                            onLongPress={(event) =>
+                                onShowContextMenu(() => {
+                                    if (!shouldDisplayContextMenu) {
+                                        return;
+                                    }
+                                    return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
+                                })
+                            }
+                            shouldUseHapticsOnLongPress
                             style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
                         >
