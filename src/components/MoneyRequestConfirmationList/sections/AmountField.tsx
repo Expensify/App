@@ -10,11 +10,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
-import {calculateAmount, isParticipantP2P} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
+import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
@@ -238,6 +239,16 @@ function AmountField({
 
         buildAndSaveSplitShares(updatedAmount, value);
         persistMainDraftTotal(updatedAmount, value);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const taxCode = value !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, updatedAmount, getCurrencyDecimals(value)));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
     };
 
     const handleAmountChange = (newAmount: string) => {
@@ -263,6 +274,18 @@ function AmountField({
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);
         persistMainDraftTotal(parsedAmount, effectiveCurrency);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(newAmount));
+            const defaultTaxCode = effectiveCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            const taxCode = getTaxCode(transactionForHandlers) || defaultTaxCode;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, decimals));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
     };
 
     return (

@@ -13,14 +13,14 @@
 //
 // `export =` keeps CommonJS semantics so `require("react-native-reanimated")`
 // returns the proxy directly from Bun.
-import type {FunctionComponent} from 'react';
+import type {FunctionComponent, PropsWithChildren} from 'react';
 
 type SharedValue<T> = {value: T};
 type NoopFn = () => void;
 
 const noopFn: NoopFn = () => undefined;
 
-const noopComponent: FunctionComponent = () => null;
+const passThroughComponent: FunctionComponent<PropsWithChildren<unknown>> = ({children}) => children;
 
 const sharedValue = <T>(initialValue: T): SharedValue<T> => ({value: initialValue});
 
@@ -47,10 +47,10 @@ const namedExports = {
         bezier: () => () => 0,
         inOut: (fn: () => number) => fn,
     },
-    View: noopComponent,
-    Image: noopComponent,
-    Text: noopComponent,
-    ScrollView: noopComponent,
+    View: passThroughComponent,
+    Image: passThroughComponent,
+    Text: passThroughComponent,
+    ScrollView: passThroughComponent,
 };
 
 type NamedExports = typeof namedExports;
