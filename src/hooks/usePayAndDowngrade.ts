@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,9 +10,18 @@ function usePayAndDowngrade(continueAction: () => void) {
     const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
     const isDeletingPaidWorkspaceRef = useRef(false);
 
-    const setIsDeletingPaidWorkspace = (value: boolean) => {
+    const setIsDeletingPaidWorkspace = useCallback((value: boolean) => {
         isDeletingPaidWorkspaceRef.current = value;
-    };
+    }, []);
+
+    // Store continueAction in a ref to avoid stale closures in the useEffect below.
+    // This ensures we always call the latest version of continueAction when the effect runs,
+    // without needing to include it in the dependency array (which would cause unnecessary re-runs
+    // or require callers to memoize their callback).
+    const continueActionRef = useRef(continueAction);
+    useLayoutEffect(() => {
+        continueActionRef.current = continueAction;
+    });
 
     useEffect(() => {
         if (!isDeletingPaidWorkspaceRef.current || isLoadingBill) {
@@ -20,13 +29,13 @@ function usePayAndDowngrade(continueAction: () => void) {
         }
 
         if (!shouldBillWhenDowngrading) {
-            close(continueAction);
+            close(continueActionRef.current);
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.getRoute(Navigation.getActiveRoute()));
         }
 
         isDeletingPaidWorkspaceRef.current = false;
-    }, [isLoadingBill, shouldBillWhenDowngrading, continueAction]);
+    }, [isLoadingBill, shouldBillWhenDowngrading]);
 
     return {setIsDeletingPaidWorkspace, isLoadingBill};
 }
