@@ -836,6 +836,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                isOffline: false,
                 delegateAccountID: undefined,
             });
 
