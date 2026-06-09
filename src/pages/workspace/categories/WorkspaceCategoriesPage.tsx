@@ -680,7 +680,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
                         <WorkspaceCategoriesTable
                             categories={categoryRows}
-                            selectionEnabled={canSelectMultiple}
+                            selectionEnabled={canWriteCategories}
                             selectedKeys={selectedCategoryKeys}
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
