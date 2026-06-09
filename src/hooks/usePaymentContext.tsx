@@ -46,7 +46,7 @@ const PaymentContext = createContext<PaymentContextValue | undefined>(undefined)
 
 /**
  * Fetches shared Onyx data used by payInvoice and payMoneyRequest.
- * Prefer mounting PaymentContextProvider once near the search UI so list rows do not each subscribe to the same keys.
+ * Mount PaymentContextProvider once at the Search page level so list rows and bulk actions do not each subscribe to the same keys.
  */
 function usePaymentContextValues(): PaymentContextValue {
     const {translate} = useLocalize();
@@ -90,9 +90,10 @@ function PaymentContextProvider({children}: {children: React.ReactNode}) {
 
 function usePaymentContext(): PaymentContextValue {
     const context = useContext(PaymentContext);
-    const paymentContextValues = usePaymentContextValues();
-
-    return context ?? paymentContextValues;
+    if (!context) {
+        throw new Error('usePaymentContext must be used within a PaymentContextProvider');
+    }
+    return context;
 }
 
 function useReportPaymentContext({reportID, chatReportPolicyID, invoiceReceiverPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
