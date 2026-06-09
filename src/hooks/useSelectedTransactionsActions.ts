@@ -7,11 +7,9 @@ import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionCont
 import {initBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
-import {createTransactionThreadReport, exportReportToCSV} from '@libs/actions/Report';
+import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
-import {getTargetTransactionThreadReportIDForSelection} from '@libs/MergeTransactionUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -93,8 +91,6 @@ function useSelectedTransactionsActions({
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
@@ -347,7 +343,8 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID);
+                        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID, transactionViolations);
                     }
                     clearSelectedTransactions(true);
                 },
@@ -439,45 +436,13 @@ function useSelectedTransactionsActions({
 
         const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
         if (canMergeTransaction) {
-            const selectedTransaction = selectedTransactionsList.at(0);
-            const transactionID = selectedTransaction?.transactionID;
-            if (transactionID && selectedTransaction) {
+            const transactionID = selectedTransactionsList.at(0)?.transactionID;
+            if (transactionID) {
                 options.push({
                     text: translate('common.merge'),
                     icon: expensifyIcons.ArrowCollapse,
                     value: MERGE,
-                    onSelected: () => {
-                        const isSingleSelection = selectedTransactionsList.length === 1;
-                        let targetTransactionThreadReportIDOverride: string | undefined;
-                        const iouReportAction = isSingleSelection ? getIOUActionForTransactionID(reportActions, transactionID) : undefined;
-
-                        if (isSingleSelection) {
-                            const selectedTransactionMeta = selectedTransactionsMeta?.[transactionID];
-                            targetTransactionThreadReportIDOverride = getTargetTransactionThreadReportIDForSelection(selectedTransaction, selectedTransactionMeta, iouReportAction);
-
-                            if (!targetTransactionThreadReportIDOverride) {
-                                const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                                const createdThreadReport = createTransactionThreadReport({
-                                    introSelected,
-                                    currentUserLogin: login ?? '',
-                                    currentUserAccountID,
-                                    betas,
-                                    iouReport: report,
-                                    iouReportAction,
-                                    transaction: selectedTransaction,
-                                    transactionViolations,
-                                });
-                                targetTransactionThreadReportIDOverride = createdThreadReport?.reportID;
-                            }
-                        }
-
-                        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = targetTransactionThreadReportIDOverride
-                            ? {
-                                  transactionID,
-                                  threadReportID: targetTransactionThreadReportIDOverride,
-                              }
-                            : undefined;
-
+                    onSelected: () =>
                         setupMergeTransactionDataAndNavigate(
                             transactionID,
                             selectedTransactionsList,
@@ -487,9 +452,7 @@ function useSelectedTransactionsActions({
                             false,
                             isOnSearch,
                             selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
-                            targetTransactionThreadReportCandidate,
-                        );
-                    },
+                        ),
                 });
             }
         }
