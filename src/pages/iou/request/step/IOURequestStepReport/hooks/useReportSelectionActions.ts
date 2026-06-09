@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -9,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -18,7 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -108,14 +107,9 @@ function useReportSelectionActions({
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
-    const targetTransactionIDs = useMemo(() => (transaction ? [transaction.transactionID] : []), [transaction]);
-    const [targetTransactions = getEmptyArray<Transaction>()] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector: (allTransactions) => targetTransactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((item): item is Transaction => !!item),
-        },
-        [targetTransactionIDs],
-    );
+    const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
+    const [persistedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
+    const targetTransactions = persistedTransaction ? [persistedTransaction] : [];
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
