@@ -1,48 +1,20 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import useThemeStyles from '@hooks/useThemeStyles';
+import React from 'react';
+import VictoryChartContainerFixed from './VictoryChartContainerFixed';
+import VictoryChartContainerResponsive from './VictoryChartContainerResponsive';
 
-function VictoryChartContainer({children}: {children: React.ReactNode}) {
-    const styles = useThemeStyles();
-    const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
-    const [containerWidth, setContainerWidth] = useState(0);
+type ExplicitSize = {width: number; height: number};
 
-    const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
-    const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
-    const hasExplicitDimensions = designWidth !== undefined && designHeight !== undefined;
+type VictoryChartContainerProps = {
+    children: React.ReactNode;
+    explicitSize?: ExplicitSize;
+};
 
-    const handleLayout = useCallback((event: LayoutChangeEvent) => {
-        setContainerWidth(event.nativeEvent.layout.width);
-    }, []);
+function VictoryChartContainer({children, explicitSize}: VictoryChartContainerProps) {
+    if (explicitSize) {
+        return <VictoryChartContainerFixed layout={{kind: 'fixed', width: explicitSize.width, height: explicitSize.height}}>{children}</VictoryChartContainerFixed>;
+    }
 
-    const scale = hasExplicitDimensions && designWidth && containerWidth > 0 ? Math.min(containerWidth / designWidth, 1) : 1;
-
-    const {backgroundColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
-
-    const contentStyle = useMemo(() => {
-        if (hasExplicitDimensions) {
-            return [chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const, transform: [{scale}], transformOrigin: 'top left' as const}];
-        }
-        return [styles.chartContent, chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const}];
-    }, [hasExplicitDimensions, chartContentStyles, backgroundColor, borderRadius, scale, styles]);
-
-    const containerStyle = useMemo(() => {
-        if (hasExplicitDimensions && designHeight) {
-            return [styles.chartContainer, styles.mw100, layoutContainerStyles, {borderRadius: 0, height: designHeight * scale, overflow: 'hidden' as const}];
-        }
-        return [styles.chartContainer, styles.mw100, layoutContainerStyles];
-    }, [hasExplicitDimensions, designHeight, scale, styles, layoutContainerStyles]);
-
-    return (
-        <View
-            style={containerStyle}
-            onLayout={handleLayout}
-        >
-            <View style={contentStyle}>{children}</View>
-        </View>
-    );
+    return <VictoryChartContainerResponsive>{children}</VictoryChartContainerResponsive>;
 }
 
 VictoryChartContainer.displayName = 'VictoryChartContainer';

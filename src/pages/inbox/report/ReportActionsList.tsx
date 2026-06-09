@@ -52,6 +52,7 @@ import {
 } from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
+import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {openReport, readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -178,6 +179,7 @@ function ReportActionsList({
     const {scrollOffsetRef} = useContext(ActionListContext);
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft} = useConciergeDraftActions();
+    const {sessionStartTime: conciergeSessionStartTime} = useConciergeSessionState();
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -265,6 +267,10 @@ function ReportActionsList({
             return sortedVisibleReportActions;
         }
 
+        if (showHiddenHistory && conciergeSessionStartTime && draftReportAction.created < conciergeSessionStartTime) {
+            return sortedVisibleReportActions;
+        }
+
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
@@ -286,7 +292,8 @@ function ReportActionsList({
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    }, [draftReportAction, isDraftPendingCompletion, sortedVisibleReportActions]);
+    }, [conciergeSessionStartTime, draftReportAction, isDraftPendingCompletion, showHiddenHistory, sortedVisibleReportActions]);
+
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
     const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;

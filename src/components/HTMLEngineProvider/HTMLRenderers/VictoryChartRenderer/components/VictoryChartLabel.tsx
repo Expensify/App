@@ -21,7 +21,7 @@ type ProcessedLine = {
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'start'}: VictoryChartLabelsProps) {
+function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle'}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
     const processedLines = text.split('\n').reduce(
         (acc, line, index) => {
