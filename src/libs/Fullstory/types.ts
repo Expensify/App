@@ -7,6 +7,139 @@ type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
 
 type PropertiesWithoutPageName = Record<string, unknown> & {pageName?: never};
 
+/* eslint-disable @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys. */
+type FullstoryUserVars = {
+    user_type_path?: string;
+    account_type?: 'personal' | 'business';
+    user_status?: 'new' | 'returning';
+    has_completed_onboarding?: boolean;
+    onb_step?: 'registration' | 'accounting' | 'completed';
+    user_role?: 'admin' | 'auditor' | 'member';
+    workspace_state?: 'has_workspaces' | 'no_workspaces';
+    workspace_count?: number;
+    workspace_member_count?: number;
+    free_trial_end_date?: string;
+    days_till_trial_end?: number;
+    free_trial_status?: 'active' | 'expiring_soon' | 'expired' | 'expired_last30days';
+    plan_type?: 'collect' | 'control';
+    paid_member?: boolean;
+    auth_method?: 'email' | 'google' | 'apple';
+    reg_method?: 'Google signup' | 'email/phone signup';
+    login_status?: 'success' | 'failure';
+};
+
+type FullstoryEventPropertiesMap = {
+    Page_viewed: {
+        screen_name: string;
+        entry_point?: string;
+        onb_step?: FullstoryUserVars['onb_step'];
+    };
+    Component_viewed: {
+        screen_name: string;
+        location?: string;
+        component_name?: string;
+        onb_step?: FullstoryUserVars['onb_step'];
+    };
+    Component_closed: {
+        screen_name: string;
+        location?: string;
+        component_name?: string;
+        onb_step?: FullstoryUserVars['onb_step'];
+    };
+    clickable_action: {
+        screen_name?: string;
+        location?: string;
+        component_name?: string;
+        onb_step?: FullstoryUserVars['onb_step'];
+        element_label?: string;
+        checked_box?: boolean;
+        // cspell:disable-next-line
+        toggle_swith_on?: boolean;
+        result_type?: string;
+        action_status?: string;
+        position?: number;
+    };
+    Input_field: {
+        screen_name?: string;
+        location?: string;
+        component_name?: string;
+        onb_step?: FullstoryUserVars['onb_step'];
+        input_field_name?: string;
+        input_field_type?: string;
+        input_field_status?: string;
+    };
+    Error_message: {
+        screen_name?: string;
+        location?: string;
+        component_name?: string;
+        onb_step?: FullstoryUserVars['onb_step'];
+        error_location?: string;
+        error_code?: string;
+        error_message?: string;
+        error_type?: string;
+    };
+    Search_submitted: {
+        screen_name?: string;
+        result_type?: string;
+        search_results_count?: number;
+        search_type?: string;
+    };
+    Chat_opened: {
+        screen_name?: string;
+        chat_type?: 'Full-page chat' | 'side-panel chat';
+    };
+    Login_submitted: {
+        action_status?: string;
+    };
+    sign_up: {
+        entry_point?: string;
+        action_status?: string;
+    };
+    File_upload_started: {
+        upload_method?: string;
+    };
+    File_upload_completed: {
+        upload_success?: boolean;
+    };
+    Concierge_message_sent: {
+        has_attachment?: boolean;
+        attachment_count?: number;
+        attachment_types?: string;
+        upload_method?: string;
+    };
+    Chatbot_response_received: {
+        error_type?: string;
+    };
+    Expense_created: {
+        expense_type?: string;
+        expense_creation_method?: string;
+        amount_range?: string;
+    };
+    Report_created: {
+        expense_count?: number;
+        report_type?: string;
+    };
+    Report_submitted: {
+        expense_count?: number;
+        report_type?: string;
+        approver_count?: number;
+    };
+    Bank_account_added: {
+        bank_account_type?: string;
+        card_connection_method?: string;
+        bank_region?: string;
+    };
+    Card_added: {
+        card_connection_method?: string;
+        card_type?: string;
+        card_provider?: string;
+        card_country?: string;
+    };
+};
+
+type FullstoryEventName = keyof FullstoryEventPropertiesMap;
+/* eslint-enable @typescript-eslint/naming-convention */
+
 /**
  * Represents the common FSPage class signature that will be used in both platform implementations.
  */
@@ -87,7 +220,7 @@ type Fullstory = {
     /**
      * Sends a custom event to FullStory.
      */
-    event: (eventName: string, eventProperties?: Record<string, unknown>) => void;
+    event: <TEventName extends FullstoryEventName>(eventName: TEventName, eventProperties?: FullstoryEventPropertiesMap[TEventName]) => void;
 
     /**
      * Sends a log message to FullStory with the specified log level.
@@ -97,7 +230,7 @@ type Fullstory = {
     /**
      * Updates user properties without re-identifying.
      */
-    setUserVars: (userVars: Record<string, unknown>) => void;
+    setUserVars: (userVars: FullstoryUserVars) => void;
 
     /**
      * Resets the idle timer to prevent session timeout.
@@ -148,4 +281,4 @@ type ForwardedFSClassProps = {
     forwardedFSClass?: FSClass;
 };
 
-export type {FSPageLike, Fullstory, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};
+export type {FSPageLike, Fullstory, FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};
