@@ -185,6 +185,8 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}
                             onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
+                            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                            onPressOut={() => ControlSelection.unblock()}
                             onLongPress={(event) =>
                                 onShowContextMenu(() => {
                                     if (!shouldDisplayContextMenu) {
