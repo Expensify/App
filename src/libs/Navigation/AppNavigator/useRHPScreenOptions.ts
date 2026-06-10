@@ -5,10 +5,10 @@ import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
-import {useCenteredRHPModalState} from '@libs/Navigation/AppNavigator/useIsCenteredRHPModal';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types/NavigationOptions';
+import {useCenteredRHPModalState} from './useIsCenteredRHPModal';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
 // This function is necessary for proper animation if a wide format RHP screen is visible.
