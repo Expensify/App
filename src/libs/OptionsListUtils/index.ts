@@ -2685,7 +2685,6 @@ function getValidOptions(
             }
             if (isPersonalDetailSelected(personalDetail, selectedOptions)) {
                 personalDetail.isSelected = true;
-                personalDetail.selected = true;
             }
         }
     }
