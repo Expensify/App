@@ -96,6 +96,9 @@ type ButtonStyleProps = {
     /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 
+    /** Additional hover styles applied on top of theme-derived hovers (default/success/danger). */
+    hoverStyles?: StyleProp<ViewStyle>;
+
     /** Should we remove the border radius on a specific side? */
     removeBorderRadius?: 'left' | 'right' | 'all';
 
