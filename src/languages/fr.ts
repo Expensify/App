@@ -8506,8 +8506,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const article = role.toLowerCase() === 'auditor' ? 'un' : 'un';
-                    return didJoinPolicy ? `${email} a rejoint via le lien d’invitation à l’espace de travail` : `a ajouté ${email} en tant que ${article} ${role}`;
+                    const translatedRole = translations.workspace.common.roleName(role).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'un' : 'un';
+                    return didJoinPolicy ? `${email} a rejoint via le lien d’invitation à l’espace de travail` : `a ajouté ${email} en tant que ${article} ${translatedRole}`;
                 },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `a mis à jour le rôle de ${email} en ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {

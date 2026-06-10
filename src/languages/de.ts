@@ -8471,8 +8471,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const article = role.toLowerCase() === 'auditor' ? 'an' : 'ein';
-                    return didJoinPolicy ? `${email} ist über den Workspace-Einladungslink beigetreten` : `${email} als ${article} ${role} hinzugefügt`;
+                    const translatedRole = translations.workspace.common.roleName(role).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'an' : 'ein';
+                    return didJoinPolicy ? `${email} ist über den Workspace-Einladungslink beigetreten` : `${email} als ${article} ${translatedRole} hinzugefügt`;
                 },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `hat die Rolle von ${email} in ${newRole} geändert (zuvor ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {

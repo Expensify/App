@@ -8517,8 +8517,9 @@ const translations = {
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const article = role.toLowerCase() === 'auditor' ? 'an' : 'a';
-                    return didJoinPolicy ? `${email} joined via the workspace invite link` : `added ${email} as ${article} ${role}`;
+                    const translatedRole = translations.workspace.common.roleName(role).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'an' : 'a';
+                    return didJoinPolicy ? `${email} joined via the workspace invite link` : `added ${email} as ${article} ${translatedRole}`;
                 },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {

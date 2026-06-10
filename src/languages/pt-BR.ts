@@ -8422,8 +8422,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `a conexão Plaid com a sua conta bancária empresarial foi interrompida. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const article = role.toLowerCase() === 'auditor' ? 'um' : 'um';
-                    return didJoinPolicy ? `${email} entrou pelo link de convite do workspace` : `adicionou ${email} como ${article} ${role}`;
+                    const translatedRole = translations.workspace.common.roleName(role).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'um' : 'um';
+                    return didJoinPolicy ? `${email} entrou pelo link de convite do workspace` : `adicionou ${email} como ${article} ${translatedRole}`;
                 },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `atualizou a função de ${email} para ${newRole} (anteriormente ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {

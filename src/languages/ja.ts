@@ -8353,8 +8353,9 @@ ${reportName}
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const article = role.toLowerCase() === 'auditor' ? '一つの' : 'a';
-                    return didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${email} を${article}${role}として追加しました`;
+                    const translatedRole = translations.workspace.common.roleName(role).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? '一つの' : 'a';
+                    return didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${email} を${article}${translatedRole}として追加しました`;
                 },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} のロールを ${currentRole} から ${newRole} に更新しました`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
