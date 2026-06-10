@@ -282,6 +282,9 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
+    ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
+    ADVANCED_FILTERS_POPOVER_WIDTH: 582,
+    ADVANCED_FILTERS_CONTENT_WIDTH: 331,
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -8043,6 +8046,7 @@ const CONST = {
             ADVANCED_FILTER_ITEM: 'Search-AdvancedFilterItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
             VIEW_RESULTS_BUTTON: 'Search-ViewResultsButton',
+            CLEAR_FILTERS_BUTTON: 'Search-ClearFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
