@@ -589,12 +589,17 @@ describe('TransactionPreviewUtils', () => {
         const reviewRequired = {translationPath: 'violations.reviewRequired'};
         const longMessage = 'x'.repeat(CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW + 1);
 
-        const receiptRequiredViolation = {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$25.00'}};
+        const receiptRequiredViolation = {
+            name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+            data: {amount: 2500, currency: CONST.CURRENCY.USD},
+        };
         const itemizedReceiptRequiredViolation = {
             name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
             type: CONST.VIOLATION_TYPES.VIOLATION,
             showInReview: true,
-            data: {formattedLimit: '$75.00'},
+            data: {amount: 7500, currency: CONST.CURRENCY.USD},
         };
 
         const mockViolations = (count: number) =>

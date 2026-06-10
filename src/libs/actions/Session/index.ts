@@ -3,8 +3,6 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
@@ -38,6 +36,7 @@ import Log from '@libs/Log';
 import {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
@@ -155,7 +154,9 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
 }
 
 function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.HYBRID_APP>> = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -171,14 +172,19 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             value: {
                 signedInWithShortLivedAuthToken: true,
                 signedInWithSAML: isSAML,
-                isAuthenticatingWithShortLivedToken: true,
                 isSupportAuthTokenUsed,
             },
+        },
+        // Kept on a RAM-only key so an interrupted SignIn cannot persist a stuck `true` to IndexedDB and block all future reauth attempts.
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            value: true,
         },
     ];
 
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -193,8 +199,12 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
                 signedInWithShortLivedAuthToken: null,
                 signedInWithSAML: isSAML,
                 isSupportAuthTokenUsed: null,
-                isAuthenticatingWithShortLivedToken: false,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            value: false,
         },
     ];
 
@@ -609,7 +619,7 @@ function buildOnyxDataToCleanUpAnonymousUser(): OnyxUpdate<typeof ONYXKEYS.PERSO
  * Creates an account for the new user and signs them into the application with the newly created account.
  *
  */
-function signUpUser(preferredLocale: Locale | undefined) {
+function signUpUser(preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -646,6 +656,9 @@ function signUpUser(preferredLocale: Locale | undefined) {
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
         const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null, deviceInfo};
+        if (hasSMSMarketingConsent !== undefined) {
+            params.hasSMSMarketingConsent = hasSMSMarketingConsent;
+        }
         API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
     });
 }
@@ -1414,13 +1427,14 @@ function waitForUserSignIn(): Promise<boolean> {
 }
 
 function handleExitToNavigation(exitTo: Route) {
-    InteractionManager.runAfterInteractions(() => {
-        waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes().then(() => {
-                Navigation.goBack(ROUTES.HOME);
-                Navigation.navigate(exitTo);
-            });
-        });
+    TransitionTracker.runAfterTransitions({
+        callback: async () => {
+            await waitForUserSignIn();
+            await Navigation.waitForProtectedRoutes();
+            Navigation.goBack(ROUTES.HOME);
+            Navigation.navigate(exitTo);
+        },
+        waitForUpcomingTransition: true,
     });
 }
 

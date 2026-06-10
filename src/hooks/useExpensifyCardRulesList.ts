@@ -67,6 +67,7 @@ export default function useExpensifyCardRules(policyID: string) {
                 actionLabel,
                 cardSummary,
                 summaryParts,
+                formValues,
                 accessibilityLabel,
                 created: cardRule.created,
                 currencyCode: selectedCurrency,

@@ -19,6 +19,7 @@ import {
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
+    getExpensifyTeamExclusions,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getQBOVendorByID,
@@ -36,6 +37,7 @@ import {
     hasIndependentTags,
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
+    hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
@@ -247,7 +249,7 @@ describe('PolicyUtils', () => {
         const memberLogin = 'member@test.com';
         const buildPolicy = (role: Policy['role']): Policy =>
             ({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 role,
                 employeeList: {
                     [memberLogin]: {
@@ -321,7 +323,7 @@ describe('PolicyUtils', () => {
         it('should return domainID for given policyID when workspaceID is not set', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                workspaceAccountID: 0,
+                policyAccountID: 0,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`, {
@@ -345,7 +347,7 @@ describe('PolicyUtils', () => {
         it('should return lastSelectedExpensifyCardFeed for given policyID when lastSelectedExpensifyCardFeed is set', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                workspaceAccountID: 0,
+                policyAccountID: 0,
             };
             const lastSelectedExpensifyCardFeed = 11111;
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
@@ -363,7 +365,7 @@ describe('PolicyUtils', () => {
         it('should return workspaceAccountID for given policyID', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                workspaceAccountID: 123234,
+                policyAccountID: 123234,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             const {result} = renderHook(() => useDefaultFundID(policy.id));
@@ -2694,6 +2696,90 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('getExpensifyTeamExclusions', () => {
+        const buildPersonalDetails = (logins: string[]): PersonalDetailsList => {
+            const result: PersonalDetailsList = {};
+            for (const [index, login] of logins.entries()) {
+                const accountID = index + 1;
+                result[accountID] = {accountID, login};
+            }
+            return result;
+        };
+        const buildPolicies = (
+            specs: Array<{
+                owner: string;
+                employeeLogins: string[];
+            }>,
+        ): OnyxCollection<Policy> => {
+            const result: OnyxCollection<Policy> = {};
+            for (const [index, {owner, employeeLogins}] of specs.entries()) {
+                const memberList: PolicyEmployeeList = {};
+                for (const login of employeeLogins) {
+                    memberList[login] = {email: login};
+                }
+                result[`policy_${index + 1}`] = {id: `${index + 1}`, owner, employeeList: memberList} as Policy;
+            }
+            return result;
+        };
+
+        it('returns empty when currentUserLogin is undefined', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['bob@acme.com']}]);
+            expect(getExpensifyTeamExclusions(details, policies, undefined)).toEqual({});
+        });
+
+        it('returns empty when currentUserLogin is on the Expensify team (exception)', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['am@expensify.com', 'bob@acme.com']}]);
+            expect(getExpensifyTeamExclusions(details, policies, 'staff@expensify.com')).toEqual({});
+        });
+
+        it('excludes all Expensify-team logins from personalDetails when current user is non-Expensify and has no Expensify-owned policies', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'guide@team.expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['bob@acme.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'customer@acme.com');
+            expect(result['am@expensify.com']).toBe(true);
+            expect(result['guide@team.expensify.com']).toBe(true);
+            expect(result['bob@acme.com']).toBeUndefined();
+        });
+
+        it('preserves Expensify-team members of an Expensify-owned policy the current user belongs to', () => {
+            const details = buildPersonalDetails(['lead@expensify.com', 'unrelated_am@expensify.com', 'contractor@acme.com']);
+            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['contractor@acme.com', 'lead@expensify.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'contractor@acme.com');
+            expect(result['lead@expensify.com']).toBeUndefined();
+            expect(result['unrelated_am@expensify.com']).toBe(true);
+            expect(result['contractor@acme.com']).toBeUndefined();
+        });
+
+        it('does not preserve Expensify-team members of policies the current user is not in', () => {
+            const details = buildPersonalDetails(['lead@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['lead@expensify.com', 'someone_else@acme.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'bob@acme.com');
+            expect(result['lead@expensify.com']).toBe(true);
+        });
+
+        it('does not preserve when policy owner is non-Expensify', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'bob@acme.com', employeeLogins: ['am@expensify.com', 'bob@acme.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'bob@acme.com');
+            expect(result['am@expensify.com']).toBe(true);
+        });
+
+        it('handles undefined and empty inputs gracefully', () => {
+            expect(getExpensifyTeamExclusions(undefined, undefined, 'customer@acme.com')).toEqual({});
+            expect(getExpensifyTeamExclusions(null as unknown as OnyxEntry<PersonalDetailsList>, null as unknown as OnyxCollection<Policy>, 'customer@acme.com')).toEqual({});
+            expect(getExpensifyTeamExclusions({}, {}, 'customer@acme.com')).toEqual({});
+        });
+
+        it('lowercases comparison keys for current user and employeeList matching', () => {
+            const details = buildPersonalDetails(['AM@expensify.com', 'Bob@Acme.com']);
+            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['AM@expensify.com', 'Contractor@Acme.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'Contractor@Acme.com');
+            expect(result['am@expensify.com']).toBeUndefined();
+            expect(result['bob@acme.com']).toBeUndefined();
+        });
+    });
     describe('canAccessSubmitWorkspaceFeatures', () => {
         const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
         const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
@@ -2829,6 +2915,48 @@ describe('PolicyUtils', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
                 expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
             });
+        });
+    });
+
+    describe('hasPolicyRulesError', () => {
+        it('returns false for an undefined policy', () => {
+            expect(hasPolicyRulesError(undefined)).toBe(false);
+        });
+
+        it('returns false when no coding or AI rules exist', () => {
+            const policy: Policy = {...createRandomPolicy(0), rules: {}};
+            expect(hasPolicyRulesError(policy)).toBe(false);
+        });
+
+        it('returns false when rules exist but none have errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
+                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(false);
+        });
+
+        it('returns true when a coding rule has errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, errors: {123: 'boom'}}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(true);
+        });
+
+        it('returns true when an AI rule has errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(true);
         });
     });
 });

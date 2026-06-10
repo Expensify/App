@@ -34,6 +34,7 @@ type TrackExpenseTransactionParams = {
     odometerEnd?: number;
     isFromGlobalCreate?: boolean;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
 };
 
 export type {TrackExpenseTransactionParams, GPSPoint};
