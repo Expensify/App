@@ -451,7 +451,7 @@ function updateMoneyRequestVendor({transactionID, vendorID, transaction, transac
 
     const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, isManuallySet: true};
 
-    // Build an optimistic MODIFIEDEXPENSE so the transaction thread shows "set vendor X" /
+    // Build an optimistic MODIFIED_EXPENSE so the transaction thread shows "set vendor X" /
     // "changed vendor from X to Y" / "removed the vendor" immediately. Auth's UpdateMoneyRequestVendor
     // command writes the same {externalID, isManuallySet} shape to the action's originalMessage; the
     // optimistic action mirrors that so the local render matches the eventual server payload.
@@ -468,7 +468,9 @@ function updateMoneyRequestVendor({transactionID, vendorID, transaction, transac
             : null;
     const optimisticReportActionID = optimisticModifiedExpense?.reportActionID ?? rand64();
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
@@ -498,7 +500,9 @@ function updateMoneyRequestVendor({transactionID, vendorID, transaction, transac
     // Only roll back the vendor when we have a known prior snapshot. If the transaction isn't passed
     // in AND isn't cached in Onyx yet, we don't know what to restore — writing null here would silently
     // clear a vendor we don't know about. The next server sync will reconcile.
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
