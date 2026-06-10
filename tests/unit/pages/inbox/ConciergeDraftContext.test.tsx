@@ -55,17 +55,8 @@ const SHORT_FINAL_RENDERED_HTML = '<comment>OK</comment>';
 const LONG_FINAL_RENDERED_TEXT = Array.from({length: 12}, (_, index) => `Streaming response ${index}`).join(' ');
 const LONG_FINAL_RENDERED_HTML = `<comment>${LONG_FINAL_RENDERED_TEXT}</comment>`;
 
-type MockPusherSubscribe = jest.MockedFunction<
-    (
-        channelName: string,
-        eventName?: string,
-        eventCallback?: (event: ConciergeDraftEvent | ConciergeDraftEventsEvent) => void,
-        onResubscribe?: () => void,
-    ) => ReturnType<typeof Pusher.subscribe>
->;
-
-function getMockPusherSubscribe(): MockPusherSubscribe {
-    return Pusher.subscribe as MockPusherSubscribe;
+function getMockPusherSubscribe() {
+    return jest.mocked(Pusher.subscribe);
 }
 
 function getFirstMessageText(reportAction: ReportAction | null): string | undefined {
