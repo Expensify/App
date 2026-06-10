@@ -1136,8 +1136,6 @@
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"react-hooks/refs"	29
 "../../src/pages/inbox/report/ListBoundaryLoader.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/inbox/report/PureReportActionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/inbox/report/PureReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReactionList/HeaderReactionList.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionCompose/AttachmentPickerWithMenuItems.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
@@ -1149,6 +1147,8 @@
 "../../src/pages/inbox/report/ReportActionCompose/useAttachmentPicker.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/useComposerFocus.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/useReceiptDrop.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../src/pages/inbox/report/ReportActionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/pages/inbox/report/ReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/preserve-manual-memoization"	1
@@ -1680,9 +1680,9 @@
 "../../tests/ui/ParentNavigationSubtitleTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/ui/PersonalDetailsOnboarding.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/ProfilePageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../tests/ui/PureReportActionItemTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/ui/ReportActionAvatarsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/ui/ReportActionItemMessageEditTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/ui/ReportActionItemTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/ui/ReportActionMessageEditLayoutTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/ReportActionsViewTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/ui/ReportListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
