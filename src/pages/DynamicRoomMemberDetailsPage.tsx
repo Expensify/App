@@ -8,6 +8,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,16 +25,16 @@ import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
-type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
+type DynamicRoomMemberDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS>;
 
-function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) {
+function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
@@ -41,12 +42,11 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const policy = usePolicy(report?.policyID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.path);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, route.params.backTo);
-
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
@@ -57,7 +57,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
         removeFromRoom(report, [accountID]);
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const navigateToProfile = () => {
@@ -69,10 +69,10 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     }
 
     return (
-        <ScreenWrapper testID="RoomMemberDetailsPage">
+        <ScreenWrapper testID="DynamicRoomMemberDetailsPage">
             <HeaderWithBackButton
                 title={displayName}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
@@ -127,4 +127,4 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     );
 }
 
-export default withReportOrNotFound()(RoomMemberDetailsPage);
+export default withReportOrNotFound()(DynamicRoomMemberDetailsPage);

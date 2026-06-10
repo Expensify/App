@@ -950,7 +950,7 @@ const SCREENS = {
     },
 
     SPLIT_DETAILS: {
-        ROOT: 'SplitDetails_Root',
+        DYNAMIC_ROOT: 'Dynamic_SplitDetails_Root',
         EDIT_REQUEST: 'SplitDetails_Edit_Request',
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
     },
@@ -1010,9 +1010,9 @@ const SCREENS = {
         ROLE: 'ReportParticipants_Role',
     },
     ROOM_MEMBERS: {
-        ROOT: 'RoomMembers_Root',
-        INVITE: 'RoomMembers_Invite',
-        DETAILS: 'RoomMember_Details',
+        DYNAMIC_ROOT: 'Dynamic_RoomMembers_Root',
+        DYNAMIC_INVITE: 'Dynamic_RoomMembers_Invite',
+        DYNAMIC_DETAILS: 'Dynamic_RoomMember_Details',
     },
     DYNAMIC_FLAG_COMMENT: 'Dynamic_Flag_Comment',
     DYNAMIC_TASK_TITLE: 'Dynamic_Task_Title',

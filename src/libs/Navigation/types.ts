@@ -1860,22 +1860,16 @@ type ParticipantsNavigatorParamList = {
 };
 
 type RoomMembersNavigatorParamList = {
-    [SCREENS.ROOM_MEMBERS.ROOT]: {
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.ROOM_MEMBERS.INVITE]: {
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE]: {
         reportID: string;
         role?: 'accountant';
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.ROOM_MEMBERS.DETAILS]: {
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS]: {
         reportID: string;
         accountID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
 };
 
@@ -2352,11 +2346,9 @@ type EnablePaymentsNavigatorParamList = {
 };
 
 type SplitDetailsNavigatorParamList = {
-    [SCREENS.SPLIT_DETAILS.ROOT]: {
+    [SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT]: {
         reportID: string;
         reportActionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
         field: string;

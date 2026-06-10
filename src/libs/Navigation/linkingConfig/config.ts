@@ -1710,9 +1710,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: {
                     screens: {
-                        [SCREENS.ROOM_MEMBERS.ROOT]: ROUTES.ROOM_MEMBERS.route,
-                        [SCREENS.ROOM_MEMBERS.INVITE]: ROUTES.ROOM_INVITE.route,
-                        [SCREENS.ROOM_MEMBERS.DETAILS]: ROUTES.ROOM_MEMBER_DETAILS.route,
+                        [SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.ROOM_MEMBERS.path,
+                        [SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE]: DYNAMIC_ROUTES.ROOM_INVITE.path,
+                        [SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS]: DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
@@ -1902,7 +1902,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
                     screens: {
-                        [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
+                        [SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TASK_DETAILS]: {

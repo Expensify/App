@@ -1073,11 +1073,11 @@
 "../../src/pages/ReimbursementAccount/utils/getSubStepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
+"../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/pages/RoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ScheduleCall/ScheduleCallPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/Search/AdvancedSearchFilters.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	17
 "../../src/pages/Search/EmptySearchView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
