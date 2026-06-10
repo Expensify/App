@@ -64,6 +64,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => {
         const ownerDetails = report.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
         return {
+            keyForList: report.reportID,
             reportID: report.reportID,
             name: getReportName(report, reportAttributes),
             ownerAccountID: report.ownerAccountID,
