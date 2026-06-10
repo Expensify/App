@@ -353,6 +353,7 @@ const translations = {
         card: 'Card',
         mcc: 'MCC',
         categoryGLCode: 'Category GL code',
+        tagGLCode: 'Tag GL code',
         whyDoWeAskForThis: 'Why do we ask for this?',
         required: 'Required',
         automatic: 'Automatic',

@@ -40,6 +40,7 @@ function ReportDetailsColumnsPage() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     // Selector keeps re-renders scoped to this report's transactions. We intentionally return undefined
     // while the collection is loading so the caller can distinguish "loading" from "no transactions".
     const reportTransactionsSelector = useCallback(
@@ -84,11 +85,12 @@ function ReportDetailsColumnsPage() {
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
             policyCategories,
+            policyTags: policyTagLists,
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)
         return visibleColumns.filter((col) => allTypeCustomColumns.includes(col as SearchCustomColumnIds)) as SearchCustomColumnIds[];
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, policyCategories, allTypeCustomColumns]);
+    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, policyCategories, policyTagLists, allTypeCustomColumns]);
 
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
 

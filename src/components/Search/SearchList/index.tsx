@@ -5,6 +5,7 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -33,7 +34,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Transaction} from '@src/types/onyx';
+import type {CardList, PolicyTagLists, Transaction} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -121,6 +122,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
     nonPersonalAndWorkspaceCards?: CardList;
+
+    /** All policies' tag lists, drilled from the list level so each row can resolve its policy's tags without an Onyx subscription per row */
+    policyTags?: OnyxCollection<PolicyTagLists>;
 
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
@@ -212,6 +216,7 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     nonPersonalAndWorkspaceCards,
+    policyTags,
     selectedTransactions,
     hasLoadedAllTransactions,
     isAttendeesEnabledForMovingPolicy,
@@ -458,6 +463,7 @@ function SearchList({
                         userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                         ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        policyTags={policyTags}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                         onUndelete={handleUndelete}
@@ -489,6 +495,7 @@ function SearchList({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,
+            policyTags,
             ListFooterComponent,
             isAttendeesEnabledForMovingPolicy,
             handleUndelete,

@@ -61,6 +61,7 @@ function TransactionListItem<TItem extends ListItem>({
     ownerBillingGracePeriodEnd,
     isAttendeesEnabledForMovingPolicy,
     onUndelete,
+    policyTags,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
@@ -93,6 +94,9 @@ function TransactionListItem<TItem extends ListItem>({
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+
+    // Resolve this row's policy tags from the collection drilled down from the list level, so large lists don't add an Onyx subscription per row
+    const policyTagLists = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`];
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
@@ -194,6 +198,7 @@ function TransactionListItem<TItem extends ListItem>({
         transactionPreviewData,
         exportedReportActions,
         policyCategories,
+        policyTagLists,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
     };
