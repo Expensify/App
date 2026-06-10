@@ -21,13 +21,7 @@ function createDomain(email: string, accountID: number): Domain {
 }
 
 function createCardList(...cards: Card[]): CardList {
-    return cards.reduce<CardList>(
-        (list, card, index) => ({
-            ...list,
-            [`card${index}`]: card,
-        }),
-        {},
-    );
+    return Object.fromEntries(cards.map((card, index) => [`card${index}`, card]));
 }
 
 function createAdminPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Policy {
