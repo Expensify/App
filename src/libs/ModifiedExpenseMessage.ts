@@ -448,10 +448,16 @@ function getForReportAction({
         buildMessageFragmentForValue(translate, newReimbursable, oldReimbursable, translate('iou.expense'), true, setFragments, removalFragments, changeFragments);
     }
 
-    const hasModifiedVendor = isReportActionOriginalMessageAnObject && 'oldVendor' in reportActionOriginalMessage && 'vendor' in reportActionOriginalMessage;
+    // Onyx applies updates with `shouldRemoveNestedNulls: true`, so when we build an optimistic
+    // MODIFIED_EXPENSE for a vendor "set" (no prior, `oldVendor: null`) or "remove" (no new,
+    // `vendor: null`), the null-valued key is stripped on merge and only one of the two keys
+    // survives in storage. Treat either key's presence as a vendor modification — requiring both
+    // would let "add" and "remove" cases fall through to the generic "changed the expense"
+    // fallback.
+    const hasModifiedVendor = isReportActionOriginalMessageAnObject && ('oldVendor' in reportActionOriginalMessage || 'vendor' in reportActionOriginalMessage);
     if (hasModifiedVendor) {
-        // Vendor is stored on the action as `{externalID, isManuallySet}` (or null). Resolve the
-        // display name from the policy's QBO vendor list; if the vendor has since been removed
+        // Vendor is stored on the action as `{externalID, isManuallySet}` (or absent/null). Resolve
+        // the display name from the policy's QBO vendor list; if the vendor has since been removed
         // from QBO the name is unrecoverable, so fall back to the externalID so the fragment still
         // identifies which vendor was set rather than rendering `set vendor ""`.
         const resolveVendorName = (entry: typeof reportActionOriginalMessage.vendor): string => {

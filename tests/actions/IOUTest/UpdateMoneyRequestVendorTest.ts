@@ -3,7 +3,7 @@ import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import * as API from '@libs/API';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const TRANSACTION_ID = 'txn-vendor-test';
@@ -159,5 +159,104 @@ describe('updateMoneyRequestVendor', () => {
         const onyxData = getOnyxDataArg();
         const transactionFailure = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
         expect(transactionFailure?.value).toMatchObject({pendingFields: {vendor: null}});
+    });
+
+    describe('optimistic MODIFIED_EXPENSE report action', () => {
+        // The optimistic action only goes onto the transaction thread when the caller passes the
+        // thread report — `IOURequestStepVendor` does this when the user picks a vendor row. The
+        // action drives the "set the vendor to X" / "changed the vendor from X to Y" / "removed the
+        // vendor" system messages that show up in the thread before the server roundtrips. Without
+        // it the user sees the generic "changed the expense" fallback.
+        const TRANSACTION_THREAD_REPORT_ID = 'txn-thread-vendor-test';
+        const transactionThreadReport: Report = {
+            reportID: TRANSACTION_THREAD_REPORT_ID,
+            reportName: 'Transaction thread',
+        } as Report;
+
+        type ReportActionMap = Record<string, {actionName?: string; originalMessage?: {vendor?: unknown; oldVendor?: unknown}}>;
+
+        const findOptimisticModifiedExpense = (): {actionName?: string; originalMessage?: {vendor?: unknown; oldVendor?: unknown}} | undefined => {
+            const onyxData = getOnyxDataArg();
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRANSACTION_THREAD_REPORT_ID}`;
+            const update = onyxData?.optimisticData.find((entry) => entry.key === reportActionsKey);
+            const value = update?.value as ReportActionMap | undefined;
+            return value ? Object.values(value).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) : undefined;
+        };
+
+        it('builds an optimistic MODIFIED_EXPENSE with `vendor` set and `oldVendor` null when adding a vendor (no prior)', () => {
+            updateMoneyRequestVendor({
+                transactionID: TRANSACTION_ID,
+                vendorID: 'v-new',
+                transaction: baseTransaction,
+                transactionThreadReport,
+                delegateAccountID: undefined,
+            });
+
+            const optimisticAction = findOptimisticModifiedExpense();
+            expect(optimisticAction).toBeDefined();
+            // `oldVendor: null` signals "no prior vendor". Onyx strips nested nulls on merge, which
+            // is fine — `ModifiedExpenseMessage` treats either key's presence as a vendor change.
+            expect(optimisticAction?.originalMessage).toMatchObject({
+                vendor: {externalID: 'v-new', isManuallySet: true},
+                oldVendor: null,
+            });
+        });
+
+        it('builds an optimistic MODIFIED_EXPENSE with both `vendor` and `oldVendor` set when changing the vendor', () => {
+            const previousVendor = {externalID: 'v-old', isManuallySet: false};
+            const transactionWithVendor: Transaction = {
+                ...baseTransaction,
+                comment: {vendor: previousVendor},
+            };
+
+            updateMoneyRequestVendor({
+                transactionID: TRANSACTION_ID,
+                vendorID: 'v-new',
+                transaction: transactionWithVendor,
+                transactionThreadReport,
+                delegateAccountID: undefined,
+            });
+
+            const optimisticAction = findOptimisticModifiedExpense();
+            expect(optimisticAction?.originalMessage).toMatchObject({
+                oldVendor: previousVendor,
+                vendor: {externalID: 'v-new', isManuallySet: true},
+            });
+        });
+
+        it('builds an optimistic MODIFIED_EXPENSE with `vendor` null and `oldVendor` set when clearing the vendor', () => {
+            const previousVendor = {externalID: 'v-old', isManuallySet: true};
+            const transactionWithVendor: Transaction = {
+                ...baseTransaction,
+                comment: {vendor: previousVendor},
+            };
+
+            updateMoneyRequestVendor({
+                transactionID: TRANSACTION_ID,
+                vendorID: '',
+                transaction: transactionWithVendor,
+                transactionThreadReport,
+                delegateAccountID: undefined,
+            });
+
+            const optimisticAction = findOptimisticModifiedExpense();
+            expect(optimisticAction?.originalMessage).toMatchObject({
+                oldVendor: previousVendor,
+                vendor: null,
+            });
+        });
+
+        it('does NOT build an optimistic MODIFIED_EXPENSE when no transactionThreadReport is passed (defensive — no thread to write to)', () => {
+            updateMoneyRequestVendor({
+                transactionID: TRANSACTION_ID,
+                vendorID: 'v-new',
+                transaction: baseTransaction,
+                delegateAccountID: undefined,
+            });
+
+            const onyxData = getOnyxDataArg();
+            const reportActionsUpdate = onyxData?.optimisticData.find((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+            expect(reportActionsUpdate).toBeUndefined();
+        });
     });
 });
