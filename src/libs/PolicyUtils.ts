@@ -320,7 +320,8 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
  */
 function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
+    const bankAccountPolicyID = currentBankAccount?.accountData?.additionalData?.policyID;
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin).filter((policy) => policy.id === bankAccountPolicyID);
     if (!activePolicies) {
         return [];
     }
@@ -361,7 +362,8 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
  */
 function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const bankAccountPolicyID = currentBankAccount?.accountData?.additionalData?.policyID;
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin).filter((policy) => policy.id === bankAccountPolicyID);
     if (!activePolicies) {
         return false;
     }
