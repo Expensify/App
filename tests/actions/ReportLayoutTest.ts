@@ -6,15 +6,36 @@ import CONST from '@src/CONST';
 
 jest.mock('@libs/API');
 
-const mockAPI = API as jest.Mocked<typeof API>;
+const mockWrite = jest.mocked(API.write);
 
 const LAYOUT_OPTION_NVP_NAME = 'expensify_layoutOption';
 const GROUP_BY_OPTION_NVP_NAME = 'expensify_groupByOption';
 
+function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
+function isSetNameValuePairsParams(value: unknown): value is SetNameValuePairsParams {
+    return isRecord(value) && 'nameValuePairs' in value && typeof value.nameValuePairs === 'string';
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+    return isRecord(value) && Object.values(value).every((entry) => typeof entry === 'string');
+}
+
 const getWrittenNameValuePairs = (callIndex = 0) => {
-    const call = mockAPI.write.mock.calls.at(callIndex);
-    const params = call?.[1] as SetNameValuePairsParams | undefined;
-    return params ? (JSON.parse(params.nameValuePairs) as Record<string, string>) : {};
+    const call = mockWrite.mock.calls.at(callIndex);
+    const params = call?.[1];
+    if (!isSetNameValuePairsParams(params)) {
+        return {};
+    }
+
+    const parsed: unknown = JSON.parse(params.nameValuePairs);
+    if (!isStringRecord(parsed)) {
+        return {};
+    }
+
+    return parsed;
 };
 
 describe('getReportLayoutGroupBy', () => {
@@ -45,14 +66,14 @@ describe('getReportLayoutGroupBy', () => {
 
 describe('setReportLayout', () => {
     beforeEach(() => {
-        mockAPI.write.mockClear();
+        mockWrite.mockClear();
     });
 
     it('writes layoutOption=matrix and clears groupByOption atomically when None is selected', () => {
         setReportLayout(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, null, CONST.REPORT_LAYOUT.GROUP_BY.TAG);
 
-        expect(mockAPI.write).toHaveBeenCalledTimes(1);
-        expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(mockWrite).toHaveBeenCalledTimes(1);
+        expect(mockWrite.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
         expect(getWrittenNameValuePairs()).toEqual({
             [LAYOUT_OPTION_NVP_NAME]: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
             [GROUP_BY_OPTION_NVP_NAME]: '',
@@ -62,16 +83,16 @@ describe('setReportLayout', () => {
     it('writes only groupByOption when Category or Tag is selected without a prior matrix layout', () => {
         setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.TAG, null, null);
 
-        expect(mockAPI.write).toHaveBeenCalledTimes(1);
-        expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(mockWrite).toHaveBeenCalledTimes(1);
+        expect(mockWrite.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
         expect(getWrittenNameValuePairs()).toEqual({[GROUP_BY_OPTION_NVP_NAME]: CONST.REPORT_LAYOUT.GROUP_BY.TAG});
     });
 
     it('clears the matrix layout atomically when switching from None back to Category or Tag', () => {
         setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY, CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, null);
 
-        expect(mockAPI.write).toHaveBeenCalledTimes(1);
-        expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(mockWrite).toHaveBeenCalledTimes(1);
+        expect(mockWrite.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
         expect(getWrittenNameValuePairs()).toEqual({
             [GROUP_BY_OPTION_NVP_NAME]: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
             [LAYOUT_OPTION_NVP_NAME]: '',
@@ -81,7 +102,7 @@ describe('setReportLayout', () => {
     it('never falls back to the singular SetNameValuePair command', () => {
         setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.TAG, null, null);
 
-        expect(mockAPI.write).not.toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, expect.any(Object), expect.any(Object));
+        expect(mockWrite).not.toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, expect.any(Object), expect.any(Object));
     });
 });
 
