@@ -17,7 +17,7 @@ import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {CompanyCardFeedWithDomainID, PersonalCardFeed} from './types/onyx';
-import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
+import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
 type WorkspaceCompanyCardsAssignCardParams = {
@@ -130,6 +130,10 @@ const DYNAMIC_ROUTES = {
     IMPORTED_MEMBERS_ROLE: {
         path: 'imported-members-role',
         entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
+    },
+    PAYMENT_CARD_CURRENCY_SELECTOR: {
+        path: 'payment-card-currency',
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.OWNER_CHANGE_CHECK],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
@@ -817,6 +821,10 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
+    WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
+        path: 'initial-list-value',
+        entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -1029,7 +1037,6 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile', backTo),
     },
-    SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_AVATAR: 'settings/profile/avatar',
@@ -1050,7 +1057,6 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE: 'settings/subscription/details/expensify-code',
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
-    SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION: 'settings/subscription/cancel-subscription-survey',
     SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED: {
@@ -2153,6 +2159,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select` as const;
         },
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/credit-card-default-vendor-select',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/credit-card-default-vendor-select` as const;
+        },
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/card-select',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -2406,6 +2421,35 @@ const ROUTES = {
     WORKSPACE_INVOICES_COMPANY_WEBSITE: {
         route: 'workspaces/:policyID/invoices/company-website',
         getRoute: (policyID: string) => `workspaces/${policyID}/invoices/company-website` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_CREATE: {
+        route: 'workspaces/:policyID/invoices/newInvoiceField',
+        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/newInvoiceField` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_SETTINGS: {
+        route: 'workspaces/:policyID/invoices/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/invoices/${encodeURIComponent(reportFieldID)}/edit` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_LIST_VALUES: {
+        route: 'workspaces/:policyID/invoices/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/invoices/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_ADD_VALUE: {
+        route: 'workspaces/:policyID/invoices/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/invoices/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS: {
+        route: 'workspaces/:policyID/invoices/:valueIndex/:reportFieldID?',
+        getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
+            `workspaces/${policyID}/invoices/${valueIndex}/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_EDIT_VALUE: {
+        route: 'workspaces/:policyID/invoices/newInvoiceField/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `workspaces/${policyID}/invoices/newInvoiceField/${valueIndex}/edit` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE: {
+        route: 'workspaces/:policyID/invoices/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/invoices/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
     WORKSPACE_MEMBERS: {
         route: 'workspaces/:policyID/members',
@@ -2751,10 +2795,6 @@ const ROUTES = {
     WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
         route: 'workspaces/:policyID/reports/listValues/:reportFieldID?',
         getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
-    },
-    WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR: {
-        route: 'workspaces/:policyID/reports/typeSelector/:currentType?',
-        getRoute: (policyID: string, currentType?: PolicyReportFieldType) => `workspaces/${policyID}/reports/typeSelector/${currentType ? encodeURIComponent(currentType) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
         route: 'workspaces/:policyID/reports/addValue/:reportFieldID?',
@@ -3278,6 +3318,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
     },
+    RULES_AI_NEW: {
+        route: 'workspaces/:policyID/rules/ai-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/ai-rules/new` as const,
+    },
+    RULES_AI_EDIT: {
+        route: 'workspaces/:policyID/rules/ai-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/ai-rules/${ruleID}` as const,
+    },
     SHARE_ROOT: 'share/root',
     SHARE_ROOT_SHARE: 'share/root/share',
     SHARE_ROOT_SUBMIT: 'share/root/submit',
@@ -3402,7 +3450,7 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
     },
-    CURRENCY_SELECTION: {
+    WORKSPACE_CURRENCY_SELECTION: {
         route: 'workspace/confirmation/currency',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation/currency`, backTo),
@@ -3411,6 +3459,12 @@ const ROUTES = {
         route: 'onboarding/workspace-invite',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
+    },
+    ONBOARDING_PERSONAL_TRACK_GOAL: {
+        route: 'onboarding/personaltrackcase',
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
     },
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {

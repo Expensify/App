@@ -228,6 +228,16 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 }
 
 /**
+ * Check if the policy has any errors within the rules.
+ */
+function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
+    const codingRules = Object.values(policy?.rules?.codingRules ?? {});
+    const aiRules = Object.values(policy?.rules?.aiRules ?? {});
+
+    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || aiRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
+}
+
+/**
  * Checks if the policy had a sync error.
  */
 function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, connectionNames?: readonly ConnectionName[]): boolean {
@@ -609,6 +619,41 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /** Whether Expensify team members should be hidden from the given policy/user combination. */
 function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserLogin: string | undefined): boolean {
     return !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+}
+
+/**
+ * Creates a selector for useOnyx that computes the filtered member count.
+ * Returns a primitive number to prevent unnecessary re-renders when unrelated personal details change.
+ */
+function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
+    return (personalDetails: PersonalDetailsList | undefined): number => {
+        const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
+
+        return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
+            const accountID = policyMemberEmailsToAccountIDs[email];
+            const details = personalDetails?.[accountID];
+
+            if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
+                return count;
+            }
+
+            return count + 1;
+        }, 0);
+    };
+}
+
+/**
+ * Creates a selector for useOnyx that returns formatted text for invoice configuration.
+ * Returns a primitive string to prevent unnecessary re-renders when unrelated bank account data changes.
+ * This matches the filtering logic used by PaymentMethodList with filterType=BUSINESS on the invoices page.
+ */
+function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['translate'], invoiceCompany: string) {
+    return (bankAccountList: OnyxEntry<Record<string, {accountData?: {type?: string}}>>): string => {
+        const count = Object.values(bankAccountList ?? {}).filter((account) => account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS).length;
+        const bankAccountsText = count > 0 ? `${count} ${translate('common.bankAccounts').toLowerCase()}` : '';
+        return [bankAccountsText, invoiceCompany].filter(Boolean).join(', ');
+    };
 }
 
 /**
@@ -1098,11 +1143,13 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
  * @returns true if upgrade navigation was performed; false otherwise
  */
-function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, backTo?: string): boolean {
     if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
         return false;
     }
-    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
+    // Default the upgrade page's back destination to More Features (the source of most upgrade-gated toggles).
+    // Entry points outside More Features (e.g. the Roles flow) pass their own backTo so the user returns there.
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
     return true;
 }
 
@@ -2427,10 +2474,13 @@ export {
     shouldShowEmployeeListError,
     hasIntegrationAutoSync,
     hasPolicyCategoriesError,
+    hasPolicyRulesError,
     shouldShowPolicyError,
     shouldShowTaxRateError,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
+    createFilteredMemberCountSelector,
+    createInvoiceConfigurationTextSelector,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,
