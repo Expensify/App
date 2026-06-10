@@ -26,6 +26,7 @@ type ActionCellProps = {
     amount?: number;
     extraSmall?: boolean;
     shouldDisablePointerEvents?: boolean;
+    isMarkAsDone?: boolean;
 };
 
 function ActionCell({
