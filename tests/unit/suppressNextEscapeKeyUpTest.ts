@@ -1,6 +1,6 @@
 // Bypass haste: react-native preset defaults to iOS → would resolve to the no-op index.native.ts.
-// eslint-disable-next-line import/extensions
-const suppressNextEscapeKeyUp = (require('../../src/libs/suppressNextEscapeKeyUp/index.ts') as {default: () => () => void}).default;
+type SuppressModule = {default: () => () => void};
+const suppressNextEscapeKeyUp = jest.requireActual<SuppressModule>('../../src/libs/suppressNextEscapeKeyUp/index.ts').default;
 
 function dispatchAndCheckPropagation(key: string): boolean {
     let reached = false;

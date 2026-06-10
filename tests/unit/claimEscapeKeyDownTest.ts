@@ -1,6 +1,6 @@
 // Bypass haste: react-native preset defaults to iOS → would resolve to the no-op index.native.ts.
-// eslint-disable-next-line import/extensions
-const claimEscapeKeyDown = (require('../../src/libs/claimEscapeKeyDown/index.ts') as {default: (handler: () => void) => () => void}).default;
+type ClaimModule = {default: (handler: () => void) => () => void};
+const claimEscapeKeyDown = jest.requireActual<ClaimModule>('../../src/libs/claimEscapeKeyDown/index.ts').default;
 
 function dispatchKeyDown(key: string): boolean {
     let reached = false;

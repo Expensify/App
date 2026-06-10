@@ -119,9 +119,10 @@ jest.mock('@libs/claimEscapeKeyDown', () => ({
     default: (handler: () => void) => {
         mockActiveEscapeHandler = handler;
         return () => {
-            if (mockActiveEscapeHandler === handler) {
-                mockActiveEscapeHandler = null;
+            if (mockActiveEscapeHandler !== handler) {
+                return;
             }
+            mockActiveEscapeHandler = null;
         };
     },
 }));
