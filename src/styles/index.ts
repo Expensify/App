@@ -5956,29 +5956,6 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
         },
-        // PoC: a centered RHP modal must fill its (already centered & clipped) content card instead of docking to the right
-        // edge, so it overrides the right:0 / fixed positioning inherited from modalStackNavigatorContainer.
-        modalStackNavigatorContainerCentered: {
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            width: '100%',
-            height: '100%',
-        },
-        // PoC: single dim + press-catcher for a centered RHP modal floating above a wide/super-wide pane. Rendered as a sibling
-        // of (and behind) the centered content inside the full-viewport modal card, so it dims the whole screen uniformly and
-        // dismisses the modal on outside press. Matches the opacity the standard navigator Overlay animates to.
-        rhpCenteredModalBackdrop: {
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: theme.overlay,
-            opacity: variables.overlayOpacity,
-        },
         animatedRHPNavigatorContainer: {
             height: '100%',
             right: 0,

@@ -21,10 +21,8 @@ function SecondaryOverlay() {
      * To calculate this, subtract the width of the widest RHP from the width of the RHP above.
      * Please note that in this case, the overlay is rendered from the RHP screen displayed below (the Wide RHP).
      *
-     * PoC: the two "single RHP displayed on (super) wide RHP" cases are not handled here. Those small RHPs are shown as a centered
-     * modal whose own full-screen dim + dismiss is rendered by the modal stack on top (see ModalStackNavigators index), while the
-     * primary RHP overlay stays mounted underneath. Rendering a right-docked secondary overlay here too would re-introduce the
-     * extra dim band on the right. Only "Wide RHP displayed on Super Wide RHP" remains.
+     * The "single RHP displayed on (super) wide RHP" cases are not handled here: those small RHPs are centered modals with their
+     * own dim (see ModalStackNavigators index). Only "Wide RHP displayed on Super Wide RHP" remains.
      *  */
     if (isWideRHPDisplayedOnSuperWideRHP) {
         return (

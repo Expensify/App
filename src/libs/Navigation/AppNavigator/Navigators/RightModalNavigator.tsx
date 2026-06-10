@@ -17,7 +17,7 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import useCenteredRHPModalStyle from '@libs/Navigation/AppNavigator/useCenteredRHPModalStyle';
-import useIsCenteredRHPModal from '@libs/Navigation/AppNavigator/useIsCenteredRHPModal';
+import {useCenteredRHPModalState} from '@libs/Navigation/AppNavigator/useIsCenteredRHPModal';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
@@ -65,8 +65,7 @@ function SecondaryOverlay() {
         );
     }
 
-    // PoC: a small RHP floating above a wide/super-wide pane is now a centered modal whose dim + dismiss is handled by the
-    // in-card backdrop (see ModalStackNavigators), so the docked secondary overlays for those cases are no longer rendered here.
+    // Small RHPs over a wide/super-wide pane are centered modals with their own dim (see ModalStackNavigators), so no docked secondary overlay here.
     return null;
 }
 
@@ -80,7 +79,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const containerRef = useRef(null);
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
@@ -117,29 +116,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         } as const;
     }, [animatedWidth, shouldUseNarrowLayout]);
 
-    // PoC: render "small" RHPs (everything except the wide/super-wide expense & report panes) as a centered modal on wide layout.
-    const isCenteredModal = useIsCenteredRHPModal();
+    // Render "small" RHPs (everything except the wide/super-wide expense & report panes) as a centered modal on wide layout.
+    const {isCenteredModal, hasWidePane, isFocusedOverWidePane} = useCenteredRHPModalState();
     const centeredModalStyle = useCenteredRHPModalStyle();
 
-    // PoC: true only while a small RHP is the focused centered modal floating above a wide/super-wide pane. In that state the
-    // container must span the full viewport (so the centered card isn't clipped and the wide pane card keeps its right:0
-    // position) and pass through touches on the empty area to that card's own dim overlay (see useRHPScreenOptions), which also
-    // handles dismiss - so we suppress the top-level background overlay to avoid double-dimming. When the wide pane itself is the
-    // focused top card (no centered modal above it) this is false, so we keep the legacy right-docked container and its
-    // background overlay still dismisses the wide pane.
-    const isFocusedCenteredModalOverWidePane = !isSmallScreenWidth && (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
-
-    // A wide/super-wide pane is somewhere in the stack (focused or below). Used to tell a wide pane apart from a standalone
-    // small RHP, since both are "centered modal" on wide layout per useIsCenteredRHPModal.
-    const hasWidePane = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0;
-
     let containerLayoutStyle: StyleProp<ViewStyle> = [styles.r0, styles.h100, animatedWidthStyle];
-    if (isFocusedCenteredModalOverWidePane) {
+    if (isFocusedOverWidePane) {
         // Small RHP floating above a wide/super-wide pane: full-viewport container so the centered card isn't clipped.
         containerLayoutStyle = [styles.t0, styles.l0, styles.r0, styles.b0];
     } else if (isCenteredModal && !hasWidePane) {
-        // Standalone small RHP (no wide pane in the stack): the container itself is the centered box. A wide pane that is the
-        // focused top card keeps the default right-docked container above.
+        // Standalone small RHP (no wide pane in the stack): the container itself is the centered box.
         containerLayoutStyle = centeredModalStyle;
     }
 
@@ -208,10 +194,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
-                {/* PoC: the primary overlay is the original RHP dim, kept mounted on wide layout even while a centered modal is open
-                    above a wide pane. The centered modal adds its own second full-screen dim on top (see ModalStackNavigators index);
-                    keeping this one mounted underneath means closing the modal only fades that second dim away, so the underlying RHP
-                    dim never blinks (previously it was suppressed during the modal and re-appeared late on close, causing the blink). */}
+                {/* The original RHP dim, kept mounted even while a centered modal (with its own dim on top) is open, so closing the modal never blinks this one. */}
                 {!shouldUseNarrowLayout && (
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
@@ -224,7 +207,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     ref={containerRef}
                     role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
                     aria-modal={isSmallScreenWidth ? undefined : true}
-                    pointerEvents={isFocusedCenteredModalOverWidePane ? 'box-none' : undefined}
+                    pointerEvents={isFocusedOverWidePane ? 'box-none' : undefined}
                     style={[styles.pAbsolute, styles.overflowHidden, containerLayoutStyle]}
                 >
                     <DialogLabelProvider containerRef={containerRef}>

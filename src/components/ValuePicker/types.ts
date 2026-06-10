@@ -59,7 +59,7 @@ type ValueSelectionListProps = Pick<
     isVisible?: boolean;
 };
 
-/** PoC: config handed to the parent step so it can render the value selection list inline within the same centered modal. */
+/** Config handed to the parent step so it can render the value selection list inline within the same centered modal. */
 type InlineValuePickerConfig = Pick<ValueSelectorModalProps, 'label' | 'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips'>;
 
 type ValuePickerProps = ForwardedFSClassProps & {
@@ -102,10 +102,7 @@ type ValuePickerProps = ForwardedFSClassProps & {
     /** Number of lines to show for alternate text */
     alternateNumberOfSupportedLines?: number;
 
-    /**
-     * PoC: when provided (centered RHP modal), tapping the row asks the parent step to render the selection list inline within
-     * the same modal instead of opening a separate right-docked modal.
-     */
+    /** When provided (centered RHP modal), tapping the row asks the parent step to render the selection list inline instead of opening a separate modal. */
     onRequestOpenInline?: (config: InlineValuePickerConfig) => void;
 };
 

@@ -65,8 +65,7 @@ function IOURequestStepTime({
     });
 
     const {translate} = useLocalize();
-    // PoC: inside a centered RHP modal the time picker is rendered inline here (replacing the form) instead of opening a
-    // second modal, so it stays within the same modal. The child TimeModalPicker rows request this via onRequestOpenInline.
+    // When set (centered RHP modal), the time picker is rendered inline here over the still-mounted form instead of in a second modal.
     const [activeTimePicker, setActiveTimePicker] = useState<InlineTimePickerConfig | null>(null);
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
@@ -157,9 +156,7 @@ function IOURequestStepTime({
     }
 
     return (
-        // PoC: when a time field is being edited inside a centered RHP modal we render the picker within this same step
-        // (replacing the visible form) instead of opening a second modal. The FormProvider stays mounted (just hidden) so its
-        // onInputChange handlers remain valid and the saved time is written back to the form.
+        // While editing a time field inside a centered RHP modal, the picker renders over the (still-mounted) form so onInputChange stays valid.
         <StepScreenWrapper
             headerTitle={activeTimePicker ? activeTimePicker.label : backTo ? translate('iou.time') : tabTitles[iouType]}
             onBackButtonPress={activeTimePicker ? () => setActiveTimePicker(null) : navigateBack}
@@ -211,8 +208,7 @@ function IOURequestStepTime({
                     </View>
                 </FormProvider>
                 {!!activeTimePicker && (
-                    // PoC: overlay the picker on top of the (still-mounted) form so its onInputChange stays valid and the
-                    // picker fills the step with its Save button at the bottom.
+                    // Overlay the picker on the still-mounted form so its onInputChange stays valid.
                     <View style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.b0, styles.appBG]}>
                         <TimePicker
                             defaultValue={activeTimePicker.value}

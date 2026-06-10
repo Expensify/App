@@ -95,8 +95,7 @@ function IOURequestStepSubrate({
     const currentSubrate: CommentSubrate | undefined = allSubrates.at(parsedIndex) ?? undefined;
     const totalSubrateCount = allPossibleSubrates.length;
     const filledSubrateCount = allSubrates.length;
-    // PoC: inside a centered RHP modal the subrate selection list is rendered inline here (overlaying the still-mounted form)
-    // instead of opening a second modal. The child ValuePicker requests this via onRequestOpenInline.
+    // When set (centered RHP modal), the subrate selection list is rendered inline here over the still-mounted form instead of in a second modal.
     const [activeValuePicker, setActiveValuePicker] = useState<InlineValuePickerConfig | null>(null);
     const [subrateValue, setSubrateValue] = useState(currentSubrate?.id);
     const [quantityValue, setQuantityValue] = useState(() => (currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined));
@@ -268,7 +267,7 @@ function IOURequestStepSubrate({
                         />
                     </FormProvider>
                     {!!activeValuePicker && (
-                        // PoC: overlay the selection list on top of the still-mounted form so its onItemSelected stays valid.
+                        // Overlay the selection list on the still-mounted form so its onItemSelected stays valid.
                         <View style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.b0, styles.appBG]}>
                             <ValueSelectionList
                                 items={activeValuePicker.items}

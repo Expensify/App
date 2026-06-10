@@ -23,17 +23,14 @@ function useWideModalStackScreenOptions() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
 
-    // PoC: a centered small RHP needs rounded corners on the content card itself, because the fixed-positioned card escapes
-    // the container's borderRadius clip. This applies whether it stands alone or floats above a wide/super-wide pane.
+    // A centered card needs rounded corners on the card itself, because the fixed-positioned card escapes the container's borderRadius clip.
     const roundedCardStyle = useMemo(
         () => ({...styles.navigationScreenCardStyle, borderRadius: variables.componentBorderRadiusLarge, overflow: 'hidden' as const}),
         [styles.navigationScreenCardStyle],
     );
 
-    // PoC: a small RHP centered above a wide pane is centered by the inner navigator's wrapper box (see ModalStackNavigators
-    // index). The base card style is `position: 'fixed'` on web (getCardStyles), which escapes that absolutely-positioned box and
-    // stretches the card to the full viewport. Override it so the card simply fills the wrapper box instead.
-    const filledCenteredCardStyle = useMemo<ViewStyle>(() => ({position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, width: '100%', height: '100%', overflow: 'hidden'}), []);
+    // Override the base `position: 'fixed'` card style so a centered card fills the inner navigator's wrapper box instead of the full viewport.
+    const filledCenteredCardStyle = useMemo<ViewStyle>(() => ({...styles.fullScreen, overflow: 'hidden'}), [styles.fullScreen]);
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
@@ -58,14 +55,12 @@ function useWideModalStackScreenOptions() {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
                     });
-                    // PoC: a small RHP centered on top of a wide pane fills the inner navigator's wrapper box (see
-                    // ModalStackNavigators index). Override the base `position: 'fixed'` card style so it does not escape the box.
+                    // A centered modal on top of a wide pane fills the inner navigator's wrapper box.
                 } else if (hasWidePane) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: filledCenteredCardStyle,
                     });
                 }
-                // Otherwise (no wide pane in the stack) the small RHP is a centered modal that fills the centered container and uses the base interpolator.
             }
 
             return {
@@ -78,9 +73,7 @@ function useWideModalStackScreenOptions() {
                 web: {
                     cardStyle: navigationScreenCardStyle,
                     cardStyleInterpolator,
-                    // PoC: React Navigation enables a default card overlay for non-transparent-modal cards, which dims the card's
-                    // own (right-docked) footprint. For a wide pane that shows up as an extra dim band on the right behind the
-                    // centered modal. Expensify dims via its own Overlay components, so disable the default card overlay.
+                    // Expensify dims via its own Overlay components, so disable React Navigation's default card overlay (else an extra dim band appears).
                     cardOverlayEnabled: false,
                     transitionSpec: {
                         open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB}},

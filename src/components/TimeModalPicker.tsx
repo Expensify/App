@@ -36,10 +36,7 @@ type TimeModalPickerProps = {
     /** Label for the picker */
     label: string;
 
-    /**
-     * PoC: when provided (centered RHP modal), tapping the row asks the parent step to render the picker inline within the
-     * same modal instead of opening a separate right-docked modal.
-     */
+    /** When provided (centered RHP modal), tapping the row asks the parent step to render the picker inline instead of opening a separate modal. */
     onRequestOpenInline?: (config: InlineTimePickerConfig) => void;
 
     /** Reference to the outer element */
@@ -62,7 +59,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, onR
         hidePickerModal();
     };
 
-    // PoC: inside a centered RHP modal we don't open a second modal; we let the parent step render the picker inline.
+    // Inside a centered RHP modal, render the picker inline via the parent step instead of opening a second modal.
     const shouldRenderInline = isCenteredModal && !!onRequestOpenInline;
 
     return (

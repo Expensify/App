@@ -45,7 +45,7 @@ function ValuePicker({
 
     const selectedItem = items?.find((item) => item.value === value);
 
-    // PoC: inside a centered RHP modal we don't open a second modal; we let the parent step render the selection list inline.
+    // Inside a centered RHP modal, render the selection list inline via the parent step instead of opening a second modal.
     const shouldRenderInline = isCenteredModal && !!onRequestOpenInline;
 
     return (
