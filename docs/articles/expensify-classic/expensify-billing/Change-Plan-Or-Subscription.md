@@ -1,7 +1,7 @@
 ---
 title: Changing Your Workspace Plan
 description: How to change your Expensify plan or subscription
-keywords: [Expensify Classic, workspace plan, subscription]
+keywords: [Expensify Classic, workspace plan, subscription, cancel subscription, cancel plan, change plan, change subscription, downgrade subscription, downgrade plan]
 ---
 
 
