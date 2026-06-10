@@ -17,6 +17,8 @@ type CompleteGuidedSetupParams = {
     optimisticConciergeReportActionID?: string;
     /** Feature ids the user toggled on the InterestedFeatures onboarding page; shapes the #admins welcome followups on this single request. */
     selectedInterestedFeatures?: string;
+    /** The personal track goal selected by personal-spend users during onboarding; stored in the `introSelected` NVP under `personalTrackGoal` */
+    personalTrackGoal?: string;
 };
 
 export default CompleteGuidedSetupParams;

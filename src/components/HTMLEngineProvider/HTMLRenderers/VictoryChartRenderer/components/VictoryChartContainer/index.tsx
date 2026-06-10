@@ -1,44 +1,20 @@
-import React, {useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
-import useThemeStyles from '@hooks/useThemeStyles';
+import React from 'react';
+import VictoryChartContainerFixed from './VictoryChartContainerFixed';
+import VictoryChartContainerResponsive from './VictoryChartContainerResponsive';
 
-function VictoryChartContainer({children}: {children: React.ReactNode}) {
-    const styles = useThemeStyles();
-    const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
-    const [containerWidth, setContainerWidth] = useState(0);
+type ExplicitSize = {width: number; height: number};
 
-    const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
-    const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
-    const hasExplicitDimensions = designWidth !== undefined && designHeight !== undefined;
+type VictoryChartContainerProps = {
+    children: React.ReactNode;
+    explicitSize?: ExplicitSize;
+};
 
-    const handleLayout = (event: LayoutChangeEvent) => {
-        setContainerWidth(event.nativeEvent.layout.width);
-    };
+function VictoryChartContainer({children, explicitSize}: VictoryChartContainerProps) {
+    if (explicitSize) {
+        return <VictoryChartContainerFixed layout={{kind: 'fixed', width: explicitSize.width, height: explicitSize.height}}>{children}</VictoryChartContainerFixed>;
+    }
 
-    const scale = hasExplicitDimensions ? computeChartScale(designWidth, containerWidth) : 1;
-
-    const {backgroundColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
-
-    const contentStyle = hasExplicitDimensions
-        ? [chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const, transform: [{scale}], transformOrigin: 'top left' as const}]
-        : [styles.chartContent, chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const}];
-
-    const containerStyle =
-        hasExplicitDimensions && designHeight
-            ? [styles.chartContainer, styles.mw100, layoutContainerStyles, {borderRadius: 0, height: designHeight * scale, overflow: 'hidden' as const}]
-            : [styles.chartContainer, styles.mw100, layoutContainerStyles];
-
-    return (
-        <View
-            style={containerStyle}
-            onLayout={handleLayout}
-        >
-            <View style={contentStyle}>{children}</View>
-        </View>
-    );
+    return <VictoryChartContainerResponsive>{children}</VictoryChartContainerResponsive>;
 }
 
 VictoryChartContainer.displayName = 'VictoryChartContainer';

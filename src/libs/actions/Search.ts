@@ -55,8 +55,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Beta, BillingGraceEndPeriod, ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -1174,30 +1172,6 @@ function setSearchContext(shouldShowSearchQuery: boolean) {
 }
 
 /**
- * Clears all of the filters for a search
- * NOTE: The source of truth for search filters is the 'q' param. You should never have to clear the form values when
- * navigating to a new search url, they will get cleared on their own. You most likely do not need to use this method.
- */
-function clearAdvancedFilters() {
-    const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
-    for (const key of Object.values(FILTER_KEYS)) {
-        switch (key) {
-            case FILTER_KEYS.COLUMNS:
-                continue;
-            case FILTER_KEYS.TYPE:
-                values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-                continue;
-            case FILTER_KEYS.STATUS:
-                values[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-                continue;
-            default:
-                values[key] = null;
-        }
-    }
-    Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
-}
-
-/**
  * For Expense reports, user can choose both expense and transaction, in this case we need to check for both selected reports and transactions
  * This function checks if all remaining selected transactions (not included in selectedReports) are eligible for bulk pay
  */
@@ -1470,7 +1444,6 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
-    clearAdvancedFilters,
     setSearchContext,
     deleteSavedSearch,
     payMoneyRequestOnSearch,
