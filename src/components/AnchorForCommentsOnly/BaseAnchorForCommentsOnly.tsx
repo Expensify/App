@@ -100,14 +100,15 @@ function BaseAnchorForCommentsOnly({
                         target: isEmail || !linkProps.href ? '_self' : target,
                     }}
                     href={linkHref}
-                    onPress={(e) => {
-                        if (!isScreenReaderActive || !linkProps.onPress) {
-                            return;
-                        }
-                        e?.stopPropagation();
-                        e?.preventDefault();
-                        linkProps.onPress();
-                    }}
+                    onPress={
+                        isScreenReaderActive && linkProps.onPress
+                            ? (e) => {
+                                  e?.stopPropagation();
+                                  e?.preventDefault();
+                                  linkProps.onPress?.();
+                              }
+                            : undefined
+                    }
                     suppressHighlighting
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
