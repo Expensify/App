@@ -1491,6 +1491,27 @@ function buildFirstApprovedActionByReportIDMap(data: OnyxTypes.SearchResults['da
 }
 
 /**
+ * @private
+ * Whether any report in the results has an approval action — used to hide the empty First approver/approved columns.
+ */
+function hasFirstApproverData(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[]): boolean {
+    if (Array.isArray(data)) {
+        return false;
+    }
+    for (const key of Object.keys(data)) {
+        if (!isReportActionEntry(key)) {
+            continue;
+        }
+        for (const action of Object.values(data[key])) {
+            if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  * @param data - The search results data (array or object)
  * @param checkOnlyReports - When true and data is an object, only check report dates (skip transactions and report actions)
@@ -5532,6 +5553,12 @@ function getColumnsToShow({
 
         for (const col of filteredVisibleColumns) {
             result.push(col);
+        }
+
+        // Hide First approver/approved when no report has an approval action — an empty column is just noise.
+        const firstApproverColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]);
+        if (result.some((col) => firstApproverColumns.has(col)) && !hasFirstApproverData(data)) {
+            return result.filter((col) => !firstApproverColumns.has(col));
         }
 
         return result;

@@ -8346,10 +8346,25 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
-        test('Should include First approver/First approved columns when selected for expense reports', () => {
+        test('Should hide First approver/First approved columns when no report has an approval action', () => {
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
 
-            const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            const result = SearchUIUtils.getColumnsToShow({currentAccountID: adminAccountID, data: searchResults.data, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER);
+            expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED);
+            expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+        });
+
+        test('Should keep First approver/First approved columns when a report has an approval action', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report1.reportID}`]: {
+                    [reportAction1.reportActionID]: {...reportAction1, actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED},
+                },
+            };
+
+            const result = SearchUIUtils.getColumnsToShow({currentAccountID: adminAccountID, data, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER);
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED);
         });
