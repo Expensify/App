@@ -162,8 +162,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         return isLoading && (!isPlaying || currentTime <= 0) && !isVideoOffline && !hasError;
     }, [currentTime, hasError, isLoading, isVideoOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
-        return isVideoOffline && !isPlaying && !isUploading;
-    }, [isPlaying, isUploading, isVideoOffline]);
+        return isVideoOffline && !isPlaying;
+    }, [isPlaying, isVideoOffline]);
+
     const {updateVolume} = useVolumeActions();
     const {lastNonZeroVolume} = useVolumeState();
     useHandleNativeVideoControls({
@@ -173,7 +174,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     });
 
     const togglePlayCurrentVideo = useCallback(() => {
-        if (isOffline && !isUploading) {
+        if (isOffline) {
             return;
         }
 
@@ -200,7 +201,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
         allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isOffline, isUploading, isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
+    }, [isOffline, isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded || isSeeking) {
