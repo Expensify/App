@@ -48,7 +48,6 @@ function BaseTextInput({
     textInputContainerStyles,
     shouldApplyPaddingToContainer = true,
     touchableInputWrapperStyle,
-    touchableInputWrapperRef,
     containerStyles,
     inputStyle,
     shouldUseFullInputHeight = false,
@@ -310,7 +309,6 @@ function BaseTextInput({
         <>
             <View style={[containerStyles]}>
                 <PressableWithoutFeedback
-                    ref={touchableInputWrapperRef}
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}

@@ -1,7 +1,7 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
-import type {TextInput, View} from 'react-native';
+import type {TextInput} from 'react-native';
 // eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
 import {InteractionManager} from 'react-native';
 import Accessibility from '@libs/Accessibility';
@@ -25,7 +25,7 @@ type UseAutoFocusInput = {
     cancelAutoFocus: () => void;
 };
 
-export default function useAutoFocusInput(isMultiline = false, accessibilityFocusRef?: RefObject<View | TextInput | null>): UseAutoFocusInput {
+export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
@@ -56,7 +56,7 @@ export default function useAutoFocusInput(isMultiline = false, accessibilityFocu
 
     useEffect(() => {
         if (
-            (isScreenReaderEnabled && !accessibilityFocusRef) ||
+            isScreenReaderEnabled ||
             !isScreenTransitionEnded ||
             !isInputInitialized ||
             !inputRef.current ||
@@ -67,11 +67,6 @@ export default function useAutoFocusInput(isMultiline = false, accessibilityFocu
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
-            if (isScreenReaderEnabled) {
-                Accessibility.moveAccessibilityFocus(accessibilityFocusRef?.current);
-                setIsScreenTransitionEnded(false);
-                return;
-            }
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
             }
@@ -100,7 +95,7 @@ export default function useAutoFocusInput(isMultiline = false, accessibilityFocu
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isScreenReaderEnabled, accessibilityFocusRef, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
+    }, [isScreenReaderEnabled, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
 
     useFocusEffect(
         useCallback(() => {

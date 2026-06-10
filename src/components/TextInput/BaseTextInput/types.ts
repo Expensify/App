@@ -1,7 +1,7 @@
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {NavigationProp, NavigationState} from '@react-navigation/native';
-import type {ForwardedRef, RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, View, ViewStyle} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -46,9 +46,6 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
 
         /** Customizes the touchable wrapper of the TextInput component */
         touchableInputWrapperStyle?: StyleProp<ViewStyle>;
-
-        /** Reference to the touchable wrapper of the TextInput component */
-        touchableInputWrapperRef?: RefObject<View | null>;
 
         /** Customize the main container */
         containerStyles?: StyleProp<ViewStyle>;
