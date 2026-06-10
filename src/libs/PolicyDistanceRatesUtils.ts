@@ -176,7 +176,8 @@ function getRateStatus(rate: Rate): string {
         return CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE;
     }
 
-    const now = new Date().toISOString().slice(0, 10);
+    const today = new Date();
+    const now = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     if (rate.startDate && rate.startDate > now) {
         return CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE;
