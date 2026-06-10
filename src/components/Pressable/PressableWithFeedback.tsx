@@ -43,7 +43,7 @@ type PressableWithFeedbackProps = PressableProps & {
      * Whether the button should have a background layer in the color of theme.appBG.
      * This is needed for buttons that allow content to display under them.
      */
-    shouldBlendOpacity?: boolean;
+    blendOpacity?: boolean;
 
     /** Optional callback fired on wrapper's mount and layout changes */
     onWrapperLayout?: ((event: LayoutChangeEvent) => void) | undefined;
@@ -56,7 +56,7 @@ function PressableWithFeedback({
     pressDimmingValue = variables.pressDimValue,
     hoverDimmingValue = variables.hoverDimValue,
     dimAnimationDuration,
-    shouldBlendOpacity,
+    blendOpacity,
     ref,
     onWrapperLayout,
     ...rest
@@ -74,7 +74,7 @@ function PressableWithFeedback({
 
     return (
         <OpacityView
-            shouldDim={!shouldBlendOpacity && !!(!rest.disabled && (isPressed || isHovered))}
+            shouldDim={!blendOpacity && !!(!rest.disabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? pressDimmingValue : hoverDimmingValue}
             dimAnimationDuration={dimAnimationDuration}
             style={wrapperStyle}
