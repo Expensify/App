@@ -27,6 +27,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {isSafari} from '@libs/Browser';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
@@ -205,6 +206,7 @@ function PureReportActionItem({
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
 
     const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
+    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
@@ -492,7 +494,7 @@ function PureReportActionItem({
                     )}
                     <PressableWithSecondaryInteraction
                         ref={popoverAnchorRef}
-                        accessible={shouldBreakGrouping && isCreatedTaskReportAction(action) ? false : undefined}
+                        accessible={shouldBreakGrouping && isScreenReaderActive && isCreatedTaskReportAction(action) ? false : undefined}
                         onPress={() => {
                             if (!hasDraft) {
                                 onPress?.();

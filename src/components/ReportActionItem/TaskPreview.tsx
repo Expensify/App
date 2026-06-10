@@ -161,7 +161,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
-                accessible={shouldBreakGrouping ? false : undefined}
+                accessible={shouldBreakGrouping && isScreenReaderActive ? false : undefined}
                 onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
@@ -200,7 +200,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
-                    {shouldBreakGrouping ? (
+                    {shouldBreakGrouping && isScreenReaderActive ? (
                         <PressableWithoutFeedback
                             accessible
                             accessibilityRole={CONST.ROLE.BUTTON}

@@ -155,7 +155,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                         <Hoverable>
                             {(hovered) => (
                                 <PressableWithSecondaryInteraction
-                                    accessible={shouldBreakGrouping ? false : undefined}
+                                    accessible={shouldBreakGrouping && isScreenReaderActive ? false : undefined}
                                     onPress={callFunctionIfActionIsAllowed(() => {
                                         if (isDisableInteractive) {
                                             return;
@@ -226,7 +226,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         disabled={!isTaskActionable}
                                                         sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                     />
-                                                    {shouldBreakGrouping ? (
+                                                    {shouldBreakGrouping && isScreenReaderActive ? (
                                                         <PressableWithoutFeedback
                                                             accessible
                                                             accessibilityRole={CONST.ROLE.BUTTON}
