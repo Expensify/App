@@ -140,7 +140,7 @@ Onyx.connectWithoutView({
     callback: (value) => {
         onboarding = value;
         isOnboardingLoaded = true;
-        if (!hasCompletedGuidedSetupFlowSelector(onboarding)) {
+        if (hasCompletedGuidedSetupFlowSelector(onboarding) === false) {
             observedActiveOnboardingThisSession = true;
         }
         navigateToAIFeaturesPromoModalIfReady();
