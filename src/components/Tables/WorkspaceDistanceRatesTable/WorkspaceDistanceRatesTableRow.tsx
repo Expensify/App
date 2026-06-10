@@ -44,11 +44,7 @@ function formatDate(dateString: string | null | undefined): string {
     if (!dateString) {
         return '';
     }
-    try {
-        return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
-    } catch {
-        return '';
-    }
+    return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
 }
 
 function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>, isSelected?: boolean) {
