@@ -240,6 +240,7 @@ function useReportActionsScroll({
             waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
+        // The initial scroll-to-bottom must be scheduled exactly once, on mount; re-running it as deps change would yank the user back down while they read history.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -286,6 +287,7 @@ function useReportActionsScroll({
             },
         });
         return () => handle.cancel();
+        // Intentionally keyed to lastAction (not the error object) so the scroll re-evaluates once per new action; the reportActionID comparison above guards actual re-runs.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
 
