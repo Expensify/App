@@ -102,7 +102,9 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
         if (!canonicalPage || urlPage === canonicalPage) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: canonicalPage}));
+
+        // This is a URL correction, so replace the current route instead of pushing a duplicate instance of this screen.
+        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: canonicalPage}), {forceReplace: true});
     }, [canonicalPage, urlPage]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
