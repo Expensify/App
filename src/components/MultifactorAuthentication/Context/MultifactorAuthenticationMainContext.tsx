@@ -6,7 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
-import {mfaMachine} from '@components/MultifactorAuthentication/machine';
+import {mfaMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
@@ -63,7 +63,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const biometrics = useBiometrics();
 
     const [snapshot, send] = useMachine(mfaMachine);
-    const state = snapshot.context;
+    const state = snapshotToState(snapshot);
 
     useEffect(() => {
         // Non-reactive read of deviceBiometrics. Using Onyx.connectWithoutView instead of useOnyx

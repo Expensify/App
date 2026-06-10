@@ -6,26 +6,33 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {MfaEvent, MfaMachineContext} from './types';
 
-const DEFAULT_CONTEXT: MfaMachineContext = DEFAULT_STATE;
+const {isModalOpen, ...machineDefaults} = DEFAULT_STATE;
+const DEFAULT_CONTEXT: MfaMachineContext = machineDefaults;
 
 /**
  * MFA state machine. The chart (states + transitions) is declarative; navigation is the only side
  * effect in this slice. Leaving a state disposes its work before the next transition, so the
  * process()+useEffect race the old engine suffered from cannot recur.
  *
- * Top-level states map 1:1 to what the user currently sees:
+ * The top level is the modal lifecycle:
  * - `idle` - modal closed, no flow running. Every (re)entry wipes the context and the navigation
  *   buffer, so no flow data (validate code, challenges, scenario response) outlives the modal;
- * - `preparing` - the transparent initial screen; pre-screen work (device check, registration
- *   decision, ...) lands here as child states in later slices;
- * - `magicCode` / `prompt` - the magic-code and prompt screens, arriving in later slices;
- * - `outcome` - the outcome screen; its children pick the variant (`success` now, `failure` later);
+ * - `open` - the modal overlay is up. Its child states map 1:1 to what the user currently sees:
+ *   - `preparing` - the transparent initial screen; pre-screen work (device check, registration
+ *     decision, ...) lands here as child states in later slices;
+ *   - `magicCode` / `prompt` - the magic-code and prompt screens, arriving in later slices;
+ *   - `outcome` - the outcome screen; its children pick the variant (`success` now, `failure` later).
+ *   Sub-steps that run while a screen is shown become child states of that screen's parent. Events
+ *   every screen shares (CLOSE_MODAL now, e.g. SET_ERROR in later slices) are declared on `open`;
  * - `closing` - the modal is tearing down (slide-out + backdrop fade).
- * Sub-steps that run while a screen is shown become child states of that screen's parent.
+ *
+ * Whether the modal is open is not context but a derivative of the chart: `snapshotToState` maps it
+ * to the legacy `isModalOpen` flag as `matches('open')` - false in `closing`, and that flag going
+ * false is what starts the navigator's close animation.
  *
  * PR-5 (Slice 1) skeleton: INIT -> `preparing` -> (no work yet) -> `outcome.success`.
  *
- * Teardown: CLOSE_MODAL (guarded on `isModalOpen`, so duplicates are ignored) flips the flag and
+ * Teardown: CLOSE_MODAL (declared on `open`, so duplicates while already closing or idle are ignored)
  * enters `closing`; the navigator plays the close animation and reports MODAL_CLOSED, which re-enters
  * `idle`. If that report never arrives - the navigator can unmount mid-close and cancel its
  * `runAfterUpcomingTransition` callback - the `closeFallback` delayed transition wipes anyway, so the
@@ -44,7 +51,6 @@ const mfaMachine = setup({
             }
             return {
                 ...DEFAULT_CONTEXT,
-                isModalOpen: true,
                 scenarioName: event.scenarioName,
                 scenario: event.scenario,
                 payload: event.payload,
@@ -54,15 +60,13 @@ const mfaMachine = setup({
         // Preserve the Android animation-race fix the old handleCallback had: defer the push until the
         // modal-open transition settles so the success screen slides in with a measured width.
         navigateToSuccessOutcome: () => Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS)),
-        closeModal: assign({isModalOpen: false, isCancelConfirmVisible: false}),
+        // The dialog must not stay up while the modal slides out.
+        hideCancelConfirm: assign({isCancelConfirmVisible: false}),
         resetContext: assign(() => ({...DEFAULT_CONTEXT})),
         // Clears the module-level navigation buffer (pendingNavigation/hasInitialLaidOut). Owned by
         // the machine so a navigator that unmounts mid-close cannot leave a stale buffered screen
         // behind for the next flow.
         resetNavigationBuffer: () => resetMfaNavigation(),
-    },
-    guards: {
-        isModalOpen: ({context}) => context.isModalOpen,
     },
     delays: {
         // Upper bound of the navigator's MODAL_CLOSED report: transition-start wait cap + capped
@@ -74,26 +78,31 @@ const mfaMachine = setup({
     id: 'mfa',
     initial: 'idle',
     context: DEFAULT_CONTEXT,
-    on: {
-        CLOSE_MODAL: {guard: 'isModalOpen', target: '.closing', actions: 'closeModal'},
-    },
     states: {
         idle: {
             entry: ['resetContext', 'resetNavigationBuffer'],
             on: {
-                INIT: {target: 'preparing', actions: 'initFromEvent'},
+                INIT: {target: 'open', actions: 'initFromEvent'},
             },
         },
-        // Transparent initial screen. PR-5 has no pre-screen work yet, so it falls straight through;
-        // later slices replace `always` with child states (device check, registration decision, ...).
-        preparing: {
-            always: 'outcome',
-        },
-        outcome: {
-            initial: 'success',
+        open: {
+            initial: 'preparing',
+            on: {
+                CLOSE_MODAL: {target: 'closing', actions: 'hideCancelConfirm'},
+            },
             states: {
-                success: {
-                    entry: ['markFlowComplete', 'navigateToSuccessOutcome'],
+                // Transparent initial screen. PR-5 has no pre-screen work yet, so it falls straight through;
+                // later slices replace `always` with child states (device check, registration decision, ...).
+                preparing: {
+                    always: 'outcome',
+                },
+                outcome: {
+                    initial: 'success',
+                    states: {
+                        success: {
+                            entry: ['markFlowComplete', 'navigateToSuccessOutcome'],
+                        },
+                    },
                 },
             },
         },

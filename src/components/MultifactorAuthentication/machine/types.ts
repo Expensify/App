@@ -8,11 +8,11 @@ import type {MultifactorAuthenticationState} from '@components/MultifactorAuthen
 type ScenarioPayload = MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
 
 /**
- * Machine context. Identical to the legacy {@link MultifactorAuthenticationState} for this slice (PR-5),
- * so the Provider exposes `snapshot.context` directly. Later slices may add machine-only fields (e.g.
- * start-credentials telemetry); a `snapshotContextToState` mapping is introduced at that point.
+ * Machine context: the legacy {@link MultifactorAuthenticationState} minus `isModalOpen`, which is a
+ * derivative of the chart (`matches('open')`) rather than stored data. `snapshotToState` maps the
+ * snapshot back to the full legacy shape so consumers keep reading `state.X` unchanged.
  */
-type MfaMachineContext = MultifactorAuthenticationState;
+type MfaMachineContext = Omit<MultifactorAuthenticationState, 'isModalOpen'>;
 
 /**
  * Events accepted by the machine. PR-5 (Slice 1) only needs the three that drive the
