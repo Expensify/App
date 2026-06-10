@@ -170,6 +170,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             shouldSingleExecuteRowSelect
                             shouldIgnoreFocus
                             initiallyFocusedItemKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
+                            alternateNumberOfSupportedLines={2}
                             addBottomSafeAreaPadding
                             footerContent={
                                 <Button

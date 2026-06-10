@@ -3,9 +3,9 @@ import React, {useCallback, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -63,6 +63,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -119,7 +120,13 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         return errors;
     }, [spreadsheet?.columns, spreadsheet?.data, requiredColumns, translate, columnRoles, containsHeader]);
 
-    const importCategories = useCallback(() => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingCategories(false);
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    };
+
+    const importCategories = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
@@ -158,9 +165,15 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
         if (categories) {
             setIsImportingCategories(true);
-            importPolicyCategories(policyID, categories, policyCategories);
+            const importFinalModal = await importPolicyCategories(policyID, categories, policyCategories);
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+            if (!didShowImportFinalModal) {
+                setIsImportingCategories(false);
+                return;
+            }
+            closeImportPageAndModal();
         }
-    }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
+    };
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
@@ -172,12 +185,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     if (hasAccountingConnections || !spreadsheetColumns) {
         return <NotFoundPage />;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingCategories(false);
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-    };
 
     return (
         <ScreenWrapper
@@ -197,12 +204,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
-            />
-
-            <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                closeImportPageAndModal={closeImportPageAndModal}
-                shouldHandleNavigationBack={false}
             />
         </ScreenWrapper>
     );

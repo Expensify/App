@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport} from '@libs/actions/Report';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -21,9 +22,8 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {useReportActionItemActions, useReportActionItemState} from '@pages/inbox/report/ReportActionItemContext';
+import {useReportActionItemActions} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,12 +45,6 @@ type MoneyRequestActionProps = {
     /** The ID of the current report */
     reportID: string | undefined;
 
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive?: () => void;
-
     /** Whether the IOU is hovered so we can modify its style */
     isHovered?: boolean;
 
@@ -59,28 +53,9 @@ type MoneyRequestActionProps = {
 
     /** Styles to be assigned to Container */
     style?: StyleProp<ViewStyle>;
-
-    /** Whether  context menu should be shown on press */
-    shouldDisplayContextMenu?: boolean;
-
-    /** ID of the original report from which the given reportAction is first created */
-    originalReportID?: string;
 };
 
-function MoneyRequestAction({
-    action,
-    chatReportID,
-    requestReportID,
-    reportID,
-    contextMenuAnchor,
-    checkIfContextMenuActive = () => {},
-    isHovered = false,
-    style,
-    isWhisper = false,
-    shouldDisplayContextMenu = true,
-    originalReportID,
-}: MoneyRequestActionProps) {
-    const {shouldOpenReportInRHP} = useReportActionItemState();
+function MoneyRequestAction({action, chatReportID, requestReportID, reportID, isHovered = false, style, isWhisper = false}: MoneyRequestActionProps) {
     const {onPreviewPressed} = useReportActionItemActions();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -127,20 +102,11 @@ function MoneyRequestAction({
                 iouReport,
                 iouReportAction: action,
             });
-            if (shouldOpenReportInRHP) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
-                return;
-            }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReport?.reportID, undefined, undefined, Navigation.getActiveRoute()));
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: transactionThreadReport?.reportID}));
             return;
         }
 
-        if (shouldOpenReportInRHP) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: action?.childReportID, backTo: Navigation.getActiveRoute()}));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: action?.childReportID}));
     };
 
     const isDeletedParentAction = isDeletedParentActionReportActionsUtils(action);
@@ -169,14 +135,10 @@ function MoneyRequestAction({
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
-            contextMenuAnchor={contextMenuAnchor}
-            checkIfContextMenuActive={checkIfContextMenuActive}
             onPreviewPressed={onMoneyRequestPreviewPressed}
             containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, isReviewDuplicateTransactionPage ? [containerStyles, styles.borderNone] : styles.mt2]}
             isHovered={isHovered}
             isWhisper={isWhisper}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
-            originalReportID={originalReportID}
         />
     );
 }

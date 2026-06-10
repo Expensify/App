@@ -16,7 +16,7 @@ type MoneyRequestHeaderActionsProps = {
     reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: (prioritizeBackTo?: boolean) => void;
+    onBackButtonPress: (prioritizeBackTo?: boolean, options?: {afterTransition?: () => void}) => void;
 };
 
 function MoneyRequestHeaderActions({reportID, onBackButtonPress}: MoneyRequestHeaderActionsProps) {

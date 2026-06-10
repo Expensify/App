@@ -2,6 +2,7 @@ import {randomInt} from 'crypto';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type PolicyData from '@hooks/usePolicyData/types';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -10,8 +11,6 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    // Will be fixed in https://github.com/Expensify/App/issues/76852
-    getReportName,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
@@ -146,16 +145,22 @@ describe('ReportUtils', () => {
         const isPreviewMessageForParentChatReport = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportPreviewMessage(report, undefined, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
+        await measureFunction(() =>
+            getReportPreviewMessage({
+                reportOrID: report,
+                iouReportAction: reportAction,
+                shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
+                isPreviewMessageForParentChatReport,
+                policy,
+            }),
+        );
     });
 
     test('[ReportUtils] getReportName on 1k participants', async () => {
         const report = {...createRandomReport(1, undefined), participantAccountIDs};
-        const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        // Will be fixed in https://github.com/Expensify/App/issues/76852
-        await measureFunction(() => getReportName({report, policy}));
+        await measureFunction(() => getReportName(report));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {

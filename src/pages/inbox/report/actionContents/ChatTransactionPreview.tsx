@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUReportIDFromReportActionPreview, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -21,9 +22,6 @@ type ChatTransactionPreviewProps = {
     /** The ID of the current report where the preview is rendered */
     reportID: string | undefined;
 
-    /** ID of the original report from which the given report action was first created */
-    originalReportID: string;
-
     /** The ID of the associated chat report, used when navigating to split bill details */
     chatReportID: string | undefined;
 
@@ -33,14 +31,11 @@ type ChatTransactionPreviewProps = {
     /** Whether the preview should navigate to the split bill details screen on press */
     shouldShowSplitPreview: boolean;
 
-    /** Whether the context menu should be shown on press */
-    shouldDisplayContextMenu: boolean;
-
     /** The ID of the transaction to preview */
     transactionID: string | undefined;
 };
 
-function ChatTransactionPreview({action, reportID, originalReportID, chatReportID, iouReport, shouldShowSplitPreview, shouldDisplayContextMenu, transactionID}: ChatTransactionPreviewProps) {
+function ChatTransactionPreview({action, reportID, chatReportID, iouReport, shouldShowSplitPreview, transactionID}: ChatTransactionPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -57,7 +52,6 @@ function ChatTransactionPreview({action, reportID, originalReportID, chatReportI
                 chatReportID={reportID}
                 reportID={reportID}
                 action={action}
-                shouldDisplayContextMenu={shouldDisplayContextMenu}
                 isBillSplit={isSplitBillAction(action)}
                 transactionID={transactionID}
                 containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, styles.mt1]}
@@ -79,16 +73,15 @@ function ChatTransactionPreview({action, reportID, originalReportID, chatReportI
                             iouReportAction: action,
                         });
                         if (createdTransactionThreadReport?.reportID) {
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
+                            Navigation.navigate(getReportRouteForCurrentContext({reportID: createdTransactionThreadReport.reportID}));
                             return;
                         }
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
+                    Navigation.navigate(getReportRouteForCurrentContext({reportID: action.childReportID}));
                 }}
                 isTrackExpense={isTrackExpenseAction(action)}
-                originalReportID={originalReportID}
             />
         </View>
     );

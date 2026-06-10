@@ -76,7 +76,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
@@ -108,6 +107,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     return;
                 }
 
+                if (choice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                    return;
+                }
+
                 if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
                     if (personalDetailsForm?.firstName) {
                         autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '');
@@ -133,7 +137,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         companySize: onboardingCompanySize,
                         introSelected,
                         isSelfTourViewed,
-                        betas,
                     });
 
                     return;

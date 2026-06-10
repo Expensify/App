@@ -7,7 +7,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
@@ -33,6 +33,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({
         navigate: jest.fn(),
         addListener: jest.fn(),
+        getState: jest.fn(() => undefined),
     }),
     useFocusEffect: jest.fn((callback: () => void) => callback()),
     useRoute: () => ({
@@ -91,6 +92,10 @@ const mockEmptyReport: TransactionReportGroupListItemType = {
     shouldShowYearApproved: false,
     shouldShowYearExported: false,
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
+    canPay: false,
+    canApprove: false,
+    canSubmit: false,
+    canChangeApprover: false,
 };
 
 const mockTransaction: TransactionListItemType = {
@@ -131,6 +136,10 @@ const mockTransaction: TransactionListItemType = {
     transactionID: '1',
     action: 'approve',
     allActions: ['approve'],
+    canPay: false,
+    canApprove: true,
+    canSubmit: false,
+    canChangeApprover: false,
     formattedFrom: 'Main Applause QA',
     formattedTo: 'Main Applause QA',
     formattedTotal: -1284,
@@ -209,6 +218,10 @@ const mockNonEmptyReport: TransactionReportGroupListItemType = {
     shouldShowYearApproved: false,
     shouldShowYearExported: false,
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
+    canPay: false,
+    canApprove: false,
+    canSubmit: false,
+    canChangeApprover: false,
 };
 
 const mockReport: TransactionReportGroupListItemType = {
@@ -252,6 +265,10 @@ const mockReport: TransactionReportGroupListItemType = {
     shouldShowYearApproved: false,
     shouldShowYearExported: false,
     action: 'view',
+    canPay: false,
+    canApprove: false,
+    canSubmit: false,
+    canChangeApprover: false,
     transactions: [],
     groupedBy: 'expense-report',
     keyForList: '515146912679679',

@@ -6,7 +6,7 @@ import CommonPopup from '@components/Search/FilterDropdowns/CommonPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -114,7 +114,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
+    const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const updateFilterForm = useUpdateFilterQuery(queryJSON, false);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,

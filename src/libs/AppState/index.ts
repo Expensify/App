@@ -12,6 +12,7 @@ import type {ExtraLoadingContext, GlobalStateSnapshot, NavigationStateInfo, Netw
 
 let currentSession: OnyxEntry<Session>;
 let currentNetwork: OnyxEntry<Network>;
+let currentIsAuthenticatingWithShortLivedToken = false;
 
 // We have opted for connectWithoutView here as this is strictly non-UI and only for logging.
 Onyx.connectWithoutView({
@@ -26,6 +27,14 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {
         currentNetwork = value;
+    },
+});
+
+// We have opted for connectWithoutView here as this is strictly non-UI and only for logging.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+    callback: (value) => {
+        currentIsAuthenticatingWithShortLivedToken = !!value;
     },
 });
 
@@ -54,12 +63,11 @@ function captureNavigationState(): NavigationStateInfo {
 function captureSessionState(): SessionStateInfo {
     // Check multiple authentication states to get complete picture
     const isSessionLoading = !!currentSession?.loading;
-    const isAuthenticatingWithShortLivedToken = !!currentSession?.isAuthenticatingWithShortLivedToken;
     const isAuthenticatingFromNetworkStore = isAuthenticatingNetworkStore();
 
     return {
         isSessionLoading,
-        isAuthenticatingWithShortLivedToken,
+        isAuthenticatingWithShortLivedToken: currentIsAuthenticatingWithShortLivedToken,
         isAuthenticatingFromNetworkStore,
     };
 }

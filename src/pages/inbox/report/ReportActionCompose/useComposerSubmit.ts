@@ -6,18 +6,13 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import {addAttachmentWithComment, addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -25,11 +20,11 @@ import {setIsComposerFullSize} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerText} from './ComposerContext';
+import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
+import useComposerReportData from './useComposerReportData';
 import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
-    const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
@@ -39,26 +34,14 @@ function useComposerSubmit(reportID: string) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
-    const {composerRef, attachmentFileRef} = useComposerMeta();
-    const composerText = useComposerText();
+    const {composerRef, attachmentFileRef, textRef} = useComposerMeta();
     const {clearComposer} = useComposerActions();
     const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
-    const {isEditingInComposer, editingMessage, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
+    const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useContext(ActionListContext);
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
-
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
+    const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
 
     const reportAncestors = useAncestors(report);
@@ -126,6 +109,12 @@ function useComposerSubmit(reportID: string) {
                         taskTitle = `@${mentionWithDomain} ${taskTitle}`;
                     }
                 }
+
+                const taskCreatorAndAssigneeDetails = {[currentUserPersonalDetails.accountID]: currentUserPersonalDetails};
+                if (assignee) {
+                    taskCreatorAndAssigneeDetails[assignee.accountID] = assignee;
+                }
+
                 createTaskAndNavigate({
                     parentReport: report,
                     title: taskTitle,
@@ -141,6 +130,7 @@ function useComposerSubmit(reportID: string) {
                     isCreatedUsingMarkdown: true,
                     quickAction,
                     ancestors: reportAncestors,
+                    taskCreatorAndAssigneeDetails,
                 });
                 return;
             }
@@ -174,7 +164,7 @@ function useComposerSubmit(reportID: string) {
     };
 
     const submitDraftAndClearComposer = () => {
-        if (isSendDisabled || !debouncedCommentMaxLengthValidation?.flush()) {
+        if (isSendDisabled || debouncedCommentMaxLengthValidation?.flush() === false) {
             return;
         }
 
@@ -186,9 +176,12 @@ function useComposerSubmit(reportID: string) {
             editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && (isEditingInComposer || didResetComposerHeightWhileEditing) && !attachmentFileRef.current;
 
         if (isFinishingComposerEdit) {
-            const hasNonEmptyEditingMessage = editingMessage !== null && editingMessage !== '';
-            const draftMessageForEdit = hasNonEmptyEditingMessage ? editingMessage : composerText;
-            validateAndSubmitDraft(draftMessageForEdit);
+            // We need to schedule the submission on the next tick to wait for
+            // potential autocorrection to update the text
+            setTimeout(() => {
+                validateAndSubmitDraft(textRef.current ?? '');
+            }, 0);
+
             return;
         }
 

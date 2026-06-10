@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
-import type {PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
+import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -38,7 +38,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllTransactionViolations, getUserAccountID} from '.';
+import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
 
@@ -50,6 +50,7 @@ type PayInvoiceArgs = {
     invoiceReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    currentUserLocalCurrency: string;
     payAsBusiness?: boolean;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     methodID?: number;
@@ -93,8 +94,9 @@ type PayMoneyRequestFunctionParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
-    conciergeReportID: string | undefined;
     onPaid?: () => void;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 function getPayMoneyRequestParams({
@@ -117,7 +119,8 @@ function getPayMoneyRequestParams({
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
-    conciergeReportID,
+    currentUserLocalCurrency,
+    delegateAccountID,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -138,9 +141,12 @@ function getPayMoneyRequestParams({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
-    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
+    currentUserLocalCurrency: string | undefined;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 }): PayMoneyRequestData {
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
@@ -175,6 +181,7 @@ function getPayMoneyRequestParams({
             policyName: defaultWorkspaceName,
             makeMeAdmin: true,
             policyID: payerPolicyID,
+            currency: currentUserLocalCurrency,
             currentUserAccountIDParam: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentUserEmailParam ?? '',
             introSelected,
@@ -208,8 +215,9 @@ function getPayMoneyRequestParams({
         chatReport = existingB2BInvoiceReport;
     }
 
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
     let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
-    if (hasHeldExpensesReportUtils(iouReport?.reportID) && !full && !!iouReport?.unheldTotal) {
+    if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!iouReport?.unheldTotal) {
         total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
@@ -225,6 +233,7 @@ function getPayMoneyRequestParams({
         isSettlingUp: true,
         payAsBusiness,
         bankAccountID,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
@@ -399,8 +408,8 @@ function getPayMoneyRequestParams({
 
     // Optimistically unhold all transactions if we pay all requests
     if (full) {
-        const reportTransactions = getReportTransactions(iouReport?.reportID);
-        for (const transaction of reportTransactions) {
+        const iouReportTransactions = getReportTransactions(iouReport?.reportID);
+        for (const transaction of iouReportTransactions) {
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -421,7 +430,7 @@ function getPayMoneyRequestParams({
             });
         }
 
-        const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = reportTransactions.map(({transactionID}) => {
+        const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = iouReportTransactions.map(({transactionID}) => {
             return {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -430,7 +439,7 @@ function getPayMoneyRequestParams({
         });
         onyxData.optimisticData?.push(...optimisticTransactionViolations);
 
-        const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = reportTransactions.map(({transactionID}) => {
+        const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = iouReportTransactions.map(({transactionID}) => {
             const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             return {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -445,7 +454,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, conciergeReportID});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, delegateAccountID});
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
         onyxData.successData?.push(...holdReportOnyxData.successData);
@@ -696,18 +705,17 @@ function completePaymentOnboarding(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    currentUserAccountID: number,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
-    const deprecatedUserAccountID = getUserAccountID();
-
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
     if (isInviteOnboardingComplete || !introSelected?.choice || !introSelected?.inviteType) {
         return;
     }
 
-    const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(deprecatedUserAccountID ? [deprecatedUserAccountID] : [], getAllPersonalDetails()));
+    const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(currentUserAccountID ? [currentUserAccountID] : [], getAllPersonalDetails()));
     const personalDetails = personalDetailsListValues.at(0);
 
     let onboardingPurpose = introSelected?.choice;
@@ -732,7 +740,6 @@ function completePaymentOnboarding(
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
         isSelfTourViewed,
-        betas,
     });
 }
 
@@ -756,21 +763,21 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         amountOwed,
         ownerBillingGracePeriodEnd,
         methodID,
-        conciergeReportID,
         onPaid,
+        delegateAccountID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
         chatReport.policyID &&
         policyForBillingRestriction &&
-        shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+        shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
     ) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -785,10 +792,12 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserLogin,
+        // payMoneyRequest never creates a payer workspace (no payAsBusiness branch), so currency is unused here.
+        currentUserLocalCurrency: undefined,
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-        conciergeReportID,
+        delegateAccountID,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -802,6 +811,176 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     return payMoneyRequestParams.optimisticHoldReportID;
 }
 
+function markReportPaymentReceived(
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+) {
+    if (!chatReport || !iouReport) {
+        return;
+    }
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const allTransactionViolations = getAllTransactionViolations();
+    const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
+    const total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
+    const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        amount: -total,
+        currency: iouReport.currency ?? '',
+        comment: '',
+        participants: [recipient],
+        transactionID: '',
+        paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        iouReportID: iouReport.reportID,
+        isSettlingUp: true,
+    });
+
+    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, true) : null;
+    const optimisticNextStepDeprecated =
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                iouReportID: null,
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport.reportID, currentUserEmail, currentUserAccountID, allTransactionViolations, undefined),
+                lastMessageText: getReportActionText(optimisticIOUReportAction),
+                lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                lastMessageText: getReportActionText(optimisticIOUReportAction),
+                lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
+                lastVisibleActionCreated: optimisticIOUReportAction.created,
+                hasOutstandingChildRequest: false,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    partial: null,
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                nextStep: optimisticNextStep,
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        },
+    ];
+
+    if (optimisticReportPreviewAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+            },
+        });
+    }
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: {
+                    preview: null,
+                    reimbursed: null,
+                    partial: null,
+                    nextStep: null,
+                },
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                ...iouReport,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: iouReportCurrentNextStepDeprecated ?? null,
+        },
+    ];
+
+    if (optimisticReportPreviewAction) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: {
+                    created: optimisticReportPreviewAction.created,
+                },
+            },
+        });
+    }
+
+    const parameters: MarkReportPaymentReceivedParams = {
+        reportID: iouReport.reportID,
+        reportActionID: optimisticIOUReportAction.reportActionID,
+    };
+
+    playSound(SOUNDS.SUCCESS);
+    API.write(WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED, parameters, {optimisticData, successData, failureData});
+    notifyNewAction(iouReport.reportID, undefined, true);
+}
+
 function payInvoice({
     paymentMethodType,
     chatReport,
@@ -809,6 +988,7 @@ function payInvoice({
     introSelected,
     currentUserAccountIDParam,
     currentUserEmailParam,
+    currentUserLocalCurrency,
     payAsBusiness = false,
     existingB2BInvoiceReport,
     methodID,
@@ -847,6 +1027,7 @@ function payInvoice({
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        currentUserLocalCurrency,
         introSelected,
         betas,
         isSelfTourViewed,
@@ -854,7 +1035,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
@@ -912,4 +1093,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};

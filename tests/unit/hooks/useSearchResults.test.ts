@@ -91,9 +91,9 @@ describe('useSearchResults', () => {
         expect(result.current[2].map((i) => i.id)).toEqual([1]);
     });
 
-    describe('auto-clear when data crosses SEARCH_ITEM_LIMIT', () => {
-        const aboveLimit = CONST.SEARCH_ITEM_LIMIT + 5;
-        const belowLimit = CONST.SEARCH_ITEM_LIMIT - 5;
+    describe('auto-clear when data crosses STANDARD_LIST_ITEM_LIMIT', () => {
+        const aboveLimit = CONST.STANDARD_LIST_ITEM_LIMIT + 5;
+        const belowLimit = CONST.STANDARD_LIST_ITEM_LIMIT - 5;
 
         it('clears the input when the dataset shrinks from above the limit to at or below the limit', () => {
             const {result, rerender} = renderHook(({data}) => useSearchResults(data, filterByName), {

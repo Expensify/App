@@ -1,6 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {derivedFlagsSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -14,8 +17,8 @@ type UseFooterDerivedFlagsParams = {
     /** Type of IOU being confirmed (excluding REQUEST and SEND) */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
-    /** The transaction being confirmed */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** ID of the active transaction (the hook resolves a narrow slice internally) */
+    transactionID: string | undefined;
 
     /** The policy that owns the confirmation context */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -48,7 +51,7 @@ type UseFooterDerivedFlagsParams = {
 function useFooterDerivedFlags({
     action,
     iouType,
-    transaction,
+    transactionID,
     policy,
     policyTagLists,
     isPolicyExpenseChat,
@@ -61,7 +64,9 @@ function useFooterDerivedFlags({
 }: UseFooterDerivedFlagsParams) {
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
-    // Self-derived iou* values from transaction
+    const transaction = useTransactionSelector(transactionID, derivedFlagsSliceSelector);
+
+    // Self-derived iou* values from the slice
     const iouCurrencyCode = getCurrency(transaction);
     const isScan = isScanRequest(transaction);
 
@@ -82,7 +87,7 @@ function useFooterDerivedFlags({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
 
     // A flag for showing the billable field
-    const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
+    const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;

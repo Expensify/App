@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useActivePolicy from '@hooks/useActivePolicy';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
@@ -55,10 +55,9 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const {onboardingMessages} = useOnboardingMessages();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -119,7 +118,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 adminsChatReportID: resolvedAdminsChatReportID,
                 onboardingPolicyID: resolvedPolicyID,
                 introSelected,
-                betas,
                 isSelfTourViewed,
             });
 
@@ -130,7 +128,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeChatReportID,
-                archivedReportsIdSet,
+                archivedReportsIDSet,
                 resolvedPolicyID,
                 mergedAccountConciergeReportID,
                 false,
@@ -143,13 +141,12 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             onboardingAdminsChatReportID,
             onboardingMessages,
             onboardingPolicyID,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             isSmallScreenWidth,
             isBetaEnabled,
             mergedAccountConciergeReportID,
             introSelected,
             conciergeChatReportID,
-            betas,
             isSelfTourViewed,
         ],
     );
@@ -185,7 +182,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                   currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                   shouldAddGuideWelcomeMessage: false,
                   onboardingPurposeSelected,
-                  betas,
                   isSelfTourViewed,
                   hasActiveAdminPolicies,
               })
@@ -207,7 +203,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         currentUserPersonalDetails.email,
         introSelected,
         activePolicy,
-        betas,
         isSelfTourViewed,
         hasActiveAdminPolicies,
         completeOnboarding,

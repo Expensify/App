@@ -9,9 +9,18 @@ type PopoverPosition = {
     vertical: number;
 };
 
-type UsePopoverEditStateOptions = {
+type UsePopoverEditStateOptions<T> = {
     /** Whether editing is currently permitted. When false, editing will be cancelled. */
     canEdit: boolean | undefined;
+
+    /** The current value being edited */
+    value?: T;
+
+    /** Callback when the value is saved */
+    onSave?: (value: T) => void;
+
+    /** Custom equality function. If not provided, Object.is is used. */
+    isEqual?: (newValue: T, originalValue: T) => boolean;
 
     /** Height of the popover content (used for overflow detection). Defaults to CONST.POPOVER_DATE_MAX_HEIGHT */
     popoverHeight?: number;
@@ -36,13 +45,17 @@ type UsePopoverEditStateOptions = {
  *   - Auto-open after layout via InteractionManager
  *   - isEditing + isPopoverVisible toggling
  *   - Auto-cancel when canEdit becomes false
+ *   - Value comparison to prevent no-op saves
  */
-function usePopoverEditState({
+function usePopoverEditState<T>({
     canEdit,
+    value,
+    onSave,
+    isEqual,
     popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
     padding = CONST.MODAL.POPOVER_MENU_PADDING,
     anchorEdge = CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-}: UsePopoverEditStateOptions) {
+}: UsePopoverEditStateOptions<T>) {
     const {windowHeight} = useWindowDimensions();
     const anchorRef = useRef<View>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -75,6 +88,21 @@ function usePopoverEditState({
         setIsEditing(false);
     };
 
+    /**
+     * Handles saving a new value.
+     * Compares the new value with the original value and only calls onSave if they differ.
+     * Always closes the popover after handling.
+     */
+    const handleSave = (newValue: T) => {
+        if (value !== undefined && onSave) {
+            const shouldSave = isEqual ? !isEqual(newValue, value) : !Object.is(newValue, value);
+            if (shouldSave) {
+                onSave(newValue);
+            }
+        }
+        cancelEditing();
+    };
+
     // Cancel editing when permission is revoked (e.g., transaction status changed)
     useEffect(() => {
         if (canEdit || !isEditing) {
@@ -83,7 +111,7 @@ function usePopoverEditState({
         queueMicrotask(() => {
             cancelEditing();
         });
-    }, [canEdit, isEditing]);
+    }, [canEdit, isEditing, cancelEditing]);
 
     return {
         isEditing,
@@ -93,6 +121,7 @@ function usePopoverEditState({
         isInverted,
         startEditing,
         cancelEditing,
+        handleSave,
     };
 }
 

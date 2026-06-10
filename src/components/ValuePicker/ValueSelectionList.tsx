@@ -1,6 +1,8 @@
 import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import useInitialSelection from '@hooks/useInitialSelection';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import type {ValueSelectionListProps} from './types';
 
 function ValueSelectionList({
@@ -11,20 +13,25 @@ function ValueSelectionList({
     addBottomSafeAreaPadding = true,
     disableKeyboardShortcuts = false,
     alternateNumberOfSupportedLines,
+    isVisible,
 }: ValueSelectionListProps) {
-    const options = useMemo(
-        () => items.map((item) => ({value: item.value, alternateText: item.description, text: item.label ?? '', isSelected: item === selectedItem, keyForList: item.value ?? ''})),
-        [items, selectedItem],
-    );
+    const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {isVisible});
+
+    const options = useMemo(() => {
+        const mappedOptions = items.map((item) => ({value: item.value ?? '', alternateText: item.description, text: item.label ?? '', keyForList: item.value ?? ''}));
+        const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
+
+        return orderedOptions.map((item) => ({...item, isSelected: item.value === selectedItem?.value}));
+    }, [initialSelectedValue, items, selectedItem?.value]);
 
     return (
         <SelectionList
             data={options}
             onSelectRow={(item) => onItemSelected?.(item)}
-            initiallyFocusedItemKey={selectedItem?.value}
+            initiallyFocusedItemKey={initialSelectedValue}
             shouldStopPropagation
             shouldShowTooltips={shouldShowTooltips}
-            shouldUpdateFocusedIndex
+            shouldScrollToFocusedIndexOnMount={false}
             ListItem={SingleSelectListItem}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             disableKeyboardShortcuts={disableKeyboardShortcuts}

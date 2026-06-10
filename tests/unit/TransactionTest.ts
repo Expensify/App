@@ -18,7 +18,7 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {PersonalDetails, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
@@ -1225,6 +1225,55 @@ describe('Transaction', () => {
 
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
             expect(updatedViolations?.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG)).toBe(true);
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
+            expect(updatedReport?.nextStep?.messageKey).not.toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES);
+        });
+
+        it('should not show fix issues next step when moving a transaction with a receiptNotSmartScanned notice', async () => {
+            const policyID = '78';
+            const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+            const oldIOUAction = createIOUAction(transaction);
+            const receiptNoticeViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                type: CONST.VIOLATION_TYPES.NOTICE,
+            };
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ID,
+            };
+            const policy = createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [receiptNoticeViolation]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await waitForBatchedUpdates();
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                allTransactionViolation: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
+            });
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(updatedViolations).toContainEqual(receiptNoticeViolation);
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
+            expect(updatedReport?.nextStep?.messageKey).not.toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES);
         });
 
         it('should add a missingTag violation per tag list when moving to a paid policy with dependent multi-level tags and the transaction has no tag', async () => {
@@ -1288,6 +1337,50 @@ describe('Transaction', () => {
             expect(missingTagViolations.some((violation) => violation.data?.tagName === 'City')).toBe(true);
         });
 
+        it('removes AUTO_REPORTED_REJECTED_EXPENSE from transaction violations when moving to a paid group policy', async () => {
+            const policyID = '1001';
+            const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+            const oldIOUAction = createIOUAction(transaction);
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ID,
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                requiresTag: false,
+                requiresCategory: false,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [
+                {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ]);
+            await waitForBatchedUpdates();
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: {},
+            });
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(updatedViolations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(false);
+        });
+
         it('should auto-select a valid distance rate when moving a distance expense with an invalid P2P rate to a workspace', async () => {
             const policyID = '100';
             const validRateID = 'valid_rate_1';
@@ -1295,6 +1388,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1371,6 +1465,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1452,6 +1547,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1527,6 +1623,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -2013,6 +2110,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -2077,6 +2175,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -2089,6 +2188,88 @@ describe('Transaction', () => {
 
             const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
             expect(Object.keys(reportActions ?? {}).length).toBe(0);
+        });
+
+        it('should preserve an existing hold when optimistic dismissal is built from a stale transaction snapshot', async () => {
+            const transactionID = 'dismissTxnHold';
+            const threadReportID = 'threadDismissHold';
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const testerEmail = 'tester@example.com';
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+
+            const transactionInOnyx = generateTransaction({
+                transactionID,
+                reportID: FAKE_OLD_REPORT_ID,
+                comment: {
+                    hold: 'holdReportActionID',
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.SMARTSCAN_FAILED]: {
+                            owner: 123,
+                        },
+                    },
+                },
+            });
+            await Onyx.merge(transactionKey, transactionInOnyx);
+
+            const staleTransaction = {
+                ...transactionInOnyx,
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.SMARTSCAN_FAILED]: {
+                            owner: 123,
+                        },
+                    },
+                    hold: undefined,
+                },
+            } as Transaction;
+
+            const iouAction = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transactionID,
+                    amount: transactionInOnyx.amount,
+                    currency: transactionInOnyx.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+
+            mockFetch.fail();
+
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: testerEmail, accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[transactionKey]: staleTransaction},
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
+            });
+            await waitForBatchedUpdates();
+
+            const optimisticTransaction = await getOnyxValue(transactionKey);
+            const duplicateDismissals = optimisticTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION];
+            expect(optimisticTransaction?.comment?.hold).toBe('holdReportActionID');
+            expect(optimisticTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.SMARTSCAN_FAILED]).toEqual({owner: 123});
+            expect(duplicateDismissals?.[testerEmail]).toEqual(expect.any(Number));
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const revertedTransaction = await getOnyxValue(transactionKey);
+            expect(revertedTransaction?.comment?.hold).toBe('holdReportActionID');
+            expect(revertedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.SMARTSCAN_FAILED]).toEqual({owner: 123});
+            expect(revertedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION]).toBeUndefined();
         });
 
         it('should not modify Onyx data when tag list does not exist at given index (empty violations array)', async () => {
@@ -2165,6 +2346,7 @@ describe('Transaction', () => {
                         policy: undefined,
                         isASAPSubmitBetaEnabled: false,
                         allTransactions,
+                        currentTransactionViolations: [{transactionID, violations: mockViolations}],
                     });
                     await waitForBatchedUpdates();
                 });
