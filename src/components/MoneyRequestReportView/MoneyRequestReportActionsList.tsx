@@ -174,7 +174,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return true;
         });
 
-        return filteredActions.toReversed();
+        // Use slice().reverse() instead of toReversed() — toReversed is ES2023 and crashes on Chrome <110 / Safari <16.4 (Sentry APP-DTS).
+        return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
     const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
