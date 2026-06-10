@@ -94,6 +94,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 allTransactions,
                 policyTagList,
+                allTransactionViolation: transactionViolations,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -115,6 +116,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions,
             policyTagList,
+            allTransactionViolation: transactionViolations,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

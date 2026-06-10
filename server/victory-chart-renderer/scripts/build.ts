@@ -9,6 +9,7 @@
  * Required --target and --outfile select the Bun compile target and output path. The script
  * exits after writing the binary; it does not run it.
  */
+import assertBuildSuccess from '@server/libs/assertBuildSuccess';
 import parseCompileTarget from '@server/libs/parseCompileTarget';
 import createRnStubPlugin from '@server/plugins/rnStubPlugin';
 import {join, resolve} from 'node:path';
@@ -16,6 +17,7 @@ import CLI from '@scripts/utils/CLI';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const stubRoot = resolve(packageRoot, '../stubs');
+const tsconfigPath = join(packageRoot, 'tsconfig.json');
 
 const cli = new CLI({
     namedArgs: {
@@ -32,19 +34,15 @@ const cli = new CLI({
 const {target, outfile} = cli.namedArgs;
 
 const buildResult = await Bun.build({
-    entrypoints: [join(packageRoot, 'src/cli.tsx')],
+    entrypoints: [join(packageRoot, 'src/bootstrap.tsx')],
     compile: {
         target,
         outfile,
     },
     packages: 'bundle',
     conditions: ['react-native'],
+    tsconfig: tsconfigPath,
     plugins: [createRnStubPlugin(stubRoot)],
 });
 
-if (!buildResult.success) {
-    for (const log of buildResult.logs) {
-        console.error(log);
-    }
-    throw new Error(`Failed to compile victory-chart-renderer for ${target}`);
-}
+assertBuildSuccess(buildResult, `Failed to compile victory-chart-renderer for ${target}`);
