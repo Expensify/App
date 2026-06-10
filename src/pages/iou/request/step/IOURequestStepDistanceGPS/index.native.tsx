@@ -258,7 +258,6 @@ function IOURequestStepDistanceGPS({
                         waypoints={waypointMarkers}
                         directionCoordinates={directionCoordinates}
                         ref={mapRef}
-                        shouldFollowCurrentLocationWhenRoutePresent={false}
                     />
                 </View>
 

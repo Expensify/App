@@ -37,12 +37,6 @@ type MapViewProps = {
 
     // Whether it should display the current user's location on the map
     shouldDisplayCurrentLocation?: boolean;
-
-    // Whether it should follow the current location when a route is present
-    // Route is present => waypoints & directionCoordinates are not empty
-    // If there is a route, the map will follow the current location
-    // If there is no route, the map will not follow the current location
-    shouldFollowCurrentLocationWhenRoutePresent?: boolean;
 };
 
 type DirectionProps = {
