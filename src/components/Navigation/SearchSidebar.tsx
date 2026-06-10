@@ -50,7 +50,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const isAnyModalActiveRef = useRef(false);
     const wasAnyModalActiveRef = useRef(false);
     const delayedPeekDismissUntilRef = useRef(0);
-    const sidebarRef = useRef<React.ComponentRef<typeof Animated.View>>(null);
+    const isSidebarHoveredRef = useRef(false);
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -85,15 +85,20 @@ function SearchSidebar({state}: SearchSidebarProps) {
             return;
         }
 
-        const sidebarElement = sidebarRef.current as unknown as HTMLElement | null;
-        if (!sidebarElement || sidebarElement.matches?.(':hover')) {
+        if (isSidebarHoveredRef.current) {
             return;
         }
 
         endPeek();
     };
 
+    const markSidebarHovered = () => {
+        isSidebarHoveredRef.current = true;
+    };
+
     const endPeekWhenNoModalIsActive = () => {
+        isSidebarHoveredRef.current = false;
+
         if (isAnyModalActiveRef.current || Date.now() < delayedPeekDismissUntilRef.current) {
             return;
         }
@@ -173,11 +178,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     return (
         <Animated.View style={layoutSpacerStyle}>
-            <Hoverable onHoverOut={endPeekWhenNoModalIsActive}>
-                <Animated.View
-                    ref={sidebarRef}
-                    style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}
-                >
+            <Hoverable
+                onHoverIn={markSidebarHovered}
+                onHoverOut={endPeekWhenNoModalIsActive}
+            >
+                <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                     <View style={styles.flex1}>
                         <TopBar
                             shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
