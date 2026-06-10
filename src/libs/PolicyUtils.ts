@@ -1053,9 +1053,28 @@ function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag:
     }
 
     const tagLists = getTagLists(policyTagLists);
-    return getTagArrayFromName(transactionTag)
+    const tagParts = getTagArrayFromName(transactionTag);
+    return tagParts
         .map((tagName, index) => {
-            const glCode = tagLists.at(index)?.tags?.[tagName]?.['GL Code'];
+            const levelTags = tagLists.at(index)?.tags;
+            if (!levelTags) {
+                return '';
+            }
+
+            // Dependent tag lists can hold same-named child tags under different parents (stored under unique
+            // record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
+            const parentTagPath = tagParts.slice(0, index).join(':');
+            const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
+                if (!levelTag || levelTag.name !== tagName) {
+                    return false;
+                }
+                const filterRegex = levelTag.rules?.parentTagsFilter ?? levelTag.parentTagsFilter;
+                return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+            };
+
+            const directMatch = levelTags[tagName];
+            const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
+            const glCode = matchingTag?.['GL Code'];
             return glCode != null ? String(glCode).replaceAll('"', '') : '';
         })
         .filter(Boolean)

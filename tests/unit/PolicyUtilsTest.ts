@@ -1235,6 +1235,66 @@ describe('PolicyUtils', () => {
             expect(getTagGLCode(glCodePolicyTagLists, 'Sales\\:EMEA:Roadshow')).toBe('4321, 5678');
         });
 
+        it('resolves dependent tags by name and parent filter when same-named children exist under different parents', () => {
+            // Same-named child tags of dependent lists are stored under unique record keys,
+            // so they can only be told apart by their parentTagsFilter
+            const dependentPolicyTagLists: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                        Marketing: {name: 'Marketing', enabled: true},
+                    },
+                },
+                Project: {
+                    name: 'Project',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                        'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+                    },
+                },
+            };
+
+            expect(getTagGLCode(dependentPolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 2222');
+            expect(getTagGLCode(dependentPolicyTagLists, 'Marketing:Roadshow')).toBe('1111');
+        });
+
+        it('matches a dependent tag deeper in the hierarchy against the accumulated parent tag path', () => {
+            const deepDependentPolicyTagLists: PolicyTagLists = {
+                State: {
+                    name: 'State',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        California: {name: 'California', enabled: true},
+                    },
+                },
+                City: {
+                    name: 'City',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        'San Francisco': {name: 'San Francisco', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                },
+                District: {
+                    name: 'District',
+                    orderWeight: 2,
+                    required: false,
+                    tags: {
+                        Mission: {name: 'Mission', enabled: true, 'GL Code': '9000', rules: {parentTagsFilter: '^California:San Francisco$'}},
+                        'Mission-1': {name: 'Mission', enabled: true, 'GL Code': '9999', rules: {parentTagsFilter: '^Texas:Austin$'}},
+                    },
+                },
+            };
+
+            expect(getTagGLCode(deepDependentPolicyTagLists, 'California:San Francisco:Mission')).toBe('9000');
+        });
+
         it('returns the GL code as a string when malformed Onyx data stores it as a number', () => {
             const tagListsWithNumberGLCode: PolicyTagLists = {
                 Department: {
