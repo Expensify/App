@@ -6,10 +6,11 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
-import useGroupChatDraftParticipantSync from '../../src/pages/NewChatPage/useGroupDraftRestore';
+import type SelectedOption from '../../src/pages/NewChatPage/types';
+import useGroupChatDraftParticipantSync from '../../src/pages/NewChatPage/useGroupChatDraftParticipantSync';
 
-const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
-const mockGetUserToInviteOption = OptionsListUtilsModule.getUserToInviteOption as jest.MockedFunction<typeof OptionsListUtilsModule.getUserToInviteOption>;
+const mockUseOnyx: jest.Mock = jest.mocked(useOnyx);
+const mockGetUserToInviteOption = jest.mocked(OptionsListUtilsModule.getUserToInviteOption);
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@libs/OptionsListUtils', () => {
@@ -34,30 +35,36 @@ jest.mock('@react-navigation/native', () => {
                 mockFocusState.cleanup = cleanup;
             }
         },
+        useNavigation: () => ({
+            isFocused: () => mockFocusState.isScreenFocused,
+            addListener: () => () => {},
+        }),
     };
 });
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'current@test.com';
 
-function makePersonalDetailOption(accountID: number, login: string) {
+function makePersonalDetailOption(accountID: number, login: string): SearchOption<PersonalDetails> {
     return {
         accountID,
         login,
         text: login,
         keyForList: String(accountID),
-        item: {accountID, login, displayName: login} as PersonalDetails,
-    } as SearchOption<PersonalDetails>;
+        reportID: '',
+        item: {accountID, login, displayName: login},
+    };
 }
 
-function makeSelectedOption(accountID: number, login: string) {
+function makeSelectedOption(accountID: number, login: string): OptionData {
     return {
         accountID,
         login,
         text: login,
         keyForList: String(accountID),
+        reportID: '',
         isSelected: true,
-    } as OptionData;
+    };
 }
 
 const PARTICIPANT_A: SelectedParticipant = {accountID: 10, login: 'alice@test.com'};
@@ -80,14 +87,14 @@ describe('useGroupDraftRestore', () => {
     });
 
     function setupUseOnyx(draftParticipants: SelectedParticipant[] | undefined, draftStatus: 'loading' | 'loaded' = 'loaded') {
-        mockUseOnyx.mockImplementation(((key: string, options?: {selector?: (draft: unknown) => unknown}) => {
+        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (draft: unknown) => unknown}) => {
             if (key === 'newGroupChatDraft') {
                 const draft = draftParticipants ? {participants: draftParticipants} : undefined;
                 const value = options?.selector ? options.selector(draft) : draft;
                 return [value, {status: draftStatus}];
             }
             return [undefined, {status: 'loaded'}];
-        }) as typeof useOnyx);
+        });
     }
 
     function renderRestoreHook(overrides?: {
@@ -97,7 +104,7 @@ describe('useGroupDraftRestore', () => {
         draftParticipants?: SelectedParticipant[] | undefined;
         draftStatus?: 'loading' | 'loaded';
     }) {
-        const setSelectedOptions = jest.fn();
+        const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
         const {
             allPersonalDetailOptions = ALL_PERSONAL_DETAIL_OPTIONS,
             areAllPersonalDetailOptionsLoaded = true,
@@ -130,7 +137,7 @@ describe('useGroupDraftRestore', () => {
             const {setSelectedOptions} = renderRestoreHook({draftParticipants});
 
             expect(setSelectedOptions).toHaveBeenCalledTimes(1);
-            const restored = (setSelectedOptions.mock.calls as OptionData[][][]).at(0)?.at(0) ?? [];
+            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
             expect(restored).toHaveLength(2);
             expect(restored.at(0)?.accountID).toBe(PARTICIPANT_A.accountID);
             expect(restored.at(1)?.accountID).toBe(PARTICIPANT_B.accountID);
@@ -141,7 +148,7 @@ describe('useGroupDraftRestore', () => {
             const draftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A];
             const {setSelectedOptions} = renderRestoreHook({draftParticipants});
 
-            const restored = (setSelectedOptions.mock.calls as OptionData[][][]).at(0)?.at(0) ?? [];
+            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
             expect(restored).toHaveLength(1);
             expect(restored.at(0)?.accountID).toBe(PARTICIPANT_A.accountID);
         });
@@ -166,7 +173,7 @@ describe('useGroupDraftRestore', () => {
             const draftParticipants = [PARTICIPANT_A];
             setupUseOnyx(draftParticipants);
 
-            const setSelectedOptions = jest.fn();
+            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
             const {rerender} = renderHook(() =>
                 useGroupChatDraftParticipantSync(ALL_PERSONAL_DETAIL_OPTIONS, true, {}, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, [], setSelectedOptions),
             );
@@ -193,7 +200,7 @@ describe('useGroupDraftRestore', () => {
     describe('background sync', () => {
         it('should sync removals when draft changes while screen is in background', () => {
             const initialDraftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A, PARTICIPANT_B, PARTICIPANT_C];
-            const setSelectedOptions = jest.fn();
+            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
             const selectedAfterRestore = [makeSelectedOption(10, 'alice@test.com'), makeSelectedOption(20, 'bob@test.com'), makeSelectedOption(30, 'carol@test.com')];
 
             setupUseOnyx(initialDraftParticipants);
@@ -224,7 +231,7 @@ describe('useGroupDraftRestore', () => {
             rerender({draftParticipants: draftWithRemoval});
 
             expect(setSelectedOptions).toHaveBeenCalled();
-            const synced = (setSelectedOptions.mock.calls as OptionData[][][]).at(-1)?.at(0) ?? [];
+            const synced = setSelectedOptions.mock.calls.at(-1)?.at(0) ?? [];
             const syncedLogins = synced.map((option) => option.login);
             expect(syncedLogins).toContain('alice@test.com');
             expect(syncedLogins).toContain('carol@test.com');
@@ -238,7 +245,7 @@ describe('useGroupDraftRestore', () => {
 
         it('should sync to empty when all participants are removed from draft', () => {
             const initialDraftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A, PARTICIPANT_B];
-            const setSelectedOptions = jest.fn();
+            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
             const selectedAfterRestore = [makeSelectedOption(10, 'alice@test.com'), makeSelectedOption(20, 'bob@test.com')];
 
             setupUseOnyx(initialDraftParticipants);
@@ -265,13 +272,13 @@ describe('useGroupDraftRestore', () => {
             rerender({draftParticipants: [CURRENT_USER_PARTICIPANT]});
 
             expect(setSelectedOptions).toHaveBeenCalled();
-            const synced = (setSelectedOptions.mock.calls as OptionData[][][]).at(-1)?.at(0) ?? [];
+            const synced = setSelectedOptions.mock.calls.at(-1)?.at(0) ?? [];
             expect(synced).toHaveLength(0);
         });
 
         it('should not sync when screen is focused (normal operation after restore)', () => {
             const draftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A, PARTICIPANT_B];
-            const setSelectedOptions = jest.fn();
+            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
             const selectedAfterRestore = [makeSelectedOption(10, 'alice@test.com'), makeSelectedOption(20, 'bob@test.com')];
 
             setupUseOnyx(draftParticipants);
@@ -300,7 +307,7 @@ describe('useGroupDraftRestore', () => {
     describe('selector inactivity', () => {
         it('should not react to draft changes after restore (selector returns undefined)', () => {
             const draftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A];
-            const setSelectedOptions = jest.fn();
+            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
 
             setupUseOnyx(draftParticipants);
 
@@ -326,7 +333,7 @@ describe('useGroupDraftRestore', () => {
     describe('fallback and edge cases', () => {
         it('should use getUserToInviteOption fallback for unknown participants', () => {
             const unknownParticipant: SelectedParticipant = {accountID: 999, login: 'unknown@test.com'};
-            const fallbackOption = {text: 'unknown@test.com', login: 'unknown@test.com', accountID: 999, keyForList: '999'} as OptionData;
+            const fallbackOption: OptionData = {text: 'unknown@test.com', login: 'unknown@test.com', accountID: 999, keyForList: '999', reportID: ''};
             mockGetUserToInviteOption.mockReturnValue(fallbackOption);
 
             const {setSelectedOptions} = renderRestoreHook({
@@ -334,7 +341,7 @@ describe('useGroupDraftRestore', () => {
             });
 
             expect(setSelectedOptions).toHaveBeenCalledTimes(1);
-            const restored = (setSelectedOptions.mock.calls as OptionData[][][]).at(0)?.at(0) ?? [];
+            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
             expect(restored).toHaveLength(1);
             expect(restored.at(0)?.login).toBe('unknown@test.com');
             expect(mockGetUserToInviteOption).toHaveBeenCalled();
@@ -350,7 +357,7 @@ describe('useGroupDraftRestore', () => {
 
         it('should restore after personal details load (delayed loading)', () => {
             const draftParticipants = [PARTICIPANT_A, PARTICIPANT_B];
-            const setSelectedOptions = jest.fn();
+            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
 
             setupUseOnyx(draftParticipants);
 
@@ -364,13 +371,13 @@ describe('useGroupDraftRestore', () => {
             rerender({areLoaded: true});
 
             expect(setSelectedOptions).toHaveBeenCalledTimes(1);
-            const restored = (setSelectedOptions.mock.calls as OptionData[][][]).at(0)?.at(0) ?? [];
+            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
             expect(restored).toHaveLength(2);
         });
 
         it('should restore invited-by-email participant when user has no contacts', () => {
             const invited: SelectedParticipant = {accountID: 999, login: 'invited@test.com'};
-            const inviteStub = {text: 'invited@test.com', login: 'invited@test.com', accountID: 999, keyForList: '999'} as OptionData;
+            const inviteStub: OptionData = {text: 'invited@test.com', login: 'invited@test.com', accountID: 999, keyForList: '999', reportID: ''};
             mockGetUserToInviteOption.mockReturnValue(inviteStub);
 
             const {setSelectedOptions} = renderRestoreHook({
@@ -380,7 +387,7 @@ describe('useGroupDraftRestore', () => {
             });
 
             expect(setSelectedOptions).toHaveBeenCalledTimes(1);
-            const restored = (setSelectedOptions.mock.calls as OptionData[][][]).at(0)?.at(0) ?? [];
+            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
             expect(restored).toHaveLength(1);
             expect(restored.at(0)?.login).toBe('invited@test.com');
             expect(mockGetUserToInviteOption).toHaveBeenCalled();

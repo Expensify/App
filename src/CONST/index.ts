@@ -282,6 +282,9 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
+    ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
+    ADVANCED_FILTERS_POPOVER_WIDTH: 582,
+    ADVANCED_FILTERS_CONTENT_WIDTH: 331,
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -6328,6 +6331,7 @@ const CONST = {
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     MERGE_ACCOUNT_2FA_ERROR: 'is a login for an Expensify account with Two-Factor Authentication (2FA) enabled',
+    MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR: 'is a login for an Expensify account with Single Sign-On (SSO/SAML) enabled',
 
     // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
@@ -8042,6 +8046,7 @@ const CONST = {
             ADVANCED_FILTER_ITEM: 'Search-AdvancedFilterItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
             VIEW_RESULTS_BUTTON: 'Search-ViewResultsButton',
+            CLEAR_FILTERS_BUTTON: 'Search-ClearFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
