@@ -498,7 +498,6 @@ function updateFinancialForceSyncReimbursedReports(policyID: string, enabled: bo
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-/** @public */
 function updateFinancialForceParentTagMapping(
     policyID: string,
     parentTagMapping: ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>,
@@ -513,13 +512,11 @@ function updateFinancialForceParentTagMapping(
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, parentTagMapping}, {optimisticData, failureData, successData});
 }
 
-/** @public */
 function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, previousValue?: boolean) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceCodingUpdate(policyID, CONST.CERTINIA_CONFIG.SYNC_MILESTONES, enabled, previousValue);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_MILESTONES, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-/** @public */
 function updateFinancialForceReportExportStatus(policyID: string, status: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(
         policyID,
@@ -530,19 +527,16 @@ function updateFinancialForceReportExportStatus(policyID: string, status: ValueO
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS, {policyID, reportExportStatus: status}, {optimisticData, failureData, successData});
 }
 
-/** @public */
 function updateFinancialForceTaxNonBillable(policyID: string, enabled: boolean, previousValue?: boolean) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceAdvancedUpdate(policyID, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, enabled, previousValue);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-/** @public */
 function updateFinancialForceExportForeignCurrency(policyID: string, enabled: boolean, previousValue?: boolean) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceAdvancedUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY, enabled, previousValue);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-/** @public */
 function updateFinancialForceCompany(policyID: string, companyID: string, previousCompanyID: string | null) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
