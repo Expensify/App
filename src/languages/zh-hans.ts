@@ -4022,27 +4022,30 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         verificationFailed: '验证失败，因此我们需要额外的文件来验证你及你的企业',
         taxIDVerification: '税务识别号验证',
         taxIDVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • IRS TIN/EIN 分配函
-        • IRS TIN/EIN 申请确认函（通常包含“Congratulations! The EIN has been successfully assigned”）
-        • 显示公司名称和 EIN 的 IRS 免税函`),
+            请上传以下任一文件：
+            • IRS TIN/EIN 分配函
+            • IRS TIN/EIN 申请确认函（通常包含“Congratulations! The EIN has been successfully assigned”）
+            • 显示公司名称和 EIN 的 IRS 免税函
+        `),
         nameChangeDocument: '名称变更文件',
         nameChangeDocumentDescription: '如果你的公司名称在申请 TIN/EIN 后发生更改，我们需要此文件来验证你提供的税务识别号',
         companyAddressVerification: '公司地址验证',
         companyAddressVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • 显示公司名称和地址的近期水电账单
-        • 显示公司名称和地址的银行对账单
-        • 包含签字页的有效租赁协议，显示公司名称和当前地址
-        • 显示公司名称和地址的保险声明
-        • 显示公司名称和地址的 TIN 分配文件`),
+            请上传以下任一文件：
+            • 显示公司名称和地址的近期水电账单
+            • 显示公司名称和地址的银行对账单
+            • 包含签字页的有效租赁协议，显示公司名称和当前地址
+            • 显示公司名称和地址的保险声明
+            • 显示公司名称和地址的 TIN 分配文件
+        `),
         userAddressVerification: '地址验证',
         userAddressVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • 选民登记卡
-        • 驾驶证
-        • 银行对账单
-        • 水电账单`),
+            请上传以下任一文件：
+            • 选民登记卡
+            • 驾驶证
+            • 银行对账单
+            • 水电账单
+        `),
         userDOBVerification: '出生日期验证',
         userDOBVerificationDescription: '请上传美国签发的身份证件',
         finishViaChat: '通过聊天完成',
@@ -8007,6 +8010,8 @@ ${reportName}
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
+            firstApprover: '首位审批人',
+            firstApproved: '首次批准',
         },
         display: {
             label: '显示',
