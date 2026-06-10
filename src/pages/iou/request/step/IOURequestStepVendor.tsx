@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -54,34 +54,34 @@ function IOURequestStepVendor({
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the QBO CC vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
-    const vendors = useMemo(() => getQBOVendors(policy), [policy]);
+    const vendors = getQBOVendors(policy);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
 
-    const data: VendorListItem[] = useMemo(() => {
-        const trimmed = searchValue.trim().toLowerCase();
-        const vendorRows = vendors
-            .filter((vendor) => !trimmed || vendor.name.toLowerCase().includes(trimmed))
-            .map((vendor) => ({
-                value: vendor.id,
-                text: vendor.name,
-                keyForList: vendor.id,
-                isSelected: vendor.id === currentVendorID,
-                searchText: vendor.name,
-            }));
+    const trimmedSearch = searchValue.trim().toLowerCase();
+    const vendorRows: VendorListItem[] = vendors
+        .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
+        .map((vendor) => ({
+            value: vendor.id,
+            text: vendor.name,
+            keyForList: vendor.id,
+            isSelected: vendor.id === currentVendorID,
+            searchText: vendor.name,
+        }));
 
-        // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
-        if (!currentVendorID || trimmed) {
-            return vendorRows;
-        }
-        const clearRow: VendorListItem = {
-            value: '',
-            text: translate('common.none'),
-            keyForList: 'clear-vendor',
-            isSelected: false,
-            searchText: '',
-        };
-        return [clearRow, ...vendorRows];
-    }, [vendors, currentVendorID, searchValue, translate]);
+    // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
+    const data: VendorListItem[] =
+        !currentVendorID || trimmedSearch
+            ? vendorRows
+            : [
+                  {
+                      value: '',
+                      text: translate('common.none'),
+                      keyForList: 'clear-vendor',
+                      isSelected: false,
+                      searchText: '',
+                  },
+                  ...vendorRows,
+              ];
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
@@ -98,20 +98,17 @@ function IOURequestStepVendor({
 
     const headerMessage = searchValue && data.length === 0 ? translate('common.noResultsFound') : '';
 
-    const listEmptyContent = useMemo(
-        () =>
-            vendors.length === 0 ? (
-                <BlockingView
-                    icon={illustrations.Telescope}
-                    iconWidth={variables.emptyListIconWidth}
-                    iconHeight={variables.emptyListIconHeight}
-                    title={translate('workspace.qbo.noAccountsFound')}
-                    subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
-                    containerStyle={styles.pb10}
-                />
-            ) : null,
-        [vendors.length, illustrations.Telescope, translate, styles.pb10],
-    );
+    const listEmptyContent =
+        vendors.length === 0 ? (
+            <BlockingView
+                icon={illustrations.Telescope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ) : null;
 
     return (
         <StepScreenWrapper
@@ -140,7 +137,5 @@ function IOURequestStepVendor({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepVendor.displayName = 'IOURequestStepVendor';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepVendor));
