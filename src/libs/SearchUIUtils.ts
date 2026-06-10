@@ -139,13 +139,11 @@ import {
     findSelfDMReportID,
     generateReportID,
     getIcons,
-    getInvoiceReceiverPolicyID,
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
     getReportOrDraftReport,
     getReportStatusTranslation,
-    getSearchReportName,
     hasHeldExpenses,
     hasInvoiceReports,
     hasOnlyNonReimbursableTransactions,
@@ -612,6 +610,7 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     policyForMovingExpenses?: OnyxTypes.Policy;
     optimisticTransactionID?: string;
+    reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'];
 };
 
 /**
@@ -2507,6 +2506,7 @@ function getTaskSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     conciergeReportID: string | undefined,
     archivedReportsIDList?: ArchivedReportsIDSet,
+    reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
     const tasks = Object.keys(data)
@@ -2544,7 +2544,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                const parentReportName = getReportName(parentReport);
+                const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2672,16 +2672,12 @@ function createAndOpenSearchTransactionThread({
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue): [ReportActionListItemType[], number] {
+function getReportActionsSections(
+    data: OnyxTypes.SearchResults['data'],
+    visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue,
+    reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
-
-    const transactions = Object.keys(data)
-        .filter(isTransactionEntry)
-        .map((key) => data[key]);
-
-    const reports = Object.keys(data)
-        .filter(isReportEntry)
-        .map((key) => data[key]);
 
     let n = 0;
 
@@ -2700,12 +2696,9 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ??
                     data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ??
                     {};
-                const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-                const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
-                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined = invoiceReceiverPolicyID ? data[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
                 if (
                     !reportID ||
                     !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
@@ -2723,7 +2716,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     ...reportAction,
                     reportID,
                     from,
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, isReportArchived}),
+                    reportName: getReportName(report, reportAttributesDerivedValue),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -3603,12 +3596,13 @@ function getSections({
     policyForMovingExpenses,
     convertToDisplayString,
     optimisticTransactionID,
+    reportAttributesDerivedValue,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return [...getReportActionsSections(data, visibleReportActionsData), false];
+        return [...getReportActionsSections(data, visibleReportActionsData, reportAttributesDerivedValue), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList), false];
+        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList, reportAttributesDerivedValue), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -5361,18 +5355,26 @@ function getWithdrawalStatusDisplayText(value: SearchWithdrawalStatus | undefine
         .join(', ');
 }
 
+/**
+ * A `PolicyCategoriesLookup` can either be a single policy's categories or an Onyx collection of
+ * many policies' categories keyed by `policy_categories_<policyID>`. A collection is the only
+ * variant whose keys start with that prefix, so we use that to discriminate the union.
+ */
+function isPolicyCategoriesCollection(policyCategories: NonNullable<PolicyCategoriesLookup>): policyCategories is NonNullable<OnyxCollection<OnyxTypes.PolicyCategories>> {
+    return Object.keys(policyCategories).some((key) => key.startsWith(ONYXKEYS.COLLECTION.POLICY_CATEGORIES));
+}
+
 function getPolicyCategoriesForPolicyID(policyCategories: PolicyCategoriesLookup | undefined, policyID?: string): OnyxEntry<OnyxTypes.PolicyCategories> {
     if (!policyCategories) {
         return undefined;
     }
 
-    const policyCategoriesKey = policyID ? `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` : undefined;
-    if (policyCategoriesKey && Object.prototype.hasOwnProperty.call(policyCategories, policyCategoriesKey)) {
-        return (policyCategories as OnyxCollection<OnyxTypes.PolicyCategories>)?.[policyCategoriesKey];
+    if (!isPolicyCategoriesCollection(policyCategories)) {
+        return policyCategories;
     }
 
-    const isPolicyCategoriesCollection = Object.keys(policyCategories).some((key) => key.startsWith(ONYXKEYS.COLLECTION.POLICY_CATEGORIES));
-    return isPolicyCategoriesCollection ? undefined : (policyCategories as OnyxEntry<OnyxTypes.PolicyCategories>);
+    const policyCategoriesKey = policyID ? `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` : undefined;
+    return policyCategoriesKey ? policyCategories[policyCategoriesKey] : undefined;
 }
 
 /**
