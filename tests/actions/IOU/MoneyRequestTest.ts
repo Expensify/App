@@ -1,8 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {clearMoneyRequestAmount, createTransaction, getMoneyRequestParticipantOptions, handleMoneyRequestStepDistanceNavigation, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +15,7 @@ import type * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
+import type * as SubmitWithDismissFirstMock from '../../__mocks__/submitWithDismissFirst';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -51,10 +53,34 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return -- jest.requireActual returns `any` by design
-jest.mock('@libs/actions/IOU/submitWithDismissFirst', () => jest.requireActual('../../__mocks__/submitWithDismissFirst'));
+// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) can be asserted.
+jest.mock('@libs/shouldUseDefaultExpensePolicy', () => {
+    const actual = jest.requireActual<{default: typeof shouldUseDefaultExpensePolicy}>('@libs/shouldUseDefaultExpensePolicy');
+    return {
+        __esModule: true,
+        default: jest.fn((...args: Parameters<typeof shouldUseDefaultExpensePolicy>) => actual.default(...args)),
+    };
+});
 
 jest.mock('@libs/getCurrentPosition');
+
+// Fire executeWrite synchronously so downstream writes can be asserted.
+jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
+// Cleanup helpers are spies so the move-from-track cleanup-id contract can be asserted.
+const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
+const mockCleanupAfterExpenseCreate = jest.fn();
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
+    __esModule: true,
+    default: (...args: unknown[]): void => {
+        mockCleanupAndNavigateAfterExpenseCreate(...args);
+    },
+}));
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
+    __esModule: true,
+    default: (...args: unknown[]): void => {
+        mockCleanupAfterExpenseCreate(...args);
+    },
+}));
 
 describe('MoneyRequest', () => {
     const currentUserAccountID = 111;
@@ -105,6 +131,9 @@ describe('MoneyRequest', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             recentWaypoints: [] as RecentWaypoint[],
+            optimisticTransactionIDs: ['mock-txn-id'],
+            optimisticChatReportID: undefined,
+            currentUserLocalCurrency: undefined,
         };
 
         beforeEach(async () => {
@@ -146,12 +175,14 @@ describe('MoneyRequest', () => {
                         reimbursable: true,
                         gpsPoint: undefined,
                     }),
-                    shouldHandleNavigation: true,
                     isASAPSubmitBetaEnabled: false,
                 }),
             );
 
-            expect(TrackExpense.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldHandleNavigation: true}));
+            // Deferral is channel-driven; the action no longer receives a shouldDeferForSearch / shouldHandleNavigation flag.
+            const lastTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
+            expect(lastTrackExpenseParams && 'shouldDeferForSearch' in lastTrackExpenseParams).toBeFalsy();
+            expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeFalsy();
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -186,8 +217,6 @@ describe('MoneyRequest', () => {
                         billable: undefined,
                         reimbursable: true,
                     }),
-                    shouldHandleNavigation: true,
-                    backToReport: undefined,
                     shouldGenerateTransactionThreadReport: false,
                     isASAPSubmitBetaEnabled: false,
                     currentUserAccountIDParam: 111,
@@ -197,7 +226,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass shouldHandleNavigation as true for last file only', () => {
+        it('should not pass shouldDeferAPIWrite to the action (V2: deferral is channel-driven)', () => {
             const files = [
                 {...fakeReceiptFile, transactionID: '111'},
                 {...fakeReceiptFile, transactionID: '222'},
@@ -212,25 +241,8 @@ describe('MoneyRequest', () => {
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
-
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                1,
-                expect.objectContaining({
-                    shouldHandleNavigation: false,
-                }),
-            );
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                2,
-                expect.objectContaining({
-                    shouldHandleNavigation: false,
-                }),
-            );
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                3,
-                expect.objectContaining({
-                    shouldHandleNavigation: true,
-                }),
-            );
+            const trackExpenseCallsHaveDeferFlag = jest.mocked(TrackExpense.trackExpense).mock.calls.some(([params]) => !!params && 'shouldDeferAPIWrite' in params);
+            expect(trackExpenseCallsHaveDeferFlag).toBe(false);
         });
 
         it('should default receipt source and state correctly when file is missing', () => {
@@ -346,32 +358,17 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass the source transaction as existingTransaction to requestMoney for non-TRACK iouType', () => {
-            createTransaction({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.SEND,
-                allTransactionDrafts: {},
-            });
+        // getMoneyRequestInformation derives isScanRequest from existingTransaction; dropping it would silently downgrade a scanned receipt to a manual request.
+        it('should pass the receipt transaction as existingTransaction to requestMoney', () => {
+            createTransaction({...baseParams});
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    existingTransaction: fakeTransaction,
-                }),
-            );
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
         });
 
-        it('should pass the source transaction as existingTransaction to trackExpense for TRACK iouType', () => {
-            createTransaction({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.TRACK,
-                allTransactionDrafts: {},
-            });
+        it('should pass the receipt transaction as existingTransaction to trackExpense', () => {
+            createTransaction({...baseParams, iouType: CONST.IOU.TYPE.TRACK});
 
-            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    existingTransaction: fakeTransaction,
-                }),
-            );
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
         });
 
         it('should compute draftTransactionIDs from allTransactionDrafts', () => {
@@ -541,6 +538,30 @@ describe('MoneyRequest', () => {
                 }),
             );
         });
+
+        it('should pass each UI-provided optimistic transaction ID to the per-file write (so the UI can target the same id for nav)', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                optimisticTransactionIDs: ['ui-id-1'],
+                allTransactionDrafts: {},
+            });
+            const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(requestMoneyArg?.optimisticTransactionID).toBe('ui-id-1');
+        });
+
+        it('should forward the UI-resolved optimisticChatReportID to requestMoney (so the action builds the chat with the same id the UI navigates to)', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                report: undefined,
+                participant: {accountID: 222, login: 'test@test.com'},
+                optimisticChatReportID: 'ui-resolved-chat',
+                allTransactionDrafts: {},
+            });
+            const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(requestMoneyArg?.optimisticChatReportID).toBe('ui-resolved-chat');
+        });
     });
 
     describe('handleMoneyRequestStepDistanceNavigation', () => {
@@ -584,12 +605,16 @@ describe('MoneyRequest', () => {
             selfDMReport,
             betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
+            optimisticTransactionID: 'mock-txn-id',
+            optimisticChatReportID: 'mock-chat-id',
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
             conciergeReportID: undefined,
+            action: CONST.IOU.ACTION.CREATE,
             reportDraft: undefined,
+            currentUserLocalCurrency: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -667,57 +692,85 @@ describe('MoneyRequest', () => {
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
-            expect(TrackExpense.trackExpense).toHaveBeenCalledWith({
-                report: baseParams.report,
-                isDraftPolicy: false,
-                introSelected: undefined,
-                isSelfTourViewed: false,
-                participantParams: {
-                    payeeEmail: baseParams.currentUserLogin,
-                    payeeAccountID: baseParams.currentUserAccountID,
-                    participant: expect.objectContaining({
-                        accountID: 0,
-                        selected: true,
-                        isSelected: true,
-                        allReportErrors: {},
-                        brickRoadIndicator: null,
-                        isPolicyExpenseChat: true,
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: baseParams.report,
+                    isDraftPolicy: false,
+                    // Action is nav-free — UI owns navigation; draft + optimistic IDs are threaded in.
+                    existingTransaction: baseParams.transaction,
+                    transactionParams: expect.objectContaining({
+                        amount: 0,
+                        distance: 20,
+                        merchant: 'Pending...',
+                        customUnitRateID: '_FAKE_P2P_ID_',
                     }),
-                },
-                policyParams: {
-                    policy: undefined,
-                },
-                transactionParams: {
-                    amount: 0,
-                    distance: 20,
-                    currency: fakeTransaction?.currency ?? 'USD',
-                    created: fakeTransaction?.created ?? '',
-                    merchant: 'Pending...',
-                    receipt: {},
-                    billable: false,
-                    reimbursable: fakePolicy?.defaultReimbursable ?? true,
-                    validWaypoints: undefined,
-                    customUnitRateID: '_FAKE_P2P_ID_',
-                    attendees: fakeTransaction?.comment?.attendees,
-                    gpsCoordinates: undefined,
-                    odometerEnd: undefined,
-                    odometerStart: undefined,
-                    taxCode: '',
-                    taxAmount: 0,
-                },
-                existingTransaction: fakeTransaction,
-                shouldHandleNavigation: true,
-                shouldDeferForSearch: false,
-                isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
-                quickAction: baseParams.quickAction,
-                recentWaypoints: baseParams.recentWaypoints,
-                betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [baseParams.transactionID],
-            });
+                    currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
+                }),
+            );
+            const distanceTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
+            expect(typeof distanceTrackExpenseParams?.optimisticTransactionID).toBe('string');
+            expect(typeof distanceTrackExpenseParams?.optimisticChatReportID).toBe('string');
+            expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeFalsy();
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+        });
+
+        it('should pass the existing tracked transaction ID (not the optimistic id) to cleanup for a move-from-track distance submission', async () => {
+            const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-88';
+            const linkedTrackedExpenseReportAction = {
+                reportActionID: 'linked-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '',
+                originalMessage: {
+                    IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                    IOUReportID: 'tracked-report-1',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const movedTransaction = {
+                ...fakeTransaction,
+                linkedTrackedExpenseReportAction,
+            };
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction: movedTransaction,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                optimisticTransactionID: 'optimistic-should-be-ignored',
+                draftTransactionIDs: [baseParams.transactionID],
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                }),
+            );
+        });
+
+        // createDistanceRequest writes under the draft transaction, so cleanup must target that id — not the UI's optimistic one.
+        it('should pass the draft transaction id (not the optimistic id) to cleanup for a non-track distance submission', async () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                shouldSkipConfirmation: true,
+                manualDistance: 20,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                optimisticTransactionID: 'optimistic-should-be-ignored',
+                draftTransactionIDs: [baseParams.transactionID],
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: fakeTransaction.transactionID,
+                }),
+            );
         });
 
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
@@ -1015,6 +1068,18 @@ describe('MoneyRequest', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
         });
 
+        it('should pass currentUserAccountID to shouldUseDefaultExpensePolicy so the billing restriction uses the explicit account, not the deprecated session value', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                report: undefined,
+                defaultExpensePolicy: fakePolicy,
+                iouType: CONST.IOU.TYPE.CREATE,
+            });
+
+            const lastCallArgs = jest.mocked(shouldUseDefaultExpensePolicy).mock.calls.at(-1) ?? [];
+            expect(lastCallArgs.at(5)).toBe(baseParams.currentUserAccountID);
+        });
+
         it('should pass conciergeReportID through to getMoneyRequestParticipantOptions when report exists', async () => {
             const conciergeReportID = 'concierge789';
             handleMoneyRequestStepDistanceNavigation({
@@ -1171,7 +1236,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(true);
         });
 
         it('should return false when iouType is not CREATE', () => {
@@ -1181,9 +1246,9 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is not a paid group policy', () => {
@@ -1193,7 +1258,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when isPolicyExpenseChatEnabled is false', () => {
@@ -1203,15 +1268,15 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: false,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is undefined', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined, currentUserAccountID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is null', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined, currentUserAccountID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined)).toBe(false);
         });
 
         it('should handle amountOwed being undefined', () => {
@@ -1221,7 +1286,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should pass ownerBillingGracePeriodEnd through to shouldRestrictUserBillableActions', async () => {
@@ -1239,55 +1304,6 @@ describe('MoneyRequest', () => {
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate, TEST_USER_ACCOUNT_ID)).toBe(false);
 
             await Onyx.clear();
-        });
-    });
-
-    describe('setMoneyRequestAmount and clearMoneyRequestAmount', () => {
-        const transactionID = 'amount-test-txn';
-
-        beforeEach(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                transactionID,
-                amount: 0,
-                currency: 'USD',
-                comment: {},
-                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-            });
-        });
-
-        afterEach(async () => {
-            await Onyx.clear();
-        });
-
-        it('sets isAmountSet to true when the user enters an amount', async () => {
-            setMoneyRequestAmount(transactionID, 1500, 'USD');
-            await waitForBatchedUpdates();
-
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.amount).toBe(1500);
-            expect(transaction?.currency).toBe('USD');
-            expect(transaction?.isAmountSet).toBe(true);
-        });
-
-        it('allows explicitly setting zero as a valid amount via isAmountSet', async () => {
-            setMoneyRequestAmount(transactionID, 0, 'USD');
-            await waitForBatchedUpdates();
-
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.amount).toBe(0);
-            expect(transaction?.isAmountSet).toBe(true);
-        });
-
-        it('clears isAmountSet when the user deletes the amount input', async () => {
-            setMoneyRequestAmount(transactionID, 2500, 'USD');
-            await waitForBatchedUpdates();
-
-            clearMoneyRequestAmount(transactionID);
-            await waitForBatchedUpdates();
-
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.amount).toBe(0);
-            expect(transaction?.isAmountSet).toBe(false);
         });
     });
 });

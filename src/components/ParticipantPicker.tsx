@@ -24,6 +24,9 @@ type ParticipantPickerProps = {
     /** Whether this is a time expense request */
     isTimeRequest?: boolean;
 
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
+
     /** Callback fired when participants are updated */
     onParticipantsAdded: (value: Participant[]) => void;
 
@@ -43,6 +46,7 @@ function ParticipantPicker({
     action,
     isPerDiemRequest = false,
     isTimeRequest = false,
+    isWorkspacesOnly = false,
     onParticipantsAdded,
     onFinish,
     isVisible = true,
@@ -62,6 +66,7 @@ function ParticipantPicker({
             action={action}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
+            isWorkspacesOnly={isWorkspacesOnly}
             onRestrictedParticipantSelected={onClose}
             initiallySelectedReportID={selectedParticipant?.reportID}
             shouldMoveSelectedToTop
