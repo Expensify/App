@@ -1,7 +1,7 @@
 ---
 title: How to switch between New Expensify and Expensify Classic
 description: Learn how to switch between New Expensify and Expensify Classic on web and mobile, and why switching may be unavailable.
-keywords: [New Expensify, Expensify Classic, switch views, revert to Classic, try New Expensify, financial collaboration, chat-based app, new app, old app, old version, Classic View, switch back]
+keywords: [New Expensify, Expensify Classic, switch to classic, classic, switch views, revert to Classic, try New Expensify, financial collaboration, chat-based app, new app, old app, old version, Classic View, switch back]
 internalScope: Audience is all members. Covers switching between New Expensify and Expensify Classic and explains why switching may be unavailable. Does not cover feature differences or migration policy details.
 ---
 
