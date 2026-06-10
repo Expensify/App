@@ -717,6 +717,9 @@ type AdditionalTransactionChanges = {
 
     /** The unit for the distance/quantity */
     quantity?: number;
+
+    /** Accounting-system vendor on the transaction's comment NVP. `null` clears the vendor. */
+    vendor?: {externalID: string; isManuallySet: boolean} | null;
 };
 
 /** Model of transaction changes  */

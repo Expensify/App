@@ -15,7 +15,7 @@ import {formatList} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
+import {getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getQBOVendorByID, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
@@ -446,6 +446,30 @@ function getForReportAction({
             reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translate('iou.reimbursable').toLowerCase() : translate('iou.nonReimbursable').toLowerCase();
         const newReimbursable = reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translate('iou.reimbursable').toLowerCase() : translate('iou.nonReimbursable').toLowerCase();
         buildMessageFragmentForValue(translate, newReimbursable, oldReimbursable, translate('iou.expense'), true, setFragments, removalFragments, changeFragments);
+    }
+
+    const hasModifiedVendor = isReportActionOriginalMessageAnObject && 'oldVendor' in reportActionOriginalMessage && 'vendor' in reportActionOriginalMessage;
+    if (hasModifiedVendor) {
+        // Vendor is stored on the action as `{externalID, isManuallySet}` (or null). Resolve the
+        // display name from the policy's QBO vendor list; if the vendor has since been removed
+        // from QBO the name is unrecoverable, so fall back to the externalID so the fragment still
+        // identifies which vendor was set rather than rendering `set vendor ""`.
+        const resolveVendorName = (entry: typeof reportActionOriginalMessage.vendor): string => {
+            if (!entry?.externalID) {
+                return '';
+            }
+            return getQBOVendorByID(policy, entry.externalID)?.name ?? entry.externalID;
+        };
+        buildMessageFragmentForValue(
+            translate,
+            resolveVendorName(reportActionOriginalMessage?.vendor),
+            resolveVendorName(reportActionOriginalMessage?.oldVendor),
+            translate('common.vendor'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;

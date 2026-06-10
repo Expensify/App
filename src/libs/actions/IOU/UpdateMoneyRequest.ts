@@ -424,6 +424,16 @@ function updateMoneyRequestAttendees({
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
 }
 
+type UpdateMoneyRequestVendorParams = {
+    transactionID: string;
+    vendorID: string;
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+    transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
+    parentReport?: OnyxEntry<OnyxTypes.Report>;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    delegateAccountID: number | undefined;
+};
+
 /**
  * Update the QBO vendor matched to a non-reimbursable expense. The vendor lives on the transaction's
  * `comment.vendor` NVP as `{ externalID, isManuallySet }`. `isManuallySet` is hard-coded to `true` here
@@ -432,17 +442,33 @@ function updateMoneyRequestAttendees({
  *
  * Passing `vendorID=''` clears the vendor from the transaction.
  */
-function updateMoneyRequestVendor(transactionID: string, vendorID: string, transaction?: OnyxEntry<OnyxTypes.Transaction>) {
+function updateMoneyRequestVendor({transactionID, vendorID, transaction, transactionThreadReport, parentReport, policy, delegateAccountID}: UpdateMoneyRequestVendorParams) {
     // Fall back to the cached Onyx transaction when the caller doesn't pass one so failureData can
     // restore the actual previous vendor on API failure instead of clearing it.
     const resolvedTransaction = transaction ?? getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const previousVendor = resolvedTransaction?.comment?.vendor;
-    const optimisticReportActionID = rand64();
     const isClearing = !vendorID;
 
     const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, isManuallySet: true};
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+    // Build an optimistic MODIFIEDEXPENSE so the transaction thread shows "set vendor X" /
+    // "changed vendor from X to Y" / "removed the vendor" immediately. Auth's UpdateMoneyRequestVendor
+    // command writes the same {externalID, isManuallySet} shape to the action's originalMessage; the
+    // optimistic action mirrors that so the local render matches the eventual server payload.
+    const optimisticModifiedExpense =
+        resolvedTransaction && transactionThreadReport?.reportID
+            ? buildOptimisticModifiedExpenseReportAction(
+                  transactionThreadReport,
+                  resolvedTransaction,
+                  {vendor: newVendorOptimisticValue},
+                  isExpenseReport(parentReport),
+                  policy,
+                  delegateAccountID,
+              )
+            : null;
+    const optimisticReportActionID = optimisticModifiedExpense?.reportActionID ?? rand64();
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
@@ -457,7 +483,7 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
@@ -472,7 +498,7 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
     // Only roll back the vendor when we have a known prior snapshot. If the transaction isn't passed
     // in AND isn't cached in Onyx yet, we don't know what to restore — writing null here would silently
     // clear a vendor we don't know about. The next server sync will reconcile.
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
@@ -488,6 +514,51 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
             },
         },
     ];
+
+    if (optimisticModifiedExpense && transactionThreadReport?.reportID) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}` as const,
+                value: {
+                    [optimisticModifiedExpense.reportActionID]: optimisticModifiedExpense as OnyxTypes.ReportAction,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}` as const,
+                value: {
+                    lastReadTime: optimisticModifiedExpense.created,
+                },
+            },
+        );
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}` as const,
+            value: {
+                [optimisticModifiedExpense.reportActionID]: {pendingAction: null},
+            },
+        });
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}` as const,
+                value: {
+                    [optimisticModifiedExpense.reportActionID]: {
+                        ...(optimisticModifiedExpense as OnyxTypes.ReportAction),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}` as const,
+                value: {
+                    lastReadTime: transactionThreadReport.lastReadTime,
+                },
+            },
+        );
+    }
 
     // Optimistically clear any existing inactive-vendor violation. This is the user-driven write
     // path: the vendor selector RHP only offers vendors from `getQBOVendors(policy)`, so a user

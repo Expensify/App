@@ -952,6 +952,12 @@ type OriginalMessageModifiedExpense = {
     /** Old expense reimbursable */
     oldReimbursable?: string;
 
+    /** Edited accounting-system vendor on the transaction's comment NVP. `null` means the vendor was cleared. */
+    vendor?: {externalID: string; isManuallySet: boolean} | null;
+
+    /** Previous accounting-system vendor on the transaction's comment NVP. `null` means there was no prior vendor. */
+    oldVendor?: {externalID: string; isManuallySet: boolean} | null;
+
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 
