@@ -10,8 +10,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
-import {useRowSelectionActions} from '@components/Search/SearchSelectionProvider';
+import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
@@ -210,7 +209,7 @@ function SearchList({
 }: SearchListProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
-    const {toggle, toggleAll} = useRowSelectionActions();
+    const {toggle, toggleAll} = useSearchRowSelectionActions();
     const {selectedTransactions} = useSearchSelectionContext();
 
     const {groupBy, type} = queryJSON;

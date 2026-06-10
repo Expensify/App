@@ -9,7 +9,6 @@ import type {
     SearchRowSelectionActionsValue,
     SearchSelectionActionsValue,
     SearchSelectionContextValue,
-    SearchSelectionScreenContext,
 } from './types';
 
 // This file holds the bare React.createContext() calls so they can be imported by `@hooks/useOnyx`
@@ -55,6 +54,7 @@ const defaultSearchSelectionContext: SearchSelectionContextValue = {
 
 const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     setSelectedTransactions: () => {},
+    applySelection: () => {},
     setSelectedReports: () => {},
     setCurrentSelectedTransactionReportID: () => {},
     clearSelectedTransactions: () => {},
@@ -62,25 +62,9 @@ const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     selectAllMatchingItems: () => {},
 };
 
-const defaultSearchSelectionScreenContext: SearchSelectionScreenContext = {
-    filteredData: [],
-    transactions: undefined,
-    searchResultsData: undefined,
-    currentUserLogin: '',
-    currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-    outstandingReportsByPolicyID: undefined,
-    selfDMReport: undefined,
-    isProduction: false,
-    areItemsGrouped: false,
-    totalSelectableItemsCount: 0,
-};
-
 const defaultRowSelectionActions: SearchRowSelectionActionsValue = {
     toggle: () => {},
     toggleAll: () => {},
-    clearAll: () => {},
-    reconcileSelection: () => {},
-    screenContextRef: {current: defaultSearchSelectionScreenContext},
 };
 
 const SearchQueryContext = React.createContext<SearchQueryContextValue>(defaultSearchQueryContext);
@@ -99,5 +83,4 @@ export {
     SearchSelectionContext,
     SearchSelectionActionsContext,
     SearchRowSelectionActionsContext,
-    defaultSearchSelectionScreenContext,
 };
