@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, AI Rules, Concierge rules]
 internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
@@ -85,6 +85,20 @@ To enable it:
    - Adult Entertainment
 
 **Note:** Violations appear in both New Expensify and Expensify Classic, but the rule must be enabled in **New Expensify**.
+
+---
+
+# How to configure AI Rules
+
+AI Rules let Workspace Admins describe flexible rules in plain language, and Concierge builds the rule for you. Use them when a rule you need isn't covered by the standard rule settings.
+
+AI Rules:
+- Are only available on the **Control** plan
+- Appear in the **AI Rules** section of the **Rules** tab
+- Are built by Concierge from your description
+
+To learn how to add, edit, and delete AI Rules, see:
+[**Workspace AI Rules**](/articles/new-expensify/workspaces/Workspace-AI-Rules)
 
 ---
 
