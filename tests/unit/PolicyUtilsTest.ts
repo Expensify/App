@@ -2848,7 +2848,7 @@ describe('PolicyUtils', () => {
 
         const buildIntacctPolicy = (
             nonReimbursable: string | undefined,
-            vendors: Array<{id: string; name: string; value: string}> = [{id: 'iv-1', name: 'Acme Intacct', value: 'iv-1'}],
+            vendors: Array<{id: string; name: string; value: string}> = [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}],
         ): Policy =>
             ({
                 ...createRandomPolicy(0),
@@ -2923,6 +2923,45 @@ describe('PolicyUtils', () => {
                     {id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''},
                     {id: 'iv-2', name: 'Other Intacct', currency: '', email: ''},
                 ]);
+            });
+
+            it('returns Intacct vendors when both QBO and Intacct are connected but only Intacct has a vendor-matching export destination', () => {
+                const intacctVendors = [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}];
+                const qboVendors = [{id: 'v-1', name: 'Stale QBO', currency: 'USD'}];
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            // QBO is connected but not in CC/DC mode, so vendor matching isn't active on the QBO side
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                            data: {vendors: qboVendors},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                            data: {vendors: intacctVendors},
+                        },
+                    } as unknown as Connections,
+                } as Policy;
+                expect(getMatchingVendors(policy)).toEqual([{id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''}]);
+            });
+
+            it('returns QBO vendors when both connections are populated and QBO is the active vendor-matching integration', () => {
+                const qboVendors = [{id: 'v-1', name: 'Acme', currency: 'USD'}];
+                const intacctVendors = [{id: 'iv-stale', name: 'V001', value: 'Stale Intacct'}];
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: qboVendors},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                            data: {vendors: intacctVendors},
+                        },
+                    } as unknown as Connections,
+                } as Policy;
+                expect(getMatchingVendors(policy)).toEqual(qboVendors);
             });
 
             it('returns an empty array when no supported connection exists', () => {

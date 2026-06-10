@@ -2046,18 +2046,31 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
  * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
  * and inactive-vendor lookups.
  *
+ * Selection mirrors `hasVendorFeature`: each branch is gated on the integration's own
+ * non-reimbursable export destination, so a dual-connected workspace (e.g. mid-migration with stale
+ * QBO data + active Intacct) returns vendors from the integration whose export mode actually drives
+ * vendor matching, not whichever connection happens to be populated first.
+ *
  * The shape is normalized to `Vendor` (id + name). For Intacct's `SageIntacctDataElementWithValue`,
  * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
  * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI.
  */
 function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
-    const qboVendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors;
-    if (qboVendors && qboVendors.length > 0) {
-        return qboVendors;
+    if (!policy) {
+        return [];
     }
-    const intacctVendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors;
-    if (intacctVendors && intacctVendors.length > 0) {
-        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
+    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
+    const qboDestination = qboConnection?.config?.nonReimbursableExpensesExportDestination;
+    if (
+        qboConnection &&
+        (qboDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || qboDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD)
+    ) {
+        return qboConnection.data?.vendors ?? [];
+    }
+    const intacctConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
+    const intacctDestination = intacctConnection?.config?.export?.nonReimbursable;
+    if (intacctConnection && intacctDestination === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE) {
+        return (intacctConnection.data?.vendors ?? []).map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
     }
     return [];
 }
