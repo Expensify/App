@@ -83,6 +83,10 @@ let authPromiseResolver: ((value: boolean) => void) | null = null;
 let isHybridAppSetupFinished = false;
 let hasSwitchedAccountInHybridMode = false;
 
+// Tracks whether the user actively started a sign-in attempt in this app session (not persisted across reloads).
+// Used to drive the SAML-required redirect off an explicit intent rather than the transient account.isLoading flag.
+let isSignInInitiated = false;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -589,9 +593,18 @@ function signInAttemptState(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEY
 }
 
 /**
+ * Whether the user actively started a sign-in attempt in this app session. This is reset on a cold reload,
+ * which lets us distinguish a fresh sign-in from a reload where credentials were rehydrated from persisted Onyx.
+ */
+function isSignInInitiatedThisSession(): boolean {
+    return isSignInInitiated;
+}
+
+/**
  * Checks the API to see if an account exists for the given login.
  */
 function beginSignIn(email: string) {
+    isSignInInitiated = true;
     const {optimisticData, successData, failureData} = signInAttemptState();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
@@ -1023,6 +1036,7 @@ function expireSessionWithDelay() {
  * Clear the credentials and partial sign in session so the user can taken back to first Login step
  */
 function clearSignInData() {
+    isSignInInitiated = false;
     Onyx.multiSet({
         [ONYXKEYS.ACCOUNT]: null,
         [ONYXKEYS.CREDENTIALS]: null,
@@ -1675,6 +1689,7 @@ function resetSMSDeliveryFailureStatus(login: string) {
 export {
     KEYS_TO_PRESERVE_SUPPORTAL,
     beginSignIn,
+    isSignInInitiatedThisSession,
     beginAppleSignIn,
     beginGoogleSignIn,
     setSupportAuthToken,
