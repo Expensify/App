@@ -25,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
 import backHistory from '@libs/Navigation/helpers/backHistory';
@@ -48,6 +49,7 @@ import type Report from '@src/types/onyx/Report';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
+import {clearPendingRouterQuery, peekPendingRouterQuery} from './SearchRouterContext';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
@@ -72,16 +74,22 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const personalDetails = usePersonalDetails();
+    const sortedActions = useSortedActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
 
-    // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState('');
+    const initialQuery = peekPendingRouterQuery();
+
+    const [textInputValue, setTextInputValue] = useState(initialQuery);
     // Debounced value gates expensive filtering in the autocomplete list
-    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-    const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
+    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
+
+    useEffect(() => {
+        clearPendingRouterQuery();
+    }, []);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
@@ -132,7 +140,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(contextualReport, personalDetails, contextualReportNVP, contextualReportPolicy, undefined, {
+                const option = createOptionFromReport(contextualReport, personalDetails, contextualReportNVP, contextualReportPolicy, sortedActions, undefined, {
                     showPersonalDetails: true,
                 });
                 reportForContextualSearch = option;
@@ -196,6 +204,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             styles.activeComponentBG,
             contextualReport,
             personalDetails,
+            sortedActions,
             contextualReportNVP,
             contextualReportPolicy,
         ],

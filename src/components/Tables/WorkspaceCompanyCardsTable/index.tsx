@@ -51,6 +51,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Whether to disable assign card button */
     isAssigningCardDisabled: boolean;
 
+    /** Whether the current member can edit company cards */
+    canWriteCompanyCards: boolean;
+
     /** On assign card callback */
     onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
 
@@ -68,6 +71,7 @@ function WorkspaceCompanyCardsTable({
     companyCards,
     onAssignCard,
     isAssigningCardDisabled,
+    canWriteCompanyCards,
     onReloadPage,
     onReloadFeed,
 }: WorkspaceCompanyCardsTableProps) {
@@ -177,6 +181,7 @@ function WorkspaceCompanyCardsTable({
 
               return {
                   cardName,
+                  keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                   encryptedCardNumber,
                   customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -292,6 +297,7 @@ function WorkspaceCompanyCardsTable({
             CardFeedIcon={cardFeedIcon}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
+            canWriteCompanyCards={canWriteCompanyCards}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
@@ -335,6 +341,7 @@ function WorkspaceCompanyCardsTable({
                 policyID={policyID}
                 feedName={feedName}
                 showTableControls={showTableControls}
+                canWriteCompanyCards={canWriteCompanyCards}
                 CardFeedIcon={cardFeedIcon}
             />
         </View>
@@ -395,6 +402,7 @@ function WorkspaceCompanyCardsTable({
                             <WorkspaceCompanyCardPageEmptyState
                                 policyID={policyID}
                                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                                canWriteCompanyCards={canWriteCompanyCards}
                             />
                         </View>
                     )}

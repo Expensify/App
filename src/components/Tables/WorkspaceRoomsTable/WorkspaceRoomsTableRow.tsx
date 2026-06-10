@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -14,7 +15,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-type WorkspaceRoomRowData = {
+type WorkspaceRoomRowData = TableData & {
     /** The room reportID */
     reportID: string;
 
@@ -120,7 +121,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                                 />
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                                 {!!item.ownerDisplayName && (
                                     <>
                                         {!!item.ownerAccountID && (
