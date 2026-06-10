@@ -69,27 +69,10 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name;
 
-    const isWorkflowApprovalExpensesFromRoute = useMemo(() => {
-        if (!backTo || typeof backTo !== 'string') {
-            return false;
-        }
-        const path = (backTo as string).split('?').at(0) ?? '';
-        return path.endsWith('/workflows/approvals/expenses-from');
-    }, [backTo]);
-
-    const headerTitle = useMemo(() => {
-        if (isWorkflowApprovalExpensesFromRoute) {
-            return translate('workflowsExpensesFromPage.title');
-        }
-        return translate('workspace.inviteMessage.confirmDetails');
-    }, [isWorkflowApprovalExpensesFromRoute, translate]);
-
-    const subtitle = useMemo(() => {
-        if (isWorkflowApprovalExpensesFromRoute) {
-            return undefined;
-        }
-        return policyName;
-    }, [isWorkflowApprovalExpensesFromRoute, policyName]);
+    const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
+    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/workflows/approvals/expenses-from');
+    const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
+    const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
 
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -122,24 +105,22 @@ function WorkspaceInviteMessageComponent({
 
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
-    const memberNames = useMemo(() => {
-        const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
-        return Object.values(personalDetailsOfInvitedEmails)
-            .map((personalDetail) => {
-                const displayName = getDisplayNameOrDefault(personalDetail, '', false);
-                if (displayName) {
-                    return displayName;
-                }
+    const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
+    const memberNames = Object.values(personalDetailsOfInvitedEmails)
+        .map((personalDetail) => {
+            const displayName = getDisplayNameOrDefault(personalDetail, '', false);
+            if (displayName) {
+                return displayName;
+            }
 
-                // We don't have login details for users who are not in the database yet
-                // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
-                const accountID = personalDetail.accountID;
-                const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
+            // We don't have login details for users who are not in the database yet
+            // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
+            const accountID = personalDetail.accountID;
+            const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
 
-                return loginFromInviteMap;
-            })
-            .join(', ');
-    }, [invitedEmailsToAccountIDsDraft, allPersonalDetails]);
+            return loginFromInviteMap;
+        })
+        .join(', ');
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -214,7 +195,7 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if ((backTo as string)?.endsWith('members')) {
+        if (backTo?.endsWith('members')) {
             Navigation.dismissModal();
             return;
         }
