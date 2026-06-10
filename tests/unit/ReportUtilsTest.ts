@@ -21,6 +21,7 @@ import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -108,6 +109,7 @@ import {
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportActionWithSmartscanError,
+    getReportFieldMaps,
     getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportOrDraftReport,
@@ -150,7 +152,6 @@ import {
     parseReportActionHtmlToText,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
-    pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
@@ -174,7 +175,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
     Beta,
@@ -184,11 +185,10 @@ import type {
     Policy,
     PolicyEmployeeList,
     PolicyTag,
-    PolicyTagLists,
-    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
@@ -7784,7 +7784,8 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false);
+            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]);
+            const result = findLastAccessedReport(false, false, undefined, archivedReportsIDSet);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -8720,8 +8721,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-            expect(isReportOutstanding(report, policy.id)).toBe(false);
+            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+            expect(isReportOutstanding(report, policy.id, archivedReportsIDSet)).toBe(false);
         });
     });
 
@@ -10178,9 +10179,8 @@ describe('ReportUtils', () => {
 
             const onyxData = {optimisticData: [], failureData: []};
 
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
 
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate, autoSelections);
             const expectedOnyxData = {
                 // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
                 optimisticData: [
@@ -10212,774 +10212,6 @@ describe('ReportUtils', () => {
             };
 
             expect(onyxData).toMatchObject(expectedOnyxData);
-        });
-
-        it('should auto-select the sole remaining category for transactions on open reports instead of pushing a violation', async () => {
-            // Given a policy with 2 enabled categories, where the first one is being deleted
-            const fakePolicyCategories = createRandomPolicyCategories(2);
-            for (const cat of Object.values(fakePolicyCategories)) {
-                cat.enabled = true;
-            }
-            const categoryNames = Object.keys(fakePolicyCategories);
-            const categoryToDelete = categoryNames.at(0) ?? '';
-            const remainingCategory = categoryNames.at(1) ?? '';
-            const fakePolicyCategoriesUpdate = {
-                [categoryToDelete]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    enabled: false,
-                },
-            };
-
-            const fakePolicyID = '0';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: true,
-                areCategoriesEnabled: true,
-            };
-
-            // Given an OPEN report (eligible for auto-selection)
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`]: openReport,
-            };
-
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: openReport.reportID,
-                    policyID: fakePolicyID,
-                    category: categoryToDelete,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {}, autoSelections);
-
-            // The optimistic data should contain a transaction merge auto-selecting the remaining category
-            expect(onyxData.optimisticData).toContainEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
-                value: {category: remainingCategory},
-            });
-
-            // The failure data should restore the original category
-            expect(onyxData.failureData).toContainEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
-                value: {category: categoryToDelete},
-            });
-        });
-
-        it('should auto-select the sole remaining single-level tag for transactions on open reports', async () => {
-            // Given a policy with 2 tags, where the first one is being deleted
-            const fakePolicyTagListName = 'Tag List';
-            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 2);
-            const tagNames = Object.keys(fakePolicyTagsLists?.[fakePolicyTagListName]?.tags ?? {});
-            const tagToDelete = tagNames.at(0) ?? '';
-            const remainingTag = tagNames.at(1) ?? '';
-            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
-                [fakePolicyTagListName]: {
-                    tags: {
-                        [tagToDelete]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
-                    },
-                },
-            };
-
-            const fakePolicyID = '0';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresTag: true,
-                areTagsEnabled: true,
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`]: openReport,
-            };
-
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: openReport.reportID,
-                    policyID: fakePolicyID,
-                    tag: tagToDelete,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate, autoSelections);
-            expect(onyxData.optimisticData).toContainEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
-                value: {tag: remainingTag},
-            });
-            expect(onyxData.failureData).toContainEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
-                value: {tag: tagToDelete},
-            });
-        });
-
-        it('should auto-select the sole remaining category when a category is disabled (not deleted)', async () => {
-            // Given a policy with 2 enabled categories, where the first one is being disabled (UPDATE, not DELETE)
-            const fakePolicyCategories = createRandomPolicyCategories(2);
-            for (const cat of Object.values(fakePolicyCategories)) {
-                cat.enabled = true;
-            }
-            const categoryNames = Object.keys(fakePolicyCategories);
-            const categoryToDisable = categoryNames.at(0) ?? '';
-            const remainingCategory = categoryNames.at(1) ?? '';
-            const fakePolicyCategoriesUpdate = {
-                [categoryToDisable]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    enabled: false,
-                },
-            };
-
-            const fakePolicyID = '0';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: true,
-                areCategoriesEnabled: true,
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`]: openReport,
-            };
-
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: openReport.reportID,
-                    policyID: fakePolicyID,
-                    category: categoryToDisable,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {}, autoSelections);
-            expect(onyxData.optimisticData).toContainEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
-                value: {category: remainingCategory},
-            });
-            expect(onyxData.failureData).toContainEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
-                value: {category: categoryToDisable},
-            });
-        });
-
-        it('should auto-select the sole remaining single-level tag when a tag is disabled (not deleted)', async () => {
-            // Given a policy with 2 tags, where the first one is being disabled (UPDATE, not DELETE)
-            const fakePolicyTagListName = 'Tag List';
-            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 2);
-            const tagNames = Object.keys(fakePolicyTagsLists?.[fakePolicyTagListName]?.tags ?? {});
-            const tagToDisable = tagNames.at(0) ?? '';
-            const remainingTag = tagNames.at(1) ?? '';
-            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
-                [fakePolicyTagListName]: {
-                    tags: {
-                        [tagToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, enabled: false},
-                    },
-                },
-            };
-
-            const fakePolicyID = '0';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresTag: true,
-                areTagsEnabled: true,
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`]: openReport,
-            };
-
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: openReport.reportID,
-                    policyID: fakePolicyID,
-                    tag: tagToDisable,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate, autoSelections);
-            expect(onyxData.optimisticData).toContainEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
-                value: {tag: remainingTag},
-            });
-            expect(onyxData.failureData).toContainEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
-                value: {tag: tagToDisable},
-            });
-        });
-
-        it('should not auto-select when more than one enabled category remains after deletion', async () => {
-            // Given a policy with 3 enabled categories, where the first one is being deleted (2 remain — auto-select should NOT trigger)
-            const fakePolicyCategories = createRandomPolicyCategories(3);
-            for (const cat of Object.values(fakePolicyCategories)) {
-                cat.enabled = true;
-            }
-            const categoryToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
-            const fakePolicyCategoriesUpdate = {
-                [categoryToDelete]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    enabled: false,
-                },
-            };
-
-            const fakePolicyID = '0';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: true,
-                areCategoriesEnabled: true,
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`]: openReport,
-            };
-
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: openReport.reportID,
-                    policyID: fakePolicyID,
-                    category: categoryToDelete,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {}, autoSelections);
-
-            // No transaction merge should be present — only the violation push
-            const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
-            expect(hasTransactionMerge).toBe(false);
-
-            // A categoryOutOfPolicy violation should still be created
-            expect(onyxData.optimisticData).toContainEqual(
-                expect.objectContaining({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-                    value: expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY})]),
-                }),
-            );
-        });
-
-        it('should not auto-select for transactions on approved reports (only open or processing)', async () => {
-            // Given a sole remaining enabled category but the report is already APPROVED (not eligible for auto-select)
-            const fakePolicyCategories = createRandomPolicyCategories(2);
-            for (const cat of Object.values(fakePolicyCategories)) {
-                cat.enabled = true;
-            }
-            const categoryToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
-            const fakePolicyCategoriesUpdate = {
-                [categoryToDelete]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    enabled: false,
-                },
-            };
-
-            const fakePolicyID = '0';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: true,
-                areCategoriesEnabled: true,
-            };
-
-            // Report is APPROVED — auto-select should be skipped
-            const approvedReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`]: approvedReport,
-            };
-
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: approvedReport.reportID,
-                    policyID: fakePolicyID,
-                    category: categoryToDelete,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {}, autoSelections);
-
-            // No transaction merge should be present
-            const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
-            expect(hasTransactionMerge).toBe(false);
-        });
-
-        it('should not auto-select category when the call only updates policy settings (no categoriesUpdate)', async () => {
-            // Given a sole remaining enabled category, but the caller only passes a policyUpdate
-            // (e.g. toggling an unrelated workspace setting). Auto-select must NOT mutate transactions.
-            const fakePolicyCategories = createRandomPolicyCategories(2);
-            for (const cat of Object.values(fakePolicyCategories)) {
-                cat.enabled = true;
-            }
-            const categoryNames = Object.keys(fakePolicyCategories);
-            const transactionCategory = categoryNames.at(0) ?? '';
-
-            // Mark this category disabled in Onyx so it is "out of policy" without any pending DELETE update
-            fakePolicyCategories[transactionCategory].enabled = false;
-
-            const fakePolicyID = '0';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: true,
-                areCategoriesEnabled: true,
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`]: openReport,
-            };
-
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: openReport.reportID,
-                    policyID: fakePolicyID,
-                    category: transactionCategory,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {requiresCategory: true}, {}, {});
-            pushTransactionViolationsOnyxData(onyxData, result.current, {requiresCategory: true}, {}, {}, autoSelections);
-            const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
-            expect(hasTransactionMerge).toBe(false);
-        });
-
-        it('should not auto-select tags for multi-level tag policies', async () => {
-            // Auto-replace is intentionally scoped to single-level tags. Web-E does not support multi-level tag
-            // removal yet, and the auto-replace metadata sent to Auth doesn't carry tagListIndex/tagListName,
-            // so the backend can't determine which level of the multi-level tag string to replace.
-            const level1Tags: PolicyTags = {
-                Engineering: {name: 'Engineering', enabled: true},
-            };
-            const level2Tags: PolicyTags = {
-                Q1: {name: 'Q1', enabled: true},
-            };
-            const fakePolicyTagsLists: PolicyTagLists = {
-                Department: {name: 'Department', orderWeight: 0, required: false, tags: level1Tags},
-                Quarter: {name: 'Quarter', orderWeight: 1, required: false, tags: level2Tags},
-            };
-
-            const fakePolicyID = '0';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresTag: true,
-                areTagsEnabled: true,
-                hasMultipleTagLists: true,
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`]: openReport,
-            };
-
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: openReport.reportID,
-                    policyID: fakePolicyID,
-                    // Out-of-policy combination — neither value matches enabled tags above
-                    tag: `Sales${CONST.COLON}Q4`,
-                },
-            });
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const tagsToDelete: Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>> = {
-                Sales: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
-            };
-            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
-                Department: {tags: tagsToDelete},
-            };
-
-            const onyxData = {optimisticData: [], failureData: []};
-            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate, autoSelections);
-            const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
-            expect(hasTransactionMerge).toBe(false);
-        });
-
-        it('should clear the taxOutOfPolicy violation when tax tracking is re-enabled and the tax code is valid', async () => {
-            // A stale taxOutOfPolicy left over from when tax tracking was disabled is cleared optimistically once
-            // tracking is turned back on, instead of lingering until the report reloads from the server.
-            const fakePolicyID = '0';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: false,
-                requiresTag: false,
-                tax: {trackingEnabled: true},
-                taxRates: {
-                    taxes: {[taxCode]: {name: 'Tax Rate 1', value: '5'}},
-                    name: '',
-                    defaultExternalID: '',
-                    defaultValue: '',
-                    foreignTaxDefault: '',
-                },
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
-                ...mockTransaction,
-                reportID: openReport.reportID,
-                taxCode,
-                category: '',
-                tag: '',
-            });
-            // Stale violation left over from when tax tracking was disabled.
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, [
-                {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
-            ]);
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            pushTransactionViolationsOnyxData(onyxData, result.current, {tax: {trackingEnabled: true}}, {}, {});
-
-            const violationsUpdate = onyxData.optimisticData.find(
-                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-            ) as {value: TransactionViolation[]} | undefined;
-            expect(violationsUpdate?.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY}));
-        });
-
-        it('should add the taxOutOfPolicy violation when tax tracking is disabled and the transaction still has tax', async () => {
-            // Disabling tax tracking surfaces the violation so the user can remove the now-stale tax.
-            const fakePolicyID = '0';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: false,
-                requiresTag: false,
-                tax: {trackingEnabled: true},
-                taxRates: {
-                    taxes: {[taxCode]: {name: 'Tax Rate 1', value: '5'}},
-                    name: '',
-                    defaultExternalID: '',
-                    defaultValue: '',
-                    foreignTaxDefault: '',
-                },
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
-                ...mockTransaction,
-                reportID: openReport.reportID,
-                taxCode,
-                category: '',
-                tag: '',
-            });
-            // Start with no violation so the test demonstrates it being added when tracking is turned off.
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, []);
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            pushTransactionViolationsOnyxData(onyxData, result.current, {tax: {trackingEnabled: false}}, {}, {});
-
-            const violationsUpdate = onyxData.optimisticData.find(
-                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-            ) as {value: TransactionViolation[]} | undefined;
-            expect(violationsUpdate?.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY}));
-        });
-
-        it('should not add the taxOutOfPolicy violation when toggling categories while tax tracking is unchanged', async () => {
-            // A category/tag toggle leaves tax tracking and tax rates untouched, so it must never surface a tax
-            // violation, even when the client-side recompute would treat the transaction's tax code as out of policy.
-            const fakePolicyID = '0';
-            const taxCode = 'id_TAX_RATE_1';
-            const categoryName = 'Office';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: true,
-                requiresTag: false,
-                areCategoriesEnabled: true,
-                tax: {trackingEnabled: true},
-                taxRates: {
-                    taxes: {[taxCode]: {name: 'Tax Rate 1', value: '5'}},
-                    name: '',
-                    defaultExternalID: '',
-                    defaultValue: '',
-                    foreignTaxDefault: '',
-                },
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`, {[categoryName]: {name: categoryName, enabled: true}});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
-                ...mockTransaction,
-                reportID: openReport.reportID,
-                // A tax code the client recompute treats as out of policy even though tax tracking is enabled.
-                taxCode: 'UNKNOWN_TAX',
-                category: categoryName,
-                tag: '',
-            });
-            // No tax violation before the toggle.
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, []);
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            // Disable categories — the policy update does not touch tax tracking.
-            pushTransactionViolationsOnyxData(onyxData, result.current, {areCategoriesEnabled: false, requiresCategory: false}, {[categoryName]: {enabled: false}}, {});
-
-            const violationsUpdate = onyxData.optimisticData.find(
-                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-            ) as {value: TransactionViolation[]} | undefined;
-            expect(violationsUpdate?.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY}));
-        });
-
-        it('should add the missingCategory violation when categories are enabled and the transaction has no category', async () => {
-            // Bug 6: enabling categories must immediately surface "Missing category" on the preview for an
-            // uncategorized expense, instead of only after the report detail loads.
-            const fakePolicyID = '0';
-            const categoryName = 'Office';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: true,
-                requiresTag: false,
-                areCategoriesEnabled: true,
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`, {[categoryName]: {name: categoryName, enabled: true}});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
-                ...mockTransaction,
-                reportID: openReport.reportID,
-                category: '',
-                tag: '',
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, []);
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            // Enable categories — the policy update does not touch tax tracking.
-            pushTransactionViolationsOnyxData(onyxData, result.current, {areCategoriesEnabled: true, requiresCategory: true}, {[categoryName]: {enabled: true}}, {});
-
-            const violationsUpdate = onyxData.optimisticData.find(
-                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-            ) as {value: TransactionViolation[]} | undefined;
-            expect(violationsUpdate?.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.MISSING_CATEGORY}));
-        });
-
-        it('should remove the stale missingCategory violation when categories are disabled', async () => {
-            // Bug 5: disabling categories must immediately clear a stale "Missing category" from the preview,
-            // instead of leaving it until the report detail loads.
-            const fakePolicyID = '0';
-            const categoryName = 'Office';
-            const fakePolicy = {
-                ...createRandomPolicy(0),
-                id: fakePolicyID,
-                requiresCategory: true,
-                requiresTag: false,
-                areCategoriesEnabled: true,
-            };
-
-            const openReport: Report = {
-                ...mockIOUReport,
-                policyID: fakePolicyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`, {[categoryName]: {name: categoryName, enabled: true}});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {
-                ...mockTransaction,
-                reportID: openReport.reportID,
-                category: '',
-                tag: '',
-            });
-            // Stale violation left over from when categories were still required.
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, [
-                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
-            ]);
-
-            await waitForBatchedUpdates();
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
-
-            const onyxData = {optimisticData: [], failureData: []};
-            // Disable categories — the policy update does not touch tax tracking.
-            pushTransactionViolationsOnyxData(onyxData, result.current, {areCategoriesEnabled: false, requiresCategory: false}, {[categoryName]: {enabled: false}}, {});
-
-            const violationsUpdate = onyxData.optimisticData.find(
-                (update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-            ) as {value: TransactionViolation[]} | undefined;
-            expect(violationsUpdate?.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.MISSING_CATEGORY}));
         });
     });
 
@@ -15160,34 +14392,40 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage with isCopyAction = true
-            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true, conciergeReportID: undefined});
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true});
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
         });
 
-        it('should pass conciergeReportID through to computeReportName when isCopyAction is true', async () => {
+        it('should use the report name from the reportAttributes param when isCopyAction is true', async () => {
             const report = LHNTestUtils.getFakeReport();
+            report.reportName = 'Stale Report Name';
             const reportAction: ReportAction = {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                childReportName: 'Expense Report',
+                childReportName: 'Child Report Name',
                 childMoneyRequestCount: 0,
             };
+            const reportAttributes: ReportAttributesDerivedValue['reports'] = {
+                [report.reportID]: {
+                    reportName: 'Computed Report Name',
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
+            };
 
-            // When called with conciergeReportID undefined, the function should not throw
-            const result1 = getReportPreviewMessage({
+            // When called with reportAttributes that provide a report name, it should be preferred over the report's own name
+            const result = getReportPreviewMessage({
                 reportOrID: report,
                 iouReportAction: reportAction,
                 originalReportAction: reportAction,
                 isCopyAction: true,
-                conciergeReportID: undefined,
+                reportAttributes,
             });
-            expect(typeof result1).toBe('string');
-
-            // When called with a specific conciergeReportID, the function should not throw
-            const result2 = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true, conciergeReportID: '12345'});
-            expect(typeof result2).toBe('string');
+            expect(result).toBe('Computed Report Name');
         });
     });
 
@@ -15391,6 +14629,106 @@ describe('ReportUtils', () => {
                 },
             ] as unknown as PolicyReportField[];
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
+        });
+    });
+
+    describe('getReportFieldMaps', () => {
+        it('should read invoice field values from report name value pairs keyed by raw field ID', async () => {
+            const reportID = 'getReportFieldMapsRawKey';
+            const report: Report = {
+                reportID,
+                policyID: '1',
+                type: CONST.REPORT.TYPE.INVOICE,
+                fieldList: {},
+            };
+            const policyFieldList: Record<string, PolicyReportField> = {
+                expensify_field_id_LIST: {
+                    type: 'dropdown',
+                    values: ['policy default'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST',
+                    name: 'Client',
+                    defaultValue: 'policy default',
+                    orderWeight: 0,
+                    deletable: true,
+                    keys: [],
+                    externalIDs: [],
+                    isTax: false,
+                    target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                },
+            };
+            const reportNameValuePairField: PolicyReportField = {
+                type: 'dropdown',
+                values: ['policy default'],
+                disabledOptions: [false],
+                fieldID: 'field_id_LIST',
+                name: 'Client',
+                defaultValue: 'policy default',
+                orderWeight: 0,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                value: 'persisted value',
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
+
+            expect(fieldValues.client).toBe('persisted value');
+            expect(fieldsByName.client.value).toBe('persisted value');
+        });
+
+        it('should not read expense field values from report name value pairs', async () => {
+            const reportID = 'getReportFieldMapsExpenseField';
+            const report: Report = {
+                reportID,
+                policyID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                fieldList: {},
+            };
+            const policyFieldList: Record<string, PolicyReportField> = {
+                expensify_field_id_LIST: {
+                    type: 'dropdown',
+                    values: ['policy default'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST',
+                    name: 'Client',
+                    defaultValue: 'policy default',
+                    orderWeight: 0,
+                    deletable: true,
+                    keys: [],
+                    externalIDs: [],
+                    isTax: false,
+                    target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+                },
+            };
+            const reportNameValuePairField: PolicyReportField = {
+                type: 'dropdown',
+                values: ['policy default'],
+                disabledOptions: [false],
+                fieldID: 'field_id_LIST',
+                name: 'Client',
+                defaultValue: 'policy default',
+                orderWeight: 0,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                value: 'persisted value',
+                target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
+
+            expect(fieldValues.client).toBe('policy default');
+            expect(fieldsByName.client.value).toBeUndefined();
         });
     });
 
@@ -16483,7 +15821,17 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CATEGORIZE,
+                            CONST.IOU.TYPE.SUBMIT,
+                            transaction.transactionID,
+                            policyExpenseReport.reportID,
+                            undefined,
+                            true,
+                        ),
+                    ),
                 );
             });
 
@@ -16526,7 +15874,17 @@ describe('ReportUtils', () => {
 
                 // Then it should automatically pick the available policy and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CATEGORIZE,
+                            CONST.IOU.TYPE.SUBMIT,
+                            transaction.transactionID,
+                            policyExpenseReport.reportID,
+                            undefined,
+                            true,
+                        ),
+                    ),
                 );
             });
 
@@ -16556,15 +15914,16 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CATEGORIZE,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: transaction.transactionID,
-                        reportID: '1',
-                        backTo: '',
-                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        shouldSubmitExpense: true,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                            shouldSubmitExpense: true,
+                        }),
+                    ),
                 );
             });
 
@@ -16607,15 +15966,16 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CATEGORIZE,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: transaction.transactionID,
-                        reportID: '1',
-                        backTo: '',
-                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        shouldSubmitExpense: true,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                            shouldSubmitExpense: true,
+                        }),
+                    ),
                 );
             });
 
@@ -16702,7 +16062,17 @@ describe('ReportUtils', () => {
                 // Then it should NOT navigate to restricted action page, but to category step
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CATEGORIZE,
+                            CONST.IOU.TYPE.SUBMIT,
+                            transaction.transactionID,
+                            policyExpenseReport.reportID,
+                            undefined,
+                            true,
+                        ),
+                    ),
                 );
             });
 

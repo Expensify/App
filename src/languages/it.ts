@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
+        enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -2912,6 +2913,7 @@ ${amount} per ${merchant} - ${date}`,
         waitForPDF: 'Attendi mentre generiamo il PDF.',
         errorPDF: 'Si è verificato un errore durante il tentativo di generare il tuo PDF',
         successPDF: 'Il tuo PDF è stato generato! Se non è stato scaricato automaticamente, usa il pulsante qui sotto.',
+        goToRoom: 'Vai alla stanza',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrizione stanza',
@@ -3024,6 +3026,14 @@ ${amount} per ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese aziendali',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizza le mie spese personali',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Altro',
+        },
+        personalTrackGoal: {
+            title: 'Che cosa vuoi tenere traccia?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Costi per un immobile a scopo di investimento',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Spese domestiche',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Spese per progetti secondari',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Altro',
+            somethingElsePlaceholder: 'Cosa stai monitorando?',
         },
         employees: {
             title: 'Quanti dipendenti hai?',
@@ -3351,6 +3361,7 @@ ${amount} per ${merchant} - ${date}`,
             subtitle: 'Aggiungi il tuo team o invita il tuo commercialista. Più siamo, meglio è!',
         },
         workEmail2FAError: 'Questo login è associato a un account esistente con l’Autenticazione a Due Fattori (2FA) abilitata.',
+        singleSignOnError: 'Questo login è un account esistente con SSO/SAML abilitato.',
     },
     featureTraining: {
         doNotShowAgain: 'Non mostrarmelo più',
@@ -4328,6 +4339,7 @@ ${amount} per ${merchant} - ${date}`,
             customFieldHint: 'Aggiungi una codifica personalizzata che si applichi a tutte le spese di questo membro.',
             reports: 'Report',
             reportFields: 'Campi del report',
+            invoiceFields: 'Campi fattura',
             reportTitle: 'Titolo del report',
             reportField: 'Campo report',
             taxes: 'Tasse',
@@ -6015,6 +6027,29 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             reportFieldInitialValueRequiredError: 'Scegli un valore iniziale per il campo del resoconto',
             genericFailureMessage: 'Si è verificato un errore durante l’aggiornamento del campo del report. Riprova.',
         },
+        invoiceFields: {
+            subtitle: 'I campi della fattura possono essere utili quando vuoi includere informazioni aggiuntive.',
+            importedFromAccountingSoftware: 'I campi della fattura riportati di seguito sono importati dal tuo',
+            disableInvoiceFields: 'Disattiva i campi della fattura',
+            disableInvoiceFieldsConfirmation: 'Sei sicuro? I campi della fattura verranno disattivati nelle fatture.',
+            delete: 'Elimina campo della fattura',
+            deleteConfirmation: 'Sei sicuro di voler eliminare questo campo della fattura?',
+            findInvoiceField: 'Trova campo della fattura',
+            nameInputSubtitle: 'Scegli un nome per il campo della fattura.',
+            typeInputSubtitle: 'Scegli il tipo di campo della fattura da utilizzare.',
+            initialValueInputSubtitle: 'Inserisci un valore iniziale da mostrare nel campo della fattura.',
+            listValuesInputSubtitle: 'Questi valori appariranno nel menu a discesa del campo della fattura. I valori abilitati possono essere selezionati dai membri.',
+            listInputSubtitle: 'Questi valori appariranno nell’elenco del campo della fattura. I valori abilitati possono essere selezionati dai membri.',
+            emptyInvoiceFieldsValues: {
+                title: 'Nessun valore elenco ancora',
+                subtitle: 'Aggiungi valori personalizzati da mostrare sulle fatture.',
+            },
+            existingInvoiceFieldNameError: 'Esiste già un campo della fattura con questo nome',
+            invoiceFieldNameRequiredError: 'Inserisci un nome per il campo della fattura',
+            invoiceFieldTypeRequiredError: 'Scegli un tipo di campo della fattura',
+            invoiceFieldInitialValueRequiredError: 'Scegli un valore iniziale per il campo della fattura',
+            addField: 'Aggiungi campo',
+        },
         tags: {
             tagName: 'Nome tag',
             requiresTag: 'I membri devono etichettare tutte le spese',
@@ -6812,6 +6847,12 @@ Vuoi davvero esportarli di nuovo?`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>I campi del report sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Campi fattura',
+                description: `I campi fattura ti consentono di includere dettagli aggiuntivi a livello di fattura.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>I campi fattura sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Approfitta della sincronizzazione automatica e riduci le registrazioni manuali con l’integrazione Expensify + NetSuite. Ottieni approfondimenti finanziari dettagliati e in tempo reale grazie al supporto di segmenti nativi e personalizzati, inclusa la mappatura di progetti e clienti.`,
@@ -7334,6 +7375,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
             },
+            aiRules: {
+                title: 'Regole IA',
+                subtitle: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno',
+                addRule: 'Aggiungi regola IA',
+                findRule: 'Trova regola IA',
+                addRuleTitle: 'Aggiungi regola',
+                editRuleTitle: 'Modifica regola',
+                deleteRule: 'Elimina regola',
+                deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                describeRuleTitle: 'Descrivi la tua regola',
+                describeRuleSubtitle: 'Descrivi la tua regola e Concierge la creerà',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7433,6 +7486,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             syncingModalTitle: 'La tua connessione è in sincronizzazione',
             syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
             syncing: 'Sincronizzazione dipendenti',
+            mergeHR: {
+                completeSetup: 'Completa configurazione',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connesso. ${setupLink ? `<a href="${setupLink}">Completa la configurazione</a>` : 'Completa configurazione'} per importare i dipendenti.</muted-text-label>`,
+                groups: {title: 'Gruppi', description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro'},
+            },
         },
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',
@@ -7607,7 +7666,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `ha modificato ${customUnitName} ${updatedField} in "${newValue}" (precedentemente "${oldValue}")`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'abilitato' : 'disabilitato'} monitoraggio delle tasse sulle tariffe chilometriche`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `ha aggiunto una nuova tariffa ${customUnitName} "${rateName}"`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `ha aggiunto la tariffa ${customUnitName} "${rateName}"`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `ha modificato il valore di ${customUnitName} ${updatedField} "${customUnitRateName}" in "${newValue}" (in precedenza "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
@@ -8012,6 +8071,25 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} da ${cards}`,
             },
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `ha aggiunto la tariffa "${rateName}" di ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `ha aggiunto l’aliquota "${rateName}" di ${rateValue}, valida dal ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `ha aggiunto la tariffa "${rateName}" di ${rateValue}, valida fino al ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `ha aggiunto la tariffa "${rateName}" di ${rateValue}, valida dal ${startDate} al ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate
+                ? `aggiornata la data di inizio della tariffa "${rateName}" a ${newDate} (in precedenza ${oldDate})`
+                : `imposta la data di inizio della tariffa "${rateName}" su ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate
+                ? `ha aggiornato la data di fine della tariffa "${rateName}" a ${newDate} (in precedenza ${oldDate})`
+                : `imposta la data di fine della tariffa "${rateName}" al ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `ha aggiornato la data di inizio e fine della tariffa "${rateName}" in ${newStartDate} - ${newEndDate} (in precedenza ${oldStartDate} - ${oldEndDate})`
+                : `imposta data di inizio e fine della tariffa "${rateName}" su ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `rimossa la data di inizio dalla tariffa "${rateName}" (in precedenza ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `data di fine rimossa dalla tariffa "${rateName}" (precedentemente ${oldDate})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -8081,6 +8159,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     search: {
         resultsAreLimited: 'I risultati di ricerca sono limitati.',
         viewResults: 'Visualizza risultati',
+        applyFilters: 'Applica i filtri',
         appliedFilters: 'Filtri applicati',
         resetFilters: 'Reimposta filtri',
         searchResults: {
@@ -8186,7 +8265,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             amount: {
                 lessThan: (amount?: string) => `Meno di ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maggiore di ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Tra ${greaterThan} e ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Tra ${greaterThan} e ${lessThan}`;
+                    }
+                    return 'Tra';
+                },
                 equalTo: (amount?: string) => `Uguale a ${amount ?? ''}`,
             },
             card: {
