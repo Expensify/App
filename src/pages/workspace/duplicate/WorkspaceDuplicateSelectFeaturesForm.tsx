@@ -1,20 +1,21 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {PressableWithFeedback} from '@components/Pressable';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -35,33 +36,33 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const isCollect = isCollectPolicy(policy);
+    const {showConfirmModal} = useConfirmModal();
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
-    const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
-    const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList, false, false);
-    const totalMembers = Object.keys(allIds).length;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const taxesLength = Object.values(policy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const categoriesCount = Object.values(policyCategories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const codingRulesCount = Object.values(policy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const reportFields = Object.values(getReportFieldsByPolicyID(policyID) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
+    const reportFields = Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const customUnits = getPerDiemCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [totalMembers = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login),
+    });
+    const invoiceCompany = [policy?.invoice?.companyName, policy?.invoice?.companyWebsite].filter(Boolean).join(', ');
+    const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: createInvoiceConfigurationTextSelector(translate, invoiceCompany),
+    });
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
 
     const customUnit = getDistanceRateCustomUnit(policy);
     const ratesCount = Object.values(customUnit?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
-    const invoiceCompany =
-        policy?.invoice?.companyName && policy?.invoice?.companyWebsite
-            ? `${policy?.invoice?.companyName}, ${policy?.invoice?.companyWebsite}`
-            : (policy?.invoice?.companyName ?? policy?.invoice?.companyWebsite ?? '');
 
     const totalTags = useMemo(() => {
         if (!policyTags) {
@@ -165,11 +166,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                   }
                 : undefined,
 
-            policy?.areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
+            policy?.areInvoicesEnabled && !!invoiceConfigurationText
                 ? {
                       translation: translate('workspace.common.invoices'),
                       value: 'invoices',
-                      alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
+                      alternateText: invoiceConfigurationText,
                   }
                 : undefined,
             policy?.isTravelEnabled
@@ -194,8 +195,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         ratesCount,
         isCollect,
         allRates,
-        bankAccountList,
-        invoiceCompany,
+        invoiceConfigurationText,
         codingRulesCount,
     ]);
 
@@ -265,21 +265,49 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         currentUserPersonalDetails?.localCurrencyCode,
     ]);
 
-    const confirmDuplicateAndHideModal = useCallback(() => {
-        setIsDuplicateModalOpen(false);
-        if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
-            return;
-        }
-        confirmDuplicate();
-    }, [confirmDuplicate, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy]);
-
+    const duplicateWorkspaceName = duplicateWorkspace?.name;
+    const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
     const onConfirmSelectList = useCallback(() => {
         if (!totalMembers || totalMembers < 2 || !selectedItems.includes('members')) {
             confirmDuplicate();
             return;
         }
-        setIsDuplicateModalOpen(true);
-    }, [confirmDuplicate, selectedItems, totalMembers]);
+
+        showConfirmModal({
+            title: translate('workspace.common.duplicateWorkspace'),
+            prompt: (
+                <Text>
+                    <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting, styles.mb3]}>
+                        {translate('workspace.duplicateWorkspace.confirmTitle', {
+                            newWorkspaceName: duplicateWorkspaceName,
+                            totalMembers,
+                        })}
+                    </Text>
+                    <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.confirmDuplicate')}</Text>
+                </Text>
+            ),
+            confirmText: translate('common.proceed'),
+            cancelText: translate('common.cancel'),
+            success: true,
+        }).then((result) => {
+            if (!policy || !duplicateWorkspaceName || !duplicateWorkspacePolicyID || result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            confirmDuplicate();
+        });
+    }, [
+        confirmDuplicate,
+        duplicateWorkspaceName,
+        duplicateWorkspacePolicyID,
+        policy,
+        selectedItems,
+        showConfirmModal,
+        styles.mb3,
+        styles.textSupporting,
+        styles.webViewStyles.baseFontStyle,
+        totalMembers,
+        translate,
+    ]);
 
     const toggleAllItems = useCallback(() => {
         if (selectedItems.length === items.length) {
@@ -393,26 +421,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                     />
                 </View>
             </>
-            <ConfirmModal
-                title={translate('workspace.common.duplicateWorkspace')}
-                isVisible={isDuplicateModalOpen}
-                onConfirm={confirmDuplicateAndHideModal}
-                onCancel={() => setIsDuplicateModalOpen(false)}
-                prompt={
-                    <Text>
-                        <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting, styles.mb3]}>
-                            {translate('workspace.duplicateWorkspace.confirmTitle', {
-                                newWorkspaceName: duplicateWorkspace?.name,
-                                totalMembers,
-                            })}
-                        </Text>
-                        <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.confirmDuplicate')}</Text>
-                    </Text>
-                }
-                confirmText={translate('common.proceed')}
-                cancelText={translate('common.cancel')}
-                success
-            />
         </>
     );
 }

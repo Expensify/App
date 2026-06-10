@@ -582,6 +582,30 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom unit name */
     rateName?: string;
 
+    /** Rate amount in cents for the custom unit rate */
+    rate?: number;
+
+    /** Unit of the custom unit (e.g. "mi", "km") */
+    unit?: string;
+
+    /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
+    startDate?: string;
+
+    /** End date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
+    endDate?: string;
+
+    /** New start date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
+    newStartDate?: string;
+
+    /** New end date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
+    newEndDate?: string;
+
+    /** Previous start date of the custom unit rate (yyyy-MM-dd) */
+    oldStartDate?: string;
+
+    /** Previous end date of the custom unit rate (yyyy-MM-dd) */
+    oldEndDate?: string;
+
     /** Tax percentage of the new tax rate linked to distance rate */
     newTaxPercentage?: string;
 
