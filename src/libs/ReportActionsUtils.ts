@@ -4169,7 +4169,10 @@ function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: 
 }
 
 function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
-    const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS>);
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS)) {
+        return getReportActionText(reportAction);
+    }
+    const originalMessage = getOriginalMessage(reportAction);
     const updatedField = originalMessage?.updatedField;
 
     if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD) {
