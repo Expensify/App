@@ -8,6 +8,12 @@ import type {MultifactorAuthenticationState} from '@components/MultifactorAuthen
 type ScenarioPayload = MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
 
 /**
+ * The modal lifecycle as seen by the view layer, derived 1:1 from the machine's top-level state:
+ * `open` -> 'open', `closing` -> 'closing', `idle` -> 'closed'.
+ */
+type MfaModalPhase = 'open' | 'closing' | 'closed';
+
+/**
  * Machine context: the legacy {@link MultifactorAuthenticationState} minus `isModalOpen`, which is a
  * derivative of the chart (`matches('open')`) rather than stored data. `snapshotToState` maps the
  * snapshot back to the full legacy shape so consumers keep reading `state.X` unchanged.
@@ -27,4 +33,4 @@ type MfaEvent =
     | {type: 'CLOSE_MODAL'}
     | {type: 'MODAL_CLOSED'};
 
-export type {MfaMachineContext, MfaEvent, ScenarioPayload};
+export type {MfaMachineContext, MfaEvent, MfaModalPhase, ScenarioPayload};

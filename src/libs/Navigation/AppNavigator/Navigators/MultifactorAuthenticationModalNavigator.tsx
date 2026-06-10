@@ -26,8 +26,6 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-type Phase = 'open' | 'closing' | 'closed';
-
 const Stack = createPlatformStackNavigator<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
 const loadValidateCodePage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/ValidateCodePage').default;
@@ -76,26 +74,20 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 
 function MultifactorAuthenticationModalNavigator() {
     const {state, requestCancel, hideCancelConfirm, confirmCancel, notifyModalClosed} = useMultifactorAuthentication();
-    const {isCancelConfirmVisible, isModalOpen, scenario} = state;
+    // modalPhase mirrors the machine's top-level state: 'closing' keeps this navigator mounted after
+    // the close request so the slide-out can play; 'closed' (machine idle) unmounts it.
+    const {isCancelConfirmVisible, modalPhase, scenario} = state;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const themePreference = useThemePreference();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [phase, setPhase] = useState<Phase>(isModalOpen ? 'open' : 'closed');
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
-    const isStackReadyToMount = useAwaitSidePanelClose(phase !== 'closed');
-
-    // 'closing' outlives isModalOpen=false so the slide-out animation can play.
-    if (isModalOpen && phase !== 'open') {
-        setPhase('open');
-    } else if (!isModalOpen && phase === 'open') {
-        setPhase('closing');
-    }
+    const isStackReadyToMount = useAwaitSidePanelClose(modalPhase !== 'closed');
 
     const navigationThemeBase = getNavigationBaseTheme(themePreference);
     const navigationTheme = {
@@ -107,31 +99,31 @@ function MultifactorAuthenticationModalNavigator() {
     };
 
     useEffect(() => {
-        if (phase === 'open') {
+        if (modalPhase === 'open') {
             backdropProgress.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
             return;
         }
-        if (phase !== 'closing') {
+        if (modalPhase !== 'closing') {
             return;
         }
         if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
             mfaNavigationRef.goBack();
         }
         backdropProgress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
+        // MODAL_CLOSED re-enters idle, which flips modalPhase to 'closed' and unmounts this navigator.
         // If this callback is cancelled (unmount mid-close), the machine's closeFallback timer takes
         // over: it re-enters idle on its own, wiping the context and the mfaNavigation buffer.
         const handle = Navigation.runAfterUpcomingTransition(() => {
-            setPhase('closed');
             notifyModalClosed();
         });
         return () => handle.cancel();
-    }, [phase, backdropProgress, notifyModalClosed]);
+    }, [modalPhase, backdropProgress, notifyModalClosed]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
         opacity: backdropProgress.get() * variables.overlayOpacity,
     }));
 
-    if (phase === 'closed') {
+    if (modalPhase === 'closed') {
         return null;
     }
 

@@ -7,6 +7,7 @@ import useBiometrics from '@components/MultifactorAuthentication/biometrics/useB
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import {mfaMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
+import type {MfaState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
@@ -16,7 +17,6 @@ import useNetwork from '@hooks/useNetwork';
 import getPlatform from '@libs/getPlatform';
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 import type {DeviceBiometrics} from '@src/types/onyx';
-import type {MultifactorAuthenticationState} from './state';
 
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 
@@ -29,7 +29,7 @@ type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = Multif
  */
 type MultifactorAuthenticationApi = {
     /** The current MFA state, derived from the machine snapshot. */
-    state: MultifactorAuthenticationState;
+    state: MfaState;
 
     /** Execute a multifactor authentication scenario. */
     executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>) => Promise<void>;

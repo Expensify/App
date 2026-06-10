@@ -26,9 +26,10 @@ const DEFAULT_CONTEXT: MfaMachineContext = machineDefaults;
  *   every screen shares (CLOSE_MODAL now, e.g. SET_ERROR in later slices) are declared on `open`;
  * - `closing` - the modal is tearing down (slide-out + backdrop fade).
  *
- * Whether the modal is open is not context but a derivative of the chart: `snapshotToState` maps it
- * to the legacy `isModalOpen` flag as `matches('open')` - false in `closing`, and that flag going
- * false is what starts the navigator's close animation.
+ * The modal lifecycle is not context but the chart itself: `snapshotToState` derives `modalPhase`
+ * ('open' | 'closing' | 'closed') from the top-level state, and the navigator mounts, animates
+ * teardown, and unmounts off that single value. The legacy `isModalOpen` flag is its boolean view
+ * (`modalPhase === 'open'`).
  *
  * PR-5 (Slice 1) skeleton: INIT -> `preparing` -> (no work yet) -> `outcome.success`.
  *
