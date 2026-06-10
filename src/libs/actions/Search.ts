@@ -56,7 +56,19 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, BillingGraceEndPeriod, ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    BillingGraceEndPeriod,
+    ExportTemplate,
+    IntroSelected,
+    LastPaymentMethod,
+    LastPaymentMethodType,
+    Policy,
+    Report,
+    ReportAction,
+    ReportNextStepDeprecated,
+    Transaction,
+} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
