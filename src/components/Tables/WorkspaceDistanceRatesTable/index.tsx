@@ -191,12 +191,14 @@ function WorkspaceDistanceRatesTable({
             return;
         }
 
-        if (!activeSortingInWideLayout || !isNarrowLayoutRef.current) {
+        if (!isNarrowLayoutRef.current) {
             return;
         }
 
         isNarrowLayoutRef.current = false;
-        tableRef.current?.updateSorting(activeSortingInWideLayout);
+        if (activeSortingInWideLayout) {
+            tableRef.current?.updateSorting(activeSortingInWideLayout);
+        }
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
     const shouldShowSearchBar = Object.keys(customUnitRates).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
