@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
-import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -62,13 +62,9 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
-    const {dispatch} = useMultifactorAuthenticationActions();
+    const {closeModal} = useMultifactorAuthentication();
 
-    const onClose =
-        onCloseOverride ??
-        (() => {
-            dispatch({type: 'CLOSE_MODAL'});
-        });
+    const onClose = onCloseOverride ?? closeModal;
 
     const CustomSubtitle = customSubtitle ?? (
         <HTMLSubtitle

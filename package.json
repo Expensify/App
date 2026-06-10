@@ -129,6 +129,7 @@
     "@shopify/flash-list": "2.3.0",
     "@shopify/react-native-skia": "^2.4.14",
     "@ua/react-native-airship": "26.5.0",
+    "@xstate/react": "5.0.5",
     "array.prototype.tosorted": "^1.1.4",
     "awesome-phonenumber": "^5.4.0",
     "canvas-size": "^1.2.6",
@@ -217,7 +218,8 @@
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
     "victory-native": "^41.21.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "xstate": "5.31.1"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",

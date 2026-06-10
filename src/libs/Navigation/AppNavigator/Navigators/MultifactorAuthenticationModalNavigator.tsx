@@ -4,9 +4,9 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
-import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
-import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
+import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -75,9 +75,8 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 }
 
 function MultifactorAuthenticationModalNavigator() {
-    const {isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
-    const {requestCancel, hideCancelConfirm, confirmCancel} = useMultifactorAuthentication();
-    const {dispatch} = useMultifactorAuthenticationActions();
+    const {state, requestCancel, hideCancelConfirm, confirmCancel, notifyModalClosed} = useMultifactorAuthentication();
+    const {isCancelConfirmVisible, isModalOpen, scenario} = state;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const themePreference = useThemePreference();
@@ -119,13 +118,14 @@ function MultifactorAuthenticationModalNavigator() {
             mfaNavigationRef.goBack();
         }
         backdropProgress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
+        // If this callback is cancelled (unmount mid-close), the machine's closeFallback timer takes
+        // over: it re-enters idle on its own, wiping the context and the mfaNavigation buffer.
         const handle = Navigation.runAfterUpcomingTransition(() => {
-            resetMfaNavigation();
             setPhase('closed');
-            dispatch({type: 'RESET'});
+            notifyModalClosed();
         });
         return () => handle.cancel();
-    }, [phase, backdropProgress, dispatch]);
+    }, [phase, backdropProgress, notifyModalClosed]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
         opacity: backdropProgress.get() * variables.overlayOpacity,

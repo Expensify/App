@@ -1,26 +1,8 @@
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
 import CONST from '@src/CONST';
+import {DEFAULT_STATE} from './state';
 import type {Action, MultifactorAuthenticationState} from './types';
-
-const DEFAULT_STATE: MultifactorAuthenticationState = {
-    isModalOpen: false,
-    error: undefined,
-    continuableError: undefined,
-    validateCode: undefined,
-    registrationChallenge: undefined,
-    authorizationChallenge: undefined,
-    softPromptApproved: false,
-    scenarioName: undefined,
-    scenario: undefined,
-    payload: undefined,
-    isRegistrationComplete: false,
-    isAuthorizationComplete: false,
-    isFlowComplete: false,
-    authenticationMethod: undefined,
-    scenarioResponse: undefined,
-    isCancelConfirmVisible: false,
-};
 
 /**
  * Reducer function that manages the multifactor authentication state machine.
