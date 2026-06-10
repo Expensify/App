@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import type {ImportCSVTransactionsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {generateCardID} from '@libs/CardUtils';
-import {parseCSVDate} from '@libs/CSVDateUtils';
+import parseCSVDate from '@libs/CSVDateUtils';
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
