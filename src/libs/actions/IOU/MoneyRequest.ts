@@ -81,6 +81,7 @@ type CreateTransactionParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
+    currentUserLocalCurrency: string | undefined;
 };
 
 function createTransaction({
@@ -108,6 +109,7 @@ function createTransaction({
     recentWaypoints,
     optimisticTransactionIDs,
     optimisticChatReportID,
+    currentUserLocalCurrency,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -154,6 +156,7 @@ function createTransaction({
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                currentUserLocalCurrency,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -307,7 +310,14 @@ function initMoneyRequest({
     ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat,
+                isTrackDistanceExpense,
+                policy,
+                lastSelectedDistanceRates,
+                expenseDate: created,
+            });
             comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
