@@ -8,6 +8,7 @@ import {
     isMergeActionForSelectedTransactions,
 } from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
+import {getValidConnectedIntegration, isPaidGroupPolicy, isPreferredExporter} from '@src/libs/PolicyUtils';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +66,9 @@ describe('getSecondaryAction', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(getValidConnectedIntegration).mockReturnValue('netsuite');
+        jest.mocked(isPaidGroupPolicy).mockReturnValue(true);
+        jest.mocked(isPreferredExporter).mockReturnValue(true);
         Onyx.clear();
     });
 
@@ -3290,6 +3294,69 @@ describe('getSecondaryExportReportActions', () => {
 
         const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for expense report admin when auto-sync is disabled and live export connection is invalid', () => {
+        jest.mocked(getValidConnectedIntegration).mockReturnValue(undefined);
+        jest.mocked(isPreferredExporter).mockReturnValue(false);
+
+        const report: Report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const policy: Policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {autoSync: {enabled: false}}}},
+        };
+
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(false);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for reimbursed expense report payer', () => {
+        jest.mocked(isPaidGroupPolicy).mockReturnValue(false);
+        jest.mocked(isPreferredExporter).mockReturnValue(false);
+
+        const report: Report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+        };
+        const policy: Policy = {
+            role: CONST.POLICY.ROLE.USER,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {autoSync: {enabled: false}}}},
+        };
+
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('does not include MARK_AS_EXPORTED option for expense report non-admin who is not preferred exporter or payer', () => {
+        jest.mocked(isPaidGroupPolicy).mockReturnValue(false);
+        jest.mocked(isPreferredExporter).mockReturnValue(false);
+
+        const report: Report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const policy: Policy = {
+            role: CONST.POLICY.ROLE.USER,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {autoSync: {enabled: false}}}},
+        };
+
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(false);
     });
 
     it('includes REMOVE HOLD option for admin if he is not the holder', () => {
