@@ -10,8 +10,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+type CountryZipRegex = {
+    samples?: string;
+};
 
 type AddressInputKeys = {
     street: string;
@@ -74,9 +79,6 @@ type AddressFormProps = ForwardedFSClassProps & {
 
     /** Indicates if country can be changed by user */
     shouldAllowCountryChange?: boolean;
-
-    /** Indicates if zip code format should be validated */
-    shouldValidateZipCodeFormat?: boolean;
 };
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
@@ -110,15 +112,14 @@ function AddressFormFields({
     stateSelectorSearchInputTitle,
     onCountryChange,
     shouldAllowCountryChange = true,
-    shouldValidateZipCodeFormat = true,
     forwardedFSClass,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [countryInEditMode, setCountryInEditMode] = useState<string>(defaultValues?.country ?? CONST.COUNTRY.US);
-    // When draft values are not being saved we need to relay on local state to determine the currently selected country
-    const currentlySelectedCountry = shouldSaveDraft ? defaultValues?.country : countryInEditMode;
+    const currentlySelectedCountry = countryInEditMode || defaultValues?.country;
+    const zipSampleFormat = ((currentlySelectedCountry ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[currentlySelectedCountry as Country] : undefined) as CountryZipRegex | undefined)?.samples ?? '';
 
     const handleCountryChange = (country: unknown) => {
         if (typeof country === 'string' && country !== '') {
@@ -186,11 +187,11 @@ function AddressFormFields({
                 label={translate('common.zip')}
                 accessibilityLabel={translate('common.zip')}
                 role={CONST.ROLE.PRESENTATION}
-                inputMode={shouldValidateZipCodeFormat ? CONST.INPUT_MODE.NUMERIC : undefined}
+                inputMode={currentlySelectedCountry === CONST.COUNTRY.US ? CONST.INPUT_MODE.NUMERIC : undefined}
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
-                hint={translate('common.zipCodeExampleFormat', COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples)}
+                hint={translate('common.zipCodeExampleFormat', zipSampleFormat)}
                 containerStyles={styles.mt3}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="postal-code"

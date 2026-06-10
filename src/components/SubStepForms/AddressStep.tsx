@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -8,13 +9,37 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidAddress, isValidZipCode} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import {setDraftValues} from '@userActions/FormActions';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
+};
+
+function getCountryZipRegexDetails(country?: Country | ''): CountryZipRegex | undefined {
+    if (!country) {
+        return undefined;
+    }
+
+    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex | undefined;
+}
+
+function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): boolean {
+    const normalizedZipCode = zipCode.trim().toUpperCase();
+    const countrySpecificZipRegex = getCountryZipRegexDetails(country)?.regex;
+
+    if (countrySpecificZipRegex) {
+        return countrySpecificZipRegex.test(normalizedZipCode);
+    }
+
+    return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
+}
 
 type AddressValues = {
     street: string;
@@ -145,14 +170,21 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (shouldValidateZipCodeFormat && zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
+            const selectedCountry = (inputFieldsIDs.country ? values[inputFieldsIDs.country as keyof typeof values] : defaultValues.country) as Country | '';
+            const shouldValidateSelectedCountryZip = shouldDisplayCountrySelector && !!inputFieldsIDs.country;
+
+            if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode as string, selectedCountry)) {
+                const zipCodeSamples = getCountryZipRegexDetails(selectedCountry)?.samples;
+                // @ts-expect-error type mismatch to be fixed
+                errors[inputFieldsIDs.zipCode] = translate('privatePersonalDetails.error.incorrectZipFormat', zipCodeSamples);
+            } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode as string)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
         },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
+        [defaultValues.country, inputFieldsIDs.country, inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
     );
 
     return (
@@ -180,7 +212,6 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                     onCountryChange={onCountryChange}
                     shouldAllowCountryChange={shouldAllowCountryChange}
-                    shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                     forwardedFSClass={forwardedFSClass}
                 />
                 {!!shouldShowHelpLinks && (
