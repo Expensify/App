@@ -2,11 +2,9 @@
 
 MelvinBot (Melvin) is Expensify's AI agent for App GitHub issues. On many open-source jobs, Melvin posts the first proposal automatically. This guide explains how contributors, Contributor+ (C+), and internal engineers work together on those issues.
 
+Clearly documenting the process helps us move efficiently by preventing all of us from wasting time on incorrect solutions. Internal engineering approval is required on Melvinbot proposals because we usually have the most context to know whether a solution aligns with our best practices.
+
 For general contributor workflow (proposals, payment, PR standards), see [CONTRIBUTING.md](./CONTRIBUTING.md). For C+ responsibilities, see [HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md](./HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md).
-
-## Why this process exists
-
-Melvin can open pull requests before a human has validated the approach. Without a clear process, contributors waste time on unapproved work, and internal engineers may review PRs that should not have been started. Proposal review must happen **before** implementation.
 
 ## Roles
 
