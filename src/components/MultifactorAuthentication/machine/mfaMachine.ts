@@ -10,28 +10,13 @@ const {isModalOpen, ...machineDefaults} = DEFAULT_STATE;
 const DEFAULT_CONTEXT: MfaMachineContext = machineDefaults;
 
 /**
- * MFA state machine. The chart (states + transitions) is declarative; navigation is the only side
- * effect in this slice.
+ * MFA state machine. The top level models the modal lifecycle (`idle` -> `open` -> `closing`); the
+ * child states of `open` map 1:1 to the screen the user currently sees. Later slices add screens as
+ * `open` children, per-screen work as child states of its screen, and events shared by every screen
+ * (e.g. SET_ERROR) on `open` itself.
  *
- * The top level is the modal lifecycle - `snapshotToState` derives `modalPhase` from it for the view
- * layer:
- * - `idle` - modal closed, no flow running. Every (re)entry wipes the context and the navigation
- *   buffer, so no flow data (validate code, challenges, scenario response) outlives the modal;
- * - `open` - the modal overlay is up. Its child states map 1:1 to what the user currently sees:
- *   - `preparing` - the transparent initial screen; pre-screen work (device check, registration
- *     decision, ...) lands here as child states in later slices;
- *   - `magicCode` / `prompt` - the magic-code and prompt screens, arriving in later slices;
- *   - `outcome` - the outcome screen; its children pick the variant (`success` now, `failure` later).
- *   Sub-steps that run while a screen is shown become child states of that screen's parent. Events
- *   every screen shares (CLOSE_MODAL now, e.g. SET_ERROR in later slices) are declared on `open`,
- *   so duplicates while already closing or idle are ignored;
- * - `closing` - the modal is tearing down (slide-out + backdrop fade); see the state's comment for
- *   the teardown contract.
- *
- * PR-5 (Slice 1) skeleton: INIT -> `preparing` -> (no work yet) -> `outcome.success`.
- *
- * No state is `final`: one long-lived actor is reused for every MFA flow (a top-level final state
- * would stop it).
+ * No state is `final`: one long-lived actor serves every MFA flow (a top-level final state would
+ * stop it).
  */
 const mfaMachine = setup({
     types: {
@@ -51,10 +36,11 @@ const mfaMachine = setup({
             };
         }),
         markFlowComplete: assign({isFlowComplete: true}),
-        // Defer the push until the modal-open transition settles so the success screen slides in with
-        // a measured width (Android animation race).
-        navigateToSuccessOutcome: () => Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS)),
-        // The dialog must not stay up while the modal slides out.
+        navigateToSuccessOutcome: () => {
+            // runAfterTransition defers the push until the modal-open transition settles, so the
+            // success screen slides in with a measured width (Android animation race).
+            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS));
+        },
         hideCancelConfirm: assign({isCancelConfirmVisible: false}),
         resetContext: assign(() => ({...DEFAULT_CONTEXT})),
         // Clears the module-level navigation buffer (pendingNavigation/hasInitialLaidOut). Owned by
@@ -63,9 +49,8 @@ const mfaMachine = setup({
         resetNavigationBuffer: () => resetMfaNavigation(),
     },
     delays: {
-        // Upper bound of the navigator's MODAL_CLOSED report: transition-start wait cap + capped
-        // transition duration (TransitionTracker safety nets) + the backdrop fade as margin. Only
-        // reached when the report was cancelled (navigator unmounted mid-close).
+        // How long `closing` waits for MODAL_CLOSED before re-entering `idle` on its own; longer
+        // than any close animation can take.
         closeFallback: CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS + CONST.ANIMATED_TRANSITION,
     },
 }).createMachine({
@@ -74,8 +59,12 @@ const mfaMachine = setup({
     context: DEFAULT_CONTEXT,
     states: {
         idle: {
+            // The wipe runs on every (re)entry so no flow data (validate code, challenges, scenario
+            // response) outlives the modal.
             entry: ['resetContext', 'resetNavigationBuffer'],
             on: {
+                // Accepted only here: an INIT sent while the modal is open or still closing is
+                // dropped rather than started on dirty state.
                 INIT: {target: 'open', actions: 'initFromEvent'},
             },
         },
@@ -101,10 +90,9 @@ const mfaMachine = setup({
             },
         },
         // Modal teardown. The context still holds the flow data here on purpose: the outcome screen
-        // stays visible while it slides out. The wipe happens on entering `idle` - normally on the
-        // navigator's MODAL_CLOSED, or via the `closeFallback` timer if that report never arrives.
-        // INIT is ignored until the wipe (declared on `idle` only), so a flow launched during the
-        // close animation is dropped rather than started on dirty state.
+        // stays visible while it slides out. The navigator sends MODAL_CLOSED once the close
+        // animation finishes; if it unmounts before that, the event never comes and the
+        // `closeFallback` timer re-enters `idle` instead.
         closing: {
             on: {
                 MODAL_CLOSED: 'idle',
