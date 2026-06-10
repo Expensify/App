@@ -949,7 +949,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonDangerText: {
-            color: theme.textLight,
+            color: theme.buttonDangerText,
         },
 
         buttonBlendContainer: {
@@ -3142,7 +3142,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: 28,
             justifyContent: 'center',
             borderRadius: 20,
-            padding: 15,
         },
 
         switchThumb: {
