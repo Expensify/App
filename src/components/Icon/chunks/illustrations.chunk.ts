@@ -63,6 +63,7 @@ import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
+import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
@@ -149,6 +150,7 @@ import HandCard from '@assets/images/simple-illustrations/simple-illustration__h
 import Hashtag from '@assets/images/simple-illustrations/simple-illustration__hashtag.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
+import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
@@ -175,6 +177,7 @@ import Pillow from '@assets/images/simple-illustrations/simple-illustration__pil
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import QuestionMark from '@assets/images/simple-illustrations/simple-illustration__question-mark.svg';
+import RealEstate from '@assets/images/simple-illustrations/simple-illustration__realestate.svg';
 import RealtimeReport from '@assets/images/simple-illustrations/simple-illustration__realtimereports.svg';
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
@@ -193,6 +196,7 @@ import Sunglasses from '@assets/images/simple-illustrations/simple-illustration_
 import SyncUsers from '@assets/images/simple-illustrations/simple-illustration__syncusers.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import Target from '@assets/images/simple-illustrations/simple-illustration__target.svg';
+import TargetWithArrow from '@assets/images/simple-illustrations/simple-illustration__targetwitharrow.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
@@ -268,6 +272,7 @@ const Illustrations = {
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
+    EarthWithControls,
     Fireworks,
     FolderWithPapersAndWatch,
     FolderWithPapers,
@@ -331,6 +336,7 @@ const Illustrations = {
     MoneyIntoWallet,
     PerDiem,
     PiggyBank,
+    RealEstate,
     RealtimeReport,
     ReceiptPartners,
     ReceiptWrangler,
@@ -392,6 +398,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    HouseMoney,
     LifeRing,
     Lightbulb,
     LockClosed,
@@ -415,6 +422,7 @@ const Illustrations = {
     SmallRocket,
     Sunglasses,
     Target,
+    TargetWithArrow,
     Trophy,
     Trophy1,
     FoodTruck,

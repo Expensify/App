@@ -1,9 +1,11 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
 import type {Part} from './actions/Policy/CopyPolicySettings';
+import {isTimeTrackingEnabled} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -20,10 +22,12 @@ const FEATURE_ROWS = [
     {part: 'taxes', labelKey: 'workspace.common.taxes'},
     {part: 'workflows', labelKey: 'workspace.common.workflows'},
     {part: 'rules', labelKey: 'workspace.common.rules'},
+    {part: 'codingRules', labelKey: 'workspace.duplicateWorkspace.merchantRules'},
     {part: 'distanceRates', labelKey: 'workspace.common.distanceRates'},
     {part: 'perDiem', labelKey: 'workspace.common.perDiem'},
     {part: 'invoices', labelKey: 'workspace.common.invoices'},
     {part: 'travel', labelKey: 'workspace.common.travel'},
+    {part: 'timeTracking', labelKey: 'workspace.moreFeatures.timeTracking.title'},
 ] as const satisfies readonly FeatureRow[];
 
 type CopyPolicySettingsSourceFeatureContext = {
@@ -38,6 +42,7 @@ type CopyPolicySettingsSourceFeatureContext = {
     connectedIntegrationCount: number;
     hasWorkflowRules: boolean;
     hasWorkspaceRules: boolean;
+    codingRulesCount: number;
     hasInvoiceConfiguration: boolean;
     isCollectPolicy: boolean;
 };
@@ -213,6 +218,8 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
             return context.hasWorkflowRules;
         case 'rules':
             return context.hasWorkspaceRules && !context.isCollectPolicy;
+        case 'codingRules':
+            return context.codingRulesCount > 0 && !context.isCollectPolicy;
         case 'distanceRates':
             return context.distanceRatesCount > 0 && !!policy?.areDistanceRatesEnabled;
         case 'perDiem':
@@ -221,9 +228,20 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
             return !!policy?.areInvoicesEnabled && context.hasInvoiceConfiguration;
         case 'travel':
             return !!policy?.isTravelEnabled;
+        case 'timeTracking':
+            return isTimeTrackingEnabled(policy);
         default:
             return false;
     }
+}
+
+/** Subtitle for the time tracking row; rate is shown without currency because targets may use a different output currency. */
+function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
+    const hourlyRate = policy?.units?.time?.rate;
+    if (hourlyRate !== undefined) {
+        return `${translate('common.enabled')}, ${translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: ${hourlyRate}`;
+    }
+    return translate('common.enabled');
 }
 
 export {
@@ -234,6 +252,7 @@ export {
     isTargetCompatibleForAccountingPart,
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
+    getTimeTrackingCopySettingsDescription,
     FEATURE_ROWS,
 };
-export type {AccountingConnectionIdentity, CopyPolicySettingsSourceFeatureContext, FeatureRow};
+export type {CopyPolicySettingsSourceFeatureContext};

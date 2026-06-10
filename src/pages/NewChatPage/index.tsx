@@ -36,6 +36,7 @@ import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getValid
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,7 +57,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const currentUserEmail = personalData.email ?? '';
@@ -113,7 +114,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
 
     useGroupChatDraftParticipantSync(allPersonalDetailOptions, !isLoading, allPersonalDetails, loginList, currentUserEmail, currentUserAccountID, selectedOptions, setSelectedOptions);
 
-    const defaultOptions = getValidOptions(
+    const {options: defaultOptions} = getValidOptions(
         {
             reports,
             personalDetails,
