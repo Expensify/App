@@ -8102,6 +8102,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `a ajouté le taux « ${rateName} » de ${rateValue}, valable jusqu’au ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `a ajouté le taux « ${rateName} » de ${rateValue}, valable du ${startDate} au ${endDate}`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `a mis à jour le taux kilométrique « ${rateName} » pour s’appliquer à ${newDateRange} (précédemment ${oldDateRange})`,
+        customUnitRateDateRangeFrom: (date: string) => `à partir du ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `jusqu’au ${date}`,
+        customUnitRateDateRangeAllDates: () => `pour toutes les dates`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
