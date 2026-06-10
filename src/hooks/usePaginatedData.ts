@@ -41,9 +41,7 @@ function usePaginatedData<T>(
     }
 
     const limit = pageSize * currentPage;
-
     const paginatedData = data.slice(0, limit);
-
     const hasMore = data.length > limit;
 
     const loadMore = () => {

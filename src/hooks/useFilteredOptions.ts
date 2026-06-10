@@ -93,7 +93,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, isSearching, betas],
     );
 
-    // when isSearching is set to true, the createFilteredOptionList returns all reports
+    // When isSearching is set to true, the createFilteredOptionList returns all reports
     const hasMore = !isSearching && options ? reportsLimit < totalReports : false;
 
     const loadMore = () => {

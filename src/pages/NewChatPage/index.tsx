@@ -96,8 +96,8 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     // Dedupe and sort the union of Onyx personal details and imported contacts so pagination uses an alphabetical prefix.
     const sortedPersonalDetailOptionsWithContacts = mergeAndSortPersonalDetailsWithContacts(allPersonalDetailOptions, contacts);
 
-    // resetKey is typed string and resets pagination to page 1 when it changes. We want that only
-    // on the search-mode flip (not per keystroke), so it mirrors isSearching rather than the term.
+    // usePaginatedData resets to page 1 whenever resetKey changes. Encode browse and search as "false" and "true", respectively,
+    // so that we only reset when the user enters or leaves search, not on every debounced keystroke.
     const browsePaginationResetKey = String(isSearching);
 
     // Limits raw personal details entering getValidOptions to reduce processing cost on initial load.
