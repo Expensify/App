@@ -169,6 +169,7 @@ function MoneyRequestReceiptView({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -533,6 +534,7 @@ function MoneyRequestReceiptView({
             transactionPolicy: policy,
             transactionPolicyCategories: policyCategories,
             transactionPolicyTagList: policyTagList,
+            transactionViolations: rawTransactionViolations,
         });
     };
 
