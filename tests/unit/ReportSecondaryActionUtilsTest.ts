@@ -4123,7 +4123,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(ReportUtils.canUserPerformWriteAction).toHaveBeenCalledWith(parentReport, false);
     });
 
-    it('does not include MOVE_EXPENSE option for transaction thread when parent report is archived', () => {
+    it('uses the money request report archived state for transaction thread MOVE_EXPENSE checks', () => {
         const parentReport = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -4134,7 +4134,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             transactionID: originalMessageR14932.IOUTransactionID,
         } as unknown as Transaction;
         const policy = {} as unknown as Policy;
-        const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]);
+        const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${originalMessageR14932.IOUReportID}`]);
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(false);

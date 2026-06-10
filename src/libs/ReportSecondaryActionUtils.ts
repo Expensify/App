@@ -1152,7 +1152,8 @@ function getSecondaryTransactionThreadActions({
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
-    const isParentReportArchived = isReportArchivedByID(archivedReportsIDSet, parentReport.reportID);
+    const iouReportID = reportAction ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+    const isMoneyRequestReportArchived = isReportArchivedByID(archivedReportsIDSet, iouReportID);
 
     if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
@@ -1187,12 +1188,12 @@ function getSecondaryTransactionThreadActions({
         canEditFieldOfMoneyRequest({
             reportAction,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-            isChatReportArchived: isParentReportArchived,
+            isChatReportArchived: isMoneyRequestReportArchived,
             outstandingReportsByPolicyID,
             transaction: reportTransaction,
             archivedReportsIDSet,
         }) &&
-        canUserPerformWriteActionReportUtils(parentReport, isParentReportArchived)
+        canUserPerformWriteActionReportUtils(parentReport, isMoneyRequestReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
