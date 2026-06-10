@@ -1207,7 +1207,7 @@
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepCategory.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/iou/request/step/DynamicIOURequestStepCategoryPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/iou/request/step/IOURequestStepDestination.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
@@ -1233,8 +1233,8 @@
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/iou/request/step/DynamicIOURequestStepUpgradePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/iou/request/step/DynamicIOURequestStepUpgradePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestStepWaypoint.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/StepScreenWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/confirmation/submitDismissStrategies.ts"	"no-restricted-imports"	1

@@ -180,6 +180,126 @@ const DYNAMIC_ROUTES = {
         entryScreens: ['*'],
         getRoute: (accountID: number) => `avatar/${accountID}` as const,
     },
+    MONEY_REQUEST_STEP_TAX_RATE: {
+        path: 'money-request/tax-rate/:action/:iouType/:transactionID/:reportID?',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_TAX_RATE dynamic route');
+            }
+
+            return `money-request/tax-rate/${action as string}/${iouType as string}/${transactionID}${reportID ? `/${reportID}` : ''}` as const;
+        },
+    },
+    MONEY_REQUEST_STEP_TAX_AMOUNT: {
+        path: 'money-request/tax-amount/:action/:iouType/:transactionID/:reportID?',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_TAX_AMOUNT dynamic route');
+            }
+
+            return `money-request/tax-amount/${action as string}/${iouType as string}/${transactionID}${reportID ? `/${reportID}` : ''}` as const;
+        },
+    },
+    MONEY_REQUEST_STEP_CATEGORY: {
+        path: 'money-request/category/:action/:iouType/:transactionID/:reportID/:reportActionID?',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY dynamic route');
+            }
+
+            return `money-request/category/${action as string}/${iouType as string}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const;
+        },
+    },
+    MONEY_REQUEST_ATTENDEE: {
+        path: 'money-request/attendees/:action/:iouType/:transactionID/:reportID',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_ATTENDEE dynamic route');
+            }
+
+            return `money-request/attendees/${action as string}/${iouType as string}/${transactionID}/${reportID}` as const;
+        },
+    },
+    MONEY_REQUEST_ACCOUNTANT: {
+        path: 'money-request/accountant/:action/:iouType/:transactionID/:reportID',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_ACCOUNTANT dynamic route');
+            }
+
+            return `money-request/accountant/${action as string}/${iouType as string}/${transactionID}/${reportID}` as const;
+        },
+    },
+    MONEY_REQUEST_UPGRADE: {
+        path: 'money-request/upgrade/:action/:iouType/:transactionID/:reportID/:upgradePath?',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.HOME,
+            SCREENS.INBOX,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP,
+        ],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string; upgradePath?: string; shouldSubmitExpense?: boolean}) => {
+            const {action, iouType, transactionID, reportID, upgradePath, shouldSubmitExpense} = params;
+            const upgradePathParam = upgradePath ? `/${upgradePath}` : '';
+            const basePath = `money-request/upgrade/${action as string}/${iouType as string}/${transactionID}/${reportID}${upgradePathParam}` as const;
+
+            if (shouldSubmitExpense) {
+                return `${basePath}?shouldSubmitExpense=true` as const;
+            }
+
+            return basePath;
+        },
+        queryParams: ['shouldSubmitExpense'],
+    },
     NEW_REPORT_WORKSPACE_SELECTION: {
         path: 'new-report-workspace-selection',
         entryScreens: ['*'],
@@ -1634,26 +1754,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${reportActionID ? `${reportActionID}/` : ''}${pageIndex}`, backTo);
         },
     },
-    MONEY_REQUEST_STEP_TAX_RATE: {
-        route: ':action/:iouType/taxRate/:transactionID/:reportID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_TAX_RATE route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/taxRate/${transactionID}/${reportID}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_TAX_AMOUNT: {
-        route: ':action/:iouType/taxAmount/:transactionID/:reportID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_TAX_AMOUNT route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/taxAmount/${transactionID}/${reportID}`, backTo);
-        },
-    },
     MONEY_REQUEST_STEP_CATEGORY_CREATE: {
         route: ':action/:iouType/category/new/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string, backTo = '') => {
@@ -1662,16 +1762,6 @@ const ROUTES = {
             }
 
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/new/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_CATEGORY: {
-        route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_ATTENDEE: {
