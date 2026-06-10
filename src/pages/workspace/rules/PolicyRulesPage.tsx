@@ -56,7 +56,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Rules']);
+    const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMerge']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
@@ -187,15 +187,15 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={illustrations.Rules}
+                icon={illustrations.Flash}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
                 headerContent={getHeaderContent()}
             >
-                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <View style={[styles.mb5, styles.flexRow]}>
+                <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flexRow, styles.mb1]}>
                         <TabSelectorBase
                             tabs={tabs}
                             activeTabKey={activeTab}
