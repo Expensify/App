@@ -5,7 +5,7 @@ import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type * as SubscriptionUtilsModule from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/SubscriptionUtils', () => ({
@@ -13,7 +13,7 @@ jest.mock('@libs/SubscriptionUtils', () => ({
     shouldRestrictUserBillableActions: jest.fn(),
 }));
 
-const mockedShouldRestrict = shouldRestrictUserBillableActions as jest.MockedFunction<typeof shouldRestrictUserBillableActions>;
+const mockedShouldRestrict = jest.mocked(shouldRestrictUserBillableActions);
 
 describe('useRestrictedActionPolicyID', () => {
     beforeAll(() => {
@@ -36,7 +36,7 @@ describe('useRestrictedActionPolicyID', () => {
 
     it('returns the policy id when billable actions are restricted', async () => {
         mockedShouldRestrict.mockReturnValue(true);
-        const policy = {id: '7'} as Policy;
+        const policy = createRandomPolicy(7);
 
         const {result} = renderHook(() => useRestrictedActionPolicyID(policy), {wrapper: OnyxListItemProvider});
         await waitForBatchedUpdatesWithAct();
@@ -46,7 +46,7 @@ describe('useRestrictedActionPolicyID', () => {
 
     it('returns undefined when billable actions are not restricted', async () => {
         mockedShouldRestrict.mockReturnValue(false);
-        const policy = {id: '7'} as Policy;
+        const policy = createRandomPolicy(7);
 
         const {result} = renderHook(() => useRestrictedActionPolicyID(policy), {wrapper: OnyxListItemProvider});
         await waitForBatchedUpdatesWithAct();
@@ -61,7 +61,7 @@ describe('useRestrictedActionPolicyID', () => {
             [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 456,
         });
         await waitForBatchedUpdatesWithAct();
-        const policy = {id: '7'} as Policy;
+        const policy = createRandomPolicy(7);
 
         renderHook(() => useRestrictedActionPolicyID(policy), {wrapper: OnyxListItemProvider});
         await waitForBatchedUpdatesWithAct();
