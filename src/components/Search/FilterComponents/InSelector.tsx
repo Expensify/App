@@ -1,10 +1,12 @@
 import React, {useEffect} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {TextInputOptions} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -23,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import ListFilterView from './ListFilterViewWrapper';
 
-type InSelectorProps = {
+type InSelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     onChange: (ins: string[]) => void;
 };
@@ -40,10 +42,14 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
     return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
-function InSelector({value = [], onChange}: InSelectorProps) {
+function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
-    const {options, areOptionsInitialized} = useOptionsList();
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const {options, isLoading} = useFilteredOptions({
+        enabled: ready,
+        isSearching: !!debouncedSearchTerm.trim(),
+    });
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -57,7 +63,6 @@ function InSelector({value = [], onChange}: InSelectorProps) {
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const reportAttributesDerived = useReportAttributes();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -76,22 +81,23 @@ function InSelector({value = [], onChange}: InSelectorProps) {
         return {...report, alternateText};
     });
 
-    const defaultOptions = !areOptionsInitialized
-        ? defaultListOptions
-        : getSearchOptions({
-              options,
-              draftComments,
-              betas: undefined,
-              isUsedInChatFinder: false,
-              countryCode,
-              loginList,
-              currentUserAccountID,
-              currentUserEmail,
-              personalDetails,
-              policyCollection: allPolicies,
-              sortedActions,
-              conciergeReportID,
-          }).options;
+    const defaultOptions =
+        isLoading || !ready || !options
+            ? defaultListOptions
+            : getSearchOptions({
+                  options,
+                  draftComments,
+                  betas: undefined,
+                  isUsedInChatFinder: false,
+                  countryCode,
+                  loginList,
+                  currentUserAccountID,
+                  currentUserEmail,
+                  personalDetails,
+                  policyCollection: allPolicies,
+                  sortedActions,
+                  conciergeReportID,
+              }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
         selectedOptions,
@@ -100,7 +106,7 @@ function InSelector({value = [], onChange}: InSelectorProps) {
 
     const sections: SelectionListSections = [];
 
-    if (areOptionsInitialized) {
+    if (!isLoading) {
         const formattedResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
             selectedOptions,
@@ -151,13 +157,17 @@ function InSelector({value = [], onChange}: InSelectorProps) {
     };
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !value || !personalDetails;
+    const shouldShowLoadingPlaceholder = !ready || isLoading || !value || !personalDetails;
 
-    const textInputOptions = {
+    const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
+        disableAutoFocus: !autoFocus,
     };
 
     const itemCount = sections.flatMap((section) => section.data).length;
@@ -177,6 +187,8 @@ function InSelector({value = [], onChange}: InSelectorProps) {
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
+                style={selectionListStyle}
+                footerContent={footer}
             />
         </ListFilterView>
     );
