@@ -9,6 +9,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
@@ -351,6 +352,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
     const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
     const {showConfirmModal} = useConfirmModal();
+    const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -1463,7 +1465,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const shouldShowSubmitOption =
             !isOffline &&
-            !doSelectedItemsBelongToSubmitPolicy &&
+            (!doSelectedItemsBelongToSubmitPolicy || (doSelectedItemsBelongToSubmitPolicy && selectedReports.length === 1)) &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.canSubmit)
@@ -1500,10 +1502,30 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
 
+                    const selectedReportForSubmit = selectedReports.at(0);
+                    const policyForSubmit = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReportForSubmit?.policyID}`];
+                    const reportIDForSubmit = selectedReportForSubmit?.reportID;
+
+                    if (isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash && policyForSubmit) {
+                        const snapshotReport =
+                            searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`] ??
+                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`];
+
+                        if (snapshotReport) {
+                            openSearchReportSubmitToPopover(reportIDForSubmit, {
+                                onSubmitWithManagerEmail: (managerEmail) => {
+                                    submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey, managerEmail);
+                                    clearSelectedTransactions();
+                                },
+                            });
+                        }
+                        return;
+                    }
+
                     for (const item of itemList) {
-                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
-                        if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy]);
+                        const itemPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+                        if (itemPolicy) {
+                            submitMoneyRequestOnSearch(hash, [item as Report], [itemPolicy]);
                         }
                     }
                     clearSelectedTransactions();
@@ -1840,6 +1862,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isBetaEnabled,
         defaultExpensePolicy,
         doSelectedItemsBelongToSubmitPolicy,
+        openSearchReportSubmitToPopover,
+        searchResults?.data,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

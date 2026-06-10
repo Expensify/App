@@ -204,7 +204,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
 
         const doSubmit = () => {
-            if (hasSelectedTransactionsOnSubmitPolicy) {
+            if (hasSelectedTransactionsOnSubmitPolicy || isSubmitPolicy(policy)) {
                 openReportSubmitToPopover({
                     onSubmitSuccess: skipAnimation ? undefined : startSubmittingAnimation,
                 });
@@ -267,7 +267,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 confirmPendingRTERAndProceed(() => {
-                    if (hasSelectedTransactionsOnSubmitPolicy) {
+                    if (hasSelectedTransactionsOnSubmitPolicy || isSubmitPolicy(policy)) {
                         openReportSubmitToPopover();
                         return;
                     }

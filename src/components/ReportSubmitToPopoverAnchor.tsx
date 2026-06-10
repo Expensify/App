@@ -51,6 +51,18 @@ function useOpenReportSubmitToPopover(): OpenReportSubmitToPopover {
     return useContext(ReportSubmitToPopoverContext);
 }
 
+/** Opens the shared Search submit-to popover for a report (e.g. bulk actions outside a list row). */
+function useOpenSearchReportSubmitToPopover() {
+    const host = useContext(ReportSubmitToPopoverHostContext);
+
+    return useCallback(
+        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions) => {
+            host?.openReportSubmitToPopover(reportID, options);
+        },
+        [host],
+    );
+}
+
 type ReportSubmitToPopoverAnchorProps = {
     reportID: string | undefined;
     onSubmitSuccess?: () => void;
@@ -262,5 +274,6 @@ export {
     ReportSubmitToPopoverRoot,
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
     useOpenReportSubmitToPopover,
+    useOpenSearchReportSubmitToPopover,
     useSearchSubmitPopoverGuard,
 };

@@ -97,6 +97,7 @@ function ReportSubmitToContent({
         if (!employeeList) {
             return [];
         }
+        const prepopulatedEmailLower = prepopulatedEmail?.trim().toLowerCase();
         const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
         return Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
             const email = employee.email?.trim();
@@ -104,9 +105,13 @@ function ReportSubmitToContent({
                 return [];
             }
             const accountID = emailsToAccountIDs[email];
-            if (!accountID || accountID === currentUserDetails.accountID) {
+            const isPrepopulatedSubmitToRecipient = !!prepopulatedEmailLower && email.toLowerCase() === prepopulatedEmailLower;
+            const isCurrentUser = accountID === currentUserDetails.accountID;
+
+            if (!accountID || (isCurrentUser && !isPrepopulatedSubmitToRecipient)) {
                 return [];
             }
+
             const details = personalDetails?.[accountID];
             const displayName = details?.displayName ?? details?.login ?? email;
             return [
@@ -120,7 +125,7 @@ function ReportSubmitToContent({
                 },
             ];
         });
-    }, [policy?.employeeList, personalDetails, managerEmail, currentUserDetails.accountID]);
+    }, [policy?.employeeList, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
 
     const combinedSubmitToMembers = useMemo(() => {
         const workspaceEmailSet = new Set(workspaceMembers.map((m) => m.email.toLowerCase()));
