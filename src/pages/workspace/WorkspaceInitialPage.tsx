@@ -41,6 +41,7 @@ import {
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
+    hasPolicyRulesError,
     isGroupPolicy,
     isPendingDeletePolicy,
     isTimeTrackingEnabled,
@@ -363,6 +364,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.RULES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RULES,
+                brickRoadIndicator: hasPolicyRulesError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
             });
         }
