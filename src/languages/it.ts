@@ -7330,6 +7330,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
             },
+            aiRules: {
+                title: 'Regole IA',
+                subtitle: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno',
+                addRule: 'Aggiungi regola IA',
+                findRule: 'Trova regola IA',
+                addRuleTitle: 'Aggiungi regola',
+                editRuleTitle: 'Modifica regola',
+                deleteRule: 'Elimina regola',
+                deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                describeRuleTitle: 'Descrivi la tua regola',
+                describeRuleSubtitle: 'Descrivi la tua regola e Concierge la creerà',
+            },
         },
         planTypePage: {
             planTypes: {

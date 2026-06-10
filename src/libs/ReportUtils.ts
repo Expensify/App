@@ -2218,7 +2218,7 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
  * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
  * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
  */
-function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, excludeReportID?: string, archivedReportsIdSet?: ArchivedReportsIDSet): OnyxEntry<Report> {
+function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, excludeReportID?: string, archivedReportsIDSet?: ArchivedReportsIDSet): OnyxEntry<Report> {
     let reportsValues = Object.values(deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
@@ -2255,7 +2255,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     reportsValues =
         reportsValues.filter((report) => {
             const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`;
-            const isArchived = archivedReportsIdSet ? archivedReportsIdSet.has(reportNameValuePairsKey) : isArchivedReport(allReportNameValuePair?.[reportNameValuePairsKey]);
+            const isArchived = archivedReportsIDSet ? archivedReportsIDSet.has(reportNameValuePairsKey) : isArchivedReport(allReportNameValuePair?.[reportNameValuePairsKey]);
             return !isSystemChat(report) && !isArchived;
         }) ?? [];
 
@@ -2322,6 +2322,23 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportAr
 
 function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     return !!reportNameValuePairs?.private_isArchived;
+}
+
+function isReportArchivedByID(archivedReportsIDSet: ArchivedReportsIDSet, reportID?: string): boolean {
+    if (!reportID) {
+        return false;
+    }
+    return archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+}
+
+function buildArchivedReportsIDSet(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet {
+    const archivedReportsIDSet = new Set<string>();
+    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
+        if (isArchivedReport(value)) {
+            archivedReportsIDSet.add(key);
+        }
+    }
+    return archivedReportsIDSet;
 }
 
 /**
@@ -4870,6 +4887,7 @@ function canEditFieldOfMoneyRequest({
     transaction,
     report,
     policy,
+    archivedReportsIDSet,
 }: {
     reportAction: OnyxInputOrEntry<ReportAction>;
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
@@ -4879,6 +4897,8 @@ function canEditFieldOfMoneyRequest({
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
+    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
+    archivedReportsIDSet?: ArchivedReportsIDSet;
 }): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4976,7 +4996,9 @@ function canEditFieldOfMoneyRequest({
             return true;
         }
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+        const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
+
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportIDs)) {
             return false;
         }
 
@@ -4991,6 +5013,7 @@ function canEditFieldOfMoneyRequest({
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
+                    archivedReportIDs,
                     outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
@@ -5004,14 +5027,14 @@ function canEditFieldOfMoneyRequest({
         }
 
         // Check the cheaper condition first
-        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportIDs)) {
             return true;
         }
 
         // Check if there are multiple outstanding reports across policies
         let outstandingReportsCount = 0;
         for (const currentPolicy of policiesArray) {
-            const reports = getOutstandingReportsForUser(currentPolicy.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {});
+            const reports = getOutstandingReportsForUser(currentPolicy.id, moneyRequestReport?.ownerAccountID, archivedReportIDs, outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {});
             outstandingReportsCount += reports.length;
 
             // Short-circuit once we find more than 1
@@ -11192,7 +11215,8 @@ function isForwardedReport(report: OnyxEntry<Report>): boolean {
 function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
+    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
+    archivedReportsIDSet?: ArchivedReportsIDSet,
     allowSubmitted = true,
 ): boolean {
     if (
@@ -11206,8 +11230,8 @@ function isReportOutstanding(
     ) {
         return false;
     }
-    const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    if (isArchivedReport(reportNameValuePair)) {
+    const reportNameValuePair = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    if (archivedReportsIDSet ? isReportArchivedByID(archivedReportsIDSet, iouReport.reportID) : isArchivedReport(reportNameValuePair)) {
         return false;
     }
     const currentRoute = navigationRef.getCurrentRoute();
@@ -11229,17 +11253,20 @@ function isReportOutstanding(
 function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
+    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
+    archivedReportsIDSet?: ArchivedReportsIDSet,
     reports: OnyxCollection<Report> = deprecatedAllReports,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
+    const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
+
     if (!reports) {
         return [];
     }
     return Object.values(reports).filter(
         (report) =>
             report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            isReportOutstanding(report, policyID, reportNameValuePairs, allowSubmitted) &&
+            isReportOutstanding(report, policyID, archivedReportIDs, allowSubmitted) &&
             report?.ownerAccountID === reportOwnerAccountID,
     );
 }
@@ -12961,6 +12988,7 @@ export {
     buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
+    buildArchivedReportsIDSet,
     buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
@@ -13101,6 +13129,7 @@ export {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
+    isReportArchivedByID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,

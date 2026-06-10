@@ -7303,6 +7303,18 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueado' : 'Permitido'} ${shownCount > 1 ? 'categorias' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
             },
+            aiRules: {
+                title: 'Regras de IA',
+                subtitle: 'Descreva regras flexíveis que rodam quando você precisa',
+                addRule: 'Adicionar regra de IA',
+                findRule: 'Encontrar regra de IA',
+                addRuleTitle: 'Adicionar regra',
+                editRuleTitle: 'Editar regra',
+                deleteRule: 'Excluir regra',
+                deleteRuleConfirmation: 'Tem certeza de que quer excluir esta regra?',
+                describeRuleTitle: 'Descreva sua regra',
+                describeRuleSubtitle: 'Descreva sua regra e a Concierge vai criá-la',
+            },
         },
         planTypePage: {
             planTypes: {

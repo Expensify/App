@@ -7304,6 +7304,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
             },
+            aiRules: {
+                title: 'AI-regels',
+                subtitle: 'Beschrijf flexibele regels die worden uitgevoerd wanneer je ze nodig hebt',
+                addRule: 'AI-regel toevoegen',
+                findRule: 'AI-regel zoeken',
+                addRuleTitle: 'Regel toevoegen',
+                editRuleTitle: 'Regel bewerken',
+                deleteRule: 'Regel verwijderen',
+                deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                describeRuleTitle: 'Beschrijf je regel',
+                describeRuleSubtitle: 'Beschrijf je regel en Concierge maakt hem voor je',
+            },
         },
         planTypePage: {
             planTypes: {

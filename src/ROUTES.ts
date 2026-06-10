@@ -3289,6 +3289,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
     },
+    RULES_AI_NEW: {
+        route: 'workspaces/:policyID/rules/ai-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/ai-rules/new` as const,
+    },
+    RULES_AI_EDIT: {
+        route: 'workspaces/:policyID/rules/ai-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/ai-rules/${ruleID}` as const,
+    },
     SHARE_ROOT: 'share/root',
     SHARE_ROOT_SHARE: 'share/root/share',
     SHARE_ROOT_SUBMIT: 'share/root/submit',
