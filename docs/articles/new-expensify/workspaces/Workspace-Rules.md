@@ -1,8 +1,8 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, AI rules, add AI rule, Concierge rule]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, report rules, and AI Rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules 
@@ -65,6 +65,42 @@ Workspace Merchant Rules:
 
 To learn how to set up and manage Workspace Merchant Rules, see:
 [**Workspace Merchant Rules**](/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
+
+---
+
+# How to configure AI Rules
+
+AI Rules let you describe a rule in plain language, and Concierge builds it for you. Use them when you need flexible automation that the standard rule settings don't cover.
+
+The **AI Rules** section appears on the **Rules** tab below the other rule settings.
+
+## How to add an AI Rule
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Rules**.
+4. Scroll to the **AI Rules** section.
+5. Click **Add AI rule**.
+6. In the **Describe your rule** field, describe the rule you want and Concierge will build it.
+7. Click **Save**.
+
+<!-- SCREENSHOT:
+Suggestion: The AI Rules section on the Rules tab showing the Add AI rule menu item
+Location: After the steps for adding an AI Rule
+Purpose: Helps the user locate the AI Rules section and the Add AI rule action
+-->
+
+## How to edit an AI Rule
+
+1. In the **AI Rules** section, click the rule you want to change.
+2. Update the description in the **Describe your rule** field.
+3. Click **Save**.
+
+## How to delete an AI Rule
+
+1. In the **AI Rules** section, click the rule you want to remove.
+2. Click **Delete rule**.
+3. Confirm the deletion.
 
 ---
 
