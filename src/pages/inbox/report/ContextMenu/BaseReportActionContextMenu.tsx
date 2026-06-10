@@ -2,8 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -234,6 +233,7 @@ function BaseReportActionContextMenu({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
     const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUTransactionID;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const iouReportID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUReportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
@@ -328,9 +328,7 @@ function BaseReportActionContextMenu({
      */
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser() && !isAnonymousAction) {
-            hideContextMenu(false);
-
-            InteractionManager.runAfterInteractions(() => {
+            hideContextMenu(false, () => {
                 signOutAndRedirectToSignIn();
             });
         } else {
@@ -418,6 +416,7 @@ function BaseReportActionContextMenu({
                                 currentUserPersonalDetails,
                                 encryptedAuthToken,
                                 iouTransaction,
+                                iouTransactionViolations,
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,

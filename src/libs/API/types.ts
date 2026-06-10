@@ -206,6 +206,7 @@ const WRITE_COMMANDS = {
     COMPLETE_TASK: 'CompleteTask',
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
+    SET_NAME_VALUE_PAIRS: 'SetNameValuePairs',
     SET_REPORT_DETAILS_COLUMNS: 'SetReportDetailsColumns',
     SET_REPORT_FIELD: 'Report_SetFields',
     DELETE_REPORT_FIELD: 'RemoveReportField',
@@ -279,7 +280,10 @@ const WRITE_COMMANDS = {
     SET_POLICY_EXPENSE_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'SetPolicyExpenseMaxAmountNoItemizedReceipt',
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
     SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
-    SET_POLICY_EXPENSE_MAX_AGE: ' SetPolicyExpenseMaxAge',
+    SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
+    ADD_POLICY_AI_RULE: 'AddPolicyAIRule',
+    UPDATE_POLICY_AI_RULE: 'UpdatePolicyAIRule',
+    DELETE_POLICY_AI_RULE: 'DeletePolicyAIRule',
     UPDATE_CUSTOM_RULES: 'UpdateCustomRules',
     SET_POLICY_BILLABLE_MODE: 'SetPolicyBillableMode',
     SET_POLICY_REIMBURSABLE_MODE: 'SetPolicyReimbursableMode',
@@ -624,6 +628,7 @@ const WRITE_COMMANDS = {
     SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
     UPGRADE_SUBMIT: 'UpgradeSubmit',
+    UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -819,6 +824,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
     [WRITE_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
+    [WRITE_COMMANDS.SET_NAME_VALUE_PAIRS]: Parameters.SetNameValuePairsParams;
     [WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS]: Parameters.SetReportDetailsColumnsParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
@@ -944,6 +950,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_ITEMIZED_RECEIPT]: Parameters.SetPolicyExpenseMaxAmountNoItemizedReceipt;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT]: Parameters.SetPolicyExpenseMaxAmount;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE]: Parameters.SetPolicyExpenseMaxAge;
+    [WRITE_COMMANDS.ADD_POLICY_AI_RULE]: Parameters.AddPolicyAIRuleParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_AI_RULE]: Parameters.UpdatePolicyAIRuleParams;
+    [WRITE_COMMANDS.DELETE_POLICY_AI_RULE]: Parameters.DeletePolicyAIRuleParams;
     [WRITE_COMMANDS.UPDATE_CUSTOM_RULES]: Parameters.UpdateCustomRules;
     [WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE]: Parameters.SetPolicyBillableModeParams;
     [WRITE_COMMANDS.SET_POLICY_REIMBURSABLE_MODE]: Parameters.SetPolicyCashExpenseModeParams;
@@ -1048,6 +1057,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
+    [WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS]: Parameters.UploadUserKYBDocsParams;
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH]: Parameters.ApproveMoneyRequestOnSearchParams;
