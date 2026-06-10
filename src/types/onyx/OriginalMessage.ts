@@ -585,7 +585,10 @@ type OriginalMessagePolicyChangeLog = {
     /** Rate amount in cents for the custom unit rate */
     rate?: number;
 
-    /** Unit of the custom unit (e.g. "mi", "km") */
+    /**
+     * Distance unit ('mi' or 'km'). Used by custom-unit rate change logs and
+     * commuter-exclusion change logs.
+     */
     unit?: string;
 
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
@@ -713,9 +716,6 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New prohibited expenses */
     newProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
-
-    /** Distance unit captured on commuter-exclusion change logs ('mi' or 'km') */
-    unit?: string;
 
     /** Old reimbursement choice */
     oldChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
