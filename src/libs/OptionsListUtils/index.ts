@@ -2600,12 +2600,12 @@ function getValidOptions(
 
         // Build the exclusion set from the recent attendees actually shown (after filtering and the cap) so that
         // attendees that aren't displayed in "Recent" remain available in "Contacts".
-        recentReportOptions.forEach((option) => {
+        for (const option of recentReportOptions) {
             const login = option.login ?? option.displayName;
             if (login) {
                 loginsToExcludeFromSuggestions[login] = true;
             }
-        });
+        }
     }
 
     // Get valid personal details and check if we can find the current user:
