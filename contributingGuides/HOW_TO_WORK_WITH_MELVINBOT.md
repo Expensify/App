@@ -96,17 +96,6 @@ After the C+ submits the PR for review:
 
 We intentionally do **not** add a second round of contributor or C+ PR review on top of the CME review. Prior discussions did not surface a problem that extra review would solve, and an additional review step would add cost and delay without clear benefit. The C+ self-review before submission, combined with CME review, is the intended quality gate.
 
-## Quick reference: what not to do
-
-| Do not | Why |
-|--------|-----|
-| Open a PR before a proposal is accepted | Wastes contributor and reviewer time if the approach is wrong |
-| Ask `@MelvinBot` to implement before the CME approves the proposal | Implementation must wait for CME approval, not just C+ recommendation |
-| Skip C+ proposal review because Melvin wrote it | Melvin proposals need the same validation as human proposals |
-| Send Melvin's draft PR for CME review without testing and checklist completion | The C+ is the human author and owns quality |
-| Assume you can edit Melvin's PR description in the GitHub UI | Post the body in a PR comment and ask `@MelvinBot` to apply it |
-| Expect a second C+ or contributor review after C+ submission | Only the CME reviews before merge |
-
 ## Related documentation
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — full contributor workflow
