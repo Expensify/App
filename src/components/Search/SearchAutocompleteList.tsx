@@ -46,9 +46,6 @@ import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
-const PROPOSAL_A_FOCUS_GATE = true;
-const PROPOSAL_B_UNMOUNT_ON_BLUR = true;
-
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
 type GetAdditionalSectionsCallback = (options: Options, sectionIndex: number) => Array<Section<AutocompleteListItem>> | undefined;
@@ -183,7 +180,7 @@ function SearchAutocompleteList({
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
     const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({
-        enabled: PROPOSAL_A_FOCUS_GATE ? isFocused : true,
+        enabled: isFocused,
         isSearching: !!autocompleteQueryValue.trim(),
         betas: betas ?? [],
     });
@@ -678,14 +675,6 @@ function SearchAutocompleteList({
 
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
-function SearchAutocompleteListWithFocusGate(props: SearchAutocompleteListProps) {
-    const isFocused = useIsFocused();
-    if (PROPOSAL_B_UNMOUNT_ON_BLUR && !isFocused) {
-        return null;
-    }
-    return <SearchAutocompleteList {...props} />;
-}
-
-export default React.memo(SearchAutocompleteListWithFocusGate);
+export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};
