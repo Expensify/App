@@ -27,7 +27,7 @@ function buildParams(account: OnyxEntry<Account>, isSignInInitiated: boolean) {
 
 describe('SignInPage getRenderOptions SAML routing', () => {
     beforeEach(() => {
-        (clearSignInData as jest.Mock).mockClear();
+        jest.mocked(clearSignInData).mockClear();
     });
 
     it('initiates SAML for a SAML-required account that began signing in this session, even when isLoading is false', () => {
