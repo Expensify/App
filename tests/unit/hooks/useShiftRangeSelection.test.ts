@@ -631,39 +631,37 @@ describe('useShiftRangeSelection', () => {
 });
 
 describe('getModifierKeysFromEvent', () => {
-    type EventArg = Parameters<typeof getModifierKeysFromEvent>[0];
-
     it('returns shiftKey false and additive false for nullish input', () => {
         expect(getModifierKeysFromEvent(undefined)).toEqual({shiftKey: false, additive: false});
         expect(getModifierKeysFromEvent(null)).toEqual({shiftKey: false, additive: false});
     });
 
     it('reads shiftKey from the outer event when present', () => {
-        expect(getModifierKeysFromEvent({shiftKey: true} as EventArg).shiftKey).toBe(true);
-        expect(getModifierKeysFromEvent({shiftKey: false} as EventArg).shiftKey).toBe(false);
+        expect(getModifierKeysFromEvent({shiftKey: true}).shiftKey).toBe(true);
+        expect(getModifierKeysFromEvent({shiftKey: false}).shiftKey).toBe(false);
     });
 
     it('falls back to nativeEvent.shiftKey when outer shiftKey is absent', () => {
-        expect(getModifierKeysFromEvent({nativeEvent: {shiftKey: true}} as EventArg).shiftKey).toBe(true);
-        expect(getModifierKeysFromEvent({nativeEvent: {shiftKey: false}} as EventArg).shiftKey).toBe(false);
+        expect(getModifierKeysFromEvent({nativeEvent: {shiftKey: true}}).shiftKey).toBe(true);
+        expect(getModifierKeysFromEvent({nativeEvent: {shiftKey: false}}).shiftKey).toBe(false);
     });
 
     it('outer shiftKey false takes precedence over nativeEvent shiftKey true', () => {
-        expect(getModifierKeysFromEvent({shiftKey: false, nativeEvent: {shiftKey: true}} as EventArg).shiftKey).toBe(false);
+        expect(getModifierKeysFromEvent({shiftKey: false, nativeEvent: {shiftKey: true}}).shiftKey).toBe(false);
     });
 
     it('marks additive when either modifier key is set', () => {
-        expect(getModifierKeysFromEvent({metaKey: true} as EventArg).additive).toBe(true);
-        expect(getModifierKeysFromEvent({ctrlKey: true} as EventArg).additive).toBe(true);
+        expect(getModifierKeysFromEvent({metaKey: true}).additive).toBe(true);
+        expect(getModifierKeysFromEvent({ctrlKey: true}).additive).toBe(true);
     });
 
     it('reads metaKey and ctrlKey from nativeEvent as a fallback', () => {
-        expect(getModifierKeysFromEvent({nativeEvent: {metaKey: true}} as EventArg).additive).toBe(true);
-        expect(getModifierKeysFromEvent({nativeEvent: {ctrlKey: true}} as EventArg).additive).toBe(true);
+        expect(getModifierKeysFromEvent({nativeEvent: {metaKey: true}}).additive).toBe(true);
+        expect(getModifierKeysFromEvent({nativeEvent: {ctrlKey: true}}).additive).toBe(true);
     });
 
     it('reports additive false when neither modifier key is set', () => {
-        expect(getModifierKeysFromEvent({shiftKey: true} as EventArg).additive).toBe(false);
+        expect(getModifierKeysFromEvent({shiftKey: true}).additive).toBe(false);
     });
 });
 

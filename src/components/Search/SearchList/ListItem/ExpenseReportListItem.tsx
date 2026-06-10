@@ -212,7 +212,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
         });
     }, [
         currentSearchHash,
-        reportItem,
         item,
         liveReportItem,
         onSelectRow,

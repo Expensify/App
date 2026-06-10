@@ -1085,7 +1085,10 @@ function Search({
             const updated: SelectedTransactions = {...selectedTransactions};
             const parentGroupKeyByTransactionKey = new Map<string, string>();
             if (areItemsGrouped) {
-                for (const group of filteredData as TransactionGroupListItemType[]) {
+                for (const group of filteredData) {
+                    if (!isTransactionGroupListItemType(group)) {
+                        continue;
+                    }
                     const groupKey = group.keyForList;
                     if (!groupKey) {
                         continue;
@@ -1166,6 +1169,7 @@ function Search({
             transactions,
             email,
             accountID,
+            archivedReportsIDSet,
             outstandingReportsByPolicyID,
             searchResults?.data,
             selfDMReport,
