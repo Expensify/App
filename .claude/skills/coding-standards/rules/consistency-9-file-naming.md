@@ -15,6 +15,9 @@ Non-platform-specific files must be named after what they export, never `index.j
 // A single-export module dumped into a bare index file
 src/libs/getReportName/index.ts        // exports getReportName()
 
+// File name doesn't match its primary export
+src/libs/helpers.ts                    // default-exports getReportName()
+
 // React-syntax file with the wrong extension
 src/components/Banner/index.js         // contains JSX
 ```
@@ -35,18 +38,21 @@ src/components/Picker/Picker.ios.tsx
 
 ### Review Metadata
 
-Flag ONLY when ALL of these are true:
+Flag when ANY of these is true for a newly added or renamed source file:
 
-- A newly added (or renamed) source file is named `index.ts`/`index.tsx`/`index.js`
-- It is NOT a platform-resolution barrel (it contains real implementation / a single named export, not just re-exports of platform variants)
-- A more descriptive name matching the primary export is available
+- It is named `index.ts`/`index.tsx`/`index.js`, contains a real single-export implementation (not just re-exports of platform variants), and a descriptive name matching its primary export is available.
+- Its basename does not match its primary/default export (e.g. `helpers.ts` whose main export is `getReportName` → should be `getReportName.ts`; `Card.tsx` default-exporting `Banner` → should be `Banner.tsx`).
+- It is platform-specific but not named with the correct platform suffix (`.ios`, `.android`, `.native`, `.web`, `.desktop`) as outlined in the README.
 
 **DO NOT flag if:**
 
 - The `index` file only re-exports sibling platform-specific files (`Foo.ios`, `Foo.android`, `Foo.web`, `Foo.native`)
 - The file is platform-specific and correctly suffixed (`.ios`, `.android`, `.native`, `.web`, `.desktop`)
+- The file aggregates multiple exports with no single primary export (barrel/utilities module), so no single name applies
+- The file is a test, mock, story, type-only (`types.ts`), or config file following an established convention
 - It is an established directory entry point following the existing convention in that area
 
 **Search Patterns** (hints for reviewers):
-- Added files matching `/index\.(ts|tsx|js)$/`
-- Check whether the file body is a real implementation vs a pure re-export barrel
+- Added/renamed files matching `/index\.(ts|tsx|js)$/` that aren't platform-variant barrels
+- Added/renamed files whose basename differs from their default/primary export name
+- Platform-specific files missing a `.ios`/`.android`/`.native`/`.web`/`.desktop` suffix
