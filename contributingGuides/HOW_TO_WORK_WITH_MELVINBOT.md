@@ -30,13 +30,13 @@ Issue opened → Melvin posts proposal → C+ reviews proposal(s)
 
 ## Phase 1: Proposal review
 
-Follow the **same proposal review process** as any other App job, but make sure to start with Melvin's proposal first.
+Follow the **same proposal review process** as any other App job, including first-come-first-serve review order after `Help Wanted` is applied (see [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job)).
 
 1. Use the [proposal template](./PROPOSAL_TEMPLATE.md) criteria: clear root cause, concrete solution, no code diffs.
 2. C+ reviews Melvin's proposal with the same rigor as a contributor proposal. Do not approve proposals that lack a satisfying root-cause explanation.
 3. Contributors may still post proposals if they have a **meaningfully different** approach (see [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job)).
 4. **No one opens a pull request** until a proposal is accepted by the CME (same as any other App job; see [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job)).
-5. If Melvin's proposal is not acceptable, the C+ can review proposals from other contributors, or iterate with Melvin by asking it to update it's proposal or post new ones until it is satisfactory.
+5. If Melvin's proposal is not acceptable, the C+ can review proposals from other contributors, or iterate with Melvin by tagging `@MelvinBot` on the issue, explaining the needed changes, and asking it to update its proposal or post a new one until it is satisfactory.
 
 ### C+ reviews and recommends
 
@@ -46,13 +46,13 @@ When the C+ is satisfied with Melvin's proposal, they recommend it to the CME by
 
 ### After the CME approves the proposal
 
-Once the assigned CME has approved Melvin's proposal (the same acceptance step as for any contributor proposal), the C+ comments on the issue asking Melvin to implement, for example:
+Once the assigned CME has approved Melvin's proposal (the same acceptance step as for any contributor proposal), the C+ comments on the issue asking Melvin to implement. Include a link to the specific proposal comment so Melvin implements the latest version (Melvin may post a new proposal when asked to update). For example:
 
 ```
-@MelvinBot please implement your proposal
+@MelvinBot please implement your proposal at https://github.com/Expensify/App/issues/12345#issuecomment-6789012345
 ```
 
-Adjust the wording if needed, but the comment must mention `@MelvinBot` and clearly request implementation.
+Adjust the wording if needed, but the comment must mention `@MelvinBot`, link to the proposal comment, and clearly request implementation.
 
 ## Phase 2: C+ owns the pull request
 
@@ -60,9 +60,9 @@ Melvin opens a draft PR linked to the issue. MelvinBot remains the GitHub author
 
 Before requesting final review, the assigned C+ must:
 
-1. **Manually tweak the PR** if Melvin's implementation needs corrections.
+1. **Manually tweak the PR** if Melvin's implementation needs corrections. Comment on the pull request, tag `@MelvinBot`, and explain the needed changes so Melvin can update the code.
 2. **Test the change** on all required platforms (see [CONTRIBUTING.md](./CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)).
-3. **Complete every step** in the PR Author Checklist (see [Updating the PR description and checklist](#updating-the-pr-description-and-checklist) below).
+3. **Complete every step** in the PR Author Checklist (see [Updating the PR description and checklist](#updating-the-pr-description-and-checklist) below). Screenshots and videos may live only in the Reviewer Checklist section of your PR comment; you do not need to duplicate them in the Author Checklist.
 4. **Self-review the code** against [PR Review Guidelines](./PR_REVIEW_GUIDELINES.md), [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md), and complete the [Reviewer Checklist](./REVIEWER_CHECKLIST.md) as part of that self-review.
 
 The C+ is accountable for the PR quality, the same as any contributor who authored a PR.
