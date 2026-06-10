@@ -2913,10 +2913,10 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(policy)).toEqual(vendors);
             });
 
-            it('returns the Intacct vendor list normalized to {id, name} when Intacct is connected (R2)', () => {
+            it('returns the Intacct vendor list normalized to {id, name} using Intacct `value` for the display label (R2)', () => {
                 const intacctVendors = [
-                    {id: 'iv-1', name: 'Acme Intacct', value: 'iv-1'},
-                    {id: 'iv-2', name: 'Other Intacct', value: 'iv-2'},
+                    {id: 'iv-1', name: 'V001', value: 'Acme Intacct'},
+                    {id: 'iv-2', name: 'V002', value: 'Other Intacct'},
                 ];
                 const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, intacctVendors);
                 expect(getMatchingVendors(policy)).toEqual([
@@ -2946,8 +2946,8 @@ describe('PolicyUtils', () => {
 
             it('returns the matching Intacct vendor (normalized) when the ID exists in the list (R2)', () => {
                 const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, [
-                    {id: 'iv-1', name: 'Acme Intacct', value: 'iv-1'},
-                    {id: 'iv-2', name: 'Other Intacct', value: 'iv-2'},
+                    {id: 'iv-1', name: 'V001', value: 'Acme Intacct'},
+                    {id: 'iv-2', name: 'V002', value: 'Other Intacct'},
                 ]);
                 expect(getMatchingVendorByID(policy, 'iv-2')).toEqual({id: 'iv-2', name: 'Other Intacct', currency: '', email: ''});
             });

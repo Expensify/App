@@ -2046,8 +2046,9 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
  * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
  * and inactive-vendor lookups.
  *
- * The shape is normalized to `Vendor` (id + name) — Intacct's `SageIntacctDataElementWithValue`
- * carries an extra `value` field that we drop here since the consumer only needs id/name.
+ * The shape is normalized to `Vendor` (id + name). For Intacct's `SageIntacctDataElementWithValue`,
+ * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
+ * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI.
  */
 function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
     const qboVendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors;
@@ -2056,7 +2057,7 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
     }
     const intacctVendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors;
     if (intacctVendors && intacctVendors.length > 0) {
-        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: ''}));
+        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
     }
     return [];
 }
