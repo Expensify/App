@@ -8,7 +8,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -45,20 +45,26 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     const reportAttributes = useReportAttributes();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const personalDetails = usePersonalDetails();
 
     const [policyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
-            selector: policyChatRoomsSelector(policyID, archivedReportsIdSet),
+            selector: policyChatRoomsSelector(policyID, archivedReportsIDSet),
         },
-        [policyID, archivedReportsIdSet],
+        [policyID, archivedReportsIDSet],
     );
+
+    // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.
+    // It is cleared by the create page once the navigation transition ends (see WorkspaceNewRoomPage), so the animation doesn't replay on a later visit.
+    const [roomIDToHighlight] = useOnyx(ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE);
+    const highlightedReportID = roomIDToHighlight ?? undefined;
 
     const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => {
         const ownerDetails = report.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
         return {
+            keyForList: report.reportID,
             reportID: report.reportID,
             name: getReportName(report, reportAttributes),
             ownerAccountID: report.ownerAccountID,
@@ -96,8 +102,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     {!shouldUseNarrowLayout && (
                         <Button
                             success
-                            isDisabled
-                            onPress={() => {}}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
                             icon={headerIcons.Plus}
                             text={translate('common.create')}
                         />
@@ -108,8 +113,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
                             success
-                            isDisabled
-                            onPress={() => {}}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
                             icon={headerIcons.Plus}
                             text={translate('common.create')}
                             style={styles.w100}
@@ -117,7 +121,10 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     </View>
                 )}
 
-                <WorkspaceRoomsTable rooms={rooms} />
+                <WorkspaceRoomsTable
+                    rooms={rooms}
+                    highlightedReportID={highlightedReportID}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

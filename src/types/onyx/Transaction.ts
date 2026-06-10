@@ -152,6 +152,9 @@ type Comment = {
 
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
+
+    /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
+    tripID?: string;
 };
 
 /** Model of transaction custom unit */
@@ -619,6 +622,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** If an EReceipt should be generated for this transaction */
         hasEReceipt?: boolean;
+
+        /** Raw merchant category code for this transaction */
+        mcc?: string | number;
 
         /** The MCC Group for this transaction */
         mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
