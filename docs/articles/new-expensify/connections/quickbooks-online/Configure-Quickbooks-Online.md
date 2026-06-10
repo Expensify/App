@@ -20,8 +20,8 @@ To choose how data is imported from QuickBooks Online to Expensify:
 - **Chart of accounts**: Automatically imported as categories. This setting cannot be changed.
 - **Classes**: Import as tags to allow expense-level coding.
 - **Customers/Projects**: Import as tags for expense-level coding.
-- **Locations**: Import as tags.
-  - Note: If you export using the Vendor Bill or Check options, then locations must be configured as report fields, which are only available on the [**Control** plan](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan).
+- **Locations**: Import as tags or report fields.
+  - Note: If you export using the Vendor bill or Check options, then locations must be imported as report fields, which are only available on the [**Control** plan](/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan). When locations are imported as tags, the Vendor bill and Check export options are unavailable.
 - **Taxes**: Import tax rates and defaults.
 
 ## How to Turn Imported Accounts and Tags Off
@@ -57,6 +57,7 @@ To choose how data is exported from Expensify to QuickBooks Online:
   - Debit card
   - Vendor bill
     - If exporting as vendor bills, select the AP account and optionally a default vendor
+    - Vendor bill is unavailable when locations are imported as tags. To keep it available, import locations as report fields (only available on the **Control** plan)
 
 ---
 
@@ -100,7 +101,7 @@ No. Only newly approved reports will auto-export. Any old reports must be manual
 
 # Why can't I export reports as vendor bills or checks?
 
-This is likely due to the **Locations** import setting. Locations can only be used as tags. To unlock vendor bill and check exports:
-- Turn off location imports
-- Or upgrade to the **Control** plan
+This is likely due to the **Locations** import setting. Vendor bill and check exports are unavailable when locations are imported as tags. To unlock vendor bill and check exports:
+- Turn off location imports, or
+- Import locations as report fields, which are only available on the **Control** plan
 
