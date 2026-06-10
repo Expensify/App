@@ -158,6 +158,6 @@ describe('updateMoneyRequestVendor', () => {
 
         const onyxData = getOnyxDataArg();
         const transactionFailure = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
-        expect((transactionFailure?.value as {pendingFields?: {vendor: null | string}})?.pendingFields).toEqual({vendor: null});
+        expect(transactionFailure?.value).toMatchObject({pendingFields: {vendor: null}});
     });
 });
