@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
@@ -10,6 +11,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canRejectReportAction} from '@libs/ReportUtils';
 import {isReportActionListItemType, isTaskListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +70,7 @@ type ReconcileSelectionParams = {
     currentUserAccountID: number;
     selfDMReport: OnyxEntry<Report>;
     isProduction: boolean;
+    archivedReportsIDSet: ArchivedReportsIDSet;
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
 };
 
@@ -91,6 +94,7 @@ function useReconcileSelectionWithData({
     currentUserAccountID,
     selfDMReport,
     isProduction,
+    archivedReportsIDSet,
     outstandingReportsByPolicyID,
 }: ReconcileSelectionParams) {
     const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
@@ -155,18 +159,19 @@ function useReconcileSelectionWithData({
                     const previousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
 
                     // The overrides below are what reconcile computes differently from a toggle — keep them.
-                    const [, baseEntry] = mapTransactionItemToSelectedEntry(
-                        transactionItem,
+                    const [, baseEntry] = mapTransactionItemToSelectedEntry({
+                        item: transactionItem,
                         itemTransaction,
                         originalItemTransaction,
                         currentUserLogin,
                         currentUserAccountID,
+                        archivedReportsIDSet,
                         outstandingReportsByPolicyID,
-                        true,
-                        itemParentReport,
                         selfDMReport,
                         isProduction,
-                    );
+                        allowNegativeAmount: true,
+                        parentReport: itemParentReport,
+                    });
 
                     newTransactionList[listKey] = {
                         ...baseEntry,
@@ -192,18 +197,19 @@ function useReconcileSelectionWithData({
                 const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
                 const flatPreviousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
 
-                const [, baseEntry] = mapTransactionItemToSelectedEntry(
-                    transactionItem,
+                const [, baseEntry] = mapTransactionItemToSelectedEntry({
+                    item: transactionItem,
                     itemTransaction,
                     originalItemTransaction,
                     currentUserLogin,
                     currentUserAccountID,
+                    archivedReportsIDSet,
                     outstandingReportsByPolicyID,
-                    true,
-                    itemParentReport,
                     selfDMReport,
                     isProduction,
-                );
+                    allowNegativeAmount: true,
+                    parentReport: itemParentReport,
+                });
 
                 newTransactionList[listKey] = {
                     ...baseEntry,
@@ -306,6 +312,7 @@ function SearchWriteActionsProvider({
     const {isProduction} = useEnvironment();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection} = useSearchSelectionActions();
 
@@ -327,18 +334,19 @@ function SearchWriteActionsProvider({
                     const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                     const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                     const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
-                    const updatedTransactions = prepareTransactionsList(
+                    const updatedTransactions = prepareTransactionsList({
                         item,
                         itemTransaction,
                         originalItemTransaction,
                         selectedTransactions,
-                        currentUserEmail,
-                        accountID,
+                        currentUserLogin: currentUserEmail,
+                        currentUserAccountID: accountID,
+                        archivedReportsIDSet,
                         outstandingReportsByPolicyID,
-                        itemParentReport,
                         selfDMReport,
                         isProduction,
-                    );
+                        parentReport: itemParentReport,
+                    });
 
                     // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
                     if (areItemsGrouped) {
@@ -398,18 +406,19 @@ function SearchWriteActionsProvider({
                                     searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                                     transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                                 const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                                const [key, entry] = mapTransactionItemToSelectedEntry(
-                                    transactionItem,
+                                const [key, entry] = mapTransactionItemToSelectedEntry({
+                                    item: transactionItem,
                                     itemTransaction,
                                     originalItemTransaction,
-                                    currentUserEmail,
-                                    accountID,
+                                    currentUserLogin: currentUserEmail,
+                                    currentUserAccountID: accountID,
+                                    archivedReportsIDSet,
                                     outstandingReportsByPolicyID,
-                                    true,
-                                    itemParentReport,
                                     selfDMReport,
                                     isProduction,
-                                );
+                                    allowNegativeAmount: true,
+                                    parentReport: itemParentReport,
+                                });
                                 return [key, {...entry, groupKey: item.keyForList}];
                             }),
                     ),
@@ -440,18 +449,19 @@ function SearchWriteActionsProvider({
                                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                                 const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                                const [key, entry] = mapTransactionItemToSelectedEntry(
-                                    transactionItem,
+                                const [key, entry] = mapTransactionItemToSelectedEntry({
+                                    item: transactionItem,
                                     itemTransaction,
                                     originalItemTransaction,
-                                    currentUserEmail,
-                                    accountID,
+                                    currentUserLogin: currentUserEmail,
+                                    currentUserAccountID: accountID,
+                                    archivedReportsIDSet,
                                     outstandingReportsByPolicyID,
-                                    true,
-                                    itemParentReport,
                                     selfDMReport,
                                     isProduction,
-                                );
+                                    allowNegativeAmount: true,
+                                    parentReport: itemParentReport,
+                                });
                                 return [key, {...entry, groupKey: item.keyForList}] as [string, SelectedTransactionInfo];
                             });
                     });
@@ -466,18 +476,19 @@ function SearchWriteActionsProvider({
                             const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                             const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                            return mapTransactionItemToSelectedEntry(
-                                transactionItem,
+                            return mapTransactionItemToSelectedEntry({
+                                item: transactionItem,
                                 itemTransaction,
                                 originalItemTransaction,
-                                currentUserEmail,
-                                accountID,
+                                currentUserLogin: currentUserEmail,
+                                currentUserAccountID: accountID,
+                                archivedReportsIDSet,
                                 outstandingReportsByPolicyID,
-                                true,
-                                itemParentReport,
                                 selfDMReport,
                                 isProduction,
-                            );
+                                allowNegativeAmount: true,
+                                parentReport: itemParentReport,
+                            });
                         }),
                 );
             },
@@ -498,6 +509,7 @@ function SearchWriteActionsProvider({
         currentUserAccountID: accountID,
         selfDMReport,
         isProduction,
+        archivedReportsIDSet,
         outstandingReportsByPolicyID,
     });
     useTurnOffSelectionModeWhenEmpty({isFocused, isMobileSelectionModeEnabled});

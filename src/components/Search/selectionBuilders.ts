@@ -2,24 +2,40 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, Transaction} from '@src/types/onyx';
 import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
-function mapTransactionItemToSelectedEntry(
-    item: TransactionListItemType,
-    itemTransaction: OnyxEntry<Transaction>,
-    originalItemTransaction: OnyxEntry<Transaction>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
-    allowNegativeAmount: boolean,
-    parentReport: OnyxEntry<Report> | undefined,
-    selfDMReport: OnyxEntry<Report> | undefined,
-    isProduction: boolean,
-): [string, SelectedTransactionInfo] {
+type MapTransactionItemToSelectedEntryParams = {
+    item: TransactionListItemType;
+    itemTransaction: OnyxEntry<Transaction>;
+    originalItemTransaction: OnyxEntry<Transaction>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    archivedReportsIDSet: ArchivedReportsIDSet;
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+    selfDMReport: OnyxEntry<Report>;
+    isProduction: boolean;
+    allowNegativeAmount: boolean;
+    parentReport: OnyxEntry<Report> | undefined;
+};
+
+function mapTransactionItemToSelectedEntry({
+    item,
+    itemTransaction,
+    originalItemTransaction,
+    currentUserLogin,
+    currentUserAccountID,
+    archivedReportsIDSet,
+    outstandingReportsByPolicyID,
+    selfDMReport,
+    isProduction,
+    allowNegativeAmount,
+    parentReport,
+}: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
@@ -44,6 +60,7 @@ function mapTransactionItemToSelectedEntry(
                 transaction: item,
                 report: item.report,
                 policy: item.policy,
+                archivedReportsIDSet,
             }),
             action: item.action,
             groupCurrency: item.groupCurrency,
@@ -111,36 +128,52 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
     ];
 }
 
-function prepareTransactionsList(
-    item: TransactionListItemType,
-    itemTransaction: OnyxEntry<Transaction>,
-    originalItemTransaction: OnyxEntry<Transaction>,
-    selectedTransactions: SelectedTransactions,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
-    parentReport: OnyxEntry<Report> | undefined,
-    selfDMReport: OnyxEntry<Report> | undefined,
-    isProduction: boolean,
-) {
+type PrepareTransactionsListParams = {
+    item: TransactionListItemType;
+    itemTransaction: OnyxEntry<Transaction>;
+    originalItemTransaction: OnyxEntry<Transaction>;
+    selectedTransactions: SelectedTransactions;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    archivedReportsIDSet: ArchivedReportsIDSet;
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+    selfDMReport: OnyxEntry<Report>;
+    isProduction: boolean;
+    parentReport: OnyxEntry<Report> | undefined;
+};
+
+function prepareTransactionsList({
+    item,
+    itemTransaction,
+    originalItemTransaction,
+    selectedTransactions,
+    currentUserLogin,
+    currentUserAccountID,
+    archivedReportsIDSet,
+    outstandingReportsByPolicyID,
+    selfDMReport,
+    isProduction,
+    parentReport,
+}: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
         return transactions;
     }
 
-    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(
+    const [key, selectedInfo] = mapTransactionItemToSelectedEntry({
         item,
         itemTransaction,
         originalItemTransaction,
         currentUserLogin,
         currentUserAccountID,
+        archivedReportsIDSet,
         outstandingReportsByPolicyID,
-        false,
-        parentReport,
         selfDMReport,
         isProduction,
-    );
+        allowNegativeAmount: false,
+        parentReport,
+    });
 
     return {
         ...selectedTransactions,
