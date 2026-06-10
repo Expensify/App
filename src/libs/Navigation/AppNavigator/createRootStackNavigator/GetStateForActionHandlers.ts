@@ -379,13 +379,19 @@ function handleReplaceFullscreenUnderRHP(
             return null;
         }
         const existingTabRoute = routesWithoutRHP.at(tabNavIndex);
-        const existingTabState = existingTabRoute?.state as NavigationState | undefined;
-        if (!existingTabRoute || !existingTabState?.routes?.length) {
+        if (!existingTabRoute) {
             return null;
         }
         const focusedTargetTab = getFocusedRouteFromNavigatorState(targetRoute.state);
         if (!focusedTargetTab) {
             return null;
+        }
+        // The parent route only carries a nested state hint when the navigator was rehydrated from
+        // a path (e.g. page reload). A TAB_NAVIGATOR mounted without one (e.g. right after sign-in)
+        // initializes itself, leaving route.state undefined here — fall back to the full strip.
+        let existingTabState = existingTabRoute.state as NavigationState | undefined;
+        if (!existingTabState?.routes?.length) {
+            existingTabState = buildTabNavigatorNestedState({name: focusedTargetTab.name}) as unknown as NavigationState;
         }
         const targetTabIndex = existingTabState.routes.findIndex((r) => r.name === focusedTargetTab.name);
         if (targetTabIndex < 0) {
