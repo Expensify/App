@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
@@ -43,9 +42,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
                 onConfirm: () => startApprovedAnimation(),
             });
         } else {
-            if (!isSubmitPolicy(policy)) {
-                startApprovedAnimation();
-            }
+            startApprovedAnimation();
             approveMoneyRequest({
                 expenseReport: moneyRequestReport,
                 expenseReportPolicy: policy,
