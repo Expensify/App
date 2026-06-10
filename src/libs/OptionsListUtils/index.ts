@@ -1470,6 +1470,22 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
+/**
+ * Checks if a personal detail option is selected based on matching accountID or login.
+ *
+ * @param personalDetailOption - The personal detail option to be checked.
+ * @param selectedOptions - Array of selected options to compare with.
+ * @returns true if the personal detail option matches any of the selected options by accountID or login, false otherwise.
+ */
+function isPersonalDetailSelected(personalDetailOption: SearchOptionData, selectedOptions: Array<Partial<SearchOptionData>>) {
+    if (!selectedOptions || selectedOptions.length === 0) {
+        return false;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return selectedOptions.some((option) => (option.accountID && option.accountID === personalDetailOption.accountID) || (option.login && option.login === personalDetailOption.login));
+}
+
 function processReport(
     report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
@@ -2666,6 +2682,10 @@ function getValidOptions(
             personalDetail.isBold = shouldBoldTitleByDefault;
             if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
+            }
+            if (isPersonalDetailSelected(personalDetail, selectedOptions)) {
+                personalDetail.isSelected = true;
+                personalDetail.selected = true;
             }
         }
     }

@@ -134,6 +134,8 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             countryCode,
             reportAttributesDerived,
             sortedActions,
+            selectedOptions,
+            includeSelectedOptions: true,
         },
     );
 
@@ -261,21 +263,14 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const cleanSearchTermLower = debouncedSearchTerm.trim().toLowerCase();
 
-    const selectedAccountIDs = new Set(selectedOptions.map((option) => option.accountID).filter((accountID): accountID is number => !!accountID && accountID !== CONST.DEFAULT_NUMBER_ID));
-    const selectedLogins = new Set(selectedOptions.map((option) => option.login).filter((login): login is string => !!login));
-    const isOptionSelected = (option: OptionWithKey) =>
-        (!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && selectedAccountIDs.has(option.accountID)) || (!!option.login && selectedLogins.has(option.login));
-    // Mark rows as selected in place so the checkmark stays with the row instead of moving it to the top of the list.
-    const markSelection = (option: OptionWithKey): OptionWithKey => (isOptionSelected(option) ? {...option, isSelected: true, selected: true} : option);
-
-    const recentReportsData = (selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports).map(markSelection);
-    const personalDetailsData = personalDetails.map(markSelection);
+    // Selected rows are marked in place by getValidOptions (isSelected/selected), so the checkmark stays with the row instead of jumping to the top.
+    const recentReportsData = selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports;
 
     // Selected items that aren't visible in Recents/Contacts (e.g. dropped by pagination) — surface them above, but only if they match the search term.
     const visibleAccountIDs = new Set(
-        [...recentReportsData, ...personalDetailsData].map((option) => option.accountID).filter((accountID): accountID is number => !!accountID && accountID !== CONST.DEFAULT_NUMBER_ID),
+        [...recentReportsData, ...personalDetails].map((option) => option.accountID).filter((accountID): accountID is number => !!accountID && accountID !== CONST.DEFAULT_NUMBER_ID),
     );
-    const visibleLogins = new Set([...recentReportsData, ...personalDetailsData].map((option) => option.login).filter((login): login is string => !!login));
+    const visibleLogins = new Set([...recentReportsData, ...personalDetails].map((option) => option.login).filter((login): login is string => !!login));
     const extraSelectedOptions = selectedOptions
         .filter(
             (option) =>
@@ -299,7 +294,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     sections.push({
         title: translate('common.contacts'),
-        data: personalDetailsData,
+        data: personalDetails,
         sectionIndex: 2,
     });
 
