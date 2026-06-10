@@ -639,17 +639,8 @@ describe('getApprovalModeLabel', () => {
 });
 
 describe('getHRCards', () => {
-    it('returns only the Gusto card when no betas are enabled', () => {
+    it('returns Gusto and Zenefits cards', () => {
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled: noBetasEnabled}));
-        expect(cards).toHaveLength(1);
-        expect(cards?.at(0)?.key).toBe('gusto');
-        expect(cards?.at(0)?.connectionName).toBe(GUSTO);
-    });
-
-    it('returns Gusto and Zenefits cards when the Zenefits beta is enabled', () => {
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
-        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
-
         expect(cards).toHaveLength(2);
         expect(cards?.at(0)?.key).toBe('gusto');
         expect(cards?.at(0)?.connectionName).toBe(GUSTO);
@@ -677,8 +668,7 @@ describe('getHRCards', () => {
 
     it('sets correct routes for a connected Zenefits card', () => {
         const policy = makePolicy({connections: {zenefits: {config: {}, data: {}, lastSync: {}}} as unknown as Policy['connections']});
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: noBetasEnabled}));
         const zenefits = cards.find((c) => c.key === 'zenefits');
 
         expect(getRow(zenefits, 'approvalMode')?.route).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
@@ -823,8 +813,7 @@ describe('getHRCards', () => {
     it('uses provider icons from params for static providers', () => {
         const gustoIcon = {testId: 'gusto'} as unknown as IconAsset;
         const trinetIcon = {testId: 'zenefits'} as unknown as IconAsset;
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
-        const cards = getHRCards(makeGetHRCardsParams({gustoIcon, trinetIcon, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({gustoIcon, trinetIcon, isBetaEnabled: noBetasEnabled}));
 
         expect(cards?.at(0)?.icon).toBe(gustoIcon);
         expect(cards?.at(1)?.icon).toBe(trinetIcon);

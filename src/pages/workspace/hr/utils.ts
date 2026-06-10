@@ -217,7 +217,6 @@ function getCardConfig(policy: OnyxEntry<Policy>, connectionName: HRConnectionNa
 const STATIC_HR_PROVIDERS = [
     {
         key: 'gusto',
-        beta: undefined,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
         titleKey: 'workspace.hr.gusto.title',
         iconParam: 'gustoIcon',
@@ -227,7 +226,6 @@ const STATIC_HR_PROVIDERS = [
     },
     {
         key: 'zenefits',
-        beta: CONST.BETAS.ZENEFITS,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.ZENEFITS,
         titleKey: 'workspace.hr.zenefits.title',
         iconParam: 'trinetIcon',
@@ -270,9 +268,6 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
     for (const provider of STATIC_HR_PROVIDERS) {
         const {connectionName} = provider;
         const state = getHRCardState({policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime});
-        if (provider.beta && !isBetaEnabled(provider.beta) && !state.isConnected) {
-            continue;
-        }
         const config = getCardConfig(policy, connectionName);
         cards.push({
             key: provider.key,
