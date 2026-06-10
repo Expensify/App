@@ -833,7 +833,9 @@ describe('CustomFormula', () => {
 
         test('should return formula definition when policy or frequency is missing', () => {
             expect(compute('{report:autoreporting:start}', {report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
-            expect(compute('{report:autoreporting:end}', createMockContext({...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: undefined}))).toBe('{report:autoreporting:end}');
+            expect(compute('{report:autoreporting:end}', createMockContext({...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: undefined}))).toBe(
+                '{report:autoreporting:end}',
+            );
         });
     });
 
