@@ -122,6 +122,39 @@ describe('NewChatPage', () => {
         expect(namesAfter.indexOf(targetName ?? '')).toBe(targetIndex);
     });
 
+    it('should not auto-scroll when selecting multiple users in sequence', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+        // Wait until more than one selectable user is rendered.
+        await waitFor(() => {
+            expect(screen.getAllByText(translateLocal('newChatPage.addToGroup')).length).toBeGreaterThan(2);
+        });
+
+        // Select two users one after another. The viewport must stay put between selections so multi-selection isn't interrupted.
+        const firstButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        if (firstButton) {
+            fireEvent.press(firstButton);
+        }
+        await waitForBatchedUpdatesWithAct();
+
+        const secondButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        if (secondButton) {
+            fireEvent.press(secondButton);
+        }
+        await waitForBatchedUpdatesWithAct();
+
+        expect(scrollToSpy).not.toHaveBeenCalled();
+    });
+
     describe('should not display "Add to group" button on expensify emails', () => {
         const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE && value !== CONST.EMAIL.NOTIFICATIONS).map((email) => [email]);
 
