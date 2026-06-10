@@ -12,12 +12,6 @@ type ButtonContextValue = {
 
     /** True while the cursor is over the Button — primitives swap to hover-state colors/styles when set. */
     isHovered: boolean;
-
-    /** Resting fill color for child icons. `undefined` falls back to the theme-derived icon color. */
-    iconFill?: string;
-
-    /** Hover fill color for child icons, used by `ButtonIcon` when `isHovered` is true. */
-    iconHoverFill?: string;
 };
 
 export type {ButtonContextValue, ButtonVariant};

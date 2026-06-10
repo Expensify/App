@@ -7,8 +7,6 @@ const defaultButtonContextValue: ButtonContextValue = {
     isHovered: false,
     variant: undefined,
     size: CONST.BUTTON_SIZE.MEDIUM,
-    iconFill: undefined,
-    iconHoverFill: undefined,
 };
 
 const ButtonContext = createContext<ButtonContextValue>(defaultButtonContextValue);
