@@ -334,6 +334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Sélectionner une devise',
         selectSymbolOrCurrency: 'Sélectionner un symbole ou une devise',
         card: 'Carte',
+        mcc: 'MCC',
+        categoryGLCode: 'Code GL de catégorie',
         whyDoWeAskForThis: 'Pourquoi demandons-nous cela ?',
         required: 'Obligatoire',
         automatic: 'Automatique',
@@ -512,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
+        enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -3036,6 +3039,14 @@ ${amount} pour ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiser mes dépenses personnelles',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Autre chose',
         },
+        personalTrackGoal: {
+            title: 'Que souhaitez-vous suivre ?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Coûts pour un bien locatif',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Dépenses ménagères',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Dépenses de projet annexe',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Autre chose',
+            somethingElsePlaceholder: 'Qu’est-ce que vous suivez ?',
+        },
         employees: {
             title: 'Combien d’employés avez-vous ?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1 à 4 employés',
@@ -4136,6 +4147,38 @@ ${amount} pour ${merchant} - ${date}`,
         enable2FA: 'Activer l’authentification à deux facteurs (2FA) pour prévenir la fraude',
         weTake: 'Nous accordons une grande importance à votre sécurité. Veuillez configurer l’authentification à deux facteurs (2FA) maintenant pour ajouter une couche de protection supplémentaire à votre compte.',
         secure: 'Sécurisez votre compte',
+    },
+    documentsStep: {
+        beforeYouGo: 'Avant de continuer, nous avons besoin de certains documents pour vérifier certaines informations',
+        subheader: 'Vérification',
+        verificationFailed: 'La vérification a échoué, nous aurons donc besoin de documents supplémentaires pour te vérifier ainsi que ton entreprise',
+        taxIDVerification: 'Vérification de l’identifiant fiscal',
+        taxIDVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Lettre d’attribution TIN/EIN de l’IRS
+        • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
+        • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN`),
+        nameChangeDocument: 'Document de changement de nom',
+        nameChangeDocumentDescription:
+            'Si le nom de ton entreprise a changé depuis la demande du TIN/EIN, ce document est nécessaire pour vérifier le numéro d’identification fiscale fourni',
+        companyAddressVerification: 'Vérification de l’adresse de l’entreprise',
+        companyAddressVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
+        • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
+        • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
+        • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
+        • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise`),
+        userAddressVerification: 'Vérification de l’adresse',
+        userAddressVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Carte d’inscription électorale
+        • Permis de conduire
+        • Relevé bancaire
+        • Facture de services publics`),
+        userDOBVerification: 'Vérification de la date de naissance',
+        userDOBVerificationDescription: 'Veuillez téléverser une pièce d’identité délivrée aux États-Unis',
+        finishViaChat: 'Finaliser via le chat',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un instant',
@@ -5655,8 +5698,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             emptyCategories: {
                 title: 'Aucune catégorie pour le moment',
                 subtitle: 'Ajoutez une catégorie pour organiser vos dépenses.',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Vos catégories sont actuellement importées depuis une connexion comptable. Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Vos catégories sont actuellement importées depuis une connexion comptable.${canManage ? ` Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Une erreur s’est produite lors de la mise à jour de la catégorie, veuillez réessayer.',
             createFailureMessage: 'Une erreur s’est produite lors de la création de la catégorie, veuillez réessayer.',
@@ -6028,14 +6071,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             editTags: 'Modifier les tags',
             findTag: 'Trouver un tag',
             subtitle: 'Les tags ajoutent des moyens plus détaillés de classer les coûts.',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>Les tags ajoutent des moyens plus détaillés de classer les coûts. Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dépendants</a>. Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos tags.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string, canReimport = true) =>
+                `<muted-text>Les tags ajoutent des moyens plus détaillés de classer les coûts. Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dépendants</a>.${canReimport ? ` Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos tags.` : ''}</muted-text>`,
             emptyTags: {
                 title: 'Aucun tag pour le moment',
                 subtitle: 'Ajoutez un tag pour suivre les projets, les lieux, les services et plus encore.',
                 subtitleHTML: `<muted-text><centered-text>Ajoutez des tags pour suivre les projets, les emplacements, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags pour l’importation.</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Vos tags sont actuellement importés depuis une connexion comptable. Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Vos tags sont actuellement importés depuis une connexion comptable.${canManage ? ` Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'Supprimer le tag',
             deleteTags: 'Supprimer les tags',
@@ -6937,8 +6980,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             upgradeToUnlock: 'Débloquer cette fonctionnalité',
             completed: {
                 headline: `Vous avez mis à niveau votre espace de travail !`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Vous avez réussi à passer ${policyName} au plan Control ! <a href="${subscriptionLink}">Afficher votre abonnement</a> pour plus de détails.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Vous avez réussi à passer ${policyName} au plan ${planName} ! <a href="${subscriptionLink}">Afficher votre abonnement</a> pour plus de détails.</centered-text>`,
                 categorizeMessage: `Vous êtes passé avec succès au forfait Collect. Vous pouvez maintenant catégoriser vos dépenses !`,
                 travelMessage: `Vous êtes passé avec succès au plan Collect. Vous pouvez maintenant commencer à réserver et gérer vos voyages !`,
                 distanceRateMessage: `Vous êtes passé avec succès au forfait Collect. Vous pouvez maintenant modifier le taux de distance !`,
@@ -7337,6 +7380,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
+            aiRules: {
+                title: 'Règles IA',
+                subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin',
+                addRule: 'Ajouter une règle IA',
+                findRule: 'Rechercher une règle d’IA',
+                addRuleTitle: 'Ajouter une règle',
+                editRuleTitle: 'Modifier la règle',
+                deleteRule: 'Supprimer la règle',
+                deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                describeRuleTitle: 'Décrivez votre règle',
+                describeRuleSubtitle: 'Décrivez votre règle et Concierge la créera',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7616,7 +7671,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `a modifié le ${customUnitName} ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `Suivi fiscal ${newValue ? 'activé' : 'Désactivé'} sur les taux de distance`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté un nouveau taux ${customUnitName} « ${rateName} »`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté le taux ${customUnitName} « ${rateName} »`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
@@ -8017,6 +8072,22 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `a ajouté le taux « ${rateName} » de ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) =>
+            `a ajouté le taux « ${rateName} » de ${rateValue}, valable à partir du ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `a ajouté le taux « ${rateName} » de ${rateValue}, valable jusqu’au ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `a ajouté le taux « ${rateName} » de ${rateValue}, valable du ${startDate} au ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `a mis à jour la date de début du taux « ${rateName} » à ${newDate} (auparavant ${oldDate})` : `définir la date de début du taux « ${rateName} » sur ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `a mis à jour la date de fin du taux « ${rateName} » à ${newDate} (auparavant ${oldDate})` : `définir la date de fin du taux « ${rateName} » sur ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `a mis à jour les dates de début et de fin du taux « ${rateName} » en ${newStartDate} - ${newEndDate} (précédemment ${oldStartDate} - ${oldEndDate})`
+                : `définir les dates de début et de fin du taux « ${rateName} » sur ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `a supprimé la date de début du taux « ${rateName} » (précédemment ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `a supprimé la date de fin du taux « ${rateName} » (auparavant ${oldDate})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
