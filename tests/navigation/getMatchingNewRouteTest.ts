@@ -150,6 +150,17 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
     });
 
+    it('redirects old enable-payments fees paths to the new fees-and-terms page', () => {
+        expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees')).toBe('/settings/wallet/enable-payments/fees-and-terms/fees');
+        expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees?backTo=/home')).toBe('/settings/wallet/enable-payments/fees-and-terms/fees?backTo=/home');
+    });
+
+    it('does not redirect the new enable-payments fees-and-terms page', () => {
+        expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees-and-terms')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees-and-terms/fees')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees-and-terms/terms')).toBe(undefined);
+    });
+
     it('redirects legacy QuickBooks Online connections autosync paths to dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync')).toBe(
             '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync',

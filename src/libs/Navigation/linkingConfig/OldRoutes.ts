@@ -53,7 +53,9 @@ const oldRoutes: Record<string, string> = {
     '/settings/wallet/enable-payments/phone-number*': '/settings/wallet/enable-payments/personal-info/phone-number$1',
     '/settings/wallet/enable-payments/ssn*': '/settings/wallet/enable-payments/personal-info/ssn$1',
     '/settings/wallet/enable-payments/personal-info-confirmation*': '/settings/wallet/enable-payments/personal-info/personal-info-confirmation$1',
-    '/settings/wallet/enable-payments/fees*': '/settings/wallet/enable-payments/fees-and-terms/fees$1',
+    // 'fees*' must not use a bare wildcard - it would also match the new 'fees-and-terms' page and append a duplicate segment on every navigation
+    '/settings/wallet/enable-payments/fees': '/settings/wallet/enable-payments/fees-and-terms/fees',
+    '/settings/wallet/enable-payments/fees/*': '/settings/wallet/enable-payments/fees-and-terms/fees/$1',
     '/settings/wallet/enable-payments/terms*': '/settings/wallet/enable-payments/fees-and-terms/terms$1',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
