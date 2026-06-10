@@ -187,6 +187,10 @@ const USER_AVATAR_ENTRIES: Record<UserAvatarID, AvatarEntry> = {
 
 const USER_AVATARS = createAvatarCatalog<UserAvatarID>(USER_AVATAR_ENTRIES, DISPLAY_ORDER);
 
+function isLetterAvatarID(value: string): value is LetterAvatarIDs {
+    return value in LETTER_DEFAULTS;
+}
+
 /**
  * Returns a letter avatar component based on the first letter of the provided name.
  * @param name - The name to extract first letter/character from. (Expected 0-9, A-Z)
@@ -197,9 +201,9 @@ function getLetterAvatar(name?: string): React.FC<SvgProps> | null {
         return null;
     }
     const firstChar = getFirstAlphaNumericCharacter(name).toLowerCase();
-    const workspaceKey = `letter-default-avatar_${firstChar}` as LetterAvatarIDs;
+    const workspaceKey = `letter-default-avatar_${firstChar}`;
 
-    if (!(workspaceKey in LETTER_DEFAULTS)) {
+    if (!isLetterAvatarID(workspaceKey)) {
         return null;
     }
 

@@ -17,7 +17,10 @@ function createAvatarCatalog<ID extends string>(entries: Record<ID, AvatarEntry>
 
     const explicit = displayOrder.filter(hasID);
     const explicitSet = new Set<ID>(explicit);
-    const leftovers = (Object.keys(entries) as ID[]).filter((id) => !explicitSet.has(id)).sort();
+    const leftovers = Object.keys(entries)
+        .filter(hasID)
+        .filter((id) => !explicitSet.has(id))
+        .sort();
     const ordered = [...explicit, ...leftovers].map((id) => ({id, ...entries[id]}));
 
     return {
