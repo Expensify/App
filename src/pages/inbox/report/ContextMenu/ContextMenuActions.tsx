@@ -885,7 +885,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 harvestReportOriginalID,
                 currentUserPersonalDetails,
                 bankAccountList,
-                conciergeReportID,
                 reportAttributes,
                 originalReportOfUnapprovedTransaction,
             },
@@ -903,7 +902,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         reportOrID: iouReportID,
                         iouReportAction: reportAction,
                         isCopyAction: true,
-                        conciergeReportID,
+                        reportAttributes,
                     });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
