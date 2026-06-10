@@ -34,7 +34,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['Calendar', 'Coins', 'ReceiptScan', 'CreditCard', 'Users', 'EReceiptIcon']);
+    const icons = useMemoizedLazyExpensifyIcons(['Calendar', 'Coins', 'Flag', 'ReceiptScan', 'Filter', 'CreditCard', 'Users', 'EReceiptIcon']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -67,6 +67,17 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
+    const requiredFieldsList = useMemo(() => {
+        const fields: string[] = [];
+        if (policy?.requiresCategory) {
+            fields.push(translate('common.category'));
+        }
+        if (policy?.requiresTag) {
+            fields.push(translate('common.tag'));
+        }
+        return fields.join(', ');
+    }, [policy?.requiresCategory, policy?.requiresTag, translate]);
+
     const policyControlItems: BasicRuleMenuItem[] = [
         {
             title: translate('workspace.rules.generalTab.expensesOlderThan'),
@@ -83,11 +94,23 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
             pendingAction: policy?.pendingFields?.maxExpenseAmount,
         },
         {
+            title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
+            icon: icons.Flag,
+            action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+        },
+        {
             title: translate('workspace.rules.generalTab.receiptRequirements'),
             description: receiptRequirementText,
             icon: icons.ReceiptScan,
             action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
+        },
+        {
+            title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
+            description: requiredFieldsList,
+            icon: icons.Filter,
+            // TODO: Navigate to a dedicated RHP page for required fields
+            action: () => {},
         },
     ];
 
@@ -110,14 +133,16 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
             title: translate('workspace.rules.generalTab.trackAttendees'),
             description: isAttendeeTrackingEnabledForPolicy ? translate('common.enabled') : '',
             icon: icons.Users,
-            action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            // TODO: Navigate to a dedicated RHP page for attendee tracking
+            action: () => {},
             pendingAction: policy?.pendingFields?.isAttendeeTrackingEnabled,
         },
         {
             title: translate('workspace.rules.generalTab.autoCreateEReceipts'),
             description: areEReceiptsEnabled ? translate('workspace.rules.generalTab.autoCreateEReceiptsDescription') : '',
             icon: icons.EReceiptIcon,
-            action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            // TODO: Navigate to a dedicated RHP page for eReceipts
+            action: () => {},
             pendingAction: policy?.pendingFields?.eReceipts,
         },
     ];
@@ -132,6 +157,12 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
+                    iconWidth={20}
+                    iconHeight={20}
+                    shouldIconUseAutoWidthStyle
+                    innerContainerStyle={{gap: 20}}
+                    titleStyle={styles.ml0}
+                    descriptionTextStyle={[styles.ml0, styles.breakWord]}
                     shouldShowRightIcon={canWriteRules}
                     onPress={item.action}
                     interactive={canWriteRules}
@@ -146,10 +177,11 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
             title={translate('workspace.rules.generalTab.title')}
             subtitle={translate('workspace.rules.generalTab.subtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
+            subtitleStyles={styles.mt1}
         >
             <View style={styles.mt3}>
                 {renderMenuItems(policyControlItems)}
-                <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                <View style={[styles.sectionDividerLine, styles.mv3]} />
                 {renderMenuItems(productDefaultItems)}
             </View>
         </Section>
