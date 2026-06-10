@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import Button from '@components/Button';
@@ -45,20 +45,20 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const isSomethingElseSelected = selectedGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE;
 
     // Restore a previously made selection (e.g. after the user refreshes the next step and navigates back) from the persisted Onyx value.
+    // The value loads asynchronously, so we adjust state during render once it is available instead of using an effect.
     // Predefined goals are stored as their constant, while "Something else" stores the free text the user typed.
-    const hasRestoredSelection = useRef(false);
-    useEffect(() => {
-        if (hasRestoredSelection.current || personalTrackGoalMetadata.status !== 'loaded' || !personalTrackGoal) {
-            return;
+    const [hasRestoredSelection, setHasRestoredSelection] = useState(false);
+    if (!hasRestoredSelection && personalTrackGoalMetadata.status === 'loaded') {
+        setHasRestoredSelection(true);
+        if (personalTrackGoal) {
+            if (personalTrackGoalOptions.some((option) => option === personalTrackGoal)) {
+                setSelectedGoal(personalTrackGoal);
+            } else {
+                setSelectedGoal(CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE);
+                setSomethingElseText(personalTrackGoal);
+            }
         }
-        hasRestoredSelection.current = true;
-        if (personalTrackGoalOptions.some((option) => option === personalTrackGoal)) {
-            setSelectedGoal(personalTrackGoal);
-            return;
-        }
-        setSelectedGoal(CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE);
-        setSomethingElseText(personalTrackGoal);
-    }, [personalTrackGoal, personalTrackGoalMetadata.status]);
+    }
 
     // Private-domain users already entered their name before Purpose, so PERSONAL_DETAILS isn't part of their flow.
     // Mirror BaseOnboardingPurpose and complete the track workspace directly instead of sending them back to the name screen.
