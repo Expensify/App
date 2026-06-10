@@ -28,6 +28,9 @@ type ApprovalWorkflowSectionProps = {
     /** A function that is called when the Edit pill is pressed */
     onPress?: () => void;
 
+    /** Called when the "+X more" text inside the members row is pressed — deep-links to the members list (skips the Edit RHP). */
+    onShowAllMembersPress?: () => void;
+
     /** A function that is called when the Add agent pill is pressed */
     onAddAgentPress?: () => void;
 
@@ -63,6 +66,7 @@ type ApprovalWorkflowSectionProps = {
 function ApprovalWorkflowSection({
     approvalWorkflow,
     onPress,
+    onShowAllMembersPress,
     onAddAgentPress,
     onDismissApproverError,
     canAddAgent = false,
@@ -154,7 +158,15 @@ function ApprovalWorkflowSection({
                     titleComponent={
                         !approvalWorkflow.isDefault ? (
                             <View style={styles.ml3}>
-                                <UserPills users={memberPills} />
+                                {!isDisabled && onShowAllMembersPress ? (
+                                    <UserPills
+                                        users={memberPills}
+                                        onShowAllPress={onShowAllMembersPress}
+                                        showAllSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_SHOW_ALL_MEMBERS}
+                                    />
+                                ) : (
+                                    <UserPills users={memberPills} />
+                                )}
                             </View>
                         ) : undefined
                     }
