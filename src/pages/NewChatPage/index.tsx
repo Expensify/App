@@ -261,30 +261,10 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions(reportAttributesDerived);
 
-    const cleanSearchTermLower = debouncedSearchTerm.trim().toLowerCase();
-
     // Selected rows are marked in place by getValidOptions (isSelected/selected), so the checkmark stays with the row instead of jumping to the top.
     const recentReportsData = selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports;
 
-    // Selected items that aren't visible in Recents/Contacts (e.g. dropped by pagination) — surface them above, but only if they match the search term.
-    const visibleAccountIDs = new Set(
-        [...recentReportsData, ...personalDetails].map((option) => option.accountID).filter((accountID): accountID is number => !!accountID && accountID !== CONST.DEFAULT_NUMBER_ID),
-    );
-    const visibleLogins = new Set([...recentReportsData, ...personalDetails].map((option) => option.login).filter((login): login is string => !!login));
-    const extraSelectedOptions = selectedOptions
-        .filter(
-            (option) =>
-                !(!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && visibleAccountIDs.has(option.accountID)) &&
-                !(!!option.login && visibleLogins.has(option.login)) &&
-                (cleanSearchTermLower === '' || doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTermLower)),
-        )
-        .map((option): OptionWithKey => ({...option, isSelected: true, selected: true}));
-
     const sections: Array<Section<OptionWithKey>> = [];
-
-    if (extraSelectedOptions.length > 0) {
-        sections.push({data: extraSelectedOptions, title: undefined, sectionIndex: 0});
-    }
 
     sections.push({
         title: translate('common.recents'),
