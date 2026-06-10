@@ -446,6 +446,7 @@ const translations = {
         print: 'Print',
         help: 'Help',
         collapsed: 'Collapsed',
+        expand: 'Expand',
         expanded: 'Expanded',
         expenseReport: 'Expense Report',
         // @context Rate as a noun, not a verb

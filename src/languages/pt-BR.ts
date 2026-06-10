@@ -421,6 +421,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Imprimir',
         help: 'Ajuda',
         collapsed: 'Recolhido',
+        expand: 'Expandir',
         expanded: 'Expandido',
         expenseReport: 'Relatório de despesas',
         rateOutOfPolicy: 'Tarifa fora da política',

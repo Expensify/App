@@ -1,9 +1,12 @@
-import React from 'react';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 import {ChartFontsProvider} from '@components/Charts/hooks';
 import useChartFonts from '@components/Charts/hooks/useChartFonts';
 import Log from '@libs/Log';
 import VictoryChartContainer from './components/VictoryChartContainer';
 import VictoryChartContent from './components/VictoryChartContent';
+import VictoryChartExpandButton from './components/VictoryChartExpandButton';
+import VictoryChartExpandModal from './components/VictoryChartExpandModal';
 import {VictoryChartProvider} from './context/VictoryChartContext';
 import processVictoryChartTree from './parsers/processVictoryChartTree';
 import type {VictoryChartRendererProps} from './types';
@@ -11,6 +14,7 @@ import resolveVictoryChartType from './utils/resolveVictoryChartType';
 
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     const fonts = useChartFonts();
+    const [isExpanded, setIsExpanded] = useState(false);
 
     let processedResult;
     try {
@@ -34,9 +38,17 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                 processedResult={processedResult}
                 type={type}
             >
-                <VictoryChartContainer>
-                    <VictoryChartContent />
-                </VictoryChartContainer>
+                {/* Wrapper anchors the absolutely-positioned expand button to the chart's corner. */}
+                <View>
+                    <VictoryChartContainer>
+                        <VictoryChartContent />
+                    </VictoryChartContainer>
+                    <VictoryChartExpandButton onPress={() => setIsExpanded(true)} />
+                </View>
+                <VictoryChartExpandModal
+                    isVisible={isExpanded}
+                    onClose={() => setIsExpanded(false)}
+                />
             </VictoryChartProvider>
         </ChartFontsProvider>
     );
