@@ -28,6 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {isSafari} from '@libs/Browser';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
@@ -47,6 +48,7 @@ import {
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
+    isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
     isMoneyRequestAction,
@@ -62,6 +64,7 @@ import {
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
+import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -206,6 +209,8 @@ function ReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
 
+    const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
+    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
@@ -496,6 +501,7 @@ function ReportActionItem({
                     )}
                     <PressableWithSecondaryInteraction
                         ref={popoverAnchorRef}
+                        accessible={shouldBreakGrouping && isScreenReaderActive && isCreatedTaskReportAction(action) ? false : undefined}
                         onPress={() => {
                             if (!hasDraft) {
                                 onPress?.();
