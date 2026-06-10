@@ -26,7 +26,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -336,8 +335,6 @@ function BaseReportActionContextMenu({
             callback();
         }
     };
-
-    useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => {
         showContextMenu({
