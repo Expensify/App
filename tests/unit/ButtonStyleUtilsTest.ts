@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import type {ThemeStyles} from '@src/styles';
 import type {ThemeColors} from '@src/styles/theme/types';
 import createStyleUtils from '@src/styles/utils';
+import variables from '@src/styles/variables';
 
 const mockTheme = {} as ThemeColors;
 
@@ -22,7 +23,7 @@ const mockStyles = {
     buttonOpacityDisabled: {opacity: 0.5},
 } as unknown as ThemeStyles;
 
-const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles} = createStyleUtils(mockTheme, mockStyles);
+const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles, getReportTableColumnStyles} = createStyleUtils(mockTheme, mockStyles);
 
 describe('getButtonSizeStyle', () => {
     it.each([
@@ -86,5 +87,19 @@ describe('getButtonVariantStyles', () => {
             success: [mockStyles.buttonOpacityDisabled],
             danger: [mockStyles.buttonOpacityDisabled],
         });
+    });
+});
+
+describe('getReportTableColumnStyles - First approved column width', () => {
+    it('uses the wide width when isFirstApprovedColumnWide is true (e.g. a past-year date)', () => {
+        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, {isFirstApprovedColumnWide: true})).toEqual({width: variables.w92});
+    });
+
+    it('uses the normal width when isFirstApprovedColumnWide is false', () => {
+        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, {isFirstApprovedColumnWide: false})).toEqual({width: variables.w72});
+    });
+
+    it('defaults to the normal width when the wide flag is omitted', () => {
+        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)).toEqual({width: variables.w72});
     });
 });
