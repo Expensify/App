@@ -174,7 +174,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return true;
         });
 
-        return filteredActions.toReversed();
+        return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
     const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
