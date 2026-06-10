@@ -5962,10 +5962,10 @@ describe('ReportUtils', () => {
         const submitterEmail = 'submitter@test.com';
         const policyID = 'approverTestPolicy';
 
-        const policyWithWorkflow = {
+        const policyWithWorkflow: Policy = {
+            ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
             id: policyID,
             name: 'Test Workspace',
-            type: CONST.POLICY.TYPE.CORPORATE,
             role: CONST.POLICY.ROLE.USER,
             owner: `owner${ownerAccountID}@test.com`,
             outputCurrency: 'USD',
@@ -5978,7 +5978,7 @@ describe('ReportUtils', () => {
                     submitsTo: approverEmail,
                 },
             },
-        } as unknown as Policy;
+        };
 
         afterAll(async () => {
             // Restore global session state for subsequent tests
@@ -6311,11 +6311,11 @@ describe('ReportUtils', () => {
 
         it('should NOT allow default approver to edit on Submit & Close (OPTIONAL) policy', async () => {
             const submitAndClosePolicyID = 'approverTestPolicyOptional';
-            const submitAndClosePolicy = {
+            const submitAndClosePolicy: Policy = {
                 ...policyWithWorkflow,
                 id: submitAndClosePolicyID,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            } as unknown as Policy;
+            };
 
             const openExpenseReport: Report = {
                 reportID: '12351',
