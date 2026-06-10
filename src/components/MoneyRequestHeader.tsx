@@ -115,7 +115,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.expenseDuplicate')};
         }
 
-        if (isPending(transaction)) {
+        if (isPending(transaction) && (parentReport?.transactionCount ?? 0) <= 1) {
             return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.allTransactionsPendingNextStep')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
