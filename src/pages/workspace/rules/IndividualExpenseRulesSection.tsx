@@ -34,7 +34,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['Calendar', 'Coins', 'Flag', 'ReceiptScan', 'Filter', 'CreditCard', 'Users', 'EReceiptIcon']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptScan', 'Task', 'Cash', 'Users']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -82,7 +82,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
         {
             title: translate('workspace.rules.generalTab.expensesOlderThan'),
             description: maxExpenseAgeText,
-            icon: icons.Calendar,
+            icon: icons.CalendarSolid,
             action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAge,
         },
@@ -95,7 +95,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
         },
         {
             title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
-            icon: icons.Flag,
+            icon: icons.Receipt,
             action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
         },
         {
@@ -108,7 +108,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
         {
             title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
             description: requiredFieldsList,
-            icon: icons.Filter,
+            icon: icons.Task,
             // TODO: Navigate to a dedicated RHP page for required fields
             action: () => {},
         },
@@ -118,14 +118,14 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
         {
             title: translate('workspace.rules.generalTab.cashExpenses'),
             description: reimbursableModeText,
-            icon: icons.CreditCard,
+            icon: icons.Cash,
             action: () => Navigation.navigate(ROUTES.RULES_REIMBURSABLE_DEFAULT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.defaultReimbursable,
         },
         {
             title: translate('workspace.rules.generalTab.billableExpenses'),
             description: billableModeText,
-            icon: icons.CreditCard,
+            icon: icons.Cash,
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.defaultBillable,
         },
@@ -140,7 +140,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
         {
             title: translate('workspace.rules.generalTab.autoCreateEReceipts'),
             description: areEReceiptsEnabled ? translate('workspace.rules.generalTab.autoCreateEReceiptsDescription') : '',
-            icon: icons.EReceiptIcon,
+            icon: icons.Receipt,
             // TODO: Navigate to a dedicated RHP page for eReceipts
             action: () => {},
             pendingAction: policy?.pendingFields?.eReceipts,
@@ -160,8 +160,9 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
                     iconWidth={20}
                     iconHeight={20}
                     shouldIconUseAutoWidthStyle
+                    shouldShowBasicTitle
                     innerContainerStyle={{gap: 20}}
-                    titleStyle={styles.ml0}
+                    titleStyle={[styles.ml0, !item.description && styles.colorMuted]}
                     descriptionTextStyle={[styles.ml0, styles.breakWord]}
                     shouldShowRightIcon={canWriteRules}
                     onPress={item.action}
@@ -177,7 +178,8 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
             title={translate('workspace.rules.generalTab.title')}
             subtitle={translate('workspace.rules.generalTab.subtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
-            subtitleStyles={styles.mt1}
+            subtitleMuted
+            subtitleStyles={styles.mt0}
         >
             <View style={styles.mt3}>
                 {renderMenuItems(policyControlItems)}
