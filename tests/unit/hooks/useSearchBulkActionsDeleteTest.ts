@@ -153,6 +153,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => mockShouldShowDeleteOption,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
+    getValidGroupBy: jest.fn(),
+    getColumnsToShow: jest.fn(() => []),
+    getSearchColumnTranslationKey: jest.fn(),
 }));
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
