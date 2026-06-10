@@ -9,9 +9,9 @@ import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 /**
- * The MFA state shape. Relocated here (PR-3) from `Context/types.ts` so the machine layer can build its
- * context from it without importing the reducer. The Provider maps the machine snapshot back to this
- * shape so consumers keep reading `state.X` unchanged.
+ * The MFA state shape, shared so the machine layer can build its context from it without importing
+ * the reducer. The Provider maps the machine snapshot back to this shape so consumers keep reading
+ * `state.X` unchanged.
  */
 type MultifactorAuthenticationState = {
     /** Whether the MFA modal overlay is open. Separate from scenario lifecycle

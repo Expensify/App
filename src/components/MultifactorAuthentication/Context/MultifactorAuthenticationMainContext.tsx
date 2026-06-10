@@ -23,9 +23,10 @@ let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T>;
 
 /**
- * The single typed API exposed by the machine Provider. Every method is a thin wrapper over
- * `send(event)` - no branching, no flow logic (the behavior IS machine state). `state` is the machine
- * snapshot mapped to the legacy shape so existing consumers keep reading `state.X`.
+ * The single typed API exposed by the machine Provider. Apart from executeScenario's start-of-flow
+ * telemetry, every method is a thin wrapper over `send(event)` - no flow logic (the behavior IS
+ * machine state). `state` is the machine snapshot mapped to the legacy shape plus `modalPhase`, so
+ * existing consumers keep reading `state.X`.
  */
 type MultifactorAuthenticationApi = {
     /** The current MFA state, derived from the machine snapshot. */
@@ -34,10 +35,10 @@ type MultifactorAuthenticationApi = {
     /** Execute a multifactor authentication scenario. */
     executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>) => Promise<void>;
 
-    /** Close the modal overlay (used by the outcome screen's confirm button). */
+    /** Close the modal overlay. */
     closeModal: () => void;
 
-    /** Report that the close animation fully finished - dispatched by the navigator; re-enters idle, which wipes the flow data. */
+    /** Navigator's report that the close animation fully finished; re-enters idle, wiping the flow data. */
     notifyModalClosed: () => void;
 
     /** Centralized back-press / backdrop entry. */
@@ -120,8 +121,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const closeModal = () => send({type: 'CLOSE_MODAL'});
     const notifyModalClosed = () => send({type: 'MODAL_CLOSED'});
 
-    // PR-5: the cancel-confirmation dialog is not wired yet (lands in PR-11). Until then the flow is
-    // complete the moment the modal opens, so a back press / backdrop tap closes directly.
+    // PR-5: the cancel-confirmation dialog lands in PR-11; until then every cancel path closes the modal directly.
     const requestCancel = () => send({type: 'CLOSE_MODAL'});
     const hideCancelConfirm = () => send({type: 'CLOSE_MODAL'});
     const confirmCancel = () => send({type: 'CLOSE_MODAL'});

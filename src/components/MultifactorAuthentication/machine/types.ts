@@ -15,8 +15,8 @@ type MfaModalPhase = 'open' | 'closing' | 'closed';
 
 /**
  * Machine context: the legacy {@link MultifactorAuthenticationState} minus `isModalOpen`, which is a
- * derivative of the chart (`matches('open')`) rather than stored data. `snapshotToState` maps the
- * snapshot back to the full legacy shape so consumers keep reading `state.X` unchanged.
+ * derivative of the chart rather than stored data. `snapshotToState` maps the snapshot back to the
+ * legacy shape plus `modalPhase`, so consumers keep reading `state.X` unchanged.
  */
 type MfaMachineContext = Omit<MultifactorAuthenticationState, 'isModalOpen'>;
 
