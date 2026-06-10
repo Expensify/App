@@ -31,7 +31,6 @@ function Button({
     disabledStyle,
     innerStyles = [],
     hoverStyles,
-    useDefaultHover = true,
     variant,
     removeBorderRadius,
     enableHapticFeedback = false,
@@ -150,7 +149,7 @@ function Button({
             hoverStyle={
                 !isDisabled || !stayNormalOnDisable
                     ? [
-                          useDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
+                          !isDisabled ? styles.buttonDefaultHovered : undefined,
                           variant === 'success' && !isDisabled ? styles.buttonSuccessHovered : undefined,
                           variant === 'danger' && !isDisabled ? styles.buttonDangerHovered : undefined,
                           hoverStyles,

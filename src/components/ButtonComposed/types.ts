@@ -48,9 +48,6 @@ type ButtonBehaviorProps = {
     /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
     isNested?: boolean;
 
-    /** Whether we should use the default hover style */
-    useDefaultHover?: boolean;
-
     /** Should enable the haptic feedback? */
     stayNormalOnDisable?: boolean;
 };
