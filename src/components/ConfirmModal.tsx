@@ -113,6 +113,9 @@ type ConfirmModalProps = {
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
 
+    /** Whether to show a loading indicator next to the title */
+    isTitleLoading?: boolean;
+
     /** Whether to handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
 
@@ -123,6 +126,9 @@ type ConfirmModalProps = {
     innerContainerStyle?: ViewStyle;
 };
 
+/**
+ * @deprecated Use @hooks/useConfirmModal instead. This leverages the global modal system in @components/Modal/Global instead, which prevents consumers from having to manage modal state and keeps the JSX tree lean.
+ */
 function ConfirmModal({
     confirmText = '',
     cancelText = '',
@@ -157,6 +163,7 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
+    isTitleLoading,
     shouldHandleNavigationBack,
     shouldIgnoreBackHandlerDuringTransition,
     innerContainerStyle,
@@ -220,6 +227,7 @@ function ConfirmModal({
                 imageStyles={imageStyles}
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
+                isTitleLoading={isTitleLoading}
             />
         </Modal>
     );

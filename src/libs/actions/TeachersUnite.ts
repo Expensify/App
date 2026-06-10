@@ -90,7 +90,7 @@ function addSchoolPrincipal(
         currentUserAccountID: sessionAccountID,
     });
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(sessionEmail);
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: sessionEmail});
     const expenseReportActionData: ExpenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };

@@ -31,7 +31,7 @@ import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -270,7 +270,7 @@ function SettlementButton({
     };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
     const businessBankAccountOptions =
         isExpenseReport && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({...account, value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT}))
@@ -387,7 +387,7 @@ function SettlementButton({
                     .filter((method) => {
                         const accountData = method?.accountData as AccountData;
                         const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                        return accountData?.type === requiredAccountType && !isPartiallySetup;
+                        return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
@@ -423,9 +423,10 @@ function SettlementButton({
 
                 return createWorkspace({
                     introSelected,
-                    activePolicyID,
+                    activePolicy,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: email,
+                    currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                     betas,
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,

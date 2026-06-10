@@ -12,9 +12,9 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 import UserPills from '@components/UserPills';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
@@ -47,7 +47,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
-    const personalDetailsByEmail = usePersonalDetailsByEmail();
+    const {convertToDisplayString} = useCurrencyListActions();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -58,6 +58,14 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const getApprovalPendingAction = useCallback(
         (index: number) => {
+            // The approver's own `pendingAction` takes precedence — it's set when an approver was
+            // seeded from an optimistic agent creation (Workflows > Add agent) and the
+            // CREATE_AGENT response hasn't arrived yet. Showing opacity here is exactly what
+            // signals to the admin that the agent is still being confirmed by the server.
+            const approverPendingAction = approvalWorkflow?.approvers.at(index)?.pendingAction;
+            if (approverPendingAction) {
+                return approverPendingAction;
+            }
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
                 if (approvalWorkflow?.members) {
@@ -173,7 +181,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
                     const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail});
+                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, convertToDisplayString});
                     const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (

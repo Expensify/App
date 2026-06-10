@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
 import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useContext} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,8 +9,8 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getIndicatedMissingPaymentMethod, isChatThread} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -17,7 +18,7 @@ import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type ReimbursementQueuedContentProps = {
     /** The reimbursement queued action */
@@ -26,27 +27,23 @@ type ReimbursementQueuedContentProps = {
     /** The chat report this action belongs to */
     report: OnyxEntry<Report>;
 
-    /** Parent report (used when this report is a chat thread) */
-    parentReport: OnyxEntry<Report>;
-
     /** The IOU/Expense report we are paying */
     iouReport: OnyxEntry<Report>;
-
-    /** Personal details list for resolving the submitter's display name */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-function ReimbursementQueuedContent({action, report, parentReport, iouReport, personalDetails}: ReimbursementQueuedContentProps) {
+function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQueuedContentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const targetReport = isChatThread(report) ? parentReport : report;
-    const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
+    const [ownerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)});
+    const submitterDisplayName = formatPhoneNumber(ownerDisplayName ?? '');
     const paymentType = getOriginalMessage(action)?.paymentType ?? '';
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 

@@ -2,23 +2,22 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateXeroExportBillStatus} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.XERO_CONFIG.INVOICE_STATUS>;
@@ -30,11 +29,10 @@ function DynamicXeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectio
     const styles = useThemeStyles();
     const {config} = policy?.connections?.xero ?? {};
     const invoiceStatus = config?.export?.billStatus?.purchase;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
-    }, [backPath]);
+        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
+    }, [policyID]);
 
     const data: MenuListItem[] = Object.values(CONST.XERO_CONFIG.INVOICE_STATUS).map((status) => ({
         value: status,
@@ -78,7 +76,6 @@ function DynamicXeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectio
             title="workspace.xero.invoiceStatus.label"
             headerContent={headerContent}
             data={data}
-            listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectPurchaseBillStatus(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}

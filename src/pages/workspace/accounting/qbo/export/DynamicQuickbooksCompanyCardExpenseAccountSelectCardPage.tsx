@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -11,6 +10,7 @@ import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import {canUseVendorBillForCompanyCardExport} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
@@ -30,7 +30,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {creditCards, bankAccounts, accountPayable, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const isLocationEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const canUseVendorBill = canUseVendorBillForCompanyCardExport(qboConfig);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_CARD_SELECT.path);
 
     const data: MenuItem[] = useMemo(() => {
@@ -52,7 +52,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
                 defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             },
         ];
-        if (!isLocationEnabled) {
+        if (canUseVendorBill) {
             options.push({
                 text: translate(`workspace.qbo.accounts.bill`),
                 value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
@@ -63,7 +63,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
             });
         }
         return options;
-    }, [translate, qboConfig?.nonReimbursableExpensesExportDestination, isLocationEnabled, accountPayable, bankAccounts, creditCards, vendors]);
+    }, [translate, qboConfig?.nonReimbursableExpensesExportDestination, canUseVendorBill, accountPayable, bankAccounts, creditCards, vendors]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backPath);
@@ -99,14 +99,13 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
             displayName="DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage"
             title="workspace.accounting.exportAs"
             data={data}
-            listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExportCompanyCard(selection as MenuItem)}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={goBack}
             listFooterContent={
-                isLocationEnabled ? <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text> : undefined
+                !canUseVendorBill ? <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text> : undefined
             }
             errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
             errorRowStyles={[styles.ph5, styles.pv3]}

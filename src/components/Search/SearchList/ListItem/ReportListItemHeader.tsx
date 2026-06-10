@@ -6,14 +6,20 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import {showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +35,7 @@ type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps &
     report: TransactionReportGroupListItemType;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: TItem, event?: ModifiedMouseEvent) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -73,7 +79,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 
     /** Callback passed as goToItem in actionCell, triggered by clicking actionButton */
-    handleOnButtonPress?: () => void;
+    handleOnButtonPress?: (event?: ModifiedMouseEvent) => void;
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
@@ -109,6 +115,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const {isSelected} = useRowSelection(reportItem.keyForList);
 
     let total = reportItem.total ?? 0;
     if (total) {
@@ -128,11 +135,11 @@ function HeaderFirstRow<TItem extends ListItem>({
                         onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled), styles.m0]}
+                        containerStyle={styles.m0}
                         disabled={!!isDisabled || reportItem.isDisabledCheckbox}
                         accessibilityLabel={reportItem.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), reportItem.isDisabledCheckbox && styles.cursorDisabled]}
+                        style={[styles.cursorUnset, reportItem.isDisabledCheckbox && styles.cursorDisabled]}
                     />
                 )}
                 <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>
@@ -175,7 +182,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                     <ActionCell
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
-                        isSelected={reportItem.isSelected}
+                        isSelected={isSelected}
                         isLoading={isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
@@ -209,7 +216,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults: snapshot} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
@@ -219,20 +227,24 @@ function ReportListItemHeader<TItem extends ListItem>({
     const snapshotPolicy = useMemo(() => {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
+    const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const {isSelected} = useRowSelection(reportItem.keyForList);
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
-    const handleOnButtonPress = () => {
+    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
             hash: currentSearchHash,
             item: reportItem,
-            goToItem: () => onSelectRow(reportItem as unknown as TItem),
+            goToItem: () => onSelectRow(reportItem as unknown as TItem, event),
             snapshotReport,
             snapshotPolicy,
+            policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
             currentSearchKey,
@@ -241,6 +253,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     };
     return !isLargeScreenWidth ? (
@@ -251,6 +264,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 containerStyles={[styles.pr3, styles.mb2]}
                 stateNum={reportItem.stateNum}
                 statusNum={reportItem.statusNum}
+                isSelected={isSelected}
             />
             <HeaderFirstRow
                 report={reportItem}

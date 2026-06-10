@@ -1,5 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {memo} from 'react';
+import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -10,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 import {clearCreateChatError} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -36,7 +37,11 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = currentUserPersonalDetail;
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
+    const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
 
     if (!isChatReport(report)) {
         return null;
@@ -49,17 +54,35 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => clearCreateChatError(report, conciergeReportID, introSelected, currentUserAccountID, betas, isSelfTourViewed)}
+            onClose={() =>
+                clearCreateChatError(
+                    report,
+                    conciergeReportID,
+                    introSelected,
+                    currentUserAccountID,
+                    betas,
+                    isSelfTourViewed,
+                    reportOwnerPersonalDetail,
+                    currentUserPersonalDetail,
+                    conciergePersonalDetail,
+                )
+            }
         >
             <View style={[styles.pRelative]}>
-                <AnimatedEmptyStateBackground />
+                {/* hasDeferredWriteForReport is non-reactive (reads a module-level Map, not tracked by React).
+                   This is intentional: we only suppress the animation on the initial render while a
+                   DISMISS_MODAL write targeting THIS report is pending. The animation re-appears on the
+                   next organic re-render (e.g. Onyx updates after the API write resolves). The check is
+                   scoped to `report.reportID` so an unrelated submit flow's dismiss doesn't suppress the
+                   animation here. */}
+                {!hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID) && <AnimatedEmptyStateBackground />}
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute(), true)}
+                            onPress={() => navigateToDetailsPage(report)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}

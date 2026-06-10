@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 import {FlatList} from 'react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -14,8 +15,9 @@ type SearchFiltersBarNarrowProps = {
 };
 
 function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
+    const styles = useThemeStyles();
     const scrollRef = useRef<FlatList<SearchFilter & FilterItem>>(null);
-    const {filters, hasErrors, shouldShowFiltersBarLoading, styles} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading} = useSearchFiltersBar(queryJSON);
 
     const adjustScroll = (info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):

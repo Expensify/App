@@ -30,7 +30,7 @@ describe('useFilterFeedData', () => {
     });
 
     it('should return empty values when no data is available', async () => {
-        const {result} = renderHook(() => useFilterFeedData());
+        const {result} = renderHook(() => useFilterFeedData(undefined));
 
         expect(result.current.feedOptions).toEqual([]);
         expect(result.current.feedValue).toEqual([]);
@@ -45,7 +45,7 @@ describe('useFilterFeedData', () => {
             },
         });
 
-        const {result} = renderHook(() => useFilterFeedData());
+        const {result} = renderHook(() => useFilterFeedData(undefined));
 
         // Expected feed id is fundID_feed
         expect(result.current.feedOptions).toHaveLength(1);
@@ -61,9 +61,8 @@ describe('useFilterFeedData', () => {
                 },
             },
         });
-        await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {feed: ['123_vcf']});
 
-        const {result} = renderHook(() => useFilterFeedData());
+        const {result} = renderHook(() => useFilterFeedData(['123_vcf']));
 
         expect(result.current.feedOptions).toHaveLength(1);
         expect(result.current.feedOptions.at(0)?.value).toBe('123_vcf');
@@ -80,7 +79,7 @@ describe('useFilterFeedData', () => {
             },
         });
 
-        const {result} = renderHook(() => useFilterFeedData());
+        const {result} = renderHook(() => useFilterFeedData(undefined));
 
         expect(result.current.feedOptions).toHaveLength(1);
         expect(result.current.feedOptions.at(0)?.value).toBe('123_vcf');
@@ -110,7 +109,7 @@ describe('useFilterFeedData', () => {
             },
         });
 
-        const {result} = renderHook(() => useFilterFeedData());
+        const {result} = renderHook(() => useFilterFeedData(undefined));
 
         expect(result.current.feedOptions).toHaveLength(1);
         expect(result.current.feedOptions.at(0)?.value).toBe('999_Expensify Card');

@@ -53,4 +53,4 @@ type AttachmentCarouselPagerActionsContextType = {
     onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
 };
 
-export type {AttachmentCarouselPagerItems, AttachmentCarouselPagerStateContextType, AttachmentCarouselPagerActionsContextType};
+export type {AttachmentCarouselPagerStateContextType, AttachmentCarouselPagerActionsContextType};

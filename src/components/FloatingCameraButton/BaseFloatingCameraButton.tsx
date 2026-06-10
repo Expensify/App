@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';

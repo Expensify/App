@@ -24,6 +24,12 @@ type ReceiptFileValidatorProps = {
     report: OnyxEntry<Report>;
     participants: Participant[];
     draftTransactionIDs: string[] | undefined;
+    /**
+     * False if an upstream writer is still finalizing transaction receipts. The validator skips
+     * validation entirely while this is false. Pass `true` when nothing else is contending with
+     * the validator.
+     */
+    isReceiptReady: boolean;
     onReceiptFilesChange: (files: Record<string, Receipt>) => void;
 };
 
@@ -43,6 +49,7 @@ function ReceiptFileValidator({
     report,
     participants,
     draftTransactionIDs,
+    isReceiptReady,
     onReceiptFilesChange,
 }: ReceiptFileValidatorProps) {
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -50,9 +57,16 @@ function ReceiptFileValidator({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
+        // Skip validation while an upstream writer is finalizing receipts. When
+        // isReceiptReady flips true, this effect re-runs and validates from scratch.
+        if (!isReceiptReady) {
+            return;
+        }
+
         let ignore = false;
         let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
+        let resetInitialTransactionReceipt = false;
 
         Promise.all(
             transactions.map((item) => {
@@ -86,15 +100,21 @@ function ReceiptFileValidator({
                 const onFailure = () => {
                     isScanFilesCanBeRead = false;
                     if (initialTransactionID === item.transactionID) {
-                        setMoneyRequestReceipt(item.transactionID, '', '', true, '');
+                        // We don't directly reset the receipt here because this will cause the transaction to change
+                        // and retrigger the effect before the promise is resolved which will cause ignoring of the redirection.
+                        resetInitialTransactionReceipt = true;
                     }
                 };
 
                 return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure) ?? Promise.resolve();
             }),
         ).then(() => {
+            // Bail if the effect already re-ran on a newer transactions emission — the fresh closure validates from scratch.
             if (ignore) {
                 return;
+            }
+            if (resetInitialTransactionReceipt) {
+                setMoneyRequestReceipt(initialTransactionID, '', '', true, '');
             }
             if (isScanFilesCanBeRead) {
                 onReceiptFilesChange(newReceiptFiles);
@@ -114,7 +134,7 @@ function ReceiptFileValidator({
             ignore = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
-    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, onReceiptFilesChange]);
+    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, isReceiptReady, onReceiptFilesChange]);
 
     return null;
 }

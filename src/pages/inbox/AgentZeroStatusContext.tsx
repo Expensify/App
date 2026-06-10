@@ -1,41 +1,32 @@
+import {getAgentAccountIDFlags, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
-import agentZeroProcessingIndicatorSelector from '@selectors/ReportNameValuePairs';
-import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
-import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
+import {accountIDSelector} from '@selectors/Session';
+import React, {createContext, useContext, useEffect} from 'react';
 import useOnyx from '@hooks/useOnyx';
-import {clearConciergeThinkingKickoff, getReportChannelName} from '@libs/actions/Report';
-import Log from '@libs/Log';
-import Pusher from '@libs/Pusher';
+import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
+import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type ReasoningEntry = {
-    reasoning: string;
-    loopCount: number;
-    timestamp: number;
-};
-
 type AgentZeroStatusState = {
-    /** Whether AgentZero is actively working — true when the server sent a processing label or we're optimistically waiting */
-    isProcessing: boolean;
-
-    /** Chronological list of reasoning steps streamed via Pusher during the current processing request */
-    reasoningHistory: ReasoningEntry[];
-
-    /** Debounced label shown in the thinking bubble (e.g. "Looking up categories...") */
-    statusLabel: string;
+    /**
+     * Agent accountIDs to render thinking bubbles for: every agent the server is actively
+     * processing for (the keys of the per-agent processing-indicator NVP) plus Concierge in
+     * Concierge/admin chats (so an optimistic kickoff shows instantly). Never includes the
+     * current user — a human viewing the chat is never the thinking persona.
+     */
+    candidateAgentIDs: number[];
 };
 
 type AgentZeroStatusActions = {
-    /** Sets optimistic "thinking" state immediately after the user sends a message, before the server responds */
+    /** Optimistically show Concierge's thinking indicator (used by the search Ask-Concierge flow). */
     kickoffWaitingIndicator: () => void;
 };
 
 const defaultState: AgentZeroStatusState = {
-    isProcessing: false,
-    reasoningHistory: [],
-    statusLabel: '',
+    candidateAgentIDs: [],
 };
 
 const defaultActions: AgentZeroStatusActions = {
@@ -46,18 +37,28 @@ const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultS
 const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
 /**
- * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID.
- * For non-AgentZero reports (the common case), returns children directly
- * without mounting any Pusher subscriptions or heavy state logic.
+ * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID and the report's chat
+ * metadata. For non-AgentZero reports (the common case), returns children directly.
  *
- * AgentZero chats include Concierge DMs and policy #admins rooms.
+ * AgentZero chats include Concierge DMs, policy #admins rooms, and custom-agent chats (any
+ * report with a participant — other than the current user — whose accountID has a
+ * `SHARED_NVP_AGENT_PROMPT_<accountID>` entry, populated by `OpenAgentsPage` for agents the
+ * current user owns).
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
+    const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
+    const [agentAccountIDFlags] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {selector: getAgentAccountIDFlags});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-    const isAgentZeroChat = isConciergeChat || isAdmin;
+    // A custom-agent chat has a participant — excluding the current user — whose accountID owns
+    // an agent prompt. Excluding the current user prevents a user who owns agents from turning
+    // their own DMs into agent chats.
+    const hasAgentParticipant = participantAccountIDs?.some((accountID) => accountID !== currentUserAccountID && !!agentAccountIDFlags?.[accountID]) ?? false;
+    const isAgentZeroChat = isConciergeChat || isAdmin || hasAgentParticipant;
 
     if (!reportID || !isAgentZeroChat) {
         return children;
@@ -67,203 +68,66 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
         <AgentZeroStatusGate
             key={reportID}
             reportID={reportID}
+            includeConcierge={isConciergeChat || isAdmin}
         >
             {children}
         </AgentZeroStatusGate>
     );
 }
 
-// Minimum time to display a label before allowing change (prevents rapid flicker)
-const MIN_DISPLAY_TIME = 300; // ms
-// Debounce delay for server label updates
-const DEBOUNCE_DELAY = 150; // ms
-const OPTIMISTIC_TIMEOUT = 120000; // 2 minutes
+function AgentZeroStatusGate({reportID, includeConcierge, children}: React.PropsWithChildren<{reportID: string; includeConcierge: boolean}>) {
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
 
-/**
- * Inner gate — all Pusher, reasoning, label, and processing state.
- * Only mounted when reportID matches the Concierge report.
- * Remounted via key prop when reportID changes, so all state resets automatically.
- */
-function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
-    // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
-    const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
+    // One reasoning Pusher subscription per report (not per agent). The handler in Report
+    // actions routes each event to the right agent's reasoning history by its actorAccountID.
+    // Cleanup clears the report's reasoning history and the Pusher subscription.
+    useEffect(() => {
+        subscribeToReportReasoningEvents(reportID);
+        return () => {
+            unsubscribeFromReportReasoningChannel(reportID);
+        };
+    }, [reportID]);
 
-    // Timestamp set when the user sends a message, before the server label arrives — shows "Concierge is thinking..."
-    const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
-    // Debounced label shown to the user — smooths rapid server label changes
-    const displayedLabelRef = useRef<string>('');
-    const [displayedLabel, setDisplayedLabel] = useState<string>('');
-    // Chronological list of reasoning steps streamed via Pusher during a single processing request
-    const [reasoningHistory, setReasoningHistory] = useState<ReasoningEntry[]>([]);
-    const {translate} = useLocalize();
-    // Timer for debounced label updates — ensures a minimum display time before switching
-    const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
-    // Timestamp of the last label update — used to enforce MIN_DISPLAY_TIME
-    const lastUpdateTimeRef = useRef<number>(0);
-    const {isOffline} = useNetwork();
-
-    // Auto-kickoff "thinking" indicator when opened from search (where kickoffWaitingIndicator isn't accessible)
+    // The search "Ask Concierge" flow opens the Concierge DM and sets a one-shot Onyx flag so
+    // the bubble appears immediately, before the server NVP lands. Concierge is the only agent
+    // with a client optimistic path; custom agents are purely server-driven. A null baseline is
+    // safe because this kickoff always follows the user's own just-sent message, so the newest
+    // action isn't from Concierge and reply-detection won't misfire; the per-agent hook also
+    // captures the live baseline when its indicator activates.
+    const kickoffWaitingIndicator = () => {
+        AgentZeroOptimisticStore.increment(reportID, CONST.ACCOUNT_ID.CONCIERGE, null);
+    };
     const [shouldKickoff] = useOnyx(ONYXKEYS.CONCIERGE_THINKING_KICKOFF);
     useEffect(() => {
         if (!shouldKickoff) {
             return;
         }
         clearConciergeThinkingKickoff();
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot kickoff from search; Onyx flag is cleared immediately so it cannot cascade
-        setOptimisticStartTime(Date.now());
-    }, [shouldKickoff]);
+        kickoffWaitingIndicator();
+    }, [shouldKickoff, kickoffWaitingIndicator]);
 
-    // Tracks the current agentZeroRequestID so the Pusher callback can detect new requests
-    const agentZeroRequestIDRef = useRef('');
-
-    // Clear optimistic state once server label arrives — the server has taken over
-    if (serverLabel && optimisticStartTime) {
-        setOptimisticStartTime(null);
+    const candidateIDs = new Set<number>(serverAgentIDs ?? []);
+    if (includeConcierge) {
+        candidateIDs.add(CONST.ACCOUNT_ID.CONCIERGE);
     }
-
-    // Clear optimistic state when coming back online — stale optimism from offline
-    const [prevIsOffline, setPrevIsOffline] = useState(isOffline);
-    if (prevIsOffline !== isOffline) {
-        setPrevIsOffline(isOffline);
-        if (!isOffline && optimisticStartTime) {
-            setOptimisticStartTime(null);
-        }
+    if (currentUserAccountID !== undefined) {
+        candidateIDs.delete(currentUserAccountID);
     }
-
-    // Clear reasoning when processing ends (server label transitions from truthy → falsy)
-    const [prevServerLabel, setPrevServerLabel] = useState(serverLabel);
-    if (prevServerLabel !== serverLabel) {
-        setPrevServerLabel(serverLabel);
-        if (prevServerLabel && !serverLabel && reasoningHistory.length > 0) {
-            setReasoningHistory([]);
+    // Render Concierge's bubble first, then any custom agents ascending by accountID — a stable,
+    // intentional order instead of relying on Set insertion order.
+    const candidateAgentIDs = [...candidateIDs].sort((a, b) => {
+        if (a === CONST.ACCOUNT_ID.CONCIERGE) {
+            return -1;
         }
-    }
-
-    /** Appends a reasoning entry from Pusher. Resets history when a new request ID is detected; skips duplicates. */
-    const addReasoning = (data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) => {
-        if (!data.reasoning.trim()) {
-            return;
+        if (b === CONST.ACCOUNT_ID.CONCIERGE) {
+            return 1;
         }
+        return a - b;
+    });
 
-        const isNewRequest = agentZeroRequestIDRef.current !== data.agentZeroRequestID;
-        if (isNewRequest) {
-            agentZeroRequestIDRef.current = data.agentZeroRequestID;
-        }
-
-        const entry: ReasoningEntry = {
-            reasoning: data.reasoning,
-            loopCount: data.loopCount,
-            timestamp: Date.now(),
-        };
-
-        if (isNewRequest) {
-            setReasoningHistory([entry]);
-            return;
-        }
-
-        setReasoningHistory((prev) => {
-            const isDuplicate = prev.some((e) => e.loopCount === data.loopCount && e.reasoning === data.reasoning);
-            if (isDuplicate) {
-                return prev;
-            }
-            return [...prev, entry];
-        });
-    };
-
-    // Subscribe to Pusher reasoning events for this report's channel
-    useEffect(() => {
-        const channelName = getReportChannelName(reportID);
-
-        const listener = Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
-            const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number};
-            addReasoning(eventData);
-        });
-        listener.catch((error: unknown) => {
-            Log.hmmm('[AgentZeroStatusGate] Failed to subscribe to Pusher concierge reasoning events', {reportID, error});
-        });
-
-        return () => {
-            listener.unsubscribe();
-        };
-    }, [reportID, addReasoning]);
-
-    // Synchronize the displayed label with debounce and minimum display time.
-    // displayedLabelRef mirrors state so the effect can check the current value without depending on displayedLabel.
-    useEffect(() => {
-        let targetLabel = '';
-        if (serverLabel) {
-            targetLabel = serverLabel;
-        } else if (optimisticStartTime) {
-            targetLabel = translate('common.thinking');
-        }
-
-        if (displayedLabelRef.current === targetLabel) {
-            return;
-        }
-
-        const now = Date.now();
-        const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
-        const remainingMinTime = Math.max(0, MIN_DISPLAY_TIME - timeSinceLastUpdate);
-
-        if (updateTimerRef.current) {
-            clearTimeout(updateTimerRef.current);
-            updateTimerRef.current = null;
-        }
-
-        // Immediate update when enough time has passed or when clearing the label
-        if (remainingMinTime === 0 || targetLabel === '') {
-            displayedLabelRef.current = targetLabel;
-
-            setDisplayedLabel(targetLabel);
-            lastUpdateTimeRef.current = now;
-        } else {
-            // Schedule update after debounce + remaining min display time
-            const delay = DEBOUNCE_DELAY + remainingMinTime;
-            updateTimerRef.current = setTimeout(() => {
-                displayedLabelRef.current = targetLabel;
-                setDisplayedLabel(targetLabel);
-                lastUpdateTimeRef.current = Date.now();
-                updateTimerRef.current = null;
-            }, delay);
-        }
-
-        return () => {
-            if (!updateTimerRef.current) {
-                return;
-            }
-            clearTimeout(updateTimerRef.current);
-        };
-    }, [serverLabel, optimisticStartTime, translate]);
-
-    // Pusher updates carrying the server label can be silently dropped, leaving the optimistic indicator stuck forever.
-    useEffect(() => {
-        if (!optimisticStartTime) {
-            return;
-        }
-        const elapsed = Date.now() - optimisticStartTime;
-        const remaining = Math.max(0, OPTIMISTIC_TIMEOUT - elapsed);
-        const timer = setTimeout(() => {
-            setOptimisticStartTime(null);
-        }, remaining);
-        return () => clearTimeout(timer);
-    }, [optimisticStartTime]);
-
-    const kickoffWaitingIndicator = () => {
-        setOptimisticStartTime(Date.now());
-    };
-
-    // True when AgentZero is actively working — either the server sent a label or we're optimistically waiting
-    const isProcessing = !isOffline && (!!serverLabel || !!optimisticStartTime);
-
-    const stateValue: AgentZeroStatusState = {
-        isProcessing,
-        reasoningHistory,
-        statusLabel: displayedLabel,
-    };
-
-    const actionsValue: AgentZeroStatusActions = {
-        kickoffWaitingIndicator,
-    };
+    const stateValue = {candidateAgentIDs};
+    const actionsValue = {kickoffWaitingIndicator};
 
     return (
         <AgentZeroStatusActionsContext.Provider value={actionsValue}>
@@ -281,4 +145,4 @@ function useAgentZeroStatusActions(): AgentZeroStatusActions {
 }
 
 export {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions};
-export type {AgentZeroStatusState, AgentZeroStatusActions, ReasoningEntry};
+export type {ReasoningEntry};

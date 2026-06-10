@@ -59,6 +59,9 @@ type ReportActionAvatarsProps = {
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CardFeed;
 
+    /** Size of the subscript card feed icon */
+    subscriptCardFeedIconSize?: {width: number; height: number};
+
     /** Whether we want to be redirected to profile on avatars click */
     useProfileNavigationWrapper?: boolean;
 
@@ -98,6 +101,7 @@ function ReportActionAvatars({
     subscriptAvatarBorderColor,
     noRightMarginOnSubscriptContainer = false,
     subscriptCardFeed,
+    subscriptCardFeedIconSize,
     secondaryAvatarContainerStyle,
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
@@ -165,6 +169,7 @@ function ReportActionAvatars({
                 noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
+                subscriptCardFeedIconSize={subscriptCardFeedIconSize}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
                 reportID={reportID}
@@ -175,7 +180,6 @@ function ReportActionAvatars({
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         return (
             <ReportActionAvatar.Multiple.Horizontal
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...(isHorizontalStackingAnObject ? horizontalStacking : {})}
                 size={size}
                 icons={icons}

@@ -14,10 +14,11 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import {startTracking} from '@libs/telemetry/submitFollowUpAction';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import {getIOURequestPolicyID} from '@userActions/IOU';
+import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {sendInvoice} from '@userActions/IOU/SendInvoice';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +80,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        const isFromGlobalCreate = transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
+        const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
         startTracking(
             {
                 scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
@@ -102,7 +103,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyWebsite,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
-            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             senderPolicyTags: policyTags ?? {},
         });
     };

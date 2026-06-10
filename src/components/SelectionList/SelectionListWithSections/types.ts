@@ -47,14 +47,14 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
+    /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */
+    shouldPreventAutoScrollOnSelect?: boolean;
+
     /** Whether to wrap long text in rows */
     isRowMultilineSupported?: boolean;
 
     /** Number of lines to show for title text when multiline is supported */
     titleNumberOfLines?: number;
-
-    /** Whether to show the default right hand side component */
-    shouldUseDefaultRightHandSideComponent?: boolean;
 };
 
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
@@ -83,4 +83,4 @@ type SectionListItem<TItem extends ListItem> = TItem & {
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
-export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, SectionHeader, FlattenedItem};
+export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, FlattenedItem};

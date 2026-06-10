@@ -18,6 +18,7 @@ import type {
     ShareBankAccountParams,
     UnshareBankAccountParams,
     UpdatePersonalBankAccountInfoParams,
+    UploadUserKYBDocsParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -85,6 +86,13 @@ type OpenPersonalBankAccountSetupViewProps = {
     /** Whether the user is validated */
     isUserValidated?: boolean;
 };
+
+type VBBAOnyxKey =
+    | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
+    | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+    | typeof ONYXKEYS.ONFIDO_TOKEN
+    | typeof ONYXKEYS.ONFIDO_APPLICANT_ID
+    | typeof ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN;
 
 function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN, '');
@@ -158,6 +166,7 @@ type PersonalBankAccountUpdateData = Pick<
 >;
 
 function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountUpdateData) {
+    // The BE concatenates addressStreet2 into addressStreet with a newline, so mirror that here to match the stored value.
     const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
 
     const bankAccountKey = String(bankAccountID);
@@ -181,7 +190,8 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
         companyPhone: accountData.phoneNumber,
         legalFirstName: accountData.legalFirstName,
         legalLastName: accountData.legalLastName,
-        addressStreet: formattedStreet,
+        addressStreet: accountData.addressStreet,
+        addressStreet2: accountData.addressStreet2 ?? '',
         addressCity: accountData.addressCity,
         addressState: accountData.addressState,
         addressZip: accountData.addressZipCode,
@@ -311,7 +321,35 @@ function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccount
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
-function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> {
+function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData<VBBAOnyxKey> {
+    const failureData: Array<OnyxUpdate<VBBAOnyxKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            value: null,
+        },
+    ];
+    if (currentStep !== CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ONFIDO_TOKEN,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ONFIDO_APPLICANT_ID,
+            value: null,
+        });
+    }
+
     return {
         optimisticData: [
             {
@@ -339,16 +377,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = t
                 },
             },
         ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
-                },
-            },
-        ],
+        failureData,
     };
 }
 
@@ -359,10 +388,7 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
 /**
  * Get the Onyx data required to set the last used payment method to VBBA for a given policyID
  */
-function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
-    policyID?: string,
-    lastPaymentMethod?: LastPaymentMethodType | string,
-): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> {
+function getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID?: string, lastPaymentMethod?: LastPaymentMethodType | string): OnyxData<VBBAOnyxKey> {
     const onyxData = getVBBADataForOnyx();
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
@@ -1248,6 +1274,7 @@ function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurre
         policyID,
         bankAccountID,
         shouldPreserveDraft,
+        includeUploadKYBSetupStep: true,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
@@ -1304,6 +1331,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
             ...params,
             bankAccountID,
             policyID,
+            includeUploadKYBSetupStep: true,
         },
         onyxData,
     );
@@ -1339,6 +1367,10 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
+}
+
+function uploadUserKYBDocs(parameters: UploadUserKYBDocsParams) {
+    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, getVBBADataForOnyx());
 }
 
 function openWorkspaceView(policyID: string | undefined) {
@@ -1554,8 +1586,11 @@ function clearShareBankAccount() {
     Onyx.set(ONYXKEYS.SHARE_BANK_ACCOUNT, null);
 }
 
-function clearShareBankAccountErrors() {
+function clearShareBankAccountErrors(bankAccountID?: number) {
     Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {errors: null});
+    if (bankAccountID) {
+        Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {errors: null}});
+    }
 }
 
 function setShareBankAccountAdmins(admins?: MemberForList[]) {
@@ -1857,4 +1892,5 @@ export {
     updatePersonalBankAccountInfo,
     initiateBankAccountUnlock,
     pressLockedBankAccount,
+    uploadUserKYBDocs,
 };

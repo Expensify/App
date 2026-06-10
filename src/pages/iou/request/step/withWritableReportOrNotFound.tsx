@@ -59,7 +59,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
-    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
+    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
@@ -103,7 +104,6 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 report={report}
                 reportDraft={reportDraft}

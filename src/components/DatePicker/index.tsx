@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -34,6 +35,7 @@ function DatePicker({
     shouldHideClearButton = false,
     autoComplete = 'off',
     forwardedFSClass,
+    shouldDeferShowUntilPositioned = false,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -41,11 +43,18 @@ function DatePicker({
     const {translate} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
+    useAccessibilityAnnouncement(announcementMessage, isModalVisible, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
+    // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
+    // picker was dismissed before it resolved.
+    const openIntentRef = useRef(false);
+    // Whether the initial autoFocus has already opened the picker, so later focuses don't reopen it.
+    const hasAutoOpenedRef = useRef(false);
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
@@ -65,29 +74,66 @@ function DatePicker({
         setSelectedDate(value);
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const calculatePopoverPosition = useCallback(() => {
-        anchorRef.current?.measureInWindow((x, y, width, height) => {
-            const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
-            setIsInverted(wouldExceedBottom);
+    const calculatePopoverPosition = useCallback(
+        (onMeasured?: () => void) => {
+            anchorRef.current?.measureInWindow((x, y, width, height) => {
+                const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
+                setIsInverted(wouldExceedBottom);
 
-            setPopoverPosition({
-                horizontal: x + width,
-                vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
+                setPopoverPosition({
+                    horizontal: x + width,
+                    vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
+                });
+
+                onMeasured?.();
             });
-        });
-    }, [windowHeight]);
+        },
+        [windowHeight],
+    );
 
     const showDatePickerModal = useCallback(() => {
         cancelAutoFocus();
         // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
         textInputRef.current?.blur();
-        calculatePopoverPosition();
-        setIsModalVisible(true);
-    }, [calculatePopoverPosition, cancelAutoFocus]);
+
+        if (!shouldDeferShowUntilPositioned) {
+            calculatePopoverPosition();
+            setIsModalVisible(true);
+            return;
+        }
+
+        openIntentRef.current = true;
+        calculatePopoverPosition(() => {
+            if (!openIntentRef.current) {
+                return;
+            }
+            setIsModalVisible(true);
+        });
+    }, [shouldDeferShowUntilPositioned, calculatePopoverPosition, cancelAutoFocus]);
 
     const closeDatePicker = useCallback(() => {
+        openIntentRef.current = false;
         setIsModalVisible(false);
     }, []);
+
+    const openDatePickerOnPress = useCallback(() => {
+        if (!shouldDeferShowUntilPositioned) {
+            return;
+        }
+        showDatePickerModal();
+    }, [shouldDeferShowUntilPositioned, showDatePickerModal]);
+
+    const handleInputFocus = useCallback(() => {
+        if (!shouldDeferShowUntilPositioned) {
+            showDatePickerModal();
+            return;
+        }
+        if (!autoFocus || hasAutoOpenedRef.current) {
+            return;
+        }
+        hasAutoOpenedRef.current = true;
+        showDatePickerModal();
+    }, [shouldDeferShowUntilPositioned, autoFocus, showDatePickerModal]);
 
     const handleDateSelected = (newDate: string) => {
         onTouched?.();
@@ -103,7 +149,6 @@ function DatePicker({
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             calculatePopoverPosition();
         });
@@ -152,7 +197,8 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    onFocus={showDatePickerModal}
+                    onPress={openDatePickerOnPress}
+                    onFocus={handleInputFocus}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
@@ -173,6 +219,7 @@ function DatePicker({
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
+                shouldCloseWhenBrowserNavigationChanged
             />
         </>
     );

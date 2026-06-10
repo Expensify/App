@@ -1,3 +1,4 @@
+import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
@@ -43,7 +44,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const {environmentURL} = useEnvironment();
@@ -73,7 +74,10 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const domainID = fullySetUpCardSetting.key.split('_').at(-1);
     const effectiveDomainID = Number(domainID ?? workspaceAccountID);
 
-    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`);
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {
+        selector: isExpensifyCardContinuousReconciliationEnabledSelector,
+    });
+    const [continuousReconciliationPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${effectiveDomainID}`);
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
     const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${effectiveDomainID}`);
 
@@ -109,8 +113,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                 return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
-            case CONST.POLICY.CONNECTIONS.ROUTE.QBD:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID)}`;
             default:
                 return '';
         }
@@ -124,11 +126,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     }, [policyID]);
 
     useEffect(() => {
-        if (continuousReconciliation?.value !== undefined) {
+        if (continuousReconciliation !== undefined) {
             return;
         }
         fetchPolicyAccountingData();
-    }, [continuousReconciliation?.value, fetchPolicyAccountingData]);
+    }, [continuousReconciliation, fetchPolicyAccountingData]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -153,10 +155,10 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.accounting.continuousReconciliation')}
                         disabled={!autoSync}
-                        isActive={!!continuousReconciliation?.value}
+                        isActive={!!continuousReconciliation}
                         onToggle={handleToggleContinuousReconciliation}
                         wrapperStyle={styles.ph5}
-                        pendingAction={continuousReconciliation?.pendingAction}
+                        pendingAction={continuousReconciliationPendingAction}
                     />
                     {!autoSync && (
                         <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
@@ -169,8 +171,8 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             />
                         </View>
                     )}
-                    <OfflineWithFeedback pendingAction={continuousReconciliation?.pendingAction}>
-                        {!!paymentBankAccountID && !!continuousReconciliation?.value && (
+                    <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>
+                        {!!paymentBankAccountID && !!continuousReconciliation && (
                             <MenuItemWithTopDescription
                                 style={styles.mt5}
                                 title={bankAccountTitle}

@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {getIOURequestPolicyID} from '@userActions/IOU';
+import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU/PerDiem';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -240,7 +240,6 @@ function IOURequestStepSubrate({
                             items={validOptions}
                             onValueChange={(value) => {
                                 setSubrateValue(value as string);
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     textInputRef.current?.focus();
                                 });

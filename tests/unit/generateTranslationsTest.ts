@@ -16,7 +16,6 @@ let consoleErrorSpy: jest.SpyInstance;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
 let mockEn: any = jest.requireActual('@src/languages/en');
 jest.mock('@src/languages/en', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     get default() {

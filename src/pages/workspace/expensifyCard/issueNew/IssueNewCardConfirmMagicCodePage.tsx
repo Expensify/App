@@ -2,6 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,15 +15,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type IssueNewCardConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE>;
+type IssueNewCardConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE>;
 
 function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodePageProps) {
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const primaryLogin = account?.primaryLogin ?? session?.email ?? '';
@@ -37,19 +38,21 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const personalDetails = usePersonalDetails();
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path);
 
     useEffect(() => {
         if (!isSuccessful) {
             return;
         }
-        if (backTo && shouldUseBackToParam) {
-            Navigation.goBack(backTo, {compareParams: false});
+        if (backPath && shouldUseBackToParam) {
+            const path = (backPath.includes(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path) ? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID) : backPath) as Route;
+            Navigation.goBack(path, {compareParams: false});
         } else {
             Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
         }
         clearIssueNewCardFlow(policyID);
-    }, [backTo, isSuccessful, policyID, shouldUseBackToParam]);
+    }, [backPath, isSuccessful, policyID, shouldUseBackToParam]);
 
     const handleSubmit = useCallback(
         (validateCode: string) => {
@@ -61,8 +64,8 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
 
     const handleClose = useCallback(() => {
         resetValidateActionCodeSent();
-        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, backTo));
-    }, [policyID, backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     return (
         <ValidateCodeActionContent

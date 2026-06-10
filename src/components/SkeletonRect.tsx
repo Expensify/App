@@ -23,7 +23,6 @@ function SkeletonRect({borderRadius, height, ...rest}: SkeletonRectProps) {
     const radius = borderRadius ?? getDefaultRadius(height);
     return (
         <Rect
-            // eslint-disable-next-line react/jsx-props-no-spreading -- SkeletonRect is a thin wrapper that forwards all remaining RectProps to the underlying SVG Rect
             {...rest}
             height={height}
             rx={radius}

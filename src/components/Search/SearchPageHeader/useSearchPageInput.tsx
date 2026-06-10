@@ -23,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,8 +118,9 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
     }
 
     function submitSearch(queryString: SearchQueryString, shouldSkipAmountConversion = false) {
-        const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-        const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
+        const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID);
+        const queryWithContext = getKeywordQueryWithCurrentSearchContext(queryWithSubstitutions, queryJSON);
+        const updatedQuery = getQueryWithUpdatedValues(queryWithContext, shouldSkipAmountConversion);
 
         if (!updatedQuery) {
             return;
@@ -129,7 +130,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         Navigation.navigate(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: updatedQuery,
-                rawQuery: queryWithSubstitutions,
+                rawQuery: shouldSkipAmountConversion ? undefined : queryWithSubstitutions,
             }),
         );
         onSubmit();
@@ -198,7 +199,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         }
     }
 
-    const searchQueryItems = textInputValue
+    const searchQueryItems = textInputValue?.trim()
         ? [
               {
                   text: textInputValue,

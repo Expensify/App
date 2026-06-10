@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,12 +59,10 @@ type SearchAutocompleteInputProps = {
 
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
-
     inputStyle?: StyleProp<TextStyle>;
-
     inputContainerStyle?: StyleProp<ViewStyle>;
-
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
+    clearButtonStyle?: StyleProp<ViewStyle>;
 
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
@@ -96,6 +95,7 @@ function SearchAutocompleteInput({
     inputStyle,
     inputContainerStyle,
     touchableInputWrapperStyle,
+    clearButtonStyle,
     isSearchingForReports,
     selection,
     substitutionMap,
@@ -121,7 +121,7 @@ function SearchAutocompleteInput({
     const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
@@ -222,6 +222,7 @@ function SearchAutocompleteInput({
                     textInputContainerStyles={[styles.borderNone, styles.pb0, styles.ph3, inputContainerStyle]}
                     inputStyle={[inputWidth, styles.lineHeightUndefined, inputStyle]}
                     touchableInputWrapperStyle={touchableInputWrapperStyle}
+                    clearButtonStyle={clearButtonStyle}
                     placeholderTextColor={theme.textSupporting}
                     loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
                     onFocus={() => {

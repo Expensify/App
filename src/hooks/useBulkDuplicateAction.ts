@@ -1,7 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -26,19 +26,17 @@ type UseBulkDuplicateActionParams = {
  * so these subscriptions don't exist for users who aren't actively duplicating.
  */
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
-    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -70,16 +68,14 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             personalDetails,
             isASAPSubmitBetaEnabled,
             introSelected,
-            activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             isSelfTourViewed,
             transactionDrafts,
-            draftTransactionIDs,
             betas,
             recentWaypoints,
-            currentUserAccountID: accountID,
-            currentUserLogin: currentUserLogin ?? '',
+            currentUser: {accountID, email: currentUserLogin ?? ''},
+            currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
         });
 
         if (onAfterDuplicate) {

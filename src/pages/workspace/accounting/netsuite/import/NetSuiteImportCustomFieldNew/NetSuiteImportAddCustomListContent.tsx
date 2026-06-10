@@ -51,7 +51,6 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             const updatedCustomLists = customLists.concat([
                 {
@@ -141,6 +140,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
                     onNext={handleNextScreen}
                     onMove={moveTo}
                     policy={policy}
+                    policyIDParam={policyIDParam}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
                     netSuiteCustomFieldFormValues={values}
                     customLists={customLists}

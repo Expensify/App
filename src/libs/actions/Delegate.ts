@@ -17,6 +17,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
+import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
@@ -42,14 +43,17 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 ];
 
 /**
- * Atomically reset Onyx for a delegate-access transition while keeping IS_LOADING_APP=true
- * so consumers never observe the post-clear state with HAS_LOADED_APP=true and
- * IS_LOADING_APP=undefined. That combination falsely looks like a stuck app and triggers
- * DelegateAccessHandler's recovery effect, producing a duplicate openApp queued behind the
- * explicit openApp the caller is about to make.
+ * Atomically reset Onyx for a delegate-access transition. The IS_LOADING_APP=true
+ * seed is delegate-specific: without it, consumers observe HAS_LOADED_APP=true and
+ * IS_LOADING_APP=undefined together, which looks like a stuck app and triggers
+ * DelegateAccessHandler's recovery effect, queueing a duplicate openApp.
+ *
+ * The reconnect-time seed is handled by clearOnyxAndSeedFullReconnect.
  */
 function clearOnyxForDelegateTransition(): Promise<void> {
-    return Onyx.merge(ONYXKEYS.IS_LOADING_APP, true).then(() => Onyx.clear([...KEYS_TO_PRESERVE_DELEGATE_ACCESS, ONYXKEYS.IS_LOADING_APP]));
+    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {
+        [ONYXKEYS.IS_LOADING_APP]: true,
+    });
 }
 
 type WithDelegatedAccess = {
@@ -702,5 +706,4 @@ export {
     removeDelegate,
     openSecuritySettingsPage,
     clearOnyxForDelegateTransition,
-    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
 };

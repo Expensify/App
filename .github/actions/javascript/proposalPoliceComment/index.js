@@ -11696,7 +11696,6 @@ async function run() {
             const duplicateCheckPrompt = proposalPolice_1.default.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
@@ -11734,7 +11733,6 @@ async function run() {
         ? proposalPolice_1.default.getPromptForNewProposalTemplateCheck(payload.comment?.body)
         : proposalPolice_1.default.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
     const parsedAssistantResponse = openAI.parseAssistantResponse(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
@@ -12554,15 +12552,11 @@ class OpenAIUtils {
      */
     async promptAssistant(assistantID, userMessage) {
         // 1. Create a thread
-        const thread = await (0, retryWithBackoff_1.default)(() => 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        this.client.beta.threads.create({
+        const thread = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.create({
             messages: [{ role: OpenAIUtils.USER, content: userMessage }],
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         // 2. Create a run on the thread
-        let run = await (0, retryWithBackoff_1.default)(() => 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        this.client.beta.threads.runs.create(thread.id, {
+        let run = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.runs.create(thread.id, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             assistant_id: assistantID,
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
@@ -12570,7 +12564,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             run = await this.client.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
@@ -12579,7 +12573,6 @@ class OpenAIUtils {
                 });
                 continue;
             }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             for await (const message of this.client.beta.threads.messages.list(thread.id)) {
                 if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;

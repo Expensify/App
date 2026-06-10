@@ -35,15 +35,10 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {
-    getAllPersonalDetails,
-    getReceiptError,
-    getSearchOnyxUpdate,
-    handleNavigateAfterExpenseCreate,
-    highlightTransactionOnSearchRouteIfNeeded,
-    mergePolicyRecentlyUsedCategories,
-    mergePolicyRecentlyUsedCurrencies,
-} from '.';
+import {getAllPersonalDetails} from '.';
+import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
+import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {getSearchOnyxUpdate} from './SearchUpdate';
 import type BasePolicyParams from './types/BasePolicyParams';
 
 type SendInvoiceInformation = {
@@ -89,6 +84,8 @@ type SendInvoiceOptions = {
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     shouldHandleNavigation?: boolean;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -592,6 +589,7 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     senderPolicyTags,
+    delegateAccountID,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -670,7 +668,7 @@ function getSendInvoiceInformation({
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction, undefined, undefined, delegateAccountID);
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
@@ -683,6 +681,8 @@ function getSendInvoiceInformation({
             payeeEmail: receiver.login ?? '',
             participants: [receiver],
             transactionID: optimisticTransaction.transactionID,
+            currentUserAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
 
     // STEP 6: Build Onyx Data
@@ -739,6 +739,7 @@ function sendInvoice({
     isFromGlobalCreate = false,
     senderPolicyTags,
     shouldHandleNavigation = true,
+    delegateAccountID,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -773,6 +774,7 @@ function sendInvoice({
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
         senderPolicyTags: senderPolicyTags ?? {},
+        delegateAccountID,
     });
 
     const parameters: SendInvoiceParams = {
@@ -811,7 +813,6 @@ function sendInvoice({
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);

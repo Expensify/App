@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
@@ -128,6 +129,8 @@ function BaseDomainMembersPage({
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     const data: MemberOption[] = accountIDs
         .filter((accountID) => {
             const details = personalDetails?.[accountID];
@@ -208,27 +211,27 @@ function BaseDomainMembersPage({
         return getCustomListHeader();
     };
 
-    const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const shouldShowEmptySearchMessage = !!shouldShowSearchBar && inputValue.length !== 0 && filteredData.length === 0;
     // Show empty pre filter state only if we have data, filtered data is empty, but the search have not been used.
     const shouldShowEmptyPreFilterState = filteredData.length === 0 && data.length !== 0 && !!emptyStateTitle && inputValue.length === 0;
     const listHeaderContent =
         searchBarAccessory || shouldShowSearchBar ? (
             <View style={styles.flexColumn}>
-                <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
+                <View style={[styles.mh5, styles.gap3, styles.mb5, shouldDisplayButtonsInSeparateLine ? styles.flexColumn : styles.flexRow]}>
                     {!!searchBarAccessory && (
                         <View
                             style={[
-                                shouldUseNarrowLayout && styles.w100,
-                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
-                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
+                                shouldDisplayButtonsInSeparateLine && styles.w100,
+                                shouldShowSearchBar && !shouldDisplayButtonsInSeparateLine && styles.h13,
+                                shouldShowSearchBar && !shouldDisplayButtonsInSeparateLine && styles.justifyContentCenter,
                             ]}
                         >
                             {searchBarAccessory}
                         </View>
                     )}
                     {shouldShowSearchBar && (
-                        <View style={[shouldUseNarrowLayout && styles.w100]}>
+                        <View style={[shouldDisplayButtonsInSeparateLine ? styles.w100 : styles.flex1]}>
                             <SearchBar
                                 inputValue={inputValue}
                                 onChangeText={setInputValue}
@@ -270,10 +273,11 @@ function BaseDomainMembersPage({
                     icon={!useSelectionModeHeader ? headerIcon : undefined}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
+                    shouldDisplayHelpButton
                 >
-                    {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <SelectionListWithModal
                     data={filteredData}
                     shouldShowRightCaret
@@ -293,9 +297,10 @@ function BaseDomainMembersPage({
                     customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                     customListHeaderContent={listHeaderContent}
                     onSelectAll={toggleAllUsers}
-                    onCheckboxPress={toggleUser}
+                    onSelectionButtonPress={toggleUser}
                     selectedItems={selectedMembers}
                     turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
                     onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}

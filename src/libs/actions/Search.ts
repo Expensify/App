@@ -6,8 +6,10 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
 import type {
@@ -20,16 +22,16 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
+import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -47,39 +49,25 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {
-    BankAccountList,
-    Beta,
-    BillingGraceEndPeriod,
-    ExportTemplate,
-    LastPaymentMethod,
-    LastPaymentMethodType,
-    Policy,
-    Report,
-    ReportAction,
-    ReportNameValuePairs,
-    Transaction,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {Beta, BillingGraceEndPeriod, ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import {getCurrentUserEmail} from './IOU';
-import {deleteMoneyRequest} from './IOU/DeleteMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
-import {deleteAppReport, setOptimisticTransactionThread} from './Report';
+import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -103,28 +91,19 @@ type HandleActionButtonPressParams = {
     goToItem: () => void;
     snapshotReport: Report;
     snapshotPolicy: Policy;
+    policy: OnyxEntry<Policy>;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     currentSearchKey?: SearchKey;
+    onHoldMenuOpen?: HoldMenuCallback;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
-};
-
-type BulkDeleteReportsParams = {
-    reports: OnyxCollection<Report>;
-    selfDMReport: OnyxEntry<Report>;
-    selectedTransactions: Record<string, SelectedTransactionInfo>;
-    currentUserEmailParam: string;
-    currentUserAccountIDParam: number;
-    reportTransactions: Record<string, Transaction>;
-    transactionsViolations: Record<string, TransactionViolations>;
-    bankAccountList: OnyxEntry<BankAccountList>;
-    transactions?: OnyxCollection<Transaction>;
-    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    onPendingCardTransactionsBlock?: () => void;
+    currentUserAccountID?: number;
 };
 
 function handleActionButtonPress({
@@ -133,22 +112,31 @@ function handleActionButtonPress({
     goToItem,
     snapshotReport,
     snapshotPolicy,
+    policy,
     lastPaymentMethod,
     userBillingGracePeriodEnds,
     currentSearchKey,
+    onHoldMenuOpen,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
     ownerBillingGracePeriodEnd,
+    onPendingCardTransactionsBlock,
     amountOwed,
     onUndelete,
+    currentUserAccountID,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
-    const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
+    const hasHeldExpense = hasHeldExpenses(allReportTransactions);
 
-    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE) {
+    if (
+        hasHeldExpense &&
+        item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT &&
+        item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE &&
+        (item.action !== CONST.SEARCH.ACTION_TYPES.APPROVE || !onHoldMenuOpen)
+    ) {
         goToItem();
         return;
     }
@@ -159,7 +147,7 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
@@ -170,15 +158,23 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
+            if (hasHeldExpense) {
+                onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
+            if (hasOnlyPendingCardTransactions(allReportTransactions)) {
+                onPendingCardTransactionsBlock?.();
                 return;
             }
             submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
@@ -189,8 +185,8 @@ function handleActionButtonPress({
                 return;
             }
 
-            const policy = snapshotPolicy ?? {};
-            const connectedIntegration = getValidConnectedIntegration(policy);
+            const exportPolicy = snapshotPolicy ?? {};
+            const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
                 return;
@@ -518,7 +514,7 @@ function search({
     prevReportsLength,
     isOffline = false,
     isLoading,
-    shouldUpdateLastSearchParams = true,
+    shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
@@ -616,6 +612,7 @@ function search({
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
+    const firstReport = (reportList.at(0) ?? {}) as Report;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -658,10 +655,9 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
         },
     ];
 
-    const report = (reportList.at(0) ?? {}) as Report;
     const parameters: SubmitReportParams = {
-        reportID: report.reportID,
-        managerAccountID: getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,
+        reportID: firstReport.reportID,
+        managerAccountID: getSubmitReportManagerAccountID(policy.at(0), firstReport),
         reportActionID: rand64(),
     };
 
@@ -889,101 +885,13 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], curre
     });
 }
 
-function bulkDeleteReports({
-    reports,
-    selfDMReport,
-    selectedTransactions,
-    currentUserEmailParam,
-    currentUserAccountIDParam,
-    reportTransactions,
-    transactionsViolations,
-    bankAccountList,
-    transactions,
-    allReportNameValuePairs,
-}: BulkDeleteReportsParams) {
-    const transactionIDList: string[] = [];
-    const reportIDList: string[] = [];
-
-    // Collect all report IDs that are being deleted
-    for (const key of Object.keys(selectedTransactions)) {
-        const selectedItem = selectedTransactions[key];
-        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-            reportIDList.push(selectedItem.reportID);
-        }
-    }
-
-    // Collect transaction IDs, but exclude any transactions whose reportID is in the list of reports being deleted
-    for (const key of Object.keys(selectedTransactions)) {
-        const selectedItem = selectedTransactions[key];
-        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-            continue;
-        }
-        if (!selectedItem.reportID || !reportIDList.includes(selectedItem.reportID)) {
-            transactionIDList.push(key);
-        }
-    }
-
-    // Group transaction IDs by IOU report so multi-delete totals and last-expense report removal are correct
-    const transactionsByReport = transactionIDList.reduce<Record<string, string[]>>((acc, transactionID) => {
-        const reportID = selectedTransactions[transactionID].report?.reportID;
-        if (!reportID) {
-            return acc;
-        }
-        if (!acc[reportID]) {
-            acc[reportID] = [];
-        }
-        acc[reportID].push(transactionID);
-        return acc;
-    }, {});
-
-    for (const transactionID of transactionIDList) {
-        const reportAction = selectedTransactions[transactionID].reportAction;
-        if (!reportAction) {
-            continue;
-        }
-        const reportID = selectedTransactions[transactionID].report?.reportID;
-        const batchTransactionIDsForReport = reportID ? (transactionsByReport[reportID] ?? []) : [];
-        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].report?.chatReportID}`];
-        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
-
-        deleteMoneyRequest({
-            transactionID,
-            reportAction,
-            transactions,
-            violations: transactionsViolations,
-            iouReport: selectedTransactions[transactionID].report,
-            chatReport,
-            isChatIOUReportArchived: !!reportNameValuePair?.private_isArchived,
-            transactionIDsPendingDeletion: batchTransactionIDsForReport.filter((id) => id !== transactionID),
-            selectedTransactionIDs: batchTransactionIDsForReport.length > 0 ? batchTransactionIDsForReport : undefined,
-            allTransactionViolationsParam: transactionsViolations,
-            currentUserAccountID: currentUserAccountIDParam,
-            currentUserEmail: currentUserEmailParam,
-        });
-    }
-
-    if (reportIDList.length > 0) {
-        for (const reportID of reportIDList) {
-            const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            deleteAppReport({
-                report,
-                selfDMReport,
-                currentUserEmailParam,
-                currentUserAccountIDParam,
-                reportTransactions,
-                allTransactionViolations: transactionsViolations,
-                bankAccountList,
-            });
-        }
-    }
-}
-
 function rejectMoneyRequestInBulk(
     reportID: string,
     comment: string,
     policy: OnyxEntry<Policy>,
     transactionIDs: string[],
     currentUserAccountIDParam: number,
+    currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
     hash?: number,
 ) {
@@ -1004,7 +912,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, getCurrentUserEmail(), betas, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1039,6 +947,7 @@ function rejectMoneyRequestsOnSearch(
     allPolicies: OnyxCollection<Policy>,
     allReports: OnyxCollection<Report>,
     currentUserAccountIDParam: number,
+    currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
@@ -1072,12 +981,20 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, betas, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
+            let existingRejectedReport: OnyxEntry<Report>;
+            const setExistingRejectedReport = (nextRejectedReport: OnyxEntry<Report>) => {
+                existingRejectedReport = nextRejectedReport;
+            };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, getCurrentUserEmail(), betas, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {
+                    sharedRejectedToReportID,
+                    existingRejectedReport,
+                    setExistingRejectedReport,
+                });
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {
@@ -1312,18 +1229,14 @@ function getPayOption(
         selectedReports.length > 0
             ? selectedReports.every(
                   (report) =>
-                      report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) &&
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      ((hasLastPaymentMethod && report.policyID) || (getReportType(report.reportID) === getReportType(firstReport?.reportID) && report.policyID === firstReport?.policyID)) &&
+                      report.canPay &&
+                      getReportType(report.reportID) === getReportType(firstReport?.reportID) &&
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      ((hasLastPaymentMethod && selectedTransactions[transactionIDKey].policyID) ||
-                          (getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID) &&
-                              selectedTransactions[transactionIDKey].policyID === firstTransaction?.policyID)),
+                      getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID),
               );
 
     return {
@@ -1363,6 +1276,7 @@ function handleBulkPayItemSelected(params: {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: BulkPaySelectionData) => void;
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
+    currentUserAccountID: number;
 }) {
     const {
         item,
@@ -1380,6 +1294,7 @@ function handleBulkPayItemSelected(params: {
         amountOwed,
         ownerBillingGracePeriodEnd,
         setPendingPaymentAdditionalData,
+        currentUserAccountID,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
@@ -1397,13 +1312,13 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
 
     if (!isUserValidated) {
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
         return;
     }
 
@@ -1458,7 +1373,12 @@ function getPayMoneyOnSearchInvoiceParams(policyID: string | undefined, payAsBus
 /**
  * Return the total amount of selected transactions/reports.
  */
-function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency?: string): string {
+function getTotalFormattedAmount(
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    selectedReports: SelectedReports[],
+    selectedTransactions: SelectedTransactions,
+    currency?: string,
+): string {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const totalAmount =
         selectedReports.length > 0
@@ -1504,6 +1424,8 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
             created,
             reportActionID: moneyRequestReportActionID,
             linkedExpenseReportAction: {childReportID: IOUTransactionID} as ReportAction,
+            // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            delegateAccountIDParam: undefined,
         });
         optimisticIOUAction.pendingAction = undefined;
         optimisticIOUAction.actorAccountID = from?.accountID;
@@ -1535,7 +1457,6 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 export {
     saveSearch,
     search,
-    bulkDeleteReports,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,

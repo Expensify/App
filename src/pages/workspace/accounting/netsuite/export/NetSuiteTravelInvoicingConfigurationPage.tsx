@@ -1,16 +1,17 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type NetSuiteSectionType = {
@@ -23,12 +24,14 @@ type NetSuiteSectionType = {
 };
 
 const payableAccountSetting = [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT];
+const journalPostingPreferenceSetting = [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE];
 
 function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
+    const netSuiteExportBackPath = useMemo(() => createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)), [policyID]);
     const config = policy?.connections?.netsuite?.options?.config;
 
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
@@ -37,7 +40,7 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
     const sections: NetSuiteSectionType[] = [
         {
             title: travelPayableAccount?.name,
-            description: translate('workspace.common.travelInvoicingPayableAccount'),
+            description: translate('workspace.netsuite.nonReimbursableJournalPostingAccount'),
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -47,6 +50,21 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
             subscribedSettings: payableAccountSetting,
             pendingAction: settingsPendingAction(payableAccountSetting, config?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
+            title: config?.travelInvoicingJournalPostingPreference
+                ? translate(`workspace.netsuite.journalPostingPreference.values.${config.travelInvoicingJournalPostingPreference}`)
+                : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
+            description: translate('workspace.netsuite.journalPostingPreference.label'),
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT.getRoute(policyID));
+            },
+            subscribedSettings: journalPostingPreferenceSetting,
+            pendingAction: settingsPendingAction(journalPostingPreferenceSetting, config?.pendingFields),
+            brickRoadIndicator: areSettingsInErrorFields(journalPostingPreferenceSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
 
@@ -60,7 +78,7 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(netSuiteExportBackPath)}
         >
             <MenuItemWithTopDescription
                 title={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`)}

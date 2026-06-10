@@ -36,6 +36,7 @@ local.properties
 *.iml
 *.hprof
 android/app/src/main/java/com/expensify/chat/generated/
+scripts/generated/
 .cxx/
 
 # VIM
@@ -113,6 +114,7 @@ tests/e2e/results/
 # Typescript
 tsconfig.tsbuildinfo
 tsconfig.tsgo.tsbuildinfo
+**/tsconfig.tsgo.tsbuildinfo
 
 # Mock-github
 /repo/
@@ -166,7 +168,15 @@ modules/*/lib/
 .playwright-mcp/
 
 # agent-device
+.agent-device/
 agent-device-output/
 
 # cspell cache
 .cspellcache
+
+# Server CLI build artifacts (victory-chart-renderer, etc.)
+server/*/dist/
+server/victory-chart-renderer/.dev/
+
+# Bun lockfiles (VCR uses npm workspaces + package-lock.json; bun is runtime-only)
+bun.lock

@@ -44,10 +44,11 @@ import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
+import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
-import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
+import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
@@ -118,6 +119,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Exit',
         'Lightbulb',
         'Lock',
+        'Users',
         'Emoji',
         'CreditCard',
         'Wallet',
@@ -127,7 +129,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const allCards = useNonPersonalCardList();
@@ -159,12 +162,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
+    const [hasAgentErrors] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {
+        selector: (agents) => Object.values(agents ?? {}).some((agent) => !isEmptyObject(agent?.nameErrors) || !isEmptyObject(agent?.promptErrors) || !isEmptyObject(agent?.avatarErrors)),
+    });
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const {isBetaEnabled} = usePermissions();
+    const isAgentAccount = useIsAgentAccount();
 
     const freeTrialText = getFreeTrialText(currentUserPersonalDetails.accountID, translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
@@ -246,6 +253,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the account section
      */
     const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email);
+    const securityBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     const accountItems: MenuData[] = [
         {
             translationKey: 'common.profile',
@@ -255,15 +263,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PROFILE,
             action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
         },
-        {
-            translationKey: 'common.wallet',
-            icon: icons.Wallet,
-            screenName: SCREENS.SETTINGS.WALLET.ROOT,
-            brickRoadIndicator: walletBrickRoadIndicator,
-            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
-            badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance, CONST.CURRENCY.USD) : undefined,
-        },
+        ...(!isAgentAccount
+            ? [
+                  {
+                      translationKey: 'common.wallet' as const,
+                      icon: icons.Wallet,
+                      screenName: SCREENS.SETTINGS.WALLET.ROOT,
+                      brickRoadIndicator: walletBrickRoadIndicator,
+                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
+                      action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
+                      badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance, CONST.CURRENCY.USD) : undefined,
+                  },
+              ]
+            : []),
         {
             translationKey: 'expenseRulesPage.title',
             icon: icons.Bolt,
@@ -271,23 +283,39 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.RULES,
             action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
         },
+        ...(!isAgentAccount
+            ? [
+                  {
+                      translationKey: 'common.preferences' as const,
+                      icon: icons.Gear,
+                      screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
+                      action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+                  },
+              ]
+            : []),
         {
-            translationKey: 'common.preferences',
-            icon: icons.Gear,
-            screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
-            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+            translationKey: 'delegate.copilot',
+            icon: icons.Users,
+            screenName: SCREENS.SETTINGS.COPILOT,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.COPILOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_COPILOT),
         },
-        {
-            translationKey: 'initialSettingsPage.security',
-            icon: icons.Lock,
-            screenName: SCREENS.SETTINGS.SECURITY,
-            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
-        },
+        ...(!isAgentAccount
+            ? [
+                  {
+                      translationKey: 'initialSettingsPage.security' as const,
+                      icon: icons.Lock,
+                      screenName: SCREENS.SETTINGS.SECURITY,
+                      brickRoadIndicator: securityBrickRoadIndicator,
+                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
+                      action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
+                  },
+              ]
+            : []),
     ];
 
-    if (isBetaEnabled(CONST.BETAS.CUSTOM_AGENT)) {
+    if (!isAgentAccount && isBetaEnabled(CONST.BETAS.CUSTOM_AGENT)) {
         const rulesIndex = accountItems.findIndex((item) => item.screenName === SCREENS.SETTINGS.RULES.ROOT);
         accountItems.splice(rulesIndex + 1, 0, {
             translationKey: 'agentsPage.title',
@@ -296,10 +324,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.AGENTS,
             action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS),
             badgeText: translate('common.beta'),
+            brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
-    if (subscriptionPlan || (amountOwed ?? 0) > 0) {
+    if (!isAgentAccount && (subscriptionPlan || (amountOwed ?? 0) > 0)) {
         accountItems.splice(1, 0, {
             translationKey: 'allSettingsScreen.subscription',
             icon: icons.CreditCard,

@@ -7,7 +7,6 @@ import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {resetSignInFlow} from './HybridApp';
-import {clearAllPolicies} from './Policy/Policy';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
@@ -52,6 +51,7 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
     keysToPreserve.push(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
+    keysToPreserve.push(ONYXKEYS.NVP_SEARCH_SIDEBAR);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
     keysToPreserve.push(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
@@ -94,7 +94,6 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
             resetSignInFlow();
             HybridAppModule.signOutFromOldDot();
         }
-        clearAllPolicies();
 
         // When logging out from imported state, reset shouldForceOffline to false and clear the imported state flag
         // so the user can log back in

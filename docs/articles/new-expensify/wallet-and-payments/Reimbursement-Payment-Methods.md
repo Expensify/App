@@ -40,7 +40,6 @@ The steps to send reimbursement are the same for ACH reimbursement, global reimb
   - United Kingdom (GBP)
   - European Union (EUR)
   - Australia (AUD)
-  - Singapore (SGD)
 
   Global reimbursement can be used to reimburse members in 190+ countries, depending on supported banking rails. [Learn how to set up Global Reimbursement on a Workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
@@ -60,6 +59,8 @@ To pay one report:
    - Select a connected Workspace business bank account to send direct reimbursement.
    - Select **Pay elsewhere** to mark the report as paid outside Expensify.
 5. Select **Confirm**.
+
+**Note:** Only bank accounts that match the report's currency are shown. For example, if the report is in EUR, only EUR bank accounts appear as payment options.
 
 Once confirmed, the report status updates to **Paid**.
 
@@ -81,9 +82,11 @@ To pay reports in bulk:
    - Select **Pay elsewhere** to mark the report as paid outside Expensify.
 7. Confirm the payment.
 
+**Note:** Only bank accounts that match the report's currency are shown. For example, if the reports are in EUR, only EUR bank accounts appear as payment options. If the selected reports contain more than one currency, direct reimbursement is not available — select **Pay elsewhere** to record the payments, or pay same-currency reports in separate batches.
+
 Once confirmed, Expensify processes the transfers and the report statuses update to **Paid**.
 
-**Note:** Each selected report is processed as a separate transaction. 
+**Note:** Each selected report is processed as a separate transaction. If the selected reports have different currencies, only **Pay elsewhere** is available. To use a connected business bank account for direct reimbursement, select reports that share the same currency.
 
 ---
 

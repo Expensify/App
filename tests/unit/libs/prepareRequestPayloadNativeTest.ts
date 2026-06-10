@@ -2,7 +2,6 @@ import type PrepareRequestPayload from '@libs/prepareRequestPayload/types';
 
 const mockCheckFileExists = jest.fn<Promise<boolean>, [string | undefined]>();
 jest.mock('@libs/fileDownload/checkFileExists', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: mockCheckFileExists,
 }));
@@ -12,14 +11,12 @@ jest.mock('@libs/fileDownload/FileUtils', () => ({
 }));
 
 jest.mock('@libs/validateFormDataParameter', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 
 const mockLogAlert = jest.fn();
 jest.mock('@libs/Log', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {alert: mockLogAlert},
 }));

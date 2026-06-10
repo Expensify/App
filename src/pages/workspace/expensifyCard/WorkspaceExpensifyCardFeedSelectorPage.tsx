@@ -9,15 +9,17 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
@@ -25,8 +27,11 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {canMemberWrite} from '@libs/PolicyUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -34,7 +39,7 @@ import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -42,7 +47,7 @@ type ExpensifyFeedListItem = ListItem & {
     value: number;
 };
 
-type WorkspaceExpensifyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SELECT_FEED>;
+type WorkspaceExpensifyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED>;
 
 function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardFeedSelectorPageProps) {
     const {policyID} = route.params;
@@ -56,15 +61,18 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const primaryContactMethod = usePrimaryContactMethod();
     const defaultFundID = useDefaultFundID(policyID);
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const {primaryFeeds, otherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const policy = usePolicy(policyID);
+    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 
     const getIssueCardFundID = () => {
         if (primaryFeeds.length === 0) {
@@ -97,7 +105,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         }
         updateSelectedExpensifyCardFeed(issueCardFundID, policyID);
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path));
     };
 
     /** When there is no primary feed for this workspace, mirror empty-state flow: bank account / new program setup (same as WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT). */
@@ -182,7 +190,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
 
-    const issueNewCardAndOtherFeedsFooter = (
+    const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
             <MenuItem
                 title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
@@ -196,7 +204,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                     {otherFeeds.map((entry) => {
                         const item = toListItem(entry, true);
                         return (
-                            <RadioListItem
+                            <SingleSelectListItem
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={item.keyForList}
@@ -215,12 +223,13 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                 </>
             )}
         </View>
-    );
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
         >
             <ScreenWrapper
                 testID="WorkspaceExpensifyCardFeedSelectorPage"
@@ -234,7 +243,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                 />
                 {primaryFeeds.length > 0 ? (
                     <SelectionList
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={selectFeed}
                         data={primaryListData}
                         alternateNumberOfSupportedLines={2}

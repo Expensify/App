@@ -1,11 +1,7 @@
-import type {ReportActionItemActionsContextType, ReportActionItemStateContextType} from './types';
-
-const defaultReportActionItemStateContextValue: ReportActionItemStateContextType = {
-    shouldOpenReportInRHP: false,
-};
+import type ReportActionItemActionsContextType from './types';
 
 const defaultReportActionItemActionsContextValue: ReportActionItemActionsContextType = {
     onPreviewPressed: undefined,
 };
 
-export {defaultReportActionItemStateContextValue, defaultReportActionItemActionsContextValue};
+export default defaultReportActionItemActionsContextValue;

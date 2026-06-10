@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -65,7 +64,6 @@ function DynamicNetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsPro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DynamicNetSuiteInvoiceItemSelectPage"
             data={netsuiteInvoiceItemOptions}
-            listItem={RadioListItem}
             onSelectRow={updateInvoiceItem}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={goBack}

@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -17,7 +18,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
-import {isSelfDM} from '@libs/ReportUtils';
+import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
@@ -47,7 +48,7 @@ type MoneyRequestHeaderProps = {
     reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: (prioritizeBackTo?: boolean) => void;
+    onBackButtonPress: (prioritizeBackTo?: boolean, options?: {afterTransition?: () => void}) => void;
 };
 
 function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRequestHeaderProps) {
@@ -82,7 +83,8 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const {wideRHPRouteKeys} = useWideRHPState();
 
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
+    const isParentReportSettled = isSettledReportUtils(parentReport);
+    const isDuplicate = !isParentReportSettled && isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
 
@@ -91,7 +93,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const isFromReviewDuplicates = !!route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review');
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
-    const shouldDisplayNarrowMoreButton = !shouldUseNarrowLayout || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -115,7 +117,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         }
 
         if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
-            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.allTransactionsPendingNextStep')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
             const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
@@ -169,7 +171,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {shouldDisplayNarrowMoreButton && (
+                {!shouldDisplayButtonsInSeparateLine && (
                     <MoneyRequestHeaderActions
                         reportID={reportID}
                         onBackButtonPress={onBackButtonPress}
@@ -182,7 +184,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                     />
                 )}
             </HeaderWithBackButton>
-            {!shouldDisplayNarrowMoreButton && (
+            {shouldDisplayButtonsInSeparateLine && (
                 <MoneyRequestHeaderActions
                     reportID={reportID}
                     onBackButtonPress={onBackButtonPress}

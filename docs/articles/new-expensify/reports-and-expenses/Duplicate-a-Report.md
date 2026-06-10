@@ -1,15 +1,15 @@
 ---
 title: Duplicate a Report
-description: Learn how to create a copy of an existing report and its expenses in Expensify using Duplicate report. 
-keywords: [New Expensify, duplicate report, copy report, create copy of report, duplicate expenses]
-internalScope: Audience is all members. Covers how to duplicate an entire report and its non-card expenses. Does not cover duplicating individual expenses or duplicate detection.
+description: Learn how to create a copy of one or more existing reports and their expenses in Expensify using Duplicate report. 
+keywords: [New Expensify, duplicate report, copy report, create copy of report, duplicate expenses, bulk duplicate, duplicate multiple reports]
+internalScope: Audience is all members. Covers how to duplicate a single report and how to bulk-duplicate multiple reports from the Reports search page. Does not cover duplicating individual expenses or duplicate detection.
 ---
 
 # Duplicate a Report
 
-You can create a copy of an existing report and all of its non-card expenses using **Duplicate report**. This creates a new report with copies of all non-card expenses from the original, including each expense's merchant, amount, category, tags, and tax. Expense dates are set to today and receipt images are not copied.
+You can create a copy of one or more existing reports and all of their non-card expenses using **Duplicate report**. This creates new reports with copies of all non-card expenses from the originals, including each expense's merchant, amount, category, tags, and tax. Expense dates are set to today and receipt images are not copied.
 
-This is useful when you need to recreate a similar set of expenses such as recurring monthly reports. 
+This is useful when you need to recreate a similar set of expenses such as recurring monthly reports. You can duplicate a single report or select multiple reports and duplicate them all at once.
 
 If you only need to duplicate specific expenses, [learn how to duplicate an expense](/articles/new-expensify/reports-and-expenses/How-to-Duplicate-an-Expense). 
 
@@ -21,7 +21,7 @@ Any member who created a report can duplicate it. **Duplicate report** is availa
 
 ---
 
-## How to duplicate a report
+## How to duplicate a single report
 
 1. In the navigation tabs (on the left on web, and on the bottom on mobile), go to **Spend** > **Reports**. 
 2. Locate the report you want to duplicate.
@@ -32,6 +32,33 @@ Any member who created a report can duplicate it. **Duplicate report** is availa
 A new report is created and you are taken to it automatically.
 
 **Note:** You can only duplicate reports that you created. You can't duplicate other members' reports. 
+
+---
+
+## How to duplicate multiple reports at once
+
+You can select multiple reports and duplicate them all in one action from the Reports search page.
+
+**On web:**
+
+1. In the navigation tabs on the left, click **Spend** > **Reports**.
+2. Select two or more expense reports that you submitted.
+3. Click **Selected**, then **Duplicate report**.
+
+**On mobile:**
+
+1. In the navigation tabs on the bottom, tap **Spend** > **Reports**.
+2. Long-press a report, then tap **Select** to enter selection mode.
+3. Select two or more expense reports that you submitted.
+4. Tap **Selected**, then **Duplicate report**.
+
+Each selected report is duplicated individually. The same rules apply as for single duplication — only reports you created can be duplicated.
+
+<!-- SCREENSHOT:
+Suggestion: Show the bulk actions dropdown with the "Duplicate report" option visible after selecting multiple reports on the Reports search page.
+Location: After step 3 (web).
+Purpose: Helps the user identify the bulk duplicate option in the dropdown.
+-->
 
 ---
 
@@ -63,7 +90,7 @@ The following details are **not** copied:
 
 ## Can I duplicate multiple reports at once?
 
-No. Reports must be duplicated one at a time.
+Yes. On the Reports search page, select two or more reports that you submitted, click **Selected**, then choose **Duplicate report**. A duplicate is created for each selected report.
 
 ## Are card expenses included in the duplicate?
 

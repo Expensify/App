@@ -59,5 +59,3 @@ function getInitialAvatarSvg(initialOrText: string): React.FC<SvgProps> {
 }
 
 export {getInitialAvatarSvg, getInitialFromText, DEFAULT_INITIAL};
-
-export type {Initial};

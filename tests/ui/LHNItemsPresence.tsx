@@ -72,7 +72,6 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
 
             return (
                 <Component
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     currentUserPersonalDetails={LHNTestUtilsMock.fakePersonalDetails[currentUserAccountID]}
                 />
@@ -299,8 +298,8 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the RBR icon should be shown
-            expect(screen.getByTestId('RBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+            // Then the Fix action badge should be shown (action badges replace the RBR dot)
+            expect(screen.getByText('Fix')).toBeOnTheScreen();
         });
 
         it('should display the GBR on the parent task when it has an open subtask', async () => {
@@ -353,8 +352,8 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // That the GBR icon should be shown.
-            expect(screen.getAllByTestId('GBR Icon', {includeHiddenElements: true})).toHaveLength(1);
+            // That the Task action badge should be shown.
+            expect(screen.getByText('Task')).toBeOnTheScreen();
         });
 
         it('should display the report awaiting user action', async () => {
@@ -624,7 +623,7 @@ describe('SidebarLinksData', () => {
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, TEST_USER_ACCOUNT_ID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             // When a single transaction thread is initialized in Onyx
@@ -784,8 +783,8 @@ describe('SidebarLinksData', () => {
             // Then the sidebar should display the outstanding report.
             expect(getDisplayNames()).toHaveLength(1);
 
-            // And the GBR icon should be shown, indicating there is require action from current user.
-            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+            // And the Task action badge should be shown, indicating there is required action from current user.
+            expect(screen.getByText('Task')).toBeOnTheScreen();
         });
 
         it('should display the report with GRB when the report has unread mention', async () => {

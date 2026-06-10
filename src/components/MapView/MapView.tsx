@@ -4,6 +4,7 @@ import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +15,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -35,20 +35,23 @@ function MapView({
     pitchEnabled,
     initialState,
     waypoints,
-    directionCoordinates,
+    directionCoordinates: directionCoordinatesProp,
     onMapReady,
     interactive = true,
     distanceInMeters,
     unit,
     ref,
+    shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
+    const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
+
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
@@ -68,7 +71,10 @@ function MapView({
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+    const shouldPanMapToCurrentPosition = useCallback(
+        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
+        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
+    );
 
     const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
         (error) => {
@@ -265,7 +271,6 @@ function MapView({
                 compassEnabled
                 compassPosition={{...styles.l2, ...styles.t5}}
                 logoPosition={{...styles.l2, ...styles.b2}}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...responder.panHandlers}
             >
                 <Mapbox.Camera
@@ -276,60 +281,48 @@ function MapView({
                     centerCoordinate={initCenterCoordinate}
                     bounds={initBounds}
                 />
-                {interactive && (
-                    <Mapbox.ShapeSource
-                        id={CONST.MAP_VIEW_LAYERS.USER_LOCATION_SOURCE}
-                        shape={{
-                            type: 'FeatureCollection',
-                            features: [
-                                {
-                                    type: 'Feature',
-                                    geometry: {
-                                        type: 'Point',
-                                        coordinates: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
-                                    },
-                                    properties: {},
-                                },
-                            ],
-                        }}
+                {interactive && shouldDisplayCurrentLocation && (
+                    <MarkerView
+                        id={CONST.MAP_VIEW_LAYERS.USER_LOCATION}
+                        coordinate={[currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]}
+                        allowOverlap
                     >
-                        <Mapbox.CircleLayer
-                            id={CONST.MAP_VIEW_LAYERS.USER_LOCATION}
-                            sourceID={CONST.MAP_VIEW_LAYERS.USER_LOCATION_SOURCE}
-                            style={{
-                                circleColor: colors.blue400,
-                                circleRadius: 8,
-                            }}
+                        <ImageSVG
+                            src={expensifyIcons.MapCurrentLocation}
+                            width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
+                            height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
                         />
-                    </Mapbox.ShapeSource>
+                    </MarkerView>
                 )}
                 {waypoints?.map(({coordinate, markerComponent, id}) => {
                     const MarkerComponent = markerComponent;
-                    if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
+                    if (
+                        utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
+                        interactive &&
+                        shouldDisplayCurrentLocation
+                    ) {
                         return null;
                     }
+
                     return (
                         <MarkerView
                             id={id}
                             key={id}
                             coordinate={coordinate}
+                            allowOverlap
                         >
                             <MarkerComponent />
                         </MarkerView>
                     );
                 })}
 
-                {!!directionCoordinates && (
-                    <Direction
-                        coordinates={directionCoordinates}
-                        belowLayerID={interactive ? CONST.MAP_VIEW_LAYERS.USER_LOCATION : undefined}
-                    />
-                )}
+                {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
                 {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
                     <MarkerView
                         coordinate={distanceSymbolCoordinate}
                         id="distance-label"
                         key="distance-label"
+                        allowOverlap
                     >
                         <View style={{zIndex: 1}}>
                             <ToggleDistanceUnitButton

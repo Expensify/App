@@ -14,7 +14,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {setShouldShowComposeInput} from '@userActions/Composer';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +30,8 @@ type ReportScreenRoute =
 const reportDetailScreens = [
     ...Object.values(SCREENS.REPORT_DETAILS),
     ...Object.values(SCREENS.REPORT_SETTINGS),
-    ...Object.values(SCREENS.PRIVATE_NOTES),
+    SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
+    SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT,
     ...Object.values(SCREENS.REPORT_PARTICIPANTS),
 ];
 
@@ -164,18 +164,7 @@ function ReportNavigateAwayHandler() {
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             navigateAwayFromReport(prevOnyxReportID, prevReport?.parentReportID);
-            return;
         }
-
-        // If you already have a report open and are deeplinking to a new report on native,
-        // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
-        // Therefore, we need to compare if the existing reportID is the same as the one in the route
-        // before deciding that we shouldn't call OpenReport.
-        if (reportIDFromRoute === lastReportIDFromRoute && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
-            return;
-        }
-
-        setShouldShowComposeInput(true);
     }, [
         report,
         prevReport?.reportID,

@@ -7,7 +7,7 @@ internalScope: Audience is Workspace approvers and admins. Covers approving and 
 
 # Approve Expenses
 
-When an expense report is submitted on a Workspace with an approval workflow configured, it must be approved before it can be paid. To set an approval workflow on your Workspace, [learn how to add approvals](/articles/new-expensify/workspaces/Add-Approvals). 
+When an expense report is submitted on a Workspace with an approval workflow configured, it must be approved before it can be paid. To set an approval workflow on your Workspace, [learn how to enable Approvals](/articles/new-expensify/workspaces/Add-Approvals). 
 
 When an expense report is submitted to an individual (rather than on a workspace), it won't go through an approval process. It only needs to be paid. [Learn how to pay an expense](/articles/new-expensify/expenses-and-payments/Pay-an-expense).
 
@@ -39,6 +39,17 @@ To review and approve a report submitted to you for approval:
 1. Click the report to open it.
 2. Review details like the receipt, amount, and description.
 3. Click **Approve** at the top of the report. 
+
+---
+
+## How to approve a report that contains held expenses
+
+If a report contains one or more held expenses, clicking **Approve** (from within the report or from the **Reports** page) displays a confirmation modal with two options:
+
+- **Approve only [non-held amount]**: Approves only the compliant (non-held) expenses. The held expenses are moved to a separate report so they can be reviewed independently.
+- **Approve [full amount]**: Approves the entire report, including all held expenses.
+
+If every expense on the report is held, only the **Approve [full amount]** option is available.
 
 ---
 
@@ -81,7 +92,7 @@ Workspace admins can bypass the approval workflow on a report to final approve i
 
 ## How to hold an expense
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > All expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > Expenses**.
 2. Locate the expense you want to hold. 
 3. Click the expense to open it. 
 4. Click **More** at the top of the expense.
@@ -93,7 +104,7 @@ To take an expense off hold, follow the same steps but select **Unhold**.
 
 ## How to unapprove a report 
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > All reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > Reports**.
 2. Locate the Approved report you want to unapprove. 
 3. Click the report to open it. 
 4. Click **More** at the top of the report. 
@@ -127,7 +138,7 @@ As the assigned approver, you can reject an entire expense report to return it t
 
 ## How to reject an expense 
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend > All expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend > Expenses**.
 2. Locate the expense you want to reject using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -157,3 +168,7 @@ Expense reports group multiple expenses into one batch for review or payment. Dr
 ## What happens after I approve a report?
 
 The report moves to the next approver in the workflow. If you are the final approver, the report becomes **Approved** and is ready for payment.
+
+## What happens to held expenses when I partially approve a report?
+
+When you choose **Approve only**, the held expenses are moved to a new separate report. The non-held expenses are approved on the original report. You can then review and approve the held expenses independently once they are ready.

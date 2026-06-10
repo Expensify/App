@@ -347,7 +347,6 @@ function IOURequestStepOdometerImage({
             />
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb2]}>{title}</Text>

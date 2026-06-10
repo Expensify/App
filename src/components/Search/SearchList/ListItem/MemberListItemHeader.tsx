@@ -67,6 +67,24 @@ function MemberListItemHeader<TItem extends ListItem>({
     const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
 
     const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
+            >
+                <UserDetailsTooltip accountID={memberItem.accountID}>
+                    <View>
+                        <Avatar
+                            source={memberItem.avatar}
+                            type={CONST.ICON_TYPE_AVATAR}
+                            name={formattedDisplayName}
+                            avatarID={memberItem.accountID}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM}
@@ -143,25 +161,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!!isLargeScreenWidth && (
-                        <>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
-                                <UserDetailsTooltip accountID={memberItem.accountID}>
-                                    <View>
-                                        <Avatar
-                                            source={memberItem.avatar}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                            name={formattedDisplayName}
-                                            avatarID={memberItem.accountID}
-                                            size={CONST.AVATAR_SIZE.SMALL}
-                                        />
-                                    </View>
-                                </UserDetailsTooltip>
-                            </View>
-
-                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
-                        </>
-                    )}
+                    {!!isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>

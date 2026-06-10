@@ -22,7 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -136,6 +136,7 @@ function TransactionPreviewContent({
         ? ViolationsUtils.getViolationTranslation({
               violation: firstViolation,
               translate,
+              convertToDisplayString,
               canEdit,
               companyCardPageURL,
               connectionLink,
@@ -156,8 +157,9 @@ function TransactionPreviewContent({
                 currentUserEmail,
                 currentUserAccountID,
                 originalTransaction,
+                convertToDisplayString,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction, convertToDisplayString],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
@@ -390,7 +392,7 @@ function TransactionPreviewContent({
                                                         numberOfLines={1}
                                                         style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {getDecodedCategoryName(category ?? '')}
+                                                        {getDecodedLeafCategoryName(category ?? '')}
                                                     </Text>
                                                 </View>
                                             )}

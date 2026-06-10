@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isTravelCard} from '@libs/CardUtils';
 import {getExpenseTypeTranslationKey, getTransactionType, isExpensifyCardTransaction, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -16,13 +17,18 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 const getTypeIcon = (
-    icons: Record<'Car' | 'CreditCard' | 'CreditCardLock' | 'ExpensifyCard' | 'Cash' | 'Clock' | 'CalendarSolid', IconAsset>,
+    icons: Record<'Car' | 'CreditCard' | 'CreditCardLock' | 'CreditCardWithPlane' | 'ExpensifyCard' | 'Cash' | 'Clock' | 'CalendarSolid', IconAsset>,
     type?: string,
     isExpensifyCard?: boolean,
     isManagedCard?: boolean,
+    isTravelInvoicingCard?: boolean,
 ) => {
     switch (type) {
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            // Travel invoicing cards are technically Expensify-issued (bank === EXPENSIFY_CARD.BANK), so this branch must come before the isExpensifyCard branch.
+            if (isTravelInvoicingCard) {
+                return icons.CreditCardWithPlane;
+            }
             if (isExpensifyCard) {
                 return icons.ExpensifyCard;
             }
@@ -46,18 +52,34 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const {translate} = useLocalize();
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (transactionItem.cardID ? cardList?.[transactionItem.cardID] : undefined)});
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardLock', 'ExpensifyCard', 'ExpensifyCardHourglass', 'Cash', 'Clock', 'CalendarSolid']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Car',
+        'CreditCard',
+        'CreditCardLock',
+        'CreditCardWithPlane',
+        'CreditCardWithPlaneHourglass',
+        'ExpensifyCard',
+        'ExpensifyCardHourglass',
+        'Cash',
+        'Clock',
+        'CalendarSolid',
+    ]);
     const type = getTransactionType(transactionItem, card);
     const isExpensifyCard = isExpensifyCardTransaction(transactionItem);
     const isManagedCard = isManagedCardTransaction(transactionItem);
+    const isTravelInvoicingCard = isTravelCard(card);
     const isPendingExpensifyCardTransaction = isExpensifyCard && isPending(transactionItem);
-    const typeIcon = isPendingExpensifyCardTransaction ? expensifyIcons.ExpensifyCardHourglass : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard);
+    const pendingIcon = isTravelInvoicingCard ? expensifyIcons.CreditCardWithPlaneHourglass : expensifyIcons.ExpensifyCardHourglass;
+    const typeIcon = isPendingExpensifyCardTransaction ? pendingIcon : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard, isTravelInvoicingCard);
     const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
     const styles = useThemeStyles();
 
     const getTooltipText = () => {
         if (isPendingExpensifyCardTransaction) {
             return translate('iou.pending');
+        }
+        if (isTravelInvoicingCard) {
+            return translate('cardTransactions.travelCard');
         }
         if (isExpensifyCard) {
             return translate('cardTransactions.expensifyCard');

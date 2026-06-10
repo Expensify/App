@@ -2,7 +2,7 @@ import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
-import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
+import {expensifyLoginsSelector, hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
@@ -20,7 +20,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
@@ -33,6 +33,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
@@ -59,6 +60,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber,
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS]: !isPolicyAdmin ? hasCompanyCardFeedErrors : false,
         [CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT]: Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED),
+        [CONST.INDICATOR_STATUS.HAS_DEVICE_MANAGEMENT_ERROR]: hasDeviceManagementErrorValue,
     };
 
     const infoChecks: Partial<Record<IndicatorStatus, boolean>> = {

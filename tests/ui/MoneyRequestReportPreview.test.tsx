@@ -1,15 +1,18 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import React from 'react';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
@@ -59,7 +62,6 @@ jest.mock('@rnmapbox/maps', () => {
 const mockUseReportWithTransactionsAndViolations = jest.fn(() => defaultReportWithTransactionsAndViolations);
 
 jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
     __esModule: true,
     default: (...args: Parameters<typeof mockUseReportWithTransactionsAndViolations>) => mockUseReportWithTransactionsAndViolations(...args),
 }));
@@ -79,24 +81,42 @@ const hasViolations = (
     shouldShowInReview?: boolean,
 ) => (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
-const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
+const mockContextMenuStateValue = {
+    anchor: null,
+    report: mockChatReport,
+    isReportArchived: false,
+    action: mockAction,
+    transactionThreadReport: undefined,
+    isDisabled: false,
+    shouldDisplayContextMenu: true,
+    originalReportID: mockChatReport.reportID,
+};
+
+const mockContextMenuActionsValue = {
+    checkIfContextMenuActive: () => {},
+    onShowContextMenu: (callback: () => void) => callback(),
+};
+
+const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <OptionsListContextProvider>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
-                        <MoneyRequestReportPreview
-                            policyID={mockChatReport.policyID}
-                            action={mockAction}
-                            iouReportID={mockIOUReport.reportID}
-                            chatReportID={mockChatReport.chatReportID}
-                            contextMenuAnchor={contextMenuAnchor}
-                            checkIfContextMenuActive={() => {}}
-                            onPaymentOptionsShow={() => {}}
-                            onPaymentOptionsHide={() => {}}
-                            isHovered={isHovered}
-                            isWhisper={isWhisper}
-                        />
+                        <ShowContextMenuStateContext.Provider value={mockContextMenuStateValue}>
+                            <ShowContextMenuActionsContext.Provider value={mockContextMenuActionsValue}>
+                                <MoneyRequestReportPreview
+                                    policyID={mockChatReport.policyID}
+                                    action={mockAction}
+                                    iouReportID={mockIOUReport.reportID}
+                                    chatReportID={mockChatReport.chatReportID}
+                                    onPaymentOptionsShow={() => {}}
+                                    onPaymentOptionsHide={() => {}}
+                                    isHovered={isHovered}
+                                    isWhisper={isWhisper}
+                                />
+                            </ShowContextMenuActionsContext.Provider>
+                        </ShowContextMenuStateContext.Provider>
                     </PortalProvider>
                 </ScreenWrapper>
             </OptionsListContextProvider>

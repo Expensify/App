@@ -57,14 +57,13 @@ function MoneyReportHeaderKYCDropdown({
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
 
     return (
         <KYCWall
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onSuccessfulKYC={onSuccessfulKYC}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
@@ -103,7 +102,7 @@ function MoneyReportHeaderKYCDropdown({
                     customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && styles.flex1, !!customText && styles.w100]}
+                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && !isInLandscapeMode && styles.flex1, !!customText && styles.w100]}
                     shouldUseModalPaddingStyle
                     onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}

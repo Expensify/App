@@ -8,12 +8,14 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetSplitExpensesByDateRange} from '@libs/actions/IOU/SplitExpenseItems';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -21,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {isSelfDM} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -33,31 +35,41 @@ type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpense
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentSearchResults} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
 
     const {reportID, transactionID, backTo} = route.params;
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactions = useAllTransactions();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
 
-    const report = getReportOrDraftReport(reportID);
+    const report = useReportOrReportDraft(reportID);
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
-    const policy = usePolicy(currentReport?.policyID);
-    const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
-        ? policy
-        : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const effectivePolicy = useSplitEffectivePolicy(currentReport, draftTransaction, transaction);
+
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(transaction, currentReport, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE], currentPolicy);
+        resetSplitExpensesByDateRange(
+            transaction,
+            draftTransaction,
+            currentReport,
+            value[INPUT_IDS.START_DATE],
+            value[INPUT_IDS.END_DATE],
+            effectivePolicy,
+            isSelfDM(currentReport) || isSelfDM(parentReport),
+        );
         Navigation.goBack(backTo);
     };
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy);
+    const {isProduction} = useEnvironment();
+    const isSplitAvailable =
+        report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport, isProduction);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES> = {};
@@ -110,16 +122,13 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                             inputID={INPUT_IDS.START_DATE}
                             label={translate('iou.startDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             defaultValue={draftTransaction?.comment?.splitsStartDate}
-                            autoFocus
                         />
                         <InputWrapper
                             InputComponent={DatePicker}
                             inputID={INPUT_IDS.END_DATE}
                             label={translate('iou.endDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             defaultValue={draftTransaction?.comment?.splitsEndDate}
                         />
                     </FormProvider>

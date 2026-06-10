@@ -30,6 +30,8 @@ To pay Workspace expenses, you’ll first need to:
 4. If you've paid before, your most recent payment method will appear automatically. To switch, tap the right side of the button to see all available options.
 5. If this is your first time paying, you'll be prompted to select your payment method after tapping **Pay**.
 
+**Note:** Only bank accounts that match the report's currency will appear as payment options. For example, if a report is in EUR, only EUR bank accounts are shown.
+
 ![Click Pay Button]({{site.url}}/assets/images/Reports_PayExpense_02_Update.png){:width="100%"}
 
 ---
@@ -81,8 +83,12 @@ You can reimburse Workspace expenses using business bank accounts in the followi
 
 ---
 
+## Why don't I see my bank account when I click Pay?
+
+Only bank accounts that match the report's currency appear as payment options. If you have a USD bank account but the report is in EUR, the USD account will not be shown. To pay the report, connect a bank account in the matching currency, or select **Mark as paid** to record a payment made outside Expensify.
+
+---
+
 ## How do I pay a report with only non-reimbursable expenses?
 
 Reports containing only non-reimbursable expenses (e.g., company card charges) cannot be paid via ACH through Expensify. Instead, select **Mark as paid** from the **Pay** button dropdown to close the report.
-
-</div>

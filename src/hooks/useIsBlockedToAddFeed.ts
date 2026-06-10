@@ -19,7 +19,7 @@ import usePolicy from './usePolicy';
  */
 function useIsBlockedToAddFeed(policyID?: string) {
     const policy = usePolicy(policyID);
-    const [cardFeeds, allFeedsResult, defaultFeed] = useCardFeeds(policyID);
+    const [cardFeeds, allFeedsResult, defaultFeed, , workspaceAccountID] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds, true);
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
@@ -39,6 +39,8 @@ function useIsBlockedToAddFeed(policyID?: string) {
     return {
         isBlockedToAddNewFeeds: isCollect && !isLoading && prevCompanyFeedsLength >= 1,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
+        cardFeeds,
+        workspaceAccountID,
     };
 }
 

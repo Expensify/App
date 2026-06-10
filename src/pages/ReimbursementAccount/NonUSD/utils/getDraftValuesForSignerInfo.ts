@@ -54,5 +54,4 @@ function getDraftValuesForSignerInfo(reimbursementAccount: OnyxEntry<Reimburseme
     return result;
 }
 
-export type {DraftValuesForSignerInfo};
 export default getDraftValuesForSignerInfo;

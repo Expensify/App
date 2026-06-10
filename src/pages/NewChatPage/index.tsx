@@ -7,11 +7,10 @@ import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectCircle from '@components/SelectCircle';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import ListCheckbox from '@components/SelectionList/components/ListCheckbox';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
@@ -36,6 +35,7 @@ import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getValid
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,7 +54,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const currentUserEmail = personalData.email ?? '';
@@ -89,7 +89,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const personalDetails = listOptions?.personalDetails ?? [];
     useGroupChatDraftParticipantSync(personalDetails, !isLoading, allPersonalDetails, loginList, currentUserEmail, currentUserAccountID, selectedOptions, setSelectedOptions);
 
-    const defaultOptions = getValidOptions(
+    const {options: defaultOptions} = getValidOptions(
         {
             reports,
             personalDetails: personalDetails.concat(contacts),
@@ -336,19 +336,13 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (item.isSelected) {
             return (
-                <PressableWithFeedback
-                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
-                    onPress={() => toggleOption(item)}
-                    disabled={item.isDisabled}
-                    role={CONST.ROLE.CHECKBOX}
+                <ListCheckbox
+                    item={item}
+                    onSelectRow={toggleOption}
+                    disabled={!!item.isDisabled}
                     accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
-                >
-                    <SelectCircle
-                        isChecked={item.isSelected}
-                        selectCircleStyles={styles.ml0}
-                    />
-                </PressableWithFeedback>
+                    style={styles.ml5}
+                />
             );
         }
         const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
@@ -422,7 +416,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         >
             <SelectionListWithSections<OptionWithKey>
                 ref={selectionListRef}
-                ListItem={UserListItem}
+                ListItem={BareUserListItem}
                 sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionWithKey>>()}
                 onSelectRow={selectOption}
                 shouldShowTextInput

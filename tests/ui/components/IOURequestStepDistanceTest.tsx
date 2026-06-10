@@ -56,6 +56,20 @@ jest.mock('@libs/EmojiTrie', () => ({
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
+    const ReactMock = require('react');
+    return {
+        __esModule: true,
+        default: ({children}: {children: React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, children),
+        TopTab: {
+            Screen: ({children}: {children: () => React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, typeof children === 'function' ? children() : children),
+        },
+        TabScreenWithFocusTrapWrapper: ({children}: {children: React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, children),
+    };
+});
+
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -79,6 +93,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
         goBack: jest.fn(),
         navigationRef: mockRef,
         getActiveRoute: () => '',
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
     };
 });
 
@@ -100,7 +116,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         didScreenTransitionEnd: true,

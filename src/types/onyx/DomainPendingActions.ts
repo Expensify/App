@@ -41,14 +41,54 @@ type DomainMemberPendingActions = {
  */
 type DomainSecurityGroupPendingActions = {
     /**
+     * Pending action for deleting a security group
+     */
+    deleteGroup?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for creating a new security group
+     */
+    createGroup?: OnyxCommon.PendingAction;
+
+    /**
      * Pending action for the security group name
      */
     name?: OnyxCommon.PendingAction;
 
     /**
+     * Pending action for the strictly enforce workspace rules setting
+     */
+    enableStrictPolicyRules?: OnyxCommon.PendingAction;
+
+    /**
      * Pending action for the default security group ID
      */
     defaultSecurityGroupID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted expense workspace creation
+     */
+    enableRestrictedPolicyCreation?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for toggling the preferred workspace setting
+     */
+    enableRestrictedPrimaryPolicy?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for changing the preferred workspace ID
+     */
+    restrictedPrimaryPolicyID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted default login selection
+     */
+    enableRestrictedPrimaryLogin?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the override preferred policy with card policy setting
+     */
+    overridePreferredPolicyWithCardPolicy?: OnyxCommon.PendingAction;
 };
 
 /**
@@ -86,5 +126,5 @@ type DomainPendingAction = {
     pendingAction?: OnyxCommon.PendingAction;
 } & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupPendingActions>;
 
-export type {GeneralDomainMemberPendingAction, DomainSecurityGroupPendingActions};
+export type {DomainSecurityGroupPendingActions};
 export default DomainPendingAction;

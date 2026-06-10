@@ -2,12 +2,16 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReusablePolicyConnectionName = typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT | typeof CONST.POLICY.CONNECTIONS.NAME.QBD;
+type ReusablePolicyConnectionName =
+    | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT
+    | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
@@ -83,16 +87,19 @@ const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) =
     return false;
 };
 
-const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollection<Policy>, currentUserLogin: string | undefined) => {
-    if (isEmptyObject(policies)) {
-        return CONST.EMPTY_ARRAY;
-    }
-    return Object.values(policies ?? {}).filter(
-        (policy): policy is Policy => !!policy?.isPolicyExpenseChatEnabled && !policy?.isJoinRequestPending && isPaidGroupPolicy(policy) && shouldShowPolicy(policy, false, currentUserLogin),
-    );
-};
+type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
-const shouldRedirectToExpensifyClassicSelector = (policies: OnyxCollection<Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies);
+const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
+    (policy && {
+        type: policy.type,
+        role: policy.role,
+        id: policy.id,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+        pendingAction: policy.pendingAction,
+        avatarURL: policy.avatarURL,
+        name: policy.name,
+        areInvoicesEnabled: policy.areInvoicesEnabled,
+    }) as PolicySelector;
 
 // deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
 const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
@@ -140,6 +147,9 @@ function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: Reu
 const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT));
 
+const adminPoliciesConnectedToCertiniaSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA));
+
 const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE));
 
@@ -150,6 +160,7 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: adminPoliciesConnectedToQBDSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -200,6 +211,37 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
     return lastWorkspaceNumber;
 }
 
+const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
+
+const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
+
+function isAdminForPolicyByIDSelector(policyID?: string) {
+    return (policies: OnyxCollection<Policy> | null): boolean => {
+        if (!policyID) {
+            return true;
+        }
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN;
+    };
+}
+
+const createAdminPoliciesSelector =
+    (currentPolicyID: string | undefined = undefined) =>
+    (policies: OnyxCollection<Policy>) => {
+        return Object.entries(policies ?? {}).reduce<Record<string, Pick<Policy, 'name' | 'id' | 'avatarURL' | 'created'>>>((acc, [key, policy]) => {
+            if (!policy?.id || !policy?.name) {
+                return acc;
+            }
+            const isCurrentPolicy = policy.id === currentPolicyID;
+            if (!isCurrentPolicy && (policy.type === CONST.POLICY.TYPE.PERSONAL || policy.role !== CONST.POLICY.ROLE.ADMIN)) {
+                return acc;
+            }
+            acc[key] = {id: policy.id, name: policy.name, avatarURL: policy.avatarURL, created: policy.created};
+            return acc;
+        }, {});
+    };
+
+export type {PolicySelector};
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -209,16 +251,17 @@ export {
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
-    groupPaidPoliciesWithExpenseChatEnabledSelector,
     iouRequestPolicyCollectionSelector,
-    shouldRedirectToExpensifyClassicSelector,
-    adminPoliciesConnectedToSageIntacctSelector,
-    adminPoliciesConnectedToNetSuiteSelector,
+    policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
     hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
+    policyNameSelector,
+    areInvoicesEnabledSelector,
+    createAdminPoliciesSelector,
+    isAdminForPolicyByIDSelector,
 };
 export type {ReusablePolicyConnectionName};

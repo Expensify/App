@@ -751,7 +751,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
-        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(true);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for DEW policy report with pending approval', async () => {
@@ -786,7 +786,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
-        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(false);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
     it('should return false for non-expense report', async () => {
@@ -805,7 +805,7 @@ describe('canApproveIOU', () => {
         const reportMetadata: ReportMetadata = {};
 
         // Then canApproveIOU should return false
-        expect(canApproveIOU(report, policy, reportMetadata)).toBe(false);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID)).toBe(false);
     });
 });
 
@@ -942,5 +942,64 @@ describe('getExistingTransactionID', () => {
             const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
             expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
         });
+    });
+});
+
+describe('isParticipantP2P', () => {
+    it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false when participant is undefined', () => {
+        expect(IOUUtils.isParticipantP2P(undefined)).toBe(false);
+    });
+
+    it('should return false when participant has no accountID', () => {
+        const participant = {
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when participant is a policy expense chat', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when accountID is 0', () => {
+        const participant = {
+            accountID: 0,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return true for P2P participant without isPolicyExpenseChat property', () => {
+        const participant = {
+            accountID: 456,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false for self-DM participant', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+            isSelfDM: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
     });
 });

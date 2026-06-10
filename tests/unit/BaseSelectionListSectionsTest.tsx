@@ -1,13 +1,13 @@
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import BaseSelectionListWithSections from '@components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import type Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 // Captures scrollToIndex calls so tests can assert on scroll behaviour
@@ -113,15 +113,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
-let arrowUpCallback = () => {};
-let arrowDownCallback = () => {};
-jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callback: () => void) => {
-    if (key.shortcutKey === 'ArrowUp') {
-        arrowUpCallback = callback;
-    } else if (key.shortcutKey === 'ArrowDown') {
-        arrowDownCallback = callback;
-    }
-});
+jest.mock('@hooks/useKeyboardShortcut', () => jest.fn());
 
 describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
@@ -142,7 +134,7 @@ describe('BaseSelectionList', () => {
                         onChangeText: setSearchText,
                         value: searchText,
                     }}
-                    ListItem={RadioListItem}
+                    ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
                     onSelectRow={onSelectRowMock}
                     shouldSingleExecuteRowSelect
                     shouldShowTextInput={!!setSearchText}
@@ -328,40 +320,63 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeTruthy();
     });
 
-    it('should focus next/previous item relative to focused item when arrow keys are pressed', async () => {
+    it('should render items from multiple sections', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        const sectionA = Array.from({length: 5}, (_, index) => ({
+            text: `Section A Item ${index}`,
+            keyForList: `a-${index}`,
+            isSelected: false,
+        }));
+        const sectionB = Array.from({length: 5}, (_, index) => ({
+            text: `Section B Item ${index}`,
+            keyForList: `b-${index}`,
+            isSelected: false,
+        }));
+
         render(
             <BaseListItemRenderer
-                sections={[{data: largeMockSections, sectionIndex: 0}]}
-                canSelectMultiple={false}
+                sections={[
+                    {data: sectionA, title: 'Section A', sectionIndex: 0},
+                    {data: sectionB, title: 'Section B', sectionIndex: 1},
+                ]}
             />,
         );
 
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveStyle({backgroundColor: colors.productDark400});
+        // Items from both sections should be rendered
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}a-0`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}a-4`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}b-0`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}b-4`)).toBeTruthy();
+    });
 
-        act(() => {
-            arrowDownCallback();
-        });
+    it('should handle item press from second section correctly', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        const sectionA = [{text: 'A0', keyForList: 'a-0', isSelected: false}];
+        const sectionB = [{text: 'B0', keyForList: 'b-0', isSelected: false}];
 
-        // The item that gets focused will be the one following the currently focused item
-        await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toHaveStyle({backgroundColor: colors.productDark300});
-        });
+        render(
+            <BaseListItemRenderer
+                sections={[
+                    {data: sectionA, title: 'Section A', sectionIndex: 0},
+                    {data: sectionB, title: 'Section B', sectionIndex: 1},
+                ]}
+            />,
+        );
 
-        act(() => {
-            arrowUpCallback();
-            arrowUpCallback();
-        });
+        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}b-0`));
+        expect(onSelectRowMock).toHaveBeenCalledWith(expect.objectContaining({keyForList: 'b-0', text: 'B0'}));
+    });
 
-        await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toHaveStyle({backgroundColor: colors.productDark300});
-        });
+    it('should render empty list without crashing when all sections are empty', () => {
+        render(
+            <BaseListItemRenderer
+                sections={[
+                    {data: [], sectionIndex: 0},
+                    {data: [], sectionIndex: 1},
+                ]}
+            />,
+        );
 
-        act(() => {
-            arrowDownCallback();
-        });
-
-        await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveStyle({backgroundColor: colors.productDark400});
-        });
+        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeNull();
     });
 });

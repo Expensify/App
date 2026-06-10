@@ -13,6 +13,7 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -29,6 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
@@ -180,7 +182,15 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen) {
-        shouldCloseRHP = !willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        const targetWillNavigateToRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        if (!targetWillNavigateToRHP) {
+            shouldCloseRHP = true;
+        } else if (hasSameOrigin) {
+            // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
+            // user sees only the RHP content update + the underlying tab animate, no close+reopen
+            // flicker (issue: https://github.com/Expensify/App/issues/89710).
+            swapBackgroundTabForRHPTarget(currentState, internalNewExpensifyPath as Route);
+        }
     }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
@@ -261,6 +271,12 @@ function openReportFromDeepLink(
         route = '';
     }
 
+    // React Navigation generates /Home (capitalized) for the root URL because PublicScreens uses SCREENS.HOME ('Home')
+    // at the root level without a path mapping. Treat it as empty route to avoid showing a “not found” page after sign-in.
+    if (normalizePath(route) === `/${SCREENS.HOME}`) {
+        route = '';
+    }
+
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
         return;
@@ -277,7 +293,6 @@ function openReportFromDeepLink(
     }
 
     // Navigate to the report after sign-in/sign-up.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
@@ -364,7 +379,7 @@ function openReportFromDeepLink(
                             }
                         };
 
-                        if (isAnonymousUser()) {
+                        if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
                     });

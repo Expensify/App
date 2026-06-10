@@ -1,10 +1,8 @@
-import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -21,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,24 +32,15 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-type ShareTabRef = {
-    focus?: () => void;
-};
-
-type ShareTabProps = {
-    /** Reference to the outer element */
-    ref?: Ref<ShareTabRef>;
-};
-
-function ShareTab({ref}: ShareTabProps) {
+function ShareTab() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
+    const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
@@ -60,9 +50,6 @@ function ShareTab({ref}: ShareTabProps) {
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
-    useImperativeHandle(ref, () => ({
-        focus: selectionListRef.current?.focusTextInput,
-    }));
 
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, isLoading} = useFilteredOptions({
@@ -95,12 +82,12 @@ function ShareTab({ref}: ShareTabProps) {
               personalDetails,
               sortedActions,
               conciergeReportID,
-          })
+          }).options
         : defaultListOptions;
 
     let recentReportsOptions: OptionData[];
     if (textInputValue.trim() === '') {
-        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
+        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20).options;
     } else {
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
             sortByReportTypeInSearch: true,
@@ -125,6 +112,8 @@ function ShareTab({ref}: ShareTabProps) {
         text: StringUtils.lineBreaksToSpaces(item.text),
         wrapperStyle: [styles.pr3, styles.pl3],
         keyForList: `${item.reportID}-${index}`,
+        isSelected: item.reportID === selectedReportID,
+        canShowSeveralIndicators: true,
     }));
 
     const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
@@ -137,11 +126,13 @@ function ShareTab({ref}: ShareTabProps) {
             const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
             reportID = optimisticReport.reportID;
 
+            setSelectedReportID(reportID);
             saveReportDraft(reportID, optimisticReport).then(() => {
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
             });
         } else {
             clearUnknownUserDetails();
+            setSelectedReportID(reportID);
             Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
         }
     };
@@ -152,7 +143,6 @@ function ShareTab({ref}: ShareTabProps) {
         hint: offlineMessage,
         onChangeText: setTextInputValue,
         headerMessage: header,
-        disableAutoFocus: true,
     };
 
     const customListHeader =
@@ -173,7 +163,6 @@ function ShareTab({ref}: ShareTabProps) {
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}
-            ref={selectionListRef}
         />
     );
 }

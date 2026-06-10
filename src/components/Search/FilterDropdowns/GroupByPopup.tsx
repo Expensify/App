@@ -1,14 +1,12 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SearchGroupBy} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {GroupBySection} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import BasePopup from './BasePopup';
@@ -25,7 +23,6 @@ type GroupByPopupProps = {
     /** The currently selected item */
     value: GroupByPopupItem | null;
 
-    style?: StyleProp<ViewStyle>;
     onBackButtonPress: () => void;
 
     /** Function to call to close the overlay when changes are applied */
@@ -35,11 +32,9 @@ type GroupByPopupProps = {
     onChange: (item: GroupByPopupItem | null) => void;
 };
 
-function GroupByPopup({value, sections, style, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
+function GroupByPopup({value, sections, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isInLandscapeMode} = useResponsiveLayout();
-    const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
 
     const allSelectableItems = useMemo(() => sections.flatMap((section) => section.options), [sections]);
@@ -90,14 +85,17 @@ function GroupByPopup({value, sections, style, onBackButtonPress, closeOverlay, 
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
         >
-            <View style={[style, styles.getSelectionListPopoverHeight({itemCount, windowHeight, isInLandscapeMode, hasHeader: true})]}>
+            <ListFilterWrapper
+                itemCount={itemCount}
+                hasHeader
+            >
                 <SelectionListWithSections
                     sections={listSections}
                     shouldSingleExecuteRowSelect
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                 />
-            </View>
+            </ListFilterWrapper>
         </BasePopup>
     );
 }

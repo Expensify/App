@@ -2,7 +2,6 @@ import type {RouteProp} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
-import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import GPSInProgressModal from '@components/GPSInProgressModal';
@@ -10,11 +9,12 @@ import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
+import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import {SearchRouterContextProvider} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModal from '@components/SupportalPermissionDeniedModal';
@@ -59,6 +59,7 @@ import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
+import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
@@ -147,7 +148,7 @@ function AuthScreens() {
             gestureEnabled: animationEnabled,
             web: {
                 ...rootNavigatorScreenOptions.fullScreenTabPage.web,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: animationEnabled ? {kind: 'slide-from-width'} : {kind: 'none'}}),
             },
         };
     };
@@ -179,6 +180,7 @@ function AuthScreens() {
                         SearchContextProvider,
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
+                        MultifactorAuthenticationContextProviders,
                     ]}
                 >
                     <KeyboardShortcutsHandler />
@@ -238,13 +240,19 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
-                            name={SCREENS.PROFILE_AVATAR}
+                            name={SCREENS.DYNAMIC_PROFILE_AVATAR}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
                             name={SCREENS.WORKSPACE_AVATAR}
+                            options={attachmentModalScreenOptions}
+                            getComponent={loadAttachmentModalScreen}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.WORKSPACE_DOCUMENT}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}
@@ -372,12 +380,12 @@ function AuthScreens() {
                         />
                     </RootStack.Navigator>
                     <RequireTwoFactorAuthenticationOverlay />
+                    <MultifactorAuthenticationModalNavigator />
                     <SearchRouterModal />
                     <GPSTripStateChecker />
                     <GPSInProgressModal />
                     <OpenAppFailureModal />
                     <PriorityModeController />
-                    <OpenConfirmNavigateExpensifyClassicModal />
                 </ComposeProviders>
             </DelegatorConnectGuard>
         </>

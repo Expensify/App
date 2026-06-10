@@ -34,13 +34,6 @@ type ReportArchiveReasonsRemovedFromPolicyParams = {
     shouldUseYou?: boolean;
 };
 
-type CreatedReportForUnapprovedTransactionsParams = {
-    reportUrl: string;
-    reportName: string;
-    reportID: string;
-    isReportDeleted: boolean;
-};
-
 type PaidElsewhereParams = {payer?: string; comment?: string};
 
 type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
@@ -53,23 +46,13 @@ type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
-type UserIsAlreadyMemberParams = {login: string; name: string};
-
 type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
-
-type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
-
-type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
-
-type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
 type OptionalParam<T> = Partial<T>;
-
-type LogSizeAndDateParams = {size: number; date: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -108,16 +91,6 @@ type ExportAgainModalDescriptionParams = {
 };
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
-
-type RemoveMemberParams = {email: string; role: string};
-
-type StatementPageTitleParams = {year: string | number; monthName: string};
-
-type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
-
-type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
-
-type LowerUpperParams = {lower: string; upper: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
@@ -166,8 +139,6 @@ export type {
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,
     YourPlanPriceParams,
-    LowerUpperParams,
-    LogSizeAndDateParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
@@ -179,15 +150,10 @@ export type {
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
-    CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ResolutionConstraintsParams,
     SizeExceededParams,
     StepCounterParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
-    UserIsAlreadyMemberParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
     ChangeFieldParams,
@@ -200,10 +166,6 @@ export type {
     ConnectionNameParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
-    RemoveMemberParams,
-    StatementPageTitleParams,
-    DisconnectPromptParams,
-    DisconnectTitleParams,
     OptionalParam,
     WorkspaceLockedPlanTypeParams,
 };

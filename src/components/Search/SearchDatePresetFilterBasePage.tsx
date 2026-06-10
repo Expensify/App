@@ -123,6 +123,7 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
             shouldEnableMaxHeight
         >
             <DateFilterBase
+                style={styles.flex1}
                 title={translate(titleKey)}
                 defaultDateValues={defaultDateValues}
                 presets={presets}

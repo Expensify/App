@@ -24,6 +24,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {isAgentEmail} from '@libs/SessionUtils';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars, isValidEmailWithTLD} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -140,6 +141,12 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
 
         const loginTrim = StringUtils.removeInvisibleCharacters(login.trim());
 
+        if (isAgentEmail(loginTrim)) {
+            setFormError('loginForm.error.agentSignInBlocked');
+            isLoading.current = false;
+            return;
+        }
+
         const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
@@ -218,7 +225,6 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
         });

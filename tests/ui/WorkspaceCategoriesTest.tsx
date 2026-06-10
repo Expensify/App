@@ -138,9 +138,8 @@ describe('WorkspaceCategories', () => {
             expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
         });
 
-        // Select categories to delete by clicking their checkboxes
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+        // Select categories to delete
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 
@@ -244,9 +243,8 @@ describe('WorkspaceCategories', () => {
             expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
         });
 
-        // Select categories to delete by clicking their checkboxes
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+        // Select categories to disable
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 
