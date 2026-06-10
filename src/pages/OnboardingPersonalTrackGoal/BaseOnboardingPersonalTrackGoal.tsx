@@ -31,34 +31,24 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL);
-    const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
-    const [somethingElseText, setSomethingElseText] = useState('');
+    const [selectedGoalOverride, setSelectedGoalOverride] = useState<string | null>(null);
+    const [somethingElseTextOverride, setSomethingElseTextOverride] = useState<string | null>(null);
     const [inputError, setInputError] = useState('');
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
-    const [personalTrackGoal, personalTrackGoalMetadata] = useOnyx(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL);
+    const [personalTrackGoal] = useOnyx(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL);
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
-    const isSomethingElseSelected = selectedGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE;
-
     // Restore a previously made selection (e.g. after the user refreshes the next step and navigates back) from the persisted Onyx value.
-    // The value loads asynchronously, so we adjust state during render once it is available instead of using an effect.
-    // Predefined goals are stored as their constant, while "Something else" stores the free text the user typed.
-    const [hasRestoredSelection, setHasRestoredSelection] = useState(false);
-    if (!hasRestoredSelection && personalTrackGoalMetadata.status === 'loaded') {
-        setHasRestoredSelection(true);
-        if (personalTrackGoal) {
-            if (personalTrackGoalOptions.some((option) => option === personalTrackGoal)) {
-                setSelectedGoal(personalTrackGoal);
-            } else {
-                setSelectedGoal(CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE);
-                setSomethingElseText(personalTrackGoal);
-            }
-        }
-    }
+    // Predefined goals are stored as their constant; "Something else" stores the free text the user typed.
+    const restoredGoal = personalTrackGoal ? (personalTrackGoalOptions.find((option) => option === personalTrackGoal) ?? CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) : null;
+    const selectedGoal = selectedGoalOverride ?? restoredGoal;
+    const somethingElseText = somethingElseTextOverride ?? (restoredGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE ? (personalTrackGoal ?? '') : '');
+
+    const isSomethingElseSelected = selectedGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE;
 
     // Private-domain users already entered their name before Purpose, so PERSONAL_DETAILS isn't part of their flow.
     // Mirror BaseOnboardingPurpose and complete the track workspace directly instead of sending them back to the name screen.
@@ -126,7 +116,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                 success={isSelected}
                                 shouldRemoveHoverBackground={isSelected}
                                 onPress={() => {
-                                    setSelectedGoal(goal);
+                                    setSelectedGoalOverride(goal);
                                     setInputError('');
                                     if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
                                         completeTrackGoalSelection(goal);
@@ -143,7 +133,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                 label={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
                                 value={somethingElseText}
                                 onChangeText={(text) => {
-                                    setSomethingElseText(text);
+                                    setSomethingElseTextOverride(text);
                                     setInputError('');
                                 }}
                             />
