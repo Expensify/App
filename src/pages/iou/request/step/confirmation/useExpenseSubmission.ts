@@ -107,7 +107,7 @@ type UseExpenseSubmissionParams = {
     isDraftPolicy: boolean;
 
     // User data
-    currentUserPersonalDetails: {accountID: number; login?: string; email?: string};
+    currentUserPersonalDetails: {accountID: number; login?: string; email?: string; localCurrencyCode?: string};
     personalDetails: OnyxEntry<PersonalDetailsList>;
     participants: Participant[];
 
@@ -685,6 +685,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 previousOdometerDraft: odometerDraft,
                 reportActionsList: policyExpenseChatReportActions,
+                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         }
         performPostBatchCleanup({

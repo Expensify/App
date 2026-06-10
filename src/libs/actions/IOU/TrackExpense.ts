@@ -184,6 +184,7 @@ type GetTrackExpenseInformationParams = {
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
+    currentUserLocalCurrency: string | undefined;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
@@ -833,6 +834,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         optimisticChatReportID,
         delegateAccountID,
         isDraftChatReport,
+        currentUserLocalCurrency,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -971,8 +973,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-            // TODO: thread currency from caller (https://github.com/Expensify/App/issues/66580)
-            currency: undefined,
+            currency: currentUserLocalCurrency,
             currentUserAccountIDParam,
             currentUserEmailParam,
             introSelected,
@@ -2329,6 +2330,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         delegateAccountID,
         reportActionsList,
         isDraftChatReport,
+        currentUserLocalCurrency,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2489,6 +2491,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         optimisticChatReportID,
         delegateAccountID,
         isDraftChatReport,
+        currentUserLocalCurrency,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
