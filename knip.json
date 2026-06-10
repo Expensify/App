@@ -43,7 +43,8 @@
             },
             "storybook": {
                 "config": [".storybook/main.ts"]
-            }
+            },
+            "tags": ["-public"]
         },
         "server/victory-chart-renderer": {
             "entry": ["src/bootstrap.tsx", "tests/**/*.test.ts"],
