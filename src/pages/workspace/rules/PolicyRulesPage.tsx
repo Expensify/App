@@ -208,7 +208,6 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                         />
                     </View>
                     {renderTabContent()}
-                    )}
                     {isCustomAgentBetaEnabled && (
                         <AIRulesSection
                             policyID={policyID}
