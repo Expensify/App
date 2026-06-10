@@ -1,8 +1,9 @@
-import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import {FlashList} from '@shopify/flash-list';
+import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useEffect} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import FlashList from '@components/FlashList';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportHorizontalScrollWrapper from './MoneyRequestReportHorizontalScrollWrapper';
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
@@ -33,6 +34,26 @@ function unifiedListItemType(item: UnifiedListItem) {
     return item.type;
 }
 
+type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
+    /** Ref to the underlying list, shared via the ActionList context (typed for the legacy FlatList). */
+    ref: FlatListRefType;
+};
+
+/**
+ * Forwards the shared ActionList context ref to the underlying FlashList. That context slot predates this FlashList-based
+ * list and is still shared with the legacy report list, so it is typed for a FlatList. Mirroring InvertedFlashList, the
+ * ref is forwarded through @components/FlashList — which receives it as an untyped runtime prop — so no type assertion is
+ * needed. The scroll manager relies on the FlashList registering into this slot.
+ */
+function MoneyRequestReportFlashList(props: MoneyRequestReportFlashListProps) {
+    return (
+        <FlashList<UnifiedListItem>
+            // eslint-disable-next-line react/jsx-props-no-spreading -- thin forwarder; spreading the props (including the ref) is the point
+            {...props}
+        />
+    );
+}
+
 type MoneyRequestReportUnifiedListProps = {
     controller: MoneyRequestReportTransactionListController;
     report: OnyxTypes.Report;
@@ -40,7 +61,7 @@ type MoneyRequestReportUnifiedListProps = {
     visibleReportActions: OnyxTypes.ReportAction[];
     renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
     linkedReportActionID: string | undefined;
-    listRef: React.Ref<FlashListRef<UnifiedListItem>>;
+    listRef: FlatListRefType;
     accessibilityLabel: string;
     onLayout: () => void;
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -130,7 +151,7 @@ function MoneyRequestReportUnifiedList({
             contentWidth={controller.tableMinWidth}
             restorationKey={controller.horizontalScrollRestorationKey}
         >
-            <FlashList<UnifiedListItem>
+            <MoneyRequestReportFlashList
                 ref={listRef}
                 accessibilityLabel={accessibilityLabel}
                 testID="money-request-report-actions-list"

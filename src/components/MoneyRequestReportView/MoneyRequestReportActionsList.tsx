@@ -1,6 +1,5 @@
 /* eslint-disable rulesdir/prefer-early-return */
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {FlashListRef} from '@shopify/flash-list';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -61,7 +60,6 @@ import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
-import type {UnifiedListItem} from './MoneyRequestReportUnifiedList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import SelectionToolbar from './SelectionToolbar';
@@ -102,8 +100,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
-        const listRef = reportScrollManager.ref as unknown as React.RefObject<FlashListRef<UnifiedListItem>>;
-        listRef.current?.scrollToIndex({index: lastItemIndexRef.current, animated: false});
+        const listRef = reportScrollManager.ref;
+        listRef?.current?.scrollToIndex({index: lastItemIndexRef.current, animated: false});
     }, [reportScrollManager.ref]);
 
     const lastMessageTime = useRef<string | null>(null);
@@ -746,7 +744,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         visibleReportActions={visibleReportActions}
                         renderReportAction={renderReportAction}
                         linkedReportActionID={linkedReportActionID}
-                        listRef={reportScrollManager.ref as unknown as React.Ref<FlashListRef<UnifiedListItem>>}
+                        listRef={reportScrollManager.ref}
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         onListLayout={recordTimeToMeasureItemLayout}

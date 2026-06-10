@@ -1,6 +1,5 @@
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import type {FlashListRef} from '@shopify/flash-list';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -65,6 +64,7 @@ import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransact
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
 import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -83,7 +83,6 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTransactionLongPressModal';
 import type {MoneyRequestReportTransactionLongPressModalHandle} from './MoneyRequestReportTransactionLongPressModal';
 import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
-import type {UnifiedListItem} from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder'} as const;
@@ -194,7 +193,7 @@ type MoneyRequestReportTransactionListProps = {
     linkedReportActionID: string | undefined;
 
     /** Ref forwarded to the underlying FlashList. */
-    listRef: React.Ref<FlashListRef<UnifiedListItem>>;
+    listRef: FlatListRefType;
 
     /** Reports the unified list's last item index so the parent can jump to the bottom via scrollToIndex. */
     onLastItemIndexChange?: (index: number) => void;
