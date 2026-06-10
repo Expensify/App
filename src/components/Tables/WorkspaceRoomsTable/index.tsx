@@ -2,6 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef} from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,12 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
+
+    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb5,
+    });
 
     useEffect(() => {
         if (!highlightedReportID) {
@@ -83,7 +90,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
         >
             <Table.SearchBar label={translate('workspace.common.findRoom')} />
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>
     );
 }
