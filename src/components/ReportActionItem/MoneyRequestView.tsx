@@ -66,6 +66,7 @@ import {
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isAttendeeTrackingEnabled,
+    isMultiLevelTags,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -440,7 +441,7 @@ function MoneyRequestView({
     // of navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully
     // emptied, so also cover "no enabled tags remain". Scoped to single-level tag lists.
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
-    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag && policyTagLists.length <= 1;
+    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag && !isMultiLevelTags(policyTagList);
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
