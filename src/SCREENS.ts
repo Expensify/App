@@ -156,10 +156,6 @@ const SCREENS = {
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
-            LEGAL_NAME: 'Settings_LegalName',
-            DATE_OF_BIRTH: 'Settings_DateOfBirth',
-            PHONE_NUMBER: 'Settings_PhoneNumber',
-            ADDRESS: 'Settings_Address',
             PRIVATE_PERSONAL_DETAILS: 'Settings_PrivatePersonalDetails',
             PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Settings_PrivatePersonalDetails_ConfirmMagicCode',
             AVATAR: 'Settings_Avatar',
@@ -238,7 +234,6 @@ const SCREENS = {
             PERSONAL_CARD_DETAILS: 'Settings_Wallet_Personal_Card_Details',
             PERSONAL_CARD_EDIT_NAME: 'Settings_Wallet_Personal_Card_Edit_Name',
             PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: 'Settings_Wallet_Personal_Card_Edit_Transaction_Start_Date',
-            PERSONAL_CARD_BANK_CONNECTION: 'Settings_Wallet_PersonalCard_BankConnection',
             PERSONAL_CARD_FIX_CONNECTION: 'Settings_Wallet_PersonalCard_FixConnection',
             PERSONAL_CARD_ADD_NEW: 'Settings_Wallet_PersonalCard_New',
             PERSONAL_CARD_WARNING: 'Settings_Wallet_PersonalCard_Warning',
@@ -442,7 +437,6 @@ const SCREENS = {
     },
 
     IOU_SEND: {
-        ADD_BANK_ACCOUNT: 'IOU_Send_Add_Bank_Account',
         ADD_DEBIT_CARD: 'IOU_Send_Add_Debit_Card',
         ENABLE_PAYMENTS: 'IOU_Send_Enable_Payments',
     },
@@ -726,7 +720,6 @@ const SCREENS = {
         COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION: 'Workspace_CompanyCards_AssignCard_Confirmation',
         COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: 'Workspace_CompanyCards_AssignCard_Invite_New_Member',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
-        COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW: 'Dynamic_Workspace_CompanyCards_New',
         COMPANY_CARDS_IMPORT_SPREADSHEET: 'Workspace_CompanyCards_Import_Spreadsheet',
         COMPANY_CARDS_IMPORTED: 'Workspace_CompanyCards_Imported',
@@ -988,7 +981,6 @@ const SCREENS = {
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
-    INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal',
     I_AM_A_TEACHER: 'I_Am_A_Teacher',
     ENABLE_PAYMENTS_ROOT: 'EnablePayments_Root',
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',

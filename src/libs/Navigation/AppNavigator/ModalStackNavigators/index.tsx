@@ -197,7 +197,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.HOLD]: () => require<ReactComponentModule>('../../../../pages/iou/HoldReasonPage').default,
     [SCREENS.MONEY_REQUEST.REJECT]: () => require<ReactComponentModule>('../../../../pages/iou/RejectReasonPage').default,
     [SCREENS.MONEY_REQUEST.REPORT_REJECT]: () => require<ReactComponentModule>('../../../../pages/RejectExpenseReportPage').default,
-    [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/Pay/EnablePaymentsPage').default,
     [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default,
@@ -391,7 +390,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/SaveTheWorldPage').default,
     [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
     [SCREENS.I_KNOW_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/KnowATeacherPage').default,
-    [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
     [SCREENS.I_AM_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
 });
 
@@ -405,10 +403,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/DisplayNamePage').default,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneInitialPage').default),
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneSelectPage').default),
-    [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default),
-    [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default),
-    [SCREENS.SETTINGS.PROFILE.PHONE_NUMBER]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PhoneNumberPage').default),
-    [SCREENS.SETTINGS.PROFILE.ADDRESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default),
     [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage').default,
     ),
@@ -497,7 +491,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVVerifyAccountPage').default,
     ),
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_BANK_CONNECTION]: withAgentAccessDenied(() => require<ReactComponentModule>('@pages/settings/Wallet/PersonalCards/steps/BankConnection').default),
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: withAgentAccessDenied(
         () => require<ReactComponentModule>('@pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage').default,
     ),
@@ -942,7 +935,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/ConfirmationStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/InviteNewMemberStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
-    [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BankConnection').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/DynamicAddNewCardPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CompanyCardsImportSpreadsheetPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CompanyCardsImportedPage').default,
