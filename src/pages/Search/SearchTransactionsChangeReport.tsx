@@ -122,7 +122,7 @@ function SearchTransactionsChangeReport() {
                 continue;
             }
 
-            const report = snapshotData[key as keyof typeof snapshotData] as Report | undefined;
+            const report = snapshotData[typedKey];
             if (report) {
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
