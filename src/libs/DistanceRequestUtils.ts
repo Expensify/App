@@ -20,6 +20,8 @@ type MileageRate = {
     name?: string;
     enabled?: boolean;
     index?: number;
+    startDate?: string | null;
+    endDate?: string | null;
 };
 
 /** @private Only for getRate function */
@@ -63,6 +65,8 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             customUnitRateID: rate.customUnitRateID,
             enabled: rate.enabled,
             index: rate.index,
+            startDate: rate.startDate,
+            endDate: rate.endDate,
         };
     }
 
@@ -341,7 +345,100 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 }
 
 /**
- * Returns custom unit rate ID for the distance transaction
+ * Checks if a mileage rate is eligible for a given expense date.
+ * A rate is eligible if the date falls within its startDate/endDate bounds (inclusive).
+ * Missing bounds mean unbounded in that direction.
+ */
+function isRateEligibleForDate(rate: MileageRate, expenseDate: string): boolean {
+    if (rate.startDate && expenseDate < rate.startDate) {
+        return false;
+    }
+    if (rate.endDate && expenseDate > rate.endDate) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Returns a boundedness score: 2 = fully bounded (both dates), 1 = partially bounded (one date), 0 = unbounded.
+ */
+function getBoundednessScore(rate: MileageRate): number {
+    if (rate.startDate && rate.endDate) {
+        return 2;
+    }
+    if (rate.startDate || rate.endDate) {
+        return 1;
+    }
+    return 0;
+}
+
+function getFullyBoundedDateRangeMs(rate: MileageRate): number | undefined {
+    if (!rate.startDate || !rate.endDate) {
+        return undefined;
+    }
+
+    return new Date(rate.endDate).getTime() - new Date(rate.startDate).getTime();
+}
+
+/**
+ * Finds the best eligible rate for a given expense date from a set of mileage rates.
+ * Selection order per design doc:
+ * 1. Most specific date range (fully bounded > partially bounded > unbounded)
+ * 2. Narrower date range for two fully bounded ranges
+ * 3. Latest start date
+ * 4. Lowest index (creation order)
+ */
+function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseDate: string): MileageRate | undefined {
+    const eligibleRates = Object.values(mileageRates).filter((rate) => rate.enabled !== false && isRateEligibleForDate(rate, expenseDate));
+
+    if (eligibleRates.length === 0) {
+        return undefined;
+    }
+
+    eligibleRates.sort((a, b) => {
+        const aScore = getBoundednessScore(a);
+        const bScore = getBoundednessScore(b);
+        if (aScore !== bScore) {
+            return bScore - aScore;
+        }
+
+        if (aScore === 2 && bScore === 2) {
+            const aRange = getFullyBoundedDateRangeMs(a);
+            const bRange = getFullyBoundedDateRangeMs(b);
+            if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
+                return aRange - bRange;
+            }
+        }
+
+        const aStart = a.startDate ?? '';
+        const bStart = b.startDate ?? '';
+        if (aStart !== bStart) {
+            return aStart < bStart ? 1 : -1;
+        }
+
+        const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
+        const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
+        return aIndex - bIndex;
+    });
+
+    return eligibleRates.at(0);
+}
+
+function getBestEligibleRateOrPolicyDefault(mileageRates: Record<string, MileageRate>, expenseDate: string, policy: OnyxEntry<Policy>): MileageRate | undefined {
+    const bestRate = getBestEligibleRate(mileageRates, expenseDate);
+    if (bestRate) {
+        return bestRate;
+    }
+
+    return getDefaultMileageRate(policy);
+}
+
+/**
+ * Returns custom unit rate ID for the distance transaction.
+ * When an expenseDate is provided, uses date-aware rate selection:
+ * 1. Last selected rate, if enabled and valid for the expense date
+ * 2. Best eligible rate for the expense date
+ * 3. Default rate fallback
  */
 function getCustomUnitRateID({
     reportID,
@@ -349,14 +446,16 @@ function getCustomUnitRateID({
     policy,
     isTrackDistanceExpense = false,
     lastSelectedDistanceRates,
+    expenseDate,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     isTrackDistanceExpense?: boolean;
+    expenseDate?: string;
 }): string {
-    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    const customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (!reportID) {
         return customUnitRateID;
@@ -371,14 +470,32 @@ function getCustomUnitRateID({
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
-            customUnitRateID = lastSelectedDistanceRateID;
-        } else {
-            const defaultMileageRate = getDefaultMileageRate(policy);
-            if (!defaultMileageRate?.customUnitRateID) {
-                return customUnitRateID;
+
+        if (!expenseDate) {
+            if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+                return lastSelectedDistanceRateID;
             }
-            customUnitRateID = defaultMileageRate.customUnitRateID;
+
+            const defaultMileageRate = getDefaultMileageRate(policy);
+            if (defaultMileageRate?.customUnitRateID) {
+                return defaultMileageRate.customUnitRateID;
+            }
+
+            return customUnitRateID;
+        }
+
+        const mileageRates = getMileageRates(policy);
+        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+            const lastSelectedMileageRate = mileageRates[lastSelectedDistanceRateID];
+            // mileageRates may be empty when the distance unit has no attributes. Guard against undefined before calling isRateEligibleForDate, and preserve the user's last selected ID when rate metadata is unavailable.
+            if (!lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate)) {
+                return lastSelectedDistanceRateID;
+            }
+        }
+
+        const bestRate = getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+        if (bestRate?.customUnitRateID) {
+            return bestRate.customUnitRateID;
         }
     }
 
@@ -544,6 +661,8 @@ export default {
     isDistanceAmountWithinLimit,
     normalizeOdometerText,
     prepareTextForDisplay,
+    isRateEligibleForDate,
+    getBestEligibleRate,
 };
 
 export type {MileageRate};
