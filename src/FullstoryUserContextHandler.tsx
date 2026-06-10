@@ -5,8 +5,8 @@ import FS from './libs/Fullstory';
 import type {FullstoryUserVars} from './libs/Fullstory/types';
 import {buildFullstoryUserVars} from './libs/Fullstory/utils';
 import {shallowCompare} from './libs/ObjectUtils';
-import ONYXKEYS from './ONYXKEYS';
 import {expensifyLoginsSelector} from './libs/UserUtils';
+import ONYXKEYS from './ONYXKEYS';
 
 function FullstoryUserContextHandler() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
