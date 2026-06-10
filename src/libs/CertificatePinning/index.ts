@@ -1,7 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
-import PINNED_DOMAINS from './pins';
-import type PinnedDomains from './types';
+
 
 /**
  * Native-platform error fragments that indicate a TLS certificate-pinning failure rather than a
@@ -60,5 +59,4 @@ function reportCertificatePinningError(error: unknown, url: string): void {
     });
 }
 
-export type {PinnedDomains};
-export {PINNED_DOMAINS, isCertificatePinningError, reportCertificatePinningError};
+export {isCertificatePinningError, reportCertificatePinningError};

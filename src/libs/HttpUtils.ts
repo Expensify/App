@@ -12,10 +12,10 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API
 import {getCommandURL} from './ApiUtils';
 import {isCertificatePinningError, reportCertificatePinningError} from './CertificatePinning';
 import HttpsError from './Errors/HttpsError';
+import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import prepareRequestPayload from './prepareRequestPayload';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
-import Log from './Log';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
