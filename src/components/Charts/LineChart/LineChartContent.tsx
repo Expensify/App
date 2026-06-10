@@ -6,6 +6,7 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -32,7 +33,7 @@ import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Inner dot radius for line chart data points */
-const DOT_RADIUS = 6;
+const DOT_RADIUS = 4;
 
 /** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
@@ -188,7 +189,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                 <ScatterPoints
                     points={args.points.y}
                     radius={DOT_RADIUS}
-                    color={VictoryTheme.colors.default}
+                    color={VictoryTheme.colors.defaultDot}
                 />
                 {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
@@ -282,13 +283,20 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points}) => (
-                            <Line
-                                points={points.y}
-                                color={VictoryTheme.colors.default}
-                                strokeWidth={2}
-                                curveType="linear"
-                            />
+                        {({points, yScale, yTicks}) => (
+                            <>
+                                <AreaGradient
+                                    points={points.y}
+                                    baselineY={yScale(Math.min(...yTicks))}
+                                    color={VictoryTheme.colors.default}
+                                />
+                                <Line
+                                    points={points.y}
+                                    color={VictoryTheme.colors.default}
+                                    strokeWidth={2}
+                                    curveType="linear"
+                                />
+                            </>
                         )}
                     </CartesianChart>
                 )}
