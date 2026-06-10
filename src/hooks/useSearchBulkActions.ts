@@ -556,14 +556,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
 
-            // Only fall back to the selection's policyID when every selected transaction belongs to the same real workspace.
-            // selectedPolicyIDs filters out falsy policyIDs, so a mix of one workspace expense and policy-less (personal/unreported)
-            // expenses would otherwise collapse to a single ID and incorrectly resolve GL codes against that workspace.
-            const allSelectedHavePolicy = Object.values(selectedTransactions).every((transaction) => !!transaction.policyID);
-            const selectedPolicyID = allSelectedHavePolicy && selectedPolicyIDs.length === 1 ? selectedPolicyIDs.at(0) : undefined;
-            const queryPolicyID = queryJSON?.policyID?.length === 1 ? queryJSON.policyID.at(0) : undefined;
-            const exportPolicyID = policyID ?? (areAllMatchingItemsSelected ? queryPolicyID : selectedPolicyID);
-
             if (areAllMatchingItemsSelected) {
                 queueExportSearchWithTemplate({
                     templateName,
@@ -571,7 +563,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: serializedQuery,
                     reportIDList: [],
                     transactionIDList: [],
-                    policyID: exportPolicyID,
+                    policyID,
                 });
             } else {
                 const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
@@ -581,7 +573,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}',
                     reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
                     transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
-                    policyID: exportPolicyID,
+                    policyID,
                 });
             }
 
@@ -608,7 +600,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             queryJSON,
             selectedTransactionReportIDs,
             selectedTransactionsKeys,
-            selectedPolicyIDs,
         ],
     );
 
