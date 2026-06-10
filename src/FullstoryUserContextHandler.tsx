@@ -6,12 +6,13 @@ import type {FullstoryUserVars} from './libs/Fullstory/types';
 import {buildFullstoryUserVars} from './libs/Fullstory/utils';
 import {shallowCompare} from './libs/ObjectUtils';
 import ONYXKEYS from './ONYXKEYS';
+import {expensifyLoginsSelector} from './libs/UserUtils';
 
 function FullstoryUserContextHandler() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [onboardingLastVisitedPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
