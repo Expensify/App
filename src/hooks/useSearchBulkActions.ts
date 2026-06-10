@@ -96,6 +96,7 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
 import useSelfDMReport from './useSelfDMReport';
@@ -332,7 +333,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
-    const {introSelected, betas, isSelfTourViewed, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = usePaymentContext();
+    const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} =
+        usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
@@ -1038,6 +1040,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const isItemInvoice = isInvoiceReport(item.reportID);
 
                 if (isItemInvoice) {
+                    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+                    const existingB2BInvoiceReport = getParticipantsInvoiceReport(
+                        allReports,
+                        allReportNameValuePairs,
+                        activePolicyID,
+                        CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                        invoiceReceiverPolicyID ?? chatReport.policyID,
+                    );
+
                     payInvoice({
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
@@ -1048,6 +1059,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         currentUserEmailParam: email ?? '',
                         currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                         payAsBusiness: paymentItem.payAsBusiness,
+                        existingB2BInvoiceReport,
                         methodID: paymentItem.bankAccountID ?? paymentItem.fundID,
                         paymentMethod: paymentItem.fundID ? CONST.PAYMENT_METHODS.DEBIT_CARD : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                         activePolicy,
@@ -1123,6 +1135,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             betas,
             isSelfTourViewed,
             activePolicy,
+            activePolicyID,
+            allReportNameValuePairs,
             currentSearchKey,
             searchResults?.data,
         ],
