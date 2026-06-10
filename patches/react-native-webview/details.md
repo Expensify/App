@@ -12,7 +12,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/8503
 - PR introducing patch: https://github.com/Expensify/App/pull/13767
 
-### [react-native-webview+13.16.0.patch](../react-native-webview+13.16.0.patch)
+### [react-native-webview+13.16.0+002+certificate-pinning.patch](react-native-webview+13.16.0+002+certificate-pinning.patch)
 
 - Reason:
   
