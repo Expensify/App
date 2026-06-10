@@ -368,6 +368,25 @@ function getBoundednessScore(rate: MileageRate): number {
     return 0;
 }
 
+/**
+ * Returns a specificity score that combines boundedness and range narrowness
+ * into a single comparable number. Higher = more specific.
+ * - Unbounded: 0
+ * - Partially bounded: 1
+ * - Fully bounded: 2 + (1 / rangeMs), so narrower ranges score higher
+ */
+function getRateSpecificityScore(rate: MileageRate): number {
+    const score = getBoundednessScore(rate);
+    if (score < 2) {
+        return score;
+    }
+    const rangeMs = getFullyBoundedDateRangeMs(rate);
+    if (!rangeMs || rangeMs <= 0) {
+        return Number.MAX_SAFE_INTEGER;
+    }
+    return 2 + 1 / rangeMs;
+}
+
 function getFullyBoundedDateRangeMs(rate: MileageRate): number | undefined {
     if (!rate.startDate || !rate.endDate) {
         return undefined;
@@ -659,6 +678,7 @@ export default {
     prepareTextForDisplay,
     isRateEligibleForDate,
     getBestEligibleRate,
+    getRateSpecificityScore,
 };
 
 export type {MileageRate};
