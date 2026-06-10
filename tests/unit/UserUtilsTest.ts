@@ -135,4 +135,43 @@ describe('UserUtils', () => {
             });
         });
     });
+
+    describe('expensifyLoginsSelector', () => {
+        test('returns undefined when there are no logins', () => {
+            expect(UserUtils.expensifyLoginsSelector(undefined)).toBeUndefined();
+        });
+
+        test('keeps Expensify contact methods and excludes device and synthetic policy-domain logins', () => {
+            const logins = {
+                '1_user@example.com': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'user@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: '2024-01-01',
+                },
+                '1_card@expensify-policy7c203ee7387a8f06.exfy': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'card@expensify-policy7c203ee7387a8f06.exfy',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+                '14_device': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'device@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+            };
+
+            const result = UserUtils.expensifyLoginsSelector(logins);
+
+            expect(Object.keys(result ?? {})).toEqual(['user@example.com']);
+        });
+    });
 });
