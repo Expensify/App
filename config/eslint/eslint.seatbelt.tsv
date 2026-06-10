@@ -1882,7 +1882,6 @@
 "../../tests/unit/ViolationUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/unit/WhisperContentMentionContextTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/WorkflowUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
-"../../tests/unit/WorkspaceReportFieldUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/WorkspacesSettingsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../tests/unit/awaitStagingDeploysTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
