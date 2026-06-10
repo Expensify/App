@@ -99,7 +99,6 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            iconBackgroundColor={theme.widgetIconUrgentBG}
             iconFill={theme.widgetIconUrgentFill}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
             subtitle={subtitle}

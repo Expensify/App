@@ -1,6 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import HourglassSquare from '@assets/images/simple-illustrations/squares/simple-illustration-square_hourglass.svg';
+import MoneyReceiptSquare from '@assets/images/simple-illustrations/squares/simple-illustration-square_moneyreceipt.svg';
 import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -54,6 +56,7 @@ function YourSpendSection() {
                     description={translate('homePage.yourSpend.awaitingApproval')}
                     totals={approvalTotals}
                     iconSrc={icons.ThumbsUpHourglass}
+                    squareIcon={HourglassSquare}
                     onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery}))}
                     wrapperStyle={wrapperStyle}
                     skeletonRowIndex={0}
@@ -65,6 +68,7 @@ function YourSpendSection() {
                     description={translate('homePage.yourSpend.repaidLast30Days')}
                     totals={paymentTotals}
                     iconSrc={icons.MoneyBag}
+                    squareIcon={MoneyReceiptSquare}
                     onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery}))}
                     wrapperStyle={wrapperStyle}
                     skeletonRowIndex={1}

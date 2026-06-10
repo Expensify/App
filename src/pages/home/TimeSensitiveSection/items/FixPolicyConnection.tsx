@@ -37,7 +37,6 @@ function FixPolicyConnection({connectionName, policyID, policyName, integrationN
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            iconBackgroundColor={theme.widgetIconUrgentBG}
             iconFill={theme.widgetIconUrgentFill}
             title={translate('homePage.timeSensitiveSection.fixPolicyConnection.title', {integrationName})}
             subtitle={subtitle}

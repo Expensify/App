@@ -49,6 +49,8 @@ type SpendSummaryRowProps = {
     description: string;
     totals: ReturnType<typeof useYourSpendData>['approvalTotals'];
     iconSrc: IconAsset;
+    // Pre-styled 40x40 square SVG that renders inside the icon container in place of `iconSrc`.
+    squareIcon?: IconAsset;
     onPress: () => void;
     wrapperStyle: StyleProp<ViewStyle>;
     // Position of this row within the Your spend list. Used to vary the skeleton
@@ -56,7 +58,7 @@ type SpendSummaryRowProps = {
     skeletonRowIndex: number;
 };
 
-function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex}: SpendSummaryRowProps) {
+function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, squareIcon, onPress, wrapperStyle, skeletonRowIndex}: SpendSummaryRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -101,17 +103,24 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
             <MenuItemWithTopDescription
                 description={description}
                 title={totals.total !== undefined ? convertToDisplayString(totals.total, totals.currency) : undefined}
-                titleStyle={styles.textBold}
                 onPress={onPress}
                 shouldShowRightIcon
                 leftComponent={
-                    <View style={styles.getWidgetItemIconContainerStyle(theme.reportStatusBadge.approved.backgroundColor)}>
-                        <Icon
-                            src={iconSrc}
-                            fill={theme.reportStatusBadge.approved.textColor}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
+                    <View style={styles.getWidgetItemIconContainerStyle()}>
+                        {squareIcon ? (
+                            <Icon
+                                src={squareIcon}
+                                width={variables.componentSizeNormal}
+                                height={variables.componentSizeNormal}
+                            />
+                        ) : (
+                            <Icon
+                                src={iconSrc}
+                                fill={theme.reportStatusBadge.approved.textColor}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        )}
                     </View>
                 }
                 wrapperStyle={wrapperStyle}

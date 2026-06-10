@@ -7,7 +7,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -77,7 +76,6 @@ function getTypeIdentifier(reservation: Reservation): string {
 function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -108,12 +106,12 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
         <MenuItemWithTopDescription
             description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
             title={title}
-            titleStyle={isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold}
+            titleStyle={isCancelled ? styles.textSupporting : undefined}
             accessibilityLabel={isCancelled ? `${formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)} ${title}` : undefined}
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={
-                <View style={[styles.homeWidgetIconContainer, StyleUtils.getBackgroundColorStyle(theme.reportStatusBadge.draft.backgroundColor)]}>
+                <View style={styles.getWidgetItemIconContainerStyle()}>
                     <Icon
                         src={reservationIcon}
                         width={variables.iconSizeNormal}

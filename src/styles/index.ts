@@ -1170,7 +1170,8 @@ const staticStyles = (theme: ThemeColors) =>
         searchRouterBorder: {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
-            borderColor: theme.bordersBold,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.highlightBG,
         },
 
         /**
@@ -1403,13 +1404,17 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             height: '100%',
-            backgroundColor: theme.appBG,
+            backgroundColor: theme.highlightBG,
             overflow: 'hidden',
             borderWidth: 1,
             padding: 8,
             paddingBottom: 0,
             borderRadius: 8,
-            borderColor: theme.bordersBold,
+            borderColor: theme.highlightBG,
+        },
+
+        textInputContainerFocused: {
+            backgroundColor: theme.appBG,
         },
 
         cannotBeEditedSplitInputContainer: {
@@ -2224,17 +2229,18 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         chatItemComposeBoxColor: {
-            borderColor: theme.bordersBold,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.highlightBG,
         },
 
         chatItemComposeBoxFocusedColor: {
+            backgroundColor: theme.appBG,
             borderColor: theme.borderFocus,
         },
 
         chatItemComposeBox: {
-            backgroundColor: theme.componentBG,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusRounded,
+            borderRadius: variables.componentBorderRadius,
             minHeight: variables.componentSizeMedium,
         },
 
@@ -2273,7 +2279,7 @@ const staticStyles = (theme: ThemeColors) =>
         textInputCompose: addOutlineWidth(
             theme,
             {
-                backgroundColor: theme.componentBG,
+                backgroundColor: theme.transparent,
                 borderColor: theme.bordersBold,
                 color: theme.text,
                 ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -2324,11 +2330,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 5,
             ...flex.flexRow,
             flex: 1,
-        },
-
-        textInputComposeBorder: {
-            borderLeftWidth: 1,
-            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -3562,20 +3563,24 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchRouterTextInputContainer: {
-            borderRadius: variables.componentBorderRadiusSmall,
+            borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
             borderBottomWidth: 1,
             paddingHorizontal: 8,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.highlightBG,
         },
 
         searchAutocompleteInputResults: {
             borderWidth: 1,
-            borderColor: theme.bordersBold,
+            borderColor: theme.highlightBG,
+            backgroundColor: theme.highlightBG,
         },
 
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+            backgroundColor: theme.appBG,
         },
 
         searchInputSkeleton: {
@@ -3872,7 +3877,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.text,
@@ -6215,13 +6220,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
         },
-        homeWidgetIconContainer: {
-            width: variables.iconSizeExtraLarge,
-            height: variables.iconSizeExtraLarge,
-            borderRadius: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
@@ -6787,14 +6785,16 @@ const plainStyles = (theme: ThemeColors) =>
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
+        getWidgetItemIconContainerStyle: () =>
             ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: variables.componentBorderRadiusNormal,
                 width: variables.componentSizeNormal,
                 height: variables.componentSizeNormal,
-                backgroundColor,
+                backgroundColor: theme.highlightBG,
+                borderWidth: 1,
+                borderColor: theme.border,
             }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>

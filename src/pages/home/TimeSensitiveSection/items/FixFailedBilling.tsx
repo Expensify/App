@@ -13,7 +13,6 @@ function FixFailedBilling() {
     return (
         <BaseWidgetItem
             icon={icons.CreditCard}
-            iconBackgroundColor={theme.widgetIconUrgentBG}
             iconFill={theme.widgetIconUrgentFill}
             title={translate('homePage.timeSensitiveSection.fixFailedBilling.title')}
             subtitle={translate('homePage.timeSensitiveSection.fixFailedBilling.subtitle')}

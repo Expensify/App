@@ -18,8 +18,8 @@ type BaseWidgetItemProps = {
     /** Icon to display */
     icon: IconAsset;
 
-    /** Background color for the icon container */
-    iconBackgroundColor: string;
+    /** Pre-styled 40x40 square SVG that replaces the colored icon container entirely */
+    squareIcon?: IconAsset;
 
     /** Primary title text */
     title: string;
@@ -40,7 +40,7 @@ type BaseWidgetItemProps = {
     buttonProps?: Partial<ButtonProps>;
 };
 
-function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, squareIcon, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -54,13 +54,21 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
         >
             {({hovered}) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, hovered && styles.hoveredComponentBG]}>
-                    <View style={styles.getWidgetItemIconContainerStyle(iconBackgroundColor)}>
-                        <Icon
-                            src={icon}
-                            width={ICON_SIZE}
-                            height={ICON_SIZE}
-                            fill={iconFill ?? theme.white}
-                        />
+                    <View style={styles.getWidgetItemIconContainerStyle()}>
+                        {squareIcon ? (
+                            <Icon
+                                src={squareIcon}
+                                width={variables.componentSizeNormal}
+                                height={variables.componentSizeNormal}
+                            />
+                        ) : (
+                            <Icon
+                                src={icon}
+                                width={ICON_SIZE}
+                                height={ICON_SIZE}
+                                fill={iconFill ?? theme.white}
+                            />
+                        )}
                     </View>
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
                         {!!subtitle && <Text style={styles.widgetItemSubtitle}>{subtitle}</Text>}

@@ -1,5 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import MailboxSquare from '@assets/images/simple-illustrations/squares/simple-illustration-square_mailbox.svg';
+import ThumbsUpStarsSquare from '@assets/images/simple-illustrations/squares/simple-illustration-square_thumbsupstars.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -74,6 +76,7 @@ function ForYouSection() {
                     key: 'submit',
                     count: submitCount,
                     icon: icons.Send,
+                    squareIcon: MailboxSquare,
                     translationKey: 'homePage.forYouSection.submit' as const,
                     handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT]),
                 },
@@ -81,6 +84,7 @@ function ForYouSection() {
                     key: 'approve',
                     count: approveCount,
                     icon: icons.ThumbsUp,
+                    squareIcon: ThumbsUpStarsSquare,
                     translationKey: 'homePage.forYouSection.approve' as const,
                     handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {to: [`${accountID}`]}, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE]),
                 },
@@ -112,11 +116,11 @@ function ForYouSection() {
 
     const renderTodoItems = () => (
         <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, translationKey, handler}) => (
+            {todoItems.map(({key, count, icon, squareIcon, translationKey, handler}) => (
                 <BaseWidgetItem
                     key={key}
                     icon={icon}
-                    iconBackgroundColor={theme.widgetIconBG}
+                    squareIcon={squareIcon}
                     iconFill={theme.widgetIconFill}
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}

@@ -28,7 +28,6 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
     return (
         <BaseWidgetItem
             icon={icons.Bank}
-            iconBackgroundColor={colors.green100}
             iconFill={colors.green500}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}

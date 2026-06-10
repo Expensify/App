@@ -18,7 +18,6 @@ function ActivateCard({card}: ActivateCardProps) {
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            iconBackgroundColor={theme.widgetIconBG}
             iconFill={theme.widgetIconFill}
             title={translate('homePage.timeSensitiveSection.activateCard.title')}
             subtitle={translate('homePage.timeSensitiveSection.activateCard.subtitle')}

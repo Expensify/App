@@ -44,7 +44,6 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
     return (
         <BaseWidgetItem
             icon={icons.BankLock}
-            iconBackgroundColor={theme.widgetIconUrgentBG}
             iconFill={theme.widgetIconUrgentFill}
             title={title}
             subtitle={subtitle}

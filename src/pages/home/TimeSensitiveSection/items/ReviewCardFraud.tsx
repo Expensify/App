@@ -48,7 +48,6 @@ function ReviewCardFraud({possibleFraud}: ReviewCardFraudProps) {
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            iconBackgroundColor={theme.widgetIconUrgentBG}
             iconFill={theme.widgetIconUrgentFill}
             title={title}
             subtitle={translate('homePage.timeSensitiveSection.reviewCardFraud.subtitle')}

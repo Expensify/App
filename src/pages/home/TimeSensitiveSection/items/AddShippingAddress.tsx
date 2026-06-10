@@ -18,7 +18,6 @@ function AddShippingAddress({card}: AddShippingAddressProps) {
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            iconBackgroundColor={theme.widgetIconBG}
             iconFill={theme.widgetIconFill}
             title={translate('homePage.timeSensitiveSection.addShippingAddress.title')}
             subtitle={translate('homePage.timeSensitiveSection.addShippingAddress.subtitle')}
