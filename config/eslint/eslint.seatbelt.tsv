@@ -1076,8 +1076,7 @@
 "../../src/pages/ReimbursementAccount/utils/getSubStepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
