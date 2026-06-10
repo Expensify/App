@@ -2173,7 +2173,7 @@ describe('ModifiedExpenseMessage', () => {
                         data: {
                             vendors: [
                                 {id: 'v-acme', name: 'Acme', currency: 'USD', email: ''},
-                                {id: 'v-globex', name: 'Globex', currency: 'USD', email: ''},
+                                {id: 'v-office', name: 'Office Supplies', currency: 'USD', email: ''},
                             ],
                         },
                     },
@@ -2211,7 +2211,7 @@ describe('ModifiedExpenseMessage', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
                         oldVendor: {externalID: 'v-acme', isManuallySet: false},
-                        vendor: {externalID: 'v-globex', isManuallySet: true},
+                        vendor: {externalID: 'v-office', isManuallySet: true},
                     },
                 };
 
@@ -2223,7 +2223,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
-                    expect(result).toEqual('changed the vendor to "Globex" (previously "Acme")');
+                    expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
                 });
             });
 
