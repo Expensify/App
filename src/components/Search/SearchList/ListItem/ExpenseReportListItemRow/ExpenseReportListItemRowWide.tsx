@@ -84,27 +84,6 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
-        [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER)]}>
-                {!!item.firstApproverAccountID && (
-                    <UserInfoCell
-                        accountID={item.firstApproverAccountID}
-                        avatar={item.firstApprover?.avatar}
-                        displayName={item.formattedFirstApprover ?? ''}
-                        isLargeScreenWidth
-                    />
-                )}
-            </View>
-        ),
-        [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, {isFirstApprovedColumnWide: item.shouldShowYearFirstApproved})]}>
-                <DateCell
-                    date={item.firstApproved ?? ''}
-                    showTooltip
-                    isLargeScreenWidth
-                />
-            </View>
-        ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
                 <DateCell

@@ -234,18 +234,6 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date the report was exported */
         exported?: string;
 
-        /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
-        firstApproved?: string;
-
-        /** The personal details of the first approver */
-        firstApprover?: PersonalDetails;
-
-        /** Account ID of the first approver (actor on the earliest APPROVED/FORWARDED report action) */
-        firstApproverAccountID?: number;
-
-        /** Final and formatted "first approver" value used for displaying and sorting */
-        formattedFirstApprover?: string;
-
         /** Whether the status field should be shown in a pending state */
         shouldShowStatusAsPending?: boolean;
 
@@ -266,12 +254,6 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was approved in past years
          */
         shouldShowYearApproved: boolean;
-
-        /**
-         * Whether we should show the year for the first approved date.
-         * This is true if at least one report in the dataset was first-approved in past years
-         */
-        shouldShowYearFirstApproved?: boolean;
 
         /**
          * Whether we should show the year for the exported date.

@@ -237,15 +237,6 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.filters.approved',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER,
-        translationKey: 'search.filters.firstApprover',
-        isColumnSortable: false,
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
-        translationKey: 'search.filters.firstApproved',
-    },
-    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
         translationKey: 'search.filters.exported',
     },
