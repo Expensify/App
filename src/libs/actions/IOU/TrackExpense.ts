@@ -51,10 +51,12 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
+    getDefaultNotificationPreferenceForReport,
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
     isDraftReport,
+    isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
@@ -217,6 +219,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     participant?: Participant;
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    currentUserAccountID: number;
 };
 
 /** Builds the Onyx data for track expense */
@@ -231,6 +234,7 @@ function buildOnyxDataForTrackExpense({
     participant,
     isASAPSubmitBetaEnabled,
     quickAction,
+    currentUserAccountID,
 }: BuildOnyxDataForTrackExpenseParams): OnyxData<BuildOnyxDataForTrackExpenseKeys> {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -254,6 +258,9 @@ function buildOnyxDataForTrackExpense({
     const existingTransactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
     if (chatReport) {
+        const currentUserNotificationPreference = chatReport.participants?.[currentUserAccountID]?.notificationPreference;
+        const shouldUpdateSelfDMNotificationPreference = isSelfDMReport && isHiddenForCurrentUser(currentUserNotificationPreference);
+
         onyxData.optimisticData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -266,6 +273,17 @@ function buildOnyxDataForTrackExpense({
                     // do not update iouReportID if auto submit beta is enabled and it is a scan request
                     iouReportID: isASAPSubmitBetaEnabled && isScanRequest ? null : iouReport?.reportID,
                     lastVisibleActionCreated: shouldCreateNewMoneyRequestReport ? reportPreviewAction?.created : chatReport.lastVisibleActionCreated,
+                    ...(shouldUpdateSelfDMNotificationPreference
+                        ? {
+                              participants: {
+                                  ...chatReport.participants,
+                                  [currentUserAccountID]: {
+                                      ...chatReport.participants?.[currentUserAccountID],
+                                      notificationPreference: getDefaultNotificationPreferenceForReport(chatReport),
+                                  },
+                              },
+                          }
+                        : {}),
                 },
             },
             {
@@ -1142,6 +1160,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         retryParams,
         isASAPSubmitBetaEnabled,
         quickAction,
+        currentUserAccountID: currentUserAccountIDParam,
     });
 
     onyxData.optimisticData?.push(...(trackExpenseOnyxData.optimisticData ?? []));

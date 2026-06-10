@@ -38,7 +38,7 @@ import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import {createRandomReport} from '../../utils/collections/reports';
-import createRandomTransaction from '../../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
 import type {MockFetch} from '../../utils/TestHelper';
@@ -130,6 +130,56 @@ describe('actions/IOU/TrackExpense', () => {
     });
 
     describe('trackExpense', () => {
+        it('makes a hidden Self DM visible when tracking a distance expense optimistically', async () => {
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                },
+            };
+            const distanceTransaction = createRandomDistanceRequestTransaction(1, true);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
+            mockFetch?.pause?.();
+
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: distanceTransaction.amount,
+                    currency: distanceTransaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: distanceTransaction.merchant,
+                    billable: false,
+                    validWaypoints: getValidWaypoints(distanceTransaction.comment?.waypoints, true),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+                existingTransaction: distanceTransaction,
+                isASAPSubmitBetaEnabled: false,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                introSelected: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const optimisticSelfDMReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`);
+            expect(optimisticSelfDMReport?.participants?.[RORY_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE);
+
+            await mockFetch?.resume?.();
+        });
+
         it('category a distance expense of selfDM report', async () => {
             /*
              * This step simulates the following steps:
