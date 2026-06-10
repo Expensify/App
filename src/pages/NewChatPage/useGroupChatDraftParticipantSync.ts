@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useOnyx from '@hooks/useOnyx';
 import {getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
@@ -30,10 +30,10 @@ function useGroupChatDraftParticipantSync(
     setSelectedOptions: (options: SelectedOption[]) => void,
 ) {
     const shouldRestoreSelectedOptionsRef = useRef(true);
-    const isScreenInBackgroundRef = useRef(false);
+    const isScreenFocusedRef = useIsFocusedRef();
 
     const draftParticipantsSelector = (draft: NewGroupChatDraft | undefined) => {
-        const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || isScreenInBackgroundRef.current;
+        const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || !isScreenFocusedRef.current;
         return isSubscriptionActive ? draft?.participants : undefined;
     };
 
@@ -81,23 +81,13 @@ function useGroupChatDraftParticipantSync(
         setSelectedOptions(filteredSelectionOptions);
     });
 
-    useFocusEffect(
-        useCallback(() => {
-            isScreenInBackgroundRef.current = false;
-
-            return () => {
-                isScreenInBackgroundRef.current = true;
-            };
-        }, []),
-    );
-
     // Handle removing participants on other pages (e.g. NewChatConfirmPage)
     useEffect(() => {
-        if (!isScreenInBackgroundRef.current) {
+        if (isScreenFocusedRef.current) {
             return;
         }
         syncSelectedOptionsWithDraft();
-    }, [draftParticipants]);
+    }, [draftParticipants, isScreenFocusedRef]);
 
     const areRestoreInputsReady = areAllPersonalDetailOptionsLoaded && !isLoadingOnyxValue(draftParticipantsMetadata);
 

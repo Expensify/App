@@ -2,16 +2,16 @@
 import type {SvgProps} from 'react-native-svg';
 import * as SeasonF1 from '@components/Icon/CustomAvatars/SeasonF1';
 import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
-import {BotAvatarBlue, BotAvatarGreen, BotAvatarIce, BotAvatarPink, BotAvatarTangerine, BotAvatarYellow} from '@components/Icon/DefaultBotAvatars';
 import * as LetterDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import type {AvatarEntry, BotAvatarIDs, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, PresetAvatarID, SeasonF1AvatarIDs} from './PresetAvatarCatalog.types';
+import {createAvatarCatalog} from './AvatarCatalog';
+import type {AvatarEntry} from './AvatarCatalog';
+import type {DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, SeasonF1AvatarIDs, UserAvatarID} from './UserAvatarCatalog.types';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
-const CDN_BOT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars/bots`;
 
 const DEFAULT_AVATAR_PREFIX = `default-avatar`;
 
@@ -88,15 +88,6 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'tire-green400': {local: SeasonF1.TireGreen400, url: `${CDN_SEASON_F1}/tire-green400.png`},
     'trophy-yellow600': {local: SeasonF1.TrophyYellow600, url: `${CDN_SEASON_F1}/trophy-yellow600.png`},
     'wrenches-pink600': {local: SeasonF1.WrenchesPink600, url: `${CDN_SEASON_F1}/wrenches-pink600.png`},
-};
-
-const BOT_AVATARS: Record<BotAvatarIDs, AvatarEntry> = {
-    'bot-avatar--blue': {local: BotAvatarBlue, url: `${CDN_BOT_AVATARS}/bot-avatar--blue.png`},
-    'bot-avatar--green': {local: BotAvatarGreen, url: `${CDN_BOT_AVATARS}/bot-avatar--green.png`},
-    'bot-avatar--ice': {local: BotAvatarIce, url: `${CDN_BOT_AVATARS}/bot-avatar--ice.png`},
-    'bot-avatar--pink': {local: BotAvatarPink, url: `${CDN_BOT_AVATARS}/bot-avatar--pink.png`},
-    'bot-avatar--tangerine': {local: BotAvatarTangerine, url: `${CDN_BOT_AVATARS}/bot-avatar--tangerine.png`},
-    'bot-avatar--yellow': {local: BotAvatarYellow, url: `${CDN_BOT_AVATARS}/bot-avatar--yellow.png`},
 };
 
 const LETTER_DEFAULTS: Record<LetterAvatarIDs, Omit<AvatarEntry, 'url'>> = {
@@ -187,25 +178,18 @@ const DISPLAY_ORDER = [
     'speedometer-ice400',
     'stopwatch-ice600',
     'default-avatar_24',
-] as const satisfies readonly PresetAvatarID[];
+] as const satisfies readonly UserAvatarID[];
 
-const PRESET_AVATAR_CATALOG: Record<PresetAvatarID, AvatarEntry> = {
+const USER_AVATAR_ENTRIES: Record<UserAvatarID, AvatarEntry> = {
     ...DEFAULTS,
     ...SEASON_F1,
-    ...BOT_AVATARS,
 };
 
-const buildOrderedAvatars = (): Array<{id: PresetAvatarID} & AvatarEntry> => {
-    const allIDS = Object.keys(PRESET_AVATAR_CATALOG) as PresetAvatarID[];
-    const explicit = DISPLAY_ORDER.filter((id) => id in PRESET_AVATAR_CATALOG);
-    const explicitSet = new Set<PresetAvatarID>(explicit);
-    const leftovers = allIDS.filter((id) => !explicitSet.has(id)).sort();
-    const finalIDOrder = [...explicit, ...leftovers];
-    return finalIDOrder.map((id) => ({
-        id,
-        ...PRESET_AVATAR_CATALOG[id],
-    }));
-};
+const USER_AVATARS = createAvatarCatalog<UserAvatarID>(USER_AVATAR_ENTRIES, DISPLAY_ORDER);
+
+function isLetterAvatarID(value: string): value is LetterAvatarIDs {
+    return value in LETTER_DEFAULTS;
+}
 
 /**
  * Returns a letter avatar component based on the first letter of the provided name.
@@ -217,42 +201,13 @@ function getLetterAvatar(name?: string): React.FC<SvgProps> | null {
         return null;
     }
     const firstChar = getFirstAlphaNumericCharacter(name).toLowerCase();
-    const workspaceKey = `letter-default-avatar_${firstChar}` as LetterAvatarIDs;
+    const workspaceKey = `letter-default-avatar_${firstChar}`;
 
-    if (!(workspaceKey in LETTER_DEFAULTS)) {
+    if (!isLetterAvatarID(workspaceKey)) {
         return null;
     }
 
     return LETTER_DEFAULTS[workspaceKey].local;
 }
 
-const PRESET_AVATAR_CATALOG_ORDERED = buildOrderedAvatars();
-
-const getAvatarLocal = (id: PresetAvatarID) => PRESET_AVATAR_CATALOG[id]?.local;
-const getAvatarURL = (id: PresetAvatarID) => PRESET_AVATAR_CATALOG[id]?.url;
-
-/**
- * Type guard to check if a value is a valid PresetAvatarID
- * @param value - The value to check
- * @returns True if the value is a valid PresetAvatarID
- */
-function isPresetAvatarID(value: unknown): value is PresetAvatarID {
-    return typeof value === 'string' && value in PRESET_AVATAR_CATALOG;
-}
-
-function resolveAvatarURI(id: string): string {
-    return isPresetAvatarID(id) ? (getAvatarURL(id) ?? id) : id;
-}
-
-export {
-    PRESET_AVATAR_CATALOG,
-    PRESET_AVATAR_CATALOG_ORDERED,
-    LETTER_AVATAR_COLOR_OPTIONS,
-    LETTER_DEFAULTS,
-    DEFAULT_AVATAR_PREFIX,
-    getAvatarLocal,
-    getAvatarURL,
-    getLetterAvatar,
-    isPresetAvatarID,
-    resolveAvatarURI,
-};
+export {USER_AVATARS, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, DEFAULT_AVATAR_PREFIX, getLetterAvatar};
