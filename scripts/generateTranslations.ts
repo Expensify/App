@@ -4,6 +4,7 @@
  */
 import {execFileSync} from 'child_process';
 import * as dotenv from 'dotenv';
+import {CLI} from 'expensify-common';
 import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import get from 'lodash/get';
@@ -18,7 +19,6 @@ import {isTranslationTargetLocale, TRANSLATION_TARGET_LOCALES} from '@src/CONST/
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
-import CLI from './utils/CLI';
 import COLORS from './utils/COLORS';
 import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';

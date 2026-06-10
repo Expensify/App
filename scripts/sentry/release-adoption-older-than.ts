@@ -12,7 +12,7 @@
  *   bun scripts/sentry/release-adoption-older-than.ts --threshold 9.3.79-4 --start 2026-05-22T00:00:00Z --end 2026-06-03T23:59:59Z
  *   bun scripts/sentry/release-adoption-older-than.ts --help
  */
-import CLI from '../utils/CLI';
+import {CLI} from 'expensify-common';
 
 const DEFAULT_ORG = 'expensify';
 const DEFAULT_PROJECT = 'app';

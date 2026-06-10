@@ -45,7 +45,6 @@
 "../../scripts/generateTranslations.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../scripts/react-compiler-compliance-check.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/sentry/release-adoption-older-than.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../scripts/utils/CLI.ts"	"@typescript-eslint/no-unsafe-type-assertion"	18
 "../../scripts/utils/Git.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-deprecated/this.client.beta.threads.create"	1
 "../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-deprecated/this.client.beta.threads.messages.list"	1

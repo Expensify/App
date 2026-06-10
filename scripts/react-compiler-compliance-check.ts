@@ -10,9 +10,9 @@
  *       2. Modified files must not regress (compiled on main -> must compile on PR)
  */
 import {transformSync} from '@babel/core';
+import {CLI} from 'expensify-common';
 import fs from 'fs';
 import path from 'path';
-import CLI from './utils/CLI';
 import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import {error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';

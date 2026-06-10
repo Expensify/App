@@ -10,11 +10,11 @@
  * When the history chart is included, Chart.js is downloaded next to the HTML so file:// opens work;
  * tables work offline without Chart.js.
  */
+import {CLI} from 'expensify-common';
 import {execSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import colors from '@styles/theme/colors';
-import CLI from './utils/CLI';
 import Git from './utils/Git';
 
 const SEATBELT_REL = 'config/eslint/eslint.seatbelt.tsv';

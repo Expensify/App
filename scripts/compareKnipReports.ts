@@ -1,6 +1,6 @@
+import {CLI} from 'expensify-common';
 import fs from 'fs';
 import type {TupleToUnion} from 'type-fest';
-import CLI from './utils/CLI';
 
 /**
  * Knip (https://knip.dev) is a static analyzer that flags unused files, exports,
