@@ -255,4 +255,3 @@ function FeatureTrainingModalCarouselBody({
 }
 
 export default FeatureTrainingModalCarouselBody;
-export type {FeatureTrainingModalCarouselBodyProps};

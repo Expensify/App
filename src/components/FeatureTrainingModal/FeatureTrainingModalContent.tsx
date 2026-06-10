@@ -143,4 +143,3 @@ function FeatureTrainingModalContent({
 }
 
 export default FeatureTrainingModalContent;
-export type {FeatureTrainingModalContentProps};
