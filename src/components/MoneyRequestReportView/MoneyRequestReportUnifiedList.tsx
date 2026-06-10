@@ -189,4 +189,3 @@ function MoneyRequestReportUnifiedList({
 }
 
 export default memo(MoneyRequestReportUnifiedList);
-export type {UnifiedListItem};
