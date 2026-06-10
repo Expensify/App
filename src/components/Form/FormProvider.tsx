@@ -14,6 +14,7 @@ import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {prepareValues} from '@libs/ValidationUtils';
@@ -268,10 +269,13 @@ function FormProvider({
         [touchedInputs],
     );
 
+    // Press-driven spinner bridge: covers the gap between the click and the parent committing formState.isLoading=true (typically driven by Onyx)
+    const {isPressed, startPressLoading} = usePressLoading();
+
     const submit = useDebounceNonReactive(
         useCallback(() => {
             // Return early if the form is already submitting to avoid duplicate submission
-            if (!!formState?.isLoading || isLoading) {
+            if (!!formState?.isLoading || isLoading || isPressed) {
                 return;
             }
 
@@ -300,14 +304,31 @@ function FormProvider({
                 return;
             }
 
-            if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
-                KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-            } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
-            } else {
-                onSubmit(trimmedStringValues);
-            }
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit]),
+            startPressLoading(() => {
+                const dispatchSubmit = () => onSubmit(trimmedStringValues);
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
+                    KeyboardUtils.dismiss().then(dispatchSubmit);
+                } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    KeyboardUtils.dismissKeyboardAndExecute(dispatchSubmit);
+                } else {
+                    dispatchSubmit();
+                }
+            });
+        }, [
+            enabledWhenOffline,
+            formState?.isLoading,
+            inputValues,
+            isLoading,
+            isPressed,
+            isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+            startPressLoading,
+        ]),
         1000,
         {leading: true, trailing: false},
     );
@@ -528,7 +549,7 @@ function FormProvider({
                 onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
-                isLoading={isLoading}
+                isLoading={isLoading || isPressed}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}

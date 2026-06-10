@@ -1,7 +1,8 @@
 import type {Ref} from 'react';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -24,6 +25,9 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
 
     /** Is the button in a loading state */
     isLoading?: boolean;
+
+    /** Shows the spinner the moment the button is pressed, ahead of `onSubmit` and any consumer-driven `isLoading`. */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
 
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
@@ -103,23 +107,21 @@ function FormAlertWithSubmitButton({
     shouldBlendOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
+    shouldShowLoadingImmediatelyOnPress = true,
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
 
-    // Press-driven spinner bridge: covers the gap between the click and the parent committing isLoading=true (typically driven by Onyx)
-    const [isPressed, setIsPressed] = useState(false);
-    const isSpinnerVisible = isPressed || isLoading;
+    const {isPressed, startPressLoading} = usePressLoading();
 
     const handlePress = useCallback(() => {
-        setIsPressed(true);
-        // Defer onSubmit so React commits isPressed=true (and paints the spinner) before consumer code blocks the main thread
-        setTimeout(() => {
-            onSubmit?.();
-            setIsPressed(false);
-        }, 0);
-    }, [onSubmit]);
+        if (!shouldShowLoadingImmediatelyOnPress) {
+            onSubmit();
+            return;
+        }
+        startPressLoading(onSubmit);
+    }, [onSubmit, shouldShowLoadingImmediatelyOnPress, startPressLoading]);
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -163,7 +165,7 @@ function FormAlertWithSubmitButton({
                             style={style}
                             onPress={handlePress}
                             isDisabled={isDisabled}
-                            isLoading={isSpinnerVisible}
+                            isLoading={isPressed || isLoading}
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}

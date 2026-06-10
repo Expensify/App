@@ -287,6 +287,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={account?.isLoading && account?.loadingForm === CONST.FORMS.LOGIN_FORM}
+                            shouldShowLoadingImmediatelyOnPress={false}
                             onSubmit={validateAndSubmitForm}
                             message={serverErrorText}
                             isAlertVisible={shouldShowServerError}

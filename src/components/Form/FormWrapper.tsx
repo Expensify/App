@@ -192,6 +192,7 @@ function FormWrapper({
             isDisabled={isSubmitDisabled}
             isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
             isLoading={!!formState?.isLoading || isLoading}
+            shouldShowLoadingImmediatelyOnPress={false}
             message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
             onSubmit={onSubmit}
             footerContent={footerContent}
