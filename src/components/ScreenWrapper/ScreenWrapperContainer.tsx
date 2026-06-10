@@ -212,7 +212,6 @@ function ScreenWrapperContainer({
             ref={ref}
             // This style gives the background for the screens. Stack cards are transparent to make different width screens in RHP possible.
             style={[styles.flex1, styles.appBG, styles.screenWrapperContainerMinHeight(minHeight)]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...panResponder.panHandlers}
             testID={testID}
             fsClass={forwardedFSClass}
@@ -222,7 +221,6 @@ function ScreenWrapperContainer({
         >
             <View
                 style={[shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, style, paddingTopStyle]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...keyboardDismissPanResponder.panHandlers}
             >
                 <KeyboardAvoidingView

@@ -6,10 +6,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
@@ -39,6 +41,8 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const styles = useThemeStyles();
+    const initialSelectedValue = useInitialSelection(currentState || undefined, {isVisible});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const countryStates = useMemo(
         () =>
@@ -57,7 +61,8 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         [translate, currentState],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countryStates);
+    const orderedCountryStates = moveInitialSelectionToTop(countryStates, initialSelectedValues);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates);
 
     const textInputOptions = useMemo(
         () => ({
@@ -93,7 +98,8 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                     ListItem={SingleSelectListItem}
                     onSelectRow={onStateSelected}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={currentState}
+                    searchValueForFocusSync={debouncedSearchValue}
+                    initiallyFocusedItemKey={initialSelectedValue}
                     disableMaintainingScrollPosition
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation

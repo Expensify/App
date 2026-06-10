@@ -1,9 +1,36 @@
 import CONST from '@src/CONST';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
-import type {DomainMemberErrors} from '@src/types/onyx/DomainErrors';
+import type {DomainMemberErrors, DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getLatestError} from './ErrorUtils';
+
+/**
+ * Checks if a security group has detail-level errors (shown on the group details page).
+ */
+function hasDomainGroupDetailsErrors(groupErrors: DomainSecurityGroupErrors | undefined): boolean {
+    if (!groupErrors) {
+        return false;
+    }
+    return Object.entries(groupErrors)
+        .filter(([key]) => key !== 'errors')
+        .some(([, value]) => !isEmptyObject(value));
+}
+
+/**
+ * Checks if any domain security group has errors.
+ */
+function hasDomainGroupsErrors(domainErrors?: DomainErrors): boolean {
+    if (!domainErrors) {
+        return false;
+    }
+    return Object.entries(domainErrors)
+        .filter(([key]) => key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX))
+        .some(([, value]) => {
+            const groupErrors = value as DomainSecurityGroupErrors;
+            return !isEmptyObject(groupErrors?.errors) || hasDomainGroupDetailsErrors(groupErrors);
+        });
+}
 
 /**
  * Checks if domain has any errors. Used to determine whether to show a red brick road indicator on domain row.
@@ -13,7 +40,7 @@ function hasDomainErrors(domainErrors?: DomainErrors): boolean {
         return false;
     }
 
-    return !isEmptyObject(domainErrors.errors) || hasDomainAdminsErrors(domainErrors) || hasDomainMembersErrors(domainErrors);
+    return !isEmptyObject(domainErrors.errors) || hasDomainAdminsErrors(domainErrors) || hasDomainMembersErrors(domainErrors) || hasDomainGroupsErrors(domainErrors);
 }
 
 /**
@@ -86,4 +113,13 @@ function getMemberCustomRowProps(accountID: number, domainPendingActions: Domain
     };
 }
 
-export {hasDomainErrors, hasDomainAdminsSettingsErrors, hasDomainAdminsErrors, hasDomainMembersErrors, hasDomainMembersSettingsErrors, getMemberCustomRowProps};
+export {
+    hasDomainErrors,
+    hasDomainAdminsSettingsErrors,
+    hasDomainAdminsErrors,
+    hasDomainMembersErrors,
+    hasDomainMembersSettingsErrors,
+    hasDomainGroupsErrors,
+    hasDomainGroupDetailsErrors,
+    getMemberCustomRowProps,
+};

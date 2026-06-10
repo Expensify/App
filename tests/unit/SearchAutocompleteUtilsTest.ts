@@ -186,6 +186,32 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
+        it('should highlight FROM filter with the "me" keyword as mention-here', () => {
+            const input = 'from:me';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([
+                {start: 5, type: 'mention-here', length: 2}, // from:me
+            ]);
+        });
+
+        it('should highlight every user-based filter with the "me" keyword as mention-here', () => {
+            const inputs: Array<[string, number]> = [
+                ['from:me', 5],
+                ['to:me', 3],
+                ['assignee:me', 9],
+                ['payer:me', 6],
+                ['exporter:me', 9],
+                ['attendee:me', 9],
+            ];
+
+            for (const [input, start] of inputs) {
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+                expect(result).toEqual([{start, type: 'mention-here', length: 2}]);
+            }
+        });
+
         it('should handle complex queries with multiple new filters', () => {
             const input = 'type:expense purchaseCurrency:USD purchaseAmount:50.00 title:"Expense Report" attendee:john@example.com';
 

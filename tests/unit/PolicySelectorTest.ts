@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createAdminPoliciesSelector, lastWorkspaceNumberSelector, policyNameSelector} from '@src/selectors/Policy';
+import {createAdminPoliciesSelector, isAdminForPolicyByIDSelector, lastWorkspaceNumberSelector, policyNameSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
 describe('lastWorkspaceNumberSelector', () => {
@@ -121,5 +121,36 @@ describe('createAdminPoliciesSelector', () => {
         const entry = result[`${P}1`];
         expect(entry).toBeDefined();
         expect(Object.keys(entry ?? {})).toEqual(['id', 'name', 'avatarURL', 'created']);
+    });
+});
+
+describe('isAdminForPolicyByIDSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+
+    it('returns true when policyID is undefined', () => {
+        expect(isAdminForPolicyByIDSelector(undefined)(null)).toBe(true);
+    });
+
+    it('returns true when policyID is empty string', () => {
+        expect(isAdminForPolicyByIDSelector('')({[`${P}p1`]: {role: CONST.POLICY.ROLE.USER} as Policy})).toBe(true);
+    });
+
+    it('returns false when policies is null and policyID is provided', () => {
+        expect(isAdminForPolicyByIDSelector('p1')(null)).toBe(false);
+    });
+
+    it('returns false when the policy is not found in the collection', () => {
+        const policies = {[`${P}p2`]: {role: CONST.POLICY.ROLE.ADMIN} as Policy};
+        expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(false);
+    });
+
+    it('returns false when policy exists but role is not admin', () => {
+        const policies = {[`${P}p1`]: {role: CONST.POLICY.ROLE.USER} as Policy};
+        expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(false);
+    });
+
+    it('returns true when policy exists and role is admin', () => {
+        const policies = {[`${P}p1`]: {role: CONST.POLICY.ROLE.ADMIN} as Policy};
+        expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(true);
     });
 });

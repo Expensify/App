@@ -8,22 +8,23 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
+import {getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportLayoutGroupBy} from '@src/types/onyx';
+import type {ReportLayoutSelection} from '@src/types/onyx';
 
 type ReportLayoutItem = ListItem & {
-    value: ReportLayoutGroupBy;
+    value: ReportLayoutSelection;
 };
 
 function ReportLayoutPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
+    const [reportLayoutOptionNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_OPTION);
 
-    const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupByNVP);
+    const currentSelection = getReportLayoutSelection(reportLayoutOptionNVP, reportLayoutGroupByNVP);
 
     const goBack = useCallback(() => {
         Navigation.goBack();
@@ -31,14 +32,14 @@ function ReportLayoutPage() {
 
     const onSelectGroupBy = useCallback(
         (item: ReportLayoutItem) => {
-            if (item.value === currentGroupBy) {
+            if (item.value === currentSelection) {
                 goBack();
                 return;
             }
-            setReportLayoutGroupBy(item.value, reportLayoutGroupByNVP);
+            setReportLayout(item.value, reportLayoutOptionNVP, reportLayoutGroupByNVP);
             goBack();
         },
-        [currentGroupBy, reportLayoutGroupByNVP, goBack],
+        [currentSelection, reportLayoutOptionNVP, reportLayoutGroupByNVP, goBack],
     );
 
     const layoutOptions: ReportLayoutItem[] = [
@@ -46,13 +47,19 @@ function ReportLayoutPage() {
             text: translate('reportLayout.groupBy.category'),
             keyForList: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
             value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-            isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+            isSelected: currentSelection === CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
         },
         {
             text: translate('reportLayout.groupBy.tag'),
             keyForList: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
             value: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
-            isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+            isSelected: currentSelection === CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+        },
+        {
+            text: translate('common.none'),
+            keyForList: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
+            value: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
+            isSelected: currentSelection === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
         },
     ];
 

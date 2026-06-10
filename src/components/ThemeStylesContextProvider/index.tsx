@@ -38,4 +38,3 @@ function useThemeStylesActions() {
 
 export default ThemeStylesProvider;
 export {useThemeStylesState, useThemeStylesActions};
-export type {ThemeStylesStateContextType, ThemeStylesActionsContextType};

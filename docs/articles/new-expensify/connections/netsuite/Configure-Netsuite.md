@@ -76,8 +76,8 @@ To manage how reports are exported from Expensify to NetSuite:
 - **Invoice Item** – Select or create the item line for invoices
 - **Export Foreign Currency Amount** – Enable to export original currency values
 - **Export to Next Open Period** – Enable to skip closed periods and use the next available NetSuite period
-- **Export Expensify Travel Payable To** – If Expensify Travel's Central invoicing feature is enabled, configure where travel card expenses are exported:
-  - **Travel payable account** – Select the payable account for Expensify Travel expenses
+- **Export Expensify Travel Payable To** – If Expensify Travel's Travel invoicing feature is enabled, configure where travel card expenses are exported:
+  - **Non-reimbursable journal posting account** – Select the payable account for Expensify Travel expenses
 
 3. Click the **three-dot icon** > **Sync Now** to apply changes
 
@@ -95,6 +95,7 @@ For additional control:
 - **Invite Employees & Set Approvals** – Imports employees and sets workflow
 - **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
 - **Enable Newly Imported Categories** – Activates newly synced Expense Categories
+- **Sync Travel Invoicing Settlements** – If Expensify Travel's Travel invoicing feature is enabled, turn on this toggle to continuously reconcile travel invoicing settlements through NetSuite. When enabled, select a **Reconciliation account** to match your travel invoicing settlement account.
 - **Approval Levels** – Set approval levels for:
   - Expense Reports
   - Vendor Bills

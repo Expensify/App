@@ -61,11 +61,12 @@ You can use the following operators to filter expenses:
 - `has:` – attachment, receipt, category, tag
 - `expense-type:` – cash, card, distance, per-diem
 - `reimbursable:` and `billable:` – yes or no
-- `attendee:` – expense attendees, e.g. `attendee:"Jason Mills"`
+- `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
 
-**Example query:**
-`type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
+**Example queries:**
+- `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
+- `type:expense -has:tag` – find expenses that have no tag assigned
 
 ---
 
@@ -79,7 +80,7 @@ You can use the following operators to filter reports:
 - `title:` – report title
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
-- `withdrawal-type:` – reimbursement or expensify-card
+- `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `action:` – blocking report action, e.g. `action:approve`
 
 **Example query:**
@@ -105,7 +106,7 @@ You can use the following operators to filter chats:
 
 You can use the following operators to filter tasks:
 
-- `assignee:` – assigned member
+- `assignee:` – assigned member (email, phone, display name, or `me`)
 - `status:` – outstanding, completed
 - `description:` – task description
 - `title:` – task title

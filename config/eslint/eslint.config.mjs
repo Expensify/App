@@ -261,6 +261,7 @@ const config = defineConfig([
             '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-non-null-assertion': 'error',
+            '@typescript-eslint/no-unsafe-type-assertion': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
             '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
             '@typescript-eslint/no-floating-promises': 'off',
@@ -401,11 +402,6 @@ const config = defineConfig([
                 {
                     selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
                     message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
-                },
-                {
-                    selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
-                    message:
-                        'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
                 },
                 {
                     selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
@@ -636,7 +632,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'server/**/*'],
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
@@ -644,7 +640,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*', 'tests/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
         rules: {
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
@@ -740,6 +736,24 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['server/**/*.ts', 'server/**/*.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'server/tsconfig.json'),
+            },
+        },
+    },
+
+    {
+        files: ['server/victory-chart-renderer/**/*.ts', 'server/victory-chart-renderer/**/*.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
+            },
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
@@ -748,6 +762,7 @@ const config = defineConfig([
         '**/*.config.mjs',
         '**/node_modules/**/*',
         '**/dist/**/*',
+        'server/**/dist/**',
         '.eslint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
@@ -766,6 +781,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',
         'src/languages/ja.ts',

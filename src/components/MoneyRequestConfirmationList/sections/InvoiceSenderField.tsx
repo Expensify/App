@@ -1,6 +1,6 @@
 import {emailSelector} from '@selectors/Session';
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,41 +31,48 @@ type InvoiceSenderFieldProps = {
     /** The report ID */
     reportID: string;
 
-    /** The transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** The transaction (only the fields this field reads) */
+    transaction: OnyxEntry<Pick<OnyxTypes.Transaction, 'isFromGlobalCreate' | 'transactionID'>>;
 };
+
+const senderWorkspaceSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => (policy ? {id: policy.id, name: policy.name, avatarURL: policy.avatarURL} : undefined);
+
+const createCanUpdateSenderWorkspaceSelector =
+    (selectedParticipants: Participant[], currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
+    (policies: OnyxCollection<OnyxTypes.Policy>): boolean => {
+        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
+        return canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
+    };
 
 function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouType, reportID, transaction}: InvoiceSenderFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // canSendInvoice needs the full policy collection to check all admin workspaces
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const senderPolicyID = selectedParticipants.find((participant) => participant.isSender)?.policyID;
+
+    const [senderWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${senderPolicyID}`, {selector: senderWorkspaceSelector});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
-    const senderWorkspace = (() => {
-        const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
-        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
-    })();
-
-    const canUpdateSenderWorkspace = (() => {
-        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
-        return canSendInvoice(allPolicies, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
-    })();
+    // canSendInvoice needs the full policy collection to check all admin workspaces
+    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate)}, [
+        selectedParticipants,
+        currentUserLogin,
+        isFromGlobalCreate,
+    ]);
 
     return (
         <MenuItem
             avatarID={senderWorkspace?.id}
-            shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
+            shouldShowRightIcon={!isReadOnly && !!canUpdateSenderWorkspace}
             title={senderWorkspace?.name}
-            icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+            icon={senderWorkspace?.avatarURL ? senderWorkspace.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
             iconType={CONST.ICON_TYPE_WORKSPACE}
             description={translate('workspace.common.workspace')}
             label={translate('workspace.invoices.sendFrom')}
             isLabelHoverable={false}
-            interactive={!isReadOnly && canUpdateSenderWorkspace}
+            interactive={!isReadOnly && !!canUpdateSenderWorkspace}
             onPress={() => {
                 if (!transaction?.transactionID) {
                     return;

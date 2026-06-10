@@ -29,7 +29,7 @@ function SearchTypeMenuSwitch({showStatic, ...props}: SearchTypeMenuNarrowProps 
     if (showStatic) {
         return props.queryJSON ? <StaticSearchTypeMenu queryJSON={props.queryJSON} /> : null;
     }
-    // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageTabSelectorProps
+
     return <SearchTypeMenuNarrow {...props} />;
 }
 
@@ -37,7 +37,7 @@ function SearchPageInputSwitch({showStatic, ...props}: SearchPageInputNarrowProp
     if (showStatic) {
         return <StaticSearchPageInput />;
     }
-    // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageHeaderProps
+
     return <SearchPageInputNarrow {...props} />;
 }
 
@@ -45,7 +45,7 @@ function SearchFiltersBarSwitch({showStatic, ...props}: SearchFiltersBarNarrowPr
     if (showStatic) {
         return null;
     }
-    // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchFiltersBarProps
+
     return <SearchFiltersBarNarrow {...props} />;
 }
 
@@ -53,7 +53,7 @@ function SearchActionsBarSwitch({showStatic, ...props}: SearchActionsBarNarrowPr
     if (showStatic) {
         return <StaticSearchActionsBar />;
     }
-    // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageHeaderProps
+
     return <SearchActionsBarNarrow {...props} />;
 }
 

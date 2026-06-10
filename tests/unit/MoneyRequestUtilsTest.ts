@@ -1,6 +1,8 @@
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
-import {handleNegativeAmountFlipping, validateAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+import {handleNegativeAmountFlipping, isValidMerchant, isValidMoneyRequestAmount, validateAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
+import type Report from '@src/types/onyx/Report';
+import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 describe('ReportActionsUtils', () => {
@@ -186,6 +188,128 @@ describe('ReportActionsUtils', () => {
             };
 
             expect(isValidPerDiemExpenseAmount(customUnit, 2)).toBe(true);
+        });
+    });
+
+    describe('isValidMoneyRequestAmount', () => {
+        describe('invalid inputs', () => {
+            it('should return false for nullish and NaN values', () => {
+                expect(isValidMoneyRequestAmount(undefined, CONST.IOU.TYPE.SUBMIT)).toBe(false);
+                expect(isValidMoneyRequestAmount(null as unknown as number, CONST.IOU.TYPE.SUBMIT)).toBe(false);
+                expect(isValidMoneyRequestAmount(NaN, CONST.IOU.TYPE.SUBMIT)).toBe(false);
+            });
+        });
+
+        describe('negative amounts', () => {
+            it('should respect the allowNegative flag', () => {
+                expect(isValidMoneyRequestAmount(-100, CONST.IOU.TYPE.SUBMIT, false)).toBe(false);
+                expect(isValidMoneyRequestAmount(-100, CONST.IOU.TYPE.SUBMIT, true)).toBe(true);
+                expect(isValidMoneyRequestAmount(100, CONST.IOU.TYPE.SUBMIT, false)).toBe(true);
+            });
+        });
+
+        describe('P2P (peer-to-peer) transactions', () => {
+            const allowNegative = true;
+            const isP2P = true;
+
+            it('should return false for zero or sub-cent amounts', () => {
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(false);
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.SUBMIT, allowNegative, isP2P)).toBe(false);
+            });
+
+            it('should return true for amounts >= 1 cent', () => {
+                expect(isValidMoneyRequestAmount(1, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
+                expect(isValidMoneyRequestAmount(100, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
+                expect(isValidMoneyRequestAmount(1, CONST.IOU.TYPE.SUBMIT, allowNegative, isP2P)).toBe(true);
+            });
+        });
+
+        describe('non-zero IOU types (PAY, INVOICE, SPLIT)', () => {
+            it('should return false for zero amount', () => {
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.PAY)).toBe(false);
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.INVOICE)).toBe(false);
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return true for amounts >= 1 cent', () => {
+                expect(isValidMoneyRequestAmount(1, CONST.IOU.TYPE.PAY)).toBe(true);
+                expect(isValidMoneyRequestAmount(1, CONST.IOU.TYPE.INVOICE)).toBe(true);
+                expect(isValidMoneyRequestAmount(1, CONST.IOU.TYPE.SPLIT)).toBe(true);
+            });
+        });
+
+        describe('SUBMIT and REQUEST types (non-P2P)', () => {
+            it('should allow zero, positive, and negative amounts', () => {
+                const allowNegative = true;
+                const isP2P = false;
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.SUBMIT, allowNegative, isP2P)).toBe(true);
+                expect(isValidMoneyRequestAmount(100, CONST.IOU.TYPE.SUBMIT, allowNegative, isP2P)).toBe(true);
+                expect(isValidMoneyRequestAmount(-100, CONST.IOU.TYPE.SUBMIT, allowNegative, isP2P)).toBe(true);
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
+                expect(isValidMoneyRequestAmount(100, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
+            });
+        });
+    });
+
+    describe('isValidMerchant', () => {
+        const iouReport = {
+            reportID: '1',
+            type: CONST.REPORT.TYPE.IOU,
+        } as Report;
+
+        const expenseReport = {
+            reportID: '123',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+
+        const unreportedTransaction = {
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            amount: 0,
+        } as Transaction;
+
+        const reportedTransaction = {
+            reportID: '123',
+            amount: 0,
+        } as Transaction;
+
+        describe('empty merchants', () => {
+            it('should return true for empty/undefined merchant when transaction is unreported or IOU', () => {
+                expect(isValidMerchant('', unreportedTransaction)).toBe(true);
+                expect(isValidMerchant('   ', unreportedTransaction)).toBe(true);
+                expect(isValidMerchant(undefined, unreportedTransaction)).toBe(true);
+
+                expect(isValidMerchant('', reportedTransaction, iouReport)).toBe(true);
+                expect(isValidMerchant('   ', reportedTransaction, iouReport)).toBe(true);
+                expect(isValidMerchant(undefined, reportedTransaction, iouReport)).toBe(true);
+            });
+
+            it('should return false for empty/undefined merchant when transaction is reported or missing', () => {
+                expect(isValidMerchant('', reportedTransaction)).toBe(false);
+                expect(isValidMerchant('', reportedTransaction, expenseReport)).toBe(false);
+                expect(isValidMerchant('   ', reportedTransaction, expenseReport)).toBe(false);
+                expect(isValidMerchant(undefined, reportedTransaction, expenseReport)).toBe(false);
+                expect(isValidMerchant('')).toBe(false);
+            });
+        });
+
+        describe('invalid merchant constants', () => {
+            it('should return false for invalid merchant constants regardless of transaction', () => {
+                expect(isValidMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)).toBe(false);
+                expect(isValidMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT)).toBe(false);
+                expect(isValidMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, unreportedTransaction)).toBe(false);
+            });
+        });
+
+        describe('byte length validation', () => {
+            it('should respect the 255 byte limit', () => {
+                expect(isValidMerchant('Valid Merchant Name')).toBe(true);
+                expect(isValidMerchant('a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES))).toBe(true);
+                expect(isValidMerchant('a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES + 1))).toBe(false);
+            });
+        });
+
+        it('should trim whitespace before validation', () => {
+            expect(isValidMerchant('  Valid Merchant  ')).toBe(true);
         });
     });
 });

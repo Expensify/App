@@ -27,7 +27,6 @@ function OnboardingPersonalDetails({...rest}: OnboardingPersonalDetailsProps) {
     return (
         <BaseOnboardingPersonalDetails
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

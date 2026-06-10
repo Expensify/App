@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 import MenuItemList from '@components/MenuItemList';
+import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
@@ -11,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -25,9 +27,11 @@ import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import SearchTypeMenuItem from './SearchTypeMenuItem';
 
 type SavedSearchListProps = {
     hash: number | undefined;
+    areAllSectionsExpanded: boolean;
 };
 
 type SavedSearchMenuItemBuilderParams = {
@@ -42,6 +46,7 @@ type SavedSearchMenuItemBuilderParams = {
     renderSavedSearchTooltip: () => React.JSX.Element;
     itemStyle: SavedSearchMenuItem['style'];
     tooltipWrapperStyle: SavedSearchMenuItem['tooltipWrapperStyle'];
+    isCopied: boolean;
 };
 
 function buildSavedSearchMenuItem({
@@ -56,6 +61,7 @@ function buildSavedSearchMenuItem({
     renderSavedSearchTooltip,
     itemStyle,
     tooltipWrapperStyle,
+    isCopied,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
     const isItemFocused = Number(key) === hash;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
@@ -75,6 +81,7 @@ function buildSavedSearchMenuItem({
                 hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
                 shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
                 renderTooltipContent={renderSavedSearchTooltip}
+                isCopied={isCopied}
             />
         ),
         style: itemStyle,
@@ -89,10 +96,11 @@ function buildSavedSearchMenuItem({
     };
 }
 
-function SavedSearchList({hash}: SavedSearchListProps) {
+function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -111,9 +119,10 @@ function SavedSearchList({hash}: SavedSearchListProps) {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
         renderProductTrainingTooltip: renderSavedSearchTooltip,
         hideProductTrainingTooltip: hideSavedSearchTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused);
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused && areAllSectionsExpanded);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const {copiedHash, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -132,7 +141,11 @@ function SavedSearchList({hash}: SavedSearchListProps) {
         reportAttributes,
     });
 
-    const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal);
+    const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) =>
+        getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal, false, undefined, {
+            onShare: () => handleShare(itemHash, itemQuery),
+            isCopied: copiedHash === itemHash,
+        });
 
     const itemStyle = [styles.alignItemsCenter];
     const tooltipWrapperStyle = [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper];
@@ -151,14 +164,32 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                   renderSavedSearchTooltip,
                   itemStyle,
                   tooltipWrapperStyle,
+                  isCopied: copiedHash === Number(key),
               }),
           )
         : [];
 
+    if (isVisuallyCollapsed) {
+        return savedSearchesMenuItems.map((item) => (
+            <SearchTypeMenuItem
+                key={item.key}
+                title={item.title ?? ''}
+                icon={expensifyIcons.Bookmark}
+                focused={item.focused}
+                onPress={(event) => {
+                    if (item.disabled || !item.onPress || !event) {
+                        return;
+                    }
+                    return item.onPress(event);
+                }}
+            />
+        ));
+    }
+
     return (
         <MenuItemList
             menuItems={savedSearchesMenuItems}
-            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+            wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), styles.searchTypeMenuItemPadding]}
             icon={expensifyIcons.Bookmark}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}

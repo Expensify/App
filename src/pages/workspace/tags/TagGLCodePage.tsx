@@ -39,12 +39,12 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const orderWeight = Number(route.params.orderWeight);
     const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE;
+    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName));
-    }, [orderWeight, policyID, tagName, isQuickSettingsFlow, backPath]);
+        Navigation.goBack(isDynamicFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName));
+    }, [orderWeight, policyID, tagName, isDynamicFlow, backPath]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {

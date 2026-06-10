@@ -38,7 +38,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
+    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path);
 
     const policyHasCustomCategories = hasCustomCategories(policyCategories);
@@ -98,7 +98,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             policyHasCustomCategories,
         });
         Keyboard.dismiss();
-        Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
+        Navigation.goBack(isDynamicFlow ? backPath : undefined);
     };
 
     return (
@@ -115,7 +115,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.addTag')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(isDynamicFlow ? backPath : undefined)}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}

@@ -100,7 +100,7 @@ type ButtonStyleProps = {
     shouldRemoveBorderRadius?: 'left' | 'right' | 'all';
 
     /** The size of the button */
-    size?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** The visual variant of the button, which controls its color scheme */
     variant?: ButtonVariant;

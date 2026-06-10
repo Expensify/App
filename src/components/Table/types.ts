@@ -1,9 +1,21 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {PropsWithChildren, SetStateAction} from 'react';
+import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {FilterConfig, FilterConfigEntry, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
+import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
+import type {SelectionMethods} from './middlewares/selection';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+
+/**
+ * Defines the required minimum shape for each row of data in the table
+ */
+type TableData = {
+    /** A unique identifier for the row */
+    keyForList: string;
+
+    /** Whether or not the row is disabled. Prevents row selection when the row is disabled */
+    disabled?: boolean;
+};
 
 /**
  * Styling options for a table column.
@@ -31,50 +43,50 @@ type TableColumn<ColumnKey extends string = string> = {
     /** Display label shown in the table header. */
     label: string;
 
+    /** Whether the column is sortable or not */
+    sortable: boolean;
+
+    /** Optional fixed width for the column */
+    width?: number | string;
+
     /** Optional styling configuration for the column. */
     styling?: TableColumnStyling;
+};
+
+type TableRow<DataType extends TableData> = DataType & {
+    /** Whether or not the row is selected or not */
+    selected: boolean;
 };
 
 /**
  * Methods exposed by the Table component for programmatic control.
  * Combines sorting, filtering, and searching capabilities.
  *
- * @template T - The type of items in the table's data array (unused in methods, kept for consistency).
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> & FilteringMethods<FilterKey> & SearchingMethods;
+type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> & FilteringMethods<FilterKey> & SearchingMethods & SelectionMethods;
 
 /**
  * The ref handle type for the Table component.
  * Provides access to both FlashList methods and custom table control methods.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableHandle<T, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<T> & TableMethods<ColumnKey, FilterKey>;
+type TableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> &
+    TableMethods<ColumnKey, FilterKey> & {
+        /** Method to get all of the processed data after filtering, searching, and sorting have been applied. */
+        getProcessedData: () => Array<TableRow<DataType>>;
+    };
 
 /**
  * FlashList props with the 'data' prop omitted, as the Table manages data internally.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  */
-type SharedListProps<T> = Omit<FlashListProps<T>, 'data'>;
-
-/**
- * Callback types for getting active state.
- */
-type GetActiveFiltersCallback<FilterKey extends string = string> = () => Record<FilterKey, unknown>;
-type GetActiveSearchStringCallback = () => string;
-
-/**
- * Callback types for updating table state.
- */
-type UpdateFilterCallback = (params: {key: string; value: unknown}) => void;
-type UpdateSortingCallback<ColumnKey extends string = string> = (value: SetStateAction<ActiveSorting<ColumnKey>>) => void;
-type UpdateSearchStringCallback = (value: string) => void;
-type ToggleSortingCallback<ColumnKey extends string = string> = (columnKey?: ColumnKey) => void;
+type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>, 'data'>;
 
 /**
  * Props for the Table component.
@@ -83,7 +95,7 @@ type ToggleSortingCallback<ColumnKey extends string = string> = (columnKey?: Col
  * state and provides context, while child components (`<Table.Header>`, `<Table.Body>`,
  * `<Table.SearchBar>`, `<Table.FilterButtons>`) consume that context to render UI.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  *
@@ -103,10 +115,16 @@ type ToggleSortingCallback<ColumnKey extends string = string> = (columnKey?: Col
  * </Table>
  * ```
  */
-type TableProps<T, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<T> &
+type TableProps<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<DataType> &
     PropsWithChildren<{
+        /** The title for the table when shown on smaller screens */
+        title?: string;
+
         /** Array of data items to display in the table. */
-        data: T[] | undefined;
+        data: DataType[] | undefined;
+
+        /** Whether multi selection is enabled */
+        selectionEnabled?: boolean;
 
         /** Column configuration defining what columns to display and how. */
         columns: Array<TableColumn<ColumnKey>>;
@@ -123,32 +141,39 @@ type TableProps<T, ColumnKey extends string = string, FilterKey extends string =
         /** Optional initial search string to apply on mount. */
         initialSearchString?: string;
 
+        /** The list of selected keys for the table, if selection is enabled */
+        selectedKeys?: string[];
+
         /**
          * Comparison function for sorting items.
          * Receives two items and the current sorting configuration, returns a number
          * indicating sort order (negative = a before b, positive = b before a, 0 = equal).
          */
-        compareItems?: CompareItemsCallback<T, ColumnKey>;
+        compareItems?: CompareItemsCallback<DataType, ColumnKey>;
 
         /**
          * Predicate function to determine if an item matches the active filters.
          * Receives an item and an array of active filter values.
          */
-        isItemInFilter?: IsItemInFilterCallback<T>;
+        isItemInFilter?: IsItemInFilterCallback<DataType>;
 
         /**
          * Predicate function to determine if an item matches the search string.
          * Receives an item and the current search string.
          */
-        isItemInSearch?: IsItemInSearchCallback<T>;
+        isItemInSearch?: IsItemInSearchCallback<DataType>;
 
         /** Ref to access table methods programmatically. */
-        ref?: React.Ref<TableHandle<T, ColumnKey, FilterKey>>;
+        ref?: React.Ref<TableHandle<DataType, ColumnKey, FilterKey>>;
+
+        /** Callback when an option is selected */
+        onRowSelectionChange?: (selectedRowKeys: string[]) => void;
     }>;
 
 export type {
+    TableData,
+    TableRow,
     TableColumn,
-    TableColumnStyling,
     TableMethods,
     TableHandle,
     TableProps,
@@ -157,12 +182,5 @@ export type {
     IsItemInFilterCallback,
     IsItemInSearchCallback,
     FilterConfig,
-    FilterConfigEntry,
-    GetActiveFiltersCallback,
-    GetActiveSearchStringCallback,
-    UpdateFilterCallback,
-    UpdateSortingCallback,
-    UpdateSearchStringCallback,
-    ToggleSortingCallback,
     ActiveSorting,
 };

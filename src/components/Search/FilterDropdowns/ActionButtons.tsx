@@ -37,5 +37,4 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onRe
     );
 }
 
-export type {ActionButtonsProps};
 export default ActionButtons;

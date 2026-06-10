@@ -6,7 +6,6 @@ function OnboardingInterestedFeatures(props: OnboardingInterestedFeaturesProps) 
     return (
         <BaseOnboardingInterestedFeatures
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

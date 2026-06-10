@@ -62,9 +62,7 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: W
             value: account,
             text: account.name,
             keyForList: account.name,
-            // We use the logical OR (||) here instead of ?? because `reimbursableAccount` can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            isSelected: account.id === (qbdConfig?.export?.reimbursableAccount || accounts.at(0)?.id),
+            isSelected: account.id === qbdConfig?.export?.reimbursableAccount,
         }));
     }, [policy?.connections?.quickbooksDesktop, qbdConfig?.export?.reimbursableAccount]);
 

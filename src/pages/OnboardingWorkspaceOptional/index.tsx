@@ -8,7 +8,6 @@ function OnboardingWorkspaceOptional(props: OnboardingWorkspaceOptionalProps) {
         <OnboardingWrapper>
             <BaseOnboardingWorkspaceOptional
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </OnboardingWrapper>

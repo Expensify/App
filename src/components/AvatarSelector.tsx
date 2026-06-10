@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {PRESET_AVATAR_CATALOG_ORDERED} from '@libs/Avatars/PresetAvatarCatalog';
 import type {AvatarSizeName} from '@styles/utils';
@@ -37,7 +36,6 @@ const SPACER_SIZE = 10;
 function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_SIZE.MEDIUM}: AvatarSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {avatarList} = useLetterAvatars(name, size);
 
@@ -59,7 +57,7 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                             accessibilityRole="button"
                             accessibilityLabel={translate('avatarPage.selectAvatar')}
                             onPress={() => onSelect(id)}
-                            style={[styles.avatarSelectorWrapper, isSelected && {borderColor: theme.success, borderWidth: 2}]}
+                            style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
                         >
                             <Avatar
                                 type={CONST.ICON_TYPE_AVATAR}

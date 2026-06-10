@@ -49,4 +49,3 @@ function useLoginActions() {
 }
 
 export {LoginProvider, useLoginState, useLoginActions};
-export type {LoginStateContextType, LoginActionsContextType};

@@ -1,13 +1,19 @@
+import {createRequire} from 'node:module';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 
+const requireLocalePrompt = createRequire(__dirname);
+
 /**
  * Gets a locale-specific prompt if one exists for the target language.
+ *
+ * Uses require() so ts-node compiles the .ts prompt module. Native import() of a .ts file URL
+ * is handled by Node and fails with ERR_UNKNOWN_FILE_EXTENSION.
  */
 async function getLocaleSpecificPrompt(targetLang: TranslationTargetLocale): Promise<string> {
     try {
-        const localePrompt = (await import(`@prompts/translation/${targetLang}`)) as {default?: string};
+        const localePrompt = requireLocalePrompt(`@prompts/translation/${targetLang}`) as {default?: string};
         return localePrompt.default ?? '';
     } catch {
         return '';

@@ -11,7 +11,7 @@ const userID = 'johndoe12@expensify.com';
 
 const cardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    workspaceAccountID: 12345,
+    policyAccountID: 12345,
 };
 
 describe('useAccountIndicatorChecks', () => {
@@ -89,8 +89,9 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {
-                        [userID]: {
+                    [ONYXKEYS.LOGINS]: {
+                        [`1_${userID}`]: {
+                            partnerID: 1,
                             partnerName: 'John Doe',
                             partnerUserID: userID,
                             validatedDate: new Date().toISOString(),
@@ -114,7 +115,7 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.WALLET_TERMS]: {
                         errors: {error: 'Something went wrong'},
                     },
@@ -135,7 +136,7 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.WALLET_TERMS]: {
                         errors: {error: 'Something went wrong'},
                         chatReportID: '123',
@@ -157,7 +158,7 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.WALLET_TERMS]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
                         errorFields: {phoneNumber: 'Invalid phone number'},
@@ -179,7 +180,7 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.WALLET_TERMS]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
@@ -200,14 +201,14 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.WALLET_TERMS]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: cardFeed.feedName,
-                            fundID: String(cardFeed.workspaceAccountID),
+                            fundID: String(cardFeed.policyAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -232,14 +233,16 @@ describe('useAccountIndicatorChecks', () => {
         it('returns HAS_LOGIN_LIST_INFO when login list has unvalidated contact', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.LOGIN_LIST]: {
-                        [userID]: {
+                    [ONYXKEYS.LOGINS]: {
+                        [`1_${userID}`]: {
+                            partnerID: 1,
                             partnerName: 'John Doe',
                             partnerUserID: userID,
                             validatedDate: new Date().toISOString(),
                         },
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'otheruser@expensify.com': {
+                        '1_otheruser@expensify.com': {
+                            partnerID: 1,
                             partnerName: 'Other User',
                             partnerUserID: 'different@expensify.com',
                             validatedDate: undefined,
@@ -259,7 +262,7 @@ describe('useAccountIndicatorChecks', () => {
         it('returns HAS_PENDING_CARD_INFO when card has pending action', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             cardID: 'card1',
@@ -283,7 +286,7 @@ describe('useAccountIndicatorChecks', () => {
         it('returns HAS_SUBSCRIPTION_INFO when retry billing was successful', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
@@ -301,7 +304,7 @@ describe('useAccountIndicatorChecks', () => {
         it('returns HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO when bank account is partially setup', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: false,
@@ -331,7 +334,7 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
@@ -357,7 +360,7 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: null,
                     [ONYXKEYS.USER_WALLET]: null,
                     [ONYXKEYS.WALLET_TERMS]: null,
-                    [ONYXKEYS.LOGIN_LIST]: null,
+                    [ONYXKEYS.LOGINS]: null,
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
                     [ONYXKEYS.CARD_LIST]: null,
@@ -384,14 +387,16 @@ describe('useAccountIndicatorChecks', () => {
                         bankAccountID: 12345,
                         errors: {error: 'Wallet error'},
                     },
-                    [ONYXKEYS.LOGIN_LIST]: {
-                        [userID]: {
+                    [ONYXKEYS.LOGINS]: {
+                        [`1_${userID}`]: {
+                            partnerID: 1,
                             partnerName: 'John Doe',
                             partnerUserID: userID,
                             validatedDate: new Date().toISOString(),
                         },
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'otheruser@expensify.com': {
+                        '1_otheruser@expensify.com': {
+                            partnerID: 1,
                             partnerName: 'Other User',
                             partnerUserID: 'different@expensify.com',
                             validatedDate: undefined,
