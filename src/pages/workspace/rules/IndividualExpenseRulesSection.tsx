@@ -57,12 +57,18 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
         if (amount === CONST.DISABLED_MAX_EXPENSE_VALUE || amount === undefined) {
             return '';
         }
-        return convertToDisplayString(amount, policyCurrency);
-    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency]);
+        return translate('workspace.rules.generalTab.receiptRequirementsDescription', convertToDisplayString(amount, policyCurrency));
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency, translate]);
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy) ?? CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
-    const reimbursableModeText = translate(`workspace.rules.individualExpenseRules.${reimbursableMode}`);
-    const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
+    const reimbursableModeTextMap = {
+        [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT]: translate('workspace.rules.generalTab.cashExpensesReimbursableByDefault'),
+        [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT]: translate('workspace.rules.generalTab.cashExpensesNonReimbursableByDefault'),
+        [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE]: translate('workspace.rules.generalTab.cashExpensesAlwaysReimbursable'),
+        [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE]: translate('workspace.rules.generalTab.cashExpensesAlwaysNonReimbursable'),
+    };
+    const reimbursableModeText = reimbursableModeTextMap[reimbursableMode];
+    const billableModeText = translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`);
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
