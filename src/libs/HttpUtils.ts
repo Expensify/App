@@ -15,6 +15,7 @@ import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import prepareRequestPayload from './prepareRequestPayload';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
+import Log from './Log';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
