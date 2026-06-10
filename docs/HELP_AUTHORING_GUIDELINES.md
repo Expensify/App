@@ -1,256 +1,179 @@
-# Expensify HelpDot Authoring Spec 
+# Expensify HelpDot Task Article Guidelines
 
 ## Purpose
 
-This document defines mandatory structural, formatting, tone, terminology, and retrieval optimization rules for generating Expensify HelpDot articles.
+Task articles explain how to complete a specific workflow in Expensify.
 
-All generated articles must comply.
+Task articles answer questions such as:
+
+* How do I submit an expense?
+* How do I change my Workspace plan?
+* How do I connect NetSuite?
+* Why can't I complete a specific action?
+
+The goal of a task article is task completion.
 
 ---
 
 # 1. Core Principles
 
-Every article must:
+Every task article must:
 
-- Solve one primary workflow only
-- Match real user search intent
-- Use exact UI terminology
-- Follow strict heading rules
-- Be optimized for semantic retrieval
-- Be concise and actionable
+* Solve one primary workflow only
+* Match a specific user goal
+* Use exact UI terminology
+* Follow the official naming conventions
+* Be optimized for semantic retrieval
+* Be concise and actionable
 
-If multiple workflows are detected → split into multiple articles.
-
----
-
-# 2. Heading Rules (Strict)
-
-## Forbidden
-
-- Generic headings:
-  - Overview
-  - Introduction
-  - Notes
-  - Setup
-  - Options
-  - Step 1
-- Noun-only or topic-only headings that describe a category rather than a task
-- Platform-only labels used as headings (e.g., "iPhone", "Android", "Desktop", "Web")
-- Any heading that does not describe an action the user takes or a question the user has
-
-## Requirements
-
-- All headings must be (except `# FAQ`, which is exempt from task-based rules):
-  - Task-based — must describe what the user will do or learn. Start with an action verb or question word (How, What, Where, Who, Why, When)
-  - Searchable
-  - Explicit
-  - Feature-specific
-
-**Valid Examples**
-
-# Who can connect a business bank account in Expensify
-## Where to enable ACH reimbursements in a Workspace
-## How to troubleshoot bank connection errors in Expensify
-## How to enable Expensify Card notifications on iPhone
-
-**Invalid → Corrected Examples**
-
-- ❌ `## Transaction decline notifications` → ✅ `## How to understand why your Expensify Card transaction was declined`
-- ❌ `## iPhone` → ✅ `## How to enable notifications on iPhone`
-- ❌ `## Suspected fraud notifications` → ✅ `## What to do when you receive a fraud alert`
-- ❌ `## Banking and settlement notifications` → ✅ `## How banking and settlement alerts work for admins`
-- ❌ `## Card lifecycle notifications` → ✅ `## What card lifecycle notifications you'll receive`
+If multiple workflows are required, create multiple articles.
 
 ---
 
-# 3. Metadata Requirements (Mandatory)
+# 2. Scope Rules
 
-Every article must begin with:
+Task articles must:
+
+* Focus on a single workflow
+* Explain how to complete that workflow
+* Include prerequisites when necessary
+* Explain the expected outcome
+
+Task articles may:
+
+* Include lightweight troubleshooting
+* Include related workflow links when required
+
+Task articles must not:
+
+* Explain broad product areas
+* Serve as feature overviews
+* Cover multiple unrelated workflows
+* Act as navigation hubs
+* Contain extensive conceptual background
+
+If the primary purpose is understanding rather than action, create a Concept article instead.
+
+---
+
+# 3. Metadata Requirements
+
+Every task article must include:
 
 ```yaml
 ---
-title: Clear task-based title using feature name
-description: 1–2 sentence summary of outcome
-keywords: [primary task phrase, feature name, relevant roles]
-internalScope: Audience is [target role(s), covers [included workflow], does not cover [explicit exclusions]
+title: Clear task-based title using the feature name
+description: Short summary of the workflow and outcome
+keywords: [primary task phrase, feature name, related search terms]
+internalScope: Audience is [target role]. Covers [workflow]. Does not cover [excluded workflows].
+contentType: task
+platform: [platform value]
 ---
 ```
 
-Metadata must reflect real search queries.
+Metadata should reflect realistic customer search behavior.
 
 ---
 
-# 4. Required Structural Elements
+# 4. Heading Requirements
 
-Each article must include:
- - YAML metadata
- - Exactly one # heading (the article title). No other # headings are allowed except # FAQ
- - Task-based ## sections for all content below the title
- - Sequential numbered steps (if procedural)
- - An FAQ section (if needed)
+Task article headings must:
 
-Do not use multiple # headings to organize an article into major sections. If content feels like it needs its own # heading, either:
- - Demote it to ## under the single # title, or
- - Split it into a separate article (per Section 1: one workflow per article)
+* Be task-based
+* Be searchable
+* Be explicit
+* Describe what the reader will do or learn
 
-If including an FAQ section, it must comply with:
-/docs/HELPSITE_NAMING_CONVENTIONS.md
+Use headings that begin with:
 
----
+* How
+* What
+* Where
+* Who
+* Why
+* When
 
-# 5. Step Formatting Standard
+Examples:
 
-Step instructions must be:
-- Sequential
-- Clear
-- Action-oriented
-- Aligned with actual UI flow
+* How to change your Workspace plan
+* Where to find billing receipts
+* Why you can't submit an expense report
+* What happens after you approve an expense
 
----
+Do not use:
 
-# 6. AI Retrieval Optimization Rules
-
-Every article must:
- - Include at least one full "How to..." heading using feature name
- - Include realistic search phrases
- - Avoid vague wording
--  Avoid multi-feature coverage
- - Use UI-exact labels
- - Avoid internal language
-
-Do not combine:
- - Setup + troubleshooting + workspace design
- - Admin + Member flows unless inseparable
-
----
- 
-# 7. Cross-Linking Standards
-
-Cross-linking must reinforce the primary workflow, not expand scope or dilute retrieval precision.
-
-Links should clarify dependencies or provide deeper context — not function as navigation hubs.
+* Overview
+* Introduction
+* Notes
+* Setup
+* Options
+* Noun-only headings
 
 ---
 
-## When to Cross-Link
+# 5. Workflow Requirements
 
-Only link in these cases:
+Procedural sections must:
 
-- Prerequisite workflows required to complete the primary task
-- Deep-dive explanations that expand on a concept mentioned briefly
-- Explicitly excluded workflows listed in `internalScope`
+* Use numbered steps
+* Follow the actual UI flow
+* Use exact UI labels
+* Present actions in sequence
 
-Avoid linking to tangential, loosely related, or adjacent features.
+Instructions should be:
 
-If a workflow is important enough to link repeatedly, it likely requires its own dedicated article.
-
----
-
-## Anchor Text Rules
-
-Anchor text must describe the task or feature clearly.
-
-Avoid vague anchors such as:
-- Click here
-- Read more
-- This article
-
-Use descriptive formats such as:
-
-- Learn how to [complete task]
-- Learn how to enable [Feature Name]
-- Learn more about [Feature Name]
-
-Anchor text should reflect real search phrasing.
+* Specific
+* Action-oriented
+* Easy to follow
 
 ---
 
-## Link Formatting
+# 6. Retrieval Optimization
 
-- Use relative links only.
-- Do not use full URLs.
-- Do not place links inside numbered step instructions.
-- Do not interrupt procedural flow with inline links.
+Task articles should:
 
-Place links:
-- After explanatory sentences
-- In conditional dependency statements
-- In explanatory paragraphs (not within step actions)
+* Target a specific user question
+* Include realistic customer search phrases
+* Use exact feature names
+* Include common troubleshooting language when relevant
 
----
+Task articles should not:
 
-## Link Volume
+* Cover multiple features
+* Mix unrelated workflows
+* Include excessive conceptual explanation
 
-Limit cross-links to preserve topical clarity.
+The article should clearly answer:
 
-Excessive linking:
-- Dilutes the primary workflow
-- Introduces unrelated entities
-- Reduces retrieval precision
-
-If multiple related workflows must be referenced, consider consolidating them into a dedicated supporting article instead of embedding many links.
+"What action is the user trying to complete?"
 
 ---
 
-## Related Articles Section (Optional)
+# 7. Cross-Linking
 
-A "Related articles" section may be used only when:
+Cross-links should be used only for:
 
-- Multiple prerequisite or deep-dive workflows are necessary
-- Inline linking would clutter the main content
+* Required prerequisites
+* Related troubleshooting
+* Explicitly excluded workflows
 
-If used:
+Avoid excessive linking.
 
-- Place it at the end of the article
-- Use a `## Related articles` heading
-- Limit to essential supporting workflows only
-
-Do not use this section as a directory or feature hub.
+If many links are required, the scope is likely too broad.
 
 ---
 
-# 8. Screenshot Placeholder Format (Non-Rendered)
+# 8. Validation Checklist
 
-Screenshot suggestions must use HTML comments so they are invisible in the rendered HelpDot article.
+Before publishing, confirm:
 
-Use this exact structure:
+* contentType is task
+* One primary workflow is covered
+* Headings are task-based
+* UI terminology matches the product
+* Navigation instructions are accurate
+* Steps follow the actual workflow
+* Metadata reflects search intent
+* Cross-links are minimal and purposeful
+* The article helps the reader complete a specific task
 
-<!-- SCREENSHOT:
-Suggestion: [Clear description of UI state]
-Location: [Where it appears in article]
-Purpose: [Why this screenshot helps]
--->
-
-Rules:
- - Must begin with <!-- SCREENSHOT:
- - Must end with -->
- - Must not appear inline in a sentence
- - Place immediately after the section or step it supports
- - Keep description specific and UI-based
-
-Prioritize screenshots for:
- - Navigation flows
- - Settings pages
- - Filters
- - Confirmation states
- - Error messages
-
----
-
-# 9. Pre-Publish Validation Checklist
-
-Before outputting an article, confirm:
- - Exactly one # heading (the article title), plus optional # FAQ — no other # headings
- - Only ## used for all content sections (no ### or deeper)
- - Every ## heading starts with an action verb or question word (How, What, Where, Who, Why, When)
- - `# FAQ` is exempt from task-based heading rules
- - No noun-only, topic-only, or platform-only headings
- - No generic headings (Overview, Introduction, Notes, Setup, Options, Step 1)
- - Feature names match UI
- - Metadata aligns with search intent
- - Navigation included (if applicable)
- - Single workflow only
- - Includes at least one "How to" heading
- - Cross-links follow Cross-Linking Standards
-
-If any condition fails → regenerate.
