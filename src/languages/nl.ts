@@ -3014,6 +3014,14 @@ ${amount} voor ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Mijn persoonlijke uitgaven organiseren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Iets anders',
         },
+        personalTrackGoal: {
+            title: 'Wat wil je bijhouden?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Kosten voor een beleggingspand',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Huishoudelijke uitgaven',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Kosten voor nevenproject',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Iets anders',
+            somethingElsePlaceholder: 'Wat volg je?',
+        },
         employees: {
             title: 'Hoeveel medewerkers heb je?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 medewerkers',
@@ -4311,6 +4319,7 @@ ${amount} voor ${merchant} - ${date}`,
             customFieldHint: 'Voeg aangepaste codering toe die van toepassing is op alle uitgaven van dit lid.',
             reports: 'Rapporten',
             reportFields: 'Rapportvelden',
+            invoiceFields: 'Factuurvelden',
             reportTitle: 'Rapporttitel',
             reportField: 'Rapportveld',
             taxes: 'Belastingen',
@@ -5981,6 +5990,29 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             reportFieldInitialValueRequiredError: 'Kies een beginwaarde voor een rapportveld',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
         },
+        invoiceFields: {
+            subtitle: 'Factuurvelden kunnen handig zijn als je extra informatie wilt toevoegen.',
+            importedFromAccountingSoftware: 'De onderstaande factuurvelden zijn geïmporteerd uit je',
+            disableInvoiceFields: 'Factuurvelden uitschakelen',
+            disableInvoiceFieldsConfirmation: 'Weet je het zeker? Factuurvelden worden uitgeschakeld op facturen.',
+            delete: 'Factuurveld verwijderen',
+            deleteConfirmation: 'Weet je zeker dat je dit factuurveld wilt verwijderen?',
+            findInvoiceField: 'Factuurveld zoeken',
+            nameInputSubtitle: 'Kies een naam voor het factuurveld.',
+            typeInputSubtitle: 'Kies welk type factuurveld je wilt gebruiken.',
+            initialValueInputSubtitle: 'Voer een beginwaarde in om in het factuurveld weer te geven.',
+            listValuesInputSubtitle: 'Deze waarden verschijnen in de vervolgkeuzelijst van je factuurveld. Ingeschakelde waarden kunnen door leden worden geselecteerd.',
+            listInputSubtitle: 'Deze waarden verschijnen in je factuurveldenlijst. Ingeschakelde waarden kunnen door leden worden geselecteerd.',
+            emptyInvoiceFieldsValues: {
+                title: 'Nog geen lijstwaarden',
+                subtitle: 'Voeg aangepaste waarden toe om op facturen te tonen.',
+            },
+            existingInvoiceFieldNameError: 'Er bestaat al een factuurveld met deze naam',
+            invoiceFieldNameRequiredError: 'Voer een naam voor een factuurveld in',
+            invoiceFieldTypeRequiredError: 'Kies een veldtype voor de factuur',
+            invoiceFieldInitialValueRequiredError: 'Kies een beginwaarde voor een factuurveld',
+            addField: 'Veld toevoegen',
+        },
         tags: {
             tagName: 'Tagnaam',
             requiresTag: 'Leden moeten alle uitgaven taggen',
@@ -6779,6 +6811,12 @@ Weet je zeker dat je ze opnieuw wilt exporteren?`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Rapportvelden zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Factuurvelden',
+                description: `Met factuurvelden kun je extra gegevens op factuurniveau toevoegen aan facturen.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Factuurvelden zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + NetSuite-integratie. Krijg diepgaande realtime financiële inzichten met ondersteuning voor native en aangepaste segmenten, inclusief project- en klanttoewijzing.`,
@@ -7296,6 +7334,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
             },
+            aiRules: {
+                title: 'AI-regels',
+                subtitle: 'Beschrijf flexibele regels die worden uitgevoerd wanneer je ze nodig hebt',
+                addRule: 'AI-regel toevoegen',
+                findRule: 'AI-regel zoeken',
+                addRuleTitle: 'Regel toevoegen',
+                editRuleTitle: 'Regel bewerken',
+                deleteRule: 'Regel verwijderen',
+                deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                describeRuleTitle: 'Beschrijf je regel',
+                describeRuleSubtitle: 'Beschrijf je regel en Concierge maakt hem voor je',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7566,7 +7616,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `heeft de ${customUnitName} ${updatedField} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie op afstandstarieven`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft een nieuw ${customUnitName}-tarief "${rateName}" toegevoegd`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft ${customUnitName}-tarief „${rateName}” toegevoegd`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `heeft het tarief van de ${customUnitName} ${updatedField} "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
@@ -7967,6 +8017,21 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,
             },
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `tarief "${rateName}" van ${rateValue} toegevoegd, geldig vanaf ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd, geldig tot ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `heeft tarief "${rateName}" van ${rateValue} toegevoegd, geldig van ${startDate} - ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `startdatum van tarief "${rateName}" bijgewerkt naar ${newDate} (voorheen ${oldDate})` : `startdatum van tarief "${rateName}" instellen op ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `einddatum van tarief "${rateName}" bijgewerkt naar ${newDate} (voorheen ${oldDate})` : `einddatum van tarief "${rateName}" instellen op ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `start- en einddatum van tarief "${rateName}" bijgewerkt naar ${newStartDate} - ${newEndDate} (voorheen ${oldStartDate} - ${oldEndDate})`
+                : `start- en einddatum van tarief "${rateName}" ingesteld op ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `startdatum verwijderd van tarief "${rateName}" (voorheen ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `einddatum verwijderd van tarief "${rateName}" (voorheen ${oldDate})`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

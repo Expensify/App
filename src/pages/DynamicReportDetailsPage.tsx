@@ -420,7 +420,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 (isDefaultRoom && isChatThread && isPolicyEmployee) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !isPublicRoomUtil(report))))) &&
-            !isConciergeChatReport(report) &&
+            !isConciergeChatReport(report, conciergeReportID) &&
             !isSystemChat &&
             activeChatMembers.length > 0
         ) {
@@ -434,7 +434,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, Navigation.getActiveRoute()));
                     }
@@ -448,7 +448,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
                 },
             });
         }
@@ -686,6 +686,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         iouTransaction,
         parentReport,
         delegateEmail,
+        conciergeReportID,
     ]);
 
     const icons = useMemo(
