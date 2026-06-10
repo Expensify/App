@@ -1,11 +1,11 @@
 ---
 title: Workspace AI Rules
-description: Learn how to add, edit, and delete AI Rules so Concierge can build flexible workspace rules from a plain-language description.
-keywords: [New Expensify, AI Rules, workspace AI rules, Concierge rule, describe a rule, add AI rule, edit AI rule, delete AI rule, flexible rules]
+description: Learn how to add, edit, and delete AI Rules — approval workflow rules you can define using natural language.
+keywords: [New Expensify, AI Rules, workspace AI rules, approval workflow rule, natural language rule, describe a rule, add AI rule, edit AI rule, delete AI rule, flexible rules]
 internalScope: Audience is Workspace Admins on the Control plan. Covers adding, editing, and deleting AI Rules in the Rules tab. Does not cover Workspace Merchant Rules, expense rules, category rules, tag rules, or report rules.
 ---
 
-AI Rules let Workspace Admins describe flexible rules in plain language, and Concierge builds the rule for you. Use them when a rule you need isn't covered by the standard rule settings, so you can apply custom logic without configuring each field manually.
+AI Rules are rules for your workspace's approval workflow that you can define using natural language. Instead of configuring each field manually, you describe the rule you need in plain language and it's applied to your approval flow. Use them when a rule you need isn't covered by the standard rule settings, so you can apply custom logic to how reports are approved.
 
 AI Rules are only available on the **Control** plan, and you must be a **Workspace Admin** to add, edit, or delete them.
 
@@ -26,7 +26,7 @@ AI Rules are only available on the **Control** plan, and you must be a **Workspa
 3. Click **Rules**.
 4. Scroll to the **AI Rules** section.
 5. Click **Add AI rule**.
-6. In the **Describe your rule** field, type the rule you want Concierge to build.
+6. In the **Describe your rule** field, type the rule you want to apply to your approval workflow in natural language.
 7. Click **Save**.
 
 <!-- SCREENSHOT:
@@ -69,7 +69,7 @@ Only Workspace Admins on the **Control** plan can add, edit, or delete AI Rules.
 
 ## What happens after I save an AI Rule?
 
-Concierge builds the rule from your description, and the rule appears in the **AI Rules** section of the **Rules** tab.
+The rule is applied to your workspace's approval workflow and appears in the **AI Rules** section of the **Rules** tab.
 
 ## Why don't I see the AI Rules section?
 
