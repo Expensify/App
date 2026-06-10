@@ -22,18 +22,11 @@ function CommonPopup({filterKey, value: initialValue, label, policyIDQuery, upda
         closeOverlay();
     };
 
-    const resetChanges = () => {
-        updateFilterForm({[filterKey]: undefined});
-        closeOverlay();
-    };
-
     return (
         <BasePopup
             label={label}
             onApply={applyChanges}
-            onReset={resetChanges}
             applySentryLabel={`Search-FilterPopupApply-${filterKey}`}
-            resetSentryLabel={`Search-FilterPopupReset-${filterKey}`}
         >
             <FilterComponents
                 filterKey={filterKey}
