@@ -10,6 +10,7 @@ import Tooltip from '@components/Tooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useScreenReaderStatus} from '@libs/Accessibility';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {hideContextMenu, showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -35,6 +36,7 @@ function BaseAnchorForCommentsOnly({
     const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
     const flattenStyle = StyleSheet.flatten(style);
+    const isScreenReaderActive = useScreenReaderStatus();
 
     useEffect(
         () => () => {
@@ -99,7 +101,7 @@ function BaseAnchorForCommentsOnly({
                     }}
                     href={linkHref}
                     onPress={(e) => {
-                        if (!linkProps.onPress) {
+                        if (!isScreenReaderActive || !linkProps.onPress) {
                             return;
                         }
                         e?.stopPropagation();
