@@ -30,7 +30,7 @@ Issue opened → Melvin posts proposal → C+ reviews proposal(s)
 
 ## Phase 1: Proposal review
 
-Follow the **same proposal review process** as any other App job, including first-come-first-serve review order after `Help Wanted` is applied (see [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job)).
+Follow the **same proposal review process** as any other App job, but remember to review the MelvinBot proposal first, and then review in first-come-first-serve review order for proposals posted after the `Help Wanted` is applied (see [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job)).
 
 1. Use the [proposal template](./PROPOSAL_TEMPLATE.md) criteria: clear root cause, concrete solution, no code diffs.
 2. C+ reviews Melvin's proposal with the same rigor as a contributor proposal. Do not approve proposals that lack a satisfying root-cause explanation.
