@@ -4908,8 +4908,9 @@ ${amount} dla ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Status faktury do zapłaty',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Zakończ',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Zakończ',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'W toku',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Zatwierdzono',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Wysłano',
                 },
             },
