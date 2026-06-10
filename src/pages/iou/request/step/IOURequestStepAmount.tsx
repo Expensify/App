@@ -19,6 +19,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
@@ -120,6 +121,9 @@ function IOURequestStepAmount({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const iouOrExpenseReport = useReportOrReportDraft(report?.chatReportID);
+    const actualChatReportID = iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) ? iouOrExpenseReport.chatReportID : undefined;
+    const actualChatReport = useReportOrReportDraft(actualChatReportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -175,6 +179,25 @@ function IOURequestStepAmount({
 
         return !(isReportArchived || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
+
+    // When editing, the `report` is the transaction thread which only has the current user as participant.
+    // To correctly determine if this is a P2P expense, we need to traverse to the actual chat report
+    // (e.g., the 1:1 DM) via the IOU/expense report's chatReportID.
+    const chatReportForP2PCheck = useMemo(() => {
+        if (!isEditing) {
+            return report;
+        }
+
+        // When editing, report is the transaction thread. We need to get the actual chat report.
+        // Transaction thread's chatReportID points to the IOU/expense report,
+        // and the IOU/expense report's chatReportID points to the actual chat.
+        if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
+            return actualChatReport;
+        }
+
+        // Fallback to the passed report if we can't traverse
+        return report;
+    }, [isEditing, report, iouOrExpenseReport, actualChatReport]);
 
     useFocusEffect(
         useCallback(() => {
@@ -553,7 +576,7 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
-                isP2P={getIsP2PForAmount({report, isEditing, currentUserAccountID: currentUserPersonalDetails.accountID})}
+                isP2P={getIsP2PForAmount({chatReportForP2P: chatReportForP2PCheck, currentUserAccountID: currentUserPersonalDetails.accountID})}
                 isCurrencyPressable={!isUnreportedDistanceExpense}
             />
         </StepScreenWrapper>

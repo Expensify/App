@@ -1,7 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isParticipantP2P} from '@libs/IOUUtils';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -27,6 +26,10 @@ Onyx.connectWithoutView({
 /**
  * Look up a report by ID across the cached `COLLECTION.REPORT` and `COLLECTION.REPORT_DRAFT`
  * collections. Returns the report-draft entry when no concrete report exists for the ID.
+ *
+ * Intended for submit-time call sites (e.g. inside `navigateToNextPage`) where the caches are
+ * guaranteed to be hydrated. For render-time reads where a stale cache would silently misreport
+ * a value, use `useReportOrReportDraft` instead so the screen re-renders when the report arrives.
  */
 function getReportOrReportDraftForAmount(reportID: string | undefined): OnyxEntry<OnyxTypes.Report> {
     if (!reportID) {
@@ -35,42 +38,19 @@ function getReportOrReportDraftForAmount(reportID: string | undefined): OnyxEntr
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? allReportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
 }
 
-// When editing, the `report` is the transaction thread which only has the current user as participant.
-// To correctly determine if this is a P2P expense, we need to traverse to the actual chat report
-// (e.g., the 1:1 DM) via the IOU/expense report's chatReportID.
-// Reads from module-cached collections — non-reactive, but safe because the screen re-renders
-// when its `report` prop changes, re-running this helper against the latest cache state.
-function getChatReportForP2PCheck(report: OnyxEntry<OnyxTypes.Report>, isEditing: boolean): OnyxEntry<OnyxTypes.Report> {
-    if (!isEditing) {
-        return report;
-    }
-
-    // When editing, report is the transaction thread. We need to get the actual chat report.
-    // Transaction thread's chatReportID points to the IOU/expense report,
-    // and the IOU/expense report's chatReportID points to the actual chat.
-    const iouOrExpenseReport = getReportOrReportDraftForAmount(report?.chatReportID);
-    if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
-        return getReportOrReportDraftForAmount(iouOrExpenseReport.chatReportID);
-    }
-
-    // Fallback to the passed report if we can't traverse
-    return report;
-}
-
 type GetIsP2PForAmountArgs = {
-    report: OnyxEntry<OnyxTypes.Report>;
-    isEditing: boolean;
+    chatReportForP2P: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountID: number | undefined;
 };
 
 /**
- * Sync helper consumed by `IOURequestStepAmount` at render time to determine the `isP2P` prop
- * passed to `MoneyRequestAmountForm`. Reads from module-cached `allReports` / `allReportDrafts`
- * instead of subscribing to the full REPORT / REPORT_DRAFT collections at the screen level.
+ * Determines whether the first participant of `chatReportForP2P` is a P2P participant.
+ * The caller is responsible for resolving the correct chat report (e.g. via reactive
+ * `useReportOrReportDraft` hooks for editing flows where the transaction thread must be
+ * traversed to the actual chat report).
  */
-function getIsP2PForAmount({report, isEditing, currentUserAccountID}: GetIsP2PForAmountArgs): boolean {
-    const chatReportForP2PCheck = getChatReportForP2PCheck(report, isEditing);
-    const firstParticipant = getMoneyRequestParticipantsFromReport(chatReportForP2PCheck, currentUserAccountID).at(0);
+function getIsP2PForAmount({chatReportForP2P, currentUserAccountID}: GetIsP2PForAmountArgs): boolean {
+    const firstParticipant = getMoneyRequestParticipantsFromReport(chatReportForP2P, currentUserAccountID).at(0);
     return isParticipantP2P(firstParticipant);
 }
 
