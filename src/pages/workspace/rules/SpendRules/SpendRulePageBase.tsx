@@ -153,7 +153,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '');
     const hasAnyCategory = categories.length > 0;
     const hasMaxAmount = maxAmount.trim() !== '';
-    const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount;
+    const hasAnyCurrency = currencies.length > 0;
+    const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
     const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
 
     const handleSaveRule = () => {
