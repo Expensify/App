@@ -7068,7 +7068,7 @@ const translations = {
             },
             controlPolicyRoles: {
                 title: 'Control policy roles',
-                description: 'Use specialized roles like Auditor and Card Admin to give members focused workspace access.',
+                description: 'Use specialized roles like Auditor and Card Admin to grant members access only to what they need.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Specialized workspace roles are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
