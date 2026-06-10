@@ -26,6 +26,7 @@ import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically
 import {getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {searchUserInServer} from '@userActions/Report';
@@ -72,7 +73,7 @@ function ReportSubmitToContent({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
