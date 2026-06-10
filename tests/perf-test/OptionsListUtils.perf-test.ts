@@ -302,7 +302,7 @@ describe('OptionsListUtils', () => {
         const largeReports = getMockedReports(LARGE_REPORTS_COUNT);
         const largeOptionList = createOptionList(largePersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, largeReports, undefined);
 
-        const formattedOptions = getValidOptions(
+        const {options: formattedOptions} = getValidOptions(
             {reports: largeOptionList.reports, personalDetails: largeOptionList.personalDetails},
             allPolicies,
             {},
