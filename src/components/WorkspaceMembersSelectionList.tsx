@@ -114,6 +114,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             searchValueForFocusSync={debouncedSearchTerm}
             initiallyFocusedItemKey={initialSelectedApprover}
             shouldScrollToFocusedIndexOnMount={false}
+            shouldUpdateFocusedIndex
             shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             disableMaintainingScrollPosition

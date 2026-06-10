@@ -97,6 +97,7 @@ describe('WorkspaceMembersSelectionList', () => {
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(initialApprover);
         expect(selectionListProps?.searchValueForFocusSync).toBe('');
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
+        expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
     });
 
     it('keeps the initial approver pinned while the live selection changes during the same mount', () => {
