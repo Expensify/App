@@ -334,6 +334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Sélectionner une devise',
         selectSymbolOrCurrency: 'Sélectionner un symbole ou une devise',
         card: 'Carte',
+        mcc: 'MCC',
+        categoryGLCode: 'Code GL de catégorie',
         whyDoWeAskForThis: 'Pourquoi demandons-nous cela ?',
         required: 'Obligatoire',
         automatic: 'Automatique',
@@ -487,9 +489,11 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
-        concierge: {sidePanelGreeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
+        concierge: {greeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
+        goToConcierge: 'Aller à Concierge',
+        allSet: 'Tout est prêt !',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `saisir le chiffre ${digitIndex} sur ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copie de ${reportName}`,
         previousMonth: 'Mois précédent',
@@ -510,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
+        enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -2150,7 +2155,7 @@ const translations: TranslationDeepObject<typeof en> = {
             partnerManager: 'Gestionnaire Partenaires',
             yourPartnerManager: 'Votre gestionnaire partenaire',
             partnerManagerDescription: 'Optimisez votre partenariat et stimulez les recommandations',
-            guideDescription: 'Votre spécialiste de configuration',
+            guideDescription: 'Votre chargé de compte',
             approvedPartnerTeamTitle: 'Rencontrez l’équipe de votre partenaire Approved!',
             approvedPartnerTeamDescription:
                 'Une équipe dédiée, centrée sur la croissance de votre cabinet, l’intégration plus rapide de vos clients et un accompagnement d’experts dès que vous en avez besoin.',
@@ -2910,6 +2915,7 @@ ${amount} pour ${merchant} - ${date}`,
         waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: 'Une erreur s’est produite lors de la tentative de génération de votre PDF',
         successPDF: 'Votre PDF a été généré ! S’il ne s’est pas téléchargé automatiquement, utilisez le bouton ci-dessous.',
+        goToRoom: 'Aller à la salle',
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la salle',
@@ -2939,6 +2945,8 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Mode contraste élevé',
+        enableHighContrast: 'Activer le contraste élevé',
+        disableHighContrast: 'Désactiver le contraste élevé',
         chooseThemeBelowOrSync: 'Choisissez un thème ci-dessous ou synchronisez avec les réglages de votre appareil.',
     },
     termsOfUse: {
@@ -3025,6 +3033,14 @@ ${amount} pour ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiser mes dépenses personnelles',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Autre chose',
         },
+        personalTrackGoal: {
+            title: 'Que souhaitez-vous suivre ?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Coûts pour un bien locatif',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Dépenses ménagères',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Dépenses de projet annexe',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Autre chose',
+            somethingElsePlaceholder: 'Qu’est-ce que vous suivez ?',
+        },
         employees: {
             title: 'Combien d’employés avez-vous ?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1 à 4 employés',
@@ -3102,7 +3118,7 @@ ${amount} pour ${merchant} - ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créer](${workspaceConfirmationLink}) un espace de travail`,
-                description: 'Créez un espace de travail et configurez les paramètres avec l’aide de votre spécialiste de configuration !',
+                description: 'Créez un espace de travail et configurez les paramètres avec l’aide de votre chargé de compte !',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Créer un [espace de travail](${workspaceSettingsLink})`,
@@ -3320,11 +3336,11 @@ ${amount} pour ${merchant} - ${date}`,
                 isOnboardingFlow
                     ? dedent(`
                         # Votre essai gratuit a commencé ! Configurons tout cela.
-                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et les dépenses de votre équipe. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, il vous suffit de suivre les étapes de configuration restantes ci-dessous !
+                        👋 Bonjour, je suis votre chargé de compte Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et les dépenses de votre équipe. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, il vous suffit de suivre les dernières étapes de configuration ci-dessous !
                     `)
                     : dedent(`
                         # Votre essai gratuit a commencé ! Configurons tout cela.
-                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
+                        👋 Bonjour, je suis votre chargé de compte Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de vos 30 jours d’essai gratuit en suivant les étapes ci-dessous !
                     `),
             onboardingTrackWorkspaceMessage: 'Pour tirer le meilleur parti de votre essai gratuit de 30 jours, suivez les étapes restantes ci-dessous :',
             onboardingChatSplitMessage: 'Partager des notes de frais avec des amis est aussi simple que d’envoyer un message. Voici comment faire.',
@@ -3352,6 +3368,7 @@ ${amount} pour ${merchant} - ${date}`,
             subtitle: 'Ajoutez votre équipe ou invitez votre comptable. Plus on est de fous, plus on rit !',
         },
         workEmail2FAError: 'Cette connexion est un compte existant avec l’authentification à deux facteurs (2FA) activée.',
+        singleSignOnError: 'Cette connexion correspond à un compte existant avec SSO/SAML activé.',
     },
     featureTraining: {
         doNotShowAgain: 'Ne plus m’afficher ceci',
@@ -4126,6 +4143,38 @@ ${amount} pour ${merchant} - ${date}`,
         weTake: 'Nous accordons une grande importance à votre sécurité. Veuillez configurer l’authentification à deux facteurs (2FA) maintenant pour ajouter une couche de protection supplémentaire à votre compte.',
         secure: 'Sécurisez votre compte',
     },
+    documentsStep: {
+        beforeYouGo: 'Avant de continuer, nous avons besoin de certains documents pour vérifier certaines informations',
+        subheader: 'Vérification',
+        verificationFailed: 'La vérification a échoué, nous aurons donc besoin de documents supplémentaires pour te vérifier ainsi que ton entreprise',
+        taxIDVerification: 'Vérification de l’identifiant fiscal',
+        taxIDVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Lettre d’attribution TIN/EIN de l’IRS
+        • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
+        • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN`),
+        nameChangeDocument: 'Document de changement de nom',
+        nameChangeDocumentDescription:
+            'Si le nom de ton entreprise a changé depuis la demande du TIN/EIN, ce document est nécessaire pour vérifier le numéro d’identification fiscale fourni',
+        companyAddressVerification: 'Vérification de l’adresse de l’entreprise',
+        companyAddressVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
+        • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
+        • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
+        • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
+        • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise`),
+        userAddressVerification: 'Vérification de l’adresse',
+        userAddressVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Carte d’inscription électorale
+        • Permis de conduire
+        • Relevé bancaire
+        • Facture de services publics`),
+        userDOBVerification: 'Vérification de la date de naissance',
+        userDOBVerificationDescription: 'Veuillez téléverser une pièce d’identité délivrée aux États-Unis',
+        finishViaChat: 'Finaliser via le chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un instant',
         explanationLine: 'Nous examinons vos informations. Vous pourrez poursuivre les prochaines étapes sous peu.',
@@ -4303,6 +4352,7 @@ ${amount} pour ${merchant} - ${date}`,
             customFieldHint: 'Ajoutez un codage personnalisé qui s’applique à toutes les dépenses de ce membre.',
             reports: 'Notes de frais',
             reportFields: 'Champs de note de frais',
+            invoiceFields: 'Champs de facture',
             reportTitle: 'Titre de la note de frais',
             reportField: 'Champ de note de frais',
             taxes: 'Taxes',
@@ -5644,8 +5694,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             emptyCategories: {
                 title: 'Aucune catégorie pour le moment',
                 subtitle: 'Ajoutez une catégorie pour organiser vos dépenses.',
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Vos catégories sont actuellement importées depuis une connexion comptable. Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Vos catégories sont actuellement importées depuis une connexion comptable.${canManage ? ` Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.` : ''}</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Une erreur s’est produite lors de la mise à jour de la catégorie, veuillez réessayer.',
             createFailureMessage: 'Une erreur s’est produite lors de la création de la catégorie, veuillez réessayer.',
@@ -6000,6 +6050,29 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ de note de frais',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de note de frais. Veuillez réessayer.',
         },
+        invoiceFields: {
+            subtitle: 'Les champs de facture peuvent être utiles lorsque vous souhaitez inclure des informations supplémentaires.',
+            importedFromAccountingSoftware: 'Les champs de facture ci-dessous sont importés depuis votre',
+            disableInvoiceFields: 'Désactiver les champs de facture',
+            disableInvoiceFieldsConfirmation: 'Êtes-vous sûr ? Les champs de facture seront désactivés sur les factures.',
+            delete: 'Supprimer le champ de facture',
+            deleteConfirmation: 'Voulez-vous vraiment supprimer ce champ de facture ?',
+            findInvoiceField: 'Trouver un champ de facture',
+            nameInputSubtitle: 'Choisissez un nom pour le champ de facture.',
+            typeInputSubtitle: 'Choisissez le type de champ de facture à utiliser.',
+            initialValueInputSubtitle: 'Saisissez une valeur de départ à afficher dans le champ de facture.',
+            listValuesInputSubtitle: 'Ces valeurs apparaîtront dans la liste déroulante du champ de facture. Les valeurs activées peuvent être sélectionnées par les membres.',
+            listInputSubtitle: 'Ces valeurs apparaîtront dans la liste du champ de facture. Les valeurs activées peuvent être sélectionnées par les membres.',
+            emptyInvoiceFieldsValues: {
+                title: 'Aucune valeur de liste pour le moment',
+                subtitle: 'Ajoutez des valeurs personnalisées à afficher sur les factures.',
+            },
+            existingInvoiceFieldNameError: 'Un champ de facture portant ce nom existe déjà',
+            invoiceFieldNameRequiredError: 'Veuillez saisir un nom de champ de facture',
+            invoiceFieldTypeRequiredError: 'Veuillez choisir un type de champ de facture',
+            invoiceFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale de champ de facture',
+            addField: 'Ajouter un champ',
+        },
         tags: {
             tagName: 'Nom du tag',
             requiresTag: 'Les membres doivent taguer toutes les dépenses',
@@ -6017,14 +6090,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             editTags: 'Modifier les tags',
             findTag: 'Trouver un tag',
             subtitle: 'Les tags ajoutent des moyens plus détaillés de classer les coûts.',
-            subtitleWithDependentTags: (importSpreadsheetLink: string) =>
-                `<muted-text>Les tags ajoutent des moyens plus détaillés de classer les coûts. Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dépendants</a>. Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos tags.</muted-text>`,
+            subtitleWithDependentTags: (importSpreadsheetLink: string, canReimport = true) =>
+                `<muted-text>Les tags ajoutent des moyens plus détaillés de classer les coûts. Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dépendants</a>.${canReimport ? ` Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos tags.` : ''}</muted-text>`,
             emptyTags: {
                 title: 'Aucun tag pour le moment',
                 subtitle: 'Ajoutez un tag pour suivre les projets, les lieux, les services et plus encore.',
                 subtitleHTML: `<muted-text><centered-text>Ajoutez des tags pour suivre les projets, les emplacements, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags pour l’importation.</centered-text></muted-text>`,
-                subtitleWithAccounting: (accountingPageURL: string) =>
-                    `<muted-text><centered-text>Vos tags sont actuellement importés depuis une connexion comptable. Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.</centered-text></muted-text>`,
+                subtitleWithAccounting: (accountingPageURL: string, canManage = true) =>
+                    `<muted-text><centered-text>Vos tags sont actuellement importés depuis une connexion comptable.${canManage ? ` Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.` : ''}</centered-text></muted-text>`,
             },
             deleteTag: 'Supprimer le tag',
             deleteTags: 'Supprimer les tags',
@@ -6169,6 +6242,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             confirmWorkflows: {
                 continue: 'Continuer sans membres',
                 description: 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
+            },
+            progress: {
+                copyInProgressTitle: 'Copie en cours...',
+                copyInProgressDescription: 'Vous pouvez soit attendre la fin du processus, soit laisser Concierge vous prévenir lorsque ce sera terminé.',
+                letMeKnowPrompt: 'Prévenez-moi quand ce sera fait',
+                conciergeNotificationTitle: 'Concierge vous en informera',
+                conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
+                copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
             },
         },
         emptyWorkspace: {
@@ -6326,7 +6407,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Discutez avec votre spécialiste de configuration.',
+            talkYourOnboardingSpecialist: 'Discutez avec votre chargé de compte.',
             talkYourAccountManager: 'Discuter avec votre gestionnaire de compte.',
             talkToConcierge: 'Discuter avec Concierge.',
             needAnotherAccounting: 'Besoin d’un autre logiciel comptable ?',
@@ -6796,6 +6877,12 @@ Voulez-vous vraiment les exporter à nouveau ?`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les champs de note de frais sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Champs de facture',
+                description: `Les champs de facture vous permettent d'inclure des détails supplémentaires au niveau de la facture.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les champs de facture sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + NetSuite. Obtenez des informations financières détaillées et en temps réel avec la prise en charge des segments natifs et personnalisés, y compris la correspondance des projets et des clients.`,
@@ -6918,8 +7005,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             upgradeToUnlock: 'Débloquer cette fonctionnalité',
             completed: {
                 headline: `Vous avez mis à niveau votre espace de travail !`,
-                successMessage: (policyName: string, subscriptionLink: string) =>
-                    `<centered-text>Vous avez réussi à passer ${policyName} au plan Control ! <a href="${subscriptionLink}">Afficher votre abonnement</a> pour plus de détails.</centered-text>`,
+                successMessage: (policyName: string, planName: string, subscriptionLink: string) =>
+                    `<centered-text>Vous avez réussi à passer ${policyName} au plan ${planName} ! <a href="${subscriptionLink}">Afficher votre abonnement</a> pour plus de détails.</centered-text>`,
                 categorizeMessage: `Vous êtes passé avec succès au forfait Collect. Vous pouvez maintenant catégoriser vos dépenses !`,
                 travelMessage: `Vous êtes passé avec succès au plan Collect. Vous pouvez maintenant commencer à réserver et gérer vos voyages !`,
                 distanceRateMessage: `Vous êtes passé avec succès au forfait Collect. Vous pouvez maintenant modifier le taux de distance !`,
@@ -7318,6 +7405,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
+            aiRules: {
+                title: 'Règles IA',
+                subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin',
+                addRule: 'Ajouter une règle IA',
+                findRule: 'Rechercher une règle d’IA',
+                addRuleTitle: 'Ajouter une règle',
+                editRuleTitle: 'Modifier la règle',
+                deleteRule: 'Supprimer la règle',
+                deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                describeRuleTitle: 'Décrivez votre règle',
+                describeRuleSubtitle: 'Décrivez votre règle et Concierge la créera',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7423,6 +7522,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncing: 'Synchronisation des employés',
+            mergeHR: {
+                completeSetup: 'Terminer la configuration',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
+                groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
+            },
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -7597,7 +7702,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `a modifié le ${customUnitName} ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `Suivi fiscal ${newValue ? 'activé' : 'Désactivé'} sur les taux de distance`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté un nouveau taux ${customUnitName} « ${rateName} »`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté le taux ${customUnitName} « ${rateName} »`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
@@ -7998,6 +8103,22 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `a ajouté le taux « ${rateName} » de ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) =>
+            `a ajouté le taux « ${rateName} » de ${rateValue}, valable à partir du ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `a ajouté le taux « ${rateName} » de ${rateValue}, valable jusqu’au ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `a ajouté le taux « ${rateName} » de ${rateValue}, valable du ${startDate} au ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `a mis à jour la date de début du taux « ${rateName} » à ${newDate} (auparavant ${oldDate})` : `définir la date de début du taux « ${rateName} » sur ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `a mis à jour la date de fin du taux « ${rateName} » à ${newDate} (auparavant ${oldDate})` : `définir la date de fin du taux « ${rateName} » sur ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `a mis à jour les dates de début et de fin du taux « ${rateName} » en ${newStartDate} - ${newEndDate} (précédemment ${oldStartDate} - ${oldEndDate})`
+                : `définir les dates de début et de fin du taux « ${rateName} » sur ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `a supprimé la date de début du taux « ${rateName} » (précédemment ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `a supprimé la date de fin du taux « ${rateName} » (auparavant ${oldDate})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -8067,6 +8188,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     search: {
         resultsAreLimited: 'Les résultats de recherche sont limités.',
         viewResults: 'Afficher les résultats',
+        applyFilters: 'Appliquer des filtres',
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
@@ -8172,7 +8294,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} et ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} et ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount?: string) => `Égal à ${amount ?? ''}`,
             },
             card: {
@@ -8265,6 +8392,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
+        serverResults: 'Résultats de recherche',
         searchIn: 'Rechercher dans',
         askConcierge: (message: string) => `Demander à Concierge « ${message} »`,
         searchPlaceholder: 'Rechercher quelque chose...',
@@ -8799,7 +8927,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Discutez avec votre spécialiste de configuration dans <a href="${href}">${adminReportName}</a> pour obtenir de l’aide`,
+            `Discutez avec votre chargé de compte dans <a href="${href}">${adminReportName}</a> pour obtenir de l'aide`,
         default: `Envoyez un message à <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> pour obtenir de l’aide pour la configuration`,
     },
     violations: {
@@ -9448,7 +9576,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         confirmation: {
             title: 'Confirmer l’appel',
             description: 'Assurez-vous que les détails ci-dessous vous conviennent. Une fois que vous aurez confirmé l’appel, nous enverrons une invitation avec plus d’informations.',
-            setupSpecialist: 'Votre spécialiste de configuration',
+            setupSpecialist: 'Votre chargé de compte',
             meetingLength: 'Durée de la réunion',
             dateTime: 'Date et heure',
             minutes: '30 minutes',
