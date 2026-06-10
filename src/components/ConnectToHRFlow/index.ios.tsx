@@ -17,12 +17,15 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
     const styles = useThemeStyles();
     const hasOpened = useRef(false);
     const isDismissed = useRef(false);
+    const isMounted = useRef(true);
     const [isModalOpen, setIsModalOpen] = useState(true);
 
     const dismiss = () => {
+        if (isDismissed.current || !isMounted.current) {
+            return;
+        }
         isDismissed.current = true;
         setIsModalOpen(false);
-        onDone?.();
     };
 
     const openSession = () => {
@@ -40,10 +43,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
                 }
                 return openAuthSessionAsync(url, CONST.DEEPLINK_BASE_URL, {preferEphemeralSession: true});
             })
-            .finally(() => {
-                setIsModalOpen(false);
-                onDone?.();
-            });
+            .finally(dismiss);
     };
 
     const {isOffline} = useNetwork({onReconnect: openSession});
@@ -56,9 +56,17 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only the initial setupLink should be used; re-opening the auth session on prop change is not desired
     }, []);
 
+    useEffect(
+        () => () => {
+            isMounted.current = false;
+        },
+        [],
+    );
+
     return (
         <Modal
             onClose={dismiss}
+            onModalHide={onDone}
             fullscreen
             isVisible={isModalOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
