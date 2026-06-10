@@ -155,6 +155,7 @@ function SearchAddApproverPage() {
             isDisabled={!selectedApproverEmail}
             buttonText={translate('common.save')}
             onSubmit={addApprover}
+            isLoading={isSaving}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
             shouldBlendOpacity

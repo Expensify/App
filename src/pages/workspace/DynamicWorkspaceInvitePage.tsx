@@ -49,6 +49,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const {translate} = useLocalize();
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
@@ -170,6 +171,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 
     const inviteUser = useCallback(() => {
+        setIsSubmitting(true);
         Keyboard.dismiss();
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
 
@@ -221,9 +223,10 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 onSubmit={inviteUser}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
+                isLoading={isSubmitting}
             />
         ),
-        [inviteUser, selectedOptions.length, shouldShowAlertPrompt, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+        [inviteUser, isSubmitting, selectedOptions.length, shouldShowAlertPrompt, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
 
     useEffect(() => {

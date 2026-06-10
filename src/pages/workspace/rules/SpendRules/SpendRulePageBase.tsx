@@ -15,6 +15,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
@@ -66,6 +67,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [isErrorVisible, setIsErrorVisible] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
     const currentRuleID = ruleID ?? ROUTES.NEW;
     const isEditing = currentRuleID !== ROUTES.NEW;
     const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
@@ -159,10 +162,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             return;
         }
 
-        clearError();
-        setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
-        clearDraftSpendRule();
-        navigation.goBack();
+        startPressLoading(() => {
+            setIsSaving(true);
+            clearError();
+            setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
+            clearDraftSpendRule();
+            navigation.goBack();
+        });
     };
 
     const handleDeleteRule = () => {
@@ -273,6 +279,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     message={errorMessage}
                     isAlertVisible={isErrorVisible}
                     onSubmit={handleSaveRule}
+                    isLoading={isPressed || isSaving}
+                    shouldShowLoadingImmediatelyOnPress={false}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                     shouldRenderFooterAboveSubmit

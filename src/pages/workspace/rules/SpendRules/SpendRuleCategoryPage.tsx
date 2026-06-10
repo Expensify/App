@@ -34,6 +34,7 @@ function SpendRuleCategoryPage() {
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
     const [selectedCategories, setSelectedCategories] = useState<SpendRuleCategory[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
 
     useFocusEffect(() => setSelectedCategories(spendRuleForm?.categories ?? []));
 
@@ -80,6 +81,7 @@ function SpendRuleCategoryPage() {
     };
 
     const handleSave = () => {
+        setIsSaving(true);
         updateDraftSpendRule({categories: selectedCategories});
         goBack();
     };
@@ -129,6 +131,7 @@ function SpendRuleCategoryPage() {
                         buttonText={translate('common.save')}
                         isAlertVisible={false}
                         onSubmit={handleSave}
+                        isLoading={isSaving}
                         enabledWhenOffline
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                     />

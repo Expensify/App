@@ -14,6 +14,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,6 +54,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
     const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
     const errorMessage = error.taskKey === taskKey ? error.message : '';
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
@@ -97,21 +100,25 @@ function NewTaskPage({route}: NewTaskPageProps) {
             return;
         }
 
-        createTaskAndNavigate({
-            parentReport,
-            title: task.title,
-            description: task?.description ?? '',
-            assigneeEmail: task?.assignee ?? '',
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            currentUserEmail: currentUserPersonalDetails.email ?? '',
-            currentUserDisplayName: currentUserPersonalDetails.displayName,
-            currentUserAvatar: currentUserPersonalDetails.avatar,
-            assigneeAccountID: task.assigneeAccountID,
-            assigneeChatReport: task.assigneeChatReport,
-            policyID: parentReport?.policyID,
-            isCreatedUsingMarkdown: false,
-            quickAction,
-            ancestors,
+        const {title} = task;
+        startPressLoading(() => {
+            setIsSubmitting(true);
+            createTaskAndNavigate({
+                parentReport,
+                title,
+                description: task?.description ?? '',
+                assigneeEmail: task?.assignee ?? '',
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                currentUserEmail: currentUserPersonalDetails.email ?? '',
+                currentUserDisplayName: currentUserPersonalDetails.displayName,
+                currentUserAvatar: currentUserPersonalDetails.avatar,
+                assigneeAccountID: task.assigneeAccountID,
+                assigneeChatReport: task.assigneeChatReport,
+                policyID: parentReport?.policyID,
+                isCreatedUsingMarkdown: false,
+                quickAction,
+                ancestors,
+            });
         });
     };
 
@@ -194,6 +201,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
                         <FormAlertWithSubmitButton
                             isAlertVisible={!!errorMessage}
                             message={errorMessage}
+                            shouldShowLoadingImmediatelyOnPress={false}
+                            isLoading={isPressed || isSubmitting}
                             onSubmit={onSubmit}
                             enabledWhenOffline
                             buttonRef={confirmButtonRef}

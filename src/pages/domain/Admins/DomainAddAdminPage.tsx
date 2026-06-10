@@ -9,6 +9,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
@@ -46,7 +47,9 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [currentlySelectedUser, setCurrentlySelectedUser] = useState<OptionData | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const didInvite = useRef<boolean>(false);
+    const {isPressed, startPressLoading} = usePressLoading();
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
@@ -69,8 +72,12 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         }
         didInvite.current = true;
 
-        addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName, !!currentlySelectedUser.isOptimisticAccount);
-        Navigation.dismissModal();
+        const {accountID, login, isOptimisticAccount} = currentlySelectedUser;
+        startPressLoading(() => {
+            setIsSubmitting(true);
+            addAdminToDomain(domainAccountID, accountID, login, domainName, !!isOptimisticAccount);
+            Navigation.dismissModal();
+        });
     };
 
     const filteredOptions = areOptionsInitialized
@@ -109,6 +116,8 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             isDisabled={!currentlySelectedUser}
             isAlertVisible={false}
             buttonText={translate('common.invite')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={isPressed || isSubmitting}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

@@ -10,6 +10,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
@@ -43,6 +44,8 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -163,9 +166,17 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         <FormAlertWithSubmitButton
             isDisabled={!selectedOptions.length}
             buttonText={translate('common.invite')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={isPressed || isSubmitting}
             onSubmit={() => {
-                clearUserSearchPhrase();
-                inviteUsers();
+                if (selectedOptions.length === 0) {
+                    return;
+                }
+                startPressLoading(() => {
+                    setIsSubmitting(true);
+                    clearUserSearchPhrase();
+                    inviteUsers();
+                });
             }}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

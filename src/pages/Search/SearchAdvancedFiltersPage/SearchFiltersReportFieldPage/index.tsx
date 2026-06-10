@@ -27,6 +27,8 @@ function SearchFiltersReportFieldPage() {
     const {translate, localeCompare} = useLocalize();
 
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
+    // Stays true until this screen unmounts on navigation, keeping the spinner visible through the go-back transition.
+    const [isSaving, setIsSaving] = useState(false);
 
     const [advancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyReportFieldsSelector = useCallback((policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare), [localeCompare]);
@@ -89,6 +91,7 @@ function SearchFiltersReportFieldPage() {
      * just navigate back
      */
     const saveChanges = () => {
+        setIsSaving(true);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
@@ -155,6 +158,7 @@ function SearchFiltersReportFieldPage() {
                 buttonText={translate('common.save')}
                 containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                 onSubmit={saveChanges}
+                isLoading={isSaving}
                 enabledWhenOffline
             />
         </ScreenWrapper>

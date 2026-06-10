@@ -12,6 +12,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,6 +43,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const formRef = useRef<ScrollView>(null);
     const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
 
     const updateApprovalWorkflowCallback = () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
@@ -52,13 +55,16 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        // We need to remove members and approvers that are no longer in the updated workflow
-        const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
-        const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
-        Navigation.dismissModal({
-            afterTransition: () => {
-                updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
-            },
+        startPressLoading(() => {
+            setIsSubmitting(true);
+            // We need to remove members and approvers that are no longer in the updated workflow
+            const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
+            const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
+            Navigation.dismissModal({
+                afterTransition: () => {
+                    updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
+                },
+            });
         });
     };
 
@@ -183,6 +189,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 containerStyles={submitButtonContainerStyles}
                                 enabledWhenOffline
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
+                                shouldShowLoadingImmediatelyOnPress={false}
+                                isLoading={isPressed || isSubmitting}
                             />
                         </>
                     )}

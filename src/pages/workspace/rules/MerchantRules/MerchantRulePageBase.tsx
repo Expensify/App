@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
@@ -96,6 +97,8 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
     const isEditing = !!ruleID;
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -235,6 +238,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!form) {
             return;
         }
+        setIsSaving(true);
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
         Navigation.goBack();
     };
@@ -265,7 +269,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
 
-        saveRule();
+        startPressLoading(() => saveRule());
     };
 
     const handleDelete = () => {
@@ -385,6 +389,8 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             isAlertVisible={shouldShowError && !!errorMessage}
             message={errorMessage}
             onSubmit={handleSubmit}
+            isLoading={isPressed || isSaving}
+            shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
             shouldRenderFooterAboveSubmit

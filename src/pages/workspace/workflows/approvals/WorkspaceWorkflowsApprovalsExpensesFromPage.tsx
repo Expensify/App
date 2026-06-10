@@ -40,6 +40,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
@@ -139,6 +140,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     };
 
     const nextStep = () => {
+        setIsSubmitting(true);
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text ?? '', avatar: member.icons?.at(0)?.source, email: member.login ?? ''}));
         setApprovalWorkflowMembers(members);
 
@@ -158,9 +160,17 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         <FormAlertWithSubmitButton
             isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
             buttonText={buttonText}
-            onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
+            onSubmit={
+                shouldShowListEmptyContent
+                    ? () => {
+                          setIsSubmitting(true);
+                          Navigation.goBack();
+                      }
+                    : nextStep
+            }
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
+            isLoading={isSubmitting}
         />
     );
 

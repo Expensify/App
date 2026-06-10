@@ -9,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -36,12 +37,14 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
+    const {isPressed, startPressLoading} = usePressLoading();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
@@ -90,32 +93,48 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         if (!selectedApproverEmail || !employeeAccountID) {
             return;
         }
-        addReportApprover(
-            report,
-            selectedApproverEmail,
-            Number(employeeAccountID),
-            currentUserDetails.accountID,
-            currentUserDetails.email ?? '',
-            policy,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            reportNextStep,
-        );
-        Navigation.dismissToPreviousRHP();
-    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
+        startPressLoading(() => {
+            setIsSubmitting(true);
+            addReportApprover(
+                report,
+                selectedApproverEmail,
+                Number(employeeAccountID),
+                currentUserDetails.accountID,
+                currentUserDetails.email ?? '',
+                policy,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                reportNextStep,
+            );
+            Navigation.dismissToPreviousRHP();
+        });
+    }, [
+        allApprovers,
+        selectedApproverEmail,
+        startPressLoading,
+        report,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
+        policy,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        reportNextStep,
+    ]);
 
     const button = useMemo(() => {
         return (
             <FormAlertWithSubmitButton
                 isDisabled={!selectedApproverEmail}
                 buttonText={translate('common.save')}
+                shouldShowLoadingImmediatelyOnPress={false}
+                isLoading={isPressed || isSubmitting}
                 onSubmit={addApprover}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
                 shouldBlendOpacity
             />
         );
-    }, [addApprover, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
+    }, [addApprover, isPressed, isSubmitting, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
     const toggleApprover = useCallback((approvers: SelectionListApprover[]) => {
         setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);

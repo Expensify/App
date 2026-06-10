@@ -3,6 +3,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
@@ -50,6 +51,8 @@ function CountrySelection() {
 
     const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
 
     const onCountrySelected = (countryChecked: string) => {
         setShouldShowError(false);
@@ -61,10 +64,13 @@ function CountrySelection() {
             setShouldShowError(true);
             return;
         }
-        clearReimbursementAccount();
-        clearReimbursementAccountDraft();
-        updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
-        navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+        startPressLoading(() => {
+            setIsSubmitting(true);
+            clearReimbursementAccount();
+            clearReimbursementAccountDraft();
+            updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
+            navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+        });
     };
 
     return (
@@ -76,6 +82,8 @@ function CountrySelection() {
             footerContent={
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.next')}
+                    shouldShowLoadingImmediatelyOnPress={false}
+                    isLoading={isPressed || isSubmitting}
                     onSubmit={onConfirm}
                     isAlertVisible={shouldShowError}
                     containerStyles={[!shouldShowError && styles.mt5]}

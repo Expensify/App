@@ -1,6 +1,6 @@
 import type {NavigationProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -32,6 +32,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const [spendRuleFormDraft] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT);
     const illustrations = useMemoizedLazyIllustrations(['FoodTruck']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const [isSaving, setIsSaving] = useState(false);
 
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const merchantNames = spendRuleFormDraft?.merchantNames ?? spendRuleForm?.merchantNames ?? [];
@@ -55,6 +56,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const goBack = () => navigation.goBack();
 
     const handleSave = () => {
+        setIsSaving(true);
         updateDraftSpendRule({merchantNames, merchantMatchTypes});
         goBack();
     };
@@ -126,6 +128,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                     containerStyles={[styles.m4, styles.mb5]}
                     isAlertVisible={false}
                     onSubmit={handleSave}
+                    isLoading={isSaving}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                 />

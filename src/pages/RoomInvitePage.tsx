@@ -1,5 +1,5 @@
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -16,6 +16,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePressLoading from '@hooks/usePressLoading';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -66,6 +67,8 @@ function RoomInvitePage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const isReportArchived = useReportIsArchived(report.reportID);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -144,29 +147,32 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = accountID;
         }
         if (report?.reportID) {
-            clearUserSearchPhrase();
-            // Defer the invite action until after the navigation transition completes to prevent
-            // a race condition on iOS where optimistic Onyx updates trigger a re-render of the
-            // underlying RoomMembersPage during the native screen transition animation, causing a crash.
-            const afterTransition = () => {
-                if (isPolicyExpenseChat(report)) {
-                    inviteToRoomAction(
-                        report,
-                        ancestors,
-                        invitedEmailsToAccountIDs,
-                        currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                        currentUserPersonalDetails.accountID,
-                        delegateAccountID,
-                    );
+            startPressLoading(() => {
+                setIsSubmitting(true);
+                clearUserSearchPhrase();
+                // Defer the invite action until after the navigation transition completes to prevent
+                // a race condition on iOS where optimistic Onyx updates trigger a re-render of the
+                // underlying RoomMembersPage during the native screen transition animation, causing a crash.
+                const afterTransition = () => {
+                    if (isPolicyExpenseChat(report)) {
+                        inviteToRoomAction(
+                            report,
+                            ancestors,
+                            invitedEmailsToAccountIDs,
+                            currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                            currentUserPersonalDetails.accountID,
+                            delegateAccountID,
+                        );
+                    } else {
+                        inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+                    }
+                };
+                if (backTo) {
+                    Navigation.goBack(backTo, {afterTransition});
                 } else {
-                    inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID), {afterTransition});
                 }
-            };
-            if (backTo) {
-                Navigation.goBack(backTo, {afterTransition});
-            } else {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID), {afterTransition});
-            }
+            });
         }
     };
 
@@ -205,6 +211,8 @@ function RoomInvitePage({
         <FormAlertWithSubmitButton
             isDisabled={!validSelectedOptions.length}
             buttonText={translate('common.invite')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={isPressed || isSubmitting}
             onSubmit={inviteUsers}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

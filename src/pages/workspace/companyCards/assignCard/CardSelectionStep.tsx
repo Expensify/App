@@ -17,6 +17,7 @@ import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
@@ -57,6 +58,8 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
 
     const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
         keyForList: card.cardID,
@@ -101,22 +104,25 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             return;
         }
 
-        // Find the card by its ID to get the display name
-        const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
-        const cardName = selectedCard?.cardName ?? '';
+        startPressLoading(() => {
+            setIsSubmitting(true);
+            // Find the card by its ID to get the display name
+            const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
+            const cardName = selectedCard?.cardName ?? '';
 
-        const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
+            const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
 
-        setAssignCardStepAndData({
-            cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
-            isEditing: false,
+            setAssignCardStepAndData({
+                cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
+                isEditing: false,
+            });
+
+            if (isEditing) {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({policyID, feed, cardID}));
+            }
         });
-
-        if (isEditing) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({policyID, feed, cardID}));
-        }
     };
 
     const searchedListOptions = useMemo(() => {
@@ -190,6 +196,8 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                             isAlertVisible={shouldShowError}
                             containerStyles={[!shouldShowError && styles.mt5]}
                             message={translate('common.error.pleaseSelectOne')}
+                            shouldShowLoadingImmediatelyOnPress={false}
+                            isLoading={isPressed || isSubmitting}
                         />
                     }
                 />

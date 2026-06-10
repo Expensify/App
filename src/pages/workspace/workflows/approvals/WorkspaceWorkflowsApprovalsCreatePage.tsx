@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {View} from 'react-native';
@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,6 +37,8 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
     const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
     const formRef = useRef<ScrollView>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {isPressed, startPressLoading} = usePressLoading();
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy);
 
@@ -48,9 +51,12 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
-        Navigation.dismissModal();
-    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport]);
+        startPressLoading(() => {
+            setIsSubmitting(true);
+            createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
+            Navigation.dismissModal();
+        });
+    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, startPressLoading]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 
@@ -91,6 +97,8 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                                 buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
                                 containerStyles={submitButtonContainerStyles}
                                 enabledWhenOffline
+                                shouldShowLoadingImmediatelyOnPress={false}
+                                isLoading={isPressed || isSubmitting}
                             />
                         </>
                     )}

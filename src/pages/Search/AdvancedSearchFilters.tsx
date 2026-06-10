@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -619,7 +619,10 @@ function AdvancedSearchFilters() {
     }, [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
+    const [isApplyingFilters, setIsApplyingFilters] = useState(false);
+
     const applyFiltersAndNavigate = () => {
+        setIsApplyingFilters(true);
         Navigation.dismissModal({afterTransition: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}))});
     };
 
@@ -733,6 +736,7 @@ function AdvancedSearchFilters() {
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
                 onSubmit={applyFiltersAndNavigate}
+                isLoading={isApplyingFilters}
                 enabledWhenOffline
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.VIEW_RESULTS_BUTTON}
             />
