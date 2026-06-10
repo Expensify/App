@@ -2919,6 +2919,7 @@ ${amount} voor ${merchant} - ${date}`,
         waitForPDF: 'Even geduld terwijl we de pdf genereren.',
         errorPDF: 'Er is een fout opgetreden bij het genereren van je PDF',
         successPDF: 'Je PDF is gegenereerd! Als het niet automatisch is gedownload, gebruik dan de knop hieronder.',
+        goToRoom: 'Ga naar kamer',
     },
     reportDescriptionPage: {
         roomDescription: 'Kamerbeschrijving',
@@ -3366,6 +3367,7 @@ ${amount} voor ${merchant} - ${date}`,
             subtitle: 'Voeg je team toe of nodig je accountant uit. Hoe meer zielen, hoe meer vreugd!',
         },
         workEmail2FAError: 'Deze inlog is een bestaand account met Two-Factor Authentication (2FA) ingeschakeld.',
+        singleSignOnError: 'Deze login is een bestaand account met SSO/SAML ingeschakeld.',
     },
     featureTraining: {
         doNotShowAgain: 'Dit niet meer tonen',
@@ -7464,6 +7466,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
             syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
             syncing: 'Werknemers synchroniseren',
+            mergeHR: {
+                completeSetup: 'Configuratie voltooien',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Instellen voltooien</a>` : 'Configuratie voltooien'} om werknemers te importeren.</muted-text-label>`,
+                groups: {title: 'Groepen', description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren'},
+            },
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
     },
@@ -8120,6 +8128,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
         viewResults: 'Resultaten bekijken',
+        applyFilters: 'Filters toepassen',
         appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
@@ -8225,7 +8234,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Tussen ${greaterThan} en ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Tussen ${greaterThan} en ${lessThan}`;
+                    }
+                    return 'Tussen';
+                },
                 equalTo: (amount?: string) => `Gelijk aan ${amount ?? ''}`,
             },
             card: {

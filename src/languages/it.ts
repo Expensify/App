@@ -2922,6 +2922,7 @@ ${amount} per ${merchant} - ${date}`,
         waitForPDF: 'Attendi mentre generiamo il PDF.',
         errorPDF: 'Si è verificato un errore durante il tentativo di generare il tuo PDF',
         successPDF: 'Il tuo PDF è stato generato! Se non è stato scaricato automaticamente, usa il pulsante qui sotto.',
+        goToRoom: 'Vai alla stanza',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrizione stanza',
@@ -3369,6 +3370,7 @@ ${amount} per ${merchant} - ${date}`,
             subtitle: 'Aggiungi il tuo team o invita il tuo commercialista. Più siamo, meglio è!',
         },
         workEmail2FAError: 'Questo login è associato a un account esistente con l’Autenticazione a Due Fattori (2FA) abilitata.',
+        singleSignOnError: 'Questo login è un account esistente con SSO/SAML abilitato.',
     },
     featureTraining: {
         doNotShowAgain: 'Non mostrarmelo più',
@@ -7490,6 +7492,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             syncingModalTitle: 'La tua connessione è in sincronizzazione',
             syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
             syncing: 'Sincronizzazione dipendenti',
+            mergeHR: {
+                completeSetup: 'Completa configurazione',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connesso. ${setupLink ? `<a href="${setupLink}">Completa la configurazione</a>` : 'Completa configurazione'} per importare i dipendenti.</muted-text-label>`,
+                groups: {title: 'Gruppi', description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro'},
+            },
         },
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',
@@ -8157,6 +8165,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     search: {
         resultsAreLimited: 'I risultati di ricerca sono limitati.',
         viewResults: 'Visualizza risultati',
+        applyFilters: 'Applica i filtri',
         appliedFilters: 'Filtri applicati',
         resetFilters: 'Reimposta filtri',
         searchResults: {
@@ -8262,7 +8271,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             amount: {
                 lessThan: (amount?: string) => `Meno di ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maggiore di ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Tra ${greaterThan} e ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Tra ${greaterThan} e ${lessThan}`;
+                    }
+                    return 'Tra';
+                },
                 equalTo: (amount?: string) => `Uguale a ${amount ?? ''}`,
             },
             card: {

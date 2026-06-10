@@ -3003,6 +3003,7 @@ const translations = {
         },
     },
     reportDetailsPage: {
+        goToRoom: 'Go to room',
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Generate PDF',
         waitForPDF: 'Please wait while we generate the PDF.',
@@ -3170,6 +3171,7 @@ const translations = {
             offline: 'We couldn’t add your work email as you appear to be offline',
         },
         workEmail2FAError: 'This login is an existing account with Two-Factor Authentication (2FA) enabled.',
+        singleSignOnError: 'This login is an existing account with SSO/SAML enabled.',
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
@@ -6804,6 +6806,15 @@ const translations = {
             zenefits: {
                 title: 'TriNet',
             },
+            mergeHR: {
+                completeSetup: 'Complete setup',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import employees.</muted-text-label>`,
+                groups: {
+                    title: 'Groups',
+                    description: 'Choose the groups of employees you would like to sync with this workspace',
+                },
+            },
         },
         export: {
             notReadyHeading: 'Not ready to export',
@@ -8226,6 +8237,7 @@ const translations = {
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        applyFilters: 'Apply filters',
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
@@ -8337,7 +8349,12 @@ const translations = {
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Between ${greaterThan} and ${lessThan}`;
+                    }
+                    return 'Between';
+                },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
             card: {
