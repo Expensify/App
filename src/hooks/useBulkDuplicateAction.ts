@@ -1,7 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -26,8 +26,8 @@ type UseBulkDuplicateActionParams = {
  * so these subscriptions don't exist for users who aren't actively duplicating.
  */
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
-    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -37,11 +37,9 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
     const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
 
@@ -74,11 +72,10 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             isSelfTourViewed,
             transactionDrafts,
-            draftTransactionIDs,
             betas,
             recentWaypoints,
-            conciergeReportID,
             currentUser: {accountID, email: currentUserLogin ?? ''},
+            currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
         });
 
         if (onAfterDuplicate) {

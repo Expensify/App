@@ -21,15 +21,14 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let deprecatedPersonalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        deprecatedPersonalDetails = Object.values(val ?? {});
+        const personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
-        emailToPersonalDetailsCache = deprecatedPersonalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
+        emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
                 acc[detail.login.toLowerCase()] = detail;
             }
@@ -102,6 +101,10 @@ function getDisplayNameOrDefault(
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
+function getPersonalDetailsByID(accountID: number | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    return accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
+}
+
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
  * @param accountIDs  - Array of accountIDs
@@ -141,7 +144,7 @@ function getPersonalDetailsByIDs({
 function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
-        const detail = personalDetails?.[accountID];
+        const detail = getPersonalDetailsByID(accountID, personalDetails);
         if (!detail) {
             continue;
         }
@@ -149,6 +152,20 @@ function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxE
         result.push(detail);
     }
     return result;
+}
+
+function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    return accountIDs.reduce((acc, accountID) => {
+        if (!accountID) {
+            return acc;
+        }
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            return acc;
+        }
+        acc[accountID] = detail;
+        return acc;
+    }, {} as PersonalDetailsList);
 }
 
 function getDisplayNameOrYou(displayName: string, accountID: number, currentUserAccountID: number, translate: LocalizedTranslate) {
@@ -184,14 +201,8 @@ function getAccountIDsByLogins(logins: string[]): number[] {
     }, []);
 }
 
-/**
- * Given an accountID, find the associated personal detail and return related login.
- *
- * @param accountID User accountID
- * @returns Login according to passed accountID
- */
-function getLoginByAccountID(accountID: number): string | undefined {
-    return allPersonalDetails?.[accountID]?.login;
+function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string | undefined {
+    return accountID ? personalDetails?.[accountID]?.login : undefined;
 }
 
 /**
@@ -333,7 +344,7 @@ function getPrivatePersonalDetailsFormValues(privatePersonalDetails: OnyxEntry<P
         [INPUT_IDS.DATE_OF_BIRTH]: draftValues?.[INPUT_IDS.DATE_OF_BIRTH] ?? privatePersonalDetails?.dob ?? '',
         [INPUT_IDS.PHONE_NUMBER]: draftValues?.[INPUT_IDS.PHONE_NUMBER] ?? privatePersonalDetails?.phoneNumber ?? '',
         [INPUT_IDS.ADDRESS_LINE_1]: draftValues?.[INPUT_IDS.ADDRESS_LINE_1] ?? street1 ?? '',
-        [INPUT_IDS.ADDRESS_LINE_2]: draftValues?.[INPUT_IDS.ADDRESS_LINE_2] ?? street2 ?? '',
+        [INPUT_IDS.ADDRESS_LINE_2]: draftValues?.[INPUT_IDS.ADDRESS_LINE_2] ?? address?.street2 ?? street2 ?? '',
         [INPUT_IDS.CITY]: draftValues?.[INPUT_IDS.CITY] ?? address?.city ?? '',
         [INPUT_IDS.STATE]: draftValues?.[INPUT_IDS.STATE] ?? address?.state ?? '',
         [INPUT_IDS.ZIP_POST_CODE]: draftValues?.[INPUT_IDS.ZIP_POST_CODE] ?? address?.zip ?? '',
@@ -500,8 +511,10 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 
 export {
     getDisplayNameOrDefault,
+    getPersonalDetailsByID,
     getPersonalDetailsByIDs,
     newGetPersonalDetailsByIDs,
+    getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
     getAccountIDsByLogins,

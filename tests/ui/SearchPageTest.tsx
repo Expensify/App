@@ -8,7 +8,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';

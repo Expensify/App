@@ -109,6 +109,12 @@ function useComposerSubmit(reportID: string) {
                         taskTitle = `@${mentionWithDomain} ${taskTitle}`;
                     }
                 }
+
+                const taskCreatorAndAssigneeDetails = {[currentUserPersonalDetails.accountID]: currentUserPersonalDetails};
+                if (assignee) {
+                    taskCreatorAndAssigneeDetails[assignee.accountID] = assignee;
+                }
+
                 createTaskAndNavigate({
                     parentReport: report,
                     title: taskTitle,
@@ -124,6 +130,7 @@ function useComposerSubmit(reportID: string) {
                     isCreatedUsingMarkdown: true,
                     quickAction,
                     ancestors: reportAncestors,
+                    taskCreatorAndAssigneeDetails,
                 });
                 return;
             }
@@ -157,7 +164,7 @@ function useComposerSubmit(reportID: string) {
     };
 
     const submitDraftAndClearComposer = () => {
-        if (isSendDisabled || !debouncedCommentMaxLengthValidation?.flush()) {
+        if (isSendDisabled || debouncedCommentMaxLengthValidation?.flush() === false) {
             return;
         }
 

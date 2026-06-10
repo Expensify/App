@@ -1,6 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
@@ -18,14 +17,13 @@ import {
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategory} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
@@ -631,27 +629,13 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            mockFetch?.pause?.();
-            importPolicyCategories(fakePolicy.id, categoriesToImport);
-            await waitForBatchedUpdates();
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
 
-            await mockFetch?.resume?.();
-            await act(waitForNetworkPromises);
-
-            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
+            expect(importFinalModal).toStrictEqual({
+                titleKey: 'spreadsheet.importSuccessfulTitle',
+                promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
+                promptKeyParams: {added: 2, updated: 0},
             });
-
-            expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
-            expect(spreadsheet?.importFinalModal?.titleKey).toBe('spreadsheet.importSuccessfulTitle');
-            expect(spreadsheet?.importFinalModal?.promptKey).toBe('spreadsheet.importCategoriesSuccessfulDescription');
-            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, updated: 0});
         });
 
         it('Import categories with failure modal data', async () => {
@@ -664,27 +648,13 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            mockFetch?.pause?.();
-            importPolicyCategories(fakePolicy.id, categoriesToImport);
-            await waitForBatchedUpdates();
-
             mockFetch?.fail?.();
-            await mockFetch?.resume?.();
-            await act(waitForNetworkPromises);
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
 
-            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
+            expect(importFinalModal).toStrictEqual({
+                titleKey: 'spreadsheet.importFailedTitle',
+                promptKey: 'spreadsheet.importFailedDescription',
             });
-
-            expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
-            expect(spreadsheet?.importFinalModal?.titleKey).toBe('spreadsheet.importFailedTitle');
-            expect(spreadsheet?.importFinalModal?.promptKey).toBe('spreadsheet.importFailedDescription');
         });
 
         it('Duplicate category names are counted only once for the unique categories length', async () => {
@@ -701,24 +671,9 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            mockFetch?.pause?.();
-            importPolicyCategories(fakePolicy.id, categoriesToImport);
-            await waitForBatchedUpdates();
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
 
-            await mockFetch?.resume?.();
-            await act(waitForNetworkPromises);
-
-            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
-            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
         });
 
         it('Categories with empty names are skipped when counting unique categories', async () => {
@@ -733,24 +688,9 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            mockFetch?.pause?.();
-            importPolicyCategories(fakePolicy.id, categoriesToImport);
-            await waitForBatchedUpdates();
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
 
-            await mockFetch?.resume?.();
-            await act(waitForNetworkPromises);
-
-            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
-            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
         });
 
         it('Empty categories array results in zero unique count', async () => {
@@ -759,25 +699,9 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            mockFetch?.pause?.();
-            importPolicyCategories(fakePolicy.id, []);
-            await waitForBatchedUpdates();
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, []);
 
-            await mockFetch?.resume?.();
-            await act(waitForNetworkPromises);
-
-            const spreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
-            expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
-            expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 0, updated: 0});
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
         });
     });
 

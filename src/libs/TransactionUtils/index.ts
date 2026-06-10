@@ -21,7 +21,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
@@ -42,6 +42,7 @@ import {
     isOpenExpenseReport,
     isProcessingReport,
     isReportIDApproved,
+    isSelfDM,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -55,6 +56,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
     OnyxInputOrEntry,
+    PersonalDetails,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -70,7 +72,6 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {
     Comment,
@@ -141,53 +142,13 @@ function isDeletedTransaction(transaction: {reportID?: string}): boolean {
     return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
 }
 
-function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
-}
-
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return (
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
-        );
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
+    const requestType = transaction?.iouRequestType;
+    return requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || isDistanceExpenseType(requestType);
 }
 
 function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
-}
-
-/**
- * todo: Currently there is no way to tell server map transaction object from
- * server GPS transaction object, this will be discussed and updated later.
- * To fix this temporarily we set keyForList of GPS waypoints to 'gps_start' and 'gps_end'
- * and use that to determine if it's a GPS or Map transaction. This should be changed before
- * the first GPS release.
- */
-function hasGPSWaypoints(transaction: OnyxEntry<Transaction>) {
-    const waypoints = transaction?.comment?.waypoints;
-
-    if (!waypoints) {
-        return false;
-    }
-
-    const waypoint = Object.values(waypoints).at(0);
-
-    return !!waypoint?.keyForList?.startsWith('gps');
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
 }
 
 /**
@@ -202,94 +163,36 @@ function haveWaypointAddressesChanged(oldWaypoints: WaypointCollection | undefin
 }
 
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction) && !hasGPSWaypoints(transaction);
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
 }
 
 function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasGPSWaypoints(transaction);
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 }
 
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    // Exclude odometer requests which also have no waypoints but have odometer readings
-    return (
-        hasDistanceCustomUnit(transaction) &&
-        isEmptyObject(transaction?.comment?.waypoints) &&
-        transaction?.comment?.odometerStart === undefined &&
-        transaction?.comment?.odometerEnd === undefined
-    );
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
 }
 
 function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    // Odometer requests have odometerStart and odometerEnd in comment, and no waypoints
-    return (
-        hasDistanceCustomUnit(transaction) &&
-        isEmptyObject(transaction?.comment?.waypoints) &&
-        (transaction?.comment?.odometerStart !== undefined || transaction?.comment?.odometerEnd !== undefined)
-    );
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
-function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
-    }
-
-    // Distance requests can have a receipt source (for the map), so we need to exclude them
-    if (hasDistanceCustomUnit(transaction)) {
-        return false;
-    }
-
-    return !!transaction?.receipt?.source && transaction?.amount === 0;
+function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'>>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
 }
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
 }
 
 function isDistanceExpenseType(requestType: IOURequestType | undefined): requestType is DistanceExpenseType {
     return (
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
@@ -302,32 +205,7 @@ function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
-    if (isOdometerDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
-    }
-    if (isManualDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-    }
-    if (isMapDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    }
-    if (isDistanceTypeRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-    if (isScanRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.SCAN;
-    }
-    if (isPerDiemRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    }
-    if (isTimeRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.TIME;
-    }
-    if (isGPSDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
-    }
-
-    return CONST.IOU.REQUEST_TYPE.MANUAL;
+    return transaction?.iouRequestType ?? CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 /**
@@ -425,7 +303,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created = '',
         merchant = '',
         receipt,
-        category = '',
+        // Prevent RBR flip and transaction jump: initialize category to 'Uncategorized' instead of
+        // empty string so optimistic missing category violation isn't added then removed during backend sync
+        category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
         tag = '',
         taxCode = '',
         taxAmount = 0,
@@ -552,7 +432,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         cardID: existingTransaction?.cardID,
         cardName: existingTransaction?.cardName,
         cardNumber: existingTransaction?.cardNumber,
-        // Use conditional spread to avoid creating the key if it's undefined, which would break lodashHas checks.
         ...(existingTransaction?.iouRequestType ? {iouRequestType: existingTransaction.iouRequestType} : {}),
         routes,
     };
@@ -630,6 +509,22 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
         return false;
     }
     return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
+}
+
+/**
+ * Builds the optimistic transaction used when an IOU report is converted to an expense report.
+ *
+ * Expense reports store amounts with the opposite sign of IOU reports (see `getAmount`/`getConvertedAmount`),
+ * so `amount`, `modifiedAmount` and `convertedAmount` are negated to match the expense-report convention.
+ * Absent converted values are not added so they keep being derived from the amount.
+ */
+function getNegatedAmountTransaction(transaction: Transaction): Transaction {
+    return {
+        ...transaction,
+        amount: -transaction.amount,
+        modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+        ...(transaction.convertedAmount != null && {convertedAmount: -transaction.convertedAmount}),
+    };
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
@@ -1064,7 +959,7 @@ function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, date
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
-function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
+function getCurrency(transaction: OnyxInputOrEntry<Pick<Transaction, 'modifiedCurrency' | 'currency'>>): string {
     const currency = transaction?.modifiedCurrency ?? '';
     if (currency) {
         return currency;
@@ -1174,12 +1069,31 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
     return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
 }
 
+function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
+
+    if (!creatorLogin) {
+        return;
+    }
+
+    const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
+    return {
+        email: creatorLogin,
+        login: creatorLogin,
+        displayName: creatorDisplayName,
+        accountID: creatorDetails?.accountID,
+        text: creatorDisplayName,
+        searchText: creatorDisplayName,
+        avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
+        selected: true,
+    };
+}
+
 /**
  * Return report owner as default attendee
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user - needed for unreported expenses to return current user as default attendee
  */
-function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee | undefined {
+function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined) {
     if (transaction?.reportID === undefined) {
         return;
     }
@@ -1187,39 +1101,16 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
     // Get the creator of the transaction by looking at the owner of the report linked to the transaction
     const report = getReportOrDraftReport(transaction?.reportID);
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
-    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserPersonalDetails?.accountID : report?.ownerAccountID;
-
-    if (creatorAccountID) {
-        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
-
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
-        const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
-
-        if (creatorLogin) {
-            return {
-                email: creatorLogin,
-                login: creatorLogin,
-                displayName: creatorDisplayName,
-                accountID: creatorAccountID,
-                text: creatorDisplayName,
-                searchText: creatorDisplayName,
-                avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
-                selected: true,
-            };
-        }
-    }
+    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserAccountID : report?.ownerAccountID;
+    return creatorAccountID;
 }
 
 /**
  * Return the list of attendees present on the transaction, if it's empty return report owner as default attendee
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
  */
-function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
+function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsAttendee: Attendee | undefined): Attendee[] {
     const rawAttendees = transaction?.comment?.attendees;
     const attendees = normalizeAttendees(convertAttendeesToArray(rawAttendees));
-    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
     }
@@ -1228,13 +1119,10 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
 
 /**
  * Return the list of modified attendees if present otherwise list of attendees
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
  */
-function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsAttendee?: Attendee): Attendee[] {
     const rawAttendees = transaction?.modifiedAttendees ?? transaction?.comment?.attendees;
     const attendees = normalizeAttendees(convertAttendeesToArray(rawAttendees));
-    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
@@ -1277,6 +1165,18 @@ function getReimbursable(transaction: OnyxInputOrEntry<Transaction>): boolean {
  */
 function getMCCGroup(transaction: Transaction): ValueOf<typeof CONST.MCC_GROUPS> | undefined {
     return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup;
+}
+
+function getMCCForDisplay(mcc: number | string | null | undefined): string {
+    if (!mcc || mcc === CONST.DEFAULT_NUMBER_ID || mcc === String(CONST.DEFAULT_NUMBER_ID)) {
+        return '';
+    }
+
+    return String(mcc);
+}
+
+function hasDisplayableMCC(mcc: number | string | null | undefined): boolean {
+    return getMCCForDisplay(mcc) !== '';
 }
 
 /**
@@ -1374,7 +1274,7 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
-function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): string {
+function getTag(transaction: OnyxInputOrEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
         const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
         return tagsArray.at(tagIndex) ?? '';
@@ -1383,7 +1283,7 @@ function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): 
     return transaction?.tag ?? '';
 }
 
-function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
     return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
 }
 
@@ -1410,7 +1310,7 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
-function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
     return !!transaction?.managedCard;
 }
 
@@ -1736,6 +1636,28 @@ function mergeProhibitedViolations(transactionViolations: TransactionViolations)
     };
 
     return [...transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
+}
+
+/**
+ * Returns transaction violations visible to the current user after applying dismiss/show filters
+ * and merging prohibited-expense violations.
+ */
+function getVisibleTransactionViolations(
+    transaction: OnyxEntry<Transaction>,
+    transactionViolations: TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    shouldShowRterForSettledReport = true,
+): TransactionViolations {
+    return mergeProhibitedViolations(
+        transactionViolations.filter(
+            (violation) =>
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+        ),
+    );
 }
 
 /**
@@ -2215,6 +2137,18 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
  */
 function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+}
+
+/**
+ * Returns the maximum allowed tax amount (in the smallest currency units) for a transaction,
+ * i.e. the tax computed from the selected tax rate (or the policy default) and the expense amount.
+ * Used to validate manually entered tax amounts so they can't exceed the calculated tax.
+ */
+function getCalculatedTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency: string, decimals: number): number {
+    const taxableAmount = Math.abs(getAmount(transaction));
+    const taxCode = transaction?.taxCode ?? getDefaultTaxCode(policy, transaction, currency) ?? '';
+    const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+    return convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, decimals));
 }
 
 /**
@@ -2756,10 +2690,25 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: isExpenseSplit(transaction, originalTransaction), originalTransaction: originalTransaction ?? transaction};
 };
 
-function shouldRedirectDeleteToSplitExpenseEdit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>): boolean {
+function shouldRedirectDeleteToSplitExpenseEdit(
+    transaction: OnyxEntry<Transaction>,
+    originalTransaction: OnyxEntry<Transaction>,
+    isSelfDMSplit: boolean | undefined,
+    isProduction: boolean,
+): boolean {
     const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
-    return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
+    if (isProduction) {
+        return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
+    }
+
+    if (!isExpenseSplitTransaction || !isPerDiemRequest(sourceTransaction)) {
+        return false;
+    }
+    if (isSelfDMSplit) {
+        return true;
+    }
+    return !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined);
 }
 
 /**
@@ -2779,20 +2728,17 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 
 /**
  * Retrieves all "child" transactions associated with a given original transaction.
- * By default excludes orphaned transactions (reportID '0'). Use includeOrphaned=true for counting.
  */
-function getChildTransactions(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined, includeOrphaned = false) {
+function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined, isProduction: boolean) {
     return Object.values(transactions ?? {}).filter((currentTransaction) => {
         const isSplitChild = currentTransaction?.comment?.originalTransactionID === originalTransactionID;
         if (!isSplitChild || currentTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return false;
         }
-        const isOrphaned = currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        if (isOrphaned) {
-            return includeOrphaned;
+        if (isProduction && (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || isSelfDM(getReportOrDraftReport(currentTransaction?.reportID)))) {
+            return false;
         }
-        const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-        return !!currentReport || currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
+        return currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
     });
 }
 
@@ -2941,6 +2887,15 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
+function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
+    const requestType = getRequestType(transaction);
+    return isDistanceExpenseType(requestType) ? requestType : undefined;
+}
+
+function getIsFromGlobalCreate(transaction: OnyxEntry<Transaction> | Partial<Transaction> | undefined): boolean | undefined {
+    return transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2948,6 +2903,7 @@ export {
     getDefaultTaxCode,
     transformedTaxRates,
     getTaxValue,
+    getCalculatedTaxAmount,
     getTaxName,
     getTaxRateTitle,
     hasTaxRateWithMatchingValue,
@@ -2977,6 +2933,7 @@ export {
     getFormattedCreated,
     getCategory,
     getBillable,
+    getIsFromGlobalCreate,
     getTag,
     getTagArrayFromName,
     getTagForDisplay,
@@ -3011,6 +2968,7 @@ export {
     hasPendingRTERViolation,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
+    getNegatedAmountTransaction,
     allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
@@ -3067,14 +3025,18 @@ export {
     isCorporateCardTransaction,
     isExpenseUnreported,
     mergeProhibitedViolations,
+    getVisibleTransactionViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
+    getReportOwnerAccountIDAsAttendee,
     isFromCreditCardImport,
     getExchangeRate,
     shouldReuseInitialTransaction,
     willFieldBeAutomaticallyFilled,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getMCCForDisplay,
+    hasDisplayableMCC,
     getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,
@@ -3083,4 +3045,5 @@ export {
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
     isDeletedTransaction,
+    getDistanceRequestType,
 };

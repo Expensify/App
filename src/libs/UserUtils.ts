@@ -54,7 +54,33 @@ function getLastLogin(login: NewLogin) {
     return login.lastLogin > login.created ? login.lastLogin : login.created;
 }
 
-const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT]);
+/**
+ * Selector that filters the new `logins` Onyx key to only Expensify logins (partnerID === 1)
+ * and re-keys them by partnerUserID, returning a LoginList-compatible shape.
+ */
+function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefined {
+    if (!logins) {
+        return undefined;
+    }
+
+    const result: LoginList = {};
+    for (const login of Object.values(logins)) {
+        if (login.partnerID !== CONST.PARTNER_ID.EXPENSIFY) {
+            continue;
+        }
+        result[login.partnerUserID] = {
+            partnerUserID: login.partnerUserID,
+            validatedDate: login.validatedDate ?? undefined,
+            validateCodeSent: login.validateCodeSent,
+            errorFields: login.errorFields,
+            pendingFields: login.pendingFields,
+            pendingAction: login.pendingAction,
+        };
+    }
+    return result;
+}
+
+const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT, CONST.PARTNER_ID.OAUTH]);
 
 function isDeviceLogin(login: NewLogin) {
     return DEVICE_PARTNER_IDS.has(login.partnerID) && (!login.additionalData?.infiniteLoginRoot || login.additionalData.infiniteLoginRoot === login.partnerUserID);
@@ -66,6 +92,47 @@ function getDeviceLogins(logins: OnyxEntry<Logins>) {
 
 function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
     return Object.values(logins ?? {})?.some((login) => isDeviceLogin(login) && !!login.errorFields?.revoke);
+}
+
+const MCP_PLATFORM_DISPLAY_NAMES: Record<string, string> = {
+    cursor: 'Cursor',
+    claude: 'Claude',
+    claudedesktop: 'Claude Desktop',
+    claudecodeex: 'Claude Code',
+    chatgpt: 'ChatGPT',
+    openai: 'OpenAI',
+};
+
+const MCP_PARTNER_USER_ID_PATTERN = /^mcp-([a-z0-9]+)-/;
+
+/**
+ * Returns a human-readable display name for a device login.
+ *
+ * MCP OAuth logins have a partnerUserID of the form "mcp-<slug>-<hex>". For
+ * those, the platform slug (stored raw in additionalData.deviceName, or parsed
+ * from partnerUserID as a fallback for older logins) is mapped to a friendly
+ * label. Regular device logins show their deviceName + OS string as before.
+ */
+function getDeviceDisplayName(
+    login: NewLogin,
+    deviceName: string | undefined,
+    deviceVersion: string | undefined,
+    os: string | undefined,
+    osVersion: string | undefined,
+    unknownDeviceLabel: string,
+): string {
+    const mcpMatch = login.partnerUserID ? MCP_PARTNER_USER_ID_PATTERN.exec(login.partnerUserID) : null;
+    if (mcpMatch) {
+        const slug = deviceName ?? mcpMatch[1];
+        const platformName = MCP_PLATFORM_DISPLAY_NAMES[slug];
+        return platformName ? `OAuth - MCP (${platformName})` : 'OAuth - MCP';
+    }
+
+    if (deviceName && os) {
+        return `${deviceName} ${deviceVersion ? `${deviceVersion} ` : ''}(${os} ${osVersion})`;
+    }
+
+    return unknownDeviceLabel;
 }
 
 /**
@@ -148,7 +215,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
     // The default contact method is determined by checking against the session email (the current login).
     const sortedLoginList = Object.entries(loginList).sort(([, loginData]) => (loginData.partnerUserID === defaultEmail ? -1 : 1));
 
-    return sortedLoginList.map(([loginName, login]) => {
+    return sortedLoginList.map(([, login]) => {
         const isDefaultContactMethod = defaultEmail === login?.partnerUserID;
         const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
         if (!login?.partnerUserID && !pendingAction) {
@@ -172,10 +239,7 @@ function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: Log
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 
-        // Default to using login key if we deleted login.partnerUserID optimistically
-        // but still need to show the pending login being deleted while offline.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const partnerUserID = login?.partnerUserID || loginName;
+        const partnerUserID = login?.partnerUserID ? login.partnerUserID : '';
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
 
         return {
@@ -201,6 +265,8 @@ export {
     getLoginKey,
     getLastLogin,
     getDeviceLogins,
+    getDeviceDisplayName,
     hasDeviceManagementError,
+    expensifyLoginsSelector,
 };
 export type {AvatarSource};
