@@ -19,7 +19,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useFilteredOptions from '@hooks/useFilteredOptions';
-import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -286,38 +285,31 @@ function NewChatPage({ref}: NewChatPageProps) {
         )
         .map((option): OptionWithKey => ({...option, isSelected: true, selected: true}));
 
-    const baseSections: Array<Section<OptionWithKey>> = [];
+    const sections: Array<Section<OptionWithKey>> = [];
 
     if (extraSelectedOptions.length > 0) {
-        baseSections.push({data: extraSelectedOptions, title: undefined, sectionIndex: 0});
+        sections.push({data: extraSelectedOptions, title: undefined, sectionIndex: 0});
     }
 
-    baseSections.push({
+    sections.push({
         title: translate('common.recents'),
         data: recentReportsData,
         sectionIndex: 1,
     });
 
-    baseSections.push({
+    sections.push({
         title: translate('common.contacts'),
         data: personalDetailsData,
         sectionIndex: 2,
     });
 
     if (userToInvite) {
-        baseSections.push({
+        sections.push({
             title: undefined,
             data: [userToInvite],
             sectionIndex: 3,
         });
     }
-
-    // Pin items that were already selected when the list opened to the top (long lists only); rows toggled afterwards stay in place.
-    const sections = useFrozenPreSelection<OptionWithKey>(baseSections, {
-        initialSelectedValues: selectedOptions.map((option) => option.login ?? (option.accountID ? String(option.accountID) : undefined)).filter((value): value is string => !!value),
-        canCapture: areOptionsInitialized,
-        getKey: (item) => item.login ?? (item.accountID ? String(item.accountID) : undefined),
-    });
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
