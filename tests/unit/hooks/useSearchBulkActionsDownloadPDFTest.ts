@@ -7,6 +7,7 @@ import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 import {exportReportToPDF} from '@libs/actions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 jest.mock('@libs/actions/Report', () => ({
     exportReportToPDF: jest.fn(),
@@ -56,25 +57,10 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     })),
 }));
 
-jest.mock('@hooks/usePaymentContext', () => ({
-    __esModule: true,
-    default: () => ({
-        currentUserAccountID: 1,
-        currentUserLogin: 'test@example.com',
-        email: 'test@example.com',
-        localCurrencyCode: 'USD',
-        introSelected: undefined,
-        betas: undefined,
-        isSelfTourViewed: false,
-        activePolicyID: undefined,
-        activePolicy: undefined,
-        conciergeReportID: undefined,
-        defaultWorkspaceName: 'Test Workspace',
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
-    }),
-}));
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 // ---- helpers ----
 

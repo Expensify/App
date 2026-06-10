@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
+import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
     bulkDuplicateExpenses: jest.fn(),
@@ -164,19 +165,10 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     })),
 }));
 
-jest.mock('@hooks/usePaymentContext', () => ({
-    __esModule: true,
-    default: () => ({
-        introSelected: undefined,
-        betas: undefined,
-        isSelfTourViewed: false,
-        activePolicy: undefined,
-        defaultWorkspaceName: 'Test Workspace',
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
-    }),
-}));
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 const baseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense status:all',

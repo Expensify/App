@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
+import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -20,33 +21,8 @@ jest.mock('@libs/Navigation/Navigation');
 jest.mock('@components/AvatarWithDisplayName.tsx');
 
 jest.mock('@hooks/usePaymentContext', () => {
-    const mockPaymentContextValue = {
-        currentUserAccountID: 1,
-        currentUserLogin: 'test@example.com',
-        email: 'test@example.com',
-        localCurrencyCode: 'USD',
-        introSelected: undefined,
-        betas: undefined,
-        isSelfTourViewed: false,
-        activePolicyID: undefined,
-        activePolicy: undefined,
-        conciergeReportID: undefined,
-        defaultWorkspaceName: 'Test Workspace',
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
-    };
-
-    return {
-        __esModule: true,
-        default: () => mockPaymentContextValue,
-        useReportPaymentContext: () => ({
-            ...mockPaymentContextValue,
-            nextStep: undefined,
-            chatReportPolicy: undefined,
-            existingB2BInvoiceReport: undefined,
-        }),
-    };
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
 });
 
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields

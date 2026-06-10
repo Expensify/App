@@ -12,6 +12,7 @@ import type {TransactionGroupListItemProps, TransactionListItemType, Transaction
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Search', () => ({
@@ -52,33 +53,8 @@ jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: unde
 jest.mock('@hooks/useResponsiveLayout');
 
 jest.mock('@hooks/usePaymentContext', () => {
-    const mockPaymentContextValue = {
-        currentUserAccountID: 1,
-        currentUserLogin: 'test@example.com',
-        email: 'test@example.com',
-        localCurrencyCode: 'USD',
-        introSelected: undefined,
-        betas: undefined,
-        isSelfTourViewed: false,
-        activePolicyID: undefined,
-        activePolicy: undefined,
-        conciergeReportID: undefined,
-        defaultWorkspaceName: 'Test Workspace',
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
-    };
-
-    return {
-        __esModule: true,
-        default: () => mockPaymentContextValue,
-        useReportPaymentContext: () => ({
-            ...mockPaymentContextValue,
-            nextStep: undefined,
-            chatReportPolicy: undefined,
-            existingB2BInvoiceReport: undefined,
-        }),
-    };
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
 });
 
 const mockEmptyReport: TransactionReportGroupListItemType = {
