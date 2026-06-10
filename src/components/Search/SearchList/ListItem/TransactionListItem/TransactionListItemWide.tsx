@@ -37,6 +37,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     handleActionButtonPress,
     transactionPreviewData,
     exportedReportActions,
+    policyCategories,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
     currentSearchHash,
@@ -167,6 +168,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         transactionItem={transactionItem}
                         report={transactionItem.report}
                         policy={transactionItem.policy}
+                        policyCategories={policyCategories}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
                         onCheckboxPress={() => onCheckboxPress?.(item)}
