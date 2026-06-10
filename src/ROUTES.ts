@@ -821,6 +821,10 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
+    WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
+        path: 'initial-list-value',
+        entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -3288,6 +3292,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
     },
+    RULES_AI_NEW: {
+        route: 'workspaces/:policyID/rules/ai-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/ai-rules/new` as const,
+    },
+    RULES_AI_EDIT: {
+        route: 'workspaces/:policyID/rules/ai-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/ai-rules/${ruleID}` as const,
+    },
     SHARE_ROOT: 'share/root',
     SHARE_ROOT_SHARE: 'share/root/share',
     SHARE_ROOT_SUBMIT: 'share/root/submit',
@@ -3421,6 +3433,12 @@ const ROUTES = {
         route: 'onboarding/workspace-invite',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
+    },
+    ONBOARDING_PERSONAL_TRACK_GOAL: {
+        route: 'onboarding/personaltrackcase',
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
     },
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {

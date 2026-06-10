@@ -1518,7 +1518,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, undefined, delegateAccountID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, delegateAccountID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
