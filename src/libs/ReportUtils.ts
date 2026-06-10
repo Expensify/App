@@ -1719,16 +1719,9 @@ function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a Control or Collect policy and is an expense report
- */
-function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && isPaidGroupPolicy(report);
-}
-
-/**
  * Whether the provided report belongs to a group policy (Collect, Control, or Submit) and is an expense report.
- * Use this instead of `isPaidGroupPolicyExpenseReport` for features that Submit workspaces also support
- * (e.g. report fields), so the free Submit plan isn't incorrectly excluded.
+ * Use for report-field-style features that Submit workspaces also support, so the free Submit plan isn't
+ * incorrectly excluded.
  */
 function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && isReportInGroupPolicy(report);
@@ -8957,7 +8950,7 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
         return false;
     }
 
-    const isGroupPolicyReport = isGroupPolicyExpenseReport(report);
+    const isGroupPolicyReport = isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
     if (!isGroupPolicyReport && !isInvoiceReport(report)) {
         return false;
     }
@@ -13252,7 +13245,6 @@ export {
     isOpenExpenseReport,
     isOpenTaskReport,
     isOptimisticPersonalDetail,
-    isPaidGroupPolicyExpenseReport,
     isGroupPolicyExpenseReport,
     isPayer,
     isPolicyAdmin,

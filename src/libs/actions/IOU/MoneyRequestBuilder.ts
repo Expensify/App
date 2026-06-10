@@ -1085,7 +1085,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         }
     }
 
-    // We don't need to compute violations unless we're on a group policy (Collect, Control, or Submit)
+    // We don't need to compute violations unless we're on a group policy
     if (!policy || !isGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return onyxData;
     }
