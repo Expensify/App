@@ -816,75 +816,75 @@ type CustomIcon = {
     color?: string;
 };
 
-type OptionData = {
-    text?: string;
-    alternateText?: string;
-    allReportErrors?: Errors;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
-    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
-    actionTargetReportActionID?: string;
-    tooltipText?: string | null;
-    alternateTextMaxLines?: number;
-    boldStyle?: boolean;
-    customIcon?: CustomIcon;
-    subtitle?: string;
-    login?: string;
-    accountID?: number;
-    pronouns?: string;
-    status?: Status | null;
-    phoneNumber?: string;
-    isUnread?: boolean | null;
-    isUnreadWithMention?: boolean | null;
-    hasDraftComment?: boolean | null;
-    keyForList: string;
-    searchText?: string;
-    isIOUReportOwner?: boolean | null;
-    shouldShowSubscript?: boolean | null;
-    isPolicyExpenseChat?: boolean;
-    isMoneyRequestReport?: boolean | null;
-    isInvoiceReport?: boolean;
-    isExpenseRequest?: boolean | null;
-    isAllowedToComment?: boolean | null;
-    isThread?: boolean | null;
-    isTaskReport?: boolean | null;
-    parentReportAction?: OnyxEntry<ReportAction>;
-    displayNamesWithTooltips?: DisplayNameWithTooltips | null;
-    isDefaultRoom?: boolean;
-    isInvoiceRoom?: boolean;
-    isExpenseReport?: boolean;
-    isDM?: boolean;
-    isOptimisticPersonalDetail?: boolean;
-    selected?: boolean;
-    isOptimisticAccount?: boolean;
-    isSelected?: boolean;
-    descriptiveText?: string;
-    notificationPreference?: NotificationPreference | null;
-    isDisabled?: boolean | null;
-    name?: string | null;
-    isSelfDM?: boolean;
-    isOneOnOneChat?: boolean;
-    reportID?: string;
-    enabled?: boolean;
-    code?: string;
-    transactionThreadReportID?: string | null;
-    shouldShowAmountInput?: boolean;
-    amountInputProps?: MoneyRequestAmountInputProps;
-    tabIndex?: 0 | -1;
-    isConciergeChat?: boolean;
-    isBold?: boolean;
-    lastIOUCreationDate?: string;
-    isChatRoom?: boolean;
-    participantsList?: PersonalDetails[];
-    icons?: Icon[];
-    iouReportAmount?: number;
-    displayName?: string;
-    firstName?: string;
-    lastName?: string;
-    avatar?: AvatarSource;
-    timezone?: Timezone;
-} & Report &
+type OptionData = Report &
     Omit<ReportNameValuePairs, 'private_isArchived'> & {
         private_isArchived?: boolean;
+    } & {
+        text?: string;
+        alternateText?: string;
+        allReportErrors?: Errors;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
+        actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+        actionTargetReportActionID?: string;
+        tooltipText?: string | null;
+        alternateTextMaxLines?: number;
+        boldStyle?: boolean;
+        customIcon?: CustomIcon;
+        subtitle?: string;
+        login?: string;
+        accountID?: number;
+        pronouns?: string;
+        status?: Status | null;
+        phoneNumber?: string;
+        isUnread?: boolean | null;
+        isUnreadWithMention?: boolean | null;
+        hasDraftComment?: boolean | null;
+        keyForList: string;
+        searchText?: string;
+        isIOUReportOwner?: boolean | null;
+        shouldShowSubscript?: boolean | null;
+        isPolicyExpenseChat?: boolean;
+        isMoneyRequestReport?: boolean | null;
+        isInvoiceReport?: boolean;
+        isExpenseRequest?: boolean | null;
+        isAllowedToComment?: boolean | null;
+        isThread?: boolean | null;
+        isTaskReport?: boolean | null;
+        parentReportAction?: OnyxEntry<ReportAction>;
+        displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+        isDefaultRoom?: boolean;
+        isInvoiceRoom?: boolean;
+        isExpenseReport?: boolean;
+        isDM?: boolean;
+        isOptimisticPersonalDetail?: boolean;
+        selected?: boolean;
+        isOptimisticAccount?: boolean;
+        isSelected?: boolean;
+        descriptiveText?: string;
+        notificationPreference?: NotificationPreference | null;
+        isDisabled?: boolean | null;
+        name?: string | null;
+        isSelfDM?: boolean;
+        isOneOnOneChat?: boolean;
+        reportID?: string;
+        enabled?: boolean;
+        code?: string;
+        transactionThreadReportID?: string | null;
+        shouldShowAmountInput?: boolean;
+        amountInputProps?: MoneyRequestAmountInputProps;
+        tabIndex?: 0 | -1;
+        isConciergeChat?: boolean;
+        isBold?: boolean;
+        lastIOUCreationDate?: string;
+        isChatRoom?: boolean;
+        participantsList?: PersonalDetails[];
+        icons?: Icon[];
+        iouReportAmount?: number;
+        displayName?: string;
+        firstName?: string;
+        lastName?: string;
+        avatar?: AvatarSource;
+        timezone?: Timezone;
     };
 
 type OnyxDataTaskAssigneeChat = {
@@ -1702,6 +1702,7 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a paid group or Submit policy
  */
+// TODO: Remove this function and use isGroupPolicy directly after https://github.com/Expensify/App/issues/66415 is done
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
     return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
 }
@@ -4458,9 +4459,6 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | u
  * 2. Report is settled, closed, approved, or submitted and already forwarded for review
  */
 function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
-    if (isInvoiceReport(report)) {
-        return true;
-    }
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
@@ -4579,7 +4577,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
 
     const fields = mergedFieldIds.map((id) => {
-        const field = report?.fieldList?.[getReportFieldKey(id)];
+        const field = report?.fieldList?.[getReportFieldKey(id)] ?? report?.fieldList?.[id];
         const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
 
         if (field) {
@@ -11057,7 +11055,10 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
+        const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true);
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID), confirmationRoute),
+        );
     } else {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
     }
@@ -11182,7 +11183,10 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 },
             ]);
             if (policyExpenseReportID) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+                const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID, undefined, true);
+                Navigation.navigate(
+                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID), confirmationRoute),
+                );
             } else {
                 Log.warn('policyExpenseReportID is not valid during expense categorizing');
             }
@@ -11190,15 +11194,16 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: actionName,
-                    iouType: CONST.IOU.TYPE.SUBMIT,
-                    transactionID,
-                    reportID,
-                    backTo: '',
-                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                    shouldSubmitExpense: true,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: actionName,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID,
+                        reportID,
+                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                        shouldSubmitExpense: true,
+                    }),
+                ),
             );
             return;
         }
@@ -11216,7 +11221,10 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             },
         ]);
         if (policyExpenseReportID) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+            const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID, undefined, true);
+            Navigation.navigate(
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID), confirmationRoute),
+            );
         } else {
             Log.warn('policyExpenseReportID is not valid during expense categorizing');
         }
@@ -11224,7 +11232,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), Navigation.getActiveRoute()));
         return;
     }
 
@@ -12881,19 +12889,39 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
+function isReportNameValuePairField(value: unknown): value is PolicyReportField {
+    return typeof value === 'object' && value !== null && 'fieldID' in value && typeof value.fieldID === 'string' && 'name' in value && typeof value.name === 'string';
+}
+
+function getReportFieldFromReportNameValuePairs(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, reportFieldIDOrKey: string): PolicyReportField | undefined {
+    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
+        if (key === reportFieldIDOrKey && isReportNameValuePairField(value)) {
+            return value;
+        }
+    }
+
+    return undefined;
+}
+
 /**
  * Get both field values map and fields-by-name map in a single pass
  */
 function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
     const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const fieldValues: Record<string, string> = {};
     const fieldsByName: Record<string, PolicyReportField> = {};
 
     for (const field of fields) {
         if (field.name) {
+            const fieldKey = getReportFieldKey(field.fieldID);
+            const shouldReadReportNameValuePair = report?.type === CONST.REPORT.TYPE.INVOICE && field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            const reportNameValuePairField = shouldReadReportNameValuePair
+                ? (getReportFieldFromReportNameValuePairs(reportNameValuePairs, fieldKey) ?? getReportFieldFromReportNameValuePairs(reportNameValuePairs, field.fieldID))
+                : undefined;
             const key = field.name.toLowerCase();
-            fieldValues[key] = field.value ?? field.defaultValue ?? '';
-            fieldsByName[key] = field;
+            fieldValues[key] = reportNameValuePairField?.value ?? field.value ?? field.defaultValue ?? '';
+            fieldsByName[key] = reportNameValuePairField ? {...field, value: reportNameValuePairField.value} : field;
         }
     }
 
@@ -13327,6 +13355,7 @@ export {
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
     getTitleFieldWithFallback,
+    getReportFieldFromReportNameValuePairs,
     getReportFieldsByPolicyID,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
