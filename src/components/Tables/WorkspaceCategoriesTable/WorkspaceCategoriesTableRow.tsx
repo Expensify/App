@@ -47,7 +47,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                 dismissError: item.dismissError,
             }}
         >
-            {({hovered}) => (
+            {() => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                         <Text>{item.name}</Text>
@@ -87,7 +87,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                     <Icon
                         src={icons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, !hovered && styles.opacitySemiTransparent]}
+                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

@@ -88,7 +88,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
                 onClose: () => clearDomainErrors(item.domainAccountID),
             }}
         >
-            {({hovered}) => (
+            {() => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Icon
@@ -118,7 +118,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
                         <Icon
                             src={icons.ArrowRight}
                             fill={theme.icon}
-                            additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                            additionalStyles={[styles.alignSelfCenter]}
                             width={variables.iconSizeNormal}
                             height={variables.iconSizeNormal}
                         />

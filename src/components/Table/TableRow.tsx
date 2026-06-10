@@ -80,7 +80,7 @@ export default function TableRow({
         styles.appBG,
         isInteractive && styles.userSelectNone,
         !isFirstRow && [styles.borderTop, {borderColor: theme.borderLight}],
-        isLastRow && styles.tableBottomRadius,
+        isLastRow && [styles.borderBottom, {borderColor: theme.borderLight}],
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
 
@@ -91,7 +91,6 @@ export default function TableRow({
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         animatedHighlightStyle,
-        isLastRow && styles.tableBottomRadius,
     ];
 
     const tableRowContentStyles = [

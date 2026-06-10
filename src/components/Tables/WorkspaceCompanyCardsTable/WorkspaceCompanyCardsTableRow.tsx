@@ -211,7 +211,7 @@ function WorkspaceCompanyCardTableRow({
                             <Icon
                                 src={Expensicons.ArrowRight}
                                 fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                additionalStyles={[styles.alignSelfCenter]}
                                 width={variables.iconSizeNormal}
                                 height={variables.iconSizeNormal}
                             />
