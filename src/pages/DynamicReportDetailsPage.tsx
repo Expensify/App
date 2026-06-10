@@ -841,6 +841,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
                     subtitleNumberOfLines={2}
                     shouldShowFromPrefix={false}
+                    openParentReportInCurrentTab
                 />
             }
             description={translate('threads.from')}
