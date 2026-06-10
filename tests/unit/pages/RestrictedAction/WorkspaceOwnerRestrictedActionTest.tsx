@@ -96,12 +96,8 @@ jest.mock('@components/Button', () => {
     return MockButton;
 });
 
-type DismissModalOptions = {
-    afterTransition: () => void;
-};
-
-function getDismissModalOptions(): DismissModalOptions | undefined {
-    return jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0) as DismissModalOptions | undefined;
+function getDismissModalOptions() {
+    return jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0);
 }
 
 describe('WorkspaceOwnerRestrictedAction', () => {
@@ -120,7 +116,7 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         const options = getDismissModalOptions();
         expect(typeof options?.afterTransition).toBe('function');
 
-        options?.afterTransition();
+        options?.afterTransition?.();
 
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
