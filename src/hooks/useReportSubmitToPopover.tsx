@@ -1,6 +1,6 @@
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import type {RefObject} from 'react';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -51,6 +51,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
     const canSubmitRef = useRef(true);
     const ignoreNextSearchSubmitPressRef = useRef(false);
+    const pendingSearchSubmitOpenOptionsRef = useRef<ReportSubmitToPopoverOpenOptions | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [isVisible, setIsVisible] = useState(false);
     const [isSearchSubmitFlow, setIsSearchSubmitFlow] = useState(false);
@@ -78,6 +79,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         canSubmitRef.current = false;
         onSubmitWithManagerEmailRef.current = undefined;
         oneShotOnSubmitSuccessRef.current = undefined;
+        pendingSearchSubmitOpenOptionsRef.current = undefined;
         setIsSearchSubmitFlow(false);
         // Block only a click-through on the row Submit button in the same turn as dismiss; clear before the next user gesture.
         ignoreNextSearchSubmitPressRef.current = true;
@@ -113,11 +115,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         onSubmit(managerEmail);
     }, []);
 
-    const openReportSubmitToPopover = useCallback(
+    const showReportSubmitToPopover = useCallback(
         (options?: ReportSubmitToPopoverOpenOptions) => {
-            if (!reportID || willAlertModalBecomeVisible) {
-                return;
-            }
             canSubmitRef.current = true;
             ignoreNextSearchSubmitPressRef.current = false;
             oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
@@ -132,7 +131,35 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 setIsVisible(true);
             });
         },
-        [calculatePopoverPosition, reportID, willAlertModalBecomeVisible, anchorAlignment, getAnchorRef],
+        [calculatePopoverPosition, anchorAlignment, getAnchorRef],
+    );
+
+    useEffect(() => {
+        if (!reportID || willAlertModalBecomeVisible || !pendingSearchSubmitOpenOptionsRef.current) {
+            return;
+        }
+
+        const pendingOptions = pendingSearchSubmitOpenOptionsRef.current;
+        pendingSearchSubmitOpenOptionsRef.current = undefined;
+        showReportSubmitToPopover(pendingOptions);
+    }, [reportID, willAlertModalBecomeVisible, showReportSubmitToPopover]);
+
+    const openReportSubmitToPopover = useCallback(
+        (options?: ReportSubmitToPopoverOpenOptions) => {
+            if (!reportID) {
+                return;
+            }
+
+            if (willAlertModalBecomeVisible) {
+                if (options?.onSubmitWithManagerEmail) {
+                    pendingSearchSubmitOpenOptionsRef.current = options;
+                }
+                return;
+            }
+
+            showReportSubmitToPopover(options);
+        },
+        [reportID, willAlertModalBecomeVisible, showReportSubmitToPopover],
     );
 
     const reportSubmitToPopover = useMemo(

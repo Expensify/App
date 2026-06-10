@@ -1503,13 +1503,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     const selectedReportForSubmit = selectedReports.at(0);
-                    const policyForSubmit = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReportForSubmit?.policyID}`];
-                    const reportIDForSubmit = selectedReportForSubmit?.reportID;
+                    const reportIDForSubmit = selectedReportForSubmit?.reportID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).find((id): id is string => !!id);
+                    const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
+                    const policyForSubmit = policyIDForSubmit ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForSubmit}`] : undefined;
 
-                    if (isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash && policyForSubmit) {
-                        const snapshotReport =
+                    if (policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
+                        const snapshotReport = getReportOrDraftReport(
+                            reportIDForSubmit,
+                            undefined,
                             searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`] ??
-                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`];
+                                allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`],
+                        );
 
                         if (snapshotReport) {
                             openSearchReportSubmitToPopover(reportIDForSubmit, {
