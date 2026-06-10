@@ -1,6 +1,11 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
-import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+import {
+    clearBulkEditDraftTransaction,
+    initBulkEditDraftTransaction,
+    updateBulkEditDraftTransaction,
+    updateMultipleMoneyRequests as updateMultipleMoneyRequestsOriginal,
+} from '@libs/actions/IOU/BulkEdit';
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,6 +18,12 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const RORY_ACCOUNT_ID = 3;
+
+const updateMultipleMoneyRequests = (
+    params: Omit<Parameters<typeof updateMultipleMoneyRequestsOriginal>[0], 'archivedReportsIDSet'> & {
+        archivedReportsIDSet?: Parameters<typeof updateMultipleMoneyRequestsOriginal>[0]['archivedReportsIDSet'];
+    },
+) => updateMultipleMoneyRequestsOriginal({...params, archivedReportsIDSet: params.archivedReportsIDSet ?? new Set<string>()});
 
 describe('actions/IOU/BulkEdit', () => {
     describe('updateMultipleMoneyRequests', () => {
