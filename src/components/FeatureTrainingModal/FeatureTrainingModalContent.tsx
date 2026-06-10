@@ -84,7 +84,7 @@ function FeatureTrainingModalContent({
                     {!!subtitle && <Text style={[styles.textLabel, styles.textBold, styles.textSuccess]}>{subtitle}</Text>}
                     {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
                     {shouldRenderHTMLDescription ? (
-                        <View style={styles.mb2}>
+                        <View style={[styles.flexRow, styles.w100, styles.mb2, styles.renderHTML]}>
                             <RenderHTML html={description} />
                         </View>
                     ) : (
@@ -134,7 +134,6 @@ function FeatureTrainingModalContent({
                     buttonText={confirmText}
                     enabledWhenOffline={canConfirmWhileOffline}
                     sentryLabel={confirmSentryLabel}
-                    buttonStyles={styles.flex1}
                     containerStyles={styles.flex1}
                 />
             </View>

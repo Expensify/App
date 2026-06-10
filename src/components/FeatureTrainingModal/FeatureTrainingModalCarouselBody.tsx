@@ -1,9 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
-// We import these types directly from react-native because they are not re-exported by the project's
-// preferred wrappers.
-// eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, FlatList as RNFlatList, StyleProp, TextStyle, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, FlatList as RNFlatList, StyleProp, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
@@ -25,8 +22,8 @@ import type {BaseFeatureTrainingModalProps, FeatureTrainingModalCarouselProps, F
 // 95% of the viewport. The viewability event fires for both user swipes and programmatic
 // scrollToIndex once the scroll has practically settled on a new page.
 const CAROUSEL_VIEWABILITY_CONFIG: ViewabilityConfig = {itemVisiblePercentThreshold: 95};
-
 const CAROUSEL_DOT_SIZE = 6;
+const PAGINATION_DOTS_BOTTOM_OFFSET = 5;
 
 type FeatureTrainingModalCarouselBodyProps = Pick<
     BaseFeatureTrainingModalProps,
@@ -162,7 +159,6 @@ function FeatureTrainingModalCarouselBody({
     return (
         <View
             style={[
-                styles.flex1,
                 onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
                 wrapperStyles,
                 isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
@@ -177,32 +173,40 @@ function FeatureTrainingModalCarouselBody({
         >
             {carouselViewportWidth > 0 && (
                 <>
-                    <FlatList
-                        ref={horizontalListRef}
-                        data={pages}
-                        keyExtractor={(_page, index) => `FeatureTrainingModalIllustration-${index}`}
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        viewabilityConfig={CAROUSEL_VIEWABILITY_CONFIG}
-                        onViewableItemsChanged={onViewableItemsChanged}
-                        getItemLayout={(_data, index) => ({length: carouselViewportWidth, offset: index * carouselViewportWidth, index})}
-                        renderItem={({item: page, index}) => (
-                            <View style={{width: carouselViewportWidth}}>
-                                <FeatureTrainingModalIllustration
-                                    illustrationAspectRatio={illustrationAspectRatio}
-                                    illustrationInnerContainerStyle={illustrationInnerContainerStyle}
-                                    illustrationOuterContainerStyle={illustrationOuterContainerStyle}
-                                    shouldRenderSVG={shouldRenderSVG}
-                                    modalPadding={modalPadding}
-                                    paginationDots={carouselPaginationDots}
-                                    isFocused={index === currentPage}
-                                    {...page}
-                                />
-                            </View>
-                        )}
-                    />
+                    <View>
+                        <FlatList
+                            ref={horizontalListRef}
+                            data={pages}
+                            keyExtractor={(_page, index) => `FeatureTrainingModalIllustration-${index}`}
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            viewabilityConfig={CAROUSEL_VIEWABILITY_CONFIG}
+                            onViewableItemsChanged={onViewableItemsChanged}
+                            getItemLayout={(_data, index) => ({length: carouselViewportWidth, offset: index * carouselViewportWidth, index})}
+                            renderItem={({item: page, index}) => (
+                                <View style={{width: carouselViewportWidth}}>
+                                    <FeatureTrainingModalIllustration
+                                        illustrationAspectRatio={illustrationAspectRatio}
+                                        illustrationInnerContainerStyle={illustrationInnerContainerStyle}
+                                        illustrationOuterContainerStyle={illustrationOuterContainerStyle}
+                                        shouldRenderSVG={shouldRenderSVG}
+                                        modalPadding={modalPadding}
+                                        isCarousel
+                                        isFocused={index === currentPage}
+                                        {...page}
+                                    />
+                                </View>
+                            )}
+                        />
+                        <View
+                            pointerEvents="none"
+                            style={[styles.pAbsolute, styles.flexRow, styles.justifyContentCenter, styles.w100, styles.l0, styles.r0, {bottom: PAGINATION_DOTS_BOTTOM_OFFSET + modalPadding}]}
+                        >
+                            {carouselPaginationDots}
+                        </View>
+                    </View>
                     <FeatureTrainingModalContent
                         title={currentPageData?.title}
                         subtitle={currentPageData?.subtitle}

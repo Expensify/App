@@ -26,6 +26,7 @@ function AIFeaturesPromoModal() {
                 isStrong
                 isCondensed
                 text={translate('common.beta')}
+                badgeStyles={styles.mb2}
             />
         </View>
     );
@@ -80,6 +81,7 @@ function AIFeaturesPromoModal() {
             shouldRenderHTMLDescription
             shouldUseScrollView
             illustrationOuterContainerStyle={styles.p0}
+            illustrationAspectRatio={LottieAnimations.SpendAnalysis.w / LottieAnimations.SpendAnalysis.h}
             contentInnerContainerStyles={styles.mb4}
             modalInnerContainerStyle={styles.pt0}
             titleStyles={styles.mb2}

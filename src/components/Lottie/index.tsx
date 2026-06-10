@@ -1,7 +1,7 @@
-import {NavigationContainerRefContext, NavigationContext, useFocusEffect} from '@react-navigation/native';
+import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {ForwardedRef, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
 type Props = {
-    ref?: React.RefObject<LottieView | null>;
+    ref?: ForwardedRef<LottieView | null>;
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
 } & Omit<LottieViewProps, 'source'>;
@@ -122,10 +122,12 @@ function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: 
             key={`${hasNavigatedAway}`}
             ref={(newRef) => {
                 animationRef.current = newRef;
-                if (!ref) {
-                    return;
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
+                    // eslint-disable-next-line no-param-reassign
+                    ref.current = newRef;
                 }
-                ref.current = newRef;
             }}
             autoPlay={props.autoPlay && !isReduceMotionEnabled}
             style={[aspectRatioStyle, props.style]}

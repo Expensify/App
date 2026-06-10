@@ -24,9 +24,6 @@ const VIDEO_ASPECT_RATIO = 1280 / 960;
 
 const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
 
-// Vertical gap between the pagination dots and the bottom edge of the illustration container.
-const PAGINATION_DOTS_BOTTOM_OFFSET = 12;
-
 type VideoStatus = 'video' | 'animation';
 
 type FeatureTrainingModalIllustrationProps = Pick<
@@ -37,11 +34,11 @@ type FeatureTrainingModalIllustrationProps = Pick<
         /** Padding for the modal */
         modalPadding: number;
 
-        /** Pagination dot nodes overlaid on the bottom of the illustration in carousel mode */
-        paginationDots?: React.ReactNode;
-
         /** Whether this illustration belongs to the currently-visible carousel page */
         isFocused?: boolean;
+
+        /** Whether this illustration is part of a carousel */
+        isCarousel?: boolean;
     };
 
 function FeatureTrainingModalIllustration({
@@ -57,8 +54,8 @@ function FeatureTrainingModalIllustration({
     illustrationOuterContainerStyle,
     shouldRenderSVG = true,
     modalPadding,
-    paginationDots,
     isFocused = true,
+    isCarousel = false,
 }: FeatureTrainingModalIllustrationProps) {
     const styles = useThemeStyles();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
@@ -71,7 +68,7 @@ function FeatureTrainingModalIllustration({
 
     const animationRef = useRef<LottieView | null>(null);
     useEffect(() => {
-        if (!paginationDots || !animationRef.current || isReduceMotionEnabled) {
+        if (!isCarousel || !animationRef.current || isReduceMotionEnabled) {
             return;
         }
         if (isFocused) {
@@ -79,7 +76,7 @@ function FeatureTrainingModalIllustration({
         } else {
             animationRef.current.reset();
         }
-    }, [isFocused, isReduceMotionEnabled]);
+    }, [isFocused, isCarousel, isReduceMotionEnabled]);
 
     // Once we've been online at any point in this mount we keep showing the video, even if the
     // network drops later. The first online tick promotes us out of the offline fallback for good.
@@ -113,7 +110,7 @@ function FeatureTrainingModalIllustration({
                     // Prevent layout jumps by reserving height for the video until it loads.
                     // When videoStatus === 'animation' it preserves the same aspect ratio.
                     illustrationInnerContainerStyle,
-                    (!!videoURL || !!image) && {aspectRatio},
+                    (!!videoURL || !!image || !!animation) && {aspectRatio},
                 ]}
             >
                 {!!image &&
@@ -164,14 +161,6 @@ function FeatureTrainingModalIllustration({
                                 loop
                             />
                         )}
-                    </View>
-                )}
-                {!!paginationDots && (
-                    <View
-                        pointerEvents="none"
-                        style={[styles.pAbsolute, styles.flexRow, styles.justifyContentCenter, styles.w100, styles.l0, styles.r0, {bottom: PAGINATION_DOTS_BOTTOM_OFFSET}]}
-                    >
-                        {paginationDots}
                     </View>
                 )}
             </View>
