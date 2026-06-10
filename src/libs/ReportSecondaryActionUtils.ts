@@ -75,11 +75,13 @@ import {
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
+    isReportArchivedByID,
     isReportManager as isReportManagerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
+import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
@@ -1132,7 +1134,7 @@ function getSecondaryTransactionThreadActions({
     policy,
     transactionThreadReport,
     outstandingReportsByPolicyID,
-    isChatReportArchived,
+    archivedReportsIDSet,
     grandParentReport,
     isProduction,
 }: {
@@ -1145,11 +1147,12 @@ function getSecondaryTransactionThreadActions({
     policy: OnyxEntry<Policy>;
     transactionThreadReport?: OnyxEntry<Report>;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
-    isChatReportArchived?: boolean;
+    archivedReportsIDSet: ArchivedReportsIDSet;
     grandParentReport?: OnyxEntry<Report>;
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
+    const isParentReportArchived = isReportArchivedByID(archivedReportsIDSet, parentReport.reportID);
 
     if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
@@ -1184,11 +1187,12 @@ function getSecondaryTransactionThreadActions({
         canEditFieldOfMoneyRequest({
             reportAction,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-            isChatReportArchived,
+            isChatReportArchived: isParentReportArchived,
             outstandingReportsByPolicyID,
             transaction: reportTransaction,
+            archivedReportsIDSet,
         }) &&
-        canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
+        canUserPerformWriteActionReportUtils(parentReport, isParentReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
