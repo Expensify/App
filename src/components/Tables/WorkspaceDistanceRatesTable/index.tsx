@@ -2,34 +2,23 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {Rate} from '@src/types/onyx/Policy';
 import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
 type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
 type WorkspaceDistanceRatesTableProps = {
-    customUnitRates: Record<string, Rate>;
-    unitTranslation: string;
+    ratesData: DistanceRateTableItemData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    onPressRate: (rateID: string) => void;
-    onDismissError: (rateID: string) => void;
-    onToggleEnabled: (value: boolean, rateID: string) => void;
-    canDisableOrDeleteRate: (rateID: string) => boolean;
-    pendingAction?: OnyxCommon.PendingAction;
-    pendingFields?: OnyxCommon.PendingFields<string>;
     EmptyStateComponent?: React.ReactElement;
 };
 
@@ -40,20 +29,7 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({
-    customUnitRates,
-    unitTranslation,
-    selectionEnabled,
-    selectedKeys,
-    onRowSelectionChange,
-    onPressRate,
-    onDismissError,
-    onToggleEnabled,
-    canDisableOrDeleteRate,
-    pendingAction,
-    pendingFields,
-    EmptyStateComponent,
-}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -76,46 +52,6 @@ function WorkspaceDistanceRatesTable({
         {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {containerStyles: [styles.justifyContentEnd]}},
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
-
-    const ratesData: DistanceRateTableItemData[] = useMemo(
-        () =>
-            Object.values(customUnitRates).map((rate) => {
-                const resolvedPendingAction =
-                    rate.pendingAction ??
-                    rate.pendingFields?.rate ??
-                    rate.pendingFields?.enabled ??
-                    rate.pendingFields?.currency ??
-                    rate.pendingFields?.taxRateExternalID ??
-                    rate.pendingFields?.taxClaimablePercentage ??
-                    rate.pendingFields?.name ??
-                    pendingFields?.attributes ??
-                    (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? pendingAction : undefined);
-
-                const isDeleting = resolvedPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-                return {
-                    keyForList: rate.customUnitRateID,
-                    rateID: rate.customUnitRateID,
-                    rate,
-                    disabled: isDeleting,
-                    enabled: !!rate.enabled,
-                    isLocked: !selectionEnabled || !canDisableOrDeleteRate(rate.customUnitRateID) || isDeleting,
-                    formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
-                    pendingAction: resolvedPendingAction ?? undefined,
-                    errors: rate.errors ?? undefined,
-                    action: () => onPressRate(rate.customUnitRateID),
-                    dismissError: () => onDismissError(rate.customUnitRateID),
-                    onToggleEnabled: (value: boolean) => onToggleEnabled(value, rate.customUnitRateID),
-                };
-            }),
-        [customUnitRates, unitTranslation, pendingFields?.attributes, pendingAction, onPressRate, onDismissError, onToggleEnabled, canDisableOrDeleteRate, selectionEnabled],
-    );
-
-    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
-        addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb4,
-    });
 
     const compareItems: CompareItemsCallback<DistanceRateTableItemData, DistanceRatesTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
@@ -204,7 +140,7 @@ function WorkspaceDistanceRatesTable({
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
     const isEmpty = ratesData.length === 0;
-    const shouldShowSearchBar = Object.keys(customUnitRates).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchBar = ratesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <Table
@@ -226,7 +162,7 @@ function WorkspaceDistanceRatesTable({
                 <>
                     {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
                     <Table.Header />
-                    <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
+                    <Table.Body />
                 </>
             )}
         </Table>

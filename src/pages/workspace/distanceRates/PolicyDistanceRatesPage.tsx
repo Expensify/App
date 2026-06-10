@@ -10,6 +10,7 @@ import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceDistanceRatesTable from '@components/Tables/WorkspaceDistanceRatesTable';
+import type {DistanceRateTableItemData} from '@components/Tables/WorkspaceDistanceRatesTable/WorkspaceDistanceRatesTableRow';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -35,6 +36,7 @@ import {
     openPolicyDistanceRatesPage,
     setPolicyDistanceRatesEnabled,
 } from '@libs/actions/Policy/DistanceRate';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -289,6 +291,50 @@ function PolicyDistanceRatesPage({
         [policyID],
     );
 
+    const ratesData: DistanceRateTableItemData[] = useMemo(
+        () =>
+            Object.values(customUnitRates).map((rate) => {
+                const resolvedPendingAction =
+                    rate.pendingAction ??
+                    rate.pendingFields?.rate ??
+                    rate.pendingFields?.enabled ??
+                    rate.pendingFields?.currency ??
+                    rate.pendingFields?.taxRateExternalID ??
+                    rate.pendingFields?.taxClaimablePercentage ??
+                    rate.pendingFields?.name ??
+                    customUnit?.pendingFields?.attributes ??
+                    (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined);
+
+                const isDeleting = resolvedPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+                return {
+                    keyForList: rate.customUnitRateID,
+                    rateID: rate.customUnitRateID,
+                    rate,
+                    disabled: isDeleting,
+                    enabled: !!rate.enabled,
+                    isLocked: !canWriteDistanceRates || !canDisableOrDeleteRate(rate.customUnitRateID) || isDeleting,
+                    formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
+                    pendingAction: resolvedPendingAction ?? undefined,
+                    errors: rate.errors ?? undefined,
+                    action: () => openRateDetailsByID(rate.customUnitRateID),
+                    dismissError: () => dismissErrorByID(rate.customUnitRateID),
+                    onToggleEnabled: (value: boolean) => updateDistanceRateEnabled(value, rate.customUnitRateID),
+                };
+            }),
+        [
+            customUnitRates,
+            unitTranslation,
+            customUnit?.pendingFields?.attributes,
+            policy?.pendingAction,
+            canWriteDistanceRates,
+            canDisableOrDeleteRate,
+            openRateDetailsByID,
+            dismissErrorByID,
+            updateDistanceRateEnabled,
+        ],
+    );
+
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>> = [
             {
@@ -438,23 +484,16 @@ function PolicyDistanceRatesPage({
                 )}
                 {!isLoading && (
                     <>
-                        {Object.values(customUnitRates).length > 0 && (
+                        {ratesData.length > 0 && (
                             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
                             </View>
                         )}
                         <WorkspaceDistanceRatesTable
-                            customUnitRates={customUnitRates}
-                            unitTranslation={unitTranslation}
+                            ratesData={ratesData}
                             selectionEnabled={canWriteDistanceRates}
                             selectedKeys={selectedDistanceRates}
                             onRowSelectionChange={setSelectedDistanceRates}
-                            onPressRate={openRateDetailsByID}
-                            onDismissError={dismissErrorByID}
-                            onToggleEnabled={updateDistanceRateEnabled}
-                            canDisableOrDeleteRate={canDisableOrDeleteRate}
-                            pendingAction={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined}
-                            pendingFields={customUnit?.pendingFields}
                         />
                     </>
                 )}

@@ -1,12 +1,12 @@
 import {format, parseISO} from 'date-fns';
-import React, {useMemo} from 'react';
-import type {ColorValue} from 'react-native';
+import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import StatusBadge from '@components/StatusBadge';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
+import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -51,21 +51,18 @@ function formatDate(dateString: string | null | undefined): string {
     }
 }
 
-function useRateStatusColors(status: string): {backgroundColor: ColorValue; textColor: ColorValue} {
-    const theme = useTheme();
-    return useMemo(() => {
-        switch (status) {
-            case CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE:
-                return theme.reportStatusBadge.paid;
-            case CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE:
-                return theme.reportStatusBadge.draft;
-            case CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED:
-                return theme.reportStatusBadge.outstanding;
-            case CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE:
-            default:
-                return {backgroundColor: theme.badgeDefaultBG, textColor: theme.text};
-        }
-    }, [status, theme]);
+function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>, isSelected?: boolean) {
+    switch (status) {
+        case CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE:
+            return theme.reportStatusBadge.paid;
+        case CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE:
+            return theme.reportStatusBadge.draft;
+        case CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED:
+            return theme.reportStatusBadge.outstanding;
+        case CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE:
+        default:
+            return {backgroundColor: isSelected ? theme.buttonHoveredBG : theme.badgeDefaultBG, textColor: theme.text};
+    }
 }
 
 function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLayout, statusLabels}: WorkspaceDistanceRatesTableRowProps) {
@@ -73,12 +70,14 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {processedData} = useTableContext<DistanceRateTableItemData>();
 
     const {rate, formattedRate, pendingAction, errors} = item;
     const isDeleting = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isSelected = processedData.at(rowIndex)?.selected ?? false;
 
     const status = getRateStatus(rate);
-    const statusColors = useRateStatusColors(status);
+    const statusColors = getRateStatusColors(status, theme, isSelected);
     const dateLabelText = DistanceRequestUtils.getRateDateLabel({...rate, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}, translate);
 
     const accessibilityLabel = [rate.name, statusLabels[status], formattedRate, dateLabelText].filter(Boolean).join(', ');
