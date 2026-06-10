@@ -49,7 +49,7 @@ type ButtonBehaviorProps = {
     isNested?: boolean;
 
     /** Whether we should use the default hover style */
-    shouldUseDefaultHover?: boolean;
+    useDefaultHover?: boolean;
 
     /** Should enable the haptic feedback? */
     stayNormalOnDisable?: boolean;

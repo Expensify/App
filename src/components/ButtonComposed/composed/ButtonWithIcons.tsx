@@ -46,10 +46,10 @@ function ButtonWithIcons({
     style = [],
     disabledStyle,
     innerStyles = [],
-    shouldUseDefaultHover = true,
+    useDefaultHover = true,
     variant,
-    shouldRemoveBorderRadius,
-    shouldEnableHapticFeedback = false,
+    removeBorderRadius,
+    enableHapticFeedback = false,
     isLongPressDisabled = false,
     id = '',
     testID = undefined,
@@ -57,8 +57,8 @@ function ButtonWithIcons({
     accessibilityState,
     isPressOnEnterActive,
     isNested = false,
-    shouldBlendOpacity = false,
-    shouldStayNormalOnDisable = false,
+    blendOpacity = false,
+    stayNormalOnDisable = false,
     sentryLabel,
     ref,
     iconLeft,
@@ -90,18 +90,18 @@ function ButtonWithIcons({
             style={style}
             disabledStyle={disabledStyle}
             innerStyles={innerStyles}
-            shouldUseDefaultHover={shouldUseDefaultHover}
+            useDefaultHover={useDefaultHover}
             variant={variant}
-            shouldRemoveBorderRadius={shouldRemoveBorderRadius}
-            shouldEnableHapticFeedback={shouldEnableHapticFeedback}
+            removeBorderRadius={removeBorderRadius}
+            enableHapticFeedback={enableHapticFeedback}
             isLongPressDisabled={isLongPressDisabled}
             id={id}
             testID={testID}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={accessibilityState}
             isNested={isNested}
-            shouldBlendOpacity={shouldBlendOpacity}
-            shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+            blendOpacity={blendOpacity}
+            stayNormalOnDisable={stayNormalOnDisable}
             sentryLabel={sentryLabel}
             ref={ref}
         >
