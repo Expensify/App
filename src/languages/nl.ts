@@ -8427,7 +8427,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met je zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind je bankrekening ${maskedAccountNumber} opnieuw</a> zodat je je Expensify Kaarten kunt blijven gebruiken.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const translatedRole = translations.workspace.common.roleName(role).toLowerCase();
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
                     const article = role === CONST.POLICY.ROLE.AUDITOR ? 'een' : 'een';
                     return didJoinPolicy ? `${email} is via de werkruimte-uitnodigingslink lid geworden` : `heeft ${email} toegevoegd als ${article} ${translatedRole}`;
                 },

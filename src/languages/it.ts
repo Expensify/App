@@ -8464,7 +8464,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const translatedRole = translations.workspace.common.roleName(role).toLowerCase();
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
                     const article = role === CONST.POLICY.ROLE.AUDITOR ? 'un' : 'a';
                     return didJoinPolicy ? `${email} si è unito tramite il link di invito dello spazio di lavoro` : `ha aggiunto ${email} come ${article} ${translatedRole}`;
                 },

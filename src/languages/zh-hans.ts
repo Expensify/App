@@ -8192,7 +8192,7 @@ ${reportName}
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
-                    const translatedRole = translations.workspace.common.roleName(role).toLowerCase();
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
                     const article = role === CONST.POLICY.ROLE.AUDITOR ? '一' : 'a';
                     return didJoinPolicy ? `${email} 通过工作区邀请链接加入` : `已将 ${email} 添加为 ${article} ${translatedRole}`;
                 },
