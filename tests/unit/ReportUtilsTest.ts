@@ -12754,16 +12754,7 @@ describe('ReportUtils', () => {
         });
 
         test('returns reversed transaction message when action is reversed', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                    IOUTransactionID: '1',
-                    amount: 0,
-                    currency: CONST.CURRENCY.USD,
-                },
-            } as unknown as ReportAction;
+            const reportAction = createRandomReportAction(1);
 
             jest.spyOn(require('@libs/ReportActionsUtils'), 'isReversedTransaction').mockReturnValueOnce(true);
 
@@ -12777,10 +12768,7 @@ describe('ReportUtils', () => {
         });
 
         test('returns deleted expense message when action is deleted', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            } as unknown as ReportAction;
+            const reportAction = createRandomReportAction(1);
 
             jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValueOnce(true);
 
