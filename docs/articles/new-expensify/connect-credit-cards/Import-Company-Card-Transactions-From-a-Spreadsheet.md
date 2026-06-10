@@ -1,7 +1,7 @@
 ---
 title: Import Company Card Transactions From a Spreadsheet 
 description: Learn how Workspace Admins can upload company card transactions manually from a spreadsheet file.
-keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC]
+keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
 internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds. Does not cover personal card imports or Plaid connections.
 ---
 

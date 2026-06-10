@@ -264,6 +264,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             recentWaypoints,
             optimisticTransactionIDs,
             optimisticChatReportID,
+            currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;

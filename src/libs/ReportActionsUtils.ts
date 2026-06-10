@@ -174,8 +174,6 @@ const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
 const POLICY_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
 
-const ROOM_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
-
 const MEMBER_CHANGE_ARRAY = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
     CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
@@ -265,7 +263,7 @@ function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 
 /**
  * Derives the moderation decision and whether the action is flagged from the action itself.
- * Used by leaves that previously received the equivalent values as props from PureReportActionItem.
+ * Used by leaves that previously received the equivalent values as props from ReportActionItem.
  */
 function getModerationFlagState(reportAction: OnyxInputOrEntry<ReportAction>): {latestDecision: DecisionName | undefined; hasBeenFlagged: boolean} {
     // Moderation only applies to ADD_COMMENT actions
@@ -704,10 +702,6 @@ function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction 
 
 function isRejectedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);
-}
-
-function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
-    return reportAction?.actionName ? ROOM_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
 
 function isInviteOrRemovedAction(
@@ -1713,7 +1707,7 @@ function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean
 }
 
 /**
- * Simple hook to check whether the PureReportActionItem should return item based on whether the ReportPreview was recently deleted and the PureReportActionItem has not yet unloaded
+ * Simple hook to check whether the ReportActionItem should return item based on whether the ReportPreview was recently deleted and the ReportActionItem has not yet unloaded
  */
 function useTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
     const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
@@ -1726,7 +1720,7 @@ function useTableReportViewActionRenderConditionals({childMoneyRequestCount, chi
 
     const isEmptyPreviewWithComments = reportsCount === 0 && commentsCount > 0 && previousReportsCount > 0;
 
-    // We only want to remove the item if the ReportPreview has comments but no reports, so we avoid having a PureReportActionItem with no ReportPreview but only comments
+    // We only want to remove the item if the ReportPreview has comments but no reports, so we avoid having a ReportActionItem with no ReportPreview but only comments
     return !(isActionAReportPreview && isActionInUpdateState && isEmptyPreviewWithComments);
 }
 
@@ -3177,7 +3171,26 @@ function getWorkspaceCustomUnitRateImportedMessage(translate: LocalizedTranslate
 }
 
 function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {customUnitName, rateName, rate, currency, unit, startDate, endDate} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE>) ?? {};
+
+    if (rateName && rate !== undefined && currency && unit) {
+        const unitLabel = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
+        const formattedRate = `${convertAmountToDisplayString(rate, currency)}/${unitLabel}`;
+        const formattedStartDate = startDate ? DateUtils.formatToReadableString(startDate) : undefined;
+        const formattedEndDate = endDate ? DateUtils.formatToReadableString(endDate) : undefined;
+
+        if (formattedStartDate && formattedEndDate) {
+            return translate('workspaceActions.addCustomUnitRateWithAmountAndDates', rateName, formattedRate, formattedStartDate, formattedEndDate);
+        }
+        if (formattedStartDate) {
+            return translate('workspaceActions.addCustomUnitRateWithAmountAndStartDate', rateName, formattedRate, formattedStartDate);
+        }
+        if (formattedEndDate) {
+            return translate('workspaceActions.addCustomUnitRateWithAmountAndEndDate', rateName, formattedRate, formattedEndDate);
+        }
+        return translate('workspaceActions.addCustomUnitRateWithAmount', rateName, formattedRate);
+    }
 
     if (customUnitName && rateName) {
         return translate('workspaceActions.addCustomUnitRate', customUnitName, rateName);
@@ -3187,22 +3200,24 @@ function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, a
 }
 
 function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage} =
+    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, newStartDate, newEndDate, oldStartDate, oldEndDate} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
-    if (customUnitName && updatedField === 'name' && typeof oldValue === 'string' && typeof newValue === 'string') {
+    const {RATE_CHANGELOG_UPDATED_FIELD} = CONST.CUSTOM_UNITS;
+
+    if (customUnitName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.NAME && typeof oldValue === 'string' && typeof newValue === 'string') {
         return translate('workspaceActions.updatedCustomUnitRateName', customUnitName, oldValue, newValue);
     }
 
-    if (customUnitName && customUnitRateName && updatedField === 'rate' && typeof oldValue === 'string' && typeof newValue === 'string') {
+    if (customUnitName && customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.RATE && typeof oldValue === 'string' && typeof newValue === 'string') {
         return translate('workspaceActions.updatedCustomUnitRate', customUnitName, customUnitRateName, updatedField, newValue, oldValue);
     }
 
-    if (customUnitRateName && updatedField === 'taxRateExternalID' && typeof newValue === 'string' && newTaxPercentage) {
+    if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_RATE_EXTERNAL_ID && typeof newValue === 'string' && newTaxPercentage) {
         return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue as string | undefined);
     }
 
-    if (customUnitRateName && updatedField === 'taxClaimablePercentage' && typeof newValue === 'number' && customUnitRateName) {
+    if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_CLAIMABLE_PERCENTAGE && typeof newValue === 'number' && customUnitRateName) {
         return translate(
             'workspaceActions.updatedCustomUnitTaxClaimablePercentage',
             customUnitRateName,
@@ -3211,8 +3226,57 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
         );
     }
 
-    if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
+    if (customUnitName && customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.ENABLED && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
         return translate('workspaceActions.updatedCustomUnitRateEnabled', customUnitName, customUnitRateName, newValue);
+    }
+
+    if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.DATE_RANGE) {
+        const startDateChanged = newStartDate !== oldStartDate;
+        const endDateChanged = newEndDate !== oldEndDate;
+
+        if (startDateChanged && endDateChanged && newStartDate && newEndDate) {
+            const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
+            const formattedOldEndDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
+            return translate(
+                'workspaceActions.updatedCustomUnitRateStartAndEndDate',
+                customUnitRateName,
+                DateUtils.formatToReadableString(newStartDate),
+                DateUtils.formatToReadableString(newEndDate),
+                formattedOldStartDate,
+                formattedOldEndDate,
+            );
+        }
+
+        let startDateMessage = '';
+        let endDateMessage = '';
+
+        if (startDateChanged) {
+            if (!newStartDate && oldStartDate) {
+                startDateMessage = translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
+            } else if (newStartDate) {
+                const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
+                startDateMessage = translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(newStartDate), formattedOldDate);
+            }
+        }
+
+        if (endDateChanged) {
+            if (!newEndDate && oldEndDate) {
+                endDateMessage = translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
+            } else if (newEndDate) {
+                const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
+                endDateMessage = translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(newEndDate), formattedOldDate);
+            }
+        }
+
+        if (startDateMessage && endDateMessage) {
+            return `${startDateMessage}, ${endDateMessage}`;
+        }
+        if (startDateMessage) {
+            return startDateMessage;
+        }
+        if (endDateMessage) {
+            return endDateMessage;
+        }
     }
 
     return getReportActionText(action);
@@ -4678,7 +4742,6 @@ export {
     isPayAction,
     isPendingRemove,
     getModerationFlagState,
-    isPolicyChangeLogAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
@@ -4686,7 +4749,6 @@ export {
     isReportPreviewAction,
     isReversedTransaction,
     getMentionedAccountIDsFromAction,
-    isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,

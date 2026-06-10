@@ -164,6 +164,7 @@ import {
     isTripRoom,
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
+import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
 
 type ComputeReportName = {
     report?: Report;
@@ -793,6 +794,16 @@ function computeReportNameBasedOnReportAction(
         return getDynamicExternalWorkflowApproveFailedActionMessage(translate, parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE)) {
+        return getAddExpensifyCardRuleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE)) {
+        return getUpdateExpensifyCardRuleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
+        return getRemoveExpensifyCardRuleMessage(translate, parentReportAction);
+    }
+
     return undefined;
 }
 
@@ -1058,7 +1069,6 @@ function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAtt
 export {
     computeReportName,
     getReportName,
-    generateArchivedReportName,
     getInvoiceReportName,
     getMoneyRequestReportName,
     buildReportNameFromParticipantNames,
@@ -1066,5 +1076,4 @@ export {
     getGroupChatName,
     getPolicyExpenseChatName,
     getInvoicesChatName,
-    computeReportNameBasedOnReportAction,
 };
