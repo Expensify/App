@@ -125,8 +125,8 @@ function FeatureTrainingModalIllustration({
                     ) : (
                         <Image
                             accessibilityIgnoresInvertColors
-                            source={image as ImageSourcePropType}
-                            resizeMode={contentFitImage as ImageResizeMode}
+                            source={image as unknown as ImageSourcePropType}
+                            resizeMode={contentFitImage as unknown as ImageResizeMode}
                             style={styles.featureTrainingModalImage}
                             testID={CONST.IMAGE_TEST_ID}
                         />

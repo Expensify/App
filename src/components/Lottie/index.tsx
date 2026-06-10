@@ -1,7 +1,8 @@
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
-import React, {ForwardedRef, useContext, useEffect, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';

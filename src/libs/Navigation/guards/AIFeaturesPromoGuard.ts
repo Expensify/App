@@ -182,7 +182,7 @@ function shouldBlockWhileModalActive(state: NavigationState, action: NavigationA
 /** Prevents redirect loops by detecting when we're already on or resetting to the modal. */
 function isNavigatingToAIFeaturesPromoModal(state: NavigationState, action: NavigationAction): boolean {
     const isOnModal = findFocusedRoute(state)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.ROOT;
-    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.ROOT;
+    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as unknown as NavigationState)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.ROOT;
 
     return isOnModal || isResettingToModal;
 }
