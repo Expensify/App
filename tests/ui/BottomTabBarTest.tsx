@@ -213,7 +213,7 @@ describe('DebugTabView', () => {
             expect(container.props.pointerEvents).toBe('box-none');
             expect((container.props.style as Array<Record<string, unknown>>).at(0)).toEqual(
                 expect.objectContaining({
-                    bottom: 0,
+                    top: 0,
                     left: variables.navigationTabBarSize,
                     width: variables.sideBarWithLHBWidth - variables.cropBorderWidth,
                 }),

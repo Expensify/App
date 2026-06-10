@@ -47,8 +47,8 @@ afterEach(() => {
 
 const defaultParams = {
     prNumber: 123,
-    prAuthor: 'externalUser',
-    authorAssociation: 'NONE',
+    actor: 'externalUser',
+    actorAssociation: 'NONE',
     repoOwner: 'Expensify',
     repoName: 'App',
     githubToken: 'github-token',
@@ -75,8 +75,8 @@ describe('isAuthorizedContributor', () => {
             await expect(
                 isAuthorizedContributor({
                     ...defaultParams,
-                    prAuthor: 'memberUser',
-                    authorAssociation: 'MEMBER',
+                    actor: 'memberUser',
+                    actorAssociation: 'MEMBER',
                 }),
             ).resolves.toBe(true);
 

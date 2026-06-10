@@ -50,12 +50,16 @@ function IOURequestStepVendor({
     });
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+
+    // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the QBO CC vendor-matching flow).
+    const isReimbursable = !!transaction?.reimbursable;
+    const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const vendors = useMemo(() => getMatchingVendors(policy), [policy]);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
 
     const data: VendorListItem[] = useMemo(() => {
         const trimmed = searchValue.trim().toLowerCase();
-        return vendors
+        const vendorRows = vendors
             .filter((vendor) => !trimmed || vendor.name.toLowerCase().includes(trimmed))
             .map((vendor) => ({
                 value: vendor.id,
@@ -64,9 +68,22 @@ function IOURequestStepVendor({
                 isSelected: vendor.id === currentVendorID,
                 searchText: vendor.name,
             }));
-    }, [vendors, currentVendorID, searchValue]);
 
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable;
+        // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
+        if (!currentVendorID || trimmed) {
+            return vendorRows;
+        }
+        const clearRow: VendorListItem = {
+            value: '',
+            text: translate('common.none'),
+            keyForList: 'clear-vendor',
+            isSelected: false,
+            searchText: '',
+        };
+        return [clearRow, ...vendorRows];
+    }, [vendors, currentVendorID, searchValue, translate]);
+
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
     const navigateBack = () => {
         Navigation.goBack();

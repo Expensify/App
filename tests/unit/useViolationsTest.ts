@@ -339,7 +339,7 @@ describe('useViolations', () => {
                 {
                     name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
-                    data: {formattedLimit: '$1,000 USD', category: 'Travel'},
+                    data: {amount: 100000, currency: CONST.CURRENCY.USD, category: 'Travel'},
                 },
             ];
 
@@ -349,7 +349,7 @@ describe('useViolations', () => {
 
             // Then all original data should be preserved for the UI to display detailed error messages
             expect(amountViolations).toHaveLength(1);
-            expect(amountViolations.at(0)?.data).toEqual({formattedLimit: '$1,000 USD', category: 'Travel'});
+            expect(amountViolations.at(0)?.data).toEqual({amount: 100000, currency: CONST.CURRENCY.USD, category: 'Travel'});
         });
     });
 });
