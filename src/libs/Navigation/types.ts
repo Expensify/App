@@ -1942,12 +1942,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_VENDOR]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_VENDOR]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
-        reportActionID: string;
         reportID: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: {
         action: IOUAction;
