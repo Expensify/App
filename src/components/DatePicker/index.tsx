@@ -51,12 +51,13 @@ function DatePicker({
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
+    const touchableInputWrapperRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
 
-    const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput(false, true);
+    const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput(false, touchableInputWrapperRef);
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
     autoFocusCallbackRefRef.current = autoFocusCallbackRef;
 
@@ -177,6 +178,7 @@ function DatePicker({
             >
                 <TextInput
                     ref={combinedTextInputRef}
+                    touchableInputWrapperRef={touchableInputWrapperRef}
                     inputID={inputID}
                     forceActiveLabel
                     icon={selectedDate ? null : icons.Calendar}

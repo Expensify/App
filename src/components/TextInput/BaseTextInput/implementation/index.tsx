@@ -50,6 +50,7 @@ function BaseTextInput({
     textInputContainerStyles,
     shouldApplyPaddingToContainer = true,
     touchableInputWrapperStyle,
+    touchableInputWrapperRef,
     containerStyles,
     inputStyle,
     forceActiveLabel = false,
@@ -344,6 +345,7 @@ function BaseTextInput({
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
                 <PressableWithoutFeedback
+                    ref={touchableInputWrapperRef}
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
