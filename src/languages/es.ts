@@ -290,6 +290,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Selecciona una moneda',
         selectSymbolOrCurrency: 'Selecciona un símbolo o moneda',
         card: 'Tarjeta',
+        mcc: 'MCC',
+        categoryGLCode: 'Código de Libro Mayor de categoría',
         whyDoWeAskForThis: '¿Por qué pedimos esto?',
         required: 'Obligatorio',
         automatic: 'Automático',
@@ -464,6 +466,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
+        enableNotifications: {
+            prompt: '¿Quieres que te avisemos cuando Concierge responda?',
+            cta: 'Notificar',
+        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -2774,6 +2780,7 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     reportDetailsPage: {
+        goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
         generatingPDF: 'Generar PDF',
         waitForPDF: 'Por favor, espera mientras creamos el PDF.',
@@ -2893,6 +2900,14 @@ ${amount} para ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar gastos de mi negocio',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizar mis gastos personales',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
+        },
+        personalTrackGoal: {
+            title: '¿Qué estás buscando organizar?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Costes de una propiedad de inversión',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Gastos del hogar',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Gastos de proyectos secundarios',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Otra cosa',
+            somethingElsePlaceholder: '¿Qué estás organizando?',
         },
         employees: {
             title: '¿Cuántos empleados tienes?',
@@ -3227,6 +3242,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
         workEmail2FAError: 'Este inicio de sesión corresponde a una cuenta existente con la autenticación de dos factores (2FA) habilitada.',
+        singleSignOnError: 'Este inicio de sesión es una cuenta existente con SSO/SAML habilitado.',
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',
@@ -4206,6 +4222,7 @@ ${amount} para ${merchant} - ${date}`,
             customFieldHint: 'Añade una codificación personalizada que se aplique a todos los gastos de este miembro.',
             reports: 'Informes',
             reportFields: 'Campos de informe',
+            invoiceFields: 'Campos de factura',
             reportTitle: 'El título del informe.',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
@@ -5847,6 +5864,29 @@ ${amount} para ${merchant} - ${date}`,
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
             genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
         },
+        invoiceFields: {
+            subtitle: 'Los campos de factura pueden ayudarte cuando quieras incluir información adicional.',
+            importedFromAccountingSoftware: 'Campos de factura importados desde',
+            disableInvoiceFields: 'Desactivar campos de factura',
+            disableInvoiceFieldsConfirmation: '¿Estás seguro? Los campos de factura se desactivarán en las facturas.',
+            delete: 'Eliminar campo de factura',
+            deleteConfirmation: '¿Seguro que deseas eliminar este campo de factura?',
+            findInvoiceField: 'Buscar campo de factura',
+            nameInputSubtitle: 'Elige un nombre para el campo de factura.',
+            typeInputSubtitle: 'Elige qué tipo de campo de factura usar.',
+            initialValueInputSubtitle: 'Ingresa un valor inicial para mostrar en el campo de factura.',
+            listValuesInputSubtitle: 'Estos valores aparecerán en el menú desplegable del campo de factura. Los miembros pueden seleccionar los valores activados.',
+            listInputSubtitle: 'Estos valores aparecerán en la lista del campo de factura. Los miembros pueden seleccionar los valores activados.',
+            emptyInvoiceFieldsValues: {
+                title: 'Aún no hay valores de lista',
+                subtitle: 'Agrega valores personalizados para que aparezcan en las facturas.',
+            },
+            existingInvoiceFieldNameError: 'Ya existe un campo de factura con este nombre',
+            invoiceFieldNameRequiredError: 'Ingresa un nombre para el campo de factura',
+            invoiceFieldTypeRequiredError: 'Elige un tipo de campo de factura',
+            invoiceFieldInitialValueRequiredError: 'Elige un valor inicial para el campo de factura',
+            addField: 'Añadir campo',
+        },
         tags: {
             tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
@@ -6532,6 +6572,12 @@ ${amount} para ${merchant} - ${date}`,
             syncingModalTitle: 'Tu conexión se está sincronizando',
             syncingModalDescription: 'La primera conexión puede tardar un poco. Se te notificará de cualquier error.',
             syncing: 'Sincronizando empleados',
+            mergeHR: {
+                completeSetup: 'Completar configuración',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
+                groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
+            },
         },
         export: {
             notReadyHeading: 'No está listo para exportar',
@@ -6735,6 +6781,12 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Los campos de informe permiten especificar detalles a nivel de cabecera, distintos de las etiquetas que pertenecen a los gastos en partidas individuales. Estos detalles pueden incluir nombres de proyectos específicos, información sobre viajes de negocios, ubicaciones, etc.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Los campos de informe sólo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: 'Campos de factura',
+                description: `Los campos de factura te permiten incluir detalles adicionales a nivel de factura.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Los campos de factura sólo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -7226,6 +7278,18 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agencias de viajes',
                 },
             },
+            aiRules: {
+                title: 'Reglas de IA',
+                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas',
+                addRule: 'Añadir regla de IA',
+                findRule: 'Buscar regla de IA',
+                addRuleTitle: 'Añadir regla',
+                describeRuleTitle: 'Describe tu regla',
+                describeRuleSubtitle: 'Describe tu regla y Concierge la creará',
+                editRuleTitle: 'Editar regla',
+                deleteRule: 'Eliminar regla',
+                deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
+            },
         },
         emptyDomain: {
             title: 'Mejora tu seguridad con dominios',
@@ -7405,7 +7469,7 @@ ${amount} para ${merchant} - ${date}`,
         updateCustomUnitDefaultCategory: (customUnitName, newValue, oldValue) =>
             `cambió la categoría predeterminada de ${customUnitName} a "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`,
         importCustomUnitRates: (customUnitName) => `importó tasas para la unidad personalizada "${customUnitName}"`,
-        addCustomUnitRate: (customUnitName, rateName) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `añadió la tasa de ${customUnitName} «${rateName}»`,
         deleteCustomUnitRate: (customUnitName, rateName) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         updateCustomUnitSubRate: (customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField) =>
             `cambió la sub-tasa "${customUnitSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}" ${updatedField} a "${newValue}" (anteriormente "${oldValue}")`,
@@ -7802,6 +7866,23 @@ ${amount} para ${merchant} - ${date}`,
                 }
             }
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `añadió la tasa «${rateName}» de ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida desde ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida hasta ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `añadió la tasa "${rateName}" de ${rateValue}, válida del ${startDate} al ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `actualizó la fecha de inicio de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})` : `establecer la fecha de inicio de la tasa "${rateName}" a ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate
+                ? `actualizó la fecha de finalización de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})`
+                : `establecer la fecha de finalización de la tasa "${rateName}" en ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `actualizó la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate} (previamente ${oldStartDate} - ${oldEndDate})`
+                : `establece la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `se eliminó la fecha de inicio de la tasa "${rateName}" (previamente ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `eliminó la fecha de finalización de la tasa «${rateName}» (previamente ${oldDate})`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -7889,6 +7970,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
+        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Restablecer filtros',
         searchResults: {
@@ -8013,7 +8095,12 @@ ${amount} para ${merchant} - ${date}`,
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
-                between: (greaterThan, lessThan) => `Entre ${greaterThan} y ${lessThan}`,
+                between: (greaterThan, lessThan) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} y ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount) => `Igual a ${amount ?? ''}`,
             },
             current: 'Actual',
