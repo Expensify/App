@@ -9,6 +9,7 @@ import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import {PaymentContextProvider} from '@hooks/usePaymentContext';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchOverlay from '@hooks/useSearchOverlay';
@@ -162,37 +163,39 @@ function SearchPage({route}: SearchPageProps) {
     });
 
     return (
-        <Animated.View style={[styles.flex1]}>
-            {shouldUseNarrowLayout ? (
-                <SearchPageNarrow
-                    queryJSON={currentSearchQueryJSON}
-                    metadata={metadata}
-                    searchResults={searchResults}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    shouldShowFooter={shouldShowFooter}
-                    onSortPressedCallback={onSortPressedCallback}
-                    searchOverlayContent={searchOverlayContent}
-                    onSearchContentReady={onSearchContentReady}
-                    hasFilterBars={hasFilterBars}
-                    isOverlayActive={isOverlayActive}
-                />
-            ) : (
-                <SearchPageWide
-                    queryJSON={currentSearchQueryJSON}
-                    searchResults={searchResults}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    handleSearchAction={handleSearchAction}
-                    onSortPressedCallback={onSortPressedCallback}
-                    route={route}
-                    shouldShowFooter={shouldShowFooter}
-                    searchOverlayContent={searchOverlayContent}
-                    onSearchContentReady={onSearchContentReady}
-                />
-            )}
-        </Animated.View>
+        <PaymentContextProvider>
+            <Animated.View style={[styles.flex1]}>
+                {shouldUseNarrowLayout ? (
+                    <SearchPageNarrow
+                        queryJSON={currentSearchQueryJSON}
+                        metadata={metadata}
+                        searchResults={searchResults}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
+                        shouldShowFooter={shouldShowFooter}
+                        onSortPressedCallback={onSortPressedCallback}
+                        searchOverlayContent={searchOverlayContent}
+                        onSearchContentReady={onSearchContentReady}
+                        hasFilterBars={hasFilterBars}
+                        isOverlayActive={isOverlayActive}
+                    />
+                ) : (
+                    <SearchPageWide
+                        queryJSON={currentSearchQueryJSON}
+                        searchResults={searchResults}
+                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
+                        handleSearchAction={handleSearchAction}
+                        onSortPressedCallback={onSortPressedCallback}
+                        route={route}
+                        shouldShowFooter={shouldShowFooter}
+                        searchOverlayContent={searchOverlayContent}
+                        onSearchContentReady={onSearchContentReady}
+                    />
+                )}
+            </Animated.View>
+        </PaymentContextProvider>
     );
 }
 
