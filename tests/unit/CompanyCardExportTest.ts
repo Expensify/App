@@ -11,7 +11,7 @@ const QBD_CREDIT_CARD_ACCOUNTS = [
     {id: '80000104-1746639411', name: 'Visa Business (92000)', currency: 'USD'},
 ];
 
-function createQBDPolicy(overrides?: Partial<Policy>): Policy {
+function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '80000103-1746639410'): Policy {
     return {
         id: MOCK_POLICY_ID,
         name: 'Test Policy',
@@ -26,7 +26,7 @@ function createQBDPolicy(overrides?: Partial<Policy>): Policy {
                 config: {
                     export: {
                         nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                        nonReimbursableAccount: '80000103-1746639410',
+                        nonReimbursableAccount,
                         reimbursable: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                         reimbursableAccount: '',
                         exportDate: CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE,
@@ -121,26 +121,7 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
     });
 
     it('shows the default label even when no workspace default account is configured', () => {
-        const policy = createQBDPolicy({
-            connections: {
-                quickbooksDesktop: {
-                    config: {
-                        export: {
-                            nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                            nonReimbursableAccount: '',
-                            reimbursable: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                            reimbursableAccount: '',
-                            exportDate: CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE,
-                            nonReimbursableBillDefaultVendor: '',
-                            accountingMethod: 'accrual',
-                        },
-                    },
-                    data: {
-                        creditCardAccounts: QBD_CREDIT_CARD_ACCOUNTS,
-                    },
-                },
-            },
-        } as unknown as Partial<Policy>);
+        const policy = createQBDPolicy(undefined, '');
         const card = createCard();
 
         const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, policy, card);
