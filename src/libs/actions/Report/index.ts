@@ -1,8 +1,7 @@
 /* eslint-disable max-lines */
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
+import {DeviceEventEmitter, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
