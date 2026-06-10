@@ -8157,10 +8157,7 @@ ${reportName}
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 travelInvoicing: '出張請求書作成',
             },
-            bankAccount: {
-                banks: '銀行口座',
-                closedBankAccounts: '解約済みの銀行口座',
-            },
+            bankAccount: {banks: '銀行口座', closedBankAccounts: '解約済み銀行口座'},
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
             past: '過去',

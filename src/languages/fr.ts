@@ -8299,10 +8299,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 travelInvoicing: 'Facturation de voyages',
             },
-            bankAccount: {
-                banks: 'Comptes bancaires',
-                closedBankAccounts: 'Comptes bancaires fermés',
-            },
+            bankAccount: {banks: 'Comptes bancaires', closedBankAccounts: 'Comptes bancaires fermés'},
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
             past: 'Passé',
