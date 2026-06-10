@@ -7445,6 +7445,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             syncingModalTitle: 'Sua conexão está sincronizando',
             syncingModalDescription: 'A primeira conexão pode levar algum tempo. Você será notificado sobre quaisquer erros.',
             syncing: 'Sincronizando funcionários',
+            mergeHR: {
+                completeSetup: 'Concluir configuração',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
+                groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
+            },
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',

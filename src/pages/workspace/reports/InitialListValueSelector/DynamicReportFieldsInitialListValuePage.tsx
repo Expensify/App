@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,9 +17,10 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ReportFieldsInitialListValuePicker from './ReportFieldsInitialListValuePicker';
 
 type DynamicReportFieldsInitialListValuePageProps = WithPolicyAndFullscreenLoadingProps &
@@ -33,10 +34,23 @@ function DynamicReportFieldsInitialListValuePage({
 }: DynamicReportFieldsInitialListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft, formDraftMetadata] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path);
 
     const currentValue = formDraft?.[INPUT_IDS.INITIAL_VALUE] ?? '';
+    const listValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
+
+    // When this page is reached via deeplink or restored after a page refresh, the parent CreateReportFieldsPage resets
+    // the create-field draft on mount, leaving no list values to choose from. In that case, return to the Add field
+    // page instead of stranding the user on an empty picker. On refresh the dynamic route restores without its parent
+    // in the stack, so the dynamic back path resolves to the report fields settings page rather than the Add field page
+    // — target the Add field route explicitly to land there.
+    useEffect(() => {
+        if (isLoadingOnyxValue(formDraftMetadata) || listValues.length > 0) {
+            return;
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID));
+    }, [formDraftMetadata, listValues.length, policyID]);
 
     const onValueSelected = (value: string) => {
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
@@ -54,7 +68,6 @@ function DynamicReportFieldsInitialListValuePage({
         >
             <ScreenWrapper
                 style={styles.pb0}
-                includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="DynamicReportFieldsInitialListValuePage"
             >
@@ -66,7 +79,7 @@ function DynamicReportFieldsInitialListValuePage({
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
                 </View>
                 <ReportFieldsInitialListValuePicker
-                    listValues={formDraft?.[INPUT_IDS.LIST_VALUES] ?? []}
+                    listValues={listValues}
                     disabledOptions={formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []}
                     value={currentValue}
                     onValueChange={onValueSelected}

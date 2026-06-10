@@ -59,7 +59,7 @@
 "../../server/victory-chart-renderer/src/initSkiaForCli.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../server/victory-chart-renderer/src/loadChartFontsForCli.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../server/victory-chart-renderer/tests/resolveCanvasSize.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/CONST/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/CONST/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/DeepLinkHandler.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/DeepLinkHandler.tsx"	"no-restricted-syntax"	1
 "../../src/Expensify.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1726,7 +1726,7 @@
 "../../tests/ui/hooks/useHtmlPasteTest/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/APITest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	74
 "../../tests/unit/AddExistingExpenseSearchTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../tests/unit/AgentActionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	57
+"../../tests/unit/AgentActionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	61
 "../../tests/unit/AgentZeroStatusContextTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/AvatarButtonWithIconTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/AvatarUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1775,7 +1775,7 @@
 "../../tests/unit/GithubUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/HomePage/YourSpendSection/YourSpendSectionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/HomePage/YourSpendSection/useYourSpendDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../tests/unit/HrUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	50
+"../../tests/unit/HrUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	61
 "../../tests/unit/HybridAppActionsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/IOUUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/ImageSVGCachePolicyTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3

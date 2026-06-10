@@ -2624,6 +2624,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/hr/merge/final-approver',
         getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/final-approver` as const,
     },
+    WORKSPACE_HR_MERGE_GROUPS: {
+        route: 'workspaces/:policyID/hr/merge/groups',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/groups` as const,
+    },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
         getRoute: (policyID: string | undefined) => {
