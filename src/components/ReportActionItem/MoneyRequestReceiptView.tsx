@@ -58,6 +58,7 @@ import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasEReceipt,
+    hasPendingDistanceReceiptRegeneration,
     hasReceiptSource,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -178,6 +179,9 @@ function MoneyRequestReceiptView({
     // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
     // map/route-based distance expenses. Odometer and pure-manual distance expenses have no map and must be excluded.
     const isMapDistanceRequest = isMapBasedDistanceRequest(displayedTransaction);
+    // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
+    // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
+    const canShowDistanceEReceipt = isMapDistanceRequest && !hasPendingDistanceReceiptRegeneration(displayedTransaction);
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -652,7 +656,7 @@ function MoneyRequestReceiptView({
                                             onLoad={() => setIsLoading(false)}
                                             onLoadFailure={() => setIsLoading(false)}
                                         />
-                                        {isMapDistanceRequest && hovered && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
+                                        {canShowDistanceEReceipt && hovered && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
                                     </>
                                 </ReceiptHoverZoom>
                             </View>

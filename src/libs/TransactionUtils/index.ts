@@ -1072,6 +1072,24 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
     return !!transaction?.pendingFields?.waypoints;
 }
 
+// Editing any of these fields makes the server regenerate the distance map receipt. `customUnitRateID`/`distance`
+// aren't typed `pendingFields` keys (they live on the comment), so this is matched by name rather than property access.
+const DISTANCE_RECEIPT_REGENERATION_FIELDS = new Set(['waypoints', 'distance', 'merchant', 'customUnitRateID']);
+
+/**
+ * After a distance/rate/waypoint edit the server regenerates the map receipt and invalidates the prior URL, but the
+ * local `receipt.source` only refreshes once the Pusher push arrives. While any of these edits are pending the stored
+ * map image is stale and can't be regenerated locally.
+ */
+function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    const pendingFields = transaction?.pendingFields;
+    if (!pendingFields) {
+        return false;
+    }
+    const hasPendingRegenerationField = Object.entries(pendingFields).some(([field, pendingAction]) => !!pendingAction && DISTANCE_RECEIPT_REGENERATION_FIELDS.has(field));
+    return hasPendingRegenerationField;
+}
+
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
@@ -2967,6 +2985,7 @@ export {
     isOdometerDistanceRequest,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
+    hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
     isDuplicate,

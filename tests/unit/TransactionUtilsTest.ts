@@ -672,6 +672,22 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasPendingDistanceReceiptRegeneration', () => {
+        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
+        it('returns false when no receipt-regenerating field is pending', () => {
+            expect(TransactionUtils.hasPendingDistanceReceiptRegeneration(generateTransaction())).toBe(false);
+            expect(TransactionUtils.hasPendingDistanceReceiptRegeneration(generateTransaction({pendingFields: {}}))).toBe(false);
+            // A pending field unrelated to the map receipt should not trigger it.
+            expect(TransactionUtils.hasPendingDistanceReceiptRegeneration(generateTransaction({pendingFields: {amount: UPDATE}}))).toBe(false);
+        });
+
+        it('returns true while a distance/rate edit is regenerating the receipt', () => {
+            expect(TransactionUtils.hasPendingDistanceReceiptRegeneration(generateTransaction({pendingFields: {waypoints: UPDATE}}))).toBe(true);
+            expect(TransactionUtils.hasPendingDistanceReceiptRegeneration(generateTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
