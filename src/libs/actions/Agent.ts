@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
+import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,7 +35,7 @@ function createAgent(
 
     let avatarURI: string | undefined;
     if (customExpensifyAvatarID) {
-        avatarURI = resolveAvatarURI(customExpensifyAvatarID);
+        avatarURI = AGENT_AVATARS.resolveURI(customExpensifyAvatarID);
     } else {
         avatarURI = optimisticAvatarURI;
     }
