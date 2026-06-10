@@ -149,6 +149,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -657,7 +658,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     if (!report) {
         return null;
     }
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
