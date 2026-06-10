@@ -240,6 +240,7 @@ describe('GoogleTagManagerTest', () => {
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
+            currentUserLocalCurrency: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();
