@@ -1,7 +1,7 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 import Table from '@components/Table';
-import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,8 +34,6 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-
-    const tableRef = useRef<TableHandle<DistanceRateTableItemData, DistanceRatesTableColumnKey>>(null);
 
     const columns: Array<TableColumn<DistanceRatesTableColumnKey>> = [
         {
@@ -114,37 +112,11 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         />
     );
 
-    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<DistanceRatesTableColumnKey> | undefined>(undefined);
-
-    useEffect(() => {
-        if (shouldUseNarrowTableLayout) {
-            if (isNarrowLayoutRef.current) {
-                return;
-            }
-            isNarrowLayoutRef.current = true;
-            const activeSorting = tableRef.current?.getActiveSorting();
-            setActiveSortingInWideLayout(activeSorting);
-            tableRef.current?.updateSorting({columnKey: 'name', order: 'asc'});
-            return;
-        }
-
-        if (!isNarrowLayoutRef.current) {
-            return;
-        }
-
-        isNarrowLayoutRef.current = false;
-        if (activeSortingInWideLayout) {
-            tableRef.current?.updateSorting(activeSortingInWideLayout);
-        }
-    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
-
     const isEmpty = ratesData.length === 0;
     const shouldShowSearchBar = ratesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <Table
-            ref={tableRef}
             data={ratesData}
             columns={columns}
             selectionEnabled={selectionEnabled}
@@ -155,6 +127,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="name"
+            narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
             {isEmpty && EmptyStateComponent}
