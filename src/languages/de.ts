@@ -3359,6 +3359,7 @@ ${amount} für ${merchant} – ${date}`,
             subtitle: 'Füge dein Team hinzu oder lade deine Steuerberatung ein. Je mehr, desto besser!',
         },
         workEmail2FAError: 'Dieser Login gehört zu einem bestehenden Konto mit aktivierter Zwei-Faktor-Authentifizierung (2FA).',
+        singleSignOnError: 'Diese Anmeldung ist ein bestehendes Konto mit aktiviertem SSO/SAML.',
     },
     featureTraining: {
         doNotShowAgain: 'Nicht mehr anzeigen',

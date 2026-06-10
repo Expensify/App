@@ -3327,6 +3327,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             subtitle: 'チームを追加するか、会計士を招待しましょう。人数が多いほど、もっと便利になります！',
         },
         workEmail2FAError: 'このログインは、二要素認証（2FA）が有効になっている既存のアカウントです。',
+        singleSignOnError: 'このログインは、SSO／SAML が有効になっている既存のアカウントです。',
     },
     featureTraining: {
         doNotShowAgain: '今後このメッセージを表示しない',
