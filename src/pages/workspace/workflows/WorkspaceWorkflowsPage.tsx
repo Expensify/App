@@ -49,7 +49,7 @@ import {
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -132,6 +132,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
@@ -181,18 +182,27 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
+    const hasPendingDeferredAgentSave = useMemo(
+        () => Object.values(deferredAgentWorkflowSaves ?? {}).some((entry) => entry?.policyID === route.params.policyID),
+        [deferredAgentWorkflowSaves, route.params.policyID],
+    );
+
     const fetchData = useCallback(() => {
-        openPolicyWorkflowsPage(route.params.policyID, true);
+        // Skip the workflows refetch while a freshly-added offline agent's deferred workflow save is still
+        // pending reconciliation: the READ returns the pre-approval-update employeeList (workspace owner is
+        // still the approver), which would clobber the optimistic agent-as-approver overlay and briefly
+        // flicker the approver row when the connection is restored.
+        if (!hasPendingDeferredAgentSave) {
+            openPolicyWorkflowsPage(route.params.policyID, true);
+        }
         getPaymentMethods();
-    }, [route.params.policyID]);
+    }, [route.params.policyID, hasPendingDeferredAgentSave]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
-        });
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
     }, [policy]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
@@ -507,7 +517,29 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     onPress={
                                         shouldBlockApprovalWorkflowEditing || !canWriteApprovals
                                             ? undefined
-                                            : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.routingFirstApproverEmail))
+                                            : () => {
+                                                  // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+                                                  clearApprovalWorkflow();
+                                                  Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.routingFirstApproverEmail));
+                                              }
+                                    }
+                                    onShowAllMembersPress={
+                                        shouldBlockApprovalWorkflowEditing
+                                            ? undefined
+                                            : () => {
+                                                  // Use the raw workflow (pre-overlay) — a deferred-agent overlay can blank approvers[0].email, breaking ExpensesFromPage's Edit-route backTo.
+                                                  const rawWorkflow = rawApprovalWorkflows.find((w) => w.approvers.at(0)?.email === workflow.routingFirstApproverEmail);
+                                                  if (!rawWorkflow) {
+                                                      return;
+                                                  }
+                                                  selectApprovalWorkflowForEdit({workflow: rawWorkflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
+                                                  Navigation.navigate(
+                                                      ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(
+                                                          route.params.policyID,
+                                                          ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                      ),
+                                                  );
+                                              }
                                     }
                                     onAddAgentPress={() => handleAddAgentPress(workflow)}
                                     onDismissApproverError={(approver) => {
@@ -700,7 +732,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 />
                             )
                         )}
-                        {shouldShowBankAccount && (
+                        {shouldShowBankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburser}
                                 shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
@@ -747,6 +779,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hrFinalApproverEmail,
         shouldBlockApprovalWorkflowEditing,
         approvalSubtitle,
+        availableMembers,
+        usedApproverEmails,
+        rawApprovalWorkflows,
         navigateToSubmitWorkspaceApprovalsUpgrade,
         promptConfigureApprovalsInHR,
         isDEWEnabled,

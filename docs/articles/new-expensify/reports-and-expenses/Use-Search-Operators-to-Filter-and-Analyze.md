@@ -64,8 +64,9 @@ You can use the following operators to filter expenses:
 - `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
 
-**Example query:**
-`type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
+**Example queries:**
+- `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
+- `type:expense -has:tag` – find expenses that have no tag assigned
 
 ---
 
