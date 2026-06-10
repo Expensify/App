@@ -135,6 +135,7 @@ function SearchTransactionsChangeReport() {
         if (onyxUpdates.length > 0) {
             Onyx.update(onyxUpdates);
         }
+        // Hydration should only run once on mount using the initial snapshot data
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
