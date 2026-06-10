@@ -1709,7 +1709,6 @@
 "../../tests/ui/WorkspaceOnboarding.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/WorkspaceTagsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/WorkspaceUpgradeTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/ui/WorkspaceWorkflowsApprovalsEditPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/WorkspaceWorkflowsPayerRowTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/YearListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/components/BaseReportActionContextMenuTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
