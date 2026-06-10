@@ -1016,7 +1016,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
-        ZENEFITS: 'zenefitsNewDot',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
@@ -4791,7 +4790,6 @@ const CONST = {
             BLOCK: 'block',
         },
     },
-
     get SUBSCRIPTION_PRICES() {
         return {
             [this.PAYMENT_CARD_CURRENCY.USD]: {
@@ -7821,7 +7819,6 @@ const CONST = {
         SELECTION_MODE_MULTI: 'multi',
         SEARCH_CONTEXT_GENERAL: 'general',
         SEARCH_CONTEXT_SEARCH: 'search',
-        SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
         SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
         SEARCH_CONTEXT_ATTENDEES: 'attendees',
     },
@@ -9108,6 +9105,7 @@ const CONST = {
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
             },
             CATEGORIES: {
+                ROW: 'WorkspaceCategories-Row',
                 ADD_BUTTON: 'WorkspaceCategories-AddButton',
                 MORE_DROPDOWN: 'WorkspaceCategories-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCategories-BulkActionsDropdown',
@@ -9159,6 +9157,10 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
+                AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
+                ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
+                AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
+                AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',

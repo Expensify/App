@@ -644,6 +644,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
         reportFieldID?: string;
@@ -1531,6 +1534,13 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleID: string;
         merchantIndex: string;
+    };
+    [SCREENS.WORKSPACE.RULES_AI_NEW]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_AI_EDIT]: {
+        policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
         policyID: string;
