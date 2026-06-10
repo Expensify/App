@@ -68,7 +68,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	152
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	132
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -185,8 +185,8 @@
 "../../src/components/FocusModeNotification.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/FocusTrap/FocusTrapContainerElement/index.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/FocusTrap/FocusTrapForScreen/index.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Form/FormProvider.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/components/Form/FormProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/Form/FormProvider.tsx"	"no-restricted-imports"	2
 "../../src/components/Form/FormProvider.tsx"	"react-hooks/immutability"	2
 "../../src/components/Form/FormProvider.tsx"	"react-hooks/refs"	2
 "../../src/components/Form/InputWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -271,7 +271,7 @@
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AttendeeField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/sections/TaxFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/MoneyRequestConfirmationList/sections/selectors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
+"../../src/components/MoneyRequestConfirmationList/sections/selectors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/MoneyRequestConfirmationListFooter/ConfirmationReceiptThumbnail.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationListFooter/hooks/useReceiptThumbnailSource.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationListFooter/sections/DistanceMapSection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -679,7 +679,7 @@
 "../../src/libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtensionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/DebugTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
+"../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/libs/Navigation/Navigation.ts"	"no-restricted-imports"	1
 "../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -765,16 +765,13 @@
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	12
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	29
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportName"	3
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getSearchReportName"	1
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	43
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	35
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	28
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	34
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	33
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	73
-"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/getSearchReportName"	1
-"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
+"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	69
 "../../src/libs/SelectionScraper/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Sound/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -868,7 +865,7 @@
 "../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	10
 "../../src/libs/actions/ImportTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/ImportTransactions.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/InputFocus/index.web.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/libs/actions/InputFocus/index.web.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/InputFocus/index.web.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Link.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/Link.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -903,7 +900,7 @@
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	10
-"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	3
+"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/Policy/Tag.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1023,6 +1020,10 @@
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
+"../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
+"../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/EnablePayments/AddBankAccount/AddBankAccount.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"no-restricted-syntax"	2
@@ -1077,10 +1078,6 @@
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/pages/RoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ScheduleCall/ScheduleCallPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/Search/AdvancedSearchFilters.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	17
 "../../src/pages/Search/EmptySearchView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1186,11 +1183,13 @@
 "../../src/pages/iou/request/MoneyRequestAttendeeSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/ParticipantSearchResults.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/iou/request/step/DistanceManualTabContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/iou/request/step/DynamicIOURequestStepCategoryPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/iou/request/step/DynamicIOURequestStepUpgradePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/iou/request/step/DynamicIOURequestStepUpgradePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestEditReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepCategory.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/iou/request/step/IOURequestStepDestination.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
@@ -1216,8 +1215,6 @@
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestStepWaypoint.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/StepScreenWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/confirmation/submitDismissStrategies.ts"	"no-restricted-imports"	1
@@ -1600,6 +1597,7 @@
 "../../tests/actions/ReimbursementAccountTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/actions/ReplaceOptimisticReportWithActualReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/ReportFieldTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/actions/ReportLayoutTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/ReportPreviewActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	28
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	80
@@ -1711,7 +1709,6 @@
 "../../tests/ui/WorkspaceOnboarding.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/WorkspaceTagsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/WorkspaceUpgradeTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/ui/WorkspaceWorkflowsApprovalsEditPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/WorkspaceWorkflowsPayerRowTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/YearListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/components/BaseReportActionContextMenuTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1846,7 +1843,7 @@
 "../../tests/unit/Search/SearchListRenderCountTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/Search/SearchSingleSelectionPickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	135
+"../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	133
 "../../tests/unit/Search/buildCardFilterDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	22
 "../../tests/unit/Search/buildSubstitutionsMapTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/Search/getSpendOverTimeStateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1884,7 +1881,6 @@
 "../../tests/unit/ViolationUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/unit/WhisperContentMentionContextTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/WorkflowUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
-"../../tests/unit/WorkspaceReportFieldUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/WorkspacesSettingsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../tests/unit/awaitStagingDeploysTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
@@ -1946,6 +1942,7 @@
 "../../tests/unit/hooks/useFreeTrial.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/hooks/useGettingStartedItems.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/hooks/useHasAnyAdminExpensifyCardFeed.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/unit/hooks/useHoldRejectActionsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useIsAllowedToIssueCompanyCard.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/hooks/useIsBlockedToAddFeed.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/hooks/useIsSidebarRouteActive.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
