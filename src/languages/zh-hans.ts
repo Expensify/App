@@ -7130,8 +7130,7 @@ ${reportName}
                 editRuleTitle: '编辑规则',
                 deleteRule: '删除规则',
                 deleteRuleConfirmation: '确定要删除此规则吗？',
-                describeRuleTitle: '描述你的规则',
-                describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
+                describeRuleTitle: '描述你的规则，我们会由 Concierge 为你创建.',
             },
         },
         planTypePage: {

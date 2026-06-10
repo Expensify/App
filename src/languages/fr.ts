@@ -7389,8 +7389,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
-                describeRuleTitle: 'Décrivez votre règle',
-                describeRuleSubtitle: 'Décrivez votre règle et Concierge la créera',
+                describeRuleTitle: 'Décrivez votre règle et Concierge la créera.',
             },
         },
         planTypePage: {

@@ -7361,8 +7361,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
-                describeRuleTitle: 'Beschreiben Sie Ihre Regel',
-                describeRuleSubtitle: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
+                describeRuleTitle: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie.',
             },
         },
         planTypePage: {

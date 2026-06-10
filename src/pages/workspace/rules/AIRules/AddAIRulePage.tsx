@@ -6,7 +6,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -87,10 +86,6 @@ function AddAIRulePage({
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 >
                     <View style={styles.flex1}>
-                        <View style={[styles.gap2, styles.mv4]}>
-                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.aiRules.describeRuleTitle')}</Text>
-                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.aiRules.describeRuleSubtitle')}</Text>
-                        </View>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}

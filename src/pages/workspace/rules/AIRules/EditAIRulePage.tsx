@@ -8,7 +8,6 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -133,10 +132,6 @@ function EditAIRulePage({
                     }
                 >
                     <View style={styles.flex1}>
-                        <View style={[styles.gap2, styles.mv4]}>
-                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.aiRules.describeRuleTitle')}</Text>
-                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.aiRules.describeRuleSubtitle')}</Text>
-                        </View>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
