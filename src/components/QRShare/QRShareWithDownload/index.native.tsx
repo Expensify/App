@@ -11,7 +11,7 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const qrCodeScreenshotRef = useRef<ViewShot>(null);
+    const qrCodeScreenshotRef = useRef<React.ComponentRef<typeof ViewShot>>(null);
 
     useImperativeHandle(
         ref,

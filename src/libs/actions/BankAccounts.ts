@@ -18,6 +18,7 @@ import type {
     ShareBankAccountParams,
     UnshareBankAccountParams,
     UpdatePersonalBankAccountInfoParams,
+    UploadUserKYBDocsParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -165,6 +166,7 @@ type PersonalBankAccountUpdateData = Pick<
 >;
 
 function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountUpdateData) {
+    // The BE concatenates addressStreet2 into addressStreet with a newline, so mirror that here to match the stored value.
     const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
 
     const bankAccountKey = String(bankAccountID);
@@ -188,7 +190,8 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
         companyPhone: accountData.phoneNumber,
         legalFirstName: accountData.legalFirstName,
         legalLastName: accountData.legalLastName,
-        addressStreet: formattedStreet,
+        addressStreet: accountData.addressStreet,
+        addressStreet2: accountData.addressStreet2 ?? '',
         addressCity: accountData.addressCity,
         addressState: accountData.addressState,
         addressZip: accountData.addressZipCode,
@@ -1271,6 +1274,7 @@ function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurre
         policyID,
         bankAccountID,
         shouldPreserveDraft,
+        includeUploadKYBSetupStep: true,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
@@ -1327,6 +1331,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
             ...params,
             bankAccountID,
             policyID,
+            includeUploadKYBSetupStep: true,
         },
         onyxData,
     );
@@ -1362,6 +1367,10 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
+}
+
+function uploadUserKYBDocs(parameters: UploadUserKYBDocsParams) {
+    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, getVBBADataForOnyx());
 }
 
 function openWorkspaceView(policyID: string | undefined) {
@@ -1883,4 +1892,5 @@ export {
     updatePersonalBankAccountInfo,
     initiateBankAccountUnlock,
     pressLockedBankAccount,
+    uploadUserKYBDocs,
 };

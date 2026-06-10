@@ -37,6 +37,7 @@ import {
     hasIndependentTags,
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
+    hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
@@ -248,7 +249,7 @@ describe('PolicyUtils', () => {
         const memberLogin = 'member@test.com';
         const buildPolicy = (role: Policy['role']): Policy =>
             ({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 role,
                 employeeList: {
                     [memberLogin]: {
@@ -2914,6 +2915,48 @@ describe('PolicyUtils', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
                 expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
             });
+        });
+    });
+
+    describe('hasPolicyRulesError', () => {
+        it('returns false for an undefined policy', () => {
+            expect(hasPolicyRulesError(undefined)).toBe(false);
+        });
+
+        it('returns false when no coding or AI rules exist', () => {
+            const policy: Policy = {...createRandomPolicy(0), rules: {}};
+            expect(hasPolicyRulesError(policy)).toBe(false);
+        });
+
+        it('returns false when rules exist but none have errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
+                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(false);
+        });
+
+        it('returns true when a coding rule has errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, errors: {123: 'boom'}}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(true);
+        });
+
+        it('returns true when an AI rule has errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(true);
         });
     });
 });
