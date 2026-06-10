@@ -1,7 +1,7 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information]
+keywords: [New Expensify, profile, account preferences, notifications, browser notifications, Concierge notifications, language, theme, high contrast mode, timezone, personal information]
 ---
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
@@ -79,6 +79,25 @@ To manage notification settings:
 2. Adjust the notification toggles:
    - **Receive relevant feature updates and Expensify news**
    - **Mute all sounds from Expensify**
+
+## How to enable browser notifications when Concierge responds
+
+On the Expensify web app, a banner appears at the top of the Concierge chat asking **Want to be notified when Concierge responds?** Enabling notifications lets your browser alert you when Concierge replies, even when Expensify is in another tab.
+
+To turn on browser notifications from the banner:
+1. Open the **Concierge** chat in the web app.
+2. Click **Notify** in the banner.
+3. In your browser's permission prompt, choose to allow notifications from Expensify.
+
+To dismiss the banner without enabling notifications, click **Not now**. The banner stays hidden for the rest of your session and reappears the next time you open the web app.
+
+The banner only appears in the web app, and only while your browser hasn't yet decided whether to allow notifications from Expensify. If you've already allowed or blocked notifications for the site, the banner won't appear, and you can change that choice in your browser's site settings.
+
+<!-- SCREENSHOT:
+Suggestion: Concierge chat in the web app showing the "Want to be notified when Concierge responds?" banner above the message field with the Notify and Not now buttons.
+Location: After the steps in this section.
+Purpose: Helps users recognize the banner and locate the Notify button.
+-->
 
 ## Status
 
