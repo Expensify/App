@@ -6,6 +6,7 @@ import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import createRandomPolicy from '../utils/collections/policies';
 
 const SOURCE_POLICY_ID = 'SOURCE000000000A';
@@ -137,7 +138,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 ['distanceRates', ['areDistanceRatesEnabled']],
                 ['perDiem', ['arePerDiemRatesEnabled']],
                 ['invoices', ['areInvoicesEnabled', 'invoice']],
-                ['travel', ['isTravelEnabled', 'travelSettings']],
+                ['travel', ['isTravelEnabled']],
             ])('marks %s fields pending and patches values from source', (part, expectedFields) => {
                 const sourcePolicy = makeSourcePolicy();
                 const targetPolicy = makeTargetPolicy();
@@ -165,6 +166,62 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 expect(value.areCategoriesEnabled).toEqual(targetPolicy.areCategoriesEnabled);
                 expect(value.employeeList).toEqual(targetPolicy.employeeList);
+            });
+
+            it('copies only autoAddTripName from travelSettings, never the Spotnana identity fields or terms acceptance', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    travelSettings: {
+                        spotnanaCompanyID: 'SOURCE_COMPANY',
+                        associatedTravelDomainAccountID: 'SOURCE_DOMAIN_ACCOUNT',
+                        hasAcceptedTerms: true,
+                        autoAddTripName: true,
+                    },
+                });
+                const targetPolicy = makeTargetPolicy({
+                    travelSettings: {
+                        spotnanaCompanyID: 'TARGET_COMPANY',
+                        associatedTravelDomainAccountID: 'TARGET_DOMAIN_ACCOUNT',
+                        hasAcceptedTerms: false,
+                        autoAddTripName: false,
+                    },
+                });
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {});
+                const value = findPolicyOptimistic(optimisticData)?.value as Record<string, unknown> & {travelSettings: WorkspaceTravelSettings};
+
+                // The travel toggle copies.
+                expect(value.isTravelEnabled).toBe(true);
+
+                // The non-identity preference copies from the source.
+                expect(value.travelSettings.autoAddTripName).toBe(true);
+
+                // Identity fields and terms acceptance keep the target's own values - the backend
+                // re-provisions each target with its own Spotnana entity.
+                expect(value.travelSettings.spotnanaCompanyID).toBe('TARGET_COMPANY');
+                expect(value.travelSettings.associatedTravelDomainAccountID).toBe('TARGET_DOMAIN_ACCOUNT');
+                expect(value.travelSettings.hasAcceptedTerms).toBe(false);
+            });
+
+            it('leaves target travelSettings untouched when the source has no autoAddTripName preference', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    travelSettings: {
+                        spotnanaCompanyID: 'SOURCE_COMPANY',
+                        associatedTravelDomainAccountID: 'SOURCE_DOMAIN_ACCOUNT',
+                        hasAcceptedTerms: true,
+                    },
+                });
+                const targetTravelSettings: WorkspaceTravelSettings = {
+                    spotnanaCompanyID: 'TARGET_COMPANY',
+                    associatedTravelDomainAccountID: 'TARGET_DOMAIN_ACCOUNT',
+                    hasAcceptedTerms: false,
+                    autoAddTripName: false,
+                };
+                const targetPolicy = makeTargetPolicy({travelSettings: targetTravelSettings});
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {});
+                const value = findPolicyOptimistic(optimisticData)?.value as Record<string, unknown> & {travelSettings: WorkspaceTravelSettings};
+
+                expect(value.travelSettings).toEqual(targetTravelSettings);
             });
         });
 

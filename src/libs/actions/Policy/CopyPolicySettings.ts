@@ -56,7 +56,10 @@ const PARTS_TO_POLICY_FIELDS = {
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'invoice'],
-    travel: ['isTravelEnabled', 'travelSettings'],
+    // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
+    // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
+    // and must not be copied — each target is re-provisioned with its own entity by the backend.
+    travel: ['isTravelEnabled'],
     timeTracking: [],
 } as const satisfies Record<Part, ReadonlyArray<keyof Policy>>;
 
@@ -124,6 +127,19 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
         return undefined;
     }
     return {units: {time: sourceTime}};
+}
+
+/**
+ * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
+ * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
+ * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
+ * the backend re-provisions per target. Mirrors Auth's TRAVEL_SETTINGS_COPYABLE_FIELDS allow-list.
+ */
+function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
+    if (sourcePolicy.travelSettings?.autoAddTripName === undefined) {
+        return undefined;
+    }
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourcePolicy.travelSettings.autoAddTripName}};
 }
 
 /**
@@ -199,6 +215,7 @@ function buildCopyPolicySettingsData(
     const isPerDiemSelected = parts.includes('perDiem');
     const isTimeTrackingSelected = parts.includes('timeTracking');
     const isCodingRulesSelected = parts.includes('codingRules');
+    const isTravelSelected = parts.includes('travel');
     const timeTrackingPendingFields = isTimeTrackingSelected
         ? {
               isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -233,6 +250,7 @@ function buildCopyPolicySettingsData(
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
+        const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const codingRulesPatch = isCodingRulesSelected
             ? {
                   rules: {
@@ -260,6 +278,7 @@ function buildCopyPolicySettingsData(
                           },
                       }
                     : {}),
+                ...(travelSettingsPatch ?? {}),
                 ...codingRulesPatch,
                 pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields},
             },
