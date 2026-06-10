@@ -1,14 +1,13 @@
-import type {SearchOption} from '@libs/OptionsListUtils';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import mergeAndSortPersonalDetailsWithContacts from '@pages/NewChatPage/mergeAndSortPersonalDetailsWithContacts';
-import type {PersonalDetails} from '@src/types/onyx';
 
 describe('mergeAndSortPersonalDetailsWithContacts', () => {
     it('sorts the merged set alphabetically by the personalDetailsComparator key', () => {
-        const onyx = [
-            {login: 'zara@x.com', accountID: 1, text: 'Zara'},
-            {login: 'bob@x.com', accountID: 2, text: 'Bob'},
-        ] as Array<SearchOption<PersonalDetails>>;
-        const contacts = [{login: 'aaron@x.com', accountID: 999, text: 'Aaron'}] as Array<SearchOption<PersonalDetails>>;
+        const onyx: SearchOptionData[] = [
+            {login: 'zara@x.com', accountID: 1, text: 'Zara', keyForList: '1', reportID: ''},
+            {login: 'bob@x.com', accountID: 2, text: 'Bob', keyForList: '2', reportID: ''},
+        ];
+        const contacts: SearchOptionData[] = [{login: 'aaron@x.com', accountID: 999, text: 'Aaron', keyForList: '999', reportID: ''}];
 
         const result = mergeAndSortPersonalDetailsWithContacts(onyx, contacts);
 
@@ -16,8 +15,8 @@ describe('mergeAndSortPersonalDetailsWithContacts', () => {
     });
 
     it('dedupes by login case-insensitively', () => {
-        const onyx = [{login: 'john@x.com', accountID: 1, text: 'John Onyx'}] as Array<SearchOption<PersonalDetails>>;
-        const contacts = [{login: 'JOHN@x.com', accountID: 999, text: 'John Contact'}] as Array<SearchOption<PersonalDetails>>;
+        const onyx: SearchOptionData[] = [{login: 'john@x.com', accountID: 1, text: 'John Onyx', keyForList: '1', reportID: ''}];
+        const contacts: SearchOptionData[] = [{login: 'JOHN@x.com', accountID: 999, text: 'John Contact', keyForList: '999', reportID: ''}];
 
         const result = mergeAndSortPersonalDetailsWithContacts(onyx, contacts);
 
@@ -25,8 +24,8 @@ describe('mergeAndSortPersonalDetailsWithContacts', () => {
     });
 
     it('prefers the Onyx personal-detail copy over the contact copy on a login collision', () => {
-        const onyx = [{login: 'john@x.com', accountID: 12345, text: 'John Onyx'}] as Array<SearchOption<PersonalDetails>>;
-        const contacts = [{login: 'john@x.com', accountID: 99999, text: 'John Contact'}] as Array<SearchOption<PersonalDetails>>;
+        const onyx: SearchOptionData[] = [{login: 'john@x.com', accountID: 12345, text: 'John Onyx', keyForList: '12345', reportID: ''}];
+        const contacts: SearchOptionData[] = [{login: 'john@x.com', accountID: 99999, text: 'John Contact', keyForList: '99999', reportID: ''}];
 
         const result = mergeAndSortPersonalDetailsWithContacts(onyx, contacts);
 
@@ -35,8 +34,8 @@ describe('mergeAndSortPersonalDetailsWithContacts', () => {
     });
 
     it('dedupes phone-number logins regardless of SMS-domain suffix', () => {
-        const onyx = [{login: '+12025550100@expensify.sms', accountID: 1, text: 'Phone Onyx'}] as Array<SearchOption<PersonalDetails>>;
-        const contacts = [{login: '+12025550100', accountID: 999, text: 'Phone Contact'}] as Array<SearchOption<PersonalDetails>>;
+        const onyx: SearchOptionData[] = [{login: '+12025550100@expensify.sms', accountID: 1, text: 'Phone Onyx', keyForList: '1', reportID: ''}];
+        const contacts: SearchOptionData[] = [{login: '+12025550100', accountID: 999, text: 'Phone Contact', keyForList: '999', reportID: ''}];
 
         const result = mergeAndSortPersonalDetailsWithContacts(onyx, contacts);
 
@@ -45,10 +44,10 @@ describe('mergeAndSortPersonalDetailsWithContacts', () => {
     });
 
     it('drops entries with empty login', () => {
-        const onyx = [
-            {login: '', accountID: 1, text: 'Anon'},
-            {login: 'a@x.com', accountID: 2, text: 'Alice'},
-        ] as Array<SearchOption<PersonalDetails>>;
+        const onyx: SearchOptionData[] = [
+            {login: '', accountID: 1, text: 'Anon', keyForList: '1', reportID: ''},
+            {login: 'a@x.com', accountID: 2, text: 'Alice', keyForList: '2', reportID: ''},
+        ];
 
         const result = mergeAndSortPersonalDetailsWithContacts(onyx, []);
 

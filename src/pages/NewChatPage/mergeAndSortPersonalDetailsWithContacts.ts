@@ -1,8 +1,7 @@
 import lodashUniqBy from 'lodash/uniqBy';
 import {orderPersonalDetailsOptions} from '@libs/OptionsListUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import type {PersonalDetails} from '@src/types/onyx';
 
 /**
  * Merges Onyx personal details with imported contacts, removes entries without login,
@@ -12,10 +11,7 @@ import type {PersonalDetails} from '@src/types/onyx';
  * Onyx options are placed first in the merge order, so when logins collide
  * the Onyx entry is preserved over the imported contact entry.
  */
-function mergeAndSortPersonalDetailsWithContacts(
-    allPersonalDetailOptions: Array<SearchOption<PersonalDetails>>,
-    contacts: Array<SearchOption<PersonalDetails>>,
-): Array<SearchOption<PersonalDetails>> {
+function mergeAndSortPersonalDetailsWithContacts<T extends SearchOptionData>(allPersonalDetailOptions: T[], contacts: T[]): T[] {
     const merged = [...allPersonalDetailOptions, ...contacts].filter((option) => !!option.login);
     const deduped = lodashUniqBy(merged, (option) => addSMSDomainIfPhoneNumber(option.login).toLowerCase());
     return orderPersonalDetailsOptions(deduped);

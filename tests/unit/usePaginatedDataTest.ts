@@ -120,7 +120,7 @@ describe('usePaginatedData', () => {
             act(() => result.current.loadMore());
             expect(result.current.paginatedData).toEqual(data.slice(0, 20));
 
-            rerender(undefined as never);
+            rerender(undefined);
 
             expect(result.current.paginatedData).toEqual(data.slice(0, 20));
         });
