@@ -284,7 +284,6 @@ const WRITE_COMMANDS = {
     SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_COMMUTER_EXCLUSIONS: 'SetPolicyCommuterExclusions',
     DISABLE_POLICY_COMMUTER_EXCLUSIONS: 'DisablePolicyCommuterExclusions',
-    SET_POLICY_EXPENSE_MAX_AGE: ' SetPolicyExpenseMaxAge',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
     ADD_POLICY_AI_RULE: 'AddPolicyAIRule',
     UPDATE_POLICY_AI_RULE: 'UpdatePolicyAIRule',
