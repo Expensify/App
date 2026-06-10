@@ -14,15 +14,20 @@ function createDomain(email: string, accountID: number): Domain {
         validated: true,
         accountID,
         email,
+        // Backend-provided key name; not camelCase in Onyx data.
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         domain_defaultSecurityGroupID: '0',
     };
 }
 
 function createCardList(...cards: Card[]): CardList {
-    return cards.reduce<CardList>((list, card, index) => {
-        list[`card${index}`] = card;
-        return list;
-    }, {});
+    return cards.reduce<CardList>(
+        (list, card, index) => ({
+            ...list,
+            [`card${index}`]: card,
+        }),
+        {},
+    );
 }
 
 function createAdminPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Policy {
