@@ -74,6 +74,45 @@ describe('SequentialQueue', () => {
         }
     });
 
+    it('should not block the queue when a disk write fails during persist', async () => {
+        // If a conflict-resolution disk write rejects (storage full / corruption), push() must not throw
+        // or strand isReadyPromise — the request should still flush and waitForIdle() should resolve.
+        const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
+        const originalSet = Onyx.set.bind(Onyx);
+
+        mockedFetch.pause();
+        try {
+            await SequentialQueue.push({command: 'OpenReport'}); // occupies ongoingRequest
+            await waitForBatchedUpdates();
+            await SequentialQueue.push(request); // ReconnectApp stacks in the queue
+
+            // Fail the conflict-resolution persist (a raw Onyx.set on the persisted-requests key).
+            const setMock = jest
+                .spyOn(Onyx, 'set')
+                .mockImplementation((key, value) => (key === ONYXKEYS.PERSISTED_REQUESTS ? Promise.reject(new Error('simulated disk-write failure')) : originalSet(key, value)));
+            try {
+                const replacing: Request<never> = {
+                    command: 'ReconnectApp',
+                    data: {accountID: 56789},
+                    checkAndFixConflictingRequest: (persistedRequests) => {
+                        const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
+                        return {conflictAction: index === -1 ? {type: 'push'} : {type: 'replace', index}};
+                    },
+                };
+                // The failed disk write must not reject the caller.
+                await expect(SequentialQueue.push(replacing)).resolves.toBeUndefined();
+            } finally {
+                setMock.mockRestore();
+            }
+        } finally {
+            await mockedFetch.resume();
+        }
+
+        // The queue still drains and READs unblock — a hang here would fail the test by timing out.
+        await SequentialQueue.waitForIdle();
+        expect(getLength()).toBe(0);
+    });
+
     it('should push two requests with conflict resolution and replace', async () => {
         // Pause the queue so `process()` does not consume the first request before
         // the conflict resolver runs. Under persist-before-fire `push()` is async,

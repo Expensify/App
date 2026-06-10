@@ -584,7 +584,13 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
 
     // Block until the Onyx disk commit lands so flush() → XHR cannot race the disk write —
     // a process kill in that window would lose the request on next launch.
-    await persistencePromise;
+    try {
+        await persistencePromise;
+    } catch {
+        // Backstop: persistence alerts+swallows on failure, so this shouldn't reject. If it ever does,
+        // flush anyway (the request is already in the in-memory queue) rather than stranding isReadyPromise.
+        Log.info('[SequentialQueue] Persist rejected — flushing anyway', false, {command: newRequest.command});
+    }
 
     // The network may have flipped offline while we awaited the disk write. flush() would
     // early-return on its offline check without resolving isReadyPromise, leaving READs parked
