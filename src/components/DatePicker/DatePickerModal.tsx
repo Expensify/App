@@ -64,7 +64,9 @@ function DatePickerModal({
         setSelectedDate(newValue);
     };
 
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    // Pass the CalendarPicker's existing bottom padding (pb4) as the base style so the safe-area padding is
+    // added on top of it instead of overriding it (containerStyle is applied after pb4 in CalendarPicker).
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: styles.pb4});
 
     return (
         <PopoverWithMeasuredContent
