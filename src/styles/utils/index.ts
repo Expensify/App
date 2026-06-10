@@ -1947,7 +1947,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.MCC:
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
                 columnWidth = {...getWidthStyle(variables.w92)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
                 columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
