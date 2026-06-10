@@ -83,15 +83,10 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    // When the underlying data transitions from empty to populated, reset the scroll position to the top so the first row is
-    // visible. While the list is empty its content container is stretched with flexGrow1, so in a short (landscape) viewport the
-    // empty-state content can be taller than the viewport and leave the list scrolled past the top. FlashList does not reset that
-    // offset on the empty -> populated transition, which hides the newly added first row until the user scrolls.
-    //
-    // We key off originalDataLength (the unfiltered count) rather than the processed length so that clearing a search/filter from
-    // a zero-result state does not also trigger the reset — only genuine data arriving (e.g. creating the first workspace) does.
-    // The reset is deferred to the next frame with requestAnimationFrame so it lands after FlashList has laid out the newly added
-    // first row, rather than racing the render that reveals it.
+    // When the data goes from empty to populated, reset the scroll to the top so the new first row is visible: while empty, the
+    // content container is stretched (flexGrow1), so a short/landscape viewport can leave the list scrolled past the top, and
+    // FlashList doesn't reset that offset itself. We key off originalDataLength (the unfiltered count) so that clearing a search
+    // from a zero-result state doesn't also trigger the reset, and defer a frame so the scroll lands after the new row is laid out.
     const previousOriginalDataLengthRef = useRef(originalDataLength);
     useEffect(() => {
         const previousOriginalDataLength = previousOriginalDataLengthRef.current;
