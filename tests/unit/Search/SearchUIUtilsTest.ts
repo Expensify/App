@@ -1143,6 +1143,11 @@ const transactionReportGroupListItems = [
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearFirstApproved: false,
+        firstApproved: '',
+        firstApprover: emptyPersonalDetails,
+        firstApproverAccountID: undefined,
+        formattedFirstApprover: '',
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1263,6 +1268,11 @@ const transactionReportGroupListItems = [
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearFirstApproved: false,
+        firstApproved: '',
+        firstApprover: emptyPersonalDetails,
+        firstApproverAccountID: undefined,
+        formattedFirstApprover: '',
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1389,6 +1399,11 @@ const transactionReportGroupListItems = [
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearFirstApproved: false,
+        firstApproved: '',
+        firstApprover: emptyPersonalDetails,
+        firstApproverAccountID: undefined,
+        formattedFirstApprover: '',
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1596,6 +1611,11 @@ const transactionReportGroupListItems = [
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearFirstApproved: false,
+        firstApproved: '',
+        firstApprover: emptyPersonalDetails,
+        firstApproverAccountID: undefined,
+        formattedFirstApprover: '',
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -5869,6 +5889,80 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.keyForList === rptFilterReportID);
                 expect(item?.pendingAction).toBeUndefined();
             });
+
+            it('should populate firstApprover/firstApproved from the report APPROVED action', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(approvedAt);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+                expect(item?.formattedFirstApprover).toBeTruthy();
+            });
+
+            it('should use the earliest approval action (FORWARDED before APPROVED) for the first approver', () => {
+                const forwardedAt = '2024-12-20 08:00:00';
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: approvedAt,
+                            },
+                            'forwarded-1': {
+                                reportActionID: 'forwarded-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                                actorAccountID: approverAccountID,
+                                created: forwardedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(forwardedAt);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+            });
+
+            it('should leave firstApprover/firstApproved blank when there is no approval action (no FE fallback to managerID/approved)', () => {
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, approved: '2024-12-22 09:30:00', managerID: adminAccountID},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'comment-1': {
+                                reportActionID: 'comment-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                                actorAccountID: adminAccountID,
+                                created: '2024-12-22 09:30:00',
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe('');
+                expect(item?.firstApproverAccountID).toBeUndefined();
+                expect(item?.formattedFirstApprover).toBe('');
+            });
         });
     });
 
@@ -8250,6 +8344,14 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.TABLE_COLUMNS.TITLE,
                 CONST.SEARCH.TABLE_COLUMNS.TOTAL,
             ]);
+        });
+
+        test('Should include First approver/First approved columns when selected for expense reports', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+
+            const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER);
+            expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED);
         });
 
         test('Should include Avatar when user keeps it in visible columns for expense reports', () => {

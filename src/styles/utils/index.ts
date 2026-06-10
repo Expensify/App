@@ -58,6 +58,7 @@ type GetReportTableColumnStylesParams = {
     isTaxAmountColumnWide?: boolean;
     isSubmittedColumnWide?: boolean;
     isApprovedColumnWide?: boolean;
+    isFirstApprovedColumnWide?: boolean;
     isPostedColumnWide?: boolean;
     isExportedColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
@@ -1870,6 +1871,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         const {
             isSubmittedColumnWide,
             isApprovedColumnWide,
+            isFirstApprovedColumnWide,
             isPostedColumnWide,
             isExportedColumnWide,
             isDateColumnWide,
@@ -1902,6 +1904,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
                 columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
+                columnWidth = {...getWidthStyle(isFirstApprovedColumnWide ? variables.w92 : variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.POSTED:
                 columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72)};
@@ -1981,6 +1986,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
