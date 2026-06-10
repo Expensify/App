@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
@@ -11,6 +12,7 @@ import variables from '@styles/variables';
 import {clearPendingExpenseAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportMetadata} from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
@@ -39,6 +41,8 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
     reportID?: string;
 };
 
+const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
+
 function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, isDEWSubmission, sentryLabel, reportID}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -51,8 +55,8 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
     const [minWidth, setMinWidth] = useState<number>(0);
     const [isShowingLoading, setIsShowingLoading] = useState(false);
     const viewRef = useRef<HTMLElement | null>(null);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
-    const isDEWSubmissionComplete = isDEWSubmission && isSubmittingAnimationRunning && !reportMetadata?.pendingExpenseAction;
+    const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
+    const isDEWSubmissionComplete = isDEWSubmission && isSubmittingAnimationRunning && !pendingExpenseAction;
 
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),
@@ -124,14 +128,14 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
     }, [isAnimationRunning, isShowingLoading, isDEWSubmissionComplete, isDEWSubmission]);
 
     useEffect(() => {
-        if (!isAnimationRunning || !isDEWSubmission || reportMetadata?.pendingExpenseAction !== CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED) {
+        if (!isAnimationRunning || !isDEWSubmission || pendingExpenseAction !== CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED) {
             return;
         }
         // When pending submission fails we quit to avoid showing submitted animation.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setCanShow(false);
         clearPendingExpenseAction(reportID);
-    }, [isAnimationRunning, reportMetadata?.pendingExpenseAction, reportID, isDEWSubmission]);
+    }, [isAnimationRunning, pendingExpenseAction, reportID, isDEWSubmission]);
 
     // eslint-disable-next-line react-hooks/refs
     const showLoading = isShowingLoading || (isAnimationRunning && (!viewRef.current || (isDEWSubmission && !isDEWSubmissionComplete)));
