@@ -811,7 +811,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         interactive={false}
                         description={translate('workspace.common.workspace')}
                         title={getPolicyName({report})}
-                        numberOfLinesTitle={0}
+                        numberOfLinesTitle={2}
                         shouldBreakWord
                     />
                 )}
