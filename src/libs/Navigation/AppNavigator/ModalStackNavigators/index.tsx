@@ -37,7 +37,6 @@ import type {
     RestrictedActionParamList,
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
-    SearchAdvancedFiltersParamList,
     SearchColumnsParamList,
     SearchReportActionsParamList,
     SearchSavedSearchParamList,
@@ -1222,8 +1221,9 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.EDIT_MULTIPLE_TAX_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleTaxPage').default,
 });
 
-const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
+const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersContentPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTypePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_STATUS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersStatusPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersDatePage').default,

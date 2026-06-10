@@ -1013,6 +1013,10 @@ const ROUTES = {
             return `${baseRoute}/${subPage}` as const;
         },
     },
+    SEARCH_ADVANCED_FILTERS_CONTENT: {
+        route: 'search/filters/:filterKey',
+        getRoute: (filterKey: SearchFilterKey | UserFriendlyKey) => `search/filters/${filterKey}` as const,
+    },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {

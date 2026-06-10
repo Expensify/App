@@ -53,6 +53,7 @@ const SCREENS = {
         COLUMNS_RHP: 'Search_Columns_RHP',
         REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
+        ADVANCED_FILTERS_CONTENT_RHP: 'Search_Advanced_Filters_Content_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
         ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',

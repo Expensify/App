@@ -3266,6 +3266,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             subtitle: '添加你的团队或邀请你的会计。人越多越热闹！',
         },
         workEmail2FAError: '此登录使用的是已启用双重身份验证（2FA）的现有账户。',
+        singleSignOnError: '此登录使用的是已启用 SSO/SAML 的现有账户。',
     },
     featureTraining: {
         doNotShowAgain: '不再显示此内容',
@@ -7920,6 +7921,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        applyFilters: '应用筛选条件',
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
@@ -8017,7 +8019,12 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `介于 ${greaterThan} 和 ${lessThan} 之间`;
+                    }
+                    return '之间';
+                },
                 equalTo: (amount?: string) => `等于 ${amount ?? ''}`,
             },
             card: {

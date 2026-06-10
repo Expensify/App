@@ -3242,6 +3242,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
         workEmail2FAError: 'Este inicio de sesión corresponde a una cuenta existente con la autenticación de dos factores (2FA) habilitada.',
+        singleSignOnError: 'Este inicio de sesión es una cuenta existente con SSO/SAML habilitado.',
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',
@@ -7996,6 +7997,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
+        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Restablecer filtros',
         searchResults: {
@@ -8120,7 +8122,12 @@ ${amount} para ${merchant} - ${date}`,
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
-                between: (greaterThan, lessThan) => `Entre ${greaterThan} y ${lessThan}`,
+                between: (greaterThan, lessThan) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} y ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount) => `Igual a ${amount ?? ''}`,
             },
             current: 'Actual',
