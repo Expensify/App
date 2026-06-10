@@ -2971,9 +2971,9 @@ describe('PolicyUtils', () => {
 
         it('always excludes Expensify emails', () => {
             const result = getExcludedUsers(employeeList);
-            CONST.EXPENSIFY_EMAILS.forEach((email) => {
+            for (const email of CONST.EXPENSIFY_EMAILS) {
                 expect(result[email]).toBe(true);
-            });
+            }
         });
 
         it('does not exclude a member that is pending delete', () => {
