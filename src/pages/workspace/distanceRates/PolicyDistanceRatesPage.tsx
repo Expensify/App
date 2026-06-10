@@ -436,11 +436,13 @@ function PolicyDistanceRatesPage({
                         reasonAttributes={reasonAttributes}
                     />
                 )}
-                {Object.values(customUnitRates).length > 0 && (
+                {!isLoading && (
                     <>
-                        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                        </View>
+                        {Object.values(customUnitRates).length > 0 && (
+                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                            </View>
+                        )}
                         <WorkspaceDistanceRatesTable
                             customUnitRates={customUnitRates}
                             unitTranslation={unitTranslation}

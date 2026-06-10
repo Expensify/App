@@ -30,6 +30,7 @@ type WorkspaceDistanceRatesTableProps = {
     canDisableOrDeleteRate: (rateID: string) => boolean;
     pendingAction?: OnyxCommon.PendingAction;
     pendingFields?: OnyxCommon.PendingFields<string>;
+    EmptyStateComponent?: React.ReactElement;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -51,6 +52,7 @@ function WorkspaceDistanceRatesTable({
     canDisableOrDeleteRate,
     pendingAction,
     pendingFields,
+    EmptyStateComponent,
 }: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -201,6 +203,7 @@ function WorkspaceDistanceRatesTable({
         }
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
+    const isEmpty = ratesData.length === 0;
     const shouldShowSearchBar = Object.keys(customUnitRates).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
@@ -218,9 +221,14 @@ function WorkspaceDistanceRatesTable({
             initialSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
-            <Table.Header />
-            <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
+            {isEmpty && EmptyStateComponent}
+            {!isEmpty && (
+                <>
+                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
+                    <Table.Header />
+                    <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
+                </>
+            )}
         </Table>
     );
 }
