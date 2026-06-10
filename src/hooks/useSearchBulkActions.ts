@@ -399,7 +399,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             ...new Set(
                 Object.values(selectedTransactions)
                     .map((transaction) => transaction.reportID)
-                    .filter((reportID) => reportID !== undefined),
+                    .filter((reportID): reportID is string => reportID !== undefined && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && reportID !== CONST.REPORT.TRASH_REPORT_ID),
             ),
         ],
         [selectedTransactions],
@@ -536,7 +536,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return false;
                     }
                     const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-                    return (fullReport?.transactionCount ?? 0) === 0;
+                    return !!fullReport && (fullReport.transactionCount ?? 0) === 0;
                 }) ?? [];
             const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
 
