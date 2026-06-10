@@ -1,7 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
 
-
 /**
  * Native-platform error fragments that indicate a TLS certificate-pinning failure rather than a
  * generic connectivity problem. These are surfaced through the rejected `fetch()` promise:
