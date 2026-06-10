@@ -7240,6 +7240,18 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agencias de viajes',
                 },
             },
+            aiRules: {
+                title: 'Reglas de IA',
+                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas',
+                addRule: 'Añadir regla de IA',
+                findRule: 'Buscar regla de IA',
+                addRuleTitle: 'Añadir regla',
+                describeRuleTitle: 'Describe tu regla',
+                describeRuleSubtitle: 'Describe tu regla y Concierge la creará',
+                editRuleTitle: 'Editar regla',
+                deleteRule: 'Eliminar regla',
+                deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
+            },
         },
         emptyDomain: {
             title: 'Mejora tu seguridad con dominios',
@@ -7419,7 +7431,7 @@ ${amount} para ${merchant} - ${date}`,
         updateCustomUnitDefaultCategory: (customUnitName, newValue, oldValue) =>
             `cambió la categoría predeterminada de ${customUnitName} a "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`,
         importCustomUnitRates: (customUnitName) => `importó tasas para la unidad personalizada "${customUnitName}"`,
-        addCustomUnitRate: (customUnitName, rateName) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `añadió la tasa de ${customUnitName} «${rateName}»`,
         deleteCustomUnitRate: (customUnitName, rateName) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         updateCustomUnitSubRate: (customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField) =>
             `cambió la sub-tasa "${customUnitSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}" ${updatedField} a "${newValue}" (anteriormente "${oldValue}")`,
@@ -7816,6 +7828,23 @@ ${amount} para ${merchant} - ${date}`,
                 }
             }
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `añadió la tasa «${rateName}» de ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida desde ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida hasta ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `añadió la tasa "${rateName}" de ${rateValue}, válida del ${startDate} al ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `actualizó la fecha de inicio de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})` : `establecer la fecha de inicio de la tasa "${rateName}" a ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate
+                ? `actualizó la fecha de finalización de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})`
+                : `establecer la fecha de finalización de la tasa "${rateName}" en ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `actualizó la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate} (previamente ${oldStartDate} - ${oldEndDate})`
+                : `establece la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `se eliminó la fecha de inicio de la tasa "${rateName}" (previamente ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `eliminó la fecha de finalización de la tasa «${rateName}» (previamente ${oldDate})`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
