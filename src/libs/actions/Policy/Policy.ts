@@ -1575,8 +1575,7 @@ function createPolicyExpenseChats(
     policyID: string,
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     currentUser: CurrentUser,
-    // TODO: Remove optional (?) once all is updated (https://github.com/Expensify/App/issues/66578)
-    reportActionsList?: OnyxCollection<ReportActions>,
+    reportActionsList: OnyxCollection<ReportActions>,
     hasOutstandingChildRequest = false,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
 ): WorkspaceMembersChats {

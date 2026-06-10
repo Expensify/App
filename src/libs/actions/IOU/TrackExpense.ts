@@ -2241,8 +2241,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             CONST.POLICY.ROLE.ADMIN,
             formatPhoneNumber,
             {accountID: currentUserAccountID},
-            undefined,
-            undefined,
             reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
@@ -2299,7 +2297,9 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 /**
- * Track an expense
+ * Track an expense.
+ *
+ * `params.reportActionsList` is only consumed by the `SHARE` branch.
  */
 function trackExpense(params: CreateTrackExpenseParams) {
     const {
@@ -2577,6 +2577,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+                // CATEGORIZE doesn't reach createPolicyExpenseChats, so the value isn't read.
+                reportActionsList: reportActionsList ?? {},
             };
 
             categorizeTrackedExpense(trackedExpenseParams);

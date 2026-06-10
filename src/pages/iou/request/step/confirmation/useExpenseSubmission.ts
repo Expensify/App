@@ -212,7 +212,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
-    const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
+    // Only the SHARE branch of trackExpense reads reportActionsList, so skip the filter when the user isn't sharing a tracked expense.
+    const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions(isSharingTrackExpense);
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);

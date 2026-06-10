@@ -39,8 +39,13 @@ type CreateTrackExpenseParams = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
+    /**
+     * Only consumed by the SHARE branch of `trackExpense` (forwarded into `shareTrackedExpense` →
+     * `buildAddMembersToWorkspaceOnyxData` → `createPolicyExpenseChats` to unarchive nested
+     * expense reports). SHARE-reaching callers should pass `useAllPolicyExpenseChatReportActions()`;
+     * all other callers should pass `undefined`.
+     */
+    reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

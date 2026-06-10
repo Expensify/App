@@ -1282,6 +1282,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1350,6 +1351,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1874,6 +1876,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2597,6 +2600,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
+                reportActionsList: undefined,
             });
 
             await waitForBatchedUpdates();
