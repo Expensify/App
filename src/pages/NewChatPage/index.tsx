@@ -24,6 +24,7 @@ import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedData from '@hooks/usePaginatedData';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSortedActions from '@hooks/useSortedActions';
@@ -36,6 +37,7 @@ import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/Op
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,17 +46,19 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
+import mergeAndSortPersonalDetailsWithContacts from './mergeAndSortPersonalDetailsWithContacts';
 import type SelectedOption from './types';
-import useGroupChatDraftParticipantSync from './useGroupDraftRestore';
+import useGroupChatDraftParticipantSync from './useGroupChatDraftParticipantSync';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
+const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const currentUserEmail = personalData.email ?? '';
@@ -68,31 +72,53 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
+    const isSearching = !!debouncedSearchTerm.trim();
+
     const {
         options: listOptions,
         isLoading,
-        loadMore,
-        hasMore,
+        loadMore: loadMoreReports,
+        hasMore: hasMoreFilteredOptions,
     } = useFilteredOptions({
         maxRecentReports: 500,
         enabled: didScreenTransitionEnd,
         includeP2P: true,
         batchSize: 100,
         enablePagination: true,
-        isSearching: !!debouncedSearchTerm.trim(),
+        isSearching,
         betas,
     });
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const reports = listOptions?.reports ?? [];
-    const personalDetails = listOptions?.personalDetails ?? [];
-    useGroupChatDraftParticipantSync(personalDetails, !isLoading, allPersonalDetails, loginList, currentUserEmail, currentUserAccountID, selectedOptions, setSelectedOptions);
+
+    const allPersonalDetailOptions = listOptions?.personalDetails ?? [];
+
+    // Dedupe and sort the union of Onyx personal details and imported contacts so pagination uses an alphabetical prefix.
+    const sortedPersonalDetailOptionsWithContacts = mergeAndSortPersonalDetailsWithContacts(allPersonalDetailOptions, contacts);
+
+    // usePaginatedData resets to page 1 whenever resetKey changes. Encode browse and search as "false" and "true", respectively,
+    // so that we only reset when the user enters or leaves search, not on every debounced keystroke.
+    const browsePaginationResetKey = String(isSearching);
+
+    // Limits raw personal details entering getValidOptions to reduce processing cost on initial load.
+    // Bypassed during search to avoid repeatedly calling loadMore and prevent FlashList onEndReached infinite loop.
+    const {
+        paginatedData: personalDetails,
+        loadMore: loadMorePersonalDetails,
+        hasMore: hasMorePersonalDetails,
+    } = usePaginatedData(sortedPersonalDetailOptionsWithContacts, PAGINATION_SIZE, {
+        resetKey: browsePaginationResetKey,
+        skipPagination: isSearching,
+    });
+
+    useGroupChatDraftParticipantSync(allPersonalDetailOptions, !isLoading, allPersonalDetails, loginList, currentUserEmail, currentUserAccountID, selectedOptions, setSelectedOptions);
 
     const {options: defaultOptions} = getValidOptions(
         {
             reports,
-            personalDetails: personalDetails.concat(contacts),
+            personalDetails,
         },
         allPolicies,
         draftComments,
@@ -122,6 +148,13 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
 
+    // Visual pagination — limits how many filtered personal details are passed to FlashList at once.
+    const {
+        paginatedData: paginatedFilteredPersonalDetails,
+        loadMore: loadMoreFilteredPersonalDetails,
+        hasMore: hasMoreFilteredPersonalDetails,
+    } = usePaginatedData(options.personalDetails, PAGINATION_SIZE, {resetKey: cleanSearchTerm, skipPagination: !isSearching});
+
     const headerMessage = getHeaderMessage(
         options.personalDetails.length + options.recentReports.length !== 0,
         !!options.userToInvite,
@@ -147,14 +180,27 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     }, [debouncedSearchTerm]);
 
     const handleEndReached = () => {
-        if (!hasMore || !areOptionsInitialized || !isScreenFocusedRef.current) {
+        const hasNoDataToLoad = !hasMoreFilteredPersonalDetails && !hasMorePersonalDetails && !hasMoreFilteredOptions;
+        if (hasNoDataToLoad || !areOptionsInitialized || !isScreenFocusedRef.current) {
             return;
         }
-        loadMore();
+
+        if (hasMoreFilteredPersonalDetails) {
+            loadMoreFilteredPersonalDetails();
+        }
+
+        if (hasMorePersonalDetails) {
+            loadMorePersonalDetails();
+        }
+
+        if (options.recentReports.length < CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW && hasMoreFilteredOptions) {
+            loadMoreReports();
+        }
     };
 
     return {
         ...options,
+        personalDetails: paginatedFilteredPersonalDetails,
         searchTerm,
         debouncedSearchTerm,
         setSearchTerm,

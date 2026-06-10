@@ -700,9 +700,6 @@ export {
     buildCardFeedsData,
     generateSelectedCards,
     getSelectedCardsFromFeeds,
-    createCardFeedKey,
-    getCardFeedKey,
-    getWorkspaceCardFeedKey,
     getFeedInfo,
     getLinkedPolicyName,
     getDomainFeedData,
@@ -711,5 +708,4 @@ export {
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
-    getFeedCountryForDisplay,
 };
