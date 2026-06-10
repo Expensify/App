@@ -3,18 +3,10 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {
-    animatedWideRHPWidth,
-    expandedRHPProgress,
-    secondOverlayRHPOnSuperWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
-    secondOverlayWideRHPProgress,
-    thirdOverlayProgress,
-    useWideRHPActions,
-    useWideRHPState,
-} from '@components/WideRHPContextProvider';
+import {animatedWideRHPWidth, expandedRHPProgress, secondOverlayWideRHPProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,7 +52,7 @@ function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
 }
 
 function SecondaryOverlay() {
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
+    const {shouldRenderSecondaryOverlayForWideRHP} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
 
     if (shouldRenderSecondaryOverlayForWideRHP) {
@@ -73,26 +65,8 @@ function SecondaryOverlay() {
         );
     }
 
-    if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                onPress={Navigation.dismissToPreviousRHP}
-            />
-        );
-    }
-
-    if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                onPress={Navigation.dismissToSuperWideRHP}
-            />
-        );
-    }
-
+    // PoC: a small RHP floating above a wide/super-wide pane is now a centered modal whose dim + dismiss is handled by the
+    // in-card backdrop (see ModalStackNavigators), so the docked secondary overlays for those cases are no longer rendered here.
     return null;
 }
 
@@ -106,12 +80,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const containerRef = useRef(null);
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
-    const {sidePanelOffset} = useSidePanelState();
 
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
     // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
@@ -147,6 +120,28 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // PoC: render "small" RHPs (everything except the wide/super-wide expense & report panes) as a centered modal on wide layout.
     const isCenteredModal = useIsCenteredRHPModal();
     const centeredModalStyle = useCenteredRHPModalStyle();
+
+    // PoC: true only while a small RHP is the focused centered modal floating above a wide/super-wide pane. In that state the
+    // container must span the full viewport (so the centered card isn't clipped and the wide pane card keeps its right:0
+    // position) and pass through touches on the empty area to that card's own dim overlay (see useRHPScreenOptions), which also
+    // handles dismiss - so we suppress the top-level background overlay to avoid double-dimming. When the wide pane itself is the
+    // focused top card (no centered modal above it) this is false, so we keep the legacy right-docked container and its
+    // background overlay still dismisses the wide pane.
+    const isFocusedCenteredModalOverWidePane = !isSmallScreenWidth && (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
+
+    // A wide/super-wide pane is somewhere in the stack (focused or below). Used to tell a wide pane apart from a standalone
+    // small RHP, since both are "centered modal" on wide layout per useIsCenteredRHPModal.
+    const hasWidePane = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0;
+
+    let containerLayoutStyle: StyleProp<ViewStyle> = [styles.r0, styles.h100, animatedWidthStyle];
+    if (isFocusedCenteredModalOverWidePane) {
+        // Small RHP floating above a wide/super-wide pane: full-viewport container so the centered card isn't clipped.
+        containerLayoutStyle = [styles.t0, styles.l0, styles.r0, styles.b0];
+    } else if (isCenteredModal && !hasWidePane) {
+        // Standalone small RHP (no wide pane in the stack): the container itself is the centered box. A wide pane that is the
+        // focused top card keeps the default right-docked container above.
+        containerLayoutStyle = centeredModalStyle;
+    }
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
 
@@ -213,6 +208,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
+                {/* PoC: the primary overlay is the original RHP dim, kept mounted on wide layout even while a centered modal is open
+                    above a wide pane. The centered modal adds its own second full-screen dim on top (see ModalStackNavigators index);
+                    keeping this one mounted underneath means closing the modal only fades that second dim away, so the underlying RHP
+                    dim never blinks (previously it was suppressed during the modal and re-appeared late on close, causing the blink). */}
                 {!shouldUseNarrowLayout && (
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
@@ -225,7 +224,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     ref={containerRef}
                     role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
                     aria-modal={isSmallScreenWidth ? undefined : true}
-                    style={[styles.pAbsolute, styles.overflowHidden, isCenteredModal ? centeredModalStyle : [styles.r0, styles.h100, animatedWidthStyle]]}
+                    pointerEvents={isFocusedCenteredModalOverWidePane ? 'box-none' : undefined}
+                    style={[styles.pAbsolute, styles.overflowHidden, containerLayoutStyle]}
                 >
                     <DialogLabelProvider containerRef={containerRef}>
                         <Stack.Navigator
@@ -471,13 +471,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {/* Clicking on these overlays redirects you to the RHP screen below them. */}
                 {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
                 {!shouldUseNarrowLayout && <SecondaryOverlay />}
-                {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
-                    <Overlay
-                        progress={thirdOverlayProgress}
-                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                        onPress={Navigation.dismissToPreviousRHP}
-                    />
-                )}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

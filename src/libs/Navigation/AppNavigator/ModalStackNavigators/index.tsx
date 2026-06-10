@@ -1,10 +1,14 @@
 import type {ParamListBase} from '@react-navigation/routers';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useIsCenteredRHPModal from '@libs/Navigation/AppNavigator/useIsCenteredRHPModal';
+import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import useCenteredRHPModalStyle from '@libs/Navigation/AppNavigator/useCenteredRHPModalStyle';
 import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -56,7 +60,6 @@ import type {
     WorkspaceDuplicateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,
 } from '@navigation/types';
-import variables from '@styles/variables';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -128,11 +131,23 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
+        const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
 
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         const {isSmallScreenWidth} = useResponsiveLayout();
-        const isCenteredModal = useIsCenteredRHPModal();
+
+        // PoC: a small RHP shown as a centered modal above a wide/super-wide pane fills the full-viewport RHP card. We render a
+        // single dim backdrop as a sibling of (and behind) the centered content so it dims the whole screen and catches taps in
+        // the empty area to dismiss the modal. It lives inside the modal content (taps reach it directly, no cross-card layering)
+        // and the card enters instantly (see useRHPScreenOptions) so the backdrop does not slide in.
+        const isCenteredModalOverWidePane = !isSmallScreenWidth && (wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0);
+
+        // PoC: geometry of the centered 400 box. We use it to constrain the inner navigator to that box (instead of absolutely
+        // positioning each card) so the empty area around it is NOT covered by the full-viewport, touch-capturing navigator
+        // container. Without this the backdrop sibling sits behind that container and never receives the outside press.
+        const centeredModalGeometry = useCenteredRHPModalStyle();
+        const centeredBoxStyle = useMemo<ViewStyle>(() => ({position: 'absolute', ...centeredModalGeometry, overflow: 'hidden'}), [centeredModalGeometry]);
 
         const getScreenOptions = useCallback<typeof screenOptions>(
             ({route: optionRoute}) => {
@@ -145,27 +160,49 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
             [screenOptions],
         );
 
+        const navigatorElement = (
+            <ModalStackNavigator.Navigator>
+                {Object.keys(screens as Required<Screens>).map((name) => (
+                    <ModalStackNavigator.Screen
+                        key={name}
+                        name={name}
+                        getComponent={(screens as Required<Screens>)[name as Screen]}
+                        // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
+                        options={getScreenOptions}
+                    />
+                ))}
+            </ModalStackNavigator.Navigator>
+        );
+
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
-            // PoC: when shown as a centered modal it is widened to the centered-modal width, so the content card (which measures
-            // this container) renders at the centered size instead of the default sideBarWidth.
+            // PoC: on wide layout every modal stack is a "small" RHP shown as a centered modal. The legacy container docks itself
+            // to the right edge (right:0 / position:fixed); for a centered modal we instead fill the (already centered & clipped)
+            // content card so the RHP doesn't get pulled back to the right edge. On narrow layout it keeps the legacy full-width behavior.
             <View
-                style={[styles.modalStackNavigatorContainer, isCenteredModal ? {width: variables.rhpCenteredModalWidth} : styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}
+                style={[styles.modalStackNavigatorContainer, isSmallScreenWidth ? styles.modalStackNavigatorContainerWidth(isSmallScreenWidth) : styles.modalStackNavigatorContainerCentered]}
+                // PoC: on wide layout the centered modal fills the full-viewport RHP card. Pass through touches on the empty area
+                // around the centered content so they reach the dim backdrop (which dismisses the modal); the centered box itself
+                // still captures its own touches. On narrow layout the RHP is full-width and must capture everything.
+                pointerEvents={isSmallScreenWidth ? undefined : 'box-none'}
                 accessibilityViewIsModal={isSmallScreenWidth}
                 aria-modal={isSmallScreenWidth || undefined}
                 role={isSmallScreenWidth ? 'dialog' : undefined}
             >
-                <ModalStackNavigator.Navigator>
-                    {Object.keys(screens as Required<Screens>).map((name) => (
-                        <ModalStackNavigator.Screen
-                            key={name}
-                            name={name}
-                            getComponent={(screens as Required<Screens>)[name as Screen]}
-                            // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
-                            options={getScreenOptions}
-                        />
-                    ))}
-                </ModalStackNavigator.Navigator>
+                {isCenteredModalOverWidePane ? (
+                    <>
+                        {/* PoC: second full-screen dim, added on top of everything (including the wide pane and the primary RHP
+                            overlay below) only while the centered modal is open. It fades in/out with the card animation and catches
+                            outside presses to dismiss the modal. The primary RHP overlay (see RightModalNavigator) stays mounted
+                            underneath, so closing this modal only fades this dim away and never blinks the underlying RHP dim. */}
+                        <Overlay onPress={() => Navigation.dismissToPreviousRHP()} />
+                        {/* PoC: constrains the inner navigator to the centered 400 box so it does not blanket the viewport with a
+                            touch-capturing container. The box captures its own touches; everything outside falls to the overlay. */}
+                        <View style={centeredBoxStyle}>{navigatorElement}</View>
+                    </>
+                ) : (
+                    navigatorElement
+                )}
             </View>
         );
     }
