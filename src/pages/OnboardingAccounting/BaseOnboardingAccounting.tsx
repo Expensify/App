@@ -87,6 +87,10 @@ const integrations: Integration[] = [
     },
 ];
 
+function isIntegrationKey(integrationKey: OnboardingAccounting | undefined): integrationKey is Integration['key'] {
+    return integrations.some((integration) => integration.key === integrationKey);
+}
+
 type OnboardingListItem = ListItem & {
     keyForList: AccountingOptionKey;
 };
@@ -117,10 +121,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [onboardingFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING, {isAccountingEnabled: true});
 
-    const isKnownIntegration = integrations.some((integration) => integration.key === onboardingUserReportedIntegration);
+    const isKnownIntegration = isIntegrationKey(onboardingUserReportedIntegration);
     let initialSelectedIntegration: AccountingOptionKey | undefined;
     if (isKnownIntegration) {
-        initialSelectedIntegration = onboardingUserReportedIntegration as AccountingOptionKey;
+        initialSelectedIntegration = onboardingUserReportedIntegration;
     } else if (onboardingUserReportedIntegration) {
         initialSelectedIntegration = 'other';
     }

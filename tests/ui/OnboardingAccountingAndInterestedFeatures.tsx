@@ -1,3 +1,5 @@
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -14,6 +16,8 @@ import BaseOnboardingInterestedFeatures from '@pages/OnboardingInterestedFeature
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {OnboardingModalNavigatorParamList} from '@src/libs/Navigation/types';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -31,36 +35,51 @@ jest.mock('@hooks/useCompleteOnboarding', () => () => ({
 
 TestHelper.setupGlobalFetchMock();
 
+const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 const navigate = jest.spyOn(Navigation, 'navigate');
 const goBack = jest.spyOn(Navigation, 'goBack');
 jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
 
 function renderInterestedFeaturesPage(backTo = '') {
-    const route = {params: {backTo}} as React.ComponentProps<typeof BaseOnboardingInterestedFeatures>['route'];
-    const navigation = {} as React.ComponentProps<typeof BaseOnboardingInterestedFeatures>['navigation'];
-
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
-            <BaseOnboardingInterestedFeatures
-                shouldUseNativeStyles={false}
-                route={route}
-                navigation={navigation}
-            />
+            <NavigationContainer>
+                <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
+                    <Stack.Screen
+                        name={SCREENS.ONBOARDING.INTERESTED_FEATURES}
+                        initialParams={{backTo}}
+                    >
+                        {(props) => (
+                            <BaseOnboardingInterestedFeatures
+                                {...props}
+                                shouldUseNativeStyles={false}
+                            />
+                        )}
+                    </Stack.Screen>
+                </Stack.Navigator>
+            </NavigationContainer>
         </ComposeProviders>,
     );
 }
 
 function renderAccountingPage(backTo = '') {
-    const route = {params: {backTo}} as React.ComponentProps<typeof BaseOnboardingAccounting>['route'];
-    const navigation = {} as React.ComponentProps<typeof BaseOnboardingAccounting>['navigation'];
-
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
-            <BaseOnboardingAccounting
-                shouldUseNativeStyles={false}
-                route={route}
-                navigation={navigation}
-            />
+            <NavigationContainer>
+                <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.ACCOUNTING}>
+                    <Stack.Screen
+                        name={SCREENS.ONBOARDING.ACCOUNTING}
+                        initialParams={{backTo}}
+                    >
+                        {(props) => (
+                            <BaseOnboardingAccounting
+                                {...props}
+                                shouldUseNativeStyles={false}
+                            />
+                        )}
+                    </Stack.Screen>
+                </Stack.Navigator>
+            </NavigationContainer>
         </ComposeProviders>,
     );
 }
@@ -76,7 +95,16 @@ describe('Onboarding interested features and accounting pages', () => {
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: true,
+            isExtraLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: false,
+            onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
+        } satisfies ResponsiveLayoutResult);
     });
 
     afterEach(async () => {
