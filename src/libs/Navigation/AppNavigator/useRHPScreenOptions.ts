@@ -8,7 +8,7 @@ import {isSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types/NavigationOptions';
-import {useCenteredRHPModalState} from './useIsCenteredRHPModal';
+import useCenteredRHPModalState from './useCenteredRHPModalState';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
 // This function is necessary for proper animation if a wide format RHP screen is visible.
