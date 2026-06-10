@@ -282,7 +282,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 dataSet={{dragArea: true}}
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
-                <View style={[styles.appContentHeader, styles.pr5]}>
+                <View style={[styles.appContentHeader, styles.pr5, {height: 64}]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView
                             onBackButtonPress={onNavigationMenuButtonClicked}
@@ -293,7 +293,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                             {shouldShowBackButton && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
-                                    style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5]}
+                                    style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5, {height: 64}]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}
                                     role={CONST.ROLE.BUTTON}

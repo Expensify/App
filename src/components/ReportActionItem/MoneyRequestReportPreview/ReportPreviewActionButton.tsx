@@ -16,7 +16,6 @@ import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyU
 import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {getAddExpenseDropdownOptions} from '@libs/ReportUtils';
-import variables from '@styles/variables';
 import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -205,6 +204,7 @@ function ReportPreviewActionButton({
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('iou.addExpense')}
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     options={getAddExpenseDropdownOptions({
                         translate,
                         icons: expensifyIcons,
@@ -231,6 +231,7 @@ function ReportPreviewActionButton({
 
         return (
             <Button
+                large
                 text={translate('common.view')}
                 onPress={openReportFromPreview}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
@@ -238,7 +239,7 @@ function ReportPreviewActionButton({
         );
     };
 
-    return <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{renderButton()}</View>;
+    return <View style={[buttonMaxWidth, styles.flex1, {height: 44}]}>{renderButton()}</View>;
 }
 
 export default ReportPreviewActionButton;

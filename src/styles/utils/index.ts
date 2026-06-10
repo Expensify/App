@@ -1153,7 +1153,7 @@ function getSelectionButtonPressableStyle(borderRadius = 6): ViewStyle {
 function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
         return {
-            height: variables.componentSizeLarge,
+            height: 44,
         };
     }
 

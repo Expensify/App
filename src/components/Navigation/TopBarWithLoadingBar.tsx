@@ -17,6 +17,7 @@ function TopBarWithLoadingBar({
     children,
     shouldDisplayAccountAvatar,
     isAccountAvatarSelected,
+    shouldRemoveHorizontalMargin,
 }: TopBarWithLoadingBarProps) {
     const shouldShowLoadingBar = useLoadingBarVisibility();
     return (
@@ -28,6 +29,7 @@ function TopBarWithLoadingBar({
             shouldShowLoadingBar={shouldShowLoadingBar}
             shouldDisplayAccountAvatar={shouldDisplayAccountAvatar}
             isAccountAvatarSelected={isAccountAvatarSelected}
+            shouldRemoveHorizontalMargin={shouldRemoveHorizontalMargin}
         >
             {children}
         </TopBar>

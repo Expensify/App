@@ -2,7 +2,7 @@ import type {NavigatorScreenParams} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
+import {Animated, DeviceEventEmitter, InteractionManager, Platform} from 'react-native';
 import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {
@@ -219,7 +219,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     ref={containerRef}
                     role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
                     aria-modal={isSmallScreenWidth ? undefined : true}
-                    style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                    style={[
+                        styles.pAbsolute,
+                        styles.r0,
+                        styles.h100,
+                        styles.overflowHidden,
+                        animatedWidthStyle,
+                        Platform.OS === 'web' && !shouldUseNarrowLayout && {borderTopLeftRadius: 16, borderBottomLeftRadius: 16},
+                    ]}
                 >
                     <DialogLabelProvider containerRef={containerRef}>
                         <Stack.Navigator

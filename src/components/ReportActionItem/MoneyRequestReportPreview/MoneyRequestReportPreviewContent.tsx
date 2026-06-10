@@ -666,7 +666,7 @@ function MoneyRequestReportPreviewContent({
                                                 <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                     <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                         <Text
-                                                            style={[styles.headerText]}
+                                                            style={[styles.headerText, styles.textStrong]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
                                                             {getReportName(iouReport, reportAttributes) || action.childReportName}

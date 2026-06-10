@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+import {useTableContext} from '@components/Table/TableContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,9 +48,10 @@ type WorkspaceRowData = {
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
+    children: React.ReactNode;
 };
 
-export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTableProps) {
+function WorkspaceListTable({ref, workspaces, children}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -107,11 +109,40 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
-            <Table.Header />
-            <Table.Body />
+            {children}
         </Table>
     );
 }
 
+function WorkspaceListTableContent() {
+    return (
+        <>
+            <Table.Header />
+            <Table.Body />
+        </>
+    );
+}
+
+function WorkspaceListTableSearchBar() {
+    const {translate} = useLocalize();
+    const {originalDataLength} = useTableContext();
+
+    if (originalDataLength < CONST.STANDARD_LIST_ITEM_LIMIT) {
+        return null;
+    }
+
+    return (
+        <Table.SearchBar
+            compact
+            label={translate('workspace.common.findWorkspace')}
+        />
+    );
+}
+
+const WorkspaceListTableCompound = Object.assign(WorkspaceListTable, {
+    Content: WorkspaceListTableContent,
+    SearchBar: WorkspaceListTableSearchBar,
+});
+
+export default WorkspaceListTableCompound;
 export type {WorkspaceRowData, WorkspaceTableColumnKey};

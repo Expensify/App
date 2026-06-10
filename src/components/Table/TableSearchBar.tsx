@@ -37,9 +37,12 @@ type TableSearchBarProps = {
 
     /** Optional style for the search bar container. */
     style?: StyleProp<ViewStyle>;
+
+    /** When true, renders the compact (short, bordered) variant of the search input. */
+    compact?: boolean;
 };
 
-function TableSearchBar({label, style}: TableSearchBarProps) {
+function TableSearchBar({label, style, compact}: TableSearchBarProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const {
         activeSearchString,
@@ -50,6 +53,7 @@ function TableSearchBar({label, style}: TableSearchBarProps) {
         <SearchBar
             label={label}
             style={style}
+            compact={compact}
             inputValue={activeSearchString}
             icon={activeSearchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
             onChangeText={(text) => updateSearchString(text)}

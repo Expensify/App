@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -102,15 +103,25 @@ function TabNavigator() {
     }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
 
     const barHeight = shouldUseNarrowLayout ? 0 : GLOBAL_NAV_BAR_HEIGHT;
+    const sceneStyle = shouldUseNarrowLayout
+        ? {flex: 1, backgroundColor: theme.appBG, paddingTop: barHeight}
+        : {
+              flex: 1,
+              backgroundColor: theme.appBG,
+              paddingTop: barHeight,
+              borderTopLeftRadius: 16,
+              borderBottomLeftRadius: 16,
+              overflow: 'hidden' as const,
+          };
     const screenOptions = {
         ...TAB_SCREEN_OPTIONS_BASE,
-        sceneStyle: {flex: 1, backgroundColor: theme.appBG, paddingTop: barHeight},
+        sceneStyle,
         tabBarPosition: shouldUseNarrowLayout ? ('bottom' as const) : ('left' as const),
     };
 
     return (
         <GlobalNavBarHeightContext.Provider value={barHeight}>
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, backgroundColor: shouldUseNarrowLayout ? undefined : theme.hoverLight}}>
                 <Tab.Navigator
                     backBehavior="fullHistory"
                     tabBar={renderTabBar}
@@ -141,6 +152,22 @@ function TabNavigator() {
                         component={WorkspaceNavigatorScreen}
                     />
                 </Tab.Navigator>
+                {!shouldUseNarrowLayout && (
+                    <View
+                        pointerEvents="none"
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            bottom: 0,
+                            left: variables.navigationTabBarSize,
+                            right: 0,
+                            borderTopLeftRadius: 16,
+                            borderBottomLeftRadius: 16,
+                            boxShadow: theme.shadow,
+                            zIndex: 5,
+                        }}
+                    />
+                )}
                 {!shouldUseNarrowLayout && <GlobalNavBar />}
             </View>
         </GlobalNavBarHeightContext.Provider>

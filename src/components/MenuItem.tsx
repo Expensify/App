@@ -671,7 +671,8 @@ function MenuItem({
             styles.popoverMenuText,
             // eslint-disable-next-line no-nested-ternary
             shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
-            focused ? styles.textStrong : {},
+            // eslint-disable-next-line no-nested-ternary
+            focused ? styles.textStrong : shouldUseSidebarSelectionStyle ? {color: theme.textSupporting} : {},
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,

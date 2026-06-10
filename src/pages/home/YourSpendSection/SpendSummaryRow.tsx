@@ -105,10 +105,10 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
                 onPress={onPress}
                 shouldShowRightIcon
                 leftComponent={
-                    <View style={styles.getWidgetItemIconContainerStyle(theme.hoverComponentBG)}>
+                    <View style={styles.getWidgetItemIconContainerStyle(theme.reportStatusBadge.approved.backgroundColor)}>
                         <Icon
                             src={iconSrc}
-                            fill={theme.icon}
+                            fill={theme.reportStatusBadge.approved.textColor}
                             width={variables.iconSizeNormal}
                             height={variables.iconSizeNormal}
                         />

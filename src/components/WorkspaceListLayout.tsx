@@ -7,6 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -19,9 +20,10 @@ import TabSelectorBase from './TabSelector/TabSelectorBase';
 type WorkspaceListLayoutProps = PropsWithChildren<{
     headerButton?: React.ReactNode;
     activeTabKey: 'workspaces' | 'domains';
+    searchInput?: React.ReactNode;
 }>;
 
-export default function WorkspaceListLayout({children, activeTabKey, headerButton}: WorkspaceListLayoutProps) {
+export default function WorkspaceListLayout({children, activeTabKey, headerButton, searchInput}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -75,21 +77,27 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
                         shouldDisplayAccountAvatar
+                        shouldRemoveHorizontalMargin
                     >
-                        <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
+                        {!shouldDisplayButtonsInSeparateLine && headerButton}
                     </TopBarWithLoadingBar>
 
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
-                        <TabSelectorBase
-                            tabs={navigationOptions}
-                            activeTabKey={activeTabKey}
-                            onTabPress={onTabPress}
-                        />
-                        {shouldDisplayButtonsInSeparateLine && headerButton}
-                    </View>
+                    <View style={[styles.flex1, {width: '100%', maxWidth: variables.contentMaxWidth, alignSelf: 'center'}]}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pr5, styles.pt1, styles.pb2]}>
+                            <TabSelectorBase
+                                tabs={navigationOptions}
+                                activeTabKey={activeTabKey}
+                                onTabPress={onTabPress}
+                            />
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                {searchInput}
+                                {shouldDisplayButtonsInSeparateLine && headerButton}
+                            </View>
+                        </View>
 
-                    {children}
-                    {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
+                        {children}
+                        {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
+                    </View>
                 </View>
             </View>
         </ScreenWrapper>

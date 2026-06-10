@@ -19,10 +19,19 @@ function DateIcon({date}: DateIconProps) {
     const dayNumber = format(parsedDate, 'd');
     const StyleUtils = useStyleUtils();
 
+    const textColorStyle = StyleUtils.getColorStyle(theme.reportStatusBadge.closed.textColor);
     return (
-        <View style={[styles.br2, styles.alignItemsCenter, styles.justifyContentCenter, styles.dateIconSize, StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG)]}>
-            <Text style={[styles.textMicro, styles.textSupporting]}>{monthAbbr}</Text>
-            <Text style={[styles.textStrong, styles.fontSizeNormal, styles.textSupporting]}>{dayNumber}</Text>
+        <View
+            style={[
+                styles.br2,
+                styles.alignItemsCenter,
+                styles.justifyContentCenter,
+                styles.dateIconSize,
+                StyleUtils.getBackgroundColorStyle(theme.reportStatusBadge.closed.backgroundColor),
+            ]}
+        >
+            <Text style={[styles.textMicro, textColorStyle]}>{monthAbbr}</Text>
+            <Text style={[styles.textStrong, styles.fontSizeNormal, textColorStyle]}>{dayNumber}</Text>
         </View>
     );
 }

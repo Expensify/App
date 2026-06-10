@@ -231,6 +231,7 @@ function PayActionButton({
             confirmApproval={confirmApproval}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
+            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             kycWallAnchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

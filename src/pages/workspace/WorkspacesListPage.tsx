@@ -677,31 +677,34 @@ function WorkspacesListPage() {
     useAndroidBackButtonHandler(onBackButtonPress);
 
     return (
-        <WorkspaceListLayout
-            activeTabKey="workspaces"
-            headerButton={headerButton}
+        <WorkspaceListTable
+            ref={tableRef}
+            workspaces={workspaceRows}
         >
-            {shouldShowLoadingIndicator ? (
-                <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacesListPage',
-                                isOffline,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
-                    />
-                </View>
-            ) : (
-                <WorkspaceListTable
-                    ref={tableRef}
-                    workspaces={workspaceRows}
-                />
-            )}
-            {outstandingBalanceModal}
-            <CopyPolicySettingsProgressModal />
-        </WorkspaceListLayout>
+            <WorkspaceListLayout
+                activeTabKey="workspaces"
+                headerButton={headerButton}
+                searchInput={!shouldShowLoadingIndicator && <WorkspaceListTable.SearchBar />}
+            >
+                {shouldShowLoadingIndicator ? (
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspacesListPage',
+                                    isOffline,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
+                    </View>
+                ) : (
+                    <WorkspaceListTable.Content />
+                )}
+                {outstandingBalanceModal}
+                <CopyPolicySettingsProgressModal />
+            </WorkspaceListLayout>
+        </WorkspaceListTable>
     );
 }
 

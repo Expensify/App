@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SettlementButton from '.';
 import type SettlementButtonProps from './types';
@@ -38,7 +37,7 @@ function AnimatedSettlementButton({
     const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);
-    const height = useSharedValue<number>(variables.componentSizeNormal);
+    const height = useSharedValue<number>(44);
     const [canShow, setCanShow] = useState(true);
     const [minWidth, setMinWidth] = useState<number>(0);
 
@@ -53,7 +52,7 @@ function AnimatedSettlementButton({
     const finishAnimationAndReset = () => {
         setMinWidth(0);
         setCanShow(true);
-        height.set(variables.componentSizeNormal);
+        height.set(44);
         buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
         onAnimationFinish();
     };
@@ -115,6 +114,7 @@ function AnimatedSettlementButton({
                     exiting={buttonAnimation}
                 >
                     <Button
+                        large
                         text={isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}
                         success
                         icon={icon}

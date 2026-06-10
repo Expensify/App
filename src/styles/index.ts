@@ -743,8 +743,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             width: variables.navigationTabBarSize,
             justifyContent: 'space-between',
-            borderRightWidth: 1,
-            borderRightColor: theme.borderLight,
             backgroundColor: theme.hoverLight,
         },
 
@@ -827,8 +825,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
-            minHeight: variables.componentSizeLarge,
-            minWidth: variables.componentSizeLarge,
+            minHeight: 44,
+            minWidth: 44,
             paddingHorizontal: 20,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -5887,6 +5885,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: animatedWideRHPWidth,
+            borderTopLeftRadius: 16,
+            borderBottomLeftRadius: 16,
+            overflow: 'hidden',
         },
 
         superWideRHPExtendedCardInterpolatorStyles: {
@@ -5894,6 +5895,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: animatedSuperWideRHPWidth,
+            borderTopLeftRadius: 16,
+            borderBottomLeftRadius: 16,
+            overflow: 'hidden',
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
@@ -5901,6 +5905,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: variables.sideBarWidth,
+            borderTopLeftRadius: 16,
+            borderBottomLeftRadius: 16,
+            overflow: 'hidden',
         },
 
         flexibleHeight: {
@@ -6030,6 +6037,14 @@ const staticStyles = (theme: ThemeColors) =>
         searchBarMargin: {
             marginHorizontal: 20,
             marginBottom: 20,
+        },
+        searchBarCompactWrapper: {
+            height: variables.searchBarCompactHeight,
+            width: variables.searchBarCompactWidth,
+        },
+        searchBarCompactInput: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: undefined,
         },
         loadingMessage: {
             alignItems: 'center',

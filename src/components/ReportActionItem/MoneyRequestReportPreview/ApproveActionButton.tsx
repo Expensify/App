@@ -78,6 +78,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
 
     return (
         <Button
+            large
             text={translate('iou.approve')}
             success
             onPress={confirmApproval}

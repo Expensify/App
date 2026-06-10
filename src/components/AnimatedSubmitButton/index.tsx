@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -37,7 +36,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
     const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_SUBMITTED_DURATION;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);
-    const height = useSharedValue<number>(variables.componentSizeNormal);
+    const height = useSharedValue<number>(44);
     const [canShow, setCanShow] = useState(true);
     const [minWidth, setMinWidth] = useState<number>(0);
     const [isShowingLoading, setIsShowingLoading] = useState(false);
@@ -82,7 +81,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
             setMinWidth(0);
             setCanShow(true);
             setIsShowingLoading(false);
-            height.set(variables.componentSizeNormal);
+            height.set(44);
             buttonMarginTop.set(0);
             return;
         }
@@ -119,6 +118,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                     exiting={buttonAnimation}
                 >
                     <Button
+                        large
                         success={success}
                         text={showLoading ? text : translate('common.submitted')}
                         isLoading={showLoading}
@@ -130,6 +130,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
             )}
             {!isAnimationRunning && (
                 <Button
+                    large
                     success={success}
                     text={text}
                     onPress={onPress}

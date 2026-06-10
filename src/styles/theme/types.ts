@@ -39,6 +39,8 @@ type ThemeColors = {
     buttonHoveredBG: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
+    buttonSecondarySuccessBG: Color;
+    buttonSecondarySuccessHoveredBG: Color;
     danger: Color;
     dangerHover: Color;
     dangerPressed: Color;
