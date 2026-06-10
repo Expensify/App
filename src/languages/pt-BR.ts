@@ -2217,12 +2217,12 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: 'Bloquear conta',
         lockMyAccount: 'Bloquear minha conta',
         unlockAccount: 'Desbloquear conta',
-        findYourSituation: 'A maioria dos problemas não exige o bloqueio da sua conta! Encontre a sua situação abaixo:',
+        findYourSituation: 'A maioria dos problemas não exige bloquear sua conta! Encontre sua situação abaixo:',
         lostCardOrCharges:
-            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Cartão perdido ou cobranças desconhecidas</a>: Cancele seu cartão e entre em contato com o Concierge para contestar transações desconhecidas.',
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Cartão perdido ou cobranças desconhecidas</a>: Cancele seu cartão e contate o Concierge para contestar transações desconhecidas.',
         unauthorizedAccess:
-            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Acesso não autorizado à conta</a>: Bloqueie sua conta abaixo. Isso impede novas transações com o Cartão Expensify, pedidos de cartão e alterações na conta. Se você for um admin de domínio, isso também pausa toda a atividade de cartão e ações de administração em todo o domínio.',
-        securityTeamFollowUp: 'Nossa equipe de segurança entrará em contato pelo <a href="mailto:risk@expensify.com">risk@expensify.com</a> após o bloqueio.',
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Acesso não autorizado à conta</a>: Bloqueie sua conta abaixo. Isso bloqueia novas transações com o Cartão Expensify, pedidos de cartão e alterações na conta. Se você for admin de domínio, isso também pausa toda a atividade de cartões em todo o domínio e as ações de admin.',
+        securityTeamFollowUp: 'Nossa equipe de segurança vai entrar em contato a partir de <a href="mailto:risk@expensify.com">risk@expensify.com</a> após o bloqueio.',
         areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
         onceLocked: 'Depois de bloqueada, sua conta ficará restrita até que seja feita uma solicitação de desbloqueio e uma revisão de segurança',
         unlockTitle: 'Recebemos sua solicitação',
