@@ -247,21 +247,10 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {
-        headerMessage,
-        searchTerm,
-        debouncedSearchTerm,
-        handleEndReached,
-        setSearchTerm,
-        selectedOptions,
-        setSelectedOptions,
-        recentReports,
-        personalDetails,
-        userToInvite,
-        areOptionsInitialized,
-    } = useOptions(reportAttributesDerived);
+    const {headerMessage, searchTerm, handleEndReached, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
+        useOptions(reportAttributesDerived);
 
-    // Selected rows are marked in place by getValidOptions (isSelected/selected), so the checkmark stays with the row instead of jumping to the top.
+    // Selected rows are marked in place by getValidOptions (isSelected), so the checkmark stays with the row instead of jumping to the top.
     const recentReportsData = selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports;
 
     const sections: Array<Section<OptionWithKey>> = [];
