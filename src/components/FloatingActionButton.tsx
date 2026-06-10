@@ -41,7 +41,7 @@ type FloatingActionButtonProps = WithSentryLabel & {
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
-    const {buttonSecondarySuccessBG, buttonSecondarySuccessHoveredBG, buttonSuccessText} = useTheme();
+    const {success, successHover, buttonSuccessText} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
@@ -65,10 +65,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     }, [isActive, sharedValue]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor =
-            isHovered.get() && !sharedValue.get()
-                ? buttonSecondarySuccessHoveredBG
-                : interpolateColor(sharedValue.get(), [0, 1], [buttonSecondarySuccessBG, buttonSecondarySuccessHoveredBG]);
+        const backgroundColor = isHovered.get() && !sharedValue.get() ? successHover : interpolateColor(sharedValue.get(), [0, 1], [success, successHover]);
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],

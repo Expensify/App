@@ -39,7 +39,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
-    const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
+    const anchorPosition = styles.createMenuPositionSidebar(windowHeight, !shouldUseNarrowLayout);
     const [contentActivityMode, setContentActivityMode] = useState<ActivityProps['mode']>(isVisible ? 'visible' : 'hidden');
 
     const [registeredSet, setRegisteredSet] = useState<ReadonlySet<string>>(new Set());
@@ -109,7 +109,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 anchorRef={anchorRef}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    vertical: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM : CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 onClose={handleClose}
                 isVisible={isVisible}

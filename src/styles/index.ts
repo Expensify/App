@@ -6293,12 +6293,13 @@ const dynamicStyles = (theme: ThemeColors) =>
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
             }) satisfies ViewStyle,
 
-        createMenuPositionSidebar: (windowHeight: number) =>
+        createMenuPositionSidebar: (windowHeight: number, isFabAtTop: boolean) =>
             ({
                 horizontal: 16,
-                // Menu should be displayed 8px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (16px) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (8px)
-                vertical: windowHeight - 16 - variables.componentSizeNormal - 8,
+                // Wide layout: FAB sits in a navigationTabBarSize (72) slot at the top of the sidebar, centered with pv4 padding.
+                // Bottom of the FAB icon is at navigationTabBarSize - 16 (pv4 padding) = 56px, plus an 8px gap below it.
+                // Narrow layout: FAB is at the bottom; the menu opens above it.
+                vertical: isFabAtTop ? variables.navigationTabBarSize - 16 + 8 : windowHeight - 16 - variables.componentSizeNormal - 8,
             }) satisfies AnchorPosition,
 
         createMenuPositionSearchBar: (windowHeight: number) =>

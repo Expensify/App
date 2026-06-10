@@ -22,6 +22,7 @@ import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -139,21 +140,9 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     testID="NavigationTabBar"
                 >
                     <View style={styles.flex1}>
-                        <PressableWithFeedback
-                            role={CONST.ROLE.LINK}
-                            accessibilityLabel={translate('common.home')}
-                            accessible
-                            testID="ExpensifyLogoButton"
-                            onPress={navigateToNewDotHome}
-                            wrapperStyle={styles.leftNavigationTabBarItem}
-                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
-                        >
-                            <ImageSVG
-                                style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
-                                src={expensifyIcons.ExpensifyAppIcon}
-                                aria-hidden
-                            />
-                        </PressableWithFeedback>
+                        <View style={{height: variables.navigationTabBarSize}}>
+                            <NavigationTabBarFloatingActionButton />
+                        </View>
                         <PressableWithFeedback
                             onPress={navigateToNewDotHome}
                             role={CONST.ROLE.TAB}
@@ -214,9 +203,21 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             isWideLayout
                         />
                     </View>
-                    <View style={styles.leftNavigationTabBarFAB}>
-                        <NavigationTabBarFloatingActionButton />
-                    </View>
+                    <PressableWithFeedback
+                        role={CONST.ROLE.LINK}
+                        accessibilityLabel={translate('common.home')}
+                        accessible
+                        testID="ExpensifyLogoButton"
+                        onPress={navigateToNewDotHome}
+                        wrapperStyle={styles.leftNavigationTabBarItem}
+                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
+                    >
+                        <ImageSVG
+                            style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
+                            src={expensifyIcons.ExpensifyAppIcon}
+                            aria-hidden
+                        />
+                    </PressableWithFeedback>
                 </View>
             </>
         );
