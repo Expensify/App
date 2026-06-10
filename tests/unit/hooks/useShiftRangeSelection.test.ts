@@ -470,6 +470,36 @@ describe('useShiftRangeSelection', () => {
         });
     });
 
+    describe('notifyRange', () => {
+        it('lets the next shift+click collapse the range Excel-style', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyRange(ROWS[0], ROWS[4]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
+        });
+
+        it('reports the anchor through getAnchorKey', () => {
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
+            act(() => result.current.notifyRange(ROWS[1], ROWS[4]));
+            expect(result.current.getAnchorKey()).toBe('b');
+        });
+
+        it('falls back to a fresh range when a follow-up notifyAnchor lands inside', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyRange(ROWS[0], ROWS[4]));
+            act(() => result.current.notifyAnchor(ROWS[2]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[3], {shiftKey: true});
+            });
+            // notifyAnchor resets prevEnd, so no Excel collapse from the prior range.
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
+        });
+    });
+
     describe('additive shift+click', () => {
         it('extends without emitting toDeselect when the additive modifier is set', () => {
             const onApplyRange = makeApplyMock();

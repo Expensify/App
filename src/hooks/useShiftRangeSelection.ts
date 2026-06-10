@@ -15,6 +15,7 @@ type Params<TItem> = {
 type Api<TItem> = {
     applyShiftClick: (item: TItem, options?: Partial<Modifiers>) => boolean;
     notifyAnchor: (item: TItem) => void;
+    notifyRange: (anchor: TItem, end: TItem) => void;
     clearAnchor: () => void;
     getAnchorKey: () => string | null;
 };
@@ -64,6 +65,13 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             const key = keyOf(params, item);
             if (key) {
                 sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key});
+            }
+        },
+        notifyRange: (anchor, end) => {
+            const anchorKey = keyOf(params, anchor);
+            const endKey = keyOf(params, end);
+            if (anchorKey && endKey) {
+                sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: anchorKey, prevEnd: endKey});
             }
         },
         clearAnchor: () => {

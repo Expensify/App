@@ -1230,10 +1230,15 @@ function Search({
 
     const selectedTransactionKeySet = useMemo(() => new Set(Object.keys(selectedTransactions ?? {})), [selectedTransactions]);
 
+    const isShiftRangeHeaderItem = useCallback(
+        (item: SearchListItem) => isTransactionGroupListItemType(item) && (!!validGroupBy || (Array.isArray(item.transactions) && item.transactions.length > 0)),
+        [validGroupBy],
+    );
+
     const rangeApi = useShiftRangeSelection<SearchListItem>({
         items: flattenedShiftRangeItems,
         onApplyRange: onApplyShiftRange,
-        isHeaderItem: (item) => isTransactionGroupListItemType(item) && (!!validGroupBy || (Array.isArray(item.transactions) && item.transactions.length > 0)),
+        isHeaderItem: isShiftRangeHeaderItem,
         getSelectedKeys: () => selectedTransactionKeySet,
     });
 
@@ -1724,12 +1729,21 @@ function Search({
         }
         setSelectedTransactions(updatedTransactions, filteredData);
         updateSelectAllMatchingItemsState(updatedTransactions);
-        rangeApi.clearAnchor();
+        // Mark a virtual range spanning the whole list so the next shift+click collapses Excel-style.
+        const firstSelectable = flattenedShiftRangeItems.find((it) => !isShiftRangeHeaderItem(it));
+        const lastSelectable = flattenedShiftRangeItems.findLast((it) => !isShiftRangeHeaderItem(it));
+        if (firstSelectable && lastSelectable) {
+            rangeApi.notifyRange(firstSelectable, lastSelectable);
+        } else {
+            rangeApi.clearAnchor();
+        }
     }, [
         areItemsGrouped,
         selectedTransactions,
         setSelectedTransactions,
         filteredData,
+        flattenedShiftRangeItems,
+        isShiftRangeHeaderItem,
         updateSelectAllMatchingItemsState,
         clearSelectedTransactions,
         transactions,
