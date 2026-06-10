@@ -6,6 +6,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -33,13 +35,9 @@ function getStringParam(params: unknown, key: string): string | undefined {
     return undefined;
 }
 
-type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
-    statusIndicatorColor: string | undefined;
-    chatTabBrickRoad: BrickRoad;
 };
 
 function doesLastReportExistSelector(report: OnyxEntry<Report>) {
@@ -53,13 +51,25 @@ function makeDoesLastReportActionExistSelector(actionID: string | undefined) {
     };
 }
 
-function InboxTabButton({selectedTab, isWideLayout, statusIndicatorColor, chatTabBrickRoad}: InboxTabButtonProps) {
+function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
+    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
 
+    let statusIndicatorColor: string | undefined;
+    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+        statusIndicatorColor = theme.iconSuccessFill;
+    } else if (chatTabBrickRoad) {
+        statusIndicatorColor = theme.danger;
+    }
+
+    // The last-report deep link only runs in the wide layout, so gate the lookups on isWideLayout.
+    // In the narrow layout this keeps reportID/reportActionID undefined, leaving the report and
+    // report-action Onyx subscriptions below inert (tapping Inbox always routes to ROUTES.INBOX).
     const lastReportRouteReportID = useRootNavigationState((rootState) => {
-        if (!rootState) {
+        if (!isWideLayout || !rootState) {
             return undefined;
         }
         const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
@@ -67,7 +77,7 @@ function InboxTabButton({selectedTab, isWideLayout, statusIndicatorColor, chatTa
     });
 
     const lastReportRouteReportActionID = useRootNavigationState((rootState) => {
-        if (!rootState) {
+        if (!isWideLayout || !rootState) {
             return undefined;
         }
         const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);

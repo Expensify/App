@@ -10,9 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,23 +31,14 @@ type NavigationTabBarProps = {
 };
 
 function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const StyleUtils = useStyleUtils();
-
-    let inboxStatusIndicatorColor: string | undefined;
-    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        inboxStatusIndicatorColor = theme.iconSuccessFill;
-    } else if (chatTabBrickRoad) {
-        inboxStatusIndicatorColor = theme.danger;
-    }
 
     const navigateToNewDotHome = () => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -114,8 +103,6 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                         <InboxTabButton
                             selectedTab={selectedTab}
                             isWideLayout
-                            statusIndicatorColor={inboxStatusIndicatorColor}
-                            chatTabBrickRoad={chatTabBrickRoad}
                         />
                         <SearchTabButton
                             selectedTab={selectedTab}
@@ -163,8 +150,6 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                 <InboxTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}
-                    statusIndicatorColor={inboxStatusIndicatorColor}
-                    chatTabBrickRoad={chatTabBrickRoad}
                 />
                 <SearchTabButton
                     selectedTab={selectedTab}
