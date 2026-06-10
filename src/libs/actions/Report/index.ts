@@ -863,7 +863,14 @@ async function addActions({
     if (file?.uri) {
         try {
             const durableUri = await moveReceiptToDurableStorage(file.uri, file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME);
-            resolvedFile = {...file, uri: durableUri, source: durableUri} as FileObject;
+
+            // Only rebuild the file object when the URI actually changed (native durable move).
+            // On web the move is a no-op that returns the same URI, and `file` is a native `File`
+            // instance whose `name`/`type` live on the prototype — spreading it would drop those
+            // properties (and the blob), so we keep the original file untouched, exactly as before.
+            if (durableUri !== file.uri) {
+                resolvedFile = {...file, uri: durableUri, source: durableUri} as FileObject;
+            }
         } catch (error) {
             Log.warn('[addActions] Failed to move attachment to durable storage, using original URI', {error});
             resolvedFile = file;
