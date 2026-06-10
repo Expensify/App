@@ -108,6 +108,7 @@ import {
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportActionWithSmartscanError,
+    getReportFieldMaps,
     getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportOrDraftReport,
@@ -186,6 +187,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
@@ -7781,7 +7783,8 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false);
+            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]);
+            const result = findLastAccessedReport(false, false, undefined, archivedReportsIDSet);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -8717,8 +8720,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-            expect(isReportOutstanding(report, policy.id)).toBe(false);
+            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+            expect(isReportOutstanding(report, policy.id, archivedReportsIDSet)).toBe(false);
         });
     });
 
@@ -14388,34 +14391,40 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage with isCopyAction = true
-            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true, conciergeReportID: undefined});
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true});
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
         });
 
-        it('should pass conciergeReportID through to computeReportName when isCopyAction is true', async () => {
+        it('should use the report name from the reportAttributes param when isCopyAction is true', async () => {
             const report = LHNTestUtils.getFakeReport();
+            report.reportName = 'Stale Report Name';
             const reportAction: ReportAction = {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                childReportName: 'Expense Report',
+                childReportName: 'Child Report Name',
                 childMoneyRequestCount: 0,
             };
+            const reportAttributes: ReportAttributesDerivedValue['reports'] = {
+                [report.reportID]: {
+                    reportName: 'Computed Report Name',
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
+            };
 
-            // When called with conciergeReportID undefined, the function should not throw
-            const result1 = getReportPreviewMessage({
+            // When called with reportAttributes that provide a report name, it should be preferred over the report's own name
+            const result = getReportPreviewMessage({
                 reportOrID: report,
                 iouReportAction: reportAction,
                 originalReportAction: reportAction,
                 isCopyAction: true,
-                conciergeReportID: undefined,
+                reportAttributes,
             });
-            expect(typeof result1).toBe('string');
-
-            // When called with a specific conciergeReportID, the function should not throw
-            const result2 = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true, conciergeReportID: '12345'});
-            expect(typeof result2).toBe('string');
+            expect(result).toBe('Computed Report Name');
         });
     });
 
@@ -14619,6 +14628,106 @@ describe('ReportUtils', () => {
                 },
             ] as unknown as PolicyReportField[];
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
+        });
+    });
+
+    describe('getReportFieldMaps', () => {
+        it('should read invoice field values from report name value pairs keyed by raw field ID', async () => {
+            const reportID = 'getReportFieldMapsRawKey';
+            const report: Report = {
+                reportID,
+                policyID: '1',
+                type: CONST.REPORT.TYPE.INVOICE,
+                fieldList: {},
+            };
+            const policyFieldList: Record<string, PolicyReportField> = {
+                expensify_field_id_LIST: {
+                    type: 'dropdown',
+                    values: ['policy default'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST',
+                    name: 'Client',
+                    defaultValue: 'policy default',
+                    orderWeight: 0,
+                    deletable: true,
+                    keys: [],
+                    externalIDs: [],
+                    isTax: false,
+                    target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                },
+            };
+            const reportNameValuePairField: PolicyReportField = {
+                type: 'dropdown',
+                values: ['policy default'],
+                disabledOptions: [false],
+                fieldID: 'field_id_LIST',
+                name: 'Client',
+                defaultValue: 'policy default',
+                orderWeight: 0,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                value: 'persisted value',
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
+
+            expect(fieldValues.client).toBe('persisted value');
+            expect(fieldsByName.client.value).toBe('persisted value');
+        });
+
+        it('should not read expense field values from report name value pairs', async () => {
+            const reportID = 'getReportFieldMapsExpenseField';
+            const report: Report = {
+                reportID,
+                policyID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                fieldList: {},
+            };
+            const policyFieldList: Record<string, PolicyReportField> = {
+                expensify_field_id_LIST: {
+                    type: 'dropdown',
+                    values: ['policy default'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST',
+                    name: 'Client',
+                    defaultValue: 'policy default',
+                    orderWeight: 0,
+                    deletable: true,
+                    keys: [],
+                    externalIDs: [],
+                    isTax: false,
+                    target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+                },
+            };
+            const reportNameValuePairField: PolicyReportField = {
+                type: 'dropdown',
+                values: ['policy default'],
+                disabledOptions: [false],
+                fieldID: 'field_id_LIST',
+                name: 'Client',
+                defaultValue: 'policy default',
+                orderWeight: 0,
+                deletable: true,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                value: 'persisted value',
+                target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
+
+            expect(fieldValues.client).toBe('policy default');
+            expect(fieldsByName.client.value).toBeUndefined();
         });
     });
 
