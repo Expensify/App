@@ -37,6 +37,7 @@ import {
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
+    updateLoadingInitialReportAction,
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -282,6 +283,17 @@ function ReportFetchHandler() {
             onUnmount();
         };
     }, []);
+
+    // `isLoadingInitialReportActions` is memory-only and is not reset between navigations. A prior failed
+    // fetch leaves a stale `false` that can make ReportNotFoundGuard show "not here" before the fetch below
+    // re-runs. When opening a report whose actions were never successfully loaded, mark it as loading again so
+    // the guard waits for the real fetch result instead of trusting the leaked flag. See issue #92920.
+    useEffect(() => {
+        if (reportLoadingState.hasOnceLoadedReportActions) {
+            return;
+        }
+        updateLoadingInitialReportAction(reportIDFromRoute, true);
+    }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
