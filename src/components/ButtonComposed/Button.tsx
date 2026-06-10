@@ -137,7 +137,7 @@ function Button({
             isNested={isNested}
             disabled={isLoading || isDisabled}
             disabledStyle={!stayNormalOnDisable ? disabledStyle : undefined}
-            blendOpacity={blendOpacity}
+            shouldBlendOpacity={blendOpacity}
             style={buttonContainerStyles}
             wrapperStyle={[
                 isDisabled && !stayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},

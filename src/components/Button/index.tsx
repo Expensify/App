@@ -178,7 +178,7 @@ type ButtonProps = Partial<ChildrenProps> &
          * Whether the button should have a background layer in the color of theme.appBG.
          * This is needed for buttons that allow content to display under them.
          */
-        blendOpacity?: boolean;
+        shouldBlendOpacity?: boolean;
 
         /**
          * Reference to the outer element.
@@ -293,7 +293,7 @@ function Button({
     isPressOnEnterActive,
     isNested = false,
     secondLineText = '',
-    blendOpacity = false,
+    shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
     accessibilityState,
     sentryLabel,
@@ -456,10 +456,13 @@ function Button({
         ],
     );
 
-    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(() => [buttonStyles, blendOpacity && styles.buttonBlendContainer], [buttonStyles, blendOpacity, styles.buttonBlendContainer]);
+    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
+        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
+        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
+    );
 
     const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        if (!blendOpacity) {
+        if (!shouldBlendOpacity) {
             return undefined;
         }
 
@@ -469,7 +472,7 @@ function Button({
             backgroundColor,
             opacity,
         };
-    }, [buttonStyles, blendOpacity]);
+    }, [buttonStyles, shouldBlendOpacity]);
 
     let loadingIndicatorColor = theme.text;
     if (danger) {
@@ -524,7 +527,7 @@ function Button({
                 onPressIn={onPressIn}
                 onPressOut={onPressOut}
                 onMouseDown={onMouseDown}
-                blendOpacity={blendOpacity}
+                shouldBlendOpacity={shouldBlendOpacity}
                 disabled={isLoading || isDisabled}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
@@ -556,7 +559,7 @@ function Button({
                 onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
                 sentryLabel={sentryLabel}
             >
-                {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
+                {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
                 {isLoading && (
                     <ActivityIndicator
