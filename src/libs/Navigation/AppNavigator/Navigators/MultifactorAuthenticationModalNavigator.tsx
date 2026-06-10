@@ -2,7 +2,7 @@ import {BaseNavigationContainer, NavigationIndependentTree} from '@react-navigat
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
@@ -109,7 +109,11 @@ function MultifactorAuthenticationModalNavigator() {
         if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
             mfaNavigationRef.goBack();
         }
-        backdropProgress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
+        // Fade out in lockstep with the screen's slide-out - same duration and easing as the close
+        // spec of Animations.SLIDE_FROM_RIGHT (Animated.timing defaults to inOut(ease)) - the way the
+        // RHP overlay rides the card progress. The navigator unmounts on transitionEnd, so any fade
+        // longer than the slide gets cut mid-animation.
+        backdropProgress.set(withTiming(0, {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB, easing: Easing.inOut(Easing.ease)}));
         // MODAL_CLOSED re-enters idle, which flips modalPhase to 'closed' and unmounts this navigator.
         // If this callback is cancelled (unmount mid-close), the machine's closeFallback timer takes
         // over: it re-enters idle on its own, wiping the context and the mfaNavigation buffer.
