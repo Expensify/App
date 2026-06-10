@@ -116,7 +116,10 @@ function MergeHRGroupsPage({
                         }}
                         style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting, listItemWrapperStyle: styles.pv4}}
                     />
-                    <FixedFooter style={styles.mtAuto}>
+                    <FixedFooter
+                        style={styles.mtAuto}
+                        addBottomSafeAreaPadding
+                    >
                         <Button
                             large
                             success
