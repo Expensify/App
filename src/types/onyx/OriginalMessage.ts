@@ -7,7 +7,7 @@ import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
-import type {Reservation} from './Transaction';
+import type {Reservation, TransactionCommentVendor} from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 
 /** Types of join workspace resolutions */
@@ -953,10 +953,10 @@ type OriginalMessageModifiedExpense = {
     oldReimbursable?: string;
 
     /** Edited accounting-system vendor on the transaction's comment NVP. `null` means the vendor was cleared. */
-    vendor?: {externalID: string; isManuallySet: boolean} | null;
+    vendor?: TransactionCommentVendor | null;
 
     /** Previous accounting-system vendor on the transaction's comment NVP. `null` means there was no prior vendor. */
-    oldVendor?: {externalID: string; isManuallySet: boolean} | null;
+    oldVendor?: TransactionCommentVendor | null;
 
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
