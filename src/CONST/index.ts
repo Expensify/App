@@ -2995,6 +2995,7 @@ const CONST = {
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
+        COMPANY_ID: 'companyID',
     },
 
     CERTINIA_EXPORT_STATUS: {
