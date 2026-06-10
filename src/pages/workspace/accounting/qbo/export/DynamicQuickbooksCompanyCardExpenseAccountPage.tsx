@@ -12,7 +12,7 @@ import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getQBONonReimbursableExportAccountType} from '@libs/ConnectionUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {areSettingsInErrorFields, getMatchingVendorByID, hasVendorFeature, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -29,8 +29,13 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableBillDefaultVendor);
-    const nonReimbursableCreditCardDefaultVendorObject = getMatchingVendorByID(policy, qboConfig?.nonReimbursableCreditCardDefaultVendor);
-    const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const nonReimbursableCreditCardDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableCreditCardDefaultVendor);
+    // This page is the QBO-only default-vendor editor: gate the row on QBO's own non-reimbursable export mode rather than the cross-integration `hasVendorFeature`, so an Intacct workspace whose QBO connection is in Vendor Bill mode does not get a QBO default-vendor row whose target setting isn't active.
+    const qboNonReimbursableDestination = qboConfig?.nonReimbursableExpensesExportDestination;
+    const isQBOVendorMatchingActive =
+        qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
+        qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+    const isVendorFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isQBOVendorMatchingActive;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qboConfig?.autoCreateVendor);
 
