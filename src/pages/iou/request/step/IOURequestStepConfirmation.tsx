@@ -276,7 +276,7 @@ function IOURequestStepConfirmation({
                           sortedActions,
                       );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, participantsPolicies, policy, conciergeReportID, reportDrafts, sortedActions],
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
