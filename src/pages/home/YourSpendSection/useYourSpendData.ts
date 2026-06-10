@@ -444,7 +444,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
             return;
         }
         fireSearches();
-    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey]);
+    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey, accountID]);
 
     return {
         approvalRowState,
