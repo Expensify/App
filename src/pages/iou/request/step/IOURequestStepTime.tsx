@@ -155,10 +155,12 @@ function IOURequestStepTime({
         );
     }
 
+    const headerTitle = activeTimePicker?.label ?? (backTo ? translate('iou.time') : tabTitles[iouType]);
+
     return (
         // While editing a time field inside a centered RHP modal, the picker renders over the (still-mounted) form so onInputChange stays valid.
         <StepScreenWrapper
-            headerTitle={activeTimePicker ? activeTimePicker.label : backTo ? translate('iou.time') : tabTitles[iouType]}
+            headerTitle={headerTitle}
             onBackButtonPress={activeTimePicker ? () => setActiveTimePicker(null) : navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
