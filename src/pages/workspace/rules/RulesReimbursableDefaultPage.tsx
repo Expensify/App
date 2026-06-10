@@ -32,11 +32,11 @@ function RulesReimbursableDefaultPage({
     // When the page renders before the policy is in Onyx, reimbursableMode is undefined. Sync the draft once it becomes
     // available, without overwriting a selection the user has already made.
     useEffect(() => {
-        if (!reimbursableMode) {
+        if (!reimbursableMode || selectedMode) {
             return;
         }
-        setSelectedMode((prevMode) => prevMode ?? reimbursableMode);
-    }, [reimbursableMode]);
+        setSelectedMode(reimbursableMode);
+    }, [reimbursableMode, selectedMode]);
 
     const reimbursableModes = Object.values(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES).map((mode) => ({
         text: translate(`workspace.rules.individualExpenseRules.${mode}`),
