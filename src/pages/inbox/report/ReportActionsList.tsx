@@ -19,7 +19,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionMessage,
@@ -95,9 +97,6 @@ type ReportActionsListProps = {
     /** Full sorted report actions for collapsing stale pagination after a live-tail jump */
     sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
 
-    /** Current report action pages from Onyx */
-    reportActionPages: OnyxTypes.Pages | undefined;
-
     /** When true, the paginated hook ignores deep-link / unread anchors */
     treatAsNoPaginationAnchor: boolean;
 
@@ -142,7 +141,6 @@ function ReportActionsList({
     hasNewerActions,
     oldestUnreadReportAction,
     sortedAllReportActionsForPagination,
-    reportActionPages,
     treatAsNoPaginationAnchor,
     setTreatAsNoPaginationAnchor,
     onLayout,
@@ -189,7 +187,6 @@ function ReportActionsList({
 
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {selector: getStableReportSelector});
 
-    const backTo = route?.params?.backTo as string;
     const linkedReportActionID = route?.params?.reportActionID;
 
     const hasHeaderRendered = useRef(false);
@@ -205,7 +202,7 @@ function ReportActionsList({
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
 
-    const {readActionSkippedRef} = useMarkAsRead({
+    const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID: report.reportID,
         report,
         transactionThreadReport,
@@ -276,10 +273,7 @@ function ReportActionsList({
         isActionBadgeAboveViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
-        onStartReached,
-        onEndReached,
-        onLayoutInner,
-        retryLoadNewerChatsError,
+        flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
         initialScrollKey,
@@ -290,26 +284,36 @@ function ReportActionsList({
         transactionThreadReport,
         parentReportAction,
         sortedVisibleReportActions,
-        readActionSkippedRef,
+        markNewestActionAsRead,
+        completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
         unreadMarkerReportActionIndex,
         hasNewerActions,
-        loadOlderChats,
-        loadNewerChats,
-        linkedReportActionID,
-        backTo,
         draftAutoScrollKey,
         actionBadgeTargetIndex,
         sortedAllReportActionsForPagination,
-        reportActionPages,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
-        reportLoadingState,
-        isOffline,
-        setHasScrolledOverThreshold,
-        onScroll,
-        onLayout,
     });
+
+    const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        trackVerticalScrolling(event);
+        setHasScrolledOverThreshold(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+        onScroll?.(event);
+    };
+
+    const loadNewerChatsAfterTransitions = () => {
+        if (!isSearchTopmostFullScreenRoute()) {
+            loadNewerChats(false);
+            return;
+        }
+
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(() => loadNewerChats(false));
+            },
+        });
+    };
 
     const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
 
@@ -440,11 +444,11 @@ function ReportActionsList({
         return (
             <ReportActionsListHeader
                 reportID={report.reportID}
-                onRetry={retryLoadNewerChatsError}
+                onRetry={() => loadNewerChats(true)}
                 hasActiveDraft={hasActiveDraft}
             />
         );
-    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError, shouldBeAlignedToTop]);
+    }, [canShowHeader, hasActiveDraft, report.reportID, loadNewerChats, shouldBeAlignedToTop]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
@@ -481,16 +485,19 @@ function ReportActionsList({
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
-                    onEndReached={onEndReached}
+                    onEndReached={() => loadOlderChats(false)}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
+                    onStartReached={loadNewerChatsAfterTransitions}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={onLayoutInner}
-                    onScroll={trackVerticalScrolling}
+                    onLayout={(event) => {
+                        onLayout(event);
+                        flushPendingScrollToBottom();
+                    }}
+                    onScroll={trackScrollPositionAndThreshold}
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
                     key={listID}

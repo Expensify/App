@@ -1,22 +1,26 @@
+import {useRoute} from '@react-navigation/native';
 import {useContext, useEffect, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import {isSafari} from '@libs/Browser';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
-import {openReport, readNewestAction} from '@userActions/Report';
+import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportScrollManager from './useReportScrollManager';
@@ -35,8 +39,11 @@ type UseReportActionsScrollParams = {
     /** Sorted actions that should be visible to the user */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
-    /** Ref tracking whether mark-as-read was skipped because the user was scrolled away from the bottom */
-    readActionSkippedRef: React.RefObject<boolean>;
+    /** Marks the newest action as read and clears any pending skipped mark-as-read */
+    markNewestActionAsRead: () => void;
+
+    /** Completes a previously skipped mark-as-read; no-op when none is pending */
+    completeSkippedMarkAsRead: () => void;
 
     /** The report action ID the unread marker is anchored to, if any */
     unreadMarkerReportActionID: string | null;
@@ -47,18 +54,6 @@ type UseReportActionsScrollParams = {
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
 
-    /** Function to load older chats */
-    loadOlderChats: (force?: boolean) => void;
-
-    /** Function to load newer chats */
-    loadNewerChats: (force?: boolean) => void;
-
-    /** The deep-linked report action ID from the route, if any */
-    linkedReportActionID: string | undefined;
-
-    /** The route's backTo param, used when navigating back to the report on read */
-    backTo: string | undefined;
-
     /** Stable key that changes when a streamed concierge draft becomes visible, used to trigger autoscroll */
     draftAutoScrollKey: string;
 
@@ -68,28 +63,10 @@ type UseReportActionsScrollParams = {
     /** Full sorted report actions for collapsing stale pagination after a live-tail jump */
     sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
 
-    /** Current report action pages from Onyx */
-    reportActionPages: OnyxTypes.Pages | undefined;
-
     /** When true, the paginated hook ignores deep-link / unread anchors */
     treatAsNoPaginationAnchor: boolean;
 
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
-
-    /** RAM-only report loading state */
-    reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
-
-    /** Whether the device is offline */
-    isOffline: boolean;
-
-    /** Setter for the component-owned scrolled-over-threshold state, which bridges scroll tracking to the unread marker */
-    setHasScrolledOverThreshold: (value: boolean) => void;
-
-    /** Callback executed on scroll */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** Callback executed on list layout */
-    onLayout: (event: LayoutChangeEvent) => void;
 };
 
 type UseReportActionsScrollResult = {
@@ -114,17 +91,8 @@ type UseReportActionsScrollResult = {
     /** Scrolls to the action badge target */
     scrollToActionBadgeTarget: () => void;
 
-    /** onStartReached handler that loads newer chats */
-    onStartReached: () => void;
-
-    /** onEndReached handler that loads older chats */
-    onEndReached: () => void;
-
-    /** onLayout handler that forwards the prop and flushes a pending scroll-to-bottom */
-    onLayoutInner: (event: LayoutChangeEvent) => void;
-
-    /** Retries loading newer chats after an error */
-    retryLoadNewerChatsError: () => void;
+    /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout */
+    flushPendingScrollToBottom: () => void;
 
     /** Whether the list should be pinned to the visual top (transaction thread / money request) */
     shouldBeAlignedToTop: boolean;
@@ -147,32 +115,28 @@ function useReportActionsScroll({
     transactionThreadReport,
     parentReportAction,
     sortedVisibleReportActions,
-    readActionSkippedRef,
+    markNewestActionAsRead,
+    completeSkippedMarkAsRead,
     unreadMarkerReportActionID,
     unreadMarkerReportActionIndex,
     hasNewerActions,
-    loadOlderChats,
-    loadNewerChats,
-    linkedReportActionID,
-    backTo,
     draftAutoScrollKey,
     actionBadgeTargetIndex,
     sortedAllReportActionsForPagination,
-    reportActionPages,
     treatAsNoPaginationAnchor,
     setTreatAsNoPaginationAnchor,
-    reportLoadingState,
-    isOffline,
-    setHasScrolledOverThreshold,
-    onScroll,
-    onLayout,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportID = report.reportID;
     const reportScrollManager = useReportScrollManager();
     const {scrollOffsetRef} = useContext(ActionListContext);
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const linkedReportActionID = route?.params?.reportActionID;
+    const backTo = route?.params?.backTo;
+    const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const hasOnceLoadedReportActions = !!reportLoadingState?.hasOnceLoadedReportActions;
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
+    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
@@ -200,17 +164,13 @@ function useReportActionsScroll({
         useReportUnreadMessageScrollTracking({
             reportID,
             currentVerticalScrollingOffsetRef: scrollOffsetRef,
-            readActionSkippedRef,
+            onUnreadActionVisible: completeSkippedMarkAsRead,
             hasNewerActions,
             unreadMarkerReportActionIndex,
             isInverted: true,
             onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-                const offset = event.nativeEvent.contentOffset.y;
-                scrollOffsetRef.current = offset;
-                setHasScrolledOverThreshold(offset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-                onScroll?.(event);
+                scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
             },
-            hasOnceLoadedReportActions,
             actionBadgeTargetIndex,
         });
 
@@ -341,9 +301,7 @@ function useReportActionsScroll({
             return;
         }
         reportScrollManager.scrollToBottom();
-        // eslint-disable-next-line no-param-reassign
-        readActionSkippedRef.current = false;
-        readNewestAction(reportID, hasOnceLoadedReportActions);
+        markNewestActionAsRead();
     };
 
     const scrollToActionBadgeTarget = () => {
@@ -353,34 +311,13 @@ function useReportActionsScroll({
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
     };
 
-    const onStartReached = () => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
+    const flushPendingScrollToBottom = () => {
+        if (!isScrollToBottomEnabled) {
             return;
         }
-
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                requestAnimationFrame(() => loadNewerChats(false));
-            },
-        });
-    };
-
-    const onEndReached = () => {
-        loadOlderChats(false);
-    };
-
-    const onLayoutInner = (event: LayoutChangeEvent) => {
-        onLayout(event);
-        if (isScrollToBottomEnabled) {
-            reportScrollManager.scrollToBottom();
-            setIsScrollToBottomEnabled(false);
-            completeLiveTailPruneAfterScrollToBottom();
-        }
-    };
-
-    const retryLoadNewerChatsError = () => {
-        loadNewerChats(true);
+        reportScrollManager.scrollToBottom();
+        setIsScrollToBottomEnabled(false);
+        completeLiveTailPruneAfterScrollToBottom();
     };
 
     // Data is ready at the moment FlashList finishes its first render.
@@ -416,10 +353,7 @@ function useReportActionsScroll({
         isActionBadgeAboveViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
-        onStartReached,
-        onEndReached,
-        onLayoutInner,
-        retryLoadNewerChatsError,
+        flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         shouldFocusToTopOnMount,
         initialScrollKey,

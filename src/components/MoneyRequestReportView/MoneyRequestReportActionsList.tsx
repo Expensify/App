@@ -421,7 +421,13 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report?.reportID ?? reportIDFromRoute ?? '',
         currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
-        readActionSkippedRef: readActionSkipped,
+        onUnreadActionVisible: () => {
+            if (!readActionSkipped.current) {
+                return;
+            }
+            readActionSkipped.current = false;
+            readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+        },
         unreadMarkerReportActionIndex,
         isInverted: false,
         hasNewerActions,
@@ -439,7 +445,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = contentOffset.y;
         },
-        hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
 
     useScrollToEndOnNewMessageReceived({
