@@ -3,6 +3,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -15,6 +16,7 @@ import {getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -26,9 +28,10 @@ type VendorListItem = ListItem & {
     value: string;
 };
 
-type IOURequestStepVendorProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_VENDOR> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_VENDOR>;
+type IOURequestStepVendorProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_VENDOR> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_VENDOR>;
 
-function IOURequestStepVendor({
+function DynamicIOURequestStepVendorPage({
     report,
     route: {
         params: {action, iouType, transactionID, reportActionID},
@@ -40,6 +43,7 @@ function IOURequestStepVendor({
     const {isBetaEnabled} = usePermissions();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_VENDOR.path);
 
     const {policy} = usePolicyForTransaction({
         transaction,
@@ -86,7 +90,7 @@ function IOURequestStepVendor({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
     const navigateBack = () => {
-        Navigation.goBack();
+        Navigation.goBack(backPath);
     };
 
     const selectVendor = (item: VendorListItem) => {
@@ -119,7 +123,7 @@ function IOURequestStepVendor({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
-            testID="IOURequestStepVendor"
+            testID="DynamicIOURequestStepVendorPage"
             includeSafeAreaPaddingBottom
         >
             <SelectionList
@@ -141,6 +145,8 @@ function IOURequestStepVendor({
     );
 }
 
-IOURequestStepVendor.displayName = 'IOURequestStepVendor';
+DynamicIOURequestStepVendorPage.displayName = 'DynamicIOURequestStepVendorPage';
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepVendor));
+const DynamicIOURequestStepVendorPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepVendorPage);
+const DynamicIOURequestStepVendorPageWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepVendorPageWithFullTransactionOrNotFound);
+export default DynamicIOURequestStepVendorPageWithWritableReportOrNotFound;
