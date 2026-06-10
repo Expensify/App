@@ -2915,6 +2915,7 @@ ${amount} pour ${merchant} - ${date}`,
         waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: 'Une erreur s’est produite lors de la tentative de génération de votre PDF',
         successPDF: 'Votre PDF a été généré ! S’il ne s’est pas téléchargé automatiquement, utilisez le bouton ci-dessous.',
+        goToRoom: 'Aller à la salle',
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la salle',
