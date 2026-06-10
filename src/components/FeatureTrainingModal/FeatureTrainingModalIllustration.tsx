@@ -1,5 +1,6 @@
 import type {SourceLoadEventPayload} from 'expo-video';
-import React, {useState} from 'react';
+import type LottieView from 'lottie-react-native';
+import React, {useEffect, useRef, useState} from 'react';
 import {Image, View} from 'react-native';
 import type {ImageResizeMode, ImageSourcePropType} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -39,8 +40,8 @@ type FeatureTrainingModalIllustrationProps = Pick<
         /** Pagination dot nodes overlaid on the bottom of the illustration in carousel mode */
         paginationDots?: React.ReactNode;
 
-        /** Should the animation auto play or only starts playing when the page is focused */
-        shouldAutoPlay?: boolean;
+        /** Whether this illustration belongs to the currently-visible carousel page */
+        isFocused?: boolean;
     };
 
 function FeatureTrainingModalIllustration({
@@ -57,7 +58,7 @@ function FeatureTrainingModalIllustration({
     shouldRenderSVG = true,
     modalPadding,
     paginationDots,
-    shouldAutoPlay = true,
+    isFocused = true,
 }: FeatureTrainingModalIllustrationProps) {
     const styles = useThemeStyles();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
@@ -67,6 +68,18 @@ function FeatureTrainingModalIllustration({
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {isOffline} = useNetwork();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+
+    const animationRef = useRef<LottieView | null>(null);
+    useEffect(() => {
+        if (!paginationDots || !animationRef.current || isReduceMotionEnabled) {
+            return;
+        }
+        if (isFocused) {
+            animationRef.current.play(0);
+        } else {
+            animationRef.current.reset();
+        }
+    }, [isFocused, isReduceMotionEnabled]);
 
     // Once we've been online at any point in this mount we keep showing the video, even if the
     // network drops later. The first online tick promotes us out of the offline fallback for good.
@@ -143,10 +156,11 @@ function FeatureTrainingModalIllustration({
                             />
                         ) : (
                             <Lottie
+                                ref={animationRef}
                                 source={animation ?? LottieAnimations.Hands}
                                 style={styles.h100}
                                 webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                                autoPlay={shouldAutoPlay}
+                                autoPlay={isFocused}
                                 loop
                             />
                         )}

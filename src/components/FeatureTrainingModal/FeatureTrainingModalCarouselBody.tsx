@@ -188,7 +188,7 @@ function FeatureTrainingModalCarouselBody({
                         viewabilityConfig={CAROUSEL_VIEWABILITY_CONFIG}
                         onViewableItemsChanged={onViewableItemsChanged}
                         getItemLayout={(_data, index) => ({length: carouselViewportWidth, offset: index * carouselViewportWidth, index})}
-                        renderItem={({item: page}) => (
+                        renderItem={({item: page, index}) => (
                             <View style={{width: carouselViewportWidth}}>
                                 <FeatureTrainingModalIllustration
                                     illustrationAspectRatio={illustrationAspectRatio}
@@ -197,7 +197,7 @@ function FeatureTrainingModalCarouselBody({
                                     shouldRenderSVG={shouldRenderSVG}
                                     modalPadding={modalPadding}
                                     paginationDots={carouselPaginationDots}
-                                    shouldAutoPlay={false}
+                                    isFocused={index === currentPage}
                                     {...page}
                                 />
                             </View>
