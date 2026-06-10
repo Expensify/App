@@ -1,12 +1,11 @@
 ---
-
 title: Clear broad topic title using the product area name
 description: A short description explaining what this topic area includes and how it helps users understand Expensify.
 keywords: [broad topic, concept 1, concept 2, concept 3, common user terminology, common question phrase]
 internalScope: Audience is [who this doc is for]. Covers broad orientation to [topic area], including [major concept 1], [major concept 2], and [major concept 3]. Does not cover detailed workflows, setup steps, troubleshooting, or configuration instructions.
 contentType: topic
 platform: [no-platform | new-expensify | expensify-classic] 
-------------------------------------------------------------------
+---
 
 <!--
 TOPIC ARTICLE TEMPLATE
