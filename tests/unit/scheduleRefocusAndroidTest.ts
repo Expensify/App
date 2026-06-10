@@ -9,7 +9,7 @@ jest.mock('@libs/Accessibility/fireFocusEvent', () => ({
 const FAKE_IDLE_ID = 4242;
 let capturedIdleCallback: (() => void) | null = null;
 let capturedIdleOptions: {timeout?: number} | undefined;
-const mockCancelIdleCallback = jest.fn();
+const mockCancelIdleCallback = jest.fn<void, [number]>();
 
 const originalRequestIdleCallback = global.requestIdleCallback;
 const originalCancelIdleCallback = global.cancelIdleCallback;
@@ -22,12 +22,12 @@ beforeEach(() => {
     mockFireFocusEvent.mockClear();
     mockCancelIdleCallback.mockClear();
     // Capture the idle callback instead of running it, so each test drives the re-fire deterministically.
-    global.requestIdleCallback = jest.fn((callback: () => void, options?: {timeout?: number}) => {
-        capturedIdleCallback = callback;
+    global.requestIdleCallback = jest.fn<number, [IdleRequestCallback, IdleRequestOptions?]>((callback, options) => {
+        capturedIdleCallback = () => callback({didTimeout: false, timeRemaining: () => 50});
         capturedIdleOptions = options;
         return FAKE_IDLE_ID;
-    }) as unknown as typeof requestIdleCallback;
-    global.cancelIdleCallback = mockCancelIdleCallback as unknown as typeof cancelIdleCallback;
+    });
+    global.cancelIdleCallback = mockCancelIdleCallback;
 });
 
 afterEach(() => {

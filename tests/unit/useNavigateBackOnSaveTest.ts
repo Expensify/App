@@ -14,8 +14,8 @@ jest.mock('@libs/NavigationFocusReturn', () => ({
     skipNextFocusRestore: jest.fn(),
 }));
 
-const mockGoBack = Navigation.goBack as jest.Mock;
-const mockSkip = skipNextFocusRestore as jest.Mock;
+const mockGoBack = jest.mocked(Navigation.goBack);
+const mockSkip = jest.mocked(skipNextFocusRestore);
 
 const BACK_TO = 'settings/profile' as Route;
 

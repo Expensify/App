@@ -14,7 +14,7 @@ function collectRouteKeys(state: AnyState, out = new Set<string>()): Set<string>
             out.add(route.key);
         }
         if (route.state) {
-            collectRouteKeys(route.state as PartialState<NavigationState>, out);
+            collectRouteKeys(route.state, out);
         }
     }
     return out;
