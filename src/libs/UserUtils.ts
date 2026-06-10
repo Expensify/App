@@ -64,7 +64,7 @@ function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefin
     }
 
     const result: LoginList = {};
-    const policyDomainRegex = CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME; 
+    const policyDomainRegex = CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME;
     for (const login of Object.values(logins)) {
         if (login.partnerID !== CONST.PARTNER_ID.EXPENSIFY) {
             continue;
