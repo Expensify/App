@@ -62,6 +62,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
+    currentUserLocalCurrency: string | undefined;
     backTo?: Route;
     backToReport?: string;
     shouldSkipConfirmation: boolean;
@@ -152,6 +153,7 @@ function handleMoneyRequestStepDistanceNavigation({
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
+    currentUserLocalCurrency,
     backTo,
     backToReport,
     shouldSkipConfirmation,
@@ -292,6 +294,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                     isTrackDistanceExpense: true,
                                     policy: policyForMovingExpenses,
                                     isPolicyExpenseChat: false,
+                                    expenseDate: transaction?.created,
                                 }),
                                 attendees: transaction?.comment?.attendees,
                                 gpsCoordinates,
@@ -313,6 +316,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             previousOdometerDraft,
                             optimisticTransactionID,
                             optimisticChatReportID,
+                            currentUserLocalCurrency,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -363,6 +367,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 isPolicyExpenseChat,
                                 policy,
                                 lastSelectedDistanceRates,
+                                expenseDate: transaction?.created,
                             }),
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
@@ -432,6 +437,7 @@ function handleMoneyRequestStepDistanceNavigation({
             policy: isSelfDMReport ? policyForMovingExpenses : defaultExpensePolicy,
             lastSelectedDistanceRates,
             isTrackDistanceExpense: isSelfDMReport,
+            expenseDate: transaction?.created,
         });
 
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
