@@ -9,7 +9,8 @@ import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -60,6 +61,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from './types';
+import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -94,6 +96,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
@@ -120,11 +123,22 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const reportGroupID = isExpenseReportType ? (groupItem as TransactionReportGroupListItemType).reportID : undefined;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+
+    const snapshotActions = reportGroupID ? Object.values(currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportGroupID}`] ?? {}) : [];
+    const liveGroupItem = useLiveRowCapabilities<TransactionReportGroupListItemType>({
+        item: groupItem as TransactionReportGroupListItemType,
+        reportID: reportGroupID,
+        itemKey: `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportGroupID)}`,
+        snapshotData: currentSearchResults?.data,
+        snapshotActions,
+        enabled: isExpenseReportType && !!reportGroupID,
+    }) as TransactionGroupListItemType;
+
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
     const isActionLoadingSet = useActionLoadingReportIDs();
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -143,7 +157,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             formatPhoneNumber,
             bankAccountList,
             isActionLoadingSet,
-            allReportMetadata,
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
@@ -199,7 +212,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const StyleUtils = useStyleUtils();
-    const isItemSelected = isSelectAllChecked || item?.isSelected;
+    const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
+    const isItemSelected = isSelectAllChecked || liveRowSelected;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -446,7 +460,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             return (
                 <ReportListItemHeader
-                    report={groupItem as TransactionReportGroupListItemType}
+                    report={liveGroupItem as TransactionReportGroupListItemType}
                     onSelectRow={(event) => onSelectRow(item, transactionPreviewData, event)}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
                     isDisabled={isDisabled}

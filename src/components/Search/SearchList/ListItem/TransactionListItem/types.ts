@@ -5,7 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {Modifiers} from '@libs/shiftRangeSelection';
-import type {CardList, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, PolicyCategories, ReportAction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionListItemSharedProps<TItem extends ListItem> = {
     item: TItem;
@@ -27,6 +27,7 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
+    policyCategories?: PolicyCategories;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
 };

@@ -3,7 +3,7 @@ import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestRep
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {Modifiers} from '@libs/shiftRangeSelection';
-import type {CardList, PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, PersonalDetails, Policy, PolicyCategories, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
@@ -55,6 +55,7 @@ type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     policy?: Policy;
+    policyCategories?: PolicyCategories;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -75,6 +76,9 @@ type TransactionItemRowProps = {
     isInSingleTransactionReport?: boolean;
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
+    shouldStopRadioButtonMouseDownPropagation?: boolean;
+    radioButtonContainerStyle?: StyleProp<ViewStyle>;
+    radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;

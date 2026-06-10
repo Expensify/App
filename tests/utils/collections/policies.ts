@@ -7,7 +7,9 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
     return {
         id: index.toString(),
         name: name ?? randWord(),
-        type: type ?? rand(Object.values(CONST.POLICY.TYPE)),
+        // Exclude the Submit (submit2026) plan from the random default: it has distinct, plan-specific behavior
+        // (e.g. forced Editor role, locked role changes), so tests that exercise it pass the type explicitly.
+        type: type ?? rand(Object.values(CONST.POLICY.TYPE).filter((policyType) => policyType !== CONST.POLICY.TYPE.SUBMIT)),
         autoReporting: randBoolean(),
         isPolicyExpenseChatEnabled: randBoolean(),
         autoReportingFrequency: rand(
