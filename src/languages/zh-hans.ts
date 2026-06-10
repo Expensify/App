@@ -509,6 +509,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
+        enableNotifications: {
+            prompt: '希望在Concierge回复时收到通知吗？',
+            cta: '通知',
+        },
     },
     supportalNoAccess: {
         title: '先别急',
@@ -2817,6 +2821,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         waitForPDF: '正在生成 PDF，请稍候。',
         errorPDF: '尝试生成您的 PDF 时出错',
         successPDF: '您的 PDF 已生成！如果没有自动下载，请使用下面的按钮。',
+        goToRoom: '进入房间',
     },
     reportDescriptionPage: {
         roomDescription: '房间描述',
@@ -2928,6 +2933,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的商务开销',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '管理我的个人支出',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: '其他原因',
+        },
+        personalTrackGoal: {
+            title: '您想跟踪什么？',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: '投资物业成本',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: '家庭开支',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: '副业报销',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: '其他原因',
+            somethingElsePlaceholder: '你在跟踪什么？',
         },
         employees: {
             title: '您有多少名员工？',
@@ -4207,6 +4220,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             customFieldHint: '为该成员的所有支出添加适用的自定义编码。',
             reports: '报表',
             reportFields: '报表字段',
+            invoiceFields: '发票字段',
             reportTitle: '报表标题',
             reportField: '报表字段',
             taxes: '税费',
@@ -5821,6 +5835,29 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             reportFieldInitialValueRequiredError: '请选择报表字段的初始值',
             genericFailureMessage: '更新报表字段时出错。请重试。',
         },
+        invoiceFields: {
+            subtitle: '当你想添加更多信息时，发票字段会很有帮助。',
+            importedFromAccountingSoftware: '以下发票字段是从你的',
+            disableInvoiceFields: '禁用发票字段',
+            disableInvoiceFieldsConfirmation: '确定吗？发票字段将在发票中被禁用。',
+            delete: '删除发票字段',
+            deleteConfirmation: '确定要删除此发票字段吗？',
+            findInvoiceField: '查找发票字段',
+            nameInputSubtitle: '为发票字段选择一个名称。',
+            typeInputSubtitle: '选择要使用的发票字段类型。',
+            initialValueInputSubtitle: '输入要在发票字段中显示的起始值。',
+            listValuesInputSubtitle: '这些值将显示在你的发票字段下拉菜单中。成员可以选择已启用的值。',
+            listInputSubtitle: '这些值将显示在你的发票字段列表中。成员可以选择已启用的值。',
+            emptyInvoiceFieldsValues: {
+                title: '还没有列表值',
+                subtitle: '添加要显示在发票上的自定义值。',
+            },
+            existingInvoiceFieldNameError: '已存在同名发票字段',
+            invoiceFieldNameRequiredError: '请输入发票字段名称',
+            invoiceFieldTypeRequiredError: '请选择发票字段类型',
+            invoiceFieldInitialValueRequiredError: '请选择发票字段的初始值',
+            addField: '添加字段',
+        },
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',
@@ -6600,6 +6637,12 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>报表字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            invoiceFields: {
+                title: '发票字段',
+                description: `发票字段可用于在发票上包含额外的发票级别详情。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>发票字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `通过 Expensify + NetSuite 集成实现自动同步，减少手动录入。借助对原生和自定义维度的支持（包括项目和客户映射），获取深入的实时财务洞察。`,
@@ -7102,6 +7145,18 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
             },
+            aiRules: {
+                title: 'AI 规则',
+                subtitle: '描述在你需要时运行的灵活规则',
+                addRule: '添加 AI 规则',
+                findRule: '查找 AI 规则',
+                addRuleTitle: '添加规则',
+                editRuleTitle: '编辑规则',
+                deleteRule: '删除规则',
+                deleteRuleConfirmation: '确定要删除此规则吗？',
+                describeRuleTitle: '描述你的规则',
+                describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7367,7 +7422,7 @@ ${reportName}
         updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `已将${customUnitName}的${updatedField}更改为“${newValue}”（之前为“${oldValue}”）`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? '已启用' : '已禁用'} 距离费率的税务跟踪`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `已添加新的 ${customUnitName} 费率“${rateName}”`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `已添加自定义单位 ${customUnitName} 费率“${rateName}”`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `将 ${customUnitName} 的 ${updatedField} 费率“${customUnitRateName}”更改为“${newValue}”（之前为“${oldValue}”）`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
@@ -7748,6 +7803,21 @@ ${reportName}
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,
             },
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `已添加“${rateName}”汇率，数值为 ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `已添加“${rateName}”费率 ${rateValue}，自 ${startDate} 起生效`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `已添加“${rateName}”费率 ${rateValue}，有效期至 ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `已添加“${rateName}”费率 ${rateValue}，有效期为 ${startDate} - ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `将“${rateName}”费率的开始日期更新为 ${newDate}（之前为 ${oldDate}）` : `将“${rateName}”费率的开始日期设置为 ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `已将“${rateName}”费率的结束日期更新为 ${newDate}（之前为 ${oldDate}）` : `将“${rateName}”费率的结束日期设置为 ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `已将“${rateName}”费率的起止日期更新为 ${newStartDate} - ${newEndDate}（此前为 ${oldStartDate} - ${oldEndDate}）`
+                : `将“${rateName}”费率的开始和结束日期设为 ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `已从“${rateName}”费率中移除开始日期（原为 ${oldDate}）`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `已从“${rateName}”费率中移除结束日期（之前为 ${oldDate}）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
