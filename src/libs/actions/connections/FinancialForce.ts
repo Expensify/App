@@ -544,7 +544,6 @@ function updateFinancialForceExportForeignCurrency(policyID: string, enabled: bo
 
 /** @public */
 function updateFinancialForceCompany(policyID: string, companyID: string, previousCompanyID: string | null) {
-    const settingName = CONST.CERTINIA_CONFIG.COMPANY;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -557,10 +556,10 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                                 companyID,
                             },
                             pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                [companyID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                             errorFields: {
-                                [settingName]: null,
+                                [companyID]: null,
                             },
                         },
                     },
@@ -581,10 +580,10 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                                 companyID: previousCompanyID ?? null,
                             },
                             pendingFields: {
-                                [settingName]: null,
+                                [companyID]: null,
                             },
                             errorFields: {
-                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                [companyID]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -602,10 +601,10 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                         config: {
                             pendingFields: {
-                                [settingName]: null,
+                                [companyID]: null,
                             },
                             errorFields: {
-                                [settingName]: null,
+                                [companyID]: null,
                             },
                         },
                     },
