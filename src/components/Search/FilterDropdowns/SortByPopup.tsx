@@ -5,7 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {SearchGroupBy, SearchQueryJSON, SearchSortBy} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -44,11 +44,12 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
     const currentColumns = !searchResults?.data
         ? []
-        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value});
+        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value, policyCategories});
     const sortableColumns = getSortByOptions(currentColumns, translate);
     const sortOrder = queryJSON.sortOrder;
 
@@ -60,7 +61,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
         isSelected: item.value === selectedItem,
     }));
 
-    const onSortChange = (column: SearchColumnType) => {
+    const onSortChange = (column: SearchSortBy) => {
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column});
         onSort();
@@ -71,7 +72,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     };
 
     const updateSelectedItem = (item: ListItem) => {
-        setSelectedItem(item.keyForList as SearchColumnType);
+        setSelectedItem(item.keyForList as SearchSortBy);
     };
 
     const applyChanges = () => {
