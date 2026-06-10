@@ -137,6 +137,27 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         return `<comment center>${taskTitleWithoutImage}</comment>`;
     };
 
+    const taskPreviewContent = (
+        <>
+            {hasAssignee && (
+                <UserDetailsTooltip accountID={taskAssigneeAccountID}>
+                    <View>
+                        <Avatar
+                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                            source={avatar}
+                            size={avatarSize}
+                            avatarID={taskAssigneeAccountID}
+                            type={CONST.ICON_TYPE_AVATAR}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            )}
+            <View style={[styles.alignSelfCenter, styles.flex1]}>
+                <RenderHTML html={getTaskHTML()} />
+            </View>
+        </>
+    );
+
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
@@ -199,42 +220,10 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
                         >
-                            {hasAssignee && (
-                                <UserDetailsTooltip accountID={taskAssigneeAccountID}>
-                                    <View>
-                                        <Avatar
-                                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                                            source={avatar}
-                                            size={avatarSize}
-                                            avatarID={taskAssigneeAccountID}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                        />
-                                    </View>
-                                </UserDetailsTooltip>
-                            )}
-                            <View style={[styles.alignSelfCenter, styles.flex1]}>
-                                <RenderHTML html={getTaskHTML()} />
-                            </View>
+                            {taskPreviewContent}
                         </PressableWithoutFeedback>
                     ) : (
-                        <>
-                            {hasAssignee && (
-                                <UserDetailsTooltip accountID={taskAssigneeAccountID}>
-                                    <View>
-                                        <Avatar
-                                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                                            source={avatar}
-                                            size={avatarSize}
-                                            avatarID={taskAssigneeAccountID}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                        />
-                                    </View>
-                                </UserDetailsTooltip>
-                            )}
-                            <View style={[styles.alignSelfCenter, styles.flex1]}>
-                                <RenderHTML html={getTaskHTML()} />
-                            </View>
-                        </>
+                        taskPreviewContent
                     )}
                 </View>
                 {shouldShowGreenDotIndicator && (

@@ -173,78 +173,79 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                     disabled={isDisableInteractive}
                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                 >
-                                    {({pressed}) => (
-                                        <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
-                                            <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
-                                            <View style={[styles.flexRow, styles.flex1]}>
-                                                <Checkbox
-                                                    shouldSelectOnPressEnter
-                                                    onPress={callFunctionIfActionIsAllowed(() => {
-                                                        // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                        if (isActiveTaskEditRoute(report?.reportID)) {
-                                                            return;
-                                                        }
-                                                        if (shouldBreakGrouping && isScreenReaderActive) {
-                                                            setLocalIsCompleted((prev) => !prev);
-                                                        }
-                                                        if (isCompleted) {
-                                                            reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
-                                                        } else {
-                                                            completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
-                                                        }
-                                                    })}
-                                                    isChecked={isCompleted}
-                                                    style={styles.taskMenuItemCheckbox}
-                                                    containerSize={24}
-                                                    containerBorderRadius={8}
-                                                    caretSize={16}
-                                                    accessibilityLabel={taskAccessibilityLabel}
-                                                    disabled={!isTaskActionable}
-                                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
-                                                />
-                                                {shouldBreakGrouping ? (
-                                                    <PressableWithoutFeedback
-                                                        accessible
-                                                        accessibilityRole={CONST.ROLE.BUTTON}
-                                                        accessibilityLabel={taskAccessibilityLabel}
-                                                        accessibilityState={{disabled: isDisableInteractive}}
-                                                        disabled={isDisableInteractive}
-                                                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path))}
-                                                        style={[styles.flexRow, styles.flex1]}
-                                                        sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
-                                                    >
-                                                        <View style={[styles.flexRow, styles.flex1]}>
-                                                            <RenderHTML html={taskTitle} />
-                                                        </View>
-                                                        {!isDisableInteractive && (
-                                                            <View style={styles.taskRightIconContainer}>
-                                                                <Icon
-                                                                    additionalStyles={[styles.alignItemsCenter]}
-                                                                    src={icons.ArrowRight}
-                                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
-                                                                />
-                                                            </View>
-                                                        )}
-                                                    </PressableWithoutFeedback>
-                                                ) : (
-                                                    <>
-                                                        <View style={[styles.flexRow, styles.flex1]}>
-                                                            <RenderHTML html={taskTitle} />
-                                                        </View>
-                                                        {!isDisableInteractive && (
-                                                            <View style={styles.taskRightIconContainer}>
-                                                                <Icon
-                                                                    additionalStyles={[styles.alignItemsCenter]}
-                                                                    src={icons.ArrowRight}
-                                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
-                                                                />
-                                                            </View>
-                                                        )}
-                                                    </>
+                                    {({pressed}) => {
+                                        const titleContent = (
+                                            <>
+                                                <View style={[styles.flexRow, styles.flex1]}>
+                                                    <RenderHTML html={taskTitle} />
+                                                </View>
+                                                {!isDisableInteractive && (
+                                                    <View style={styles.taskRightIconContainer}>
+                                                        <Icon
+                                                            additionalStyles={[styles.alignItemsCenter]}
+                                                            src={icons.ArrowRight}
+                                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                        />
+                                                    </View>
                                                 )}
-                                            </View>
-                                        </OfflineWithFeedback>
-                                    )}
+                                            </>
+                                        );
+
+                                        return (
+                                            <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
+                                                <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
+                                                <View style={[styles.flexRow, styles.flex1]}>
+                                                    <Checkbox
+                                                        shouldSelectOnPressEnter
+                                                        onPress={callFunctionIfActionIsAllowed(() => {
+                                                            // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                                                            if (isActiveTaskEditRoute(report?.reportID)) {
+                                                                return;
+                                                            }
+                                                            if (shouldBreakGrouping && isScreenReaderActive) {
+                                                                setLocalIsCompleted((prev) => !prev);
+                                                            }
+                                                            if (isCompleted) {
+                                                                reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
+                                                            } else {
+                                                                completeTask(
+                                                                    report,
+                                                                    parentReport?.hasOutstandingChildTask ?? false,
+                                                                    hasOutstandingChildTask,
+                                                                    parentReportAction,
+                                                                    delegateEmail,
+                                                                );
+                                                            }
+                                                        })}
+                                                        isChecked={isCompleted}
+                                                        style={styles.taskMenuItemCheckbox}
+                                                        containerSize={24}
+                                                        containerBorderRadius={8}
+                                                        caretSize={16}
+                                                        accessibilityLabel={taskAccessibilityLabel}
+                                                        disabled={!isTaskActionable}
+                                                        sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
+                                                    />
+                                                    {shouldBreakGrouping ? (
+                                                        <PressableWithoutFeedback
+                                                            accessible
+                                                            accessibilityRole={CONST.ROLE.BUTTON}
+                                                            accessibilityLabel={taskAccessibilityLabel}
+                                                            accessibilityState={{disabled: isDisableInteractive}}
+                                                            disabled={isDisableInteractive}
+                                                            onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}
+                                                            style={[styles.flexRow, styles.flex1]}
+                                                            sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
+                                                        >
+                                                            {titleContent}
+                                                        </PressableWithoutFeedback>
+                                                    ) : (
+                                                        titleContent
+                                                    )}
+                                                </View>
+                                            </OfflineWithFeedback>
+                                        );
+                                    }}
                                 </PressableWithSecondaryInteraction>
                             )}
                         </Hoverable>
