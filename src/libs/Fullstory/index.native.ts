@@ -1,7 +1,17 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
+import Onyx from 'react-native-onyx';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {getChatFSClass, shouldInitializeFullstory} from './common';
 import type {Fullstory} from './types';
+
+let isClosingReactNativeApp = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.HYBRID_APP,
+    callback: (hybridApp) => {
+        isClosingReactNativeApp = hybridApp?.closingReactNativeApp ?? false;
+    },
+});
 
 const FS: Fullstory = {
     Page: FSPage,
@@ -35,6 +45,13 @@ const FS: Fullstory = {
             // UserMetadata onyx key.
             getEnvironment().then((envName: string) => {
                 if (!FS.shouldInitialize(userMetadata, envName)) {
+                    return;
+                }
+
+                // Skip restart if the RN app is in the process of closing. The bridge may be
+                // tearing down, and FullStory's onSessionStarted native callback would fire into
+                // a dead bridge causing an EXC_BAD_ACCESS crash.
+                if (isClosingReactNativeApp) {
                     return;
                 }
 
@@ -77,6 +94,10 @@ const FS: Fullstory = {
 
     resetIdleTimer: () => {
         FullStory.resetIdleTimer();
+    },
+
+    shutdown: () => {
+        FullStory.shutdown();
     },
 };
 

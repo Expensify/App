@@ -129,6 +129,10 @@ const FS: Fullstory = {
         // resetIdleTimer is not available in the browser SDK
         // It's a mobile-only feature
     },
+
+    shutdown: () => {
+        // shutdown is not needed in the browser SDK — only used on native before bridge teardown
+    },
 };
 
 export default FS;

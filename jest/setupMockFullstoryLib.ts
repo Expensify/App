@@ -29,6 +29,7 @@ export default function mockFSLibrary() {
             log: jest.fn(),
             setUserVars: jest.fn(),
             resetIdleTimer: jest.fn(),
+            shutdown: jest.fn(),
         };
     });
 }

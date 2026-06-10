@@ -1,6 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
@@ -116,6 +117,10 @@ function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDot
         .then(() => {
             requestAnimationFrame(() => {
                 Navigation.clearPreloadedRoutes();
+                // Shut down FullStory before the bridge tears down. If a FullStory.restart()
+                // is in flight, its onSessionStarted native callback would otherwise fire into
+                // a deallocated bridge causing an EXC_BAD_ACCESS crash.
+                FS.shutdown();
                 // eslint-disable-next-line no-restricted-properties
                 HybridAppModule.closeReactNativeApp({shouldSetNVP});
             });
@@ -123,6 +128,7 @@ function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDot
         .catch((error) => {
             Log.warn('[HybridApp] Failed to merge closingReactNativeApp before close', {error});
             Navigation.clearPreloadedRoutes();
+            FS.shutdown();
             // eslint-disable-next-line no-restricted-properties
             HybridAppModule.closeReactNativeApp({shouldSetNVP});
         });

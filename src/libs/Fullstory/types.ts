@@ -103,6 +103,12 @@ type Fullstory = {
      * Resets the idle timer to prevent session timeout.
      */
     resetIdleTimer: () => void;
+
+    /**
+     * Shuts down FullStory recording. Should be called before the React Native bridge tears down
+     * to prevent EXC_BAD_ACCESS crashes from in-flight onSessionStarted native callbacks.
+     */
+    shutdown: () => void;
 };
 
 /**
