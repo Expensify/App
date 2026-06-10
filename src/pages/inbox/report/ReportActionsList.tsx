@@ -2,8 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
@@ -28,6 +27,7 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionMessage,
@@ -53,6 +53,7 @@ import {
 } from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
+import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {openReport, readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -179,6 +180,7 @@ function ReportActionsList({
     const {scrollOffsetRef} = useContext(ActionListContext);
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft} = useConciergeDraftActions();
+    const {sessionStartTime: conciergeSessionStartTime} = useConciergeSessionState();
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -266,6 +268,10 @@ function ReportActionsList({
             return sortedVisibleReportActions;
         }
 
+        if (showHiddenHistory && conciergeSessionStartTime && draftReportAction.created < conciergeSessionStartTime) {
+            return sortedVisibleReportActions;
+        }
+
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
@@ -287,7 +293,8 @@ function ReportActionsList({
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    }, [draftReportAction, isDraftPendingCompletion, sortedVisibleReportActions]);
+    }, [conciergeSessionStartTime, draftReportAction, isDraftPendingCompletion, showHiddenHistory, sortedVisibleReportActions]);
+
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
     const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
@@ -392,13 +399,17 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldFocusToTopOnMount) {
-                return;
-            }
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (shouldFocusToTopOnMount) {
+                    return;
+                }
+                setIsFloatingMessageCounterVisible(false);
+                reportScrollManager.scrollToBottom();
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -409,11 +420,15 @@ function ReportActionsList({
             return;
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
-        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
-            });
+        if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER || prevSorted) {
+            return;
         }
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
+        });
+        return () => handle.cancel();
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     // Clear the highlighted report action after scrolling and highlighting
@@ -435,9 +450,12 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
 
@@ -634,7 +652,11 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(() => loadNewerChats(false));
+            },
+        });
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
