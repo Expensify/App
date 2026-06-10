@@ -143,6 +143,7 @@ describe('UserUtils', () => {
 
         test('keeps Expensify contact methods and excludes device and synthetic policy-domain logins', () => {
             const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1_user@example.com': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -151,6 +152,7 @@ describe('UserUtils', () => {
                     lastLogin: '2024-01-02',
                     validatedDate: '2024-01-01',
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1_card@expensify-policy7c203ee7387a8f06.exfy': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -159,6 +161,7 @@ describe('UserUtils', () => {
                     lastLogin: '2024-01-02',
                     validatedDate: null,
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '14_device': {
                     created: '2024-01-01',
                     accountID: 1,
