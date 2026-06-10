@@ -56,7 +56,7 @@ function DatePicker({
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
 
-    const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
+    const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput(false, true);
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
     autoFocusCallbackRefRef.current = autoFocusCallbackRef;
 

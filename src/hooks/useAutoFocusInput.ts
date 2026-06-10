@@ -25,7 +25,7 @@ type UseAutoFocusInput = {
     cancelAutoFocus: () => void;
 };
 
-export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
+export default function useAutoFocusInput(isMultiline = false, shouldMoveAccessibilityFocus = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
@@ -56,7 +56,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     useEffect(() => {
         if (
-            isScreenReaderEnabled ||
+            (isScreenReaderEnabled && !shouldMoveAccessibilityFocus) ||
             !isScreenTransitionEnded ||
             !isInputInitialized ||
             !inputRef.current ||
@@ -67,6 +67,11 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
+            if (isScreenReaderEnabled) {
+                Accessibility.moveAccessibilityFocus(inputRef.current);
+                setIsScreenTransitionEnded(false);
+                return;
+            }
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
             }
@@ -95,7 +100,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isScreenReaderEnabled, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
+    }, [isScreenReaderEnabled, shouldMoveAccessibilityFocus, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
 
     useFocusEffect(
         useCallback(() => {
