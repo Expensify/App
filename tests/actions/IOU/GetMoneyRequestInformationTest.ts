@@ -212,17 +212,21 @@ describe('getMoneyRequestInformation', () => {
     });
 
     describe('pendingNewTransactionIDs metadata rail', () => {
-        type PendingNewTransactionIDsMetadata = {pendingNewTransactionIDs?: Record<string, true | null>};
-
         it('writes the flag in optimisticData under REPORT_METADATA of the new IOU report', () => {
             const result = getMoneyRequestInformation(baseParams);
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
             const newTxID = result.transaction.transactionID;
 
-            const optimisticEntry = result.onyxData.optimisticData?.find(
-                (entry) => entry.key === expectedKey && (entry.value as PendingNewTransactionIDsMetadata)?.pendingNewTransactionIDs?.[newTxID] === true,
+            expect(result.onyxData.optimisticData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: expectedKey,
+                        value: expect.objectContaining({
+                            pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true}),
+                        }),
+                    }),
+                ]),
             );
-            expect(optimisticEntry).toBeDefined();
         });
 
         it('clears the flag in failureData when the optimistic write rolls back', () => {
@@ -230,10 +234,16 @@ describe('getMoneyRequestInformation', () => {
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
             const newTxID = result.transaction.transactionID;
 
-            const failureEntry = result.onyxData.failureData?.find(
-                (entry) => entry.key === expectedKey && (entry.value as PendingNewTransactionIDsMetadata)?.pendingNewTransactionIDs?.[newTxID] === null,
+            expect(result.onyxData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: expectedKey,
+                        value: expect.objectContaining({
+                            pendingNewTransactionIDs: expect.objectContaining({[newTxID]: null}),
+                        }),
+                    }),
+                ]),
             );
-            expect(failureEntry).toBeDefined();
         });
 
         it('clears the flag in successData so it cannot persist across sessions', () => {
@@ -241,10 +251,16 @@ describe('getMoneyRequestInformation', () => {
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
             const newTxID = result.transaction.transactionID;
 
-            const successEntry = result.onyxData.successData?.find(
-                (entry) => entry.key === expectedKey && (entry.value as PendingNewTransactionIDsMetadata)?.pendingNewTransactionIDs?.[newTxID] === null,
+            expect(result.onyxData.successData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: expectedKey,
+                        value: expect.objectContaining({
+                            pendingNewTransactionIDs: expect.objectContaining({[newTxID]: null}),
+                        }),
+                    }),
+                ]),
             );
-            expect(successEntry).toBeDefined();
         });
     });
 });
