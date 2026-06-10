@@ -72,6 +72,20 @@ Explain what the concept is, when users encounter it, and why it matters. Link t
 
 ---
 
+## What [topic area] includes
+
+Introduce the major concepts within this topic area.
+
+For each concept:
+
+- Provide a brief explanation
+- Explain when customers encounter it
+- Link to a dedicated Concept or Task article
+
+This section should help readers understand how the topic area is organized.
+
+---
+
 ## Choosing the right [concept, option, or path]
 
 Help users distinguish between the main concepts or options in this topic area.
