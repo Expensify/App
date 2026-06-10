@@ -40,6 +40,7 @@ import {
     getReportAction,
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
+    isMoneyRequestAction,
     isPayAction,
 } from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -1152,7 +1153,7 @@ function getSecondaryTransactionThreadActions({
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
-    const iouReportID = reportAction ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+    const iouReportID = reportAction && isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const isMoneyRequestReportArchived = isReportArchivedByID(archivedReportsIDSet, iouReportID);
 
     if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID)) {
