@@ -471,6 +471,7 @@ type SearchTableHeaderProps = {
     shouldShowYear: boolean;
     shouldShowYearSubmitted?: boolean;
     shouldShowYearApproved?: boolean;
+    shouldShowYearFirstApproved?: boolean;
     shouldShowYearPosted?: boolean;
     shouldShowYearExported?: boolean;
     shouldShowYearWithdrawn?: boolean;
@@ -496,6 +497,7 @@ function SearchTableHeader({
     shouldShowYear,
     shouldShowYearSubmitted,
     shouldShowYearApproved,
+    shouldShowYearFirstApproved,
     shouldShowYearPosted,
     shouldShowYearExported,
     shouldShowYearWithdrawn,
@@ -569,6 +571,7 @@ function SearchTableHeader({
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            firstApprovedColumnSize={shouldShowYearFirstApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             withdrawnColumnSize={shouldShowYearWithdrawn ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

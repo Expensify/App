@@ -1719,6 +1719,7 @@ function Search({
                       shouldShowYearCreated: false,
                       shouldShowYearSubmitted: false,
                       shouldShowYearApproved: false,
+                      shouldShowYearFirstApproved: false,
                       shouldShowYearPosted: false,
                       shouldShowYearExported: false,
                       shouldShowYearWithdrawn: false,
@@ -1820,7 +1821,8 @@ function Search({
         );
     }
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearFirstApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} =
+        yearIndicators;
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
@@ -1898,6 +1900,7 @@ function Search({
                                     shouldShowYear={shouldShowYearCreated}
                                     shouldShowYearSubmitted={shouldShowYearSubmitted}
                                     shouldShowYearApproved={shouldShowYearApproved}
+                                    shouldShowYearFirstApproved={shouldShowYearFirstApproved}
                                     shouldShowYearPosted={shouldShowYearPosted}
                                     shouldShowYearExported={shouldShowYearExported}
                                     shouldShowYearWithdrawn={shouldShowYearWithdrawn}

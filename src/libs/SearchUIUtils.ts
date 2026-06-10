@@ -406,6 +406,7 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+    CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER,
 ]);
 
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
@@ -1417,6 +1418,7 @@ type ShouldShowYearResult = {
     shouldShowYearCreated: boolean;
     shouldShowYearSubmitted: boolean;
     shouldShowYearApproved: boolean;
+    shouldShowYearFirstApproved: boolean;
     shouldShowYearPosted: boolean;
     shouldShowYearExported: boolean;
     shouldShowYearWithdrawn: boolean;
@@ -1457,6 +1459,38 @@ function buildLastExportedActionByReportIDMap(data: OnyxTypes.SearchResults['dat
 }
 
 /**
+ * @private
+ * Builds a map of the earliest approval action (APPROVED/FORWARDED) by report ID — its actor is the report's first approver.
+ */
+function buildFirstApprovedActionByReportIDMap(data: OnyxTypes.SearchResults['data']): Map<string, OnyxTypes.ReportAction> {
+    const firstApprovedActionByReportID = new Map<string, OnyxTypes.ReportAction>();
+    for (const key of Object.keys(data)) {
+        if (!isReportActionEntry(key)) {
+            continue;
+        }
+        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+
+        let firstApprovalAction: OnyxTypes.ReportAction | undefined;
+        let earliestTime = Infinity;
+        for (const action of Object.values(data[key])) {
+            if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.APPROVED && action.actionName !== CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+                continue;
+            }
+            const currentTime = new Date(action.created).getTime();
+            if (currentTime < earliestTime) {
+                earliestTime = currentTime;
+                firstApprovalAction = action;
+            }
+        }
+
+        if (firstApprovalAction) {
+            firstApprovedActionByReportID.set(reportID, firstApprovalAction);
+        }
+    }
+    return firstApprovedActionByReportID;
+}
+
+/**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  * @param data - The search results data (array or object)
  * @param checkOnlyReports - When true and data is an object, only check report dates (skip transactions and report actions)
@@ -1472,6 +1506,7 @@ function shouldShowYear(
         shouldShowYearCreated: false,
         shouldShowYearSubmitted: false,
         shouldShowYearApproved: false,
+        shouldShowYearFirstApproved: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         shouldShowYearWithdrawn: false,
@@ -1526,6 +1561,7 @@ function shouldShowYear(
     }
 
     const lastExportedActionByReportID = precomputedLastExportedMap ?? buildLastExportedActionByReportIDMap(data);
+    const firstApprovedActionByReportID = buildFirstApprovedActionByReportIDMap(data);
 
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
@@ -1577,6 +1613,11 @@ function shouldShowYear(
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
+
+            const firstApprovedAction = firstApprovedActionByReportID.get(item.reportID);
+            if (firstApprovedAction?.created && DateUtils.doesDateBelongToAPastYear(firstApprovedAction.created)) {
+                result.shouldShowYearFirstApproved = true;
+            }
         } else if (!result.shouldShowYearWithdrawn && isGroupEntry(key)) {
             const group = data[key];
             if ('debitPosted' in group && group.debitPosted && DateUtils.doesDateBelongToAPastYear(group.debitPosted)) {
@@ -1589,6 +1630,7 @@ function shouldShowYear(
             result.shouldShowYearCreated &&
             result.shouldShowYearSubmitted &&
             result.shouldShowYearApproved &&
+            result.shouldShowYearFirstApproved &&
             result.shouldShowYearPosted &&
             result.shouldShowYearExported &&
             result.shouldShowYearWithdrawn
