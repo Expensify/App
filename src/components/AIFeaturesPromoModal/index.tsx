@@ -21,7 +21,7 @@ function AIFeaturesPromoModal() {
 
     const customAgentPromoTitle = (
         <View style={[styles.dFlex, styles.flexRow]}>
-            <Text style={styles.textHeadlineH1}>{translate('aiFeaturesPromoModal.customAgents.title')}</Text>
+            <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('aiFeaturesPromoModal.customAgents.title')}</Text>
             <Badge
                 isStrong
                 isCondensed
