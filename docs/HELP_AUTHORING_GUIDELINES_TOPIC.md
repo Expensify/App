@@ -133,6 +133,45 @@ Each concept summary should:
 
 Concept summaries should be informative but not exhaustive.
 
+## Topic Area Mapping
+
+Topic articles should include a section that explicitly identifies the major concepts within the topic area.
+
+This section should:
+
+- Introduce the major concepts
+- Explain how they relate to one another
+- Help readers identify which concept or task article to read next
+
+The purpose of this section is orientation, not deep explanation.
+
+Example:
+
+Billing and subscriptions includes:
+
+- Subscription plans
+- Billing ownership
+- Annual commitments
+- Expensify Card pricing benefits
+
+Each concept should link to more detailed Concept or Task articles where appropriate.
+
+## Topic Article Depth
+
+Topic articles introduce concepts but do not fully explain them.
+
+For each concept:
+
+- Explain what it is
+- Explain why it matters
+- Explain when customers encounter it
+
+Keep explanations brief and focused.
+
+A reader should understand the concept well enough to determine whether they need additional information, but should still rely on linked Concept or Task articles for complete details.
+
+When deciding between adding detail and linking to a dedicated article, prefer linking.
+
 ---
 
 # 6. Retrieval Optimization
