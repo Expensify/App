@@ -148,8 +148,8 @@ function ButtonWithIcons({
             {!!iconRight && (
                 <ButtonIcon
                     src={iconRight}
-                    fill={iconRightFill ?? iconLeftFill}
-                    hoverFill={iconRightHoverFill ?? iconLeftHoverFill}
+                    fill={iconRightFill}
+                    hoverFill={iconRightHoverFill}
                     style={iconRightStyles}
                 />
             )}
