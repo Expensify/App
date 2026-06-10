@@ -1,90 +1,81 @@
 ---
-title: How billing and subscriptions work in Expensify
-description: A high-level orientation to billing and subscriptions for workspace billing owners, including prepaid subscriptions, billing ownership, annual commitments, and Expensify Card usage.
-keywords: [billing, subscriptions, prepaid billing, billing owner, annual subscription, Expensify Card, Collect plan, Control plan, how billing works]
-internalScope: Audience is workspace billing owners. Covers broad orientation to billing and subscriptions, including prepaid subscriptions, billing ownership, annual commitments, and Expensify Card usage. Does not cover detailed workflows, setup steps, pricing tables, payment method management, or configuration instructions.
+title: How billing and subscriptions work
+description: A high-level orientation to billing and subscriptions for workspace billing owners, including how plans, subscriptions, billing ownership, and Expensify Card usage affect billing. 
+keywords: [billing, subscriptions, billing, billing owner, annual subscription, Expensify Card, Collect plan, Control plan, how billing works]
+internalScope: Audience is workspace billing owners. Covers broad orientation to billing and subscriptions, including billing ownership, plans, subscriptions, and Expensify Card usage. Does not cover detailed workflows, setup steps, pricing tables, payment method management, or configuration instructions.
 contentType: topic
 platform: [no-platform]
 ---
 
-# How billing and subscriptions work in Expensify
+# How billing and subscriptions work
 
-Billing and subscriptions cover how Expensify charges for your workspace and who is responsible for paying. Expensify offers two subscription plans, Collect and Control, designed to scale with your team's needs. As a billing owner, this area helps you understand how your subscription is billed, what can affect your cost, and where billing fits alongside your workspace and plan. The main concepts are prepaid subscriptions, billing ownership, annual commitments, and Expensify Card usage.
+Your Expensify plan and subscription determine how your workspace is billed and who is responsible for payment. Your plan, subscription, workspace membership, and Expensify Card usage can all affect the total cost of your subscription. As a billing owner, understanding concepts such as workspace membership, billing ownership, plans, subscriptions, and Expensify Card discounts will help you understand what affects your bill and where to find more detailed guidance.
+
+This article explains how billing works. For detailed pricing information, see Plan types and pricing [article to be created].
 
 ---
 
 ## How billing works in Expensify
 
-Expensify offers two subscription plans, Collect and Control, that scale with your team's needs. Collect is built for small teams that need an easy way to track receipts and get reimbursed, while Control is built for growing businesses that want more control over spending, smoother approvals, and policy automation.
+Expensify offers several plans, including Collect and Control, along with different subscription options, such as pay-per-use and annual commitment.
 
-Subscriptions are prepaid, not usage-based. You pay for your subscription up front, so you are charged regardless of activity, even in a month when members do not scan receipts or submit reports.
+Your plan determines the features available to your workspace and the rate used for billing. Your subscription determines how that billing is applied and can affect your overall cost.
 
-Each workspace has a billing owner who is responsible for the workspace's subscription charges. Your overall cost depends on the plan you use and on factors such as whether you commit to an annual subscription and whether your team uses the Expensify Card. Understanding these basics helps you choose the right article to learn more.
+Each workspace has a billing owner who is responsible for the workspace's billing. The total amount billed depends on your plan, subscription, workspace membership, and any discounts earned through Expensify Card usage.
+
+Understanding these concepts will help you manage your billing and find the right resources when you have billing questions. 
 
 ---
 
 ## Key concepts in billing and subscriptions
 
-**Prepaid subscriptions**
-Expensify subscriptions are prepaid and not usage-based. You encounter this every billing cycle, because your subscription is charged up front rather than based on how active your members are. It matters because you are billed even in months when members do not scan receipts or submit reports. Learn more about [plan types and pricing](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
+**Workspace membership**
+Billing is based on the members in your workspace rather than on individual actions such as scanning receipts or submitting expenses. Charges are determined by your plan, subscription type, and workspace membership. Learn more about [article to be created](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
 
 **Billing ownership**
-Each workspace has a billing owner, the member responsible for the workspace's subscription charges. You encounter this when a workspace is set up and someone takes responsibility for paying. It matters because all of a workspace's charges are attributed to that single billing owner. Learn how to [add a payment card and view your subscription](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription).
+Each workspace has a billing owner who is responsible for the workspace's billing. Billing owners are charged monthly for all workspaces they own. Learn how to [article to be created](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription).
 
-**Annual commitments**
-An annual commitment means subscribing for a year instead of paying month to month. You encounter this when deciding how to pay for your subscription. It matters because your billing term can affect, and often reduce, your cost. Learn more about [plan types and pricing](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
+**Plan**
+Expensify offers several plans, including Collect and Control. Your plan determines the features available to your workspace and the rate used to calculate billing.
+
+**Subscription**
+Your subscription determines how you pay for your plan, such as pay-per-use or an annual subscription. The subscription option you choose can affect your overall cost. Learn more about [article to be created](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
 
 **Expensify Card usage**
-The Expensify Card is Expensify's corporate card. You encounter this benefit when your team uses the card for company spending. It matters because Expensify Card usage can affect, and may reduce, your subscription cost. Learn more about [plan types and pricing](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
+Using the Expensify Card can reduce subscription costs depending on your card spend activity. Learn more about [article to be created](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
 
----
+When calculating your bill, Expensify starts with your plan and workspace membership, then applies any discounts associated with your subscription or Expensify Card usage. The billing owner is responsible for the paying the final charge. 
 
-## What billing and subscriptions includes
-
-Billing and subscriptions brings together a few connected concepts:
-
-* **Subscription plans** — Collect and Control, which set the foundation for your billing.
-* **Billing ownership** — who is responsible for paying a workspace's charges.
-* **Annual commitments** — how your billing term can affect your cost.
-* **Expensify Card usage** — how using the Expensify Card can affect your cost.
-
-These concepts work together: your plan sets the baseline, your billing term and Expensify Card usage affect what you pay, and the billing owner is charged for the result. To go deeper, see [plan types and pricing](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
-
----
-
-## Choosing the right plan
-
-Expensify offers two plans, and the right one depends on your team's size and needs. Collect is a good fit for small teams that mainly need to track receipts and get reimbursed. Control is a better fit for growing businesses that want more control over spending, smoother approvals, and policy automation. For a full breakdown of features and options across plans, see [plan types and pricing](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
+Learn more about [article to be created](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
 
 ---
 
 ## Common questions about billing and subscriptions
 
-## What does billing and subscriptions include?
+## Why am I still billed if nobody submitted expenses?
 
-It covers how your workspace subscription is billed and who pays for it. This includes your plan, Collect or Control, prepaid billing, billing ownership, and the factors that can affect your cost, such as annual commitments and Expensify Card usage.
+Billing is based on your plan, subscription, and workspace membership, not on the number of expenses submitted or receipts scanned during a billing period.
 
-## Which plan should I use?
+## Who pays for a workspace subscription?
 
-Choose Collect if you are a small team that needs to track receipts and get reimbursed. Choose Control if you are a growing business that needs more control over spending and approvals. For more detail, see [plan types and pricing](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
+Each workspace has a billing owner who is responsible for the workspace's subscription charges. All subscription billing is attributed to that billing owner.
 
-## Who is responsible for a workspace's subscription?
+## Does annual billing affect pricing?
 
-Each workspace has a billing owner who is responsible for the subscription charges. The billing owner manages the workspace's subscription and is the member charged for it.
+Yes. Choosing an annual commitment instead of monthly billing can affect your overall subscription cost. For details, see [topic to be created]. 
 
-## How does billing and subscriptions relate to other Expensify features?
+## Does Expensify Card usage affect subscription costs?
 
-Billing is tied to your workspace and the plan it uses. Your plan, your billing term, and your Expensify Card usage all influence your subscription. To manage the payment side, see [add a payment card and view your subscription](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription).
+Yes. Depending on your subscription and card usage, using the Expensify Card may affect your subscription cost. For details, see topic to be created].
+
+## Where can I manage my subscription?
+
+To view subscription details or manage billing information, see topic to be created]. 
 
 ---
 
 ## Related articles
 
-### Learn about key concepts
-
-* [Plan types and pricing](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)
-
-### Complete common tasks
-
-* [Add a payment card and view your subscription](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription)
-* [Change your workspace plan](/articles/new-expensify/billing-and-subscriptions/Changing-Your-Workspace-Plan)
+ - [Plan types and pricing](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)
+ - [Add a payment card and view your subscription](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription)
+ - [Change your workspace plan](/articles/new-expensify/billing-and-subscriptions/Changing-Your-Workspace-Plan)
