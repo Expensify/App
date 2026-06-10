@@ -14,10 +14,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import BaseOnboardingAccounting from '@pages/OnboardingAccounting/BaseOnboardingAccounting';
 import BaseOnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures';
 import CONST from '@src/CONST';
+import type {OnboardingModalNavigatorParamList} from '@src/libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OnboardingModalNavigatorParamList} from '@src/libs/Navigation/types';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
