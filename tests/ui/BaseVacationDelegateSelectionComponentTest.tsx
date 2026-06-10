@@ -119,6 +119,41 @@ describe('BaseVacationDelegateSelectionComponent', () => {
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(`vacationDelegate-${mockDelegateDetails.login}`);
         expect(selectionListProps?.searchValueForFocusSync).toBe('');
         expect(selectionListProps?.initialScrollIndex).toBe(0);
+        expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
+    });
+
+    it('keeps the initial delegate pinned while the live selected delegate changes in place', () => {
+        const {rerender} = render(
+            <BaseVacationDelegateSelectionComponent
+                vacationDelegate={{delegate: mockDelegateDetails.login}}
+                onSelectRow={jest.fn()}
+                headerTitle="Vacation delegate"
+                cannotSetDelegateMessage="Cannot set delegate"
+            />,
+        );
+
+        rerender(
+            <BaseVacationDelegateSelectionComponent
+                vacationDelegate={{delegate: 'contact@example.com'}}
+                onSelectRow={jest.fn()}
+                headerTitle="Vacation delegate"
+                cannotSetDelegateMessage="Cannot set delegate"
+            />,
+        );
+
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        expect(selectionListProps?.sections.at(0)?.data.at(0)).toEqual(
+            expect.objectContaining({
+                keyForList: `vacationDelegate-${mockDelegateDetails.login}`,
+                isSelected: false,
+            }),
+        );
+        expect(selectionListProps?.sections.at(2)?.data.at(0)).toEqual(
+            expect.objectContaining({
+                keyForList: 'contact@example.com',
+                isSelected: true,
+            }),
+        );
     });
 
     it('keeps natural sections while search is active', () => {

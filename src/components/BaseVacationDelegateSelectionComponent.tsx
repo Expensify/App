@@ -143,7 +143,7 @@ function BaseVacationDelegateSelectionComponent({
             alternateText: option.alternateText ?? option.login ?? undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
-            isSelected: option.isSelected ?? undefined,
+            isSelected: option.login === currentVacationDelegate,
             login: option.login ?? undefined,
             shouldShowSubscript: option.shouldShowSubscript ?? undefined,
         })),
@@ -194,6 +194,7 @@ function BaseVacationDelegateSelectionComponent({
                             searchValueForFocusSync={debouncedSearchTerm}
                             initiallyFocusedItemKey={initialVacationDelegate ? `vacationDelegate-${initialVacationDelegate}` : undefined}
                             initialScrollIndex={0}
+                            shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
                             shouldShowTextInput
                         />
