@@ -113,24 +113,31 @@ function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDot
 
     const closingPromise = CONFIG.IS_HYBRID_APP ? Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true}) : Promise.resolve();
 
+    const teardown = () => {
+        // Shut down FullStory before the bridge tears down. If a FullStory.restart()
+        // is in flight, its onSessionStarted native callback would otherwise fire into
+        // a deallocated bridge causing an EXC_BAD_ACCESS crash.
+        FS.shutdown();
+        // eslint-disable-next-line no-restricted-properties
+        HybridAppModule.closeReactNativeApp({shouldSetNVP});
+    };
+
     closingPromise
         .then(() => {
             requestAnimationFrame(() => {
                 Navigation.clearPreloadedRoutes();
-                // Shut down FullStory before the bridge tears down. If a FullStory.restart()
-                // is in flight, its onSessionStarted native callback would otherwise fire into
-                // a deallocated bridge causing an EXC_BAD_ACCESS crash.
-                FS.shutdown();
-                // eslint-disable-next-line no-restricted-properties
-                HybridAppModule.closeReactNativeApp({shouldSetNVP});
+                // Wait for the Fabric scheduler to drain any in-flight rendering
+                // transactions before tearing down the bridge. clearPreloadedRoutes()
+                // triggers a React commit which queues a Fabric updateRendering() call
+                // on the JS thread — calling closeReactNativeApp() before that completes
+                // causes a use-after-free crash in RuntimeScheduler_Modern.
+                requestIdleCallback(teardown, {timeout: 500});
             });
         })
         .catch((error) => {
             Log.warn('[HybridApp] Failed to merge closingReactNativeApp before close', {error});
             Navigation.clearPreloadedRoutes();
-            FS.shutdown();
-            // eslint-disable-next-line no-restricted-properties
-            HybridAppModule.closeReactNativeApp({shouldSetNVP});
+            requestIdleCallback(teardown, {timeout: 500});
         });
 }
 
