@@ -9,13 +9,14 @@ describe('reportTransactionsAndViolations derived value', () => {
         const transactionID = '91016-transaction';
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
         const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
-        const transaction = {
+        const transaction: Transaction = {
             transactionID,
             reportID,
             amount: 8700,
             currency: CONST.CURRENCY.EUR,
             merchant: 'Merchant',
-        } as Transaction;
+            created: '2026-06-10',
+        };
         const violation = {
             name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
             type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -38,13 +39,14 @@ describe('reportTransactionsAndViolations derived value', () => {
         const reportID = '91016-delete';
         const transactionID = '91016-delete-transaction';
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
-        const transaction = {
+        const transaction: Transaction = {
             transactionID,
             reportID,
             amount: 8700,
             currency: CONST.CURRENCY.EUR,
             merchant: 'Merchant',
-        } as Transaction;
+            created: '2026-06-10',
+        };
 
         const currentValue = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {currentValue: undefined, sourceValues: undefined});
         const result = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: undefined}, {}], {
