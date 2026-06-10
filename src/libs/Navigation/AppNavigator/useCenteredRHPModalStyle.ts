@@ -18,6 +18,8 @@ function useCenteredRHPModalStyle(): ViewStyle {
             top: (windowHeight - modalHeight) / 2,
             left: (windowWidth - variables.rhpCenteredModalWidth) / 2,
             borderRadius: variables.componentBorderRadiusLarge,
+            // Without it, Safari drops the containment once the fade entry settles and the modal stretches to the bottom of the screen.
+            transform: [{translateX: 0}],
         };
     }, [windowHeight, windowWidth]);
 }
