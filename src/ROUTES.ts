@@ -968,10 +968,6 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
-    WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
-        path: 'initial-list-value',
-        entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
-    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
