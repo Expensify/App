@@ -63,16 +63,18 @@ describe('ContactMethodsPage', () => {
         const defaultEmail = 'default@example.com';
         const otherEmail = 'other@example.com';
         Onyx.merge(ONYXKEYS.SESSION, {email: defaultEmail});
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [defaultEmail]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${defaultEmail}`]: {
+                partnerID: 1,
                 partnerUserID: defaultEmail,
                 validatedDate: '2024-01-01',
             },
-            [otherEmail]: {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '',
                 errorFields: {
-                    error: {field: 'dummy'},
+                    addedLogin: {field: 'dummy'},
                 },
             },
         });
@@ -91,8 +93,9 @@ describe('ContactMethodsPage', () => {
         expect(node).toHaveTextContent('error-brickRoadIndicator');
 
         // Verify that RBR disappears
-        await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [otherEmail]: {
+        await Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '2024-02-02',
                 errorFields: null,
@@ -112,12 +115,14 @@ describe('ContactMethodsPage', () => {
         const defaultEmail = 'default@example.com';
         const otherEmail = 'other@example.com';
         Onyx.merge(ONYXKEYS.SESSION, {email: defaultEmail});
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [defaultEmail]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${defaultEmail}`]: {
+                partnerID: 1,
                 partnerUserID: defaultEmail,
                 validatedDate: '2024-01-01',
             },
-            [otherEmail]: {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '',
             },
@@ -136,8 +141,9 @@ describe('ContactMethodsPage', () => {
         expect(node).toHaveTextContent('info-brickRoadIndicator');
 
         // Verify that GBR disappears
-        await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [otherEmail]: {
+        await Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '2024-02-02',
             },

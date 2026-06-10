@@ -120,9 +120,6 @@ const ONYXKEYS = {
     /** Contains metadata (partner, login, validation date) for all of the user's logins */
     LOGINS: 'logins',
 
-    /** Contains metadata (partner, login, validation date) for all of the user's logins */
-    LOGIN_LIST: 'loginList',
-
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
@@ -484,6 +481,9 @@ const ONYXKEYS = {
 
     /** Onboarding company size selected by the user during Onboarding flow */
     ONBOARDING_COMPANY_SIZE: 'onboardingCompanySize',
+
+    /** Onboarding personal track goal selected by the user during Onboarding flow */
+    ONBOARDING_PERSONAL_TRACK_GOAL: 'onboardingPersonalTrackGoal',
 
     /** Onboarding user reported integration selected by the user during Onboarding flow */
     ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
@@ -986,8 +986,6 @@ const ONYXKEYS = {
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
         ONBOARDING_PERSONAL_DETAILS_FORM: 'onboardingPersonalDetailsForm',
         ONBOARDING_PERSONAL_DETAILS_FORM_DRAFT: 'onboardingPersonalDetailsFormDraft',
-        ONBOARDING_WORKSPACE_DETAILS_FORM: 'onboardingWorkspaceDetailsForm',
-        ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT: 'onboardingWorkspaceDetailsFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
         ROOM_NAME_FORM_DRAFT: 'roomNameFormDraft',
         CHRONOS_SCHEDULE_OOO_FORM: 'chronosScheduleOOOForm',
@@ -1196,6 +1194,10 @@ const ONYXKEYS = {
         EDIT_AGENT_NAME_FORM_DRAFT: 'editAgentNameFormDraft',
         EDIT_AGENT_PROMPT_FORM: 'editAgentPromptForm',
         EDIT_AGENT_PROMPT_FORM_DRAFT: 'editAgentPromptFormDraft',
+        ADD_AI_RULE_FORM: 'addAIRuleForm',
+        ADD_AI_RULE_FORM_DRAFT: 'addAIRuleFormDraft',
+        EDIT_AI_RULE_FORM: 'editAIRuleForm',
+        EDIT_AI_RULE_FORM_DRAFT: 'editAIRuleFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1222,7 +1224,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
     [ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM]: FormTypes.WorkspaceConfirmationForm;
     [ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM]: FormTypes.WorkspaceDuplicateForm;
-    [ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM]: FormTypes.WorkspaceConfirmationForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
@@ -1347,6 +1348,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM]: FormTypes.DomainGroupCreateForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM]: FormTypes.EditAgentNameForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
+    [ONYXKEYS.FORMS.ADD_AI_RULE_FORM]: FormTypes.AddAIRuleForm;
+    [ONYXKEYS.FORMS.EDIT_AI_RULE_FORM]: FormTypes.EditAIRuleForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1476,7 +1479,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.COUNTRY]: string;
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGINS]: OnyxTypes.Logins;
-    [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
     [ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE]: OnyxTypes.ValidateDomainTwoFactorCode;
@@ -1579,6 +1581,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnyxTypes.OnboardingPurpose;
     [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySize;
+    [ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL]: string;
     [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnyxTypes.OnboardingPurpose[] | [];
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY]: TranslationPaths;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
