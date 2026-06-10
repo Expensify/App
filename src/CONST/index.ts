@@ -9127,6 +9127,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
             },
             DISTANCE_RATES: {
+                ROW: 'WorkspaceDistanceRates-Row',
                 ADD_BUTTON: 'WorkspaceDistanceRates-AddButton',
                 MORE_DROPDOWN: 'WorkspaceDistanceRates-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',

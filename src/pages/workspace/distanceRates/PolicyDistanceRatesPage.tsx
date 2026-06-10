@@ -11,6 +11,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceDistanceRatesTable from '@components/Tables/WorkspaceDistanceRatesTable';
 import Text from '@components/Text';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -138,6 +139,20 @@ function PolicyDistanceRatesPage({
     );
 
     const [selectedDistanceRates, setSelectedDistanceRates] = useFilteredSelection(selectableRates, filterRateSelection);
+
+    const clearTableSelection = useCallback(() => {
+        setSelectedDistanceRates((prev) => (prev.length > 0 ? [] : prev));
+    }, [setSelectedDistanceRates]);
+
+    useCleanupSelectedOptions(clearTableSelection);
+
+    useEffect(() => {
+        if (isMobileSelectionModeEnabled) {
+            return;
+        }
+
+        clearTableSelection();
+    }, [clearTableSelection, isMobileSelectionModeEnabled]);
 
     const canDisableOrDeleteSelectedRates = useMemo(
         () =>

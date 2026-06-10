@@ -83,6 +83,8 @@ function WorkspaceDistanceRatesTable({
                     rate.pendingFields?.rate ??
                     rate.pendingFields?.enabled ??
                     rate.pendingFields?.currency ??
+                    rate.pendingFields?.taxRateExternalID ??
+                    rate.pendingFields?.taxClaimablePercentage ??
                     rate.pendingFields?.name ??
                     pendingFields?.attributes ??
                     (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? pendingAction : undefined);

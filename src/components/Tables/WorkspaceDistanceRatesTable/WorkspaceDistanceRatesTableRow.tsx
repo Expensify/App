@@ -44,7 +44,11 @@ function formatDate(dateString: string | null | undefined): string {
     if (!dateString) {
         return '';
     }
-    return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+    try {
+        return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+    } catch {
+        return '';
+    }
 }
 
 function useRateStatusColors(status: string): {backgroundColor: ColorValue; textColor: ColorValue} {
@@ -77,6 +81,8 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
     const statusColors = useRateStatusColors(status);
     const dateLabelText = DistanceRequestUtils.getRateDateLabel({...rate, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}, translate);
 
+    const accessibilityLabel = [rate.name, statusLabels[status], formattedRate, dateLabelText].filter(Boolean).join(', ');
+
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'WorkspaceDistanceRatesTableItem',
         isDeleting,
@@ -87,8 +93,9 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
             interactive
             rowIndex={rowIndex}
             disabled={item.disabled}
+            accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={reasonAttributes}
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ROW}
             offlineWithFeedback={{errors, pendingAction, dismissError: item.dismissError, shouldHideOnDelete: false}}
             onPress={item.action}
         >
