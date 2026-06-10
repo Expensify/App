@@ -129,13 +129,7 @@ type Comment = {
      * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
      * deliberate selection.
      */
-    vendor?: {
-        /** Vendor ID in the connected accounting integration (e.g. QBO vendor ID) */
-        externalID: string;
-
-        /** `true` when set by the user or a merchant rule; `false` when set by the PHP fuzzy auto-matcher */
-        isManuallySet: boolean;
-    };
+    vendor?: TransactionCommentVendor;
 
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
