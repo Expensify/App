@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -28,6 +28,15 @@ function RulesReimbursableDefaultPage({
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy);
     const [selectedMode, setSelectedMode] = useState(reimbursableMode);
+
+    // When the page renders before the policy is in Onyx, reimbursableMode is undefined. Sync the draft once it becomes
+    // available, without overwriting a selection the user has already made.
+    useEffect(() => {
+        if (!reimbursableMode) {
+            return;
+        }
+        setSelectedMode((prevMode) => prevMode ?? reimbursableMode);
+    }, [reimbursableMode]);
 
     const reimbursableModes = Object.values(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES).map((mode) => ({
         text: translate(`workspace.rules.individualExpenseRules.${mode}`),
