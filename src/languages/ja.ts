@@ -2878,6 +2878,7 @@ ${date} の ${merchant} への ${amount}`,
         waitForPDF: 'PDF を作成しています。しばらくお待ちください。',
         errorPDF: 'PDF の生成中にエラーが発生しました',
         successPDF: 'PDFが作成されました！自動的にダウンロードされない場合は、下のボタンを使用してください。',
+        goToRoom: 'ルームに移動',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',
@@ -4295,6 +4296,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             customFieldHint: 'このメンバーのすべての支出に適用されるカスタムコードを追加します。',
             reports: 'レポート',
             reportFields: 'レポート項目',
+            invoiceFields: '請求書項目',
             reportTitle: 'レポートタイトル',
             reportField: 'レポート項目',
             taxes: '税金',
@@ -5942,6 +5944,29 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             reportFieldInitialValueRequiredError: 'レポート項目の初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
         },
+        invoiceFields: {
+            subtitle: '追加情報を含めたい場合、請求書フィールドが役立ちます。',
+            importedFromAccountingSoftware: '以下の請求書フィールドは、次からインポートされます',
+            disableInvoiceFields: '請求書フィールドを無効にする',
+            disableInvoiceFieldsConfirmation: 'よろしいですか？請求書フィールドは請求書で無効になります。',
+            delete: '請求書フィールドを削除',
+            deleteConfirmation: 'この請求書フィールドを削除してもよろしいですか？',
+            findInvoiceField: '請求書フィールドを検索',
+            nameInputSubtitle: '請求書フィールドの名前を選択してください。',
+            typeInputSubtitle: '使用する請求書フィールドの種類を選択してください。',
+            initialValueInputSubtitle: '請求書フィールドに表示する開始値を入力してください。',
+            listValuesInputSubtitle: 'これらの値は請求書フィールドのドロップダウンに表示されます。有効な値はメンバーが選択できます。',
+            listInputSubtitle: 'これらの値は請求書フィールドのリストに表示されます。有効な値はメンバーが選択できます。',
+            emptyInvoiceFieldsValues: {
+                title: 'リスト値はまだありません',
+                subtitle: '請求書に表示するカスタム値を追加します。',
+            },
+            existingInvoiceFieldNameError: 'この名前の請求書フィールドは既に存在します',
+            invoiceFieldNameRequiredError: '請求書フィールド名を入力してください',
+            invoiceFieldTypeRequiredError: '請求書フィールドの種類を選択してください',
+            invoiceFieldInitialValueRequiredError: '請求書フィールドの初期値を選択してください',
+            addField: 'フィールドを追加',
+        },
         tags: {
             tagName: 'タグ名',
             requiresTag: 'メンバーはすべての経費にタグを付ける必要があります',
@@ -6736,6 +6761,12 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>レポートフィールドは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からのControlプランでのみ利用できます</muted-text>`,
             },
+            invoiceFields: {
+                title: '請求書項目',
+                description: `請求書フィールドを使うと、請求書レベルの追加情報を請求書に含めることができます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>請求書フィールドは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からのControlプランでのみ利用できます</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Expensify と NetSuite の連携により、自動同期を活用して手入力を減らしましょう。プロジェクトや顧客のマッピングを含むネイティブおよびカスタムセグメントのサポートで、詳細かつリアルタイムな財務インサイトを得られます。`,
@@ -7248,6 +7279,18 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
             },
+            aiRules: {
+                title: 'AI ルール',
+                subtitle: '必要なときに実行される柔軟なルールを記述します',
+                addRule: 'AI ルールを追加',
+                findRule: 'AI ルールを検索',
+                addRuleTitle: 'ルールを追加',
+                editRuleTitle: 'ルールを編集',
+                deleteRule: 'ルールを削除',
+                deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                describeRuleTitle: 'ルールの内容を記入してください',
+                describeRuleSubtitle: 'ルールの内容を入力すると、Concierge が自動作成します',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7346,6 +7389,12 @@ ${reportName}
             syncingModalTitle: '接続を同期しています',
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             syncing: '従業員を同期しています',
+            mergeHR: {
+                completeSetup: '設定を完了',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>接続されました。従業員をインポートするには ${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} に接続してください。</muted-text-label>`,
+                groups: {title: 'グループ', description: 'このワークスペースと同期したい従業員グループを選択してください'},
+            },
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',
