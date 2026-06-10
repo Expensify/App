@@ -1,5 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
+import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -14,6 +14,11 @@ import DateUtils from './DateUtils';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
+
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
+};
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -180,6 +185,25 @@ function isValidIndustryCode(code: string): boolean {
 
 function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
+}
+
+function getCountryZipRegexDetails(country?: Country | ''): CountryZipRegex | undefined {
+    if (!country) {
+        return undefined;
+    }
+
+    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex | undefined;
+}
+
+function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): boolean {
+    const normalizedZipCode = zipCode.trim().toUpperCase();
+    const countrySpecificZipRegex = getCountryZipRegexDetails(country)?.regex;
+
+    if (countrySpecificZipRegex) {
+        return countrySpecificZipRegex.test(normalizedZipCode);
+    }
+
+    return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
 }
 
 function isValidPaymentZipCode(zipCode: string): boolean {
@@ -838,6 +862,8 @@ export {
     isValidDebitCard,
     isValidIndustryCode,
     isValidZipCode,
+    getCountryZipRegexDetails,
+    isValidZipCodeForCountry,
     isValidPaymentZipCode,
     isRequiredFulfilled,
     getFieldRequiredErrors,
@@ -884,3 +910,5 @@ export {
     isValidPIN,
     containsHtmlTag,
 };
+
+export type {CountryZipRegex};

@@ -9,14 +9,11 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
-
-type CountryZipRegex = {
-    samples?: string;
-};
 
 type AddressInputKeys = {
     street: string;
@@ -97,6 +94,10 @@ const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typ
     {} as Record<string, string>,
 );
 
+function isCountry(country: string): country is Country {
+    return country in CONST.ALL_COUNTRIES;
+}
+
 function AddressFormFields({
     shouldSaveDraft = false,
     defaultValues,
@@ -117,12 +118,13 @@ function AddressFormFields({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [countryInEditMode, setCountryInEditMode] = useState<string>(defaultValues?.country ?? CONST.COUNTRY.US);
-    const currentlySelectedCountry = countryInEditMode || defaultValues?.country;
-    const zipSampleFormat = ((currentlySelectedCountry ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[currentlySelectedCountry as Country] : undefined) as CountryZipRegex | undefined)?.samples ?? '';
+    const defaultCountry = defaultValues?.country ?? CONST.COUNTRY.US;
+    const [countryInEditMode, setCountryInEditMode] = useState<Country | ''>('');
+    const currentlySelectedCountry = countryInEditMode || defaultCountry;
+    const zipSampleFormat = getCountryZipRegexDetails(currentlySelectedCountry)?.samples ?? '';
 
     const handleCountryChange = (country: unknown) => {
-        if (typeof country === 'string' && country !== '') {
+        if (typeof country === 'string' && isCountry(country)) {
             setCountryInEditMode(country);
         }
         onCountryChange?.(country);

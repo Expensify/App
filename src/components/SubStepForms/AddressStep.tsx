@@ -1,45 +1,20 @@
-import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef, FormValue} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {getFieldRequiredErrors, isValidAddress, isValidZipCode} from '@libs/ValidationUtils';
+import {getCountryZipRegexDetails, getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import {setDraftValues} from '@userActions/FormActions';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
-
-type CountryZipRegex = {
-    regex?: RegExp;
-    samples?: string;
-};
-
-function getCountryZipRegexDetails(country?: Country | ''): CountryZipRegex | undefined {
-    if (!country) {
-        return undefined;
-    }
-
-    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex | undefined;
-}
-
-function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): boolean {
-    const normalizedZipCode = zipCode.trim().toUpperCase();
-    const countrySpecificZipRegex = getCountryZipRegexDetails(country)?.regex;
-
-    if (countrySpecificZipRegex) {
-        return countrySpecificZipRegex.test(normalizedZipCode);
-    }
-
-    return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
-}
 
 type AddressValues = {
     street: string;
@@ -56,6 +31,15 @@ type AddressInputIDs = {
     zipCode: string;
     country?: string;
 };
+
+function getStringFormValue<TFormID extends keyof OnyxFormValuesMapping>(values: FormOnyxValues<TFormID>, fieldID?: string): string {
+    if (!fieldID) {
+        return '';
+    }
+
+    const value = values[fieldID as keyof FormOnyxValues<TFormID>];
+    return typeof value === 'string' ? value : '';
+}
 
 type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
     ForwardedFSClassProps & {
@@ -163,21 +147,21 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const street = values[inputFieldsIDs.street as keyof typeof values];
-            if (street && !isValidAddress(street as FormValue)) {
+            const street = getStringFormValue(values, inputFieldsIDs.street);
+            if (street && !isValidAddress(street)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.street] = translate('bankAccount.error.addressStreet');
             }
 
-            const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            const selectedCountry = (inputFieldsIDs.country ? values[inputFieldsIDs.country as keyof typeof values] : defaultValues.country) as Country | '';
+            const zipCode = getStringFormValue(values, inputFieldsIDs.zipCode);
+            const selectedCountry = (inputFieldsIDs.country ? getStringFormValue(values, inputFieldsIDs.country) : defaultValues.country) as Country | '';
             const shouldValidateSelectedCountryZip = shouldDisplayCountrySelector && !!inputFieldsIDs.country;
 
-            if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode as string, selectedCountry)) {
+            if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode, selectedCountry)) {
                 const zipCodeSamples = getCountryZipRegexDetails(selectedCountry)?.samples;
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('privatePersonalDetails.error.incorrectZipFormat', zipCodeSamples);
-            } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode as string)) {
+            } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
