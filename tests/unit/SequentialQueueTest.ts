@@ -8,6 +8,7 @@ import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as RequestModule from '../../src/libs/Request';
 import type Request from '../../src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '../../src/types/onyx/Request';
+import type {MockFetch} from '../utils/TestHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -16,13 +17,15 @@ const request: Request<'userMetadata'> = {
     successData: [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}],
     failureData: [{key: 'userMetadata', onyxMethod: 'set', value: {}}],
 };
+let mockFetch: MockFetch;
 beforeAll(() => {
     Onyx.init({
         keys: ONYXKEYS,
     });
 });
 beforeEach(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    mockFetch = TestHelper.createGlobalFetchMock();
+    global.fetch = mockFetch;
     return Onyx.clear()
         .then(() => SequentialQueue.clearQueueFlushedData())
         .then(waitForBatchedUpdates);
@@ -77,10 +80,9 @@ describe('SequentialQueue', () => {
     it('should not block the queue when a disk write fails during persist', async () => {
         // If a conflict-resolution disk write rejects (storage full / corruption), push() must not throw
         // or strand isReadyPromise — the request should still flush and waitForIdle() should resolve.
-        const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
         const originalSet = Onyx.set.bind(Onyx);
 
-        mockedFetch.pause();
+        mockFetch.pause();
         try {
             await SequentialQueue.push({command: 'OpenReport'}); // occupies ongoingRequest
             await waitForBatchedUpdates();
@@ -105,7 +107,7 @@ describe('SequentialQueue', () => {
                 setMock.mockRestore();
             }
         } finally {
-            await mockedFetch.resume();
+            await mockFetch.resume();
         }
 
         // The queue still drains and READs unblock — a hang here would fail the test by timing out.
@@ -170,8 +172,7 @@ describe('SequentialQueue', () => {
         // The conflict checker on push 2 inspects the persisted queue (which excludes the
         // ongoing request), so it cannot find a 'ReconnectApp' to replace and falls back
         // to 'push'. The new request is therefore added to the queue.
-        const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
-        mockedFetch.pause();
+        mockFetch.pause();
         try {
             await SequentialQueue.push(request);
             await waitForBatchedUpdates();
@@ -194,13 +195,12 @@ describe('SequentialQueue', () => {
             // The new request is in the persisted queue with the expected accountID.
             expect(getAll().some((r) => r.data?.accountID === 56789)).toBe(true);
         } finally {
-            await mockedFetch.resume();
+            await mockFetch.resume();
         }
     });
 
     it('should replace request in queue while a similar one is ongoing', async () => {
-        const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
-        mockedFetch.pause();
+        mockFetch.pause();
         try {
             await SequentialQueue.push(request);
             await waitForBatchedUpdates();
@@ -234,13 +234,12 @@ describe('SequentialQueue', () => {
 
             expect(getLength()).toBe(2);
         } finally {
-            await mockedFetch.resume();
+            await mockFetch.resume();
         }
     });
 
     it('should replace request in queue while a similar one is ongoing and keep the same index', async () => {
-        const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
-        mockedFetch.pause();
+        mockFetch.pause();
         try {
             // First push moves into `ongoingRequest`; subsequent pushes stack in the queue.
             await SequentialQueue.push({command: 'OpenReport'});
@@ -270,7 +269,7 @@ describe('SequentialQueue', () => {
             expect(getOngoingRequest()?.command).toBe('OpenReport');
             expect(persistedRequests.at(0)?.data?.accountID).toBe(56789);
         } finally {
-            await mockedFetch.resume();
+            await mockFetch.resume();
         }
     });
 
