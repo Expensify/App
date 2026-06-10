@@ -308,7 +308,7 @@ function useSelectionModeReportActions({
             return;
         }
         const doSubmit = () => {
-            if (hasSelectedTransactionsOnSubmitPolicy) {
+            if (hasSelectedTransactionsOnSubmitPolicy || isSubmitPolicy(policy)) {
                 openReportSubmitToPopover({
                     onSubmitSuccess: () => {
                         clearSelectedTransactions(true);
