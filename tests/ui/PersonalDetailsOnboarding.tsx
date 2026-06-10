@@ -58,8 +58,8 @@ const navigate = jest.spyOn(Navigation, 'navigate');
 
 const fakeEmail = 'fake@gmail.com';
 const mockLoginList = {
-    [fakeEmail]: {
-        partnerName: 'expensify.com',
+    [`1_${fakeEmail}`]: {
+        partnerID: 1,
         partnerUserID: fakeEmail,
         validatedDate: 'fake-validatedDate',
     },
@@ -117,7 +117,7 @@ describe('OnboardingPersonalDetails Page', () => {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
             });
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, mockLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, mockLoginList);
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
             });
@@ -149,7 +149,7 @@ describe('OnboardingPersonalDetails Page', () => {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
             });
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, mockLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, mockLoginList);
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
             });
@@ -181,9 +181,9 @@ describe('OnboardingPersonalDetails Page', () => {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
             });
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-                [testEmail]: {
-                    partnerName: 'expensify.com',
+            await Onyx.merge(ONYXKEYS.LOGINS, {
+                [`1_${testEmail}`]: {
+                    partnerID: 1,
                     partnerUserID: testEmail,
                     validatedDate: 'fake-validatedDate',
                 },

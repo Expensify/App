@@ -1,4 +1,5 @@
 import React from 'react';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -30,9 +31,9 @@ function ChatListItem<TItem extends ListItem>({
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
-
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isSelected} = useRowSelection(item.keyForList);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -46,7 +47,7 @@ function ChatListItem<TItem extends ListItem>({
         styles.overflowHidden,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
-        item.isSelected && styles.activeComponentBG,
+        isSelected && styles.activeComponentBG,
         styles.mh0,
         item.cursorStyle,
     ];
@@ -73,7 +74,7 @@ function ChatListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            hoverStyle={item.isSelected && styles.activeComponentBG}
+            hoverStyle={isSelected && styles.activeComponentBG}
             forwardedFSClass={fsClass}
         >
             <ReportActionItem

@@ -738,7 +738,7 @@ describe('OptionsListUtils', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
 
-        OPTIONS = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined, MOCK_REPORT_ATTRIBUTES_DERIVED);
+        OPTIONS = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, allPolicies, MOCK_REPORT_ATTRIBUTES_DERIVED);
         OPTIONS_WITH_CONCIERGE = createOptionList(
             PERSONAL_DETAILS_WITH_CONCIERGE,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
@@ -3292,7 +3292,7 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
-            const reports = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, allPolicies).reports;
 
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
@@ -3302,7 +3302,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call createOptionList again
-            const newReports = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined).reports;
+            const newReports = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, allPolicies).reports;
             // Then the returned reports should change to Spanish
             // cspell:disable-next-line
             expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
@@ -4071,7 +4071,14 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, false, null, true, reportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage({
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: reportPreviewAction,
+                });
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
@@ -5307,6 +5314,35 @@ describe('OptionsListUtils', () => {
                 );
             });
         });
+        describe('UPDATE_MCC_GROUP_CATEGORY action', () => {
+            it('should surface the friendly MCC group label in the last-message preview', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const changelogAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        mccGroupName: 'Airlines',
+                        oldCategory: 'Insurance',
+                        newCategory: 'Travel',
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [changelogAction.reportActionID]: changelogAction,
+                });
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+            });
+        });
     });
 
     describe('getPersonalDetailSearchTerms', () => {
@@ -6037,6 +6073,61 @@ describe('OptionsListUtils', () => {
 
             expect(option.isDisabled).toBe(true);
         });
+
+        it('should not disable option when reportDraft is undefined for a regular report', async () => {
+            const reportID = '200';
+            const report: Report = {
+                reportID,
+                reportName: 'Regular Report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant: Participant = {reportID, selected: false};
+
+            // Pass reportDraft = undefined → not a draft, should NOT be disabled
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+
+            expect(option.isDisabled).toBeFalsy();
+        });
+
+        it('should disable option when reportDraft is explicitly passed', async () => {
+            const reportID = '201';
+            const draftReport: Report = {
+                reportID,
+                reportName: 'Explicit Draft Report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const participant: Participant = {reportID, selected: false};
+
+            // Pass reportDraft explicitly → should be disabled regardless of Onyx state
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, draftReport);
+
+            expect(option.isDisabled).toBe(true);
+        });
+
+        it('should not disable option when reportDraft param is undefined even if report exists in REPORT_DRAFT', async () => {
+            const reportID = '202';
+            const draftReport: Report = {
+                reportID,
+                reportName: 'Global Draft Report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // Draft exists in Onyx but is NOT passed as param
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, draftReport);
+            await waitForBatchedUpdates();
+
+            const participant: Participant = {reportID, selected: false};
+
+            // Callers are responsible for passing reportDraft explicitly — undefined means not disabled
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+
+            expect(option.isDisabled).toBeFalsy();
+        });
     });
 
     describe('getReportDisplayOption', () => {
@@ -6169,7 +6260,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -6190,7 +6281,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, undefined, {}, undefined);
+            const option = getReportOption(participant, undefined, undefined, {}, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -6212,7 +6303,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
         });
@@ -6246,7 +6337,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
             // The createOption function uses personalDetails to build display names
@@ -6307,7 +6398,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined);
+            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace with Approver');
@@ -6332,7 +6423,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass empty personalDetails
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -6354,7 +6445,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass undefined personalDetails
-            const option = getReportOption(participant, undefined, POLICY, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, undefined, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -6400,7 +6491,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.isInvoiceRoom).toBe(true);
@@ -6422,7 +6513,7 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID);
+            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6441,7 +6532,7 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6476,7 +6567,7 @@ describe('OptionsListUtils', () => {
 
             // Passing conciergeReportID matching the reportID identifies this as the Concierge chat,
             // which affects getMovedTransactionMessage to use CONST.CONCIERGE_DISPLAY_NAME ('Concierge')
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID, undefined, undefined);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6496,8 +6587,8 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID);
-            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID, undefined, undefined);
+            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
 
             // Both should produce the same result since the IDs don't match
             expect(optionWithConcierge.reportID).toBe(optionWithoutConcierge.reportID);
@@ -7370,8 +7461,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -7388,8 +7481,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, true, undefined);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, true, undefined, sortedActions);
 
             expect(result).toBeDefined();
             expect(result.private_isArchived).toBe(true);
@@ -7405,8 +7500,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
 
             expect(result).toBeDefined();
             expect(result.private_isArchived).toBeUndefined();
@@ -7422,9 +7519,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            // Pass undefined for reportAttributesDerived - the function should handle it gracefully
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -7440,9 +7538,11 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
             const config = {showPersonalDetails: true};
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, undefined, config);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions, undefined, config);
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -7666,8 +7766,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY, sortedActions);
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
