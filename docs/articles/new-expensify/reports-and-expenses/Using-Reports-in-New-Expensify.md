@@ -75,17 +75,27 @@ To view the full list of available columns, click the **Columns** icon in the **
 
 ---
 
-# How to group expenses by category or tag using Report Layout
+# How to group expenses by category, tag, or none using Report Layout
 
-Report Layout lets you group expenses inside a report to make reviews faster and easier.
+Report Layout lets you group the expenses inside a report by category or tag, or show them as a flat list, to make reviews faster and easier.
 
-To group expenses:
+To change how expenses are grouped:
 
 1. Open a report that contains more than one expense.
-2. Click the **More** icon (three dots) in the top-right corner of the report.
-3. Select **Group by category**, **Group by tag**, or **Don’t group**.
+2. Click the **Group by** button above the expense list.
+3. Select **Category**, **Tag**, or **None**:
+   - **Category** groups expenses under category sub-headers.
+   - **Tag** groups expenses under tag sub-headers.
+   - **None** shows all expenses as a flat, ungrouped list.
 
-Your selected layout will be remembered and applied to other reports you view.
+Your selected layout is remembered and applied to other reports you view.
+
+<!-- SCREENSHOT:
+Suggestion: Report expense list with the Group by button expanded, showing the Category, Tag, and None options
+Location: After the Report Layout steps
+Purpose: Shows users where the Group by button is and the available grouping options
+-->
+
 
 # How to use Spend search query commands
 
