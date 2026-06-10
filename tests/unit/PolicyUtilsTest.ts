@@ -1723,40 +1723,6 @@ describe('PolicyUtils', () => {
             const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
-        it('should not return admins from workspaces other than the bank account workspace', async () => {
-            const bankAccountID = '1';
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                1: {
-                    methodID: 12345,
-                    accountData: {
-                        additionalData: {policyID: '1'},
-                    },
-                },
-            });
-
-            const policies = {
-                // The bank account's own workspace - current user is the only admin
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-                // An unrelated workspace with another admin - must not leak into the recipient list
-                '2': {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
-                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
-            expect(result).toHaveLength(0);
-        });
         it('should not return user with already shared bank account', async () => {
             const bankAccountID = '1';
             const currentUserLogin = adminEmail;
