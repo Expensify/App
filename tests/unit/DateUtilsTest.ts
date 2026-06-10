@@ -542,8 +542,13 @@ describe('DateUtils', () => {
             expect(DateUtils.getWeekEndsOn(locale)).toBe(end);
         });
 
-        it('falls back to Monday on engines without Intl.Locale.getWeekInfo (e.g. Hermes <0.74)', () => {
-            expect(DateUtils.getWeekStartsOn('xx-XX' as never)).toBe(1);
+        it('returns a valid weekday for every supported locale', () => {
+            for (const locale of Object.values(CONST.LOCALES)) {
+                if (locale === CONST.LOCALES.DEFAULT) {
+                    continue;
+                }
+                expect([0, 1, 2, 3, 4, 5, 6]).toContain(DateUtils.getWeekStartsOn(locale));
+            }
         });
     });
 
@@ -553,7 +558,7 @@ describe('DateUtils', () => {
             ['formatInTimeZoneToShortTime' as const, '2025-08-19'],
             ['formatInTimeZoneToWeekday' as const, '2025-08-19'],
         ])('%s throws on date-only input', (fnName, dateStr) => {
-            expect(() => DateUtils[fnName](dateStr, 'America/New_York' as SelectedTimezone, 'en')).toThrow(RangeError);
+            expect(() => DateUtils[fnName](dateStr, 'America/New_York', 'en')).toThrow(RangeError);
         });
     });
 

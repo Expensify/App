@@ -3169,8 +3169,8 @@ function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, a
     if (rateName && rate !== undefined && currency && unit) {
         const unitLabel = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
         const formattedRate = `${convertAmountToDisplayString(rate, currency)}/${unitLabel}`;
-        const formattedStartDate = startDate ? DateUtils.formatToReadableString(startDate) : undefined;
-        const formattedEndDate = endDate ? DateUtils.formatToReadableString(endDate) : undefined;
+        const formattedStartDate = startDate ? DateUtils.formatToReadableString(startDate, IntlStore.getCurrentLocale()) : undefined;
+        const formattedEndDate = endDate ? DateUtils.formatToReadableString(endDate, IntlStore.getCurrentLocale()) : undefined;
 
         if (formattedStartDate && formattedEndDate) {
             return translate('workspaceActions.addCustomUnitRateWithAmountAndDates', rateName, formattedRate, formattedStartDate, formattedEndDate);
@@ -3227,13 +3227,13 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
         const endDateChanged = newEndDate !== oldEndDate;
 
         if (startDateChanged && endDateChanged && newStartDate && newEndDate) {
-            const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-            const formattedOldEndDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
+            const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate, IntlStore.getCurrentLocale()) : undefined;
+            const formattedOldEndDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate, IntlStore.getCurrentLocale()) : undefined;
             return translate(
                 'workspaceActions.updatedCustomUnitRateStartAndEndDate',
                 customUnitRateName,
-                DateUtils.formatToReadableString(newStartDate),
-                DateUtils.formatToReadableString(newEndDate),
+                DateUtils.formatToReadableString(newStartDate, IntlStore.getCurrentLocale()),
+                DateUtils.formatToReadableString(newEndDate, IntlStore.getCurrentLocale()),
                 formattedOldStartDate,
                 formattedOldEndDate,
             );
@@ -3244,19 +3244,33 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
 
         if (startDateChanged) {
             if (!newStartDate && oldStartDate) {
-                startDateMessage = translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
+                startDateMessage = translate(
+                    'workspaceActions.removedCustomUnitRateStartDate',
+                    customUnitRateName,
+                    DateUtils.formatToReadableString(oldStartDate, IntlStore.getCurrentLocale()),
+                );
             } else if (newStartDate) {
-                const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-                startDateMessage = translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(newStartDate), formattedOldDate);
+                const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate, IntlStore.getCurrentLocale()) : undefined;
+                startDateMessage = translate(
+                    'workspaceActions.updatedCustomUnitRateStartDate',
+                    customUnitRateName,
+                    DateUtils.formatToReadableString(newStartDate, IntlStore.getCurrentLocale()),
+                    formattedOldDate,
+                );
             }
         }
 
         if (endDateChanged) {
             if (!newEndDate && oldEndDate) {
-                endDateMessage = translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
+                endDateMessage = translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate, IntlStore.getCurrentLocale()));
             } else if (newEndDate) {
-                const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
-                endDateMessage = translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(newEndDate), formattedOldDate);
+                const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate, IntlStore.getCurrentLocale()) : undefined;
+                endDateMessage = translate(
+                    'workspaceActions.updatedCustomUnitRateEndDate',
+                    customUnitRateName,
+                    DateUtils.formatToReadableString(newEndDate, IntlStore.getCurrentLocale()),
+                    formattedOldDate,
+                );
             }
         }
 
