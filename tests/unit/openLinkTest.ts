@@ -6,7 +6,9 @@ const mockNavigate = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        navigate: (...args: unknown[]) => mockNavigate(...args),
+        navigate: (...args: unknown[]): void => {
+            mockNavigate(...args);
+        },
         closeRHPFlow: jest.fn(),
     },
 }));
@@ -15,7 +17,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 const mockAsyncOpenURL = jest.fn();
 jest.mock('@libs/asyncOpenURL', () => ({
     __esModule: true,
-    default: (...args: unknown[]) => mockAsyncOpenURL(...args),
+    default: (...args: unknown[]): void => {
+        mockAsyncOpenURL(...args);
+    },
 }));
 
 // Keep layout simple (not narrow) so the RHP swap branch doesn't run.
