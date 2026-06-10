@@ -3341,6 +3341,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Adicione sua equipe ou convide seu contador. Quanto mais gente, melhor!',
         },
         workEmail2FAError: 'Este login é uma conta existente com a Autenticação em Duas Etapas (2FA) ativada.',
+        singleSignOnError: 'Este login é de uma conta existente com SSO/SAML ativado.',
     },
     featureTraining: {
         doNotShowAgain: 'Não mostrar isso novamente',
@@ -7445,6 +7446,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             syncingModalTitle: 'Sua conexão está sincronizando',
             syncingModalDescription: 'A primeira conexão pode levar algum tempo. Você será notificado sobre quaisquer erros.',
             syncing: 'Sincronizando funcionários',
+            mergeHR: {
+                completeSetup: 'Concluir configuração',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
+                groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
+            },
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
@@ -8097,6 +8104,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
+        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
@@ -8202,7 +8210,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} e ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} e ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount?: string) => `Igual a ${amount ?? ''}`,
             },
             card: {
