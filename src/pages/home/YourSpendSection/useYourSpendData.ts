@@ -364,8 +364,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     // The `cardFeedsByPolicy` and `defaultExpensifyCard` params are not passed
     // because they have no effect on the `TODO_SEARCH_KEYS` (and we are only interested in `TODO_SEARCH_KEYS`)
-    const suggestedSearchesVisibility = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined).visibility, [email, policies]);
-    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID), [accountID]);
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(email, {}, policies, undefined).visibility;
+    const suggestedSearches = getSuggestedSearches(accountID);
 
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
