@@ -53,6 +53,7 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubPageProps) {
             formDisclaimer={translate('personalInfoStep.noPersonalChecks')}
             validate={validate}
             onSubmit={handleSubmit}
+            shouldDelayAutoFocus
             inputId={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
             inputLabel={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
             inputMode={CONST.INPUT_MODE.NUMERIC}

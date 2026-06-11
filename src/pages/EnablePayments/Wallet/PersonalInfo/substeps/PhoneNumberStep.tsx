@@ -57,6 +57,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubPageProps) {
             onSubmit={(values) => {
                 handleSubmit({...values, phoneNumber: formatE164PhoneNumber(values.phoneNumber, countryCode) ?? ''});
             }}
+            shouldDelayAutoFocus
             inputId={PERSONAL_INFO_STEP_KEY.PHONE_NUMBER}
             inputLabel={translate('common.phoneNumber')}
             inputMode={CONST.INPUT_MODE.TEL}
