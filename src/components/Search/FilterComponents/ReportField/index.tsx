@@ -11,7 +11,7 @@ import type {ReportFieldDateKey, ReportFieldTextKey} from '@components/Search/ty
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDateModifierTitle, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import {getDateDisplayValue, getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -28,7 +28,6 @@ type ReportFieldHandle = {
     getEmptyValue: () => ReportFieldValues;
     isDateModifierSelected: () => boolean;
     applySelectedFieldAndGoBack: () => ReportFieldValues | void;
-    resetSelectedFieldAndGoBack: () => void;
 };
 
 type ReportFieldBaseProps = {
@@ -81,7 +80,6 @@ function SelectedReportField({ref, field, value: initialValue}: SelectedReportFi
         },
         isDateModifierSelected: () => false,
         applySelectedFieldAndGoBack: () => {},
-        resetSelectedFieldAndGoBack: () => {},
     }));
 
     return (
@@ -129,22 +127,6 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
         isDateModifierSelected: () => !!selectedDateModifier,
         applySelectedFieldAndGoBack: () => {
             dateFilterRef.current?.save();
-            onDateModifierSelected(null);
-        },
-        resetSelectedFieldAndGoBack: () => {
-            if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                setValue((prevValue) => ({...prevValue, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined}));
-            } else {
-                const onValue = value[CONST.SEARCH.DATE_MODIFIERS.ON];
-                const isPreset = isSearchDatePreset(onValue);
-                setValue((prevValue) => ({
-                    ...prevValue,
-                    [CONST.SEARCH.DATE_MODIFIERS.ON]: isPreset ? onValue : undefined,
-                    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-                    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-                }));
-            }
-
             onDateModifierSelected(null);
         },
     }));
@@ -237,20 +219,6 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFiel
             setValues((prevValues) => ({...prevValues, ...selectedValue}));
             onFieldSelected(null);
             return selectedValue;
-        },
-        resetSelectedFieldAndGoBack: () => {
-            if (!selectedFieldRef.current || !selectedField) {
-                return;
-            }
-
-            if (selectedFieldRef.current.isDateModifierSelected()) {
-                selectedFieldRef.current.resetSelectedFieldAndGoBack();
-                return;
-            }
-
-            const selectedEmptyValue = selectedFieldRef.current.getEmptyValue();
-            setValues((prevValues) => ({...prevValues, ...selectedEmptyValue}));
-            onFieldSelected(null);
         },
         isDateModifierSelected: () => !!selectedFieldRef.current?.isDateModifierSelected(),
     }));
