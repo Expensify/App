@@ -12,16 +12,9 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
+import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
-import {
-    createTransactionThreadReport,
-    deleteAppReport,
-    exportReportToPDF,
-    markAsManuallyExported,
-    moveIOUReportToPolicy,
-    moveIOUReportToPolicyAndInviteSubmitter,
-} from '@libs/actions/Report';
+import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     exportSearchItemsToCSV,
@@ -31,17 +24,20 @@ import {
     getLastPolicyPaymentMethod,
     getPayMoneyOnSearchInvoiceParams,
     getPayOption,
+    getPolicyFromSearchSnapshot,
+    getReportFromSearchSnapshot,
     getReportType,
+    getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
-    payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
+    resolveSearchPayPaymentMethod,
     submitMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getTargetTransactionThreadReportIDForSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
+import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -62,6 +58,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getSelectedGroupFilterEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getOriginalTransactionWithSplitInfo,
@@ -82,7 +79,7 @@ import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BillingGraceEndPeriod, Policy, Report, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useAllPolicyExpenseChatReportActions from './useAllPolicyExpenseChatReportActions';
@@ -99,6 +96,8 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
+import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
@@ -306,6 +305,20 @@ function shouldShowBulkDuplicateOption({
     });
 }
 
+function getChatReportForBulkPay(
+    iouReport: Report,
+    chatReportID: string | undefined,
+    searchData: SearchResultDataType | undefined,
+    allReports: OnyxCollection<Report> | undefined,
+): OnyxEntry<Report> {
+    const resolvedChatReportID = chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
+    if (!resolvedChatReportID) {
+        return undefined;
+    }
+
+    return getReportFromSearchSnapshot(resolvedChatReportID, searchData, allReports) ?? getReportOrDraftReport(resolvedChatReportID);
+}
+
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -319,9 +332,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {currentSearchKey} = useSearchQueryContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {accountID} = currentUserPersonalDetails;
+    const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
+    const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} =
+        usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -334,12 +350,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -509,7 +520,28 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     // Use the split-aware delete hook for bulk transaction deletion so split children trigger
     // updateSplitTransactions (with reverse-split when only one sibling is left), instead of plain
     // deleteMoneyRequest which would just remove the child and break the split state.
-    const flattenedReportActions = useMemo(() => Object.values(allReportActions ?? {}).flatMap((reportActions) => Object.values(reportActions ?? {})), [allReportActions]);
+    const flattenedReportActions = useMemo(() => {
+        const fromOnyx = Object.values(allReportActions ?? {}).flatMap((reportActions) => Object.values(reportActions ?? {}));
+        // Also include actions from the search snapshot. SearchBulkActionsButton is rendered
+        // outside SearchScopeProvider so useOnyx does not redirect to the snapshot automatically.
+        // Without this, IOU actions for unreported expenses (stored in the selfDM report) are
+        // absent from the Onyx collection, causing deleteTransactions to silently skip all deletions.
+        const searchData = currentSearchResults?.data;
+        if (!searchData) {
+            return fromOnyx;
+        }
+        const fromSnapshot = Object.keys(searchData)
+            .filter((key): key is `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` => key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+            .flatMap((key) => Object.values(searchData[key] ?? {}));
+        // Merge — real Onyx wins on conflict (real-time updates take precedence over snapshot)
+        const merged = new Map<string, ReportAction>();
+        for (const action of [...fromSnapshot, ...fromOnyx]) {
+            if (action?.reportActionID) {
+                merged.set(action.reportActionID, action);
+            }
+        }
+        return Array.from(merged.values());
+    }, [allReportActions, currentSearchResults?.data]);
     const {deleteTransactions: deleteTransactionsFromHook, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: selfDMReport,
         reportActions: flattenedReportActions,
@@ -876,6 +908,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const activeRoute = Navigation.getActiveRoute();
+            const searchData = searchResults?.data;
 
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
@@ -883,7 +916,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (!itemReportID) {
                     return;
                 }
-                const itemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportID}`];
+                const itemReport = getReportFromSearchSnapshot(itemReportID, searchData, allReports);
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
                 const reportType = getReportType(itemReportID);
@@ -950,19 +983,43 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           policyID: report.policyID,
                           chatReportID: report.chatReportID,
                       }))
-                    : Object.values(selectedTransactions).map((transaction) => ({
-                          reportID: transaction.reportID,
-                          amount: transaction.amount,
-                          policyID: transaction.policyID,
-                          chatReportID: transaction.reportID,
-                      }));
+                    : Object.values(selectedTransactions).map((transaction) => {
+                          const transactionReport = getReportFromSearchSnapshot(transaction.reportID, searchData, allReports) ?? transaction.report;
+                          return {
+                              reportID: transaction.reportID,
+                              amount: transaction.amount,
+                              policyID: transaction.policyID,
+                              chatReportID: transactionReport?.chatReportID ?? transactionReport?.parentReportID,
+                          };
+                      });
 
-            const paymentData = itemsToPay.map((item) => {
-                const effectivePaymentType = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
-                return {
+            let paidReportCount = 0;
+            for (const item of itemsToPay) {
+                if (!item.reportID) {
+                    continue;
+                }
+
+                const iouReport = getReportFromSearchSnapshot(item.reportID, searchData, allReports);
+                if (!iouReport) {
+                    continue;
+                }
+
+                const chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
+                if (!chatReport) {
+                    continue;
+                }
+
+                const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
+                const resolvedPayment = resolveSearchPayPaymentMethod(rawPaymentMethod, searchData, policies);
+                if (!resolvedPayment) {
+                    continue;
+                }
+
+                const {paymentType: resolvedPaymentType, paymentPolicyID, payPolicy: workspacePayPolicy, methodID: workspaceMethodID} = resolvedPayment;
+                const paymentItem = {
                     reportID: item.reportID,
                     amount: item.amount,
-                    paymentType: effectivePaymentType,
+                    paymentType: resolvedPaymentType,
                     ...(isInvoiceReport(item.reportID)
                         ? getPayMoneyOnSearchInvoiceParams(
                               item.policyID,
@@ -971,17 +1028,82 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                           )
                         : {}),
-                    ...(isExpenseReportUtil(item.reportID) && effectivePaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
+                    ...(isExpenseReportUtil(item.reportID) && resolvedPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
                         ? {bankAccountID: expenseReportBankAccountID}
                         : {}),
-                };
-            }) as PaymentData[];
+                } as PaymentData;
 
-            payMoneyRequestOnSearch(hash, paymentData);
+                const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
+                const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
+                const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.reportID}`];
+                const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
+                const isItemInvoice = isInvoiceReport(item.reportID);
 
-            InteractionManager.runAfterInteractions(() => {
-                clearSelectedTransactions();
-            });
+                if (isItemInvoice) {
+                    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+                    const existingB2BInvoiceReport = getParticipantsInvoiceReport(
+                        allReports,
+                        allReportNameValuePairs,
+                        activePolicyID,
+                        CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                        invoiceReceiverPolicyID ?? chatReport.policyID,
+                    );
+
+                    payInvoice({
+                        paymentMethodType: paymentItem.paymentType as PaymentMethodType,
+                        chatReport,
+                        invoiceReport: iouReport,
+                        invoiceReportCurrentNextStepDeprecated: nextStep,
+                        introSelected,
+                        currentUserAccountIDParam: accountID,
+                        currentUserEmailParam: email ?? '',
+                        currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+                        payAsBusiness: paymentItem.payAsBusiness,
+                        existingB2BInvoiceReport,
+                        methodID: paymentItem.bankAccountID ?? paymentItem.fundID,
+                        paymentMethod: paymentItem.fundID ? CONST.PAYMENT_METHODS.DEBIT_CARD : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                        activePolicy,
+                        betas,
+                        isSelfTourViewed,
+                        defaultWorkspaceName,
+                        additionalOnyxData,
+                        shouldPlaySuccessSound: false,
+                    });
+                    paidReportCount += 1;
+                    continue;
+                }
+
+                payMoneyRequest({
+                    paymentType: paymentItem.paymentType as PaymentMethodType,
+                    chatReport,
+                    iouReport,
+                    introSelected,
+                    iouReportCurrentNextStepDeprecated: nextStep,
+                    currentUserAccountID: accountID,
+                    currentUserLogin: currentUserLogin ?? '',
+                    activePolicy,
+                    policy: reportPolicy,
+                    chatReportPolicy,
+                    betas,
+                    isSelfTourViewed,
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    paymentPolicyID,
+                    methodID:
+                        paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
+                    additionalOnyxData,
+                    shouldPlaySuccessSound: false,
+                });
+                paidReportCount += 1;
+            }
+
+            if (paidReportCount > 0) {
+                playSound(SOUNDS.SUCCESS);
+                InteractionManager.runAfterInteractions(() => {
+                    clearSelectedTransactions();
+                });
+            }
         },
         [
             hash,
@@ -995,6 +1117,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             policies,
             showDelegateNoAccessModal,
             allReports,
+            allNextSteps,
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
@@ -1003,7 +1126,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
+            email,
+            currentUserLogin,
+            localCurrencyCode,
+            defaultWorkspaceName,
             personalDetails,
+            introSelected,
+            betas,
+            isSelfTourViewed,
+            activePolicy,
+            activePolicyID,
+            allReportNameValuePairs,
+            currentSearchKey,
+            searchResults?.data,
         ],
     );
 
@@ -1587,6 +1722,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         if (!selectedTransactions[transactionID].reportAction?.childReportID) {
                             continue;
                         }
+                        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                         unholdRequest(
                             transactionID,
                             selectedTransactions[transactionID].reportAction?.childReportID,
@@ -1594,6 +1730,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             isOffline,
                             currentUserPersonalDetails?.login ?? '',
                             currentUserPersonalDetails?.accountID,
+                            transactionViolations,
                         );
                     }
                     InteractionManager.runAfterInteractions(() => {
@@ -1613,57 +1750,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => {
-                            const transactionKey: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-                            const searchSnapshotTransaction = currentSearchResults?.data?.[transactionKey];
-                            const selectedTransactionInfo = selectedTransactions[transactionID];
-                            const isSingleSelection = selectedTransactionsKeys.length === 1;
-                            let targetTransactionThreadReportIDOverride = isSingleSelection
-                                ? getTargetTransactionThreadReportIDForSelection(searchSnapshotTransaction ?? searchedTransactions.at(0), selectedTransactionInfo)
-                                : undefined;
-
-                            if (!targetTransactionThreadReportIDOverride && isSingleSelection) {
-                                const selectedReport = selectedTransactionInfo?.report ?? reports.at(0) ?? getReportOrDraftReport(searchSnapshotTransaction?.reportID);
-                                const selectedReportAction = selectedTransactionInfo?.reportAction;
-                                const targetTransaction = searchSnapshotTransaction ?? searchedTransactions.at(0);
-                                const shouldPassTransactionData = !selectedReportAction?.reportActionID || targetTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                                const transactionViolations = targetTransaction
-                                    ? allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`]
-                                    : undefined;
-                                const createdThreadReport = targetTransaction
-                                    ? createTransactionThreadReport({
-                                          introSelected,
-                                          currentUserLogin: currentUserPersonalDetails.login ?? '',
-                                          currentUserAccountID: currentUserPersonalDetails.accountID,
-                                          betas,
-                                          iouReport: selectedReport,
-                                          iouReportAction: selectedReportAction,
-                                          transaction: shouldPassTransactionData ? targetTransaction : undefined,
-                                          transactionViolations: shouldPassTransactionData ? transactionViolations : undefined,
-                                      })
-                                    : undefined;
-                                targetTransactionThreadReportIDOverride = createdThreadReport?.reportID;
-                            }
-
-                            const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = targetTransactionThreadReportIDOverride
-                                ? {
-                                      transactionID,
-                                      threadReportID: targetTransactionThreadReportIDOverride,
-                                  }
-                                : undefined;
-
-                            setupMergeTransactionDataAndNavigate(
-                                transactionID,
-                                searchedTransactions,
-                                localeCompare,
-                                getCurrencyDecimals,
-                                reports,
-                                false,
-                                true,
-                                undefined,
-                                targetTransactionThreadReportCandidate,
-                            );
-                        },
+                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true),
                     });
                 }
             }
@@ -1850,8 +1937,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         invokeDuplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
-        introSelected,
-        betas,
         undeleteTransactions,
         theme.icon,
         styles.colorMuted,
@@ -1866,6 +1951,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isBetaEnabled,
         defaultExpensePolicy,
         personalDetails,
+        accountID,
+        deleteTransactionsFromHook,
+        duplicateTransactionViolations,
+        duplicateTransactions,
+        firstTransactionReport,
+        isProduction,
+        shouldOpenSplitExpenseEditFlowOnDelete,
+        styles.textWrap,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
