@@ -4,6 +4,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
@@ -22,7 +23,7 @@ import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/P
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -98,7 +99,7 @@ function useParticipantSubmission({
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(activePolicy) &&
         activePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
+        !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID);
 
     const dataRef = useRef({
         allPolicies,
@@ -185,6 +186,7 @@ function useParticipantSubmission({
                 policy: movingPolicy,
                 isPolicyExpenseChat: false,
                 lastSelectedDistanceRates: distanceRates,
+                expenseDate: transaction.created,
             });
             setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
@@ -238,14 +240,25 @@ function useParticipantSubmission({
         if (!isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
             // If not moving the transaction from track expense, select the default rate automatically.
             // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-            const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates: distanceRates});
-
             if (drafts.length > 0) {
                 for (const transaction of drafts) {
+                    const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                        reportID: firstParticipantReportID,
+                        isPolicyExpenseChat,
+                        policy,
+                        lastSelectedDistanceRates: distanceRates,
+                        expenseDate: transaction.created,
+                    });
                     setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
                 }
             } else {
                 // Fallback to using initialTransactionID directly
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                    reportID: firstParticipantReportID,
+                    isPolicyExpenseChat,
+                    policy,
+                    lastSelectedDistanceRates: distanceRates,
+                });
                 setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
             }
         }
@@ -341,7 +354,10 @@ function useParticipantSubmission({
             }
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 if (isCategorizing) {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
+                    const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID, undefined, true);
+                    Navigation.navigate(
+                        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID), confirmationRoute),
+                    );
                 } else {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID, undefined, true));
                 }
@@ -360,7 +376,7 @@ function useParticipantSubmission({
         );
 
         const route = isCategorizing
-            ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
+            ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID), iouConfirmationPageRoute)
             : iouConfirmationPageRoute;
 
         KeyboardUtils.dismissKeyboardAndExecute(() => {

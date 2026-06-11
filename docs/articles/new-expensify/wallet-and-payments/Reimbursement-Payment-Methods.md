@@ -60,6 +60,8 @@ To pay one report:
    - Select **Pay elsewhere** to mark the report as paid outside Expensify.
 5. Select **Confirm**.
 
+**Note:** Only bank accounts that match the report's currency are shown. For example, if the report is in EUR, only EUR bank accounts appear as payment options.
+
 Once confirmed, the report status updates to **Paid**.
 
 ---
@@ -80,9 +82,11 @@ To pay reports in bulk:
    - Select **Pay elsewhere** to mark the report as paid outside Expensify.
 7. Confirm the payment.
 
+**Note:** Only bank accounts that match the report's currency are shown. For example, if the reports are in EUR, only EUR bank accounts appear as payment options. If the selected reports contain more than one currency, direct reimbursement is not available — select **Pay elsewhere** to record the payments, or pay same-currency reports in separate batches.
+
 Once confirmed, Expensify processes the transfers and the report statuses update to **Paid**.
 
-**Note:** Each selected report is processed as a separate transaction. 
+**Note:** Each selected report is processed as a separate transaction. If the selected reports have different currencies, only **Pay elsewhere** is available. To use a connected business bank account for direct reimbursement, select reports that share the same currency.
 
 ---
 

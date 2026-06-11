@@ -2,9 +2,9 @@ import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {SharedValue} from 'react-native-reanimated';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Scale} from 'victory-native';
-import {AXIS_LABEL_GAP, DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
 import {getAdditionalOffset, getFontLineMetrics, isCursorOverChartLabel, rotatedLabelYOffset} from '@components/Charts/utils';
+import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/VictoryTheme';
 import variables from '@styles/variables';
 import type {HitTestArgs} from './useChartInteractions';
 
@@ -72,7 +72,7 @@ function useLabelHitTesting({fontMgr, fontSize, truncatedLabelWidths, labelRotat
         const iconThirdSin = (variables.iconSizeExtraSmall / 3) * sinA;
         const additionalOffset = getAdditionalOffset(angleRad);
         labelHitGeometry = {
-            labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - additionalOffset,
+            labelYOffset: VictoryTheme.axis.labelGap + rotatedLabelYOffset(ascent, descent, angleRad) - additionalOffset,
             iconSin: variables.iconSizeExtraSmall * sinA,
             labelSins: truncatedLabelWidths.map((w) => w * sinA),
             halfWidths: truncatedLabelWidths.map((w) => w / 2),

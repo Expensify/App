@@ -53,6 +53,7 @@ function TransactionDuplicateReview() {
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -163,6 +164,11 @@ function TransactionDuplicateReview() {
         }
     };
 
+    const currentTransactionViolations = transactionIDs.map((id) => ({
+        transactionID: id,
+        violations: allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [],
+    }));
+
     const keepAll = () => {
         dismissDuplicateTransactionViolation({
             transactionIDs,
@@ -171,6 +177,7 @@ function TransactionDuplicateReview() {
             policy,
             isASAPSubmitBetaEnabled,
             allTransactions,
+            currentTransactionViolations,
         });
         Navigation.goBack();
     };
@@ -242,29 +249,33 @@ function TransactionDuplicateReview() {
                 <View style={styles.flex1}>
                     <ScrollView
                         style={styles.flex1}
-                        contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pt3, styles.pb5]}
+                        contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
                     >
                         {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                         <DuplicateTransactionsList
                             transactions={transactions}
                             selectedTransactionID={effectiveSelectedTransactionID}
+                            shouldShowSelection={!hasSettledOrApprovedTransaction}
                             onSelectTransaction={setSelectedTransactionID}
                             onPreviewPressed={onPreviewPressed}
                         />
                     </ScrollView>
                     <FixedFooter style={[styles.mtAuto, styles.gap3]}>
                         <Button
+                            success={hasSettledOrApprovedTransaction}
                             large
                             text={translate('iou.keepAll')}
                             onPress={keepAll}
                         />
-                        <Button
-                            success
-                            large
-                            text={translate('iou.keepSelected')}
-                            onPress={keepSelected}
-                            isDisabled={!selectedTransaction || !selectedTransactionReport}
-                        />
+                        {!hasSettledOrApprovedTransaction && (
+                            <Button
+                                success
+                                large
+                                text={translate('iou.keepSelected')}
+                                onPress={keepSelected}
+                                isDisabled={!selectedTransaction || !selectedTransactionReport}
+                            />
+                        )}
                     </FixedFooter>
                 </View>
             </FullPageNotFoundView>
