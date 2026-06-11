@@ -267,26 +267,14 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const sections: Array<Section<OptionWithKey>> = [];
 
-    // Existing users are marked as selected in place, but a selected non-existing user (an invited contact created from
-    // the search term) has no row in recents/contacts and disappears once the search input is cleared. Surface those in a
-    // top section so they stay visible and can still be deselected. Users already represented elsewhere in the list (recents,
-    // contacts, or the current invite row) are excluded to avoid duplicate rows.
-    const listedAccountIDs = new Set<number>();
-    const listedLogins = new Set<string>();
-    for (const option of [...recentReportsData, ...personalDetails, ...(userToInvite ? [userToInvite] : [])]) {
-        if (option.accountID) {
-            listedAccountIDs.add(option.accountID);
-        }
-        if (option.login) {
-            listedLogins.add(option.login);
-        }
-    }
+    // Existing selected users are already marked in place within Recents/Contacts (and remain reachable in the paginated list),
+    // so they don't need a separate row here. A selected non-existing user (an invited contact created from the search term)
+    // has no row in recents/contacts and disappears once the search input is cleared, so surface only those in a top section
+    // to keep them visible and deselectable. The one already shown as the current invite row is excluded to avoid a duplicate.
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
     const selectedSection = selectedOptions.filter(
         (option) =>
-            !(option.accountID && listedAccountIDs.has(option.accountID)) &&
-            !(option.login && listedLogins.has(option.login)) &&
-            doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm),
+            !!option.isOptimisticAccount && !(userToInvite && option.login === userToInvite.login) && doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm),
     );
 
     if (selectedSection.length) {
