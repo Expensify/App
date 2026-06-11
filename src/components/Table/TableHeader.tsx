@@ -24,7 +24,10 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps = ViewProps;
+type TableHeaderProps = ViewProps & {
+    /** Whether to render the header even when data is empty (useful for empty state UIs that still need column headers) */
+    showOnEmpty?: boolean;
+};
 
 /**
  * Renders the table header row with sortable column headers.
@@ -49,7 +52,7 @@ type TableHeaderProps = ViewProps;
  * </Table>
  * ```
  */
-function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
+function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, showOnEmpty, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,7 +64,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         return null;
     }
 
-    if (isEmptyResult || !processedData.length) {
+    if (!showOnEmpty && (isEmptyResult || !processedData.length)) {
         return null;
     }
 

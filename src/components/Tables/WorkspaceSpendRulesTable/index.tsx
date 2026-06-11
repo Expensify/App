@@ -17,9 +17,10 @@ type WorkspaceSpendRulesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    emptyStateContent?: React.ReactElement;
 };
 
-function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceSpendRulesTableProps) {
+function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceSpendRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -76,8 +77,9 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
         />
     );
 
-    const isEmpty = rulesData.length === 0;
     const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const isEmpty = rulesData.length === 0;
 
     return (
         <Table
@@ -94,13 +96,9 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
-            {!isEmpty && (
-                <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
+            <Table.Header showOnEmpty={!!emptyStateContent} />
+            {isEmpty ? emptyStateContent : <Table.Body />}
         </Table>
     );
 }
