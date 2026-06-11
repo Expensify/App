@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForExpense, getTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
@@ -56,7 +56,8 @@ function getTransaction(
 }
 
 function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
-    const {currentSearchHash, currentSearchResults} = useSearchStateContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const [onyxTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.targetTransactionID)}`);

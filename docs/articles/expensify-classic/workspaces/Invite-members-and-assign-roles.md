@@ -79,5 +79,5 @@ To add members in bulk:
 3. Match the columns in your spreadsheet with the Expensify data they correspond to. 
 4. Click **Import**. 
 
-**Note:** If you are utilizing the **Advanced Approval** feature, you can specify to whom each member should submit their expense reports and who an approver should send approved reports for the next step in the approval process. If someone is the final
+**Note:** If you are utilizing the **Advanced Approval** feature, you can specify to whom each member should submit their expense reports and who an approver should send approved reports for the next step in the approval process. If you are the final approver, the report becomes **Approved** and is ready for payment.
 

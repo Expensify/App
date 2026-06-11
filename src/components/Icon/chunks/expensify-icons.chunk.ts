@@ -70,6 +70,7 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCardLock from '@assets/images/credit-card-lock.svg';
+import CreditCardMultiple from '@assets/images/credit-card-multiple.svg';
 import CreditCardWithPlaneHourglass from '@assets/images/credit-card-with-plane-hourglass.svg';
 import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
@@ -175,6 +176,7 @@ import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
+import Moon from '@assets/images/moon.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
 import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
@@ -186,6 +188,7 @@ import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
+import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
@@ -249,6 +252,7 @@ import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
+import UserArrowLeft from '@assets/images/user-arrow-left.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
@@ -265,6 +269,12 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+// These icons are React components because they have
+// drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
+import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
+import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
+import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
+import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
 
 const Expensicons = {
     ReceiptBody,
@@ -320,6 +330,7 @@ const Expensicons = {
     ConnectionComplete,
     Copy,
     CreditCard,
+    CreditCardMultiple,
     Crop,
     CreditCardHourglass,
     CreditCardExclamation,
@@ -396,6 +407,10 @@ const Expensicons = {
     Mail,
     MakeAdmin,
     Map,
+    MapCurrentLocation,
+    MapStartWaypoint,
+    MapStopWaypoint,
+    MapWaypoint,
     Menu,
     Meter,
     Megaphone,
@@ -406,6 +421,7 @@ const Expensicons = {
     MoneyWaving,
     MoneyHourglass,
     Monitor,
+    Moon,
     Mute,
     ExpensifyLogoNew,
     NewWindow,
@@ -417,6 +433,7 @@ const Expensicons = {
     OdometerEnd,
     Paperclip,
     Pause,
+    Paycheck,
     Pencil,
     Percent,
     Phone,
@@ -462,6 +479,7 @@ const Expensicons = {
     Upload,
     UploadAlt,
     User,
+    UserArrowLeft,
     UserCheck,
     Users,
     VideoSlash,

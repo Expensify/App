@@ -1,5 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
 import CONST from '@src/CONST';
 
@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 let mockSortedReportIDs: ReadonlyArray<string | undefined> = CONST.EMPTY_ARRAY;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({sortedReportIDs: mockSortedReportIDs}),
+    useSearchResultsContext: () => ({sortedReportIDs: mockSortedReportIDs}),
 }));
 
 const mockUseOnyx = jest.fn();
@@ -49,7 +49,7 @@ describe('MoneyRequestReportNavigation', () => {
 
             // Simulate what the wrapper does: reads context + filter
             const {result} = renderHook(() => {
-                const {sortedReportIDs} = useSearchStateContext();
+                const {sortedReportIDs} = useSearchResultsContext();
                 const allReports = useFilterPendingDeleteReports(sortedReportIDs);
                 return {sortedReportIDs, allReports};
             });
@@ -66,7 +66,7 @@ describe('MoneyRequestReportNavigation', () => {
             mockUseOnyx.mockReturnValue([undefined]);
 
             const {result} = renderHook(() => {
-                const {sortedReportIDs} = useSearchStateContext();
+                const {sortedReportIDs} = useSearchResultsContext();
                 const allReports = useFilterPendingDeleteReports(sortedReportIDs);
                 const isSearchLoading = false;
                 return allReports.length > 0 && !isSearchLoading ? 'fast' : 'full';
@@ -80,7 +80,7 @@ describe('MoneyRequestReportNavigation', () => {
             mockSortedReportIDs = CONST.EMPTY_ARRAY;
 
             const {result} = renderHook(() => {
-                const {sortedReportIDs} = useSearchStateContext();
+                const {sortedReportIDs} = useSearchResultsContext();
                 const allReports = useFilterPendingDeleteReports(sortedReportIDs);
                 return allReports.length > 0 ? 'fast' : 'full';
             });
@@ -93,7 +93,7 @@ describe('MoneyRequestReportNavigation', () => {
             const isSearchLoading = true;
 
             const {result} = renderHook(() => {
-                const {sortedReportIDs} = useSearchStateContext();
+                const {sortedReportIDs} = useSearchResultsContext();
                 const allReports = useFilterPendingDeleteReports(sortedReportIDs);
                 return allReports.length > 0 && !isSearchLoading ? 'fast' : 'full';
             });

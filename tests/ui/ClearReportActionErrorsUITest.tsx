@@ -12,7 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {setHasRadio} from '@libs/NetworkState';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,28 +78,20 @@ describe('ClearReportActionErrors UI', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderReportActionItem(
-        action: ReportAction,
-        report: Report,
-        options?: {
-            originalReportID?: string;
-        },
-    ) {
-        const {originalReportID = report.reportID} = options ?? {};
+    function renderReportActionItem(action: ReportAction, report: Report) {
         return render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                 <OptionsListContextProvider>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
-                            <PureReportActionItem
+                            <ReportActionItem
                                 report={report}
+                                transactionThreadReport={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={false}
-                                index={0}
                                 isFirstVisibleReportAction={false}
-                                originalReportID={originalReportID}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -122,7 +114,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // When the PureReportActionItem component is rendered
+            // When the ReportActionItem component is rendered
             renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
@@ -144,7 +136,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(action, report, {originalReportID: REPORT_ID});
+            renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
             // When the user presses the dismiss button
@@ -173,9 +165,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(action, report, {
-                originalReportID: REPORT_ID,
-            });
+            renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('Test error message')).toBeOnTheScreen();
@@ -229,9 +219,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(parentAction, parentReport, {
-                originalReportID: REPORT_ID,
-            });
+            renderReportActionItem(parentAction, parentReport);
             await waitForBatchedUpdatesWithAct();
 
             // When the user dismisses the error on the parent action
@@ -268,9 +256,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(action, report, {
-                originalReportID: REPORT_ID,
-            });
+            renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
             // When the user dismisses the error

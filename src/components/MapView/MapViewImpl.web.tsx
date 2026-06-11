@@ -10,6 +10,7 @@ import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import ImageSVG from '@components/ImageSVG';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -47,6 +48,7 @@ function MapViewImpl({
     distanceInMeters,
     unit,
     ref,
+    shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -59,7 +61,7 @@ function MapViewImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
 
     const [mapRef, setMapRef] = useState<MapRef | null>(null);
     const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
@@ -74,7 +76,10 @@ function MapViewImpl({
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+    const shouldPanMapToCurrentPosition = useCallback(
+        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
+        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
+    );
 
     const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
         (error) => {
@@ -266,14 +271,22 @@ function MapViewImpl({
                 style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                 mapStyle={styleURL}
                 interactive={interactive}
+                // Disables fog (invisible on this flat top-down view) to avoid a Mapbox marker fog-opacity
+                // teardown crash. TODO: remove this entire workaround once mapbox-gl is upgraded to 3.x
+                // (see #91740) — react-map-gl's fog prop type omits null, but null clears the style's fog.
+                fog={null as never}
             >
-                {interactive && (
+                {interactive && shouldDisplayCurrentLocation && (
                     <Marker
                         key="Current-position"
                         longitude={currentPosition?.longitude ?? 0}
                         latitude={currentPosition?.latitude ?? 0}
                     >
-                        <View style={styles.currentPositionDot} />
+                        <ImageSVG
+                            src={expensifyIcons.MapCurrentLocation}
+                            width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
+                            height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
+                        />
                     </Marker>
                 )}
                 {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
@@ -296,7 +309,11 @@ function MapViewImpl({
                 )}
                 {waypoints?.map(({coordinate, markerComponent, id}) => {
                     const MarkerComponent = markerComponent;
-                    if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
+                    if (
+                        utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
+                        interactive &&
+                        shouldDisplayCurrentLocation
+                    ) {
                         return null;
                     }
                     return (

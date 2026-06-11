@@ -1,37 +1,18 @@
-import type {MouseEvent} from 'react';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import type {CardList, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {CardList, PolicyCategories, ReportAction, TransactionViolation} from '@src/types/onyx';
 
-type TransactionListItemInlineEditProps = {
-    shouldDisableHoverStyle: boolean;
-    onPressRow: () => void;
-    onMouseDownRow: (e?: MouseEvent) => void;
-    onHoverInRow: () => void;
-    onEditDate: (newDate: string) => void;
-    onEditMerchant: (newMerchant: string) => void;
-    onEditDescription: (newDescription: string) => void;
-    onEditCategory: (newCategory: string) => void;
-    onEditAmount: (newAmount: number) => void;
-    onEditTag: (newTag: string) => void;
-    canEditDate: boolean;
-    canEditMerchant: boolean;
-    canEditDescription: boolean;
-    canEditCategory: boolean;
-    canEditAmount: boolean;
-    canEditTag: boolean;
-};
-
-type TransactionListItemWideProps<TItem extends ListItem> = {
+type TransactionListItemSharedProps<TItem extends ListItem> = {
     item: TItem;
     isDeletedTransaction: boolean;
     isFocused?: boolean;
     showTooltip: boolean;
     isDisabled?: boolean | null;
     canSelectMultiple?: boolean;
-    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
+    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     onCheckboxPress?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
     onLongPressRow?: (item: TItem) => void;
@@ -41,14 +22,19 @@ type TransactionListItemWideProps<TItem extends ListItem> = {
     isActionLoading?: boolean;
     isLastItem?: boolean;
     transactionViolations: TransactionViolation[];
-    handleActionButtonPress: () => void;
+    handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
+    policyCategories?: PolicyCategories;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
-} & TransactionListItemInlineEditProps;
+};
 
-type TransactionListItemNarrowProps<TItem extends ListItem> = TransactionListItemWideProps<TItem> & {
+type TransactionListItemWideProps<TItem extends ListItem> = TransactionListItemSharedProps<TItem> & {
+    currentSearchHash?: number;
+};
+
+type TransactionListItemNarrowProps<TItem extends ListItem> = TransactionListItemSharedProps<TItem> & {
     isFirstItem?: boolean;
 };
 

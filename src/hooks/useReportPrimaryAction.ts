@@ -1,7 +1,8 @@
 import type {ValueOf} from 'type-fest';
+import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {isExpenseReport as isExpenseReportUtils} from '@libs/ReportUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -11,7 +12,6 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
-import useTransactionThreadReport from './useTransactionThreadReport';
 
 function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning} = usePaymentAnimationsContext();
@@ -27,12 +27,12 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
 
-    const {reportActions} = useTransactionThreadReport(reportID);
+    const {reportActions} = useMoneyReportTransactionThread();
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
-    if (isExpenseReportUtils(moneyRequestReport) && !isPaidGroupPolicy(policy)) {
+    if (isExpenseReportUtils(moneyRequestReport) && !isGroupPolicy(policy)) {
         return '';
     }
 

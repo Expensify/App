@@ -19,7 +19,9 @@ import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
 import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {setDeleteTransactionNavigateBackUrl} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -32,6 +34,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -74,6 +77,7 @@ function Confirmation() {
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
         [duplicates, reviewDuplicates, newTransaction],
     );
+    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionsMergeParams.transactionIDList);
     const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
     const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
     const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
@@ -100,18 +104,28 @@ function Confirmation() {
     const handleMergeDuplicates = useCallback(() => {
         const transactionThreadReportID = childReportID ?? generateReportID();
         const mergeParams = !childReportID ? {...transactionsMergeParams, transactionThreadReportID} : transactionsMergeParams;
+        // Server deletes the discarded transaction's now-empty expense report on merge and
+        // pushes back a "Report not found" payload for it. Hint the guard and redirect to
+        // the kept transaction's report so the user doesn't land on the discarded one.
+        const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
+        setDeleteTransactionNavigateBackUrl(keptReportRoute);
         mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? ''});
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
-        Navigation.dismissModal();
+        const topmostReportID = Navigation.getTopmostReportId?.();
+        if (topmostReportID === mergeParams.reportID) {
+            Navigation.dismissModal();
+        } else {
+            Navigation.goBack(keptReportRoute);
+        }
     }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed]);
 
     const handleResolveDuplicates = useCallback(() => {
-        resolveDuplicates({...transactionsMergeParams, ...taxData});
+        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap});
         Navigation.dismissToSuperWideRHP();
-    }, [transactionsMergeParams, taxData]);
+    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap]);
 
     const contextMenuStateValue = useMemo(
         () => ({
