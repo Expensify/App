@@ -3696,6 +3696,8 @@ const CONST = {
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
         // Maximum number of splits allowed for expenses
         SPLITS_LIMIT: 30,
+        // Route prefix used to detect the tax amount step, where the amount input represents a tax amount
+        TAX_AMOUNT_ROUTE_PREFIX: 'money-request/tax-amount',
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
