@@ -448,16 +448,46 @@ function injectDeepObjectValue(objectLiteral: ts.ObjectLiteralExpression, dotPat
             return ts.factory.createObjectLiteralExpression(updatedProperties);
         }
 
-        // Recursively inject into the existing nested structure
-        // Handle both direct ObjectLiteralExpression and SatisfiesExpression wrapping an object
+        // Recursively inject into the existing nested structure.
+        // Handle direct ObjectLiteralExpression, SatisfiesExpression wrapping an object, and plural translation functions like `key: () => ({one, other})`.
         let nestedObject: ts.ObjectLiteralExpression | undefined;
         let satisfiesType: ts.TypeNode | undefined;
+        let updatedPluralFunction: ts.ArrowFunction | undefined;
 
         if (ts.isObjectLiteralExpression(existingProperty.initializer)) {
             nestedObject = existingProperty.initializer;
         } else if (ts.isSatisfiesExpression(existingProperty.initializer) && ts.isObjectLiteralExpression(existingProperty.initializer.expression)) {
             nestedObject = existingProperty.initializer.expression;
             satisfiesType = existingProperty.initializer.type;
+        } else if (ts.isArrowFunction(existingProperty.initializer)) {
+            let pluralObject: ts.ObjectLiteralExpression | undefined;
+            let shouldWrapInParentheses = false;
+
+            if (ts.isObjectLiteralExpression(existingProperty.initializer.body)) {
+                pluralObject = existingProperty.initializer.body;
+            } else if (ts.isParenthesizedExpression(existingProperty.initializer.body) && ts.isObjectLiteralExpression(existingProperty.initializer.body.expression)) {
+                pluralObject = existingProperty.initializer.body.expression;
+                shouldWrapInParentheses = true;
+            }
+
+            if (pluralObject) {
+                const updatedPluralObject = injectDeepObjectValue(pluralObject, remainingPath, value);
+                updatedPluralFunction = ts.factory.updateArrowFunction(
+                    existingProperty.initializer,
+                    existingProperty.initializer.modifiers,
+                    existingProperty.initializer.typeParameters,
+                    existingProperty.initializer.parameters,
+                    existingProperty.initializer.type,
+                    existingProperty.initializer.equalsGreaterThanToken,
+                    shouldWrapInParentheses ? ts.factory.createParenthesizedExpression(updatedPluralObject) : updatedPluralObject,
+                );
+            }
+        }
+
+        if (updatedPluralFunction) {
+            const updatedProperty = ts.factory.createPropertyAssignment(topLevelKey, updatedPluralFunction);
+            const updatedProperties = objectLiteral.properties.map((prop) => (prop === existingProperty ? updatedProperty : prop));
+            return ts.factory.createObjectLiteralExpression(updatedProperties);
         }
 
         if (!nestedObject) {
