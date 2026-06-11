@@ -294,7 +294,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: '描述',
         title: '标题',
         assignee: '受托人',
-        createdBy: '创建者',
         with: '与',
         shareCode: '共享代码',
         share: '分享',

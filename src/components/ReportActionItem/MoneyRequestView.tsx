@@ -86,8 +86,8 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
-    isPaidGroupPolicy,
     isReportApproved,
+    isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
     isTrackExpenseReportNew,
     shouldEnableNegative,
@@ -495,7 +495,7 @@ function MoneyRequestView({
     const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
 
-    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(transactionThreadReport));
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isReportInGroupPolicy(transactionThreadReport));
     const hasViolations = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
         getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0;
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;

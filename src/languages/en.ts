@@ -308,7 +308,6 @@ const translations = {
         description: 'Description',
         title: 'Title',
         assignee: 'Assignee',
-        createdBy: 'Created by',
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
