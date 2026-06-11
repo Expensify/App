@@ -1,6 +1,4 @@
 import {findFocusedRoute} from '@react-navigation/native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -10,6 +8,7 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -294,104 +293,102 @@ function openReportFromDeepLink(
     }
 
     // Navigate to the report after sign-in/sign-up.
-    InteractionManager.runAfterInteractions(() => {
-        waitForUserSignIn().then(() => {
-            // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
-            const connection = Onyx.connectWithoutView({
-                key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (val) => {
-                    if (!val && !isAnonymousUser()) {
-                        return;
-                    }
+    waitForUserSignIn().then(() => {
+        // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.NVP_ONBOARDING,
+            callback: (val) => {
+                if (!val && !isAnonymousUser()) {
+                    return;
+                }
 
-                    // Wait for TAB_NAVIGATOR's child router to mount before navigating. waitForProtectedRoutes()
-                    // resolves once the screen is declared on the root navigator, but the lazily-loaded
-                    // TAB_NAVIGATOR may not have mounted yet, so a NAVIGATE targeting a screen inside it would
-                    // be unhandled. The user is over the auth wall here, so TAB_NAVIGATOR is guaranteed to mount.
-                    Navigation.waitForProtectedRoutes()
-                        .then(() => whenTabNavigatorReady())
-                        .then(() => {
-                            if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
-                                signOutAndRedirectToSignIn(true);
+                // Wait for TAB_NAVIGATOR's child router to mount before navigating. waitForProtectedRoutes()
+                // resolves once the screen is declared on the root navigator, but the lazily-loaded
+                // TAB_NAVIGATOR may not have mounted yet, so a NAVIGATE targeting a screen inside it would
+                // be unhandled. The user is over the auth wall here, so TAB_NAVIGATOR is guaranteed to mount.
+                Navigation.waitForProtectedRoutes()
+                    .then(() => whenTabNavigatorReady())
+                    .then(() => {
+                        if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
+                            signOutAndRedirectToSignIn(true);
+                            return;
+                        }
+
+                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                        // which is already called when AuthScreens mounts.
+                        if (!CONFIG.IS_HYBRID_APP && url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                            return;
+                        }
+
+                        const handleDeeplinkNavigation = () => {
+                            // We want to disconnect the connection so it won't trigger the deeplink again
+                            // every time the data is changed, for example, when re-login.
+                            Onyx.disconnect(connection);
+
+                            const state = navigationRef.getRootState();
+                            const currentFocusedRoute = findFocusedRoute(state);
+
+                            if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                                 return;
                             }
 
-                            // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-                            // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-                            // which is already called when AuthScreens mounts.
-                            if (!CONFIG.IS_HYBRID_APP && url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                            if (shouldSkipDeepLinkNavigation(route)) {
                                 return;
                             }
 
-                            const handleDeeplinkNavigation = () => {
-                                // We want to disconnect the connection so it won't trigger the deeplink again
-                                // every time the data is changed, for example, when re-login.
-                                Onyx.disconnect(connection);
+                            if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
+                                return;
+                            }
 
-                                const state = navigationRef.getRootState();
-                                const currentFocusedRoute = findFocusedRoute(state);
+                            // Navigation for signed users is handled by react-navigation.
+                            if (isAuthenticated) {
+                                return;
+                            }
 
-                                if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                    setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
-                                    return;
-                                }
-
-                                if (shouldSkipDeepLinkNavigation(route)) {
-                                    return;
-                                }
-
-                                if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
-                                    return;
-                                }
-
-                                // Navigation for signed users is handled by react-navigation.
-                                if (isAuthenticated) {
-                                    return;
-                                }
-
-                                const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
-                                    // Check if the report exists in the collection
-                                    const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                                    // If the report does not exist, navigate to the last accessed report or Concierge chat
-                                    if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                        const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
-                                        if (lastAccessedReportID) {
-                                            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                            Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
-                                            return;
-                                        }
-                                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
+                            const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                                // Check if the report exists in the collection
+                                const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                                // If the report does not exist, navigate to the last accessed report or Concierge chat
+                                if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
+                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
+                                    if (lastAccessedReportID) {
+                                        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                         return;
                                     }
-
-                                    // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
-                                    const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                                    Navigation.navigate(route as Route, {forceReplace});
-                                };
-                                // If we log with deeplink with reportID and data for this report is not available yet,
-                                // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                                if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
-                                    const reportConnection = Onyx.connectWithoutView({
-                                        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                                        // eslint-disable-next-line rulesdir/prefer-early-return
-                                        callback: (report) => {
-                                            if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
-                                                Onyx.disconnect(reportConnection);
-                                                navigateHandler(report);
-                                            }
-                                        },
-                                    });
-                                } else {
-                                    navigateHandler();
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
+                                    return;
                                 }
-                            };
 
-                            if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
-                                handleDeeplinkNavigation();
+                                // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
+                                const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+                                Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
+                            };
+                            // If we log with deeplink with reportID and data for this report is not available yet,
+                            // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
+                            if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+                                const reportConnection = Onyx.connectWithoutView({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                                    // eslint-disable-next-line rulesdir/prefer-early-return
+                                    callback: (report) => {
+                                        if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
+                                            Onyx.disconnect(reportConnection);
+                                            navigateHandler(report);
+                                        }
+                                    },
+                                });
+                            } else {
+                                navigateHandler();
                             }
-                        });
-                },
-            });
+                        };
+
+                        if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
+                            handleDeeplinkNavigation();
+                        }
+                    });
+            },
         });
     });
 }
@@ -414,6 +411,25 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
     });
 }
 
+/**
+ * Fetches a short-lived auth token and appends it to the given setup link.
+ * Falls back to returning the original link if the token request fails.
+ */
+function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+        .then((response) => {
+            if (!response?.shortLivedAuthToken) {
+                return setupLink;
+            }
+            return Url.appendParam(setupLink, 'authToken', response.shortLivedAuthToken);
+        })
+        .catch((error) => {
+            Log.warn('[Link] Failed to fetch short-lived auth token', {error});
+            return setupLink;
+        });
+}
+
 export {
     openOldDotLink,
     openExternalLink,
@@ -425,4 +441,5 @@ export {
     getTravelDotLink,
     buildOldDotURL,
     openReportFromDeepLink,
+    getShortLivedAuthTokenURL,
 };

@@ -38,6 +38,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -50,6 +51,7 @@ import {
     getDynamicExternalWorkflowSubmitFailedActionMessage,
     getExportIntegrationLastMessageText,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getForwardedReportActionMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
@@ -163,6 +165,7 @@ import {
     isTripRoom,
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
+import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
 
 type ComputeReportName = {
     report?: Report;
@@ -441,7 +444,7 @@ function computeReportNameBasedOnReportAction(
         if (automaticAction) {
             return Parser.htmlToText(translate('iou.automaticallyForwarded'));
         }
-        return translate('iou.forwarded');
+        return getForwardedReportActionMessage(parentReportAction, translate);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
         return translate('iou.heldExpense');
@@ -581,6 +584,9 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
         return getAutoReimbursementMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
+        return getCategoryTaxRateMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
         return getMccGroupCategoryMessage(translate, parentReportAction);
@@ -790,6 +796,16 @@ function computeReportNameBasedOnReportAction(
     }
     if (isDynamicExternalWorkflowApproveFailedAction(parentReportAction)) {
         return getDynamicExternalWorkflowApproveFailedActionMessage(translate, parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE)) {
+        return getAddExpensifyCardRuleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE)) {
+        return getUpdateExpensifyCardRuleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
+        return getRemoveExpensifyCardRuleMessage(translate, parentReportAction);
     }
 
     return undefined;
