@@ -1,5 +1,4 @@
 import React from 'react';
-import EnvelopeReceiptSquare from '@assets/images/simple-illustrations/squares/simple-illustration-square_envelopereceipt.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -16,8 +15,8 @@ function ValidateAccount() {
     return (
         <BaseWidgetItem
             icon={icons.EnvelopeOpenStar}
-            squareIcon={EnvelopeReceiptSquare}
-            iconFill={theme.widgetIconFill}
+            transparentIconBackground
+            iconFill={theme.icon}
             title={translate('homePage.timeSensitiveSection.validateAccount.title')}
             subtitle={translate('homePage.timeSensitiveSection.validateAccount.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.validateAccount.cta')}

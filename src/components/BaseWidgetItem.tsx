@@ -21,6 +21,9 @@ type BaseWidgetItemProps = {
     /** Pre-styled 40x40 square SVG that replaces the colored icon container entirely */
     squareIcon?: IconAsset;
 
+    /** When true, render the icon inside a plain 40x40 view (no background, no border) */
+    transparentIconBackground?: boolean;
+
     /** Primary title text */
     title: string;
 
@@ -40,7 +43,7 @@ type BaseWidgetItemProps = {
     buttonProps?: Partial<ButtonProps>;
 };
 
-function BaseWidgetItem({icon, squareIcon, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, squareIcon, transparentIconBackground, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -54,7 +57,13 @@ function BaseWidgetItem({icon, squareIcon, title, subtitle, ctaText, onCtaPress,
         >
             {({hovered}) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, hovered && styles.hoveredComponentBG]}>
-                    <View style={styles.getWidgetItemIconContainerStyle()}>
+                    <View
+                        style={
+                            transparentIconBackground
+                                ? [styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.componentSizeNormal, height: variables.componentSizeNormal}]
+                                : styles.getWidgetItemIconContainerStyle()
+                        }
+                    >
                         {squareIcon ? (
                             <Icon
                                 src={squareIcon}
@@ -66,7 +75,7 @@ function BaseWidgetItem({icon, squareIcon, title, subtitle, ctaText, onCtaPress,
                                 src={icon}
                                 width={ICON_SIZE}
                                 height={ICON_SIZE}
-                                fill={iconFill ?? theme.white}
+                                fill={iconFill ?? (transparentIconBackground ? theme.icon : theme.white)}
                             />
                         )}
                     </View>

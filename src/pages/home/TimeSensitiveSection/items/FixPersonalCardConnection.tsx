@@ -1,5 +1,4 @@
 import React from 'react';
-import HandCardSquare from '@assets/images/simple-illustrations/squares/simple-illustration-square_handcard.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,8 +20,8 @@ function FixPersonalCardConnection({card}: FixPersonalCardConnectionProps) {
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            squareIcon={HandCardSquare}
-            iconFill={theme.widgetIconUrgentFill}
+            transparentIconBackground
+            iconFill={theme.icon}
             title={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.title', {cardName: card?.cardName})}
             subtitle={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}

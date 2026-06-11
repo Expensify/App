@@ -44,7 +44,8 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
     return (
         <BaseWidgetItem
             icon={icons.BankLock}
-            iconFill={theme.widgetIconUrgentFill}
+            transparentIconBackground
+            iconFill={theme.icon}
             title={title}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}

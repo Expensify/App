@@ -2,8 +2,8 @@ import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import ROUTES from '@src/ROUTES';
 
 type EnterSignerInfoProps = {
@@ -19,6 +19,7 @@ type EnterSignerInfoProps = {
 
 function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSignerInfoProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
     const handleCtaPress = () => {
@@ -28,7 +29,8 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
     return (
         <BaseWidgetItem
             icon={icons.Bank}
-            iconFill={colors.green500}
+            transparentIconBackground
+            iconFill={theme.icon}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}
