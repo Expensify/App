@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const ACCOUNT_ID = 42;
@@ -17,13 +18,35 @@ const EXPENSE_REPORT_ID = 'expenseReport1';
 const THREAD_REPORT_ID = 'thread1';
 
 const paidPolicy: Policy = {
+    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Team Workspace'),
     id: POLICY_ID,
-    type: CONST.POLICY.TYPE.TEAM,
-    name: 'Team Workspace',
     owner: 'owner@test.com',
     role: CONST.POLICY.ROLE.ADMIN,
     outputCurrency: CONST.CURRENCY.USD,
-} as Policy;
+};
+
+/** Builds a fully-typed snapshot collection key from a search query hash. */
+function getSnapshotKey(hash: number): `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${number}` {
+    return `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`;
+}
+
+/** Builds a fully-typed `SearchResults` snapshot with the given total/currency. */
+function buildSnapshotSearchResults(total: number, currency: string): SearchResults {
+    return {
+        search: {
+            offset: 0,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+            hasMoreResults: false,
+            hasResults: true,
+            isLoading: false,
+            count: 1,
+            total,
+            currency,
+        },
+        data: {},
+    };
+}
 
 const expenseReport: Report = {
     reportID: EXPENSE_REPORT_ID,
@@ -72,19 +95,10 @@ beforeEach(() => {
 describe('getYourSpendSnapshotTotalUpdates', () => {
     it('patches the awaiting-approval snapshot total with the amount delta', async () => {
         const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
-        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}` as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${number}`;
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
-        await Onyx.set(snapshotKey, {
-            search: {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
-                count: 1,
-                total: 10000,
-                currency: CONST.CURRENCY.USD,
-            },
-            data: {},
-        } as SearchResults);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD));
         await waitForBatchedUpdates();
 
         expect(transactionMatchesAwaitingApprovalQuery(expenseReport, transaction, ACCOUNT_ID, [POLICY_ID])).toBe(true);
@@ -127,13 +141,10 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
 
     it('does not patch snapshots when the currency changes to a different report currency', () => {
         const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
-        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}` as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${number}`;
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
 
         Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
-        Onyx.set(snapshotKey, {
-            search: {count: 1, total: 10000, currency: CONST.CURRENCY.USD},
-            data: {},
-        } as SearchResults);
+        Onyx.set(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD));
 
         const updatedTransaction: Transaction = {
             ...transaction,
@@ -155,14 +166,11 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
 describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
     it('includes awaiting-approval snapshot total updates when the amount changes', async () => {
         const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
-        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}` as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${number}`;
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
-        await Onyx.set(snapshotKey, {
-            search: {count: 1, total: 10000, currency: CONST.CURRENCY.USD},
-            data: {},
-        } as SearchResults);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD));
         await waitForBatchedUpdates();
 
         const {onyxData} = getUpdateMoneyRequestParams({
