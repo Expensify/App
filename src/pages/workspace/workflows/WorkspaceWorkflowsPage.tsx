@@ -3,9 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -20,7 +18,6 @@ import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useAddAgentToApprovalWorkflow from '@hooks/useAddAgentToApprovalWorkflow';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -48,7 +45,6 @@ import {
     setWorkspaceAutoHarvesting,
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
@@ -85,15 +81,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
-
-const agentsWorkflowsBannerDismissedSelector = (value: OnyxEntry<DismissedProductTraining>): boolean => !!value?.[CONST.AGENTS_WORKFLOWS_BANNER];
 
 function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: string; shouldShow: boolean; searchValue: string}) {
     const styles = useThemeStyles();
@@ -135,8 +128,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const [isAgentsWorkflowsBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsWorkflowsBannerDismissedSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
@@ -283,7 +274,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
-    const handleAddAgentPress = useAddAgentToApprovalWorkflow(policy, route.params.policyID);
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
 
@@ -485,15 +475,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </View>
                             </View>
                         )}
-                        {isCustomAgentBetaEnabled && !isAgentsWorkflowsBannerDismissed && (
-                            <AgentPromotionalBanner
-                                title={translate('workflowsPage.automateApprovalsWithAgentsTitle')}
-                                subtitle={translate('workflowsPage.automateApprovalsWithAgentsSubtitle')}
-                                onDismiss={() => dismissProductTraining(CONST.AGENTS_WORKFLOWS_BANNER, true)}
-                                dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_WORKFLOWS_BANNER.DISMISS}
-                                style={styles.mt6}
-                            />
-                        )}
                         {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
                             <SearchBar
                                 label={translate('workflowsPage.findWorkflow')}
@@ -541,14 +522,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                   );
                                               }
                                     }
-                                    onAddAgentPress={() => handleAddAgentPress(workflow)}
                                     onDismissApproverError={(approver) => {
                                         if (approver.accountID === undefined) {
                                             return;
                                         }
                                         clearPendingAgentFromApprovalWorkflow(route.params.policyID, workflow.routingFirstApproverEmail, approver.accountID);
                                     }}
-                                    canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin}
                                     currency={policy?.outputCurrency}
                                     isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
                                     hrProviderName={isHRConnected ? hrProviderName : undefined}
@@ -789,8 +768,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         expensifyIcons.Info,
         expensifyIcons.Plus,
         expensifyIcons.DotIndicator,
-        isCustomAgentBetaEnabled,
-        isAgentsWorkflowsBannerDismissed,
         theme.textSupporting,
         accountManagerReportID,
         filteredApprovalWorkflows.length,
@@ -828,7 +805,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         withPaymentsReadOnlyFallback,
         withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
-        handleAddAgentPress,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
