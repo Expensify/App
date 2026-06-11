@@ -7,16 +7,25 @@
 # through:
 #
 #   1. install + open
-#   2. randomized sign-in (P1 hard signal)
-#   3. fixed P1 sanity flow (open-search-router) via `agent-device test`
-#   4. P2 QA-step runner: a Claude Code headless agent that interprets
-#      $QA_STEPS, maps each step to a known .ad flow under
-#      .claude/skills/agent-device/flows/, or improvises agent-device
-#      actions when no flow matches.
+#   2. P1 (HARD SIGNAL) - cursor-agent runs a FIXED sanity prompt:
+#      sign in with a randomized email and verify the Inbox renders.
+#      Emits its own JUnit by parsing the agent's "RESULT: PASS|FAIL"
+#      final line. P1 failure -> the workflow step fails -> CI red.
+#   3. P2 (ADVISORY) - cursor-agent runs a DYNAMIC prompt built from
+#      the PR's QA Steps. Produces its own JUnit + markdown summary.
 #
-# Outputs all evidence (JUnit, screenshots, summary) into $ARTIFACTS_DIR.
-# Infra failures (emulator/network/install) are classified separately
-# from assertion failures so a red check means "your PR broke something."
+# Everything from `open` onward is wrapped in a screen recording so
+# the evidence artifact always includes `out/recording.mp4`.
+#
+# We intentionally do NOT call `agent-device replay`/`agent-device test`
+# on hand-written `.ad` macros: maintaining selectors against a moving
+# app is the exact tax this POC is trying to remove. The agent rediscovers
+# the screen on every run via `agent-device snapshot` + tap/fill.
+#
+# Outputs all evidence (JUnit, screenshots, logs, summary, recording)
+# into $ARTIFACTS_DIR. Infra failures (emulator/network/install/missing
+# CLI) are classified separately from agent assertion failures so a red
+# check always means "your PR (or the app under test) broke something."
 #
 # Environment (provided by the workflow):
 #   APK_PATH          absolute path to the downloaded Expensify-adhoc.apk
@@ -24,7 +33,7 @@
 #   ARTIFACTS_DIR     absolute path for JUnit + screenshots + summary
 #   QA_STEPS          PR-body QA Steps text (free-form markdown)
 #   PR_NUMBER         PR number (used only for log breadcrumbs)
-#   CURSOR_API_KEY    API key for the Cursor Agent QA-step runner (P2).
+#   CURSOR_API_KEY    API key for cursor-agent (drives both P1 and P2).
 #                     Get one at cursor.com/dashboard/integrations (user
 #                     key) or Team Settings -> Service accounts (team).
 
@@ -41,6 +50,14 @@ done
 mkdir -p "$ARTIFACTS_DIR/artifacts" "$ARTIFACTS_DIR/screenshots"
 JUNIT_PATH="$ARTIFACTS_DIR/junit.xml"
 SUMMARY_PATH="$ARTIFACTS_DIR/summary.md"
+P1_JUNIT="$ARTIFACTS_DIR/junit-p1.xml"
+P2_JUNIT="$ARTIFACTS_DIR/junit-p2.xml"
+P2_SUMMARY="$ARTIFACTS_DIR/p2-summary.md"
+P1_LOG="$ARTIFACTS_DIR/p1-agent.log"
+P2_LOG="$ARTIFACTS_DIR/p2-agent.log"
+P1_PROMPT="$ARTIFACTS_DIR/p1-prompt.md"
+P2_PROMPT="$ARTIFACTS_DIR/p2-prompt.md"
+QA_STEPS_FILE="$ARTIFACTS_DIR/qa-steps.md"
 
 # Initialise the exit codes early so write_summary can always reference
 # them, even when a phase aborts before running.
@@ -52,6 +69,82 @@ INFRA_FAILURE=0
 mark_infra_failure() {
   INFRA_FAILURE=1
   echo "::error title=Infra failure::$1"
+}
+
+# Emit a single-test JUnit XML so CI publishers (and the artifact
+# consumer) see a uniform schema regardless of which agent produced it.
+emit_junit() {
+  local out="$1"
+  local suite="$2"
+  local case_name="$3"
+  local exit_code="$4"
+  local log_file="$5"
+  local failures=0
+  local failure_block=""
+  if [ "$exit_code" -ne 0 ]; then
+    failures=1
+    local last=""
+    if [ -s "$log_file" ]; then
+      last=$(tail -c 4000 "$log_file" | sed 's/]]>/]] >/g')
+    fi
+    failure_block="<failure message=\"${suite} did not report RESULT: PASS\"><![CDATA[
+${last}
+]]></failure>"
+  fi
+  cat > "$out" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="${suite}" tests="1" failures="${failures}">
+    <testcase classname="${suite}" name="${case_name}">${failure_block}</testcase>
+  </testsuite>
+</testsuites>
+EOF
+}
+
+# Returns 0 if the agent's log ends with `RESULT: PASS`, 1 otherwise.
+# Looking only at the final RESULT: line lets the model rephrase or
+# retry mid-run without poisoning the verdict.
+parse_agent_result() {
+  local log_file="$1"
+  if [ ! -s "$log_file" ]; then return 1; fi
+  local last
+  last=$(grep -E '^RESULT: (PASS|FAIL)' "$log_file" | tail -1 || true)
+  case "$last" in
+    "RESULT: PASS"*) return 0 ;;
+    *)               return 1 ;;
+  esac
+}
+
+# Run cursor-agent with the standard CI flags. Returns:
+#   0  -> ran (caller still must parse RESULT: line)
+#   2  -> skipped because CLI / key is missing (advisory only)
+#   *  -> cursor-agent exited non-zero (CLI/network error)
+run_cursor_agent() {
+  local prompt_file="$1"
+  local log_file="$2"
+
+  if [ -z "${CURSOR_API_KEY:-}" ]; then
+    echo "CURSOR_API_KEY not set; skipping cursor-agent invocation." | tee "$log_file"
+    return 2
+  fi
+  if ! command -v cursor-agent >/dev/null 2>&1; then
+    echo "cursor-agent CLI not installed; skipping cursor-agent invocation." | tee "$log_file"
+    return 2
+  fi
+
+  set +e
+  # --force/--yolo and --trust are required for non-interactive CI runs
+  # so the agent does not stall on approval prompts.
+  cursor-agent -p \
+    --model composer-2.5 \
+    --force \
+    --trust \
+    --output-format text \
+    < "$prompt_file" \
+    2>&1 | tee "$log_file"
+  local code=${PIPESTATUS[0]}
+  set -e
+  return "$code"
 }
 
 write_summary() {
@@ -68,9 +161,19 @@ write_summary() {
       echo "> $note"
     fi
     echo
+    echo "### P1 (fixed sanity) details"
+    echo
+    if [ -s "$P1_LOG" ]; then
+      local last
+      last=$(grep -E '^RESULT: (PASS|FAIL)' "$P1_LOG" | tail -1 || true)
+      [ -n "$last" ] && echo "- Agent verdict: \`$last\`" || echo "- Agent verdict: _no RESULT line emitted_"
+    else
+      echo "- _no agent log_"
+    fi
+    echo
     echo "### P2 (QA-step runner) details"
     echo
-    if [ -s "${P2_SUMMARY:-}" ]; then
+    if [ -s "$P2_SUMMARY" ]; then
       cat "$P2_SUMMARY"
     else
       echo "_no summary written_"
@@ -79,8 +182,10 @@ write_summary() {
     echo "### Evidence"
     echo
     echo "- JUnit: \`out/junit.xml\` (P1) and \`out/junit-p2.xml\` (P2)"
-    echo "- Screen recording: \`out/recording.mp4\` (full sign-in -> P1 -> P2 timeline)"
-    echo "- Screenshots and per-step artifacts under \`out/screenshots/\` and \`out/artifacts/\`"
+    echo "- Screen recording: \`out/recording.mp4\` (full session)"
+    echo "- Agent logs: \`out/p1-agent.log\`, \`out/p2-agent.log\`"
+    echo "- Prompts (for reproducibility): \`out/p1-prompt.md\`, \`out/p2-prompt.md\`"
+    echo "- Screenshots under \`out/screenshots/\`"
   } > "$SUMMARY_PATH"
 }
 
@@ -108,7 +213,6 @@ if ! adb devices | grep -q "emulator-"; then
   abort_infra "No emulator device visible to adb."
 fi
 adb wait-for-device
-# Wait for boot completion with a hard cap so a stuck boot becomes infra.
 boot_completed=""
 for _ in $(seq 1 60); do
   boot_completed="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n')"
@@ -136,11 +240,10 @@ agent-device screenshot --output "$ARTIFACTS_DIR/screenshots/00-launch.png" \
 echo "::endgroup::"
 
 # ---------- Start screen recording ---------------------------------------
-# Wraps everything from here onwards (sign-in + P1 + P2). The trap
-# guarantees the recording is always finalized, including on the
-# `exit 0` path used by abort_infra. --quality 8 keeps the file
-# reasonable (default 10 is native res = large) while still readable
-# for evidence review.
+# Wraps everything from here onwards (P1 + P2). The EXIT trap guarantees
+# the recording is finalized on any exit path - including the `exit 0`
+# inside abort_infra - so a partial video is still saved when the run
+# aborts early. --quality 8 keeps the mp4 modest while still readable.
 RECORDING_PATH="$ARTIFACTS_DIR/recording.mp4"
 RECORDING_STARTED=0
 
@@ -163,132 +266,124 @@ else
 fi
 echo "::endgroup::"
 
-# ---------- P1: fixed sanity suite ---------------------------------------
-# Two-phase, matching the agent-device SKILL.md pattern:
-#   1. `agent-device replay` the sign-in macro (macros are not picked up
-#      by `agent-device test`, which only considers tests/*.ad files).
-#   2. `agent-device test` the actual signed-in test(s), producing the
-#      JUnit hard signal with retries + per-test artifacts.
-echo "::group::P1 - sign-in (replay)"
-SKILLS_DIR=".claude/skills/agent-device/flows"
-P1_JUNIT="$ARTIFACTS_DIR/junit-p1.xml"
-P1_EXIT=1
+# ---------- P1: fixed sanity, agent-driven (HARD SIGNAL) -----------------
+# A fixed natural-language prompt the agent must satisfy. No .ad macros;
+# the agent rediscovers the sign-in screen via `snapshot` each run.
+echo "::group::P1 - agent-driven sanity (sign-in + inbox)"
+cat > "$P1_PROMPT" <<EOF
+You are driving the Expensify Android app via the agent-device CLI on
+an ephemeral emulator inside CI. The app is already installed and
+freshly OPENED (bundle id ${BUNDLE_ID}). It should be showing the
+sign-in screen.
 
-set +e
-agent-device replay \
-  "$SKILLS_DIR/macros/sign-in.ad" \
-  --platform android \
-  -e "EMAIL=$EMAIL"
-SIGNIN_EXIT=$?
-set -e
-echo "Sign-in exit: $SIGNIN_EXIT"
-echo "::endgroup::"
+# Your job (FIXED SANITY)
+1. Sign in with this exact email: ${EMAIL}
+   - This is a fresh randomized address. The build bypasses OTP for
+     this domain, so after submitting the email you should land on the
+     signed-in home screen (Inbox / chat list) WITHOUT being prompted
+     for a magic code. If you do get prompted for a code, that itself
+     is a FAIL.
+2. Verify the signed-in state renders. Acceptable evidence: the chat
+   list, the Inbox header, the floating "+" / FAB, or the bottom-tab
+   bar - anything that is unambiguously not the sign-in screen.
 
-if [ "$SIGNIN_EXIT" -ne 0 ]; then
-  # Sign-in failure isn't infra - it's a real PR-relevant signal (the
-  # app couldn't get past sign-in). Skip the test suite and report.
-  echo "Sign-in failed; skipping P1 test suite."
-  P1_EXIT="$SIGNIN_EXIT"
-  agent-device screenshot --output "$ARTIFACTS_DIR/screenshots/01-signin-failed.png" \
-    --platform android >/dev/null 2>&1 || true
-else
-  echo "::group::P1 - fixed sanity suite (test)"
-  set +e
-  agent-device test \
-    "$SKILLS_DIR/tests/open-search-router.ad" \
-    --platform android \
-    --report-junit "$P1_JUNIT" \
-    --artifacts-dir "$ARTIFACTS_DIR/artifacts" \
-    --retries 1 \
-    --timeout 180000
-  P1_EXIT=$?
-  set -e
+# Hard rules
+- The ONLY shell commands you may run are \`agent-device ...\` and the
+  file writes needed to capture screenshots. Do NOT run npm / git /
+  curl / anything else.
+- Always pass \`--platform android\` to agent-device.
+- Useful subcommands: \`snapshot\`, \`find\`, \`tap\`, \`press\`,
+  \`fill\`, \`scroll\`, \`wait\`, \`screenshot\`, \`logs\`.
+- Take a screenshot after sign-in to:
+    ${ARTIFACTS_DIR}/screenshots/p1-signed-in.png
+- Time-box yourself to ~5 minutes. If the app does not appear signed
+  in after a reasonable number of attempts, STOP and report FAIL.
+- Do NOT touch files outside ${ARTIFACTS_DIR}.
 
-  if [ ! -s "$P1_JUNIT" ]; then
-    # agent-device test exited without writing a JUnit. Could be a tool
-    # usage error or a real runner crash - either way it's not the PR's
-    # fault, but flag it distinctly from a clean assertion failure.
-    mark_infra_failure "P1 test runner produced no JUnit report (tool error or runner crash; see job log)."
-  fi
-  echo "P1 exit: $P1_EXIT"
-  echo "::endgroup::"
+# Final line (REQUIRED, machine-parsed)
+The very last line of your output MUST be exactly one of:
+    RESULT: PASS
+    RESULT: FAIL <one-line reason>
+Anything else on that final line will be treated as FAIL.
+EOF
+
+run_cursor_agent "$P1_PROMPT" "$P1_LOG"
+P1_RUN_EXIT=$?
+
+if [ "$P1_RUN_EXIT" -eq 2 ]; then
+  # CLI/key missing is infra, not a PR failure.
+  abort_infra "P1 could not run: cursor-agent or CURSOR_API_KEY is missing."
+elif [ "$P1_RUN_EXIT" -ne 0 ]; then
+  # cursor-agent crashed / network error -> infra.
+  abort_infra "P1 cursor-agent invocation failed with exit ${P1_RUN_EXIT}; see ${P1_LOG}."
 fi
 
-# ---------- P2: QA-step runner (Cursor Agent CLI, headless) --------------
-# Free-form QA Steps -> .ad flows or improvised agent-device actions.
-# Per the research doc this path is *advisory* until trust is built; the
-# P1 suite remains the hard signal.
-#
-# Tooling note: cursor-agent does not expose a Claude-Code-style
-# `--allowedTools` whitelist. The CI runner is ephemeral, so we rely on
-# the prompt to constrain the agent to `agent-device` invocations and
-# the workspace's flow library. Tightening this later (stdio MCP server
-# wrapping agent-device) is tracked in the POC README.
+if parse_agent_result "$P1_LOG"; then
+  P1_EXIT=0
+  echo "P1 verdict: PASS"
+else
+  P1_EXIT=1
+  echo "P1 verdict: FAIL (no RESULT: PASS line found)"
+  agent-device screenshot --output "$ARTIFACTS_DIR/screenshots/p1-fail-state.png" \
+    --platform android >/dev/null 2>&1 || true
+fi
+emit_junit "$P1_JUNIT" "agent-device.P1" "sign_in_and_inbox" "$P1_EXIT" "$P1_LOG"
+echo "::endgroup::"
+
+# ---------- P2: PR-driven QA steps (ADVISORY) ----------------------------
 echo "::group::P2 - QA-step runner (cursor-agent)"
-P2_JUNIT="$ARTIFACTS_DIR/junit-p2.xml"
-P2_SUMMARY="$ARTIFACTS_DIR/p2-summary.md"
-QA_STEPS_FILE="$ARTIFACTS_DIR/qa-steps.md"
 printf '%s\n' "$QA_STEPS" > "$QA_STEPS_FILE"
 
-if [ -z "${CURSOR_API_KEY:-}" ]; then
-  echo "CURSOR_API_KEY not set; skipping P2 (advisory step)." | tee "$P2_SUMMARY"
-elif ! command -v cursor-agent >/dev/null 2>&1; then
-  echo "cursor-agent CLI not installed; skipping P2 (advisory step)." | tee "$P2_SUMMARY"
+{
+  echo "You are running INSIDE a CI job, against a real Android emulator that"
+  echo "already has the Expensify app installed and opened (bundle id ${BUNDLE_ID})."
+  echo "A prior phase attempted to sign in as ${EMAIL}. Verify state via"
+  echo "\`agent-device snapshot --platform android\` before acting; if you find"
+  echo "yourself on the sign-in screen, you may sign in once with that same"
+  echo "email (the build bypasses OTP for it)."
+  echo
+  echo "Your task: execute the QA Steps below and report a per-step pass/fail"
+  echo "result with evidence."
+  echo
+  echo "Hard rules:"
+  echo "- The ONLY shell commands you may run are: \`agent-device ...\`, \`ls\`,"
+  echo "  \`cat\`, and the file writes needed to produce the two output files"
+  echo "  listed below. Do NOT run any other shell commands."
+  echo "- Always pass \`--platform android\` to agent-device. Useful subcommands:"
+  echo "  snapshot, find, tap, press, fill, scroll, wait, screenshot, logs."
+  echo "- Discover the UI on the fly via snapshot + find. Do NOT rely on or"
+  echo "  invoke any pre-written .ad macros; this run intentionally avoids them."
+  echo "- Take a screenshot after each step into ${ARTIFACTS_DIR}/screenshots/"
+  echo "  named NN-<short-name>.png."
+  echo "- Do NOT install, uninstall, or restart the app; just drive the running session."
+  echo "- Do NOT touch files outside ${ARTIFACTS_DIR}."
+  echo "- Time-box: aim for under 15 minutes total."
+  echo
+  echo "When done, write TWO files:"
+  echo
+  echo "1. ${P2_JUNIT}"
+  echo "   A minimal JUnit XML, one <testcase> per QA step, with <failure> inside"
+  echo "   any that did not pass. Wrap them in a single <testsuite name=\"qa-steps\">."
+  echo
+  echo "2. ${P2_SUMMARY}"
+  echo "   A short markdown summary: one bullet per QA step in the form"
+  echo "   \"- [x] step description\" (pass) or \"- [ ] step description - reason\""
+  echo "   (fail), followed by links to the screenshots you captured."
+  echo
+  echo "QA Steps to execute (from PR #${PR_NUMBER:-?}):"
+  echo
+  cat "$QA_STEPS_FILE"
+} > "$P2_PROMPT"
+
+run_cursor_agent "$P2_PROMPT" "$P2_LOG"
+P2_RUN_EXIT=$?
+if [ "$P2_RUN_EXIT" -eq 2 ]; then
+  P2_EXIT=0
+  echo "P2 skipped (cursor-agent or key missing) - advisory step."
+  : > "$P2_SUMMARY"
+  echo "P2 skipped (no cursor-agent / CURSOR_API_KEY)." > "$P2_SUMMARY"
 else
-  PROMPT_FILE="$ARTIFACTS_DIR/p2-prompt.md"
-  {
-    echo "You are running INSIDE a CI job, against a real Android emulator that"
-    echo "already has the Expensify app installed, opened and signed in as"
-    echo "${EMAIL}. Your task: execute the QA Steps below and report a per-step"
-    echo "pass/fail result with evidence."
-    echo
-    echo "Hard rules:"
-    echo "- The ONLY shell commands you may run are: \`agent-device ...\`, \`ls\`,"
-    echo "  \`cat\`, and the file writes needed to produce the two output files"
-    echo "  listed below. Do NOT run any other shell commands."
-    echo "- Use the agent-device CLI to drive the device. Available subcommands"
-    echo "  include: snapshot, find, press, fill, screenshot, replay, test, logs."
-    echo "  The platform is android; pass --platform android."
-    echo "- Prefer existing reusable flows in ${SKILLS_DIR}. List them with the"
-    echo "  workspace file tools. If a QA step matches an existing flow"
-    echo "  (tests/ or macros/), replay it via:"
-    echo "    agent-device replay <flow.ad> --platform android -e KEY=VAL."
-    echo "- If no flow matches, improvise: snapshot -> find/press/fill -> verify."
-    echo "  Take a screenshot after each step into ${ARTIFACTS_DIR}/screenshots/"
-    echo "  named NN-<short-name>.png."
-    echo "- Do NOT attempt to sign in, install, or open the app - that's already done."
-    echo "- Do NOT touch files outside ${ARTIFACTS_DIR}."
-    echo "- Time-box: aim for under 15 minutes total."
-    echo
-    echo "When done, write TWO files:"
-    echo
-    echo "1. ${P2_JUNIT}"
-    echo "   A minimal JUnit XML, one <testcase> per QA step, with <failure> inside"
-    echo "   any that did not pass. Wrap them in a single <testsuite name=\"qa-steps\">."
-    echo
-    echo "2. ${P2_SUMMARY}"
-    echo "   A short markdown summary: one bullet per QA step in the form"
-    echo "   \"- [x] step description\" (pass) or \"- [ ] step description - reason\""
-    echo "   (fail), followed by links to the screenshots you captured."
-    echo
-    echo "QA Steps to execute (from PR #${PR_NUMBER:-?}):"
-    echo
-    cat "$QA_STEPS_FILE"
-  } > "$PROMPT_FILE"
-
-  set +e
-  # --force/--yolo and --trust are required for non-interactive CI runs
-  # so the agent does not stall on approval prompts.
-  cursor-agent -p \
-    --model composer-2.5 \
-    --force \
-    --trust \
-    --output-format text \
-    < "$PROMPT_FILE" \
-    > "$ARTIFACTS_DIR/p2-agent.log" 2>&1
-  P2_EXIT=$?
-  set -e
-
+  P2_EXIT=$P2_RUN_EXIT
   if [ ! -s "$P2_SUMMARY" ]; then
     echo "P2 agent produced no summary (advisory)." > "$P2_SUMMARY"
   fi
@@ -296,7 +391,7 @@ else
 fi
 echo "::endgroup::"
 
-# ---------- Merge JUnits + write summary ---------------------------------
+# ---------- Reporting ----------------------------------------------------
 echo "::group::Reporting"
 # Promote the P1 JUnit as the primary report (the hard signal).
 if [ -s "$P1_JUNIT" ]; then

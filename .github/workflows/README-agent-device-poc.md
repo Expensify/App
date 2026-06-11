@@ -14,7 +14,7 @@ free `ubuntu-latest` runners with no external device infra.
 | --- | --- |
 | [`agentDeviceSanity.yml`](agentDeviceSanity.yml) | Dispatcher. Reacts to `/agent-device` PR comments, the `agent-device` label, or manual dispatch. Gates on `isAuthorizedContributor`, parses QA Steps out of the PR body, hands off to the reusable run workflow. |
 | [`agentDeviceRun.yml`](agentDeviceRun.yml) | Reusable Android device job. Boots an emulator via `reactivecircus/android-emulator-runner`, downloads the POC APK, runs the QA script, uploads evidence, publishes JUnit, posts a PR comment. |
-| [`../../scripts/ci/agent-device-qa.sh`](../../scripts/ci/agent-device-qa.sh) | Runs inside the booted emulator. Install + open + randomized sign-in, then P1 fixed sanity (`agent-device test`) + P2 QA-step runner (Cursor Agent CLI, headless). |
+| [`../../scripts/ci/agent-device-qa.sh`](../../scripts/ci/agent-device-qa.sh) | Runs inside the booted emulator. Install + open, then two cursor-agent invocations: **P1** (fixed sanity prompt, hard signal) and **P2** (PR-QA-step prompt, advisory). No `.ad` macros are invoked from CI — the agent discovers the UI on the fly. |
 
 ## Triggers
 
@@ -36,30 +36,28 @@ starts.
 Inside the booted Android emulator:
 
 1. **Install + open** the POC APK.
-2. **Sign in** with a one-shot randomized email
-   (`<name>_<surname>+<rand>@gmail.com`) via the existing
-   [`sign-in.ad`](../../.claude/skills/agent-device/flows/macros/sign-in.ad)
-   macro. The randomized address per-run avoids account flagging and
-   removes the need for OTP wiring in the POC.
-3. **P1 — hard signal.** Run a fixed sanity suite via `agent-device
-   test`: sign-in + [`open-search-router.ad`](../../.claude/skills/agent-device/flows/tests/open-search-router.ad).
-   Produces JUnit (`out/junit.xml`) that drives the GitHub check.
-4. **P2 — advisory.** Hand the PR's parsed QA Steps to the
-   [Cursor Agent CLI](https://cursor.com/docs/cli/headless) running in
-   headless print mode (`cursor-agent -p --force --trust --model
-   composer-2.5`). The agent maps each step to a known `.ad` flow under
-   `.claude/skills/agent-device/flows/` or improvises agent-device
-   actions (snapshot → find/press/fill → verify), capturing per-step
-   screenshots and writing `out/junit-p2.xml` + `out/p2-summary.md`.
+2. **Start screen recording** (`out/recording.mp4`) covering everything below.
+3. **P1 — hard signal.** A single [Cursor Agent CLI](https://cursor.com/docs/cli/headless)
+   invocation with a **fixed natural-language prompt**: sign in with a
+   one-shot randomized email (`<name>_<surname>+<rand>@gmail.com`,
+   bypasses OTP) and verify that the signed-in home (Inbox) renders.
+   The agent rediscovers the UI on every run via `agent-device
+   snapshot` + `tap`/`fill` — **no `.ad` macros are invoked**, so there
+   are no hand-maintained selectors to rot. The prompt requires the
+   model to end its output with `RESULT: PASS` or `RESULT: FAIL <reason>`;
+   the script greps that final line and emits `out/junit-p1.xml`
+   (promoted to `out/junit.xml`) accordingly. **P1 FAIL → CI red.**
+4. **P2 — advisory.** A second cursor-agent invocation, this time with
+   a **dynamic prompt** built from the PR's parsed QA Steps. Same tool
+   constraints (`agent-device` only, on-the-fly discovery), produces
+   `out/junit-p2.xml` and a markdown summary at `out/p2-summary.md`.
+   P2 outcome is reported but does not affect the CI status.
 
 Both produce artifacts under `out/` (uploaded as
 `agent-device-evidence-pr-<n>`) and feed a per-step markdown summary
-posted back to the PR as a comment.
-
-A full **screen recording** (`out/recording.mp4`) covers everything
-from sign-in through P1 and P2 — captured via `agent-device record
-start/stop` and finalized in a trap so partial videos are still saved
-on early aborts (e.g. infra failures).
+posted back to the PR as a comment. The screen recording is finalized
+in a `trap stop_recording EXIT` so partial videos are still saved on
+early aborts (e.g. infra failures or P1 crashes).
 
 ## Free-runner constraints baked in
 
@@ -83,18 +81,20 @@ hardware repeatable:
 ## Infra failure classification
 
 `agent-device-qa.sh` distinguishes **infra failures** (no emulator
-visible to adb, boot timeout, install/open failure) from **assertion
-failures** (a flow's `@post` selector didn't resolve). Infra failures
-exit `0` at the script level and surface as `Run classification:
-infra-failure` in the PR comment so the PR is never flagged red for
-runner issues.
+visible to adb, boot timeout, install/open failure, missing
+`cursor-agent` / `CURSOR_API_KEY`, agent CLI crash) from **assertion
+failures** (the agent ran cleanly but emitted `RESULT: FAIL`, or no
+RESULT line at all). Infra failures exit `0` at the script level and
+surface as `Run classification: infra-failure` in the PR comment so the
+PR is never flagged red for runner issues. P1 assertion failures exit
+non-zero → CI red.
 
 ## Secrets
 
 | Secret | Required | Purpose |
 | --- | --- | --- |
 | `POC_APK_URL` | **Yes** | URL the runner curls to download the Android APK under test. Lets us rotate the artifact without touching code. For this POC, use the static S3 URL provided in the project handoff. Post-POC this is replaced by per-PR artifact resolution. |
-| `CURSOR_API_KEY` | Yes for P2 | Drives the Cursor Agent QA-step runner. Without it, P2 is skipped with a note in the PR comment and only P1 produces a signal. Get one at [cursor.com/dashboard/integrations](https://cursor.com/dashboard/integrations) (personal) or **Team Settings → Service accounts** (recommended for shared CI). |
+| `CURSOR_API_KEY` | **Yes** | Drives both phases of the QA script (P1 + P2). Without it, the run aborts as `infra-failure` because there is no other way to drive the device. Get one at [cursor.com/dashboard/integrations](https://cursor.com/dashboard/integrations) (personal) or **Team Settings → Service accounts** (recommended for shared CI). |
 
 Add at `Settings → Secrets and variables → Actions → New repository secret`.
 
@@ -116,24 +116,30 @@ before any public-repo rollout.
   `.app` build target or a cloud real-device lease using the existing
   Adhoc IPA (Option B in the research doc).
 - **Auth hardening.** Randomized-email-only sign-in works because the
-  current `sign-in.ad` macro does not require OTP. Once the magic-code
-  step is needed (or to remove the "throwaway-email" footgun), wire a
-  mailbox/secret-backed OTP source into the sign-in flow.
-- **Tighten the QA-step runner's tool surface.** `cursor-agent` does
-  not expose a Claude-Code-style `--allowedTools` whitelist. The POC
-  relies on the prompt to constrain the agent to `agent-device`
-  invocations. To make that a hard guarantee, wrap `agent-device` in a
-  stdio MCP server and pass only that MCP to the agent.
+  build bypasses OTP for the gmail.com domain in this POC. Once the
+  magic-code step is needed (or to remove the "throwaway-email"
+  footgun), wire a mailbox/secret-backed OTP source into the P1 prompt
+  so the agent can fetch and submit it.
+- **Tighten the agent's tool surface.** `cursor-agent` does not expose
+  a Claude-Code-style `--allowedTools` whitelist. Both P1 and P2 rely
+  on the prompt's hard-rules section to constrain the agent to
+  `agent-device` invocations. To make that a hard guarantee, wrap
+  `agent-device` in a stdio MCP server and pass only that MCP to the
+  agent.
+- **Determinism guardrails.** Both phases use cursor-agent (LLM-driven)
+  so each run is non-deterministic. If P1 flakes appear in practice,
+  add a re-run-on-FAIL policy (retry once if the FAIL reason matches a
+  known-flaky pattern) and/or compare against a cached "good"
+  snapshot.
 - **Evidence privacy.** Screenshots and video are uploaded as a
   workflow artifact (7-day retention). On a public repo, also consider
   posting evidence privately and linking, plus token/PII redaction in
   captured logs.
-- **Promotion to required check.** Once matched-flow assertions are
-  trusted from real flake data, promote P1 from advisory to a required
-  status. P2 stays advisory until QA-step → action mapping accuracy is
-  measured.
-- **Flow rot.** Add a scheduled run against `main` to surface
-  selector/flow drift before it lands on a PR.
+- **Promotion to required check.** Once P1 flake rate is measured from
+  real runs, promote it from advisory to a required status. P2 stays
+  advisory until QA-step accuracy is measured.
+- **Drift detection.** Add a scheduled run against `main` to surface
+  app-side regressions in the P1 sanity flow before they land on a PR.
 
 ## Manual smoke test
 
