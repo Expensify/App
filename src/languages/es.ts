@@ -2006,6 +2006,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidateWithDelay: 'Invalidar con retraso',
             leftHandNavCache: 'Caché del menú de navegación izquierdo',
             clearleftHandNavCache: 'borrar',
+            xstateInspector: 'Inspector XState',
+            openXstateInspector: 'Abrir',
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
             sentryDebug: 'Depuración de Sentry',

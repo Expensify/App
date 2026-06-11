@@ -2109,6 +2109,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidateWithDelay: 'Ongeldig maken met vertraging',
             leftHandNavCache: 'Cache linkernavigatie',
             clearleftHandNavCache: 'Wissen',
+            xstateInspector: 'XState-inspector',
+            openXstateInspector: 'Openen',
             softKillTheApp: 'App zacht afsluiten',
             kill: 'Doden',
             sentryDebug: 'Sentry-debug',

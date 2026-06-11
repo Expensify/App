@@ -2199,6 +2199,8 @@ const translations = {
             invalidateWithDelay: 'Invalidate with delay',
             leftHandNavCache: 'Left Hand Nav cache',
             clearleftHandNavCache: 'Clear',
+            xstateInspector: 'XState inspector',
+            openXstateInspector: 'Open',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
             sentryDebug: 'Sentry debug',

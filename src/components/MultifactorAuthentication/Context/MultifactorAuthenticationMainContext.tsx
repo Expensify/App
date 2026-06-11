@@ -1,4 +1,3 @@
-import {useMachine} from '@xstate/react';
 import React, {createContext, useContext, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
@@ -13,6 +12,7 @@ import type {CredentialsState} from '@components/MultifactorAuthentication/obser
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
 import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInspectedMachine from '@hooks/useInspectedMachine';
 import useNetwork from '@hooks/useNetwork';
 import getPlatform from '@libs/getPlatform';
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
@@ -63,7 +63,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const platform = getPlatform();
     const biometrics = useBiometrics();
 
-    const [snapshot, send] = useMachine(mfaMachine);
+    const [snapshot, send] = useInspectedMachine(mfaMachine);
     const state = snapshotToState(snapshot);
 
     useEffect(() => {

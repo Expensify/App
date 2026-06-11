@@ -2122,6 +2122,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidateWithDelay: 'Invalider avec délai',
             leftHandNavCache: 'Cache de la navigation de gauche',
             clearleftHandNavCache: 'Effacer',
+            xstateInspector: 'Inspecteur XState',
+            openXstateInspector: 'Ouvrir',
             softKillTheApp: 'Arrêter l’application en douceur',
             kill: 'Tuer',
             sentryDebug: 'Débogage Sentry',

@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import xstateInspector from '@libs/XStateInspector';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
@@ -160,6 +161,16 @@ function TestToolMenu() {
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
+            {/* Opens the Stately inspector window visualizing every XState machine wired to it. Available on web in dev builds only. */}
+            {!!xstateInspector.start && (
+                <TestToolRow title={translate('initialSettingsPage.troubleshoot.xstateInspector')}>
+                    <Button
+                        small
+                        text={translate('initialSettingsPage.troubleshoot.openXstateInspector')}
+                        onPress={xstateInspector.start}
+                    />
+                </TestToolRow>
+            )}
             <SoftKillTestToolRow />
             <TestCrash />
         </>
