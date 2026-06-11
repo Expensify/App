@@ -19,7 +19,6 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
@@ -511,34 +510,33 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
-                        if (goBackRoute) {
-                            navigateOnDeleteExpense(goBackRoute);
-                        }
                         // The wide RHP close animation was changed, and because of that the expense was deleted right after
                         // the animation finished, which caused flickering in the expenses list. We want the user to see
                         // the expense in the list for a little bit longer, so we wait for the animation to finish and then
                         // add an additional delay before removing it.
                         // See https://github.com/Expensify/App/issues/92036
-                        TransitionTracker.runAfterTransitions({
-                            callback: () => {
-                                setTimeout(() => {
-                                    const deleteResult = deleteTransactions(
-                                        [transaction.transactionID],
-                                        duplicateTransactions,
-                                        duplicateTransactionViolations,
-                                        isReportInSearch ? currentSearchHash : undefined,
-                                        false,
-                                    );
+                        const afterTransition = () => {
+                            setTimeout(() => {
+                                const deleteResult = deleteTransactions(
+                                    [transaction.transactionID],
+                                    duplicateTransactions,
+                                    duplicateTransactionViolations,
+                                    isReportInSearch ? currentSearchHash : undefined,
+                                    false,
+                                );
 
-                                    if (deleteResult.action === 'redirected') {
-                                        return;
-                                    }
+                                if (deleteResult.action === 'redirected') {
+                                    return;
+                                }
 
-                                    removeTransaction(transaction.transactionID);
-                                }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
-                            },
-                            waitForUpcomingTransition: true,
-                        });
+                                removeTransaction(transaction.transactionID);
+                            }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
+                        };
+                        if (goBackRoute) {
+                            navigateOnDeleteExpense(goBackRoute, afterTransition);
+                        } else {
+                            afterTransition();
+                        }
                     }
                     return;
                 }

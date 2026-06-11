@@ -526,7 +526,6 @@
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
 "../../src/hooks/useDynamicBackPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useExpenseActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	3
-"../../src/hooks/useExpenseActions.ts"	"no-restricted-imports"	1
 "../../src/hooks/useExportActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useFilesValidation.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
