@@ -1,7 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
-import {FEATURE_ROWS} from '@libs/CopyPolicySettingsUtils';
+import {FEATURE_ROWS, isSourceProvisionedForTravel} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -43,6 +44,11 @@ function CopyPolicySettingsConfirmPage() {
     const hasLoadedPolicies = policies !== undefined;
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy) => policy !== undefined);
+
+    // Copying travel from a provisioned source re-provisions each target with its own Spotnana
+    // entity, which requires accepting Expensify Travel terms. Capture that consent here.
+    const requiresTravelTermsConsent = parts.includes('travel') && isSourceProvisionedForTravel(sourcePolicy);
+    const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
 
     useEffect(() => {
         if (!sourcePolicyID || !hasLoadedCopyPolicySettings || !hasLoadedPolicies || parts.length || targetPolicyIDs.length) {
@@ -126,12 +132,26 @@ function CopyPolicySettingsConfirmPage() {
                     style={[styles.mtAuto]}
                     addBottomSafeAreaPadding
                 >
+                    {requiresTravelTermsConsent && (
+                        <>
+                            <View style={[styles.renderHTML, styles.mb3]}>
+                                <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
+                            </View>
+                            <CheckboxWithLabel
+                                style={[styles.mb3]}
+                                accessibilityLabel={translate('travel.termsAndConditions.label')}
+                                isChecked={hasAcceptedTravelTerms}
+                                onInputChange={() => setHasAcceptedTravelTerms((prev) => !prev)}
+                                label={translate('travel.termsAndConditions.label')}
+                            />
+                        </>
+                    )}
                     <Button
                         success
                         large
                         text={translate('workspace.copyPolicySettings.title')}
                         onPress={handleCopyPolicySettings}
-                        isDisabled={parts.length === 0 || targetPolicyIDs.length === 0}
+                        isDisabled={parts.length === 0 || targetPolicyIDs.length === 0 || (requiresTravelTermsConsent && !hasAcceptedTravelTerms)}
                     />
                 </FixedFooter>
             </ScreenWrapper>

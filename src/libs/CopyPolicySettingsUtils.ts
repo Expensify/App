@@ -244,6 +244,16 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
     return translate('common.enabled');
 }
 
+/**
+ * Whether the source workspace already has a Spotnana entity. Copying travel from a provisioned
+ * source re-provisions each target (the backend creates a fresh entity), which requires accepting
+ * Expensify Travel terms - so the confirm screen must capture consent in this case. Mirrors the
+ * provisioning check in BookTravelButton.
+ */
+function isSourceProvisionedForTravel(policy: Policy | undefined): boolean {
+    return !!policy?.travelSettings?.spotnanaCompanyID || !!policy?.travelSettings?.associatedTravelDomainAccountID;
+}
+
 export {
     getConnectionCompanyID,
     getAccountingConnectionIdentity,
@@ -253,6 +263,7 @@ export {
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
     getTimeTrackingCopySettingsDescription,
+    isSourceProvisionedForTravel,
     FEATURE_ROWS,
 };
 export type {CopyPolicySettingsSourceFeatureContext};
