@@ -513,6 +513,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         if (goBackRoute) {
                             navigateOnDeleteExpense(goBackRoute);
                         }
+                        // The wide RHP close animation was changed, and because of that the expense was deleted right after
+                        // the animation finished, which caused flickering in the expenses list. We want the user to see
+                        // the expense in the list for a little bit longer, so we wait for the animation to finish and then
+                        // add an additional delay before removing it.
+                        // See https://github.com/Expensify/App/issues/92036
                         TransitionTracker.runAfterTransitions({
                             callback: () => {
                                 setTimeout(() => {
@@ -529,7 +534,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     }
 
                                     removeTransaction(transaction.transactionID);
-                                }, 300);
+                                }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                             },
                             waitForUpcomingTransition: true,
                         });
@@ -551,6 +556,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const deleteNavigateBackUrl = backToRoute ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
 
+                // The wide RHP close animation was changed, and because of that the report was deleted right after
+                // the animation finished, which caused flickering in the reports list. We want the user to see
+                // the report in the list for a little bit longer, so we wait for the animation to finish and then
+                // add an additional delay before removing it.
+                // See https://github.com/Expensify/App/issues/92036
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.goBack(backToRoute, {
                         afterTransition: () => {
@@ -565,7 +575,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     bankAccountList,
                                     hash: currentSearchHash,
                                 });
-                            }, 300);
+                            }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         },
                     });
                 });

@@ -481,7 +481,12 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         };
                     }
                     if (isInNarrowPaneModal) {
-                        Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: () => setTimeout(() => afterDelete?.(), 300)});
+                        // The super wide RHP close animation was changed, and because of that the report was deleted right after
+                        // the animation finished, which caused flickering in the reports list. We want the user to see
+                        // the expense in the list for a little bit longer, so we wait for the animation to finish and then
+                        // add an additional delay before removing it.
+                        // See https://github.com/Expensify/App/issues/92036
+                        Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: () => setTimeout(() => afterDelete?.(), CONST.EXPENSE_REPORT_DELETE_DELAY_MS)});
                         return;
                     }
 
