@@ -96,7 +96,9 @@ function handleNavigationGuards(
     const guardResult = evaluateGuards(state, action, guardContext);
 
     if (guardResult.type === 'BLOCK') {
-        syncBrowserHistory(state);
+        if (!guardResult.shouldSkipBrowserHistorySync) {
+            syncBrowserHistory(state);
+        }
         return state;
     }
 

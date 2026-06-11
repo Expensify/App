@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -11,6 +11,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -56,6 +57,7 @@ import {
     isExpenseUnreported,
 } from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
+import type {MoneyRequestAmountFormHandle} from '@pages/iou/MoneyRequestAmountForm';
 import {
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestAmount,
@@ -109,6 +111,7 @@ function IOURequestStepAmount({
     const delegateAccountID = useDelegateAccountID();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
+    const amountFormRef = useRef<MoneyRequestAmountFormHandle | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
@@ -155,6 +158,22 @@ function IOURequestStepAmount({
     const allowNegative = shouldEnableNegative(report, policy, iouType, transaction?.participants);
     const disableOppositeConversion = isCreateAction || (isSubmitType && isSubmitAction);
     const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, undefined, allowNegative, disableOppositeConversion) ?? {amount: 0};
+
+    const isFocused = useIsFocused();
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            if (!isFocused) {
+                return false;
+            }
+            const typedAmount = amountFormRef.current?.getNumber() ?? '';
+            const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
+            // The form displays and edits the absolute amount; the sign is toggled separately
+            return typedAmountInBackendUnits !== Math.abs(transactionAmount);
+        },
+        onCancel: () => {
+            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+        },
+    });
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
@@ -563,6 +582,7 @@ function IOURequestStepAmount({
                 isEditing={!!backTo || isEditing}
                 currency={selectedCurrency}
                 amount={transactionAmount}
+                amountFormRef={amountFormRef}
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
                 policyID={policy?.id}

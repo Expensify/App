@@ -1,6 +1,7 @@
 import type {NavigationAction} from '@react-navigation/native';
-import {usePreventRemove} from '@react-navigation/native';
-import {useCallback, useRef, useState} from 'react';
+import {useFocusEffect, usePreventRemove} from '@react-navigation/native';
+import {useRef} from 'react';
+import {BackHandler} from 'react-native';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -8,58 +9,81 @@ import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm, shouldInterceptHardwareBack = true}: UseDiscardChangesConfirmationOptions) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const [shouldAllowNavigation, setShouldAllowNavigation] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
+    const isDiscardModalOpen = useRef(false);
+    const isReplayingBlockedNavigation = useRef(false);
 
-    const shouldPrevent = !shouldAllowNavigation;
-
-    usePreventRemove(
-        shouldPrevent,
-        useCallback(
-            ({data}: {data: {action: NavigationAction}}) => {
-                if (!getHasUnsavedChanges()) {
-                    setShouldAllowNavigation(true);
-                    navigationRef.current?.dispatch(data.action);
-                    return;
+    const showDiscardModal = (blockedAction?: NavigationAction) => {
+        blockedNavigationAction.current = blockedAction;
+        isDiscardModalOpen.current = true;
+        onVisibilityChange?.(true);
+        showConfirmModal({
+            title: translate('discardChangesConfirmation.title'),
+            prompt: translate('discardChangesConfirmation.body'),
+            danger: true,
+            confirmText: translate('discardChangesConfirmation.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            isDiscardModalOpen.current = false;
+            onVisibilityChange?.(false);
+            if (result.action !== ModalActions.CONFIRM) {
+                blockedNavigationAction.current = undefined;
+                onCancel?.();
+                return;
+            }
+            const confirmNavigation = () => {
+                isReplayingBlockedNavigation.current = true;
+                if (blockedNavigationAction.current) {
+                    navigationRef.current?.dispatch(blockedNavigationAction.current);
+                    blockedNavigationAction.current = undefined;
+                } else {
+                    navigationRef.current?.goBack();
                 }
-                blockedNavigationAction.current = data.action;
-                onVisibilityChange?.(true);
-                showConfirmModal({
-                    title: translate('discardChangesConfirmation.title'),
-                    prompt: translate('discardChangesConfirmation.body'),
-                    danger: true,
-                    confirmText: translate('discardChangesConfirmation.confirmText'),
-                    cancelText: translate('common.cancel'),
-                }).then((result) => {
-                    onVisibilityChange?.(false);
-                    if (result.action !== ModalActions.CONFIRM) {
-                        onCancel?.();
-                        return;
-                    }
-                    const confirmNavigation = () => {
-                        setShouldAllowNavigation(true);
-                        if (blockedNavigationAction.current) {
-                            navigationRef.current?.dispatch(blockedNavigationAction.current);
-                            blockedNavigationAction.current = undefined;
-                        } else {
-                            navigationRef.current?.goBack();
-                        }
-                    };
-                    Promise.resolve()
-                        .then(() => onConfirm?.())
-                        .then(confirmNavigation)
-                        .catch((error: unknown) => {
-                            Log.warn('[useDiscardChangesConfirmation] Failed to run onConfirm callback', {error});
-                            blockedNavigationAction.current = undefined;
-                        });
+                isReplayingBlockedNavigation.current = false;
+            };
+            Promise.resolve()
+                .then(() => onConfirm?.())
+                .then(confirmNavigation)
+                .catch((error: unknown) => {
+                    Log.warn('[useDiscardChangesConfirmation] Failed to run onConfirm callback', {error});
+                    blockedNavigationAction.current = undefined;
                 });
-            },
-            [getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm, showConfirmModal, translate],
-        ),
-    );
+        });
+    };
+
+    usePreventRemove(true, ({data}: {data: {action: NavigationAction}}) => {
+        // The action delivered here carries react-navigation's visited-routes marker, so re-dispatching it skips this screen's prevention
+        if (isReplayingBlockedNavigation.current || !getHasUnsavedChanges()) {
+            navigationRef.current?.dispatch(data.action);
+            return;
+        }
+        if (isDiscardModalOpen.current) {
+            return;
+        }
+        showDiscardModal(data.action);
+    });
+
+    // A tab-switch hardware back is an index-only TabRouter change that never fires `beforeRemove`, so intercept it here,
+    // ahead of react-navigation's container handler (BackHandler runs listeners newest-first).
+    useFocusEffect(() => {
+        if (!shouldInterceptHardwareBack) {
+            return;
+        }
+        const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+            if (isDiscardModalOpen.current) {
+                return true;
+            }
+            if (!getHasUnsavedChanges()) {
+                return false;
+            }
+            showDiscardModal();
+            return true;
+        });
+        return () => subscription.remove();
+    });
 }
 
 export default useDiscardChangesConfirmation;

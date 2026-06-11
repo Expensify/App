@@ -2,9 +2,10 @@ import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Route} from '@src/ROUTES';
 
 /**
- * Result returned by a navigation guard after evaluation
+ * Result returned by a navigation guard after evaluation.
+ * `shouldSkipBrowserHistorySync` lets a blocking guard manage browser history itself (e.g. via `history.go(1)`) instead of the default `replaceState` sync.
  */
-type GuardResult = {type: 'ALLOW'} | {type: 'BLOCK'; reason?: string} | {type: 'REDIRECT'; route: Route};
+type GuardResult = {type: 'ALLOW'} | {type: 'BLOCK'; reason?: string; shouldSkipBrowserHistorySync?: boolean} | {type: 'REDIRECT'; route: Route};
 
 /**
  * Context provided to guards during evaluation

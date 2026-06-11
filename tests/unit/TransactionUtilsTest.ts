@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -3526,5 +3526,22 @@ describe('TransactionUtils', () => {
                 expect(TransactionUtils.getRequestType(undefined)).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
             });
         });
+    });
+});
+
+describe('doesMoneyRequestDraftHaveUserInput', () => {
+    it('returns false for an empty draft', () => {
+        expect(doesMoneyRequestDraftHaveUserInput(undefined)).toBe(false);
+        expect(doesMoneyRequestDraftHaveUserInput({} as never)).toBe(false);
+    });
+
+    it('returns false when the draft only has empty waypoint placeholders', () => {
+        const transaction = {comment: {waypoints: {waypoint0: {}, waypoint1: {}}}} as never;
+        expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(false);
+    });
+
+    it('returns true when the user entered a waypoint', () => {
+        const transaction = {comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}} as never;
+        expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
     });
 });
