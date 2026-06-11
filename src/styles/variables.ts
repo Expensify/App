@@ -109,7 +109,7 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     rhpCenteredModalWidth: 400,
-    rhpCenteredModalMaxHeight: 720,
+    rhpCenteredModalMaxHeight: 960,
     receiptPaneRHPMaxWidth: 465,
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,

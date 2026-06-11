@@ -4,7 +4,7 @@ import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 
-const CENTERED_MODAL_VERTICAL_MARGIN = 20;
+const CENTERED_MODAL_VERTICAL_MARGIN = 32;
 
 /** Geometry of the centered RHP modal box (width/height/position/radius). Shared so the container and its inner content stay aligned. */
 function useCenteredRHPModalStyle(): ViewStyle {
@@ -12,12 +12,13 @@ function useCenteredRHPModalStyle(): ViewStyle {
     const theme = useTheme();
 
     return useMemo(() => {
-        // Cap the height so the modal keeps a modal-like aspect ratio instead of stretching tall on large screens.
+        // Height tracks the viewport (minus the vertical margin on each side) but is capped so the box keeps modal-like proportions on large screens.
         const modalHeight = Math.min(windowHeight - 2 * CENTERED_MODAL_VERTICAL_MARGIN, variables.rhpCenteredModalMaxHeight);
         return {
             width: variables.rhpCenteredModalWidth,
             height: modalHeight,
-            top: (windowHeight - modalHeight) / 2,
+            // Pin to a fixed top offset rather than centering: equal margins read as centered until the cap is reached, after which the box stays anchored near the top.
+            top: CENTERED_MODAL_VERTICAL_MARGIN,
             left: (windowWidth - variables.rhpCenteredModalWidth) / 2,
             borderRadius: variables.componentBorderRadiusLarge,
             // Same drop shadow we use for centered/alert and big attachment modals.
