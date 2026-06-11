@@ -4,6 +4,7 @@ import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {FilterComponentsProps} from '..';
 import type {AmountFilterContentProps} from './AmountFilterContent';
 import type {CommonFilterContentProps} from './CommonFilterContent';
 import type {DateFilterContentProps} from './DateFilterContent';
@@ -28,6 +29,12 @@ type SearchAdvancedFiltersContentProps = Pick<SearchFilterCommonProps, 'ready'> 
     };
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
+
+function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filterKey: K, value: SearchAdvancedFiltersForm[K] | undefined): Partial<SearchAdvancedFiltersForm> {
+    const update: Partial<SearchAdvancedFiltersForm> = {};
+    update[filterKey] = value;
+    return update;
+}
 
 function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
     const {Text: TextFilter, Amount: AmountFilter, Date: DateFilter, ReportField: ReportFieldFilter, Common: CommonFilter} = components;
@@ -82,12 +89,12 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
                     [rangeModifier]: values?.[`${filterKey}${rangeModifier}`],
                 }}
                 hasFeed={!!values?.feed}
-                onChange={(values) =>
+                onChange={(newValues) =>
                     onChange({
-                        [`${filterKey}${onModifier}`]: values[onModifier],
-                        [`${filterKey}${afterModifier}`]: values[afterModifier],
-                        [`${filterKey}${beforeModifier}`]: values[beforeModifier],
-                        [`${filterKey}${rangeModifier}`]: values[rangeModifier],
+                        [`${filterKey}${onModifier}`]: newValues[onModifier],
+                        [`${filterKey}${afterModifier}`]: newValues[afterModifier],
+                        [`${filterKey}${beforeModifier}`]: newValues[beforeModifier],
+                        [`${filterKey}${rangeModifier}`]: newValues[rangeModifier],
                     })
                 }
             />
@@ -112,7 +119,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
             policyIDs={values?.policyID}
             policyIDQuery={policyIDQuery}
             ready={ready}
-            onChange={(newValue) => onChange({[filterKey]: newValue} as Partial<SearchAdvancedFiltersForm>)}
+            onChange={(newValue) => onChange(getFilterFormValue(filterKey, newValue))}
         />
     );
 }
