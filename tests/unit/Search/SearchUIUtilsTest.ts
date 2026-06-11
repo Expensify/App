@@ -5965,7 +5965,7 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.SORT_ORDER.ASC,
                 undefined,
                 {policyCategories: policyCategoriesForSort},
-            ) as TransactionListItemType[];
+            );
             const descendingResult = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
                 '',
@@ -5976,10 +5976,10 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.SORT_ORDER.DESC,
                 undefined,
                 {policyCategories: policyCategoriesForSort},
-            ) as TransactionListItemType[];
+            );
 
-            expect(ascendingResult.map((transaction) => transaction.transactionID)).toEqual(['without-gl-code', 'gl-code-1010', 'gl-code-6100', 'gl-code-6200']);
-            expect(descendingResult.map((transaction) => transaction.transactionID)).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['without-gl-code', 'gl-code-1010', 'gl-code-6100', 'gl-code-6200']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
         });
 
         it('should return getSortedReportData result when type is expense-report', () => {

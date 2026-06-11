@@ -1158,7 +1158,7 @@ function removePreInsertedFullscreenIfNeeded() {
     const originalTabRoute = getPreInsertedOriginalTabRoute();
     if (originalTabRoute) {
         clearPreInsertedOriginalTabRoute();
-        const originalTabState = originalTabRoute.state as NavigationState | undefined;
+        const originalTabState = originalTabRoute.state;
         const originalFocusedTabIndex = originalTabState?.index ?? 0;
         const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
         if (originalTabName) {

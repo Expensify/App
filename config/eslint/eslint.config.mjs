@@ -188,6 +188,26 @@ const restrictedReportNameImportPatterns = [
     },
 ];
 
+// `isPaidGroupPolicy` is BILLING/paid-only (Collect/Control). Existing usages are grandfathered via
+// eslint-seatbelt; this only flags NEW imports so they make a conscious choice: for workspace feature
+// gating (violations, report fields, workspace chat, report creation, expense-workspace usability) use
+// `isGroupPolicy` / `isReportInGroupPolicy` instead, otherwise free group plans like Submit (submit2026)
+// are wrongly excluded and access bugs return.
+const restrictedPaidGroupPolicyImportPatterns = [
+    {
+        group: ['**/PolicyUtils', '**/libs/PolicyUtils'],
+        importNames: ['isPaidGroupPolicy'],
+        message:
+            'isPaidGroupPolicy is billing/paid-only (Collect/Control). For workspace feature gating use isGroupPolicy so free group plans like Submit are not excluded. If this is genuinely a billing/paid-only check, keep it and disable this line with a reason.',
+    },
+    {
+        group: ['**/ReportUtils', '**/libs/ReportUtils'],
+        importNames: ['isPaidGroupPolicy', 'isPaidGroupPolicyExpenseReport'],
+        message:
+            'isPaidGroupPolicy / isPaidGroupPolicyExpenseReport are billing/paid-only. For feature gating use isReportInGroupPolicy / isGroupPolicyExpenseReport so Submit workspaces are not excluded. If this is genuinely billing/paid-only, keep it and disable this line with a reason.',
+    },
+];
+
 const config = defineConfig([
     expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
@@ -255,8 +275,6 @@ const config = defineConfig([
 
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
-            '@lwc/lwc/no-async-await': 'off',
-
             // TypeScript specific rules
             '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
@@ -336,7 +354,6 @@ const config = defineConfig([
             'es/no-optional-chaining': 'off',
             '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
             'arrow-body-style': 'off',
-            'no-continue': 'off',
             'no-empty': ['error', {allowEmptyCatch: true}],
 
             // Import specific rules
@@ -715,7 +732,7 @@ const config = defineConfig([
                 'error',
                 {
                     paths: restrictedImportPaths,
-                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns],
+                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
                 },
             ],
         },
