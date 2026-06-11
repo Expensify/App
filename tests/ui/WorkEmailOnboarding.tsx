@@ -235,6 +235,37 @@ function AddWorkEmailShouldValidate() {
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
+function AddWorkEmailWith2FAError() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn().mockImplementation(() => {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            message: `${workEmail} ${CONST.MERGE_ACCOUNT_2FA_ERROR}`,
+            title: '401 work account uses 2FA',
+        };
+
+        return Promise.resolve(mockedResponse);
+    });
+    AddWorkEmail(workEmail);
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+}
+
+function AddWorkEmailWithSingleSignOnError() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn().mockImplementation(() => {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            message: `${workEmail} ${CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR}`,
+            title: '401 work account uses SAML',
+            onyxData: [],
+        };
+
+        return Promise.resolve(mockedResponse);
+    });
+    AddWorkEmail(workEmail);
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+}
+
 describe('OnboardingWorkEmail Page', () => {
     beforeAll(() => {
         Onyx.init({
@@ -509,6 +540,58 @@ describe('OnboardingWorkEmail Page', () => {
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should display correct error message when an existing work email is submitted with 2FA enabled', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        AddWorkEmailWith2FAError();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail2FAError'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should display correct error message when an existing work email is submitted with SSO enabled', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        AddWorkEmailWithSingleSignOnError();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.singleSignOnError'))).toBeOnTheScreen();
         });
 
         unmount();

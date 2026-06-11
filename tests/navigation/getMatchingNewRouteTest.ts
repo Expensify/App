@@ -47,6 +47,30 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
     });
 
+    it('redirects old room members path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/members')).toBe('/r/123/details/members');
+    });
+
+    it('preserves query params when redirecting old room members path', () => {
+        expect(getMatchingNewRoute('/r/123/members?backTo=/home')).toBe('/r/123/details/members?backTo=/home');
+    });
+
+    it('redirects old room member details path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/members/456')).toBe('/r/123/details/members/room-member-details/456');
+    });
+
+    it('preserves query params when redirecting old room member details path', () => {
+        expect(getMatchingNewRoute('/r/123/members/456?backTo=/home')).toBe('/r/123/details/members/room-member-details/456?backTo=/home');
+    });
+
+    it('redirects old room invite path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/invite')).toBe('/r/123/details/room-invite');
+    });
+
+    it('preserves query params when redirecting old room invite path', () => {
+        expect(getMatchingNewRoute('/r/123/invite?backTo=/home')).toBe('/r/123/details/room-invite?backTo=/home');
+    });
+
     it('redirects old task assignee path', () => {
         expect(getMatchingNewRoute('/r/123/assignee')).toBe('/r/123/assignee');
     });
