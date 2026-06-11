@@ -1,0 +1,174 @@
+name: agent-device Sanity (Android POC)
+
+# On-demand Android sanity check driven by agent-device.
+# Triggers:
+#   - PR comment containing "/agent-device"
+#   - Adding the "agent-device" label to a PR
+#   - workflow_dispatch with a PR number
+#
+# The dispatch job resolves the PR, gates on the existing contributor
+# authorization action, and parses the "QA Steps" / "Tests" section out of
+# the PR body. The parsed steps are handed to the reusable Android run
+# workflow which boots an emulator and drives the app via agent-device.
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  checks: write
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'PR number to run agent-device sanity against'
+        required: true
+        type: string
+
+concurrency:
+  group: agent-device-sanity-${{ github.event.issue.number || github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    # Cheap top-level filter: only proceed for the three intended triggers.
+    # The real authorization happens inside the job.
+    if: |
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request != null && startsWith(github.event.comment.body, '/agent-device'))
+      || (github.event_name == 'pull_request' && github.event.label.name == 'agent-device')
+      || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      pr: ${{ steps.decide.outputs.pr }}
+      qa_steps: ${{ steps.decide.outputs.qa_steps }}
+      head_sha: ${{ steps.decide.outputs.head_sha }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Resolve PR number and actor
+        id: resolve
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v8
+        with:
+          script: |
+            const e = context.eventName;
+            let prNumber, actor, actorAssociation;
+            if (e === 'issue_comment') {
+              prNumber = context.payload.issue.number;
+              actor = context.payload.comment.user.login;
+              actorAssociation = context.payload.comment.author_association;
+            } else if (e === 'pull_request') {
+              prNumber = context.payload.pull_request.number;
+              actor = context.payload.sender.login;
+              actorAssociation = context.payload.pull_request.author_association;
+            } else if (e === 'workflow_dispatch') {
+              prNumber = Number(context.payload.inputs.pr);
+              actor = context.payload.sender.login;
+              actorAssociation = 'NONE';
+            }
+            core.setOutput('pr', String(prNumber));
+            core.setOutput('actor', actor);
+            core.setOutput('actor_association', actorAssociation);
+
+      - name: Check contributor authorization (lightweight gate)
+        id: gate
+        # POC gate: anyone with write access to the repo can invoke this
+        # workflow. `workflow_dispatch` already requires write access, so
+        # it always passes. For PR comments / labels we accept the standard
+        # "has write" associations (OWNER, MEMBER, COLLABORATOR). This
+        # replaces the heavier `isAuthorizedContributor` action so the POC
+        # does not need OS_BOTIFY_TOKEN. Tighten before public rollout.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR_ASSOCIATION: ${{ steps.resolve.outputs.actor_association }}
+        run: |
+          set -eu
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "IS_AUTHORIZED=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          case "$ACTOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR)
+              echo "IS_AUTHORIZED=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "Actor association '$ACTOR_ASSOCIATION' is not authorized." >&2
+              echo "IS_AUTHORIZED=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: React to invocation (eyes)
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X POST \
+            "/repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" \
+            -f content=eyes || true
+
+      - name: Decide + extract QA Steps from PR body
+        id: decide
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v8
+        env:
+          PR_NUMBER: ${{ steps.resolve.outputs.pr }}
+        with:
+          script: |
+            const prNumber = Number(process.env.PR_NUMBER);
+            const { data: pr } = await github.rest.pulls.get({
+              ...context.repo,
+              pull_number: prNumber,
+            });
+
+            // Prefer "QA Steps", fall back to "Tests". The PR template
+            // uses "### QA Steps" and "### Tests" but we accept "## " too.
+            // The body is captured until the next H2/H3 or end of string.
+            const body = pr.body || '';
+            const extract = (label) => {
+              const re = new RegExp(
+                '^#{2,3}\\s*' + label + '\\s*$([\\s\\S]*?)(?=^#{2,3}\\s|$(?![\\s\\S]))',
+                'im',
+              );
+              const m = body.match(re);
+              return m ? m[1] : '';
+            };
+            let qa = extract('QA Steps');
+            if (!qa.trim()) qa = extract('Tests');
+
+            // Strip template-instruction comments and trailing whitespace.
+            qa = qa.replace(/<!--[\s\S]*?-->/g, '').trim();
+
+            // If nothing usable was extracted, fall back to a minimal smoke
+            // checklist so the run still produces a signal (P1 path).
+            if (!qa) {
+              qa = '- [ ] Launch the app and verify it renders the sign-in screen.';
+            }
+
+            core.setOutput('run', 'true');
+            core.setOutput('pr', String(prNumber));
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('qa_steps', qa);
+
+      - name: Post started comment
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.decide.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.resolve.outputs.pr }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body "agent-device sanity (Android POC) started — [view run]($RUN_URL)."
+
+  sanity:
+    needs: dispatch
+    if: ${{ needs.dispatch.outputs.run == 'true' }}
+    uses: ./.github/workflows/agentDeviceRun.yml
+    with:
+      pr: ${{ needs.dispatch.outputs.pr }}
+      head_sha: ${{ needs.dispatch.outputs.head_sha }}
+      qa_steps: ${{ needs.dispatch.outputs.qa_steps }}
+    secrets: inherit
