@@ -135,31 +135,55 @@ agent-device screenshot --output "$ARTIFACTS_DIR/screenshots/00-launch.png" \
 echo "::endgroup::"
 
 # ---------- P1: fixed sanity suite ---------------------------------------
-# This is the hard JUnit signal: sign-in + a no-param signed-in flow.
-# It runs through `agent-device test` so the JUnit, retries and artifacts
-# contract is the same one a future expansion can rely on.
-echo "::group::P1 - fixed sanity suite"
+# Two-phase, matching the agent-device SKILL.md pattern:
+#   1. `agent-device replay` the sign-in macro (macros are not picked up
+#      by `agent-device test`, which only considers tests/*.ad files).
+#   2. `agent-device test` the actual signed-in test(s), producing the
+#      JUnit hard signal with retries + per-test artifacts.
+echo "::group::P1 - sign-in (replay)"
 SKILLS_DIR=".claude/skills/agent-device/flows"
 P1_JUNIT="$ARTIFACTS_DIR/junit-p1.xml"
+P1_EXIT=1
 
 set +e
-agent-device test \
+agent-device replay \
   "$SKILLS_DIR/macros/sign-in.ad" \
-  "$SKILLS_DIR/tests/open-search-router.ad" \
   --platform android \
-  --report-junit "$P1_JUNIT" \
-  --artifacts-dir "$ARTIFACTS_DIR/artifacts" \
-  --retries 1 \
-  --timeout 180000 \
   -e "EMAIL=$EMAIL"
-P1_EXIT=$?
+SIGNIN_EXIT=$?
 set -e
-
-if [ ! -s "$P1_JUNIT" ]; then
-  mark_infra_failure "P1 produced no JUnit report (likely a runner crash)."
-fi
-echo "P1 exit: $P1_EXIT"
+echo "Sign-in exit: $SIGNIN_EXIT"
 echo "::endgroup::"
+
+if [ "$SIGNIN_EXIT" -ne 0 ]; then
+  # Sign-in failure isn't infra - it's a real PR-relevant signal (the
+  # app couldn't get past sign-in). Skip the test suite and report.
+  echo "Sign-in failed; skipping P1 test suite."
+  P1_EXIT="$SIGNIN_EXIT"
+  agent-device screenshot --output "$ARTIFACTS_DIR/screenshots/01-signin-failed.png" \
+    --platform android >/dev/null 2>&1 || true
+else
+  echo "::group::P1 - fixed sanity suite (test)"
+  set +e
+  agent-device test \
+    "$SKILLS_DIR/tests/open-search-router.ad" \
+    --platform android \
+    --report-junit "$P1_JUNIT" \
+    --artifacts-dir "$ARTIFACTS_DIR/artifacts" \
+    --retries 1 \
+    --timeout 180000
+  P1_EXIT=$?
+  set -e
+
+  if [ ! -s "$P1_JUNIT" ]; then
+    # agent-device test exited without writing a JUnit. Could be a tool
+    # usage error or a real runner crash - either way it's not the PR's
+    # fault, but flag it distinctly from a clean assertion failure.
+    mark_infra_failure "P1 test runner produced no JUnit report (tool error or runner crash; see job log)."
+  fi
+  echo "P1 exit: $P1_EXIT"
+  echo "::endgroup::"
+fi
 
 # ---------- P2: QA-step runner (Cursor Agent CLI, headless) --------------
 # Free-form QA Steps -> .ad flows or improvised agent-device actions.
