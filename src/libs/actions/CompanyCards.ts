@@ -1303,6 +1303,15 @@ function getExpensifyCardStatementPDF(policyID: string, feedCountry: string | un
             },
         },
     ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.EXPENSIFY_CARD_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1321,7 +1330,7 @@ function getExpensifyCardStatementPDF(policyID: string, feedCountry: string | un
 
     // makeRequestWithSideEffects is used so callers can read statementKey from the response.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF, params, {optimisticData, failureData});
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF, params, {optimisticData, successData, failureData});
 }
 
 export {

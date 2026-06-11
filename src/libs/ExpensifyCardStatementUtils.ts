@@ -97,6 +97,13 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         if (!group || typeof group.entryID !== 'number' || getSettlementStatus(group.state) === CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
             continue;
         }
+
+        // A settlement that bills more than one workspace has no single policyID to scope the statement to, so the
+        // backend omits it. Such a settlement can't be exported by a workspace admin without leaking the other
+        // workspaces' expenses, so it isn't exportable - skip it like a failed settlement.
+        if (!group.policyID) {
+            continue;
+        }
         settlementGroups.push(group);
     }
 
@@ -124,10 +131,8 @@ function getExpensifyCardStatementSelection(
     }
 
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
-    let hasMixedWorkspaceSettlement = false;
     for (const settlementGroup of selectedSettlementGroups) {
         if (!settlementGroup.policyID) {
-            hasMixedWorkspaceSettlement = true;
             continue;
         }
 
@@ -146,13 +151,13 @@ function getExpensifyCardStatementSelection(
     }
 
     const feeds = Array.from(feedsByKey.values());
-    if (feeds.length === 0 && !hasMixedWorkspaceSettlement) {
+    if (feeds.length === 0) {
         return undefined;
     }
 
     return {
         feeds,
-        hasMultipleFeeds: feeds.length > 1 || hasMixedWorkspaceSettlement,
+        hasMultipleFeeds: feeds.length > 1,
     };
 }
 

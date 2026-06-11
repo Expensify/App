@@ -127,15 +127,32 @@ describe('ExpensifyCardStatementUtils', () => {
         });
     });
 
-    it('flags mixed-workspace settlements so export shows the one-feed-at-a-time alert', () => {
+    it('excludes a mixed-workspace settlement (no policyID) so the export is not offered', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 1);
         const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, policyID: undefined})});
 
-        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
-        expect(selection?.hasMultipleFeeds).toBe(true);
-        expect(selection?.feeds).toEqual([]);
+        // A settlement with no policyID can't be scoped to one workspace, so it is skipped entirely - no dead-end menu item.
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
         expect(getExpensifyCardStatementParams(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('exports the valid feed when a mixed-workspace settlement is also selected', () => {
+        const validGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const mixedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        const selectedTransactions: SelectedTransactions = {
+            ...makeSettlementSelection(validGroupKey, 1),
+            ...makeSettlementSelection(mixedGroupKey, 1),
+        };
+        const searchData = makeSearchData({
+            [validGroupKey]: makeSettlementGroup({entryID: 123, policyID: 'policy1'}),
+            [mixedGroupKey]: makeSettlementGroup({entryID: 456, policyID: undefined}),
+        });
+
+        // The mixed-workspace settlement is dropped, leaving a single valid feed that can be exported.
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
     });
 
     it('flags multiple feeds when settlements span workspaces or programs', () => {

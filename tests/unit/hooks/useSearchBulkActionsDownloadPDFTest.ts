@@ -535,7 +535,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(result.current.isExpensifyCardStatementMultiFeedAlertVisible).toBe(true);
     });
 
-    it('should open the multi-feed alert for a mixed-workspace settlement', async () => {
+    it('should not offer Export as PDF for a mixed-workspace settlement', async () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         mockSelectedTransactions = {
             firstTxn: makeSelectedTransaction({groupKey, reportID: undefined}),
@@ -555,17 +555,12 @@ describe('useSearchBulkActions - Download as PDF', () => {
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
+        // A settlement with no policyID can't be scoped to a workspace, so the export option is never shown for it.
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(result.current.headerButtonsOptions).toBeDefined();
         });
-
-        const exportAsPDFOption = getExportAsPDFOption(result.current.headerButtonsOptions);
-        await act(async () => {
-            await exportAsPDFOption?.onSelected?.();
-        });
-
+        expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeUndefined();
         expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
-        expect(result.current.isExpensifyCardStatementMultiFeedAlertVisible).toBe(true);
     });
 
     it('should use the latest settlement selection when Export as PDF is triggered again', async () => {
