@@ -3091,6 +3091,7 @@ const CONST = {
             MANAGER: 'manager',
             CUSTOM: 'custom',
         },
+        COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
             SYNCING: 'SYNCING',
             DONE: 'DONE',
