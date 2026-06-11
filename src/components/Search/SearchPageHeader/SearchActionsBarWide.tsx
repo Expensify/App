@@ -24,6 +24,7 @@ function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: 
     const styles = useThemeStyles();
     const {selected} = useSelectionCounts();
     const hasSelectedItems = selected > 0;
+    console.log(">>>>>>>>>>>>>>>>>>>>", hasSelectedItems)
 
     return (
         <View style={[styles.searchActionsBarContainer, styles.gap2, styles.mt3]}>

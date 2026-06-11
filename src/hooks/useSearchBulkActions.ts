@@ -643,8 +643,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 transactionIDList: selectedTransactionsKeys,
             });
             setActiveExportID(exportID);
-            selectAllMatchingItems(false);
-            clearSelectedTransactions();
             return;
         }
 
