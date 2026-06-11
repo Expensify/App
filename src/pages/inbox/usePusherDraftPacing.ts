@@ -857,15 +857,25 @@ function usePusherDraftPacing(reportID: string) {
         const draftEventSubscriptions = [
             {
                 eventType: Pusher.TYPE.CONCIERGE_DRAFT_EVENTS,
-                listener: Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, (eventData: ConciergeDraftEventsEvent) => {
-                    handlePusherDraftEvents(runtime, eventData);
-                }, handleResubscribe),
+                listener: Pusher.subscribe(
+                    channelName,
+                    Pusher.TYPE.CONCIERGE_DRAFT_EVENTS,
+                    (eventData: ConciergeDraftEventsEvent) => {
+                        handlePusherDraftEvents(runtime, eventData);
+                    },
+                    handleResubscribe,
+                ),
             },
             ...PUSHER_DRAFT_EVENT_TYPES.map((eventType) => ({
                 eventType,
-                listener: Pusher.subscribe(channelName, eventType, (eventData: ConciergeDraftEvent) => {
-                    handlePusherDraftEvent(runtime, eventData);
-                }, handleResubscribe),
+                listener: Pusher.subscribe(
+                    channelName,
+                    eventType,
+                    (eventData: ConciergeDraftEvent) => {
+                        handlePusherDraftEvent(runtime, eventData);
+                    },
+                    handleResubscribe,
+                ),
             })),
         ];
 
