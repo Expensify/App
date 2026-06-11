@@ -27,19 +27,32 @@ describe('HybridApp actions', () => {
     const {closeReactNativeApp} = require('@libs/actions/HybridApp') as HybridAppActionsModule;
     let closeNativeAppSpy: jest.SpiedFunction<HybridAppModuleWithClose['closeReactNativeApp']>;
 
+    // closeReactNativeApp defers native teardown via requestAnimationFrame and requestIdleCallback.
+    // The idle callback polyfill schedules work on a 1ms timeout, so flush both before asserting.
+    const waitForCloseTeardown = (): Promise<void> =>
+        new Promise((resolve) => {
+            setTimeout(resolve, 10);
+        });
+
     const closeAndWait = async (params: Parameters<HybridAppActionsModule['closeReactNativeApp']>[0]) => {
         closeReactNativeApp(params);
         await waitForBatchedUpdatesWithAct();
+        await waitForCloseTeardown();
     };
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+            callback(0);
+            return 0;
+        });
         closeNativeAppSpy = jest.spyOn(HybridAppModule, 'closeReactNativeApp').mockImplementation(() => {});
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await waitForCloseTeardown();
         jest.restoreAllMocks();
     });
 
@@ -50,6 +63,7 @@ describe('HybridApp actions', () => {
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await waitForCloseTeardown();
 
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
         expect(Navigation.clearPreloadedRoutes).not.toHaveBeenCalled();
@@ -62,6 +76,7 @@ describe('HybridApp actions', () => {
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: true});
+        await waitForCloseTeardown();
 
         expect(setIsGPSInProgressModalOpen).not.toHaveBeenCalled();
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
@@ -72,6 +87,7 @@ describe('HybridApp actions', () => {
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: true});
+        await waitForCloseTeardown();
 
         expect(setIsGPSInProgressModalOpen).toHaveBeenCalledWith(true);
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
@@ -82,6 +98,7 @@ describe('HybridApp actions', () => {
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: true});
+        await waitForCloseTeardown();
 
         expect(setIsGPSInProgressModalOpen).toHaveBeenCalledWith(true);
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
@@ -114,6 +131,7 @@ describe('HybridApp actions', () => {
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
+        await waitForCloseTeardown();
 
         expect(Navigation.clearPreloadedRoutes).not.toHaveBeenCalled();
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
@@ -126,6 +144,7 @@ describe('HybridApp actions', () => {
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
+        await waitForCloseTeardown();
 
         expect(Navigation.clearPreloadedRoutes).not.toHaveBeenCalled();
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
