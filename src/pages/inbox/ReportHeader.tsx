@@ -48,7 +48,7 @@ function ReportHeader() {
 
     const onBackButtonPress = (prioritizeBackTo = false, options?: {afterTransition?: () => void}) => {
         if (isInSidePanel) {
-            closeSidePanel();
+            closeSidePanel({afterTransition: options?.afterTransition});
             return;
         }
         if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
