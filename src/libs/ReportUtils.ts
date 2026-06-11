@@ -5961,20 +5961,20 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number) {
     Navigation.goBack();
 }
 
-function navigateOnDeleteExpense(backToRoute: Route) {
+function navigateOnDeleteExpense(backToRoute: Route, afterTransition?: () => void) {
     if (isSearchTopmostFullScreenRoute()) {
-        Navigation.dismissModal();
+        Navigation.dismissModal({afterTransition});
         return;
     }
 
     const rootState = navigationRef.getRootState();
     const focusedRoute = findFocusedRoute(rootState);
     if (focusedRoute?.params && 'backTo' in focusedRoute.params) {
-        Navigation.goBack(focusedRoute.params.backTo as Route);
+        Navigation.goBack(focusedRoute.params.backTo as Route, {afterTransition});
         return;
     }
 
-    Navigation.goBack(backToRoute);
+    Navigation.goBack(backToRoute, {afterTransition});
 }
 
 /**
