@@ -9,7 +9,7 @@ import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm, shouldInterceptHardwareBack = true}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
@@ -69,9 +69,6 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     // A tab-switch hardware back is an index-only TabRouter change that never fires `beforeRemove`, so intercept it here,
     // ahead of react-navigation's container handler (BackHandler runs listeners newest-first).
     useFocusEffect(() => {
-        if (!shouldInterceptHardwareBack) {
-            return;
-        }
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
             if (isDiscardModalOpen.current) {
                 return true;

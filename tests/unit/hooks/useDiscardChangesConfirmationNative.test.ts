@@ -167,12 +167,6 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
         });
 
-        it('does not register a hardware back handler when shouldInterceptHardwareBack is false', () => {
-            renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, shouldInterceptHardwareBack: false}));
-
-            expect(hardwareBackCallback).toBeUndefined();
-        });
-
         it('removes the hardware back subscription on unmount', () => {
             const {unmount} = renderDiscardHook(() => true);
 

@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -10,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -30,7 +28,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {doesMoneyRequestDraftHaveUserInput, isScanRequest} from '@libs/TransactionUtils';
+import {isScanRequest} from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,12 +75,6 @@ function IOURequestStartPage({
 
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
-
-    const isStartPageFocused = useIsFocused();
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => isStartPageFocused && doesMoneyRequestDraftHaveUserInput(transaction),
-        shouldInterceptHardwareBack: false,
-    });
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: iouRequestPolicyCollectionSelector,

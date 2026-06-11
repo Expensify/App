@@ -1,3 +1,4 @@
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -13,6 +14,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -42,7 +44,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -154,6 +156,21 @@ function IOURequestStepDistance({
     const customUnitRateID = getRateID(currentTransaction);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
+
+    const isFocused = useIsFocused();
+    const isSavingRef = useRef(false);
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            if (!isCreatingNewRequest || !isFocused || isSavingRef.current) {
+                return false;
+            }
+            return doesMoneyRequestDraftHaveUserInput(transaction);
+        },
+    });
+
+    useFocusEffect(() => {
+        isSavingRef.current = false;
+    });
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -493,6 +510,7 @@ function IOURequestStepDistance({
             return;
         }
 
+        isSavingRef.current = true;
         navigateToNextStep();
     }, [
         duplicateWaypointsError,
