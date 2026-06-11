@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import type {MouseEvent} from 'react';
 import type {DimensionValue} from 'react-native';
 import {View} from 'react-native';
@@ -17,7 +17,7 @@ type CenteredModalLayoutProps = {
     width?: number;
 
     /**
-     * Height of the inner card. Defaults to '63%' on narrow and featureTrainingModalHeight on wide.
+     * Height of the inner card. Defaults to '64%' on narrow and featureTrainingModalHeight on wide.
      */
     height?: DimensionValue;
 

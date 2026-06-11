@@ -69,14 +69,14 @@ type BaseFeatureTrainingContentProps = {
     /** Text to show on primary button */
     confirmText: string;
 
-    /** A callback to call when user confirms. Receives whether the "don't show again" option is left unchecked. */
+    /** A callback to call when user confirms */
     onConfirm?: (willShowAgain: boolean) => void;
 
     /** A callback to call when content wants to close */
     onClose?: () => void;
 
-    /** Called when the user dismisses with "don't show again" checked — caller provides the specific persistence action */
-    onPersistDismiss?: () => void;
+    /** Called whenever the "don't show again" checkbox value changes */
+    onWillShowAgainChange?: (willShowAgain: boolean) => void;
 
     /** Text to show on secondary button */
     helpText?: string;
@@ -181,7 +181,7 @@ function FeatureTrainingContent({
     confirmText = '',
     onConfirm,
     onClose,
-    onPersistDismiss,
+    onWillShowAgainChange,
     helpText = '',
     onHelp,
     children,
@@ -288,12 +288,15 @@ function FeatureTrainingContent({
         );
     };
 
-    const toggleWillShowAgain = () => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain);
+    const toggleWillShowAgain = () => {
+        onWillShowAgainChange?.(!willShowAgain);
+        setWillShowAgain((prev) => {
+            const next = !prev;
+            return next;
+        });
+    };
 
     const handleConfirm = () => {
-        if (shouldShowDismissModalOption && !willShowAgain) {
-            onPersistDismiss?.();
-        }
         onConfirm?.(willShowAgain);
         if (shouldCloseOnConfirm) {
             onClose?.();

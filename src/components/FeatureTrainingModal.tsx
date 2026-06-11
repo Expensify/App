@@ -30,6 +30,9 @@ type FeatureTrainingModalProps = FeatureTrainingContentProps & {
 
     /** Whether to call onHelp when modal is hidden completely */
     shouldCallOnHelpWhenModalHidden?: boolean;
+
+    /** Called when the modal is dismissed with "don't show again" checked */
+    onPersistDismiss?: () => void;
 };
 
 function FeatureTrainingModal({
@@ -41,6 +44,9 @@ function FeatureTrainingModal({
     onConfirm,
     onClose,
     onHelp,
+    onWillShowAgainChange,
+    onPersistDismiss,
+    shouldShowDismissModalOption = false,
     shouldUseScrollView: shouldUseScrollViewProp = false,
     width = variables.featureTrainingModalWidth,
     ...contentProps
@@ -52,6 +58,12 @@ function FeatureTrainingModal({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const pendingCloseRef = useRef(false);
     const hasHelpButtonBeenPressed = useRef(false);
+    const willShowAgainRef = useRef(true);
+
+    const handleWillShowAgainChange = (value: boolean) => {
+        willShowAgainRef.current = value;
+        onWillShowAgainChange?.(value);
+    };
 
     useEffect(() => {
         const handle = TransitionTracker.runAfterTransitions({
@@ -83,6 +95,9 @@ function FeatureTrainingModal({
     const closeModal = () => {
         Log.hmmm(`[FeatureTrainingModal] closeModal called - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
         Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
+        if (shouldShowDismissModalOption && !willShowAgainRef.current) {
+            onPersistDismiss?.();
+        }
         pendingCloseRef.current = true;
         setIsModalVisible(false);
     };
@@ -130,10 +145,12 @@ function FeatureTrainingModal({
             <FeatureTrainingContent
                 {...contentProps}
                 width={width}
+                shouldShowDismissModalOption={shouldShowDismissModalOption}
                 shouldUseScrollView={shouldUseScrollViewProp}
                 onConfirm={onConfirm}
                 onClose={closeModal}
                 onHelp={handleContentHelp}
+                onWillShowAgainChange={handleWillShowAgainChange}
             />
         </Modal>
     );
