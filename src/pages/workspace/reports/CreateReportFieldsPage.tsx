@@ -23,6 +23,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {setDraftValues} from '@userActions/FormActions';
 import {createReportField, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,27 +136,22 @@ function WorkspaceCreateReportFieldsPage({
         [policy?.fieldList, translate],
     );
 
-    const handleOnValueCommitted = useCallback(
-        (inputValues: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => (initialValue: string) => {
-            // Mirror optimisticType logic from createReportField: if user enters a formula
-            // while type is Text, automatically switch the type to Formula in the form, otherwise back to Text.
-            const isFormula = hasFormulaPartsInInitialValue(initialValue);
-            if (isFormula) {
-                formRef.current?.resetForm({
-                    ...inputValues,
-                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
-                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
-                });
-            } else {
-                formRef.current?.resetForm({
-                    ...inputValues,
-                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.TEXT,
-                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
-                });
-            }
-        },
-        [],
-    );
+    const handleOnValueCommitted = useCallback((initialValue: string) => {
+        // Mirror optimisticType logic from createReportField: if user enters a formula
+        // while type is Text, automatically switch the type to Formula in the form, otherwise back to Text.
+        const isFormula = hasFormulaPartsInInitialValue(initialValue);
+        if (isFormula) {
+            setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
+                [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
+                [INPUT_IDS.INITIAL_VALUE]: initialValue,
+            });
+        } else {
+            setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
+                [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.TEXT,
+                [INPUT_IDS.INITIAL_VALUE]: initialValue,
+            });
+        }
+    }, []);
 
     const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
@@ -244,7 +240,7 @@ function WorkspaceCreateReportFieldsPage({
                                     maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
-                                    onValueCommitted={handleOnValueCommitted(inputValues)}
+                                    onValueCommitted={handleOnValueCommitted}
                                     shouldSaveDraft
                                 />
                             )}
