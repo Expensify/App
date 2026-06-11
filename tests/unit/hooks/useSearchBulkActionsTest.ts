@@ -118,6 +118,23 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     default: () => undefined,
 }));
 
+jest.mock('@hooks/usePaymentContext', () => ({
+    __esModule: true,
+    default: () => ({
+        introSelected: undefined,
+        betas: undefined,
+        isSelfTourViewed: false,
+        activePolicyID: undefined,
+        activePolicy: undefined,
+        defaultWorkspaceName: undefined,
+        userBillingGracePeriodEnds: undefined,
+        amountOwed: undefined,
+        ownerBillingGracePeriodEnd: undefined,
+    }),
+    PaymentContextProvider: ({children}: {children: unknown}) => children,
+    useReportPaymentContext: () => ({}),
+}));
+
 const mockClearSelectedTransactions = jest.fn();
 const mockSelectAllMatchingItems = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
