@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -57,26 +56,24 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
     const startFrom = useMemo(() => getCustomSegmentInitialSubstep(values), [values]);
     const handleFinishStep = useCallback(() => {
-        InteractionManager.runAfterInteractions(() => {
-            const updatedCustomSegments = customSegments.concat([
-                {
-                    segmentName: values[INPUT_IDS.SEGMENT_NAME],
-                    internalID: values[INPUT_IDS.INTERNAL_ID],
-                    scriptID: values[INPUT_IDS.SCRIPT_ID],
-                    mapping: values[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                },
-            ]);
-            updateNetSuiteCustomSegments(
-                policyID,
-                updatedCustomSegments,
-                customSegments,
-                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}_${customSegments.length}`,
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            );
-            clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
+        const updatedCustomSegments = customSegments.concat([
+            {
+                segmentName: values[INPUT_IDS.SEGMENT_NAME],
+                internalID: values[INPUT_IDS.INTERNAL_ID],
+                scriptID: values[INPUT_IDS.SCRIPT_ID],
+                mapping: values[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+            },
+        ]);
+        updateNetSuiteCustomSegments(
+            policyID,
+            updatedCustomSegments,
+            customSegments,
+            `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}_${customSegments.length}`,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        );
+        clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
 
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
-        });
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
     }, [values, customSegments, policyID]);
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomFieldSubPageWithPolicy>({
