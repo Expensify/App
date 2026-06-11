@@ -124,6 +124,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Document',
         'ExpensifyAppIcon',
         'ExpensifyCard',
+        'Feed',
         'Folder',
         'Gear',
         'Hashtag',
@@ -361,7 +362,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.RULES)) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.rules',
-                icon: expensifyIcons.Bolt,
+                icon: isBetaEnabled(CONST.BETAS.RULES_REVAMP) ? expensifyIcons.Bolt : expensifyIcons.Feed,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.RULES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RULES,

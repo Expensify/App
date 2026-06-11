@@ -56,11 +56,12 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Flash']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMerge']);
-    const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const illustrations = useMemoizedLazyIllustrations(isRulesRevampEnabled ? ['Flash'] : ['Rules']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMerge']);
+    const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
     const [activeTab, setActiveTab] = useState<RulesTab>(RULES_TAB.GENERAL);
@@ -140,7 +141,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                                 ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
                                 onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
                                 dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.DISMISS}
-                                style={[styles.mb5]}
+                                style={[styles.mh5, styles.mb5]}
                             />
                         )}
                         <IndividualExpenseRulesSection
@@ -187,35 +188,76 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={illustrations.Flash}
+                icon={isRulesRevampEnabled ? illustrations.Flash : illustrations.Rules}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
-                headerContent={getHeaderContent()}
+                headerContent={isRulesRevampEnabled ? getHeaderContent() : undefined}
             >
-                <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <View style={[styles.flexRow, styles.mb1]}>
-                        <TabSelectorBase
-                            tabs={tabs}
-                            activeTabKey={activeTab}
-                            onTabPress={(key) => {
-                                if (!isRulesTab(key)) {
-                                    return;
-                                }
-                                setActiveTab(key);
-                            }}
-                        />
+                {isRulesRevampEnabled ? (
+                    <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <View style={[styles.flexRow, styles.mb1]}>
+                            <TabSelectorBase
+                                tabs={tabs}
+                                activeTabKey={activeTab}
+                                onTabPress={(key) => {
+                                    if (!isRulesTab(key)) {
+                                        return;
+                                    }
+                                    setActiveTab(key);
+                                }}
+                            />
+                        </View>
+                        {renderTabContent()}
+                        {isCustomAgentBetaEnabled && (
+                            <AIRulesSection
+                                policyID={policyID}
+                                canWriteRules={canWriteRules}
+                                showReadOnlyModal={showReadOnlyModal}
+                            />
+                        )}
                     </View>
-                    {renderTabContent()}
-                    {isCustomAgentBetaEnabled && (
-                        <AIRulesSection
+                ) : (
+                    <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
+                            <AgentPromotionalBanner
+                                title={translate('workspace.rules.agentsPromoBanner.title')}
+                                subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}
+                                ctaText={translate('workspace.rules.agentsPromoBanner.cta')}
+                                onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
+                                ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
+                                onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
+                                dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.DISMISS}
+                                style={[styles.mh5, styles.mb5]}
+                            />
+                        )}
+                        <IndividualExpenseRulesSection
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                            withReadOnlyFallback={withReadOnlyFallback}
+                        />
+                        <MerchantRulesSection
                             policyID={policyID}
                             canWriteRules={canWriteRules}
                             showReadOnlyModal={showReadOnlyModal}
                         />
-                    )}
-                </View>
+                        {!!policy?.areExpensifyCardsEnabled && (
+                            <SpendRulesSection
+                                policyID={policyID}
+                                canWriteRules={canWriteRules}
+                                showReadOnlyModal={showReadOnlyModal}
+                            />
+                        )}
+                        {isCustomAgentBetaEnabled && (
+                            <AIRulesSection
+                                policyID={policyID}
+                                canWriteRules={canWriteRules}
+                                showReadOnlyModal={showReadOnlyModal}
+                            />
+                        )}
+                    </View>
+                )}
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );

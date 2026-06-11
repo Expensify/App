@@ -1029,6 +1029,7 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        RULES_REVAMP: 'rulesRevamp',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

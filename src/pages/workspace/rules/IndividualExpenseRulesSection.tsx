@@ -19,6 +19,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
+    withReadOnlyFallback?: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
 };
 
 type BasicRuleMenuItem = {
