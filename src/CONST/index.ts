@@ -8672,6 +8672,8 @@ const CONST = {
             DELEGATE_ITEM: 'SettingsSecurity-DelegateItem',
             DELEGATE_CHANGE_ACCESS: 'SettingsSecurity-DelegateChangeAccess',
             DELEGATE_REMOVE: 'SettingsSecurity-DelegateRemove',
+            DELEGATOR_ITEM: 'SettingsSecurity-DelegatorItem',
+            DELEGATOR_REMOVE: 'SettingsSecurity-DelegatorRemove',
         },
         SETTINGS_WALLET: {
             ADD_BANK_ACCOUNT: 'SettingsWallet-AddBankAccount',
