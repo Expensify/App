@@ -3383,7 +3383,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     statusPage: {
         status: 'ステータス',
-        statusExplanation: '同僚や友人が状況をひと目で分かるように、絵文字を追加しましょう。必要であればメッセージも追加できます。',
+        statusExplanation: '絵文字と任意のメッセージでステータスを設定します。',
         today: '今日',
         clearStatus: 'ステータスをクリア',
         save: '保存',

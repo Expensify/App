@@ -3328,7 +3328,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     statusPage: {
         status: '状态',
-        statusExplanation: '添加一个表情符号，让同事和朋友更容易了解你的状态。你也可以选择添加一条消息！',
+        statusExplanation: '使用表情符号和可选消息设置你的状态。',
         today: '今天',
         clearStatus: '清除状态',
         save: '保存',

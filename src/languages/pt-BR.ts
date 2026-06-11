@@ -3400,7 +3400,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Adicione um emoji para que seus colegas e amigos saibam facilmente o que está acontecendo. Você também pode adicionar uma mensagem, se quiser!',
+        statusExplanation: 'Defina seu status com um emoji e uma mensagem opcional.',
         today: 'Hoje',
         clearStatus: 'Limpar status',
         save: 'Salvar',

@@ -3289,7 +3289,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Estado',
-        statusExplanation: 'Establece tu estado con un emoji y un mensaje opcional.',
+        statusExplanation: 'Configura tu estado con un emoji y un mensaje opcional.',
         today: 'Hoy',
         clearStatus: 'Borrar estado',
         save: 'Guardar',
