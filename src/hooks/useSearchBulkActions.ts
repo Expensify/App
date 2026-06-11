@@ -576,24 +576,30 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             let exportID: string;
 
             if (areAllMatchingItemsSelected) {
-                exportID = queueExportSearchWithTemplate({
-                    templateName,
-                    templateType,
-                    jsonQuery: serializedQuery,
-                    reportIDList: [],
-                    transactionIDList: [],
-                    policyID,
-                });
+                exportID = queueExportSearchWithTemplate(
+                    {
+                        templateName,
+                        templateType,
+                        jsonQuery: serializedQuery,
+                        reportIDList: [],
+                        transactionIDList: [],
+                        policyID,
+                    },
+                    true,
+                );
             } else {
                 const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-                exportID = queueExportSearchWithTemplate({
-                    templateName,
-                    templateType,
-                    jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}',
-                    reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
-                    transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
-                    policyID,
-                });
+                exportID = queueExportSearchWithTemplate(
+                    {
+                        templateName,
+                        templateType,
+                        jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}',
+                        reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
+                        transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
+                        policyID,
+                    },
+                    true,
+                );
             }
             setActiveExportID(exportID);
         },

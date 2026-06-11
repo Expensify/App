@@ -1276,25 +1276,31 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
     return exportID;
 }
 
-function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams): string {
+function queueExportSearchWithTemplate(
+    {templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams,
+    shouldTrackExportProgress = false,
+): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
-    const optimisticData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: onyxKey,
-            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
-        },
-    ];
-
-    const failureData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: onyxKey,
-            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
-        },
-    ];
+    const onyxData: OnyxData<typeof onyxKey> = shouldTrackExportProgress
+        ? {
+              optimisticData: [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: onyxKey,
+                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
+                  },
+              ],
+              failureData: [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: onyxKey,
+                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
+                  },
+              ],
+          }
+        : {};
 
     const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, {
         templateName,
@@ -1303,10 +1309,10 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
         reportIDList,
         transactionIDList,
         policyID,
-        exportID,
+        ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
 
     return exportID;
 }

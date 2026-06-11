@@ -65,15 +65,18 @@ describe('queueExportSearchItemsToCSV', () => {
 describe('queueExportSearchWithTemplate', () => {
     beforeEach(() => jest.clearAllMocks());
 
-    it('sets optimistic Onyx data with state preparing and returns exportID', () => {
-        const exportID = queueExportSearchWithTemplate({
-            templateName: 'Test Template',
-            templateType: 'csv',
-            jsonQuery: '{}',
-            reportIDList: [],
-            transactionIDList: [],
-            policyID: 'policy123',
-        });
+    it('sets optimistic Onyx data with state preparing and returns exportID when tracking progress', () => {
+        const exportID = queueExportSearchWithTemplate(
+            {
+                templateName: 'Test Template',
+                templateType: 'csv',
+                jsonQuery: '{}',
+                reportIDList: [],
+                transactionIDList: [],
+                policyID: 'policy123',
+            },
+            true,
+        );
 
         expect(typeof exportID).toBe('string');
         expect(exportID.length).toBeGreaterThan(0);
@@ -93,5 +96,22 @@ describe('queueExportSearchWithTemplate', () => {
         const failureUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
         expect(failureUpdate).toBeDefined();
         expect(failureUpdate?.value).toEqual({state: CONST.EXPORT_DOWNLOAD.STATE.FAILED});
+    });
+
+    it('keeps the legacy request shape (no exportID, no optimistic data) when not tracking progress', () => {
+        queueExportSearchWithTemplate({
+            templateName: 'Test Template',
+            templateType: 'csv',
+            jsonQuery: '{}',
+            reportIDList: [],
+            transactionIDList: [],
+            policyID: 'policy123',
+        });
+
+        const finalParameters = mockWrite.mock.calls.at(-1)?.at(1);
+        expect(finalParameters).not.toHaveProperty('exportID');
+
+        const options = mockWrite.mock.calls.at(-1)?.at(2);
+        expect(options).toEqual({});
     });
 });
