@@ -29,18 +29,16 @@ function VictoryChartWithExpand({children}: VictoryChartWithExpandProps) {
 
     return (
         <>
-            <View style={styles.w100}>
+            <View style={styles.pRelative}>
                 {children}
-                <View style={styles.pAbsolute}>
-                    <IconButton
-                        src={icons.Expand}
-                        style={styles.videoExpandButton}
-                        tooltipText={translate('common.expand')}
-                        onPress={openFullScreen}
-                        small
-                        sentryLabel="Chart Expand Button"
-                    />
-                </View>
+                <IconButton
+                    src={icons.Expand}
+                    style={styles.videoExpandButton}
+                    tooltipText={translate('common.expand')}
+                    onPress={openFullScreen}
+                    small
+                    sentryLabel="Chart Expand Button"
+                />
             </View>
             <Modal
                 isVisible={isFullScreen}
