@@ -331,7 +331,7 @@ describe('actions/User', () => {
             ];
             expect(command).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
 
-            // The optimistic update stamps a numeric request time so the gate can dedup reloads within the resend window
+            // The optimistic update stamps a numeric request time so the gate can de-duplicate reloads within the resend window
             const optimisticUpdate = (onyxData.optimisticData ?? []).find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
             expect(optimisticUpdate?.value.lastValidateCodeRequestedAt).toEqual(expect.any(Number));
 
