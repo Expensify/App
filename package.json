@@ -377,6 +377,14 @@
     "workbox-webpack-plugin": "^7.4.0"
   },
   "overrides": {
+    "@rock-js/plugin-metro": {
+      "metro": "0.84.4",
+      "metro-config": "0.84.4",
+      "metro-core": "0.84.4",
+      "metro-resolver": "0.84.4",
+      "metro-runtime": "0.84.4",
+      "metro-source-map": "0.84.4"
+    },
     "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260422",
     "braces": "3.0.3",
     "yargs": "17.7.2",
