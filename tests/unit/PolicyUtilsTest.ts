@@ -3042,7 +3042,7 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(0),
                 rules: {
                     codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
-                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
+                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
                 },
             };
             expect(hasPolicyRulesError(policy)).toBe(false);
@@ -3062,7 +3062,7 @@ describe('PolicyUtils', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
                 rules: {
-                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
+                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
                 },
             };
             expect(hasPolicyRulesError(policy)).toBe(true);

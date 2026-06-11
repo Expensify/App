@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddPolicyAIRuleParams, DeletePolicyAIRuleParams, UpdatePolicyAIRuleParams} from '@libs/API/parameters';
+import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -326,9 +326,9 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-function addPolicyAgentRule(policyID: string, aiRuleID: string, prompt: string) {
-    if (!policyID || !aiRuleID || !prompt) {
-        Log.warn('Invalid params for addPolicyAgentRule', {policyID, aiRuleID, prompt});
+function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
+    if (!policyID || !agentRuleID || !prompt) {
+        Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
     }
 
@@ -341,9 +341,9 @@ function addPolicyAgentRule(policyID: string, aiRuleID: string, prompt: string) 
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: {
-                                ruleID: aiRuleID,
+                        agentRules: {
+                            [agentRuleID]: {
+                                ruleID: agentRuleID,
                                 created: new Date().toISOString(),
                                 prompt,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -359,8 +359,8 @@ function addPolicyAgentRule(policyID: string, aiRuleID: string, prompt: string) 
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: {
+                        agentRules: {
+                            [agentRuleID]: {
                                 pendingAction: null,
                                 errors: null,
                             },
@@ -375,8 +375,8 @@ function addPolicyAgentRule(policyID: string, aiRuleID: string, prompt: string) 
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: {
+                        agentRules: {
+                            [agentRuleID]: {
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
@@ -387,18 +387,18 @@ function addPolicyAgentRule(policyID: string, aiRuleID: string, prompt: string) 
         ],
     };
 
-    const parameters: AddPolicyAIRuleParams = {
+    const parameters: AddPolicyAgentRuleParams = {
         policyID,
-        aiRuleID,
+        agentRuleID,
         prompt,
     };
 
-    API.write(WRITE_COMMANDS.ADD_POLICY_AI_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, parameters, onyxData);
 }
 
-function updatePolicyAgentRule(policyID: string, aiRuleID: string, prompt: string, previousPrompt: string) {
-    if (!policyID || !aiRuleID || !prompt) {
-        Log.warn('Invalid params for updatePolicyAgentRule', {policyID, aiRuleID, prompt});
+function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string) {
+    if (!policyID || !agentRuleID || !prompt) {
+        Log.warn('Invalid params for updatePolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
     }
 
@@ -411,8 +411,8 @@ function updatePolicyAgentRule(policyID: string, aiRuleID: string, prompt: strin
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: {
+                        agentRules: {
+                            [agentRuleID]: {
                                 prompt,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
@@ -427,8 +427,8 @@ function updatePolicyAgentRule(policyID: string, aiRuleID: string, prompt: strin
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: {
+                        agentRules: {
+                            [agentRuleID]: {
                                 pendingAction: null,
                                 errors: null,
                             },
@@ -443,8 +443,8 @@ function updatePolicyAgentRule(policyID: string, aiRuleID: string, prompt: strin
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: {
+                        agentRules: {
+                            [agentRuleID]: {
                                 prompt: previousPrompt,
                                 pendingAction: null,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -456,23 +456,23 @@ function updatePolicyAgentRule(policyID: string, aiRuleID: string, prompt: strin
         ],
     };
 
-    const parameters: UpdatePolicyAIRuleParams = {
+    const parameters: UpdatePolicyAgentRuleParams = {
         policyID,
-        aiRuleID,
+        agentRuleID,
         prompt,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_AI_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_AGENT_RULE, parameters, onyxData);
 }
 
-function deletePolicyAgentRule(policy: Policy, aiRuleID: string) {
-    if (!policy.id || !aiRuleID) {
-        Log.warn('Invalid params for deletePolicyAgentRule', {policyID: policy.id, aiRuleID});
+function deletePolicyAgentRule(policy: Policy, agentRuleID: string) {
+    if (!policy.id || !agentRuleID) {
+        Log.warn('Invalid params for deletePolicyAgentRule', {policyID: policy.id, agentRuleID});
         return;
     }
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
-    const existingRule = policy.rules?.aiRules?.[aiRuleID];
+    const existingRule = policy.rules?.agentRules?.[agentRuleID];
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -481,8 +481,8 @@ function deletePolicyAgentRule(policy: Policy, aiRuleID: string) {
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: {
+                        agentRules: {
+                            [agentRuleID]: {
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                             },
                         },
@@ -496,8 +496,8 @@ function deletePolicyAgentRule(policy: Policy, aiRuleID: string) {
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: null,
+                        agentRules: {
+                            [agentRuleID]: null,
                         },
                     },
                 },
@@ -509,8 +509,8 @@ function deletePolicyAgentRule(policy: Policy, aiRuleID: string) {
                 key: policyKey,
                 value: {
                     rules: {
-                        aiRules: {
-                            [aiRuleID]: {
+                        agentRules: {
+                            [agentRuleID]: {
                                 ...existingRule,
                                 pendingAction: null,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -522,12 +522,12 @@ function deletePolicyAgentRule(policy: Policy, aiRuleID: string) {
         ],
     };
 
-    const parameters: DeletePolicyAIRuleParams = {
+    const parameters: DeletePolicyAgentRuleParams = {
         policyID: policy.id,
-        aiRuleID,
+        agentRuleID,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_POLICY_AI_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_POLICY_AGENT_RULE, parameters, onyxData);
 }
 
 function clearPolicyCodingRuleErrors(policyID: string, ruleID: string, rule: CodingRule | undefined) {
@@ -559,7 +559,7 @@ function clearPolicyCodingRuleErrors(policyID: string, ruleID: string, rule: Cod
     });
 }
 
-function clearPolicyAgentRuleErrors(policyID: string, aiRuleID: string, agentRule: AgentRule | undefined) {
+function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agentRule: AgentRule | undefined) {
     if (!agentRule) {
         return;
     }
@@ -569,8 +569,8 @@ function clearPolicyAgentRuleErrors(policyID: string, aiRuleID: string, agentRul
     if (agentRule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(policyKey, {
             rules: {
-                aiRules: {
-                    [aiRuleID]: null,
+                agentRules: {
+                    [agentRuleID]: null,
                 },
             },
         });
@@ -579,8 +579,8 @@ function clearPolicyAgentRuleErrors(policyID: string, aiRuleID: string, agentRul
 
     Onyx.merge(policyKey, {
         rules: {
-            aiRules: {
-                [aiRuleID]: {
+            agentRules: {
+                [agentRuleID]: {
                     errors: null,
                 },
             },

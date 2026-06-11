@@ -31,7 +31,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const agentRules = policy?.rules?.aiRules;
+    const agentRules = policy?.rules?.agentRules;
     const hasRules = !isEmptyObject(agentRules);
 
     const sortedRules = Object.entries(agentRules ?? {})

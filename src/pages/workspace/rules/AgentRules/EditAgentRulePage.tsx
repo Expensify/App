@@ -40,7 +40,7 @@ function EditAgentRulePage({
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const policy = usePolicy(policyID);
-    const agentRule = policy?.rules?.aiRules?.[ruleID];
+    const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
 
     const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {

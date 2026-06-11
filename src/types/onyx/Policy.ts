@@ -2277,7 +2277,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             codingRules?: Record<string, CodingRule>;
 
             /** A set of Agent rules defined with natural language - The rules are run by the "RuleBot" */
-            aiRules?: Record<string, AgentRule>;
+            agentRules?: Record<string, AgentRule>;
         };
 
         /** The "RuleBot" agent account ID */

@@ -232,7 +232,7 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
  */
 function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
     const codingRules = Object.values(policy?.rules?.codingRules ?? {});
-    const agentRules = Object.values(policy?.rules?.aiRules ?? {});
+    const agentRules = Object.values(policy?.rules?.agentRules ?? {});
 
     return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
 }
