@@ -71,6 +71,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const {primaryFeeds, otherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const policy = usePolicy(policyID);
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 
@@ -126,7 +128,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         const isFeedPendingDelete = entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         return {
             value: entry.fundID,
-            text: getExpensifyCardFeedDescription(entry.settings, policies),
+            text: getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList),
             keyForList: entry.fundID.toString(),
             isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
             isDisabled: isFeedPendingDelete || (isOtherWorkspaceSection && isOffline),

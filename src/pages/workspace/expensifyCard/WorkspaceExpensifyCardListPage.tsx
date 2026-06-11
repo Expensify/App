@@ -80,6 +80,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const settings = getCardSettings(cardSettings);
     const {allFeeds: allAdminExpensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const shouldShowSelector = allAdminExpensifyCardFeeds.length >= 1;
@@ -371,7 +373,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
                         CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
-                        supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies)}
+                        supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList)}
                     />
                     {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons()}
                 </View>

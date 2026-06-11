@@ -1,8 +1,9 @@
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 import type {Modifiers} from '@libs/shiftRangeSelection';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type ExpenseReportListItemRowNarrowProps = {
     item: ExpenseReportListItemType;
@@ -18,11 +19,13 @@ type ExpenseReportListItemRowWideProps = ExpenseReportListItemRowNarrowProps & {
     showTooltip: boolean;
     isActionLoading?: boolean;
     onButtonPress?: () => void;
+    chatReport?: OnyxEntry<Report>;
     containerStyle?: StyleProp<ViewStyle>;
     isHovered?: boolean;
     isFocused?: boolean;
     isPendingDelete?: boolean;
     columns?: SearchColumnType[];
+    isMarkAsDone: boolean;
 };
 
 type ExpenseReportListItemRowProps = ExpenseReportListItemRowWideProps;
