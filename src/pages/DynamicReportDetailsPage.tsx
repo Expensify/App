@@ -1,7 +1,7 @@
 import {StackActions} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
@@ -383,7 +383,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
 
     // Only show the "Go to room" row when the Details page was opened from a screen other than the room report itself (e.g. the Workspace rooms list).
-    const isRoomCurrentlyOpen = isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID;
+    // The check is evaluated once when the page is opened, so the menu doesn't change while the page is closing after "Go to room" makes the room the topmost report.
+    const [isRoomCurrentlyOpen] = useState(() => isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
     const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
 
