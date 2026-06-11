@@ -8,15 +8,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SpendRuleRestrictionTypeToggleProps = {
-    restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
-    onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION>) => void;
+    restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null;
+    onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => void;
 };
 
 function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRuleRestrictionTypeToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const isOffSelected = restrictionAction === CONST.SPEND_RULES.ACTION.OFF;
+    const isOffSelected = restrictionAction === null;
     const isAllowSelected = restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW;
     const isBlockSelected = restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK;
 
@@ -29,10 +29,10 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRule
                     small
                     style={styles.ph0}
                     innerStyles={!isOffSelected ? styles.bgTransparent : undefined}
-                    textStyles={[styles.alignSelfCenter, !isAllowSelected ? styles.textSupporting : undefined]}
+                    textStyles={[styles.alignSelfCenter, !isOffSelected ? styles.textSupporting : undefined]}
                     accessibilityLabel={translate('common.off')}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
-                    onPress={() => onSelect(CONST.SPEND_RULES.ACTION.OFF)}
+                    onPress={() => onSelect(null)}
                 />
                 <Button
                     text={translate('workspace.rules.spendRules.allow')}

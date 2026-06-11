@@ -81,7 +81,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
         currencies.length > 0
             ? {
                   left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                  operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                  operator: spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                   right: currencies,
               }
             : undefined;

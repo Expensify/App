@@ -4790,7 +4790,6 @@ const CONST = {
             },
         },
         ACTION: {
-            OFF: 'off',
             ALLOW: 'allow',
             BLOCK: 'block',
         },

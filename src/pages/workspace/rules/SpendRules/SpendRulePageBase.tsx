@@ -2,6 +2,7 @@ import type {NavigationProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -69,28 +70,31 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
-    const [isErrorVisible, setIsErrorVisible] = useState(false);
+
     const currentRuleID = ruleID ?? ROUTES.NEW;
-    const isEditing = currentRuleID !== ROUTES.NEW;
-    const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
+    const isNewRule = currentRuleID === ROUTES.NEW;
+    const isEditingRule = currentRuleID !== ROUTES.NEW;
+    const existingRule = isEditingRule ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
+    const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
+
+    const [isErrorVisible, setIsErrorVisible] = useState(false);
+    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
+        const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
+        return isNewRule || hasNoMerchantRestrictions;
+    });
 
     useEffect(() => () => clearDraftSpendRule(), []);
 
     useEffect(() => {
-        if (!isEditing || !existingRule) {
-            return;
-        }
-
-        const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
-        if (!existingFormValues) {
+        if (!isEditingRule || !existingFormValues) {
             return;
         }
 
         setDraftSpendRule(existingFormValues);
-    }, [existingRule, isEditing]);
+    }, [existingFormValues, isEditingRule]);
 
     const cardIDs = spendRuleForm?.cardIDs;
-    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.OFF;
+    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const merchantNames = spendRuleForm?.merchantNames ?? [];
     const categories = spendRuleForm?.categories ?? [];
     const currencies = spendRuleForm?.currencies ?? [];
@@ -171,7 +175,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         }
 
         clearError();
-        setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
+        setExpensifyCardRule(domainAccountID, isEditingRule ? currentRuleID : rand64(), spendRuleForm, existingRule);
         clearDraftSpendRule();
         navigation.goBack();
     };
@@ -201,16 +205,33 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         });
     };
 
+    const handleSpendRuleRestrictionTypeChange = (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => {
+        if (!canWriteRules) {
+            showReadOnlyModal();
+            return;
+        }
+
+        clearError();
+
+        if (action === null) {
+            setIsRestrictMerchantsOff(true);
+            return;
+        }
+
+        setIsRestrictMerchantsOff(false);
+        updateDraftSpendRule({restrictionAction: action});
+    };
+
     const merchantsTitle =
         restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchants');
     const merchantTypesTitle =
         restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
 
-    if (isEditing && !existingRule) {
+    if (isEditingRule && !existingRule) {
         return <NotFoundPage />;
     }
 
-    if (!isEditing && !!policy && !canWriteRules) {
+    if (!isEditingRule && !!policy && !canWriteRules) {
         return <NotFoundPage />;
     }
 
@@ -276,18 +297,11 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
                     <View style={[styles.ph5, styles.pv3]}>
                         <SpendRuleRestrictionTypeToggle
-                            restrictionAction={restrictionAction}
-                            onSelect={(action) => {
-                                if (!canWriteRules) {
-                                    showReadOnlyModal();
-                                    return;
-                                }
-                                clearError();
-                                updateDraftSpendRule({restrictionAction: action});
-                            }}
+                            restrictionAction={!isRestrictMerchantsOff ? restrictionAction : null}
+                            onSelect={handleSpendRuleRestrictionTypeChange}
                         />
                     </View>
-                    {restrictionAction !== CONST.SPEND_RULES.ACTION.OFF && (
+                    {!isRestrictMerchantsOff && (
                         <>
                             <MenuItemWithTopDescription
                                 description={merchantsTitle}
@@ -337,7 +351,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                         shouldRenderFooterAboveSubmit
                         footerContent={
-                            isEditing ? (
+                            isEditingRule ? (
                                 <Button
                                     text={translate('workspace.rules.spendRules.deleteRule')}
                                     onPress={handleDeleteRule}
