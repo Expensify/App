@@ -215,6 +215,13 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 .then(() => {
                     confirmReadyToOpenApp();
                     return openApp().then(() => {
+                        // Replace the current browser history entry so that the browser back button
+                        // does not navigate to a route from the previous account context (which would
+                        // result in a blank page since Onyx was cleared during the transition).
+                        // eslint-disable-next-line no-restricted-globals
+                        if (typeof history !== 'undefined' && history.replaceState) {
+                            history.replaceState({}, '', window.location.href);
+                        }
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
                             return true;
                         }
@@ -320,6 +327,13 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
                     openApp().then(() => {
+                        // Replace the current browser history entry so that the browser back button
+                        // does not navigate to a route from the previous account context (which would
+                        // result in a blank page since Onyx was cleared during the transition).
+                        // eslint-disable-next-line no-restricted-globals
+                        if (typeof history !== 'undefined' && history.replaceState) {
+                            history.replaceState({}, '', window.location.href);
+                        }
                         if (!CONFIG.IS_HYBRID_APP) {
                             return;
                         }
