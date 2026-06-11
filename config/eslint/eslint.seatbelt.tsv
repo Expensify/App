@@ -293,7 +293,6 @@
 "../../src/components/MultiGestureCanvas/usePanGesture.ts"	"no-restricted-syntax"	1
 "../../src/components/MultiGestureCanvas/usePinchGesture.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MultiGestureCanvas/useTapGestures.ts"	"no-restricted-syntax"	1
-"../../src/components/MultifactorAuthentication/Context/stateReducer.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultifactorAuthentication/Context/usePromptContent.ts"	"react-hooks/refs"	10
 "../../src/components/MultifactorAuthentication/ValidateCodeResendButton.tsx"	"no-restricted-syntax"	1
 "../../src/components/MultifactorAuthentication/components/Modals/createCancelConfirmModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1

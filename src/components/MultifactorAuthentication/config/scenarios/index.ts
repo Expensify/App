@@ -1,5 +1,9 @@
 import type {EmptyObject} from 'type-fest';
-import type {MultifactorAuthenticationScenarioConfigRecord} from '@components/MultifactorAuthentication/config/types';
+import type {
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioConfig,
+    MultifactorAuthenticationScenarioConfigRecord,
+} from '@components/MultifactorAuthentication/config/types';
 import CONST from '@src/CONST';
 import type {Payload as AuthorizeTransactionPayload} from './AuthorizeTransaction';
 import AuthorizeTransaction from './AuthorizeTransaction';
@@ -30,7 +34,7 @@ type Payloads = {
 /**
  * Configuration records for all multifactor authentication scenarios.
  */
-const Configs = {
+const MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPINOrderCard),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: customConfig(AuthorizeTransaction),
@@ -39,5 +43,17 @@ const Configs = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_CARD_DETAILS]: customConfig(RevealCardDetails),
 } as const satisfies MultifactorAuthenticationScenarioConfigRecord;
 
-export default Configs;
+/**
+ * Every entry of the config record satisfies MultifactorAuthenticationScenarioConfig at definition, but the
+ * per-scenario action signatures make the record's value union non-narrowable, so the lookup needs
+ * an assertion. This accessor owns the single assertion so callers don't repeat it; params are
+ * type-guarded separately by ExecuteScenarioParams<T>.
+ */
+function getScenarioConfig(scenarioName: MultifactorAuthenticationScenario): MultifactorAuthenticationScenarioConfig {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenarioName] as MultifactorAuthenticationScenarioConfig;
+}
+
+export default MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG;
+export {getScenarioConfig};
 export type {Payloads};

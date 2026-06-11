@@ -4,8 +4,8 @@ import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
-import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
-import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import {mfaMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
@@ -80,10 +80,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         });
         trackMFAFlowStart({scenario: scenarioName, isOffline, credentialsState: startCredentialsState});
 
-        // Each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the
-        // per-scenario action signatures make the union non-narrowable, so we assert the lookup. Params
-        // are already type-guarded by ExecuteScenarioParams<T>.
-        const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenarioName] as MultifactorAuthenticationScenarioConfig;
+        const scenario = getScenarioConfig(scenarioName);
 
         send({type: 'INIT', scenarioName, scenario, payload: params && Object.keys(params).length > 0 ? params : undefined});
     };
