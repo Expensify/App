@@ -50,6 +50,10 @@ type EnrichedPolicyReportField = {
     violationTranslation: string;
 } & PolicyReportField;
 
+function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, field: PolicyReportField) {
+    return field.target === report?.type || (report?.type === CONST.REPORT.TYPE.EXPENSE && !field.target);
+}
+
 function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, styles: ThemeStyles, pendingAction?: PendingAction) {
     return (
         <OfflineWithFeedback
@@ -92,7 +96,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
         const fields = Object.values(fieldsByName);
 
         return fields
-            .filter((field) => field.target === report?.type)
+            .filter((field) => isReportFieldTargetMatchingReport(report, field))
             .filter((reportField) => !shouldHideSingleReportField(reportField))
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
@@ -121,8 +125,9 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
+    const areFieldsEnabledForReport = isInvoiceReport ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
 
-    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!areFieldsEnabledForReport && (!isOnlyTitleFieldEnabled || !isCombinedReport);
 
     if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
         return null;

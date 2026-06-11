@@ -49,7 +49,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyReportViewProps = {
@@ -81,6 +81,10 @@ type MoneyReportViewProps = {
      */
     isTotalPending?: boolean;
 };
+
+function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, field: PolicyReportField) {
+    return field.target === report?.type || (report?.type === CONST.REPORT.TYPE.EXPENSE && !field.target);
+}
 
 function MoneyReportView({
     report,
@@ -139,7 +143,7 @@ function MoneyReportView({
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
         const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
         const sorted = Object.values(byName)
-            .filter((field) => field.target === report?.type)
+            .filter((field) => isReportFieldTargetMatchingReport(report, field))
             .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
         return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
     }, [policy?.fieldList, report]);
@@ -152,6 +156,7 @@ function MoneyReportView({
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
+    const areFieldsEnabledForReport = isInvoiceReport ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
         (isGroupPolicyExpenseReport || isInvoiceReport) &&
@@ -184,7 +189,7 @@ function MoneyReportView({
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isGroupPolicyExpenseReport || isInvoiceReport) &&
-                            !!policy?.areReportFieldsEnabled &&
+                            areFieldsEnabledForReport &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {

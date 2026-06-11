@@ -55,7 +55,7 @@ const PARTS_TO_POLICY_FIELDS = {
     codingRules: ['rules'],
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
-    invoices: ['areInvoicesEnabled', 'invoice'],
+    invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     travel: ['isTravelEnabled', 'travelSettings'],
     timeTracking: [],
 } as const satisfies Record<Part, ReadonlyArray<keyof Policy>>;
@@ -132,9 +132,15 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
  */
 function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Policy> {
     const patch: Partial<Policy> = {};
+    const shouldCopyReportFields = parts.includes('reports');
+    const shouldCopyInvoiceFields = parts.includes('invoices');
+
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
             if (field === 'customUnits') {
+                continue;
+            }
+            if (field === 'fieldList') {
                 continue;
             }
             if (part === 'codingRules' && field === 'rules') {
@@ -144,6 +150,16 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Pol
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
         }
     }
+
+    if (shouldCopyReportFields || shouldCopyInvoiceFields) {
+        patch.fieldList = Object.fromEntries(
+            Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => {
+                const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+                return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
+            }),
+        );
+    }
+
     return patch;
 }
 
