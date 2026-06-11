@@ -356,7 +356,7 @@ describe('DateUtils', () => {
             expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('returns "Until {month-day} {time}" (Intl MONTH_DAY + SHORT_TIME) for future date within the same year in a different timezone', () => {
+        it('returns "Until {month-day} {time}" for future date within the same year in a different timezone', () => {
             const twoDaysLaterLA = addDays(set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 0, seconds: 0, milliseconds: 0}), 2);
             const inputDateStrParis = tzFormat(twoDaysLaterLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneParis});
 
@@ -369,7 +369,7 @@ describe('DateUtils', () => {
             expect(result).toBe(`Until ${monthDay} ${time}`);
         });
 
-        it('returns "Until {month-day} {time}" (Intl MONTH_DAY + SHORT_TIME) when "until today" crosses into next day in current timezone', () => {
+        it('returns "Until {month-day} {time}" when "until today" crosses into next day in current timezone', () => {
             const endOfTodayTokyo = endOfDay(toZonedTime(new Date(), inputTimeZoneTokyo));
             const inputDateStrTokyo = tzFormat(endOfTodayTokyo, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
 
@@ -382,7 +382,7 @@ describe('DateUtils', () => {
             expect(result).toBe(`Until ${monthDay} ${time}`);
         });
 
-        it('returns "Until {medium-date} {time}" (Intl MEDIUM_DATE + SHORT_TIME) for a date in a different year across timezones', () => {
+        it('returns "Until {medium-date} {time}" for a date in a different year across timezones', () => {
             const laFutureDateStr = '2026-01-02 09:15:00';
             const inputDateStrTokyo = tzFormat(fromZonedTime(laFutureDateStr, currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
 
@@ -396,7 +396,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('formatInUTCTo* (date-only strings must not day-shift)', () => {
+    describe('formatInUTCTo*', () => {
         // Local-midnight Date + UTC-zone formatter shifts a day for UTC+ viewers; `toUTCDate` anchors at UTC midnight.
         it.each(['en', 'es'] as const)('formatInUTCToMedium renders the input calendar day in %s regardless of viewer timezone', (locale) => {
             const result = DateUtils.formatInUTCToMedium('2025-08-19', locale);
@@ -422,7 +422,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('formatToShortMonth (locale parameter affects output)', () => {
+    describe('formatToShortMonth', () => {
         it.each([
             ['en', /^Aug/],
             ['es', /^ago/],
@@ -432,17 +432,17 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('formatTravelDate inputs (formatToMediumDate + formatToLocalTime localize correctly)', () => {
+    describe('formatTravelDate inputs', () => {
         const travelDate = new Date('2025-08-19T14:30:00Z');
 
-        it('formatToMediumDate renders es as "19 ago 2025" (not English)', () => {
+        it('formatToMediumDate renders es as "19 ago 2025"', () => {
             const es = DateUtils.formatToMediumDate(travelDate, 'es');
             expect(es).toMatch(/19/);
             expect(es).toMatch(/ago/);
             expect(es).not.toMatch(/Aug/);
         });
 
-        it('formatToLocalTime renders es in 24h (not AM/PM)', () => {
+        it('formatToLocalTime renders es in 24h', () => {
             const es = DateUtils.formatToLocalTime(travelDate, 'es');
             expect(es).not.toMatch(/AM|PM/);
         });
@@ -453,14 +453,14 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('getDaysOfWeekNarrow (CJK weekday labels must not collide)', () => {
+    describe('getDaysOfWeekNarrow', () => {
         it('en narrow labels are single-letter weekday initials', () => {
             const en = DateUtils.getDaysOfWeekNarrow('en');
             expect(en).toHaveLength(7);
             expect(en.every((d) => d.length === 1)).toBe(true);
         });
 
-        it('zh-hans narrow labels are 7 distinct characters (slicing long names would give 7× "星")', () => {
+        it('zh-hans narrow labels are 7 distinct characters', () => {
             const zh = DateUtils.getDaysOfWeekNarrow('zh-hans');
             const distinct = new Set(zh);
             expect(distinct.size).toBe(7);
@@ -468,13 +468,13 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('getLocalizedDatePlaceholder (deploy-blocker #80011 fix)', () => {
+    describe('getLocalizedDatePlaceholder', () => {
         it.each(['en', 'es', 'de', 'fr', 'it', 'nl', 'pl', 'pt-BR', 'ja', 'zh-hans'] as const)('%s placeholder follows locale field order and separator', (locale) => {
             const placeholder = DateUtils.getLocalizedDatePlaceholder(locale);
             expect(placeholder).toMatch(/^(MM|DD|YYYY)([./-])(MM|DD|YYYY)\2(MM|DD|YYYY)$/);
         });
 
-        it('en placeholder is MM/DD/YYYY (deploy-blocker reported YYYY-MM-DD as the bug)', () => {
+        it('en placeholder is MM/DD/YYYY', () => {
             expect(DateUtils.getLocalizedDatePlaceholder('en')).toBe('MM/DD/YYYY');
             expect(DateUtils.getLocalizedDatePlaceholder('en')).not.toBe('YYYY-MM-DD');
         });
@@ -488,7 +488,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('formatToLocalizedShortDate (DatePicker selected-value matches placeholder format)', () => {
+    describe('formatToLocalizedShortDate', () => {
         it.each([
             ['en', '01/05/2026'],
             ['de', '05.01.2026'],
@@ -497,11 +497,11 @@ describe('DateUtils', () => {
             expect(DateUtils.formatToLocalizedShortDate('2026-01-05', locale)).toBe(expected);
         });
 
-        it('never renders the canonical "yyyy-MM-dd" form to en users (the placeholder/selected-value inconsistency)', () => {
+        it('never renders the canonical "yyyy-MM-dd" form to en users', () => {
             expect(DateUtils.formatToLocalizedShortDate('2026-01-05', 'en')).not.toBe('2026-01-05');
         });
 
-        it('UTC-anchored: date-only input renders the same calendar day for every viewer timezone', () => {
+        it('date-only input renders the same calendar day for every viewer timezone', () => {
             const en = DateUtils.formatToLocalizedShortDate('2025-08-19', 'en');
             const ja = DateUtils.formatToLocalizedShortDate('2025-08-19', 'ja');
             expect(en).toContain('08');
@@ -531,7 +531,7 @@ describe('DateUtils', () => {
         );
     });
 
-    describe("getWeekStartsOn / getWeekEndsOn ('en' pinned to Monday; others via Intl)", () => {
+    describe('getWeekStartsOn / getWeekEndsOn', () => {
         it.each([
             ['en', 1, 0],
             ['es', 1, 0],
