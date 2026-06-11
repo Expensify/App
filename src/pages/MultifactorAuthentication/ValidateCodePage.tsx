@@ -50,7 +50,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const {requestCancel} = useMultifactorAuthentication();
 
     const {dispatch} = useMultifactorAuthenticationActions();
-    const {continuableError} = useMultifactorAuthenticationState();
+    const {continuableError, isCancelConfirmVisible} = useMultifactorAuthenticationState();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -198,10 +198,7 @@ function MultifactorAuthenticationValidateCodePage() {
         dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 
-    // Escape routes through the central cancel handler; returning false keeps the trap active.
-    // Outside clicks must keep the default behavior (deactivate the trap and pass through, like
-    // RHP screens): they reach the navigator's backdrop, which requests the cancel flow, and an
-    // intercepting trap would swallow every click aimed at the portal-rendered cancel-confirm modal.
+    // Escape opens the cancel confirmation; returning false keeps the trap active.
     const interceptFocusTrapEscape = () => {
         requestCancel();
         return false;
@@ -211,6 +208,9 @@ function MultifactorAuthenticationValidateCodePage() {
         <ScreenWrapper
             testID={MultifactorAuthenticationValidateCodePage.displayName}
             focusTrapSettings={{
+                // Turn the trap off while the cancel confirmation modal is up so it can't swallow
+                // the modal's clicks, and back on when it closes. See https://github.com/Expensify/App/issues/93193
+                active: isCancelConfirmVisible ? false : undefined,
                 focusTrapOptions: {
                     escapeDeactivates: interceptFocusTrapEscape,
                 },
