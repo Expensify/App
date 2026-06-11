@@ -39,6 +39,7 @@ describe('BankAccountPurpose CountrySelection', () => {
     let mockUnmountCount = 0;
 
     beforeEach(() => {
+        jest.useFakeTimers();
         mockMountCount = 0;
         mockUnmountCount = 0;
         mockedCountrySelectionList.mockClear();
@@ -77,6 +78,7 @@ describe('BankAccountPurpose CountrySelection', () => {
 
         act(() => {
             updatedSelectionProps?.onConfirm();
+            jest.runOnlyPendingTimers();
         });
 
         expect(mockedClearReimbursementAccount).toHaveBeenCalled();
@@ -85,5 +87,9 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 });
