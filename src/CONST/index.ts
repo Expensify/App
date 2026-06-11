@@ -6733,7 +6733,7 @@ const CONST = {
                     this.TABLE_COLUMNS.TITLE,
                     this.TABLE_COLUMNS.FROM,
                     this.TABLE_COLUMNS.TO,
-                    this.TABLE_COLUMNS.TOTAL,
+                    this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     this.TABLE_COLUMNS.ACTION,
                 ],
                 INVOICE: [],

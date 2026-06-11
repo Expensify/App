@@ -5826,12 +5826,12 @@ function getColumnsToShow({
             if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
-            // Expense report view: TOTAL (workspace currency) is always shown; add AMOUNT
-            // (transaction's own currency) when a conversion exists so both are visible.
+            // Expense report view: AMOUNT (transaction's own currency) is shown by default; add TOTAL
+            // (workspace currency) when a conversion exists so both are visible.
             // Search page: show ORIGINAL_AMOUNT column (transaction's original amount).
             if (hasExchangeRate) {
                 if (isExpenseReportView) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
                 } else {
                     columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 }
