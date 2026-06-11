@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,22 +30,6 @@ type ApprovalWorkflowSectionProps = {
     /** Called when the "+X more" text inside the members row is pressed — deep-links to the members list (skips the Edit RHP). */
     onShowAllMembersPress?: () => void;
 
-    /** A function that is called when the Add agent pill is pressed */
-    onAddAgentPress?: () => void;
-
-    /**
-     * Called when the X is clicked on an approver row that carries `approver.errors`. The page
-     * uses this to discard the failed optimistic agent (clears the deferred-save entry, the
-     * optimistic personal detail / prompt, and the policy-level addAgent error).
-     */
-    onDismissApproverError?: (approver: Approver) => void;
-
-    /**
-     * Whether the Add agent pill is allowed on this card. It is still gated by the
-     * customAgent beta on top of this flag.
-     */
-    canAddAgent?: boolean;
-
     /** Currency used for formatting approval limits */
     currency?: string;
 
@@ -67,25 +50,18 @@ function ApprovalWorkflowSection({
     approvalWorkflow,
     onPress,
     onShowAllMembersPress,
-    onAddAgentPress,
-    onDismissApproverError,
-    canAddAgent = false,
     currency = CONST.CURRENCY.USD,
     isDisabled = false,
     hrProviderName,
     isHRAdvancedMode = false,
     hrFinalApproverEmail,
 }: ApprovalWorkflowSectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Bot', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const shouldShowAddAgentButton = canAddAgent && isCustomAgentEnabled && !isDisabled && !!onAddAgentPress;
-
     const approverTitle = (index: number) => {
         if (isHRAdvancedMode) {
             const isLast = index === approvalWorkflow.approvers.length - 1;
@@ -179,7 +155,6 @@ function ApprovalWorkflowSection({
                         key={`approver-${approver.email || approver.accountID}-${index}`}
                         pendingAction={approver.pendingAction}
                         errors={approver.errors}
-                        onClose={approver.errors && onDismissApproverError ? () => onDismissApproverError(approver) : undefined}
                     >
                         <View>
                             <View style={styles.workflowApprovalVerticalLine} />
@@ -225,16 +200,6 @@ function ApprovalWorkflowSection({
                         accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
                     />
-                    {shouldShowAddAgentButton && (
-                        <Button
-                            small
-                            icon={icons.Bot}
-                            text={translate('workflowsPage.addAgentAction')}
-                            onPress={onAddAgentPress}
-                            accessibilityLabel={translate('workflowsPage.addAgentAction')}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
-                        />
-                    )}
                 </View>
             )}
         </View>
