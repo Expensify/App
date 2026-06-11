@@ -4,7 +4,6 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,11 +51,23 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
 
     const showSectionHeader = (!!item.isDefault && hasCustomRules) || isFirstCustomRule;
 
+    const lockIcon = item.isDefault ? (
+        <Icon
+            src={Expensicons.Lock}
+            width={variables.iconSizeNormal}
+            height={variables.iconSizeNormal}
+            fill={theme.icon}
+        />
+    ) : undefined;
+
     return (
         <>
             {!!showSectionHeader && (
                 <View style={[styles.mh5, styles.pv2, styles.ph3, rowIndex !== 0 && styles.mt3]}>
-                    <Text style={[styles.textMicroSupporting, styles.textSupporting]}>{item.isDefault ? 'Default' : 'Custom rules'}</Text>
+                    <TextWithTooltip
+                        text={item.isDefault ? 'Default' : 'Custom rules'}
+                        style={[styles.textMicroSupporting]}
+                    />
                 </View>
             )}
             <Table.Row
@@ -68,20 +79,13 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
                 offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false}}
                 onPress={item.action}
+                checkboxReplacementElement={lockIcon}
             >
                 {({hovered}) => (
                     <>
                         {shouldUseNarrowTableLayout && (
                             <View style={[styles.flex1, styles.justifyContentCenter]}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!!item.isDefault && (
-                                        <Icon
-                                            src={Expensicons.Lock}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
-                                            fill={theme.icon}
-                                        />
-                                    )}
                                     <Badge
                                         text={item.actionLabel}
                                         badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
@@ -105,23 +109,13 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
 
                         {!shouldUseNarrowTableLayout && (
                             <View style={[styles.justifyContentCenter]}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!!item.isDefault && (
-                                        <Icon
-                                            src={Expensicons.Lock}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
-                                            fill={theme.icon}
-                                        />
-                                    )}
-                                    <Badge
-                                        text={item.actionLabel}
-                                        badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
-                                        error={item.isBlock}
-                                        success={!item.isBlock}
-                                        isCondensed
-                                    />
-                                </View>
+                                <Badge
+                                    text={item.actionLabel}
+                                    badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
+                                    error={item.isBlock}
+                                    success={!item.isBlock}
+                                    isCondensed
+                                />
                             </View>
                         )}
 
