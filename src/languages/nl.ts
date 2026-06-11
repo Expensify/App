@@ -296,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Beschrijving',
         title: 'Titel',
         assignee: 'Toegewezene',
-        createdBy: 'Gemaakt door',
         with: 'met',
         shareCode: 'Code delen',
         share: 'Delen',
@@ -7341,6 +7340,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
                 describeRuleTitle: 'Beschrijf je regel',
                 describeRuleSubtitle: 'Beschrijf je regel en Concierge maakt hem voor je',
+                disclaimer: 'AI-agents kunnen fouten maken.',
             },
         },
         planTypePage: {
@@ -8019,21 +8019,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `heeft het standaardbelastingtarief van de categorie "${categoryName}" gewijzigd naar "${newTax}" (voorheen "${oldTax}")`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `tarief "${rateName}" van ${rateValue} toegevoegd, geldig vanaf ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd, geldig tot ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `heeft tarief "${rateName}" van ${rateValue} toegevoegd, geldig van ${startDate} - ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `startdatum van tarief "${rateName}" bijgewerkt naar ${newDate} (voorheen ${oldDate})` : `startdatum van tarief "${rateName}" instellen op ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `einddatum van tarief "${rateName}" bijgewerkt naar ${newDate} (voorheen ${oldDate})` : `einddatum van tarief "${rateName}" instellen op ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `start- en einddatum van tarief "${rateName}" bijgewerkt naar ${newStartDate} - ${newEndDate} (voorheen ${oldStartDate} - ${oldEndDate})`
-                : `start- en einddatum van tarief "${rateName}" ingesteld op ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `startdatum verwijderd van tarief "${rateName}" (voorheen ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `einddatum verwijderd van tarief "${rateName}" (voorheen ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `heeft het kilometertarief "${rateName}" bijgewerkt zodat het geldt van ${newDateRange} (voorheen ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `vanaf ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `tot ${date}`,
+        customUnitRateDateRangeAllDates: () => `voor alle data`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

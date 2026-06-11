@@ -251,7 +251,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Descripción',
         title: 'Título',
         assignee: 'Asignado a',
-        createdBy: 'Creado por',
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
@@ -7278,6 +7277,7 @@ ${amount} para ${merchant} - ${date}`,
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
+                disclaimer: 'Los agentes de IA pueden cometer errores.',
             },
         },
         emptyDomain: {
@@ -7766,6 +7766,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `cambió la tasa de impuesto predeterminada de la categoría "${categoryName}" a "${newTax}" (previamente "${oldTax}")`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `cambió la categoría de gasto predeterminada para "${mccGroupName}" a "${newCategory}" (previamente "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
@@ -7860,18 +7862,12 @@ ${amount} para ${merchant} - ${date}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida hasta ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `añadió la tasa "${rateName}" de ${rateValue}, válida del ${startDate} al ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `actualizó la fecha de inicio de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})` : `establecer la fecha de inicio de la tasa "${rateName}" a ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate
-                ? `actualizó la fecha de finalización de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})`
-                : `establecer la fecha de finalización de la tasa "${rateName}" en ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `actualizó la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate} (previamente ${oldStartDate} - ${oldEndDate})`
-                : `establece la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `se eliminó la fecha de inicio de la tasa "${rateName}" (previamente ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `eliminó la fecha de finalización de la tasa «${rateName}» (previamente ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `actualizó la tasa de distancia «${rateName}» para aplicar ${newDateRange} (previamente ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
+        customUnitRateDateRangeAllDates: () => `para todas las fechas`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

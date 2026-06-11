@@ -296,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Opis',
         title: 'Tytuł',
         assignee: 'Osoba przypisana',
-        createdBy: 'Utworzone przez',
         with: 'z',
         shareCode: 'Udostępnij kod',
         share: 'Udostępnij',
@@ -7334,6 +7333,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
                 describeRuleTitle: 'Opisz swoją regułę',
                 describeRuleSubtitle: 'Opisz swoją regułę, a Concierge ją utworzy',
+                disclaimer: 'Agenci AI mogą popełniać błędy.',
             },
         },
         planTypePage: {
@@ -8011,22 +8011,20 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} z ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `zmienił(a) domyślną stawkę podatku dla kategorii „${categoryName}” na „${newTax}” (wcześniej „${oldTax}”)`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `dodano stawkę „${rateName}” w wysokości ${rateValue}`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) =>
             `dodano stawkę „${rateName}” w wysokości ${rateValue}, obowiązującą od ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `dodano stawkę „${rateName}” w wysokości ${rateValue}, obowiązującą do ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `dodano stawkę „${rateName}” w wysokości ${rateValue}, obowiązującą od ${startDate} do ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `zaktualizowano datę rozpoczęcia stawki „${rateName}” na ${newDate} (wcześniej ${oldDate})` : `ustaw datę rozpoczęcia stawki „${rateName}” na ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `zaktualizowano datę końcową stawki „${rateName}” na ${newDate} (wcześniej ${oldDate})` : `ustaw datę zakończenia stawki „${rateName}” na ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `zaktualizowano datę początkową i końcową stawki „${rateName}” na ${newStartDate} – ${newEndDate} (wcześniej ${oldStartDate} – ${oldEndDate})`
-                : `ustaw początkową i końcową datę stawki „${rateName}” na ${newStartDate} – ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `usunięto datę początkową ze stawki „${rateName}” (wcześniej ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `usunięto datę zakończenia ze stawki „${rateName}” (wcześniej ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `zaktualizowano stawkę za dystans „${rateName}”, aby obowiązywała ${newDateRange} (wcześniej ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `od ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `do ${date}`,
+        customUnitRateDateRangeAllDates: () => `dla wszystkich dat`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

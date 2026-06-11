@@ -311,7 +311,6 @@ const translations = {
         description: 'Description',
         title: 'Title',
         assignee: 'Assignee',
-        createdBy: 'Created by',
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
@@ -7491,6 +7490,7 @@ const translations = {
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 describeRuleTitle: 'Describe your rule',
                 describeRuleSubtitle: 'Describe your rule and Concierge will build it',
+                disclaimer: 'AI agents can make mistakes.',
             },
         },
         planTypePage: {
@@ -7730,16 +7730,12 @@ const translations = {
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'enabled' : 'disabled'} the ${customUnitName} rate "${customUnitRateName}"`;
         },
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `updated start date of "${rateName}" rate to ${newDate} (previously ${oldDate})` : `set start date of "${rateName}" rate to ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `updated end date of "${rateName}" rate to ${newDate} (previously ${oldDate})` : `set end date of "${rateName}" rate to ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `updated start and end date of "${rateName}" rate to ${newStartDate} - ${newEndDate} (previously ${oldStartDate} - ${oldEndDate})`
-                : `set start and end date of "${rateName}" rate to ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `removed start date from "${rateName}" rate (previously ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `removed end date from "${rateName}" rate (previously ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `updated the distance rate "${rateName}" to apply ${newDateRange} (previously ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `from ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `until ${date}`,
+        customUnitRateDateRangeAllDates: () => `for all dates`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `added the option "${optionName}" to the report field "${fieldName}"`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `removed the option "${optionName}" from the report field "${fieldName}"`,
@@ -8023,6 +8019,8 @@ const translations = {
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `changed the auto-pay approved reports threshold to "${newLimit}" (previously "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'removed the auto-pay approved reports threshold',
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `changed the "${categoryName}" category default tax rate to "${newTax}" (previously "${oldTax}")`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `changed the default spend category for "${mccGroupName}" to "${newCategory}" (previously "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
