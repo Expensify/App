@@ -372,6 +372,23 @@ function SearchList({
         }
     }, [longPressedItem, toggle, longPressedItemTransactions]);
 
+    // In mobile selection mode a row tap toggles selection. This must live here (not in <Search>) because
+    // <Search> renders SearchWriteActionsProvider as its child, so the `toggle` it reads is the default no-op;
+    // SearchList sits inside the provider and gets the real one.
+    const handleSelectRow = useCallback(
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            if (isMobileSelectionModeEnabled) {
+                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return;
+                }
+                toggle(item);
+                return;
+            }
+            onSelectRow(item, transactionPreviewData, event);
+        },
+        [isMobileSelectionModeEnabled, toggle, onSelectRow],
+    );
+
     /**
      * Scrolls to the desired item index in the section list
      *
@@ -434,7 +451,7 @@ function SearchList({
                     <ListItem
                         showTooltip
                         isFocused={isItemFocused}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={handleSelectRow}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         onSelectionButtonPress={toggle}
                         canSelectMultiple={canSelectMultiple}
@@ -468,7 +485,7 @@ function SearchList({
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
-            onSelectRow,
+            handleSelectRow,
             handleLongPressRow,
             handleLongPressRowInMobileSelectionMode,
             isMobileSelectionModeEnabled,
@@ -518,7 +535,7 @@ function SearchList({
             <BaseSearchList
                 data={data}
                 renderItem={renderItem}
-                onSelectRow={onSelectRow}
+                onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
