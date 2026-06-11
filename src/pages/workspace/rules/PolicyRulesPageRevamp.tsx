@@ -67,7 +67,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMerge']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'Document']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
@@ -167,7 +167,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         {
             key: RULES_TAB.EXPENSE_DEFAULTS,
             title: translate('workspace.rules.tabs.expenseDefaults'),
-            icon: icons.DocumentMerge,
+            icon: icons.Document,
         },
     ];
 
@@ -211,11 +211,15 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const cardRulesEmptyState = useMemo(
         () => (
             <View style={[styles.flex1, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius, styles.alignItemsCenter, styles.justifyContentCenter, styles.pv8, styles.ph5]}>
-                <View style={[styles.alignItemsCenter, {maxWidth: 496}, styles.overflowHidden]}>
+                <View style={[styles.alignItemsCenter, {maxWidth: variables.cardRulesEmptyStateMaxWidth}, styles.overflowHidden]}>
                     <ImageSVG
                         src={illustrations.ExpensifyCardCoins}
                         contentFit="contain"
-                        style={styles.expensifyCardIllustrationContainer}
+                        style={{
+                            width: '100%',
+                            maxWidth: variables.cardRulesEmptyStateIllustrationWidth,
+                            aspectRatio: variables.cardRulesEmptyStateIllustrationWidth / variables.cardRulesEmptyStateIllustrationHeight,
+                        }}
                     />
                     <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
                     <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}</Text>

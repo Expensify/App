@@ -306,6 +306,9 @@ export default {
     distanceScrollEventThrottle: 16,
 
     cardPreviewHeight: 148,
+    cardRulesEmptyStateIllustrationWidth: 372,
+    cardRulesEmptyStateIllustrationHeight: 196,
+    cardRulesEmptyStateMaxWidth: 496,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
