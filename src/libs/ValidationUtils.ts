@@ -910,5 +910,3 @@ export {
     isValidPIN,
     containsHtmlTag,
 };
-
-export type {CountryZipRegex};
