@@ -17,7 +17,7 @@ type CenteredModalLayoutProps = {
     width?: number;
 
     /**
-     * Height of the inner card. Defaults to '64%' on narrow and featureTrainingModalHeight on wide.
+     * Height of the inner card. Defaults to '65%' on narrow and featureTrainingModalHeight on wide.
      */
     height?: DimensionValue;
 

@@ -20,7 +20,6 @@ function ExplanationModalScreen() {
         <ScreenWrapper
             testID="ExplanationModal"
             style={styles.flex1}
-            includeSafeAreaPaddingBottom={false}
             includePaddingTop={false}
         >
             <FeatureTrainingContent

@@ -6587,14 +6587,12 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
             const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
-            const defaultHeight: DimensionValue = shouldUseNarrowLayout ? '64%' : variables.featureTrainingModalHeight;
 
             return {
                 width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
-                height: height ?? defaultHeight,
+                height: height ?? (shouldUseNarrowLayout ? '65%' : variables.featureTrainingModalHeight),
                 maxHeight: '100%',
                 paddingTop: shouldUseNarrowLayout ? 8 : undefined,
-                paddingBottom: shouldUseNarrowLayout ? 20 : undefined,
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderBottomRightRadius: borderBottomRadius,
                 borderBottomLeftRadius: borderBottomRadius,
