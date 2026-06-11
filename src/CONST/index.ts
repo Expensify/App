@@ -259,6 +259,7 @@ const CONST = {
     COMPOSER_FOCUS_DELAY: 150,
     MAX_TRANSITION_DURATION_MS: 1000,
     MAX_TRANSITION_START_WAIT_MS: 1000,
+    EXPENSE_REPORT_DELETE_DELAY_MS: 300,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -2997,6 +2998,7 @@ const CONST = {
         REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
+        COMPANY: 'company',
     },
 
     CERTINIA_EXPORT_STATUS: {
@@ -4284,6 +4286,12 @@ const CONST = {
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
+        RATE_STATUS: {
+            ACTIVE: 'active',
+            FUTURE: 'future',
+            EXPIRED: 'expired',
+            INACTIVE: 'inactive',
+        },
         RATE_FIELD: {
             START_DATE: 'startDate',
             END_DATE: 'endDate',
@@ -8454,6 +8462,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
             },
             DISTANCE_RATES: {
+                ROW: 'WorkspaceDistanceRates-Row',
                 ADD_BUTTON: 'WorkspaceDistanceRates-AddButton',
                 MORE_DROPDOWN: 'WorkspaceDistanceRates-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',

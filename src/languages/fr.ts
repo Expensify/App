@@ -1,7 +1,6 @@
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
- * / (_ / -_) _ \/ -_) __/ _ \`/ __/ -_) _  /
  * \___/\__/_//_/\__/_/  \_,_/\__/\__/\_,_/
  *
  * This file was automatically generated. Please consider these alternatives before manually editing it:
@@ -294,7 +293,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Description',
         title: 'Titre',
         assignee: 'Attribué',
-        createdBy: 'Créé par',
         with: 'avec',
         shareCode: 'Partager le code',
         share: 'Partager',
@@ -1572,6 +1570,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'supprimé',
         transactionPending: 'Transaction en attente.',
         chooseARate: 'Sélectionnez un taux de remboursement par mile ou kilomètre pour l’espace de travail',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} au ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Valide à partir du ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Valide jusqu’au ${endDate}`,
         unapprove: 'Annuler l’approbation',
         unapproveReport: 'Retirer l’approbation de la note de frais',
         headsUp: 'Attention !',
@@ -6730,6 +6731,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             }),
             enableRate: 'Activer le taux',
             status: 'Statut',
+            statusActive: 'Actif',
+            statusFuture: 'Futur',
+            statusExpired: 'Expiré',
+            statusInactive: 'Inactif',
             unit: 'Unité',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Les taxes doivent être activées sur l’espace de travail pour utiliser cette fonctionnalité. Rendez-vous dans <a href="#">Plus de fonctionnalités</a> pour effectuer cette modification.</muted-text>',
@@ -7390,6 +7395,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
                 describeRuleTitle: 'Décrivez votre règle et Concierge la créera.',
+                disclaimer: 'Les agents IA peuvent faire des erreurs.',
             },
         },
         planTypePage: {
