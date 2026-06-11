@@ -357,7 +357,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                             width={48}
                             height={48}
                         />
-                        <Text style={[styles.textStrong]}>{item.title}</Text>
+                        <Text>{item.title}</Text>
                     </View>
                     <Checkbox
                         accessibilityLabel={item.title}
@@ -376,7 +376,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         (section: SectionObject) => (
             <Section
                 key={section.titleTranslationKey}
-                containerStyles={[styles.p0, styles.mh0, styles.bgTransparent, styles.noBorderRadius]}
+                containerStyles={[styles.p0, styles.mh0, styles.bgTransparent, styles.noBorderRadius, styles.borderNone]}
                 childrenStyles={[styles.flexRow, styles.flexWrap, styles.gap3]}
                 renderTitle={() => <Text style={[styles.mutedNormalTextLabel, styles.mb3]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>}
                 subtitleMuted

@@ -68,7 +68,7 @@ function FreeTrialSection() {
     return (
         <WidgetContainer
             title={title}
-            containerStyles={{backgroundColor: theme.trialBannerBackgroundColor}}
+            containerStyles={{backgroundColor: theme.trialBannerBackgroundColor, borderColor: theme.trialBannerBackgroundColor}}
         >
             <PressableWithoutFeedback
                 accessibilityLabel={bodyText}

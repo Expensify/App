@@ -44,7 +44,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
                         <View
                             style={[
                                 StyleUtils.getSelectionButtonContainerStyle(variables.iconSizeNormal, variables.componentBorderRadiusSmall, 1),
-                                {backgroundColor: theme.icon, borderColor: theme.icon},
+                                {backgroundColor: theme.success, borderColor: theme.success},
                             ]}
                         >
                             <Icon
@@ -61,7 +61,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
                             accessibilityLabel={item.label}
                         />
                     )}
-                    <Text style={[styles.flex1, styles.textBold, item.isComplete && {color: theme.textSupporting}]}>{item.label}</Text>
+                    <Text style={[styles.flex1, item.isComplete && {color: theme.textSupporting}]}>{item.label}</Text>
                     {!item.isComplete && (
                         <Icon
                             src={icons.ArrowRight}

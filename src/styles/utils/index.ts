@@ -1628,7 +1628,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         backgroundColor: theme.componentBG,
         height: size,
         width: size,
-        borderColor: theme.bordersBold,
+        borderColor: theme.border,
         borderWidth,
         justifyContent: 'center',
         alignItems: 'center',

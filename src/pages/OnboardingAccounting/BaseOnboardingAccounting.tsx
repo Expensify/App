@@ -210,7 +210,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     labelElement={
                         <View style={[styles.alignItemsCenter, styles.flexRow]}>
                             {item.leftElement}
-                            <Text style={styles.textStrong}>{item.text}</Text>
+                            <Text>{item.text}</Text>
                         </View>
                     }
                     shouldBlendOpacity

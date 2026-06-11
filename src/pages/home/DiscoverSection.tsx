@@ -82,7 +82,6 @@ function DiscoverSection() {
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={isCurrentUserPolicyAdmin ? translate('homePage.discoverSection.menuItemTitleAdmin') : translate('homePage.discoverSection.menuItemTitleNonAdmin')}
-                titleStyle={styles.textBold}
                 description={translate('homePage.discoverSection.menuItemDescription')}
                 onPress={handlePress}
                 style={shouldUseNarrowLayout ? styles.mb2 : styles.mb5}

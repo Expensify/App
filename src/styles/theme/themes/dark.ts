@@ -68,7 +68,7 @@ const darkTheme = {
     textError: colors.red,
     offline: colors.productDark700,
     modalBackground: colors.productDark100,
-    cardBG: colors.productDark200,
+    cardBG: colors.productDark100,
     cardBorder: colors.productDark200,
     spinner: colors.productDark800,
     unreadIndicator: colors.green400,

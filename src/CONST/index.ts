@@ -2315,6 +2315,11 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    INBOX_TAB: {
+        ALL: 'all',
+        TODO: 'todo',
+        UNREAD: 'unread',
+    },
     THEME: {
         DEFAULT: 'system',
         FALLBACK: 'dark',
