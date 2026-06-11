@@ -49,6 +49,13 @@ type SearchTypeMenuNarrowContentProps = {
     children?: React.ReactNode;
 };
 
+function getNarrowActiveTabKey(activeSavedSearchKey: string, activeTypeMenuKey?: string): string {
+    if (activeSavedSearchKey !== '') {
+        return activeSavedSearchKey;
+    }
+    return activeTypeMenuKey ?? '';
+}
+
 function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchTypeMenuNarrowContentProps) {
     const styles = useThemeStyles();
 
@@ -143,7 +150,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
     const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
-    let activeKey = '';
+    let activeSavedSearchKey = '';
 
     const savedSearchesTabItems: TabSelectorBaseItem[] = savedSearches
         ? Object.entries(savedSearches)
@@ -165,7 +172,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                   });
 
                   if (Number(key) === queryJSON?.hash) {
-                      activeKey = key;
+                      activeSavedSearchKey = key;
                   }
 
                   return {
@@ -194,12 +201,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     badgeText,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
-                if (item.key === activeTypeMenuKey) {
-                    activeKey = item.key;
-                }
             }
         }
     }
+    const activeKey = getNarrowActiveTabKey(activeSavedSearchKey, activeTypeMenuKey);
 
     const popoverMenuItems = savedSearchToModifyKey ? savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] : [];
     const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
@@ -271,6 +276,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     );
 }
 
-export {SearchTypeMenuNarrowContent};
+export {getNarrowActiveTabKey, SearchTypeMenuNarrowContent};
 export default SearchTypeMenuNarrow;
 export type {SearchTypeMenuNarrowProps};
