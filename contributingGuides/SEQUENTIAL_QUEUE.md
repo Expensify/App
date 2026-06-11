@@ -48,7 +48,7 @@ This is an observational reference. Where current behavior diverges from apparen
 ┌────────────────────────────────────────────────────────────┐
 │ API.index — prepareRequest                                   │
 │  • apply optimisticData to Onyx (UI updates NOW)             │
-│  • evaluate conflictResolver #1 (read-only: suppress optim.?)│
+│  • evaluate conflictResolver #1 (read-only: skip optimistic?)│
 │  • stamp requestIndex++  (per-tab counter; requestID legacy) │
 │  • strip optimisticData from the persisted request           │
 └───────────────┬──────────────────────────────────────────────┘
@@ -128,7 +128,7 @@ This is the connective narrative — how the blocks interact at runtime for a si
 The persisted queue exists so an interrupted WRITE survives an app kill. The pieces are described across the blocks below; here is the one cold-start path that strings them together.
 
 1. **Disk load.** On startup, the `PERSISTED_REQUESTS` and `PERSISTED_ONGOING_REQUESTS` connect callbacks hydrate the in-memory mirror — `persistedRequests` from the array, `ongoingRequest` from the single key.
-2. **Head dedup.** If the app was killed _after_ a request was promoted to `ongoingRequest` but _before_ it was removed, the same request can sit both as `ongoingRequest` and as the head of the array. The init path strips the array head when it `deepEqual`s the rehydrated `ongoingRequest` — this is the reason that structural dedup exists.
+2. **Head dedupe.** If the app was killed _after_ a request was promoted to `ongoingRequest` but _before_ it was removed, the same request can sit both as `ongoingRequest` and as the head of the array. The init path strips the array head when it `deepEqual`s the rehydrated `ongoingRequest` — this is the reason that structural dedupe exists.
 3. **Flush.** `onPersistedRequestsInitialization` fires `flush()` once there is recovered work (and, separately, `Network/index` fires a startup flush gated on `ActiveClientManager.isReady()`, so the leader gate is meaningful on the first drain). The registered callback is not startup-only: the `PERSISTED_ONGOING_REQUESTS` connect callback re-fires it post-init whenever a *new* ongoing request appears (e.g. observed from another tab) — see [Inbound Consumers](#inbound-consumers-who-calls-the-queue).
 4. **Re-drive.** `processNextRequest` sees a non-null `ongoingRequest` and returns it directly (rather than promoting a new head), so the **same** interrupted request is re-sent.
 
@@ -150,7 +150,7 @@ Each block is described as **the problem it solves → how it works today → sh
 **Problem it solves.** Serialize every WRITE so requests reach the server one at a time, in submission order, exactly once — with automatic retry on transient failure and correct ordering of dependent READs.
 
 **How it works today.**
-- **Single-flight.** `isSequentialQueueRunning` is the re-entrancy guard: set at the top of `flush()` after the guards pass, cleared in `process().finally`. While set, new pushes defer rather than start a parallel drain.
+- **Single-flight.** `isSequentialQueueRunning` is the re-entry guard: set at the top of `flush()` after the guards pass, cleared in `process().finally`. While set, new pushes defer rather than start a parallel drain.
 - **`push()` dispatch.** As above: offline → persist only; running → defer behind `isReadyPromise.then(flush)`; idle → `flush(true)`. `push` returns the disk-persistence promise but **does not await it** — the queue fires off the synchronous in-memory state.
 - **`flush()` guards, in order.** `isQueuePaused` → `isOfflineNetwork()` → `isSequentialQueueRunning` → all-empty → `!isClientTheLeader()`. The all-empty guard is three-legged — no queued requests, no `ongoingRequest`, **and** an empty `QueuedOnyxUpdates` buffer — so `flush()` doubles as the drain path for buffered updates on a request-empty queue. Leadership is checked **exactly once**, before the running flag flips; the recursive `process()` chain re-checks only `isQueuePaused` and `isOfflineNetwork()`, never leadership.
 - **`process()` recursion.** Pull the next request, run middleware, on success recurse; the recursion terminates when the queue and ongoing request are both empty.
@@ -169,7 +169,7 @@ Each block is described as **the problem it solves → how it works today → sh
 - **The ongoing-request model.** `processNextRequest` captures the head as a **local** reference, sets `ongoingRequest`, trims the queue (`slice(1)`), and writes **both keys in a single atomic `Onyx.multiSet`** — so a crash cannot leave the request both "in the queue" and "ongoing." `rollbackOngoingRequest` and `endRequestAndRemoveFromQueue` likewise update both keys together.
 - **Why `processNextRequest` returns the local reference.** Onyx's post-`multiSet` callback fires synchronously and would overwrite the module-level `ongoingRequest` with a JSON-serialized copy — which strips `File`/`Blob` payloads. Returning the captured local reference preserves the live objects for the request about to run. (The `knownOngoingRequestIDs` own-write guard ignores that echo for requests carrying a `requestIndex` — the local-ref return is load-bearing for those without one.)
 - **File/Blob _ongoing_ requests are not durably persisted.** `shouldPersistOngoingRequest` returns false when any value in `request.data` is a `File`/`Blob`, so `null` is written to `PERSISTED_ONGOING_REQUESTS` and the live object is kept only in the in-memory `ongoingRequest` mirror (a `File`/`Blob` cannot be structured-cloned to survive a restart anyway). Note this null-out guard applies **only to the ongoing key** — the `PERSISTED_REQUESTS` array writes the full request, File/Blob included; IndexedDB can store it on web, while SQLite reduces it to `{}` on native. See [Where the request actually hits disk](#where-the-request-actually-hits-disk-and-where-it-doesnt).
-- **Structural removal.** `endRequestAndRemoveFromQueue` and the init-time dedup match by `deepEqual` (structural), **not** by `requestID`. `requestID` matching is used only for cross-tab merge and leader-deletion reconciliation (via `knownRequestIDs`).
+- **Structural removal.** `endRequestAndRemoveFromQueue` and the init-time dedupe match by `deepEqual` (structural), **not** by `requestID`. `requestID` matching is used only for cross-tab merge and leader-deletion reconciliation (via `knownRequestIDs`).
 - **`getLength()` counts the ongoing request.** It returns the array length plus one when `ongoingRequest` is non-null, so `getLength() === 0` means the queue is truly idle — `API.index` reads this to decide whether a READ must wait for writes.
 
 ### Why in-memory is authoritative
@@ -227,7 +227,7 @@ push()  (online · idle · no conflict)
 |---|---|---|---|
 | Enqueue | `save()` | `PERSISTED_REQUESTS` | No — returned as `persistencePromise`, not awaited before `flush()` |
 | Promote head → ongoing | `processNextRequest()` | both (atomic `multiSet`) | No — fire-and-forget |
-| Success / non-retriable drop | `endRequestAndRemoveFromQueue()` | both (atomic `multiSet`) | No — fire-and-forget |
+| Success / non-retryable drop | `endRequestAndRemoveFromQueue()` | both (atomic `multiSet`) | No — fire-and-forget |
 | Retryable failure | `rollbackOngoingRequest()` | both (atomic `multiSet`) | No — fire-and-forget |
 | Conflict REPLACE | `update()` | `PERSISTED_REQUESTS` | **Yes** — `handleConflictActions` awaits it |
 | Conflict DELETE | `deleteRequestsByIndices()` | `PERSISTED_REQUESTS` | **Yes** — `handleConflictActions` awaits it |
@@ -251,7 +251,7 @@ push()  (online · idle · no conflict)
 **How it works today.**
 - **`getRequestWaitTime`** seeds the first wait with a random jitter in `[MIN_RETRY_WAIT_TIME_MS, MAX_RANDOM_RETRY_WAIT_TIME_MS]` = `[10, 100]` ms, then **doubles** the prior wait on each retry, capped at `MAX_RETRY_WAIT_TIME_MS` (10 s).
 - **`sleep`** increments the retry count and picks the cap — `MAX_OPEN_APP_REQUEST_RETRIES` (2) for the `OPEN_APP` command, else `MAX_REQUEST_RETRIES` (10). Within the cap it resolves after the wait; once exceeded it **rejects with no argument** — this argument-less rejection is the give-up signal that `process()`'s catch consumes.
-- **`clear`** resets the wait, the retry count, and any pending timeout — called on success and on any non-retriable outcome.
+- **`clear`** resets the wait, the retry count, and any pending timeout — called on success and on any non-retryable outcome.
 - The queue uses a single shared instance, `sequentialQueueRequestThrottle`.
 
 **Sharp edges.**
@@ -271,7 +271,7 @@ These are **two distinct deferral mechanisms** that are easy to confuse.
 **How `queueFlushedData` works.** It is a **distinct, Onyx-persisted** buffer (`QUEUE_FLUSHED_DATA`), separate from the in-memory `QueuedOnyxUpdates`. `SequentialQueue.saveQueueFlushedData` appends a successfully-processed request's `queueFlushedData` field; the queue applies it via `Onyx.update` and clears it only when fully drained (after `flushOnyxUpdatesQueue`). Its sole producer is `App.getOnyxDataForOpenOrReconnect` (`OPEN_APP` / `ReconnectApp`), currently carrying exactly one entry: a merge of `HAS_LOADED_APP = true`.
 
 **Sharp edges.**
-- Both apply **only** when the queue reaches fully-empty. Under sustained WRITE pressure neither applies, so `HAS_LOADED_APP` stays unflipped and the buffers accumulate.
+- Both apply **only** when the queue reaches fully-empty. Under sustained WRITE pressure neither applies, so `HAS_LOADED_APP` never flips and the buffers accumulate.
 - The application chain in the drain-end `process().finally` has no `.catch` — a failed `Onyx.update` silently skips the subsequent clear.
 
 ## Public Contract (the API layer)
@@ -304,7 +304,7 @@ The blocks above describe what the queue does; this is the inbound surface — w
 - The `PERSISTED_ONGOING_REQUESTS` connect callback — post-init, when a **new** ongoing request appears (e.g. observed from another tab), it re-fires the registered initialization callback, which is `flush`.
 - `Reconnect` — on **two** edges: the offline→online `NetworkState` transition and the app-became-active listener. Both are deliberately decoupled from `reconnect()`'s data-sync (`openApp`/`reconnectApp`), which never flushes.
 - `Network/index` startup — `ActiveClientManager.isReady().then(flush)`, the primary "drain whatever survived the last session, once we know who the leader is" trigger.
-- The **native background-fetch wakeup** (`backgroundTask`), which flushes on a native scheduler tick.
+- The **native background-fetch wake-up** (`backgroundTask`), which flushes on a native scheduler tick.
 
 **Two ordering gates (don't conflate them):**
 
@@ -327,13 +327,13 @@ The blocks above describe what the queue does; this is the inbound surface — w
 
 | Variable | Meaning | Set where | Cleared where | Invariant |
 |---|---|---|---|---|
-| `isSequentialQueueRunning` | Single-flight / re-entrancy guard | top of `flush()` after guards pass | `process().finally` | At most one drain in progress per tab |
+| `isSequentialQueueRunning` | Single-flight / re-entry guard | top of `flush()` after guards pass | `process().finally` | At most one drain in progress per tab |
 | `currentRequestPromise` | The in-flight `process()` chain (for `getCurrentRequest`) | start of the process chain | the drain-end `process().finally` (set to `null`) | Non-null only while a request is in flight |
 | `isQueuePaused` | **Overloaded:** offline pause **or** `shouldPauseQueue` data-gap sync | `pause()` / a `shouldPauseQueue` response | `unpause()` / `resetQueue()` | While true, nothing is processed |
 | `isReadyPromise` / `resolveIsReadyPromise` | One-shot gate READs block on (READ-after-WRITE ordering) | resolved at module load; **reset** in `flush(true)` | resolved in `finally` (offline or empty) | A READ may proceed only when no WRITE it must follow is pending |
 | `shouldFailAllRequests` | Sticky `NETWORK`-key flag → erroring requests are failed and dropped | `NETWORK` Onyx callback | `NETWORK` Onyx callback | Test/debug only |
 | `queueFlushedDataToStore` | In-memory mirror of `QUEUE_FLUSHED_DATA` | the `QUEUE_FLUSHED_DATA` connect-callback echo of `saveQueueFlushedData`'s `Onyx.set` | `clearQueueFlushedData` | Applied only on full drain |
-| `sequentialQueueRequestThrottle` | Shared backoff state (wait time, retry count, pending timeout) | `sleep()` on each generic-error retry | `clear()` on success and every non-retriable outcome | Backoff state never survives a settled request |
+| `sequentialQueueRequestThrottle` | Shared backoff state (wait time, retry count, pending timeout) | `sleep()` on each generic-error retry | `clear()` on success and every non-retryable outcome | Backoff state never survives a settled request |
 
 ### Why `isReadyPromise` resolves on offline, not on paused
 
@@ -436,7 +436,7 @@ Three concerns cut across every block.
 
 **Sharp edges.**
 - **Index fragility.** `replace`/`delete` carry **numeric indices** computed by the resolver at `push` time, but `handleConflictActions` applies them **asynchronously** (awaiting between positional operations). Meanwhile `processNextRequest` (`slice(1)`), `endRequestAndRemoveFromQueue` (splice), and cross-tab merges can shift indices. An index computed against one snapshot may point at a different request by the time it is applied.
-- **Conflict checking sees only the queue, never the in-flight `ongoingRequest`** — a new write cannot dedup against a request that is already being sent.
+- **Conflict checking sees only the queue, never the in-flight `ongoingRequest`** — a new write cannot dedupe against a request that is already being sent.
 - The resolver is expected to be pure, but production resolvers are not: `resolveCommentDeletionConflicts` performs an `Onyx.update`, and because `prepareRequest` invokes the **same** closure, the side effect fires on **both** evaluations (twice per write; an idempotent merge today). `resolveEditCommentWithNewAddCommentRequest` goes further and mutates the queued request's `data` in place during evaluation.
 
 ---
