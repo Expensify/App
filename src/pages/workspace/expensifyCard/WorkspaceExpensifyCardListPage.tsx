@@ -101,7 +101,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         />
     );
 
-    const settlementCurrency = useCurrencyForExpensifyCard({policyID});
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID});
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
