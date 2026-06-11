@@ -4976,49 +4976,173 @@ const FILTER_TO_SYNTAX_KEY: Partial<Record<SearchAdvancedFiltersKey, Exclude<Sea
     [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
 };
 
-const FILTER_LABEL_MAP = {
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE]: 'task.assignee',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: 'iou.attendees',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE]: 'search.filters.billable',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID]: 'common.card',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: 'common.category',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]: 'common.currency',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: 'common.description',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE]: 'search.expenseType',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: 'search.exportedTo',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: 'search.filters.feed',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: 'common.from',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]: 'common.groupCurrency',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]: 'search.has',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IN]: 'common.in',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IS]: 'search.filters.is',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'search.filters.keyword',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'common.merchant',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: 'workspace.common.workspace',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY]: 'search.filters.purchaseCurrency',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE]: 'common.reimbursable',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]: 'common.reportID',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: 'common.status',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: 'common.tag',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: 'workspace.taxes.taxRate',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]: 'common.type',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: 'common.to',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE]: 'common.title',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID]: 'common.withdrawalID',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS]: 'common.withdrawalStatus',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]: 'search.withdrawalType',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: 'iou.amount',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: 'common.purchaseAmount',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL]: 'common.total',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: 'common.date',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED]: 'search.filters.approved',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: 'search.filters.submitted',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID]: 'search.filters.paid',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED]: 'search.filters.exported',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]: 'search.filters.posted',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN]: 'search.filters.withdrawn',
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD]: 'workspace.common.reportField',
-} satisfies Partial<Record<SyntaxFilterKey, TranslationPaths>>;
+type FilterView = {
+    labelKey: TranslationPaths;
+    icon: ExpensifyIconName;
+};
+
+const FILTER_VIEW_MAP = {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE]: {
+        labelKey: 'task.assignee',
+        icon: 'UserCheck',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: {
+        labelKey: 'iou.attendees',
+        icon: 'Users',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE]: {
+        labelKey: 'search.filters.billable',
+        icon: 'Paycheck',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID]: {
+        labelKey: 'common.card',
+        icon: 'CreditCard',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: {
+        labelKey: 'common.category',
+        icon: 'Folder',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]: {
+        labelKey: 'common.currency',
+        icon: 'MoneyCircle',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: {
+        labelKey: 'common.description',
+        icon: 'Document',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE]: {
+        labelKey: 'search.expenseType',
+        icon: 'ExpenseCopy',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: {
+        labelKey: 'search.exportedTo',
+        icon: 'Export',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: {
+        labelKey: 'search.filters.feed',
+        icon: 'CreditCardMultiple',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: {
+        labelKey: 'common.from',
+        icon: 'User',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]: {
+        labelKey: 'search.has',
+        icon: 'Paperclip',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IN]: {
+        labelKey: 'common.in',
+        icon: 'Inbox',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IS]: {
+        labelKey: 'search.filters.is',
+        icon: 'DotIndicatorUnfilled',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: {
+        labelKey: 'search.filters.keyword',
+        icon: 'Bookmark',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: {
+        labelKey: 'common.merchant',
+        icon: 'Basket',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: {
+        labelKey: 'workspace.common.workspace',
+        icon: 'Building',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY]: {
+        labelKey: 'search.filters.purchaseCurrency',
+        icon: 'MoneyCircle',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE]: {
+        labelKey: 'common.reimbursable',
+        icon: 'Paycheck',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]: {
+        labelKey: 'common.reportID',
+        icon: 'Fingerprint',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: {
+        labelKey: 'common.status',
+        icon: 'DotIndicator',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: {
+        labelKey: 'common.tag',
+        icon: 'Tag',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
+        labelKey: 'workspace.taxes.taxRate',
+        icon: 'Percent',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]: {
+        labelKey: 'common.type',
+        icon: 'Cash',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: {
+        labelKey: 'common.to',
+        icon: 'UserArrowLeft',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE]: {
+        labelKey: 'common.title',
+        icon: 'Bookmark',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID]: {
+        labelKey: 'common.withdrawalID',
+        icon: 'Fingerprint',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]: {
+        labelKey: 'search.withdrawalType',
+        icon: 'Cash',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS]: {
+        labelKey: 'common.withdrawalStatus',
+        icon: 'DotIndicator',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: {
+        labelKey: 'iou.amount',
+        icon: 'Coins',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: {
+        labelKey: 'common.purchaseAmount',
+        icon: 'Coins',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL]: {
+        labelKey: 'common.total',
+        icon: 'Coins',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {
+        labelKey: 'common.date',
+        icon: 'CalendarSolid',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED]: {
+        labelKey: 'search.filters.approved',
+        icon: 'ThumbsUp',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {
+        labelKey: 'search.filters.submitted',
+        icon: 'Send',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID]: {
+        labelKey: 'search.filters.paid',
+        icon: 'MoneyBag',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED]: {
+        labelKey: 'search.filters.exported',
+        icon: 'Export',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]: {
+        labelKey: 'search.filters.posted',
+        icon: 'Paycheck',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN]: {
+        labelKey: 'search.filters.withdrawn',
+        icon: 'CalendarSolid',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD]: {
+        labelKey: 'workspace.common.reportField',
+        icon: 'Tag',
+    },
+} satisfies Partial<Record<SyntaxFilterKey, FilterView>>;
 
 function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string {
     const key = getDateFilterKeys(syntaxKey);
@@ -5228,7 +5352,7 @@ const isDateFilterKey = (key: SearchFilter['key']): key is Exclude<SearchDateFil
 };
 
 type SearchFilter = {
-    key: keyof typeof FILTER_LABEL_MAP;
+    key: keyof typeof FILTER_VIEW_MAP;
     label: string;
     value: string | string[];
 };
@@ -5262,7 +5386,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             const displayValue = isAmountFilterKey(syntax)
                 ? getAmountDisplayValue(syntax, searchAdvancedFiltersForm, translate, convertToDisplayStringWithoutCurrency)
                 : getDateDisplayValue(syntax, searchAdvancedFiltersForm, translate);
-            const label = FILTER_LABEL_MAP[syntax];
+            const label = FILTER_VIEW_MAP[syntax].labelKey;
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
@@ -5288,11 +5412,11 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
         }
 
         // Handle regular filters
-        const label = key in FILTER_LABEL_MAP ? FILTER_LABEL_MAP[key as keyof typeof FILTER_LABEL_MAP] : undefined;
+        const label = key in FILTER_VIEW_MAP ? FILTER_VIEW_MAP[key as keyof typeof FILTER_VIEW_MAP].labelKey : undefined;
         const value = getDisplayValue(key, searchAdvancedFiltersForm, type, policyIDQuery, translate, localeCompare);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
-            const filterLabelMapKey = key as keyof typeof FILTER_LABEL_MAP;
+            const filterLabelMapKey = key as keyof typeof FILTER_VIEW_MAP;
             const extra = mapper?.(filterLabelMapKey) ?? ({} as T);
             filters.push({key: filterLabelMapKey, label: translate(label), value, ...extra});
         }
@@ -6167,7 +6291,7 @@ export {
     TODO_SEARCH_KEYS,
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
-    FILTER_LABEL_MAP,
+    FILTER_VIEW_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     hasFlexColumn,

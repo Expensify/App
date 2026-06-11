@@ -14,7 +14,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, UnsupportedFormulaValueErrorParams} from './params';
+import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 const translations: TranslationDeepObject<typeof en> = {
@@ -63,7 +63,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -249,7 +251,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Descripción',
         title: 'Título',
         assignee: 'Asignado a',
-        createdBy: 'Creado por',
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
@@ -270,6 +271,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Comerciante',
         change: 'Cambio',
         category: 'Categoría',
+        vendor: 'Proveedor',
         report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',
@@ -801,6 +803,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -916,7 +919,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Revisar',
             },
             validateAccount: {
-                title: 'Valida tu cuenta para continuar usando Expensify',
+                title: 'Valida tu cuenta',
                 subtitle: 'Cuenta',
                 cta: 'Validar',
             },
@@ -1312,6 +1315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1339,7 +1343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `aprobado`,
         unapproved: `no aprobado`,
         automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
-        forwarded: `aprobó`,
+        forwarded: (memo) => `aprobó${memo ? `, dijo ${memo}` : ''}`,
         rejectedThisReport: 'rechazó',
         waitingOnBankAccount: (submitterDisplayName) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
@@ -1531,6 +1535,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
         chooseARate: 'Selecciona una tasa de reembolso por milla o kilómetro para el espacio de trabajo',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Válido desde ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Válido hasta ${endDate}`,
         unapprove: 'Desaprobar',
         unapproveReport: 'Anular la aprobación del informe',
         headsUp: 'Atención!',
@@ -1631,6 +1638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrige el error de la tasa y vuelve a intentarlo.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explicar<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge asoció este gasto con <strong>${vendorName}</strong>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"'),
             billable: (value: boolean) => (value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"'),
@@ -1737,6 +1745,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que <strong>${actor}</strong> envíe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Esperando a que un administrador envíe los gastos.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> lo marques como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> lo marque como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador lo marque como listo.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
@@ -2780,6 +2799,7 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     reportDetailsPage: {
+        goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
         generatingPDF: 'Generar PDF',
         waitForPDF: 'Por favor, espera mientras creamos el PDF.',
@@ -3241,6 +3261,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
         workEmail2FAError: 'Este inicio de sesión corresponde a una cuenta existente con la autenticación de dos factores (2FA) habilitada.',
+        singleSignOnError: 'Este inicio de sesión es una cuenta existente con SSO/SAML habilitado.',
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',
@@ -4818,6 +4839,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify se sincronizará automáticamente con Certinia cada día.',
             syncReimbursedReportsDescription:
                 'Con esta opción habilitada, cada vez que se pague una factura por pagar en FFA, el informe de Expensify relacionado se marcará automáticamente como reembolsado.',
@@ -6210,6 +6232,7 @@ ${amount} para ${merchant} - ${date}`,
             connectPrompt: ({connectionName}) =>
                 `¿Estás seguro de que quieres conectar a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'}? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
+            reconnect: 'Reconectar',
             updateCredentials: 'Actualizar credenciales',
             claimOffer: {
                 badgeText: '¡Oferta disponible!',
@@ -6546,6 +6569,12 @@ ${amount} para ${merchant} - ${date}`,
             syncingModalTitle: 'Tu conexión se está sincronizando',
             syncingModalDescription: 'La primera conexión puede tardar un poco. Se te notificará de cualquier error.',
             syncing: 'Sincronizando empleados',
+            mergeHR: {
+                completeSetup: 'Completar configuración',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
+                groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
+            },
         },
         export: {
             notReadyHeading: 'No está listo para exportar',
@@ -6614,6 +6643,10 @@ ${amount} para ${merchant} - ${date}`,
             }),
             enableRate: 'Activar tasa',
             status: 'Estado',
+            statusActive: 'Activo',
+            statusFuture: 'Futuro',
+            statusExpired: 'Expirado',
+            statusInactive: 'Inactivo',
             unit: 'Unidad',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a <a href="#">Más funcionalidades</a> para hacer ese cambio.</muted-text>',
@@ -7251,6 +7284,7 @@ ${amount} para ${merchant} - ${date}`,
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
+                disclaimer: 'Los agentes de IA pueden cometer errores.',
             },
         },
         emptyDomain: {
@@ -7739,6 +7773,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `cambió la tasa de impuesto predeterminada de la categoría "${categoryName}" a "${newTax}" (previamente "${oldTax}")`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `cambió la categoría de gasto predeterminada para "${mccGroupName}" a "${newCategory}" (previamente "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
@@ -7833,18 +7869,12 @@ ${amount} para ${merchant} - ${date}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida hasta ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `añadió la tasa "${rateName}" de ${rateValue}, válida del ${startDate} al ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `actualizó la fecha de inicio de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})` : `establecer la fecha de inicio de la tasa "${rateName}" a ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate
-                ? `actualizó la fecha de finalización de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})`
-                : `establecer la fecha de finalización de la tasa "${rateName}" en ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `actualizó la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate} (previamente ${oldStartDate} - ${oldEndDate})`
-                : `establece la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `se eliminó la fecha de inicio de la tasa "${rateName}" (previamente ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `eliminó la fecha de finalización de la tasa «${rateName}» (previamente ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `actualizó la tasa de distancia «${rateName}» para aplicar ${newDateRange} (previamente ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
+        customUnitRateDateRangeAllDates: () => `para todas las fechas`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -7932,6 +7962,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
+        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Restablecer filtros',
         searchResults: {
@@ -8056,7 +8087,12 @@ ${amount} para ${merchant} - ${date}`,
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
-                between: (greaterThan, lessThan) => `Entre ${greaterThan} y ${lessThan}`,
+                between: (greaterThan, lessThan) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} y ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount) => `Igual a ${amount ?? ''}`,
             },
             current: 'Actual',
@@ -9536,6 +9572,11 @@ ${amount} para ${merchant} - ${date}`,
         },
         removeCopilot: 'Eliminar copiloto',
         removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
+        removeCopilotAccess: 'Eliminar mi acceso de copiloto',
+        removeCopilotAccessTitle: '¿Eliminar acceso de copiloto?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `¿Estás seguro de que quieres eliminar tu acceso de copiloto a la cuenta de Expensify de ${delegatorName}? Esta acción no se puede deshacer.`,
+        removeCopilotAccessConfirm: 'Eliminar acceso',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
         enterMagicCode: (contactMethod) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,

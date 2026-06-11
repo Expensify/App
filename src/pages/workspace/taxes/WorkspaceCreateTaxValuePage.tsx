@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-// eslint-disable-next-line no-restricted-imports -- The input ref doesn't exist at the navigate() call site, so we can't use Navigation's afterTransition callback
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';

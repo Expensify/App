@@ -84,7 +84,6 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: []}));
 jest.mock('@hooks/useReportIsArchived', () => () => false);
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true, isSmallScreenWidth: false}));
-jest.mock('@hooks/useRestoreInputFocus', () => () => {});
 jest.mock(
     '@hooks/useStyleUtils',
     () => () =>
