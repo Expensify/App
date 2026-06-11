@@ -553,21 +553,32 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const statementParams = getExpensifyCardStatementParamsFromFeed(feed);
         const {entryIDs} = statementParams;
 
+        const showStatementError = () => {
+            setIsExpensifyCardStatementPDFModalVisible(false);
+            setExpensifyCardStatementPDFParams(undefined);
+            setIsDownloadErrorModalVisible(true);
+        };
+
         setExpensifyCardStatementPDFParams(statementParams);
         setIsExpensifyCardStatementPDFModalVisible(true);
-        getExpensifyCardStatementPDF(statementParams.policyID, statementParams.feedCountry, entryIDs)?.then((response) => {
-            const statementKey = response?.statementKey;
-            if (typeof statementKey !== 'string' || statementKey.length === 0) {
-                return;
-            }
+        getExpensifyCardStatementPDF(statementParams.policyID, statementParams.feedCountry, entryIDs)
+            ?.then((response) => {
+                const statementKey = response?.statementKey;
+                if (typeof statementKey !== 'string' || statementKey.length === 0) {
+                    // Without a statementKey the modal can never resolve to a downloadable file, so surface the error
+                    // instead of leaving it stuck on the loading state.
+                    showStatementError();
+                    return;
+                }
 
-            // Sync the modal to the server's cache key, but only while the on-screen selection is still
-            // the one we requested. If the user changed the selection or dismissed the modal in the
-            // meantime, this response is stale and must not overwrite the current params.
-            setExpensifyCardStatementPDFParams((currentParams) =>
-                currentParams && currentParams.entryIDs.join(',') === entryIDs.join(',') ? {...currentParams, statementKey} : currentParams,
-            );
-        });
+                // Sync the modal to the server's cache key, but only while the on-screen selection is still
+                // the one we requested. If the user changed the selection or dismissed the modal in the
+                // meantime, this response is stale and must not overwrite the current params.
+                setExpensifyCardStatementPDFParams((currentParams) =>
+                    currentParams && currentParams.entryIDs.join(',') === entryIDs.join(',') ? {...currentParams, statementKey} : currentParams,
+                );
+            })
+            .catch(showStatementError);
     }, [isOffline]);
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =

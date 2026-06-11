@@ -18,7 +18,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/CompanyCards', () => ({
-    getExpensifyCardStatementPDF: jest.fn(() => Promise.resolve({})),
+    getExpensifyCardStatementPDF: jest.fn(() => Promise.resolve({statementKey: 'statement-key'})),
 }));
 
 let mockIsOffline = false;
@@ -444,6 +444,46 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(getExpensifyCardStatementPDF).toHaveBeenCalledTimes(1);
         expect(getExpensifyCardStatementPDF).toHaveBeenCalledWith('policy1', 'US', [123]);
         expect(result.current.isExpensifyCardStatementPDFModalVisible).toBe(true);
+    });
+
+    it('should surface the error modal when the statement PDF request fails', async () => {
+        jest.mocked(getExpensifyCardStatementPDF).mockRejectedValueOnce(new Error('request failed'));
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        mockSelectedTransactions = {
+            txn0: makeSelectedTransaction({groupKey, reportID: undefined}),
+        };
+        mockCurrentSearchResults = makeCurrentSearchResults({
+            [groupKey]: {
+                entryID: 123,
+                count: 1,
+                total: 1000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: 'American Express',
+                debitPosted: '2026-05-31',
+                state: 8,
+                policyID: 'policy1',
+                feedCountry: 'US',
+            },
+        } as unknown as SearchResultDataType);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+
+        await waitFor(() => {
+            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        const exportAsPDFOption = getExportAsPDFOption(result.current.headerButtonsOptions);
+        await act(async () => {
+            await exportAsPDFOption?.onSelected?.();
+        });
+
+        // The loading modal is dismissed and the download-error modal is shown instead of hanging on "waiting".
+        await waitFor(() => {
+            expect(result.current.isDownloadErrorModalVisible).toBe(true);
+        });
+        expect(result.current.isExpensifyCardStatementPDFModalVisible).toBe(false);
+        expect(result.current.expensifyCardStatementPDFParams).toBeUndefined();
     });
 
     it('should open the multi-feed alert instead of requesting a statement PDF', async () => {
