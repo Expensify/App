@@ -1,7 +1,6 @@
 /** Onyx selectors used by the confirmation field leaves. */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
-import getReportNameValuePairsForReports from '@libs/ReportNameValuePairsUtils';
 import {
     getCategory,
     getCreated,
@@ -89,7 +88,7 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
     if (!t) {
         return undefined;
     }
-    return getTagForDisplay({tag: t.tag} as OnyxEntry<Transaction>, tagIndex);
+    return getTagForDisplay({tag: t.tag}, tagIndex);
 };
 
 // --- CategoryField ---
@@ -200,7 +199,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard'>;
 
-const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
         return undefined;
     }
@@ -211,26 +210,26 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transac
         reportID: t.reportID,
         managedCard: t.managedCard,
     };
-    return slice as Transaction;
+    return slice;
 };
 
 // --- ConfirmationFieldList: useFooterTagVisibility ---
 
 type TagSlice = Pick<Transaction, 'tag'>;
 
-const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<TagSlice> => {
     if (!t) {
         return undefined;
     }
     const slice: TagSlice = {tag: t.tag};
-    return slice as Transaction;
+    return slice;
 };
 
 // --- InvoiceSenderSection ---
 
 type InvoiceSenderSlice = Pick<Transaction, 'isFromGlobalCreate' | 'transactionID'>;
 
-const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
+const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<InvoiceSenderSlice> => {
     if (!t) {
         return undefined;
     }
@@ -238,7 +237,7 @@ const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transa
         isFromGlobalCreate: t.isFromGlobalCreate,
         transactionID: t.transactionID,
     };
-    return slice as Transaction;
+    return slice;
 };
 
 // --- DistanceMapSection ---
@@ -302,7 +301,6 @@ type ReportFieldTransactionState = {
     isFromGlobalCreate: boolean;
     participantReportID: string | undefined;
 };
-type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
     if (!t) {
@@ -317,15 +315,6 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
 
 const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
     derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
-
-const createOutstandingReportsNVPsSelector =
-    (outstandingReports: OutstandingReportsForPolicy | undefined) =>
-    (allNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): OnyxCollection<OnyxTypes.ReportNameValuePairs> | undefined => {
-        if (!outstandingReports || !allNVPs) {
-            return undefined;
-        }
-        return getReportNameValuePairsForReports(outstandingReports, allNVPs);
-    };
 
 // --- InvoiceSenderField ---
 
@@ -350,7 +339,6 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
-    createOutstandingReportsNVPsSelector,
     createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
