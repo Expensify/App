@@ -218,6 +218,14 @@ function mergeDuplicates({
         return total + duplicateTransaction.amount;
     }, 0);
 
+    const duplicateReimbursableTransactionTotals = params.transactionIDList.reduce((total, id) => {
+        const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        if (!duplicateTransaction || !duplicateTransaction.reimbursable) {
+            return total;
+        }
+        return total + duplicateTransaction.amount;
+    }, 0);
+
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
     const previousReimbursableTotal = getReimbursableTotal(expenseReport);
     const expenseReportOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
@@ -225,7 +233,7 @@ function mergeDuplicates({
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
-            reimbursableTotal: previousReimbursableTotal - duplicateTransactionTotals,
+            reimbursableTotal: previousReimbursableTotal - duplicateReimbursableTransactionTotals,
         },
     };
     const expenseReportFailureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
