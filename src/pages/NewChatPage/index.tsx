@@ -456,6 +456,9 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
+                canSelectMultiple
+                shouldPreventAutoScrollOnSelect
+                shouldClearInputOnSelect={false}
                 shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
