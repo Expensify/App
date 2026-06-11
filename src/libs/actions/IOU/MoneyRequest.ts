@@ -28,6 +28,7 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import {getDefaultP2PMileageRate} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -81,6 +82,7 @@ type CreateTransactionParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
+    currentUserLocalCurrency: string | undefined;
 };
 
 function createTransaction({
@@ -108,6 +110,7 @@ function createTransaction({
     recentWaypoints,
     optimisticTransactionIDs,
     optimisticChatReportID,
+    currentUserLocalCurrency,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -154,6 +157,7 @@ function createTransaction({
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                currentUserLocalCurrency,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -236,6 +240,9 @@ type InitMoneyRequestParams = {
     isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
     draftTransactionIDs?: string[];
+    /** New manual expense flow only: seed the fresh transaction with participants so the embedded confirmation step's
+     * auto-assign useEffect short-circuits and doesn't re-fire after a tab-switch cleanup. */
+    defaultParticipants?: Participant[];
 };
 
 /**
@@ -263,6 +270,7 @@ function initMoneyRequest({
     currentUserPersonalDetails,
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
+    defaultParticipants,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -303,7 +311,14 @@ function initMoneyRequest({
     ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat,
+                isTrackDistanceExpense,
+                policy,
+                lastSelectedDistanceRates,
+                expenseDate: created,
+            });
             comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
@@ -351,12 +366,14 @@ function initMoneyRequest({
         isFromGlobalCreate,
         isFromFloatingActionButton,
         merchant: defaultMerchant,
+        // Seed participants when provided (new manual flow) so the embedded confirmation's auto-assign useEffect
+        // short-circuits and doesn't re-fire on subsequent renders/cleanups.
+        ...(defaultParticipants && defaultParticipants.length > 0 ? {participants: defaultParticipants, participantsAutoAssigned: true} : {}),
     };
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, newTransaction);
-
     return newTransaction;
 }
 
@@ -431,6 +448,7 @@ function startDistanceRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
+    getDefaultP2PMileageRate();
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
         Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});

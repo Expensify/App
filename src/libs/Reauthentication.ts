@@ -36,13 +36,20 @@ let isSupportAuthTokenUsed = false;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
 
         Sentry.setUser({
             id: value?.accountID,
             email: value?.email,
         });
+    },
+});
+
+// Kept on a RAM-only key so an interrupted SignIn cannot persist a stuck `true` to IndexedDB and block all future reauth attempts.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+    callback: (value) => {
+        isAuthenticatingWithShortLivedToken = !!value;
     },
 });
 
