@@ -1,3 +1,4 @@
+import {isModalActiveSelector} from '@selectors/Modal';
 import {useEffect, useEffectEvent, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HRSyncResultsModal from '@components/HRSyncResultsModal';
@@ -18,7 +19,7 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
     const modal = useModal();
     const previousSyncProgress = usePrevious(connectionSyncProgress);
     const pendingSyncResultRef = useRef<Pick<PolicyConnectionSyncProgress, 'connectionName' | 'result'> | null>(null);
-    const [isAnyModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: (activeModal) => !!activeModal?.isVisible || !!activeModal?.willAlertModalBecomeVisible});
+    const [isAnyModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
     const connectionName = connectionSyncProgress?.connectionName;
     const showSyncResultsModal = useEffectEvent((syncResult: PolicyConnectionSyncProgress['result'], syncConnectionName: PolicyConnectionSyncProgress['connectionName']) => {
