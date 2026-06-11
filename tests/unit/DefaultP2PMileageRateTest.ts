@@ -42,6 +42,7 @@ describe('Default P2P mileage rate', () => {
         // Splitting a distance expense goes through startMoneyRequest, so it must prefetch the default P2P mileage rate
         // (the same way startDistanceRequest does) or the Distance tab loads with a malformed rate.
         it('prefetches the default P2P mileage rate when starting a split distance request', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
 
             startMoneyRequest(CONST.IOU.TYPE.SPLIT, '1', [], CONST.IOU.REQUEST_TYPE.DISTANCE);
