@@ -15,7 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import {getConnectedHRProvider} from '@libs/HRUtils';
-import {isCurrentUserValidated} from '@libs/UserUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -96,7 +96,7 @@ function TimeSensitiveSection() {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
     const {shouldShowEnterSignerInfo, pendingSignerInfo} = useTimeSensitiveSignerInfo();

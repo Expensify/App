@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -78,7 +79,7 @@ type ActionContentRouterProps = {
     originalReport: OnyxEntry<OnyxTypes.Report>;
 
     /** ID of the original report from which the given reportAction is first created */
-    originalReportID: string;
+    originalReportID?: string;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
@@ -163,7 +164,6 @@ function ActionContentRouter({
                     <ChatTransactionPreview
                         action={action}
                         reportID={reportID}
-                        chatReportID={chatReportID}
                         iouReport={iouReport}
                         shouldShowSplitPreview={shouldShowSplitPreview}
                         transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
@@ -304,7 +304,7 @@ function ActionContentRouter({
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
         return <RemovedFromApprovalChainContent action={action} />;
