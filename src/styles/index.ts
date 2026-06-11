@@ -1197,6 +1197,14 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        editableCellHoverIconLeft: {
+            position: 'absolute',
+            left: 4,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
         editableCellHoverIconButton: {
             width: 28,
             height: 28,

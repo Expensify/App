@@ -36,6 +36,13 @@ type EditableCellProps = {
 
     /** Ref attached to the cell wrapper — used as popover anchor for date/category pickers */
     anchorRef?: RefObject<View | null>;
+
+    /**
+     * Which side of the cell the hover edit (pencil) button sits on.
+     * Defaults to 'right'. Right-aligned cells (e.g. amounts) use 'left' so the button
+     * sits opposite the content and doesn't overlap it.
+     */
+    editIconPosition?: 'left' | 'right';
 };
 
 /**
@@ -49,7 +56,7 @@ type EditableCellProps = {
  *   4. canEdit=false              → styled container View, no pressable (transient: loading / no permission)
  *   5. default                    → PressableWithFeedback (hover border, click triggers edit)
  */
-function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
+function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef, editIconPosition = 'right'}: EditableCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [isIconHovered, setIsIconHovered] = useState(false);
@@ -107,7 +114,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                     {children}
                     {isCellHovered && (
                         <View
-                            style={styles.editableCellHoverIcon}
+                            style={editIconPosition === 'left' ? styles.editableCellHoverIconLeft : styles.editableCellHoverIcon}
                             pointerEvents="box-none"
                         >
                             <PressableWithFeedback
