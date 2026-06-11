@@ -2,13 +2,17 @@ import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import RenderHTML from '@components/RenderHTML';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import type {ValidateCodeCountdownProps} from './types';
 
-function ValidateCodeCountdown({onCountdownFinish, ref}: ValidateCodeCountdownProps) {
+function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCodeCountdownProps) {
     const {translate} = useLocalize();
 
-    const [timeRemaining, setTimeRemaining] = useState<number>(CONST.REQUEST_CODE_DELAY);
+    // Seed from the time the code was actually requested so a reload mid-countdown resumes at the correct value instead of restarting at the full delay.
+    const [timeRemaining, setTimeRemaining] = useState<number>(
+        () => DateUtils.getRemainingSecondsInWindow(requestedAt, CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND) || CONST.REQUEST_CODE_DELAY,
+    );
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useImperativeHandle(ref, () => ({

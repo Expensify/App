@@ -377,6 +377,14 @@ function addMillisecondsFromDateTime(dateTime: string, milliseconds: number): st
     return getDBTime(newTimestamp);
 }
 
+/** Whole seconds left in a `windowMs` window that began at epoch-ms `requestedAt`. Clamped to [0, windowMs/1000]. */
+function getRemainingSecondsInWindow(requestedAt: number | undefined, windowMs: number): number {
+    if (!requestedAt) {
+        return 0;
+    }
+    return Math.max(0, Math.ceil((windowMs - (Date.now() - requestedAt)) / 1000));
+}
+
 /**
  * returns {string} example: 2023-05-16 05:34:14
  */
@@ -1088,6 +1096,7 @@ const DateUtils = {
     getDBTime,
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
+    getRemainingSecondsInWindow,
     getEndOfToday,
     getStartOfToday,
     getDateFromStatusType,

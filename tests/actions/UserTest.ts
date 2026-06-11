@@ -167,15 +167,9 @@ describe('actions/User', () => {
     });
 
     describe('verifyAddSecondaryLoginCode', () => {
-        it('should call API.write with correct parameters and reset validateCodeSent', async () => {
+        it('should call API.write with correct parameters', async () => {
             // Given a validate code
             const validateCode = '123456';
-
-            // Set initial state for VALIDATE_ACTION_CODE
-            await Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
-                validateCodeSent: true,
-            });
-            await waitForBatchedUpdates();
 
             // When verifyAddSecondaryLoginCode is called
             UserActions.verifyAddSecondaryLoginCode(validateCode);
@@ -191,19 +185,6 @@ describe('actions/User', () => {
                     failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
                 }),
             );
-
-            // Verify validateCodeSent is reset to false
-            const validateActionCode = await new Promise<{validateCodeSent?: boolean} | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.VALIDATE_ACTION_CODE,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value ?? null);
-                    },
-                });
-            });
-
-            expect(validateActionCode?.validateCodeSent).toBe(false);
         });
 
         it('should apply optimisticData correctly', async () => {
@@ -329,6 +310,34 @@ describe('actions/User', () => {
                 isLoading: true,
                 errorFields: {},
             });
+        });
+    });
+
+    describe('requestValidateCodeAction', () => {
+        it('should set lastValidateCodeRequestedAt optimistically and clear it on failure', async () => {
+            // When requestValidateCodeAction is called
+            UserActions.requestValidateCodeAction();
+            await waitForBatchedUpdates();
+
+            // Then API.write should target RESEND_VALIDATE_CODE
+            const calls = (mockAPI.write as jest.Mock).mock.calls;
+            const [command, , onyxData] = calls.at(0) as [
+                unknown,
+                unknown,
+                {
+                    optimisticData?: Array<{key: string; value: {lastValidateCodeRequestedAt?: number | null}}>;
+                    failureData?: Array<{key: string; value: {lastValidateCodeRequestedAt?: number | null}}>;
+                },
+            ];
+            expect(command).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
+
+            // The optimistic update stamps a numeric request time so the gate can dedup reloads within the resend window
+            const optimisticUpdate = (onyxData.optimisticData ?? []).find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+            expect(optimisticUpdate?.value.lastValidateCodeRequestedAt).toEqual(expect.any(Number));
+
+            // The failure update reverts it to null so a failed request never suppresses the next send
+            const failureUpdate = (onyxData.failureData ?? []).find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+            expect(failureUpdate?.value.lastValidateCodeRequestedAt).toBeNull();
         });
     });
 
@@ -481,7 +490,7 @@ describe('actions/User', () => {
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
 
-            expect(failureData).toHaveLength(4);
+            expect(failureData).toHaveLength(3);
 
             // Verify ACCOUNT failure update
             const accountUpdate = failureData.find((update) => update.key === ONYXKEYS.ACCOUNT);
@@ -489,14 +498,6 @@ describe('actions/User', () => {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {isLoading: false},
-            });
-
-            // Verify VALIDATE_ACTION_CODE failure update
-            const validateActionCodeUpdate = failureData.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
-            expect(validateActionCodeUpdate).toEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
-                value: {validateCodeSent: null},
             });
 
             // Verify PENDING_CONTACT_ACTION failure update

@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearCardListErrors, requestReplacementExpensifyCard} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -88,7 +88,6 @@ function ReportCardLostConfirmMagicCodePage({
                 clearCardListErrors(physicalCard?.cardID);
             }}
             onClose={() => {
-                resetValidateActionCodeSent();
                 Navigation.goBack(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(cardID));
             }}
         />

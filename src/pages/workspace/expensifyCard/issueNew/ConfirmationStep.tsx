@@ -15,7 +15,6 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -64,7 +63,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
 
     useEffect(() => {
         submitButton.current?.focus();
-        resetValidateActionCodeSent();
         clearIssueNewCardError(policyID);
     }, [policyID]);
 

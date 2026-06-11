@@ -593,4 +593,24 @@ describe('DateUtils', () => {
             expect(result).toBe('2024-01-16 04:59:59');
         });
     });
+
+    describe('getRemainingSecondsInWindow', () => {
+        const windowMs = 30 * 1000;
+
+        it('should return 0 when no timestamp is provided', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(undefined, windowMs)).toBe(0);
+        });
+
+        it('should return the full window when the request just happened', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(Date.now(), windowMs)).toBe(30);
+        });
+
+        it('should return the remaining seconds part-way through the window', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 10 * 1000, windowMs)).toBe(20);
+        });
+
+        it('should clamp to 0 once the window has elapsed', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 31 * 1000, windowMs)).toBe(0);
+        });
+    });
 });
