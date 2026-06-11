@@ -159,6 +159,10 @@ function IOURequestStepAmount({
     const disableOppositeConversion = isCreateAction || (isSubmitType && isSubmitAction);
     const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, undefined, allowNegative, disableOppositeConversion) ?? {amount: 0};
 
+    const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
+    const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
+
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useDiscardChangesConfirmation({
@@ -168,16 +172,12 @@ function IOURequestStepAmount({
             }
             const typedAmount = amountFormRef.current?.getNumber() ?? '';
             const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
-            // The form displays and edits the absolute amount; the sign is toggled separately
-            return typedAmountInBackendUnits !== Math.abs(transactionAmount);
+            return typedAmountInBackendUnits !== transactionAmount || selectedCurrency !== originalCurrency;
         },
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
     });
-    const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
-    const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
-    const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const isUnreportedDistanceExpense = isEditing && isDistanceRequest(transaction) && isExpenseUnreported(transaction);

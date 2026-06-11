@@ -27,7 +27,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
 type MoneyRequestAmountFormHandle = {
-    /** Returns the currently typed (unsaved) amount as the user sees it */
+    /** Returns the currently typed (unsaved) amount, signed the same way the submit handler would send it */
     getNumber: () => string;
 };
 
@@ -117,11 +117,14 @@ function MoneyRequestAmountForm({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
-    useImperativeHandle(amountFormRef, () => ({
-        getNumber: () => moneyRequestAmountInputRef.current?.getNumber() ?? '',
-    }));
-
     const [isNegative, setIsNegative] = useState(false);
+
+    useImperativeHandle(amountFormRef, () => ({
+        getNumber: () => {
+            const number = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+            return number && isNegative ? `-${number}` : number;
+        },
+    }));
 
     const [formError, setFormError] = useState<string>('');
 
