@@ -740,6 +740,37 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isMerchantMissing', () => {
+        it('returns true for empty, default, and partial merchant values', () => {
+            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: ''}))).toBe(true);
+            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT}))).toBe(true);
+            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}))).toBe(true);
+        });
+
+        it('returns false for a valid merchant', () => {
+            expect(TransactionUtils.isMerchantMissing(generateTransaction({merchant: 'Starbucks'}))).toBe(false);
+        });
+
+        it('uses modifiedMerchant when present', () => {
+            expect(
+                TransactionUtils.isMerchantMissing(
+                    generateTransaction({
+                        merchant: 'Starbucks',
+                        modifiedMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    }),
+                ),
+            ).toBe(true);
+            expect(
+                TransactionUtils.isMerchantMissing(
+                    generateTransaction({
+                        merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                        modifiedMerchant: 'Starbucks',
+                    }),
+                ),
+            ).toBe(false);
+        });
+    });
+
     describe('getMerchant', () => {
         it('should return merchant if transaction has merchant', () => {
             const transaction = generateTransaction({
