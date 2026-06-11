@@ -68,6 +68,12 @@ function hasOnlyStatementScopeFilters(queryJSON: SearchQueryJSON | undefined): b
     return queryJSON?.flatFilters?.every((filter) => STATEMENT_SCOPE_FILTER_KEYS.has(filter.key)) ?? true;
 }
 
+// A group key in SearchResultDataType maps to a union of group shapes (members, cards, withdrawals, etc.).
+// entryID is unique to SearchWithdrawalIDGroup, so it identifies a settlement group without a cast.
+function isWithdrawalIDGroup(value: SearchResultDataType[keyof SearchResultDataType]): value is SearchWithdrawalIDGroup {
+    return typeof value === 'object' && value !== null && 'entryID' in value && typeof value.entryID === 'number';
+}
+
 function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
     if (!searchData) {
         return [];
@@ -92,21 +98,18 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
     }
 
     const settlementGroups: SearchWithdrawalIDGroup[] = [];
-    for (const groupKey of selectedGroupKeys) {
-        // SearchResultDataType is indexed by dynamic group keys at runtime.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const group = (searchData as Record<string, SearchWithdrawalIDGroup | undefined>)[groupKey];
-        if (!group || typeof group.entryID !== 'number' || getSettlementStatus(group.state) === CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
+    for (const [key, value] of Object.entries(searchData)) {
+        if (!selectedGroupKeys.has(key) || !isWithdrawalIDGroup(value) || getSettlementStatus(value.state) === CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
             continue;
         }
 
         // A settlement that bills more than one workspace has no single policyID to scope the statement to, so the
         // backend omits it. Such a settlement can't be exported by a workspace admin without leaking the other
         // workspaces' expenses, so it isn't exportable - skip it like a failed settlement.
-        if (!group.policyID) {
+        if (!value.policyID) {
             continue;
         }
-        settlementGroups.push(group);
+        settlementGroups.push(value);
     }
 
     return settlementGroups;
