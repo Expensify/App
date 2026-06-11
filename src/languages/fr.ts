@@ -334,6 +334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Sélectionner une devise',
         selectSymbolOrCurrency: 'Sélectionner un symbole ou une devise',
         card: 'Carte',
+        mcc: 'MCC',
+        categoryGLCode: 'Code GL de catégorie',
         whyDoWeAskForThis: 'Pourquoi demandons-nous cela ?',
         required: 'Obligatoire',
         automatic: 'Automatique',
@@ -512,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
+        enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1373,7 +1376,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `approuvé`,
         unapproved: `Non approuvé`,
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
-        forwarded: `approuvé`,
+        forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
@@ -2912,6 +2915,7 @@ ${amount} pour ${merchant} - ${date}`,
         waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: 'Une erreur s’est produite lors de la tentative de génération de votre PDF',
         successPDF: 'Votre PDF a été généré ! S’il ne s’est pas téléchargé automatiquement, utilisez le bouton ci-dessous.',
+        goToRoom: 'Aller à la salle',
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la salle',
@@ -3028,6 +3032,14 @@ ${amount} pour ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Suivre les dépenses de mon entreprise',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiser mes dépenses personnelles',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Autre chose',
+        },
+        personalTrackGoal: {
+            title: 'Que souhaitez-vous suivre ?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Coûts pour un bien locatif',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Dépenses ménagères',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Dépenses de projet annexe',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Autre chose',
+            somethingElsePlaceholder: 'Qu’est-ce que vous suivez ?',
         },
         employees: {
             title: 'Combien d’employés avez-vous ?',
@@ -3356,6 +3368,7 @@ ${amount} pour ${merchant} - ${date}`,
             subtitle: 'Ajoutez votre équipe ou invitez votre comptable. Plus on est de fous, plus on rit !',
         },
         workEmail2FAError: 'Cette connexion est un compte existant avec l’authentification à deux facteurs (2FA) activée.',
+        singleSignOnError: 'Cette connexion correspond à un compte existant avec SSO/SAML activé.',
     },
     featureTraining: {
         doNotShowAgain: 'Ne plus m’afficher ceci',
@@ -4339,6 +4352,7 @@ ${amount} pour ${merchant} - ${date}`,
             customFieldHint: 'Ajoutez un codage personnalisé qui s’applique à toutes les dépenses de ce membre.',
             reports: 'Notes de frais',
             reportFields: 'Champs de note de frais',
+            invoiceFields: 'Champs de facture',
             reportTitle: 'Titre de la note de frais',
             reportField: 'Champ de note de frais',
             taxes: 'Taxes',
@@ -4931,6 +4945,7 @@ ${amount} pour ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify se synchronisera automatiquement avec Certinia chaque jour.',
             syncReimbursedReportsDescription:
                 'Lorsque cette option est activée, chaque fois qu’une facture à payer est réglée dans FFA, la note de frais Expensify associée est automatiquement marquée comme remboursée.',
@@ -6036,6 +6051,29 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ de note de frais',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de note de frais. Veuillez réessayer.',
         },
+        invoiceFields: {
+            subtitle: 'Les champs de facture peuvent être utiles lorsque vous souhaitez inclure des informations supplémentaires.',
+            importedFromAccountingSoftware: 'Les champs de facture ci-dessous sont importés depuis votre',
+            disableInvoiceFields: 'Désactiver les champs de facture',
+            disableInvoiceFieldsConfirmation: 'Êtes-vous sûr ? Les champs de facture seront désactivés sur les factures.',
+            delete: 'Supprimer le champ de facture',
+            deleteConfirmation: 'Voulez-vous vraiment supprimer ce champ de facture ?',
+            findInvoiceField: 'Trouver un champ de facture',
+            nameInputSubtitle: 'Choisissez un nom pour le champ de facture.',
+            typeInputSubtitle: 'Choisissez le type de champ de facture à utiliser.',
+            initialValueInputSubtitle: 'Saisissez une valeur de départ à afficher dans le champ de facture.',
+            listValuesInputSubtitle: 'Ces valeurs apparaîtront dans la liste déroulante du champ de facture. Les valeurs activées peuvent être sélectionnées par les membres.',
+            listInputSubtitle: 'Ces valeurs apparaîtront dans la liste du champ de facture. Les valeurs activées peuvent être sélectionnées par les membres.',
+            emptyInvoiceFieldsValues: {
+                title: 'Aucune valeur de liste pour le moment',
+                subtitle: 'Ajoutez des valeurs personnalisées à afficher sur les factures.',
+            },
+            existingInvoiceFieldNameError: 'Un champ de facture portant ce nom existe déjà',
+            invoiceFieldNameRequiredError: 'Veuillez saisir un nom de champ de facture',
+            invoiceFieldTypeRequiredError: 'Veuillez choisir un type de champ de facture',
+            invoiceFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale de champ de facture',
+            addField: 'Ajouter un champ',
+        },
         tags: {
             tagName: 'Nom du tag',
             requiresTag: 'Les membres doivent taguer toutes les dépenses',
@@ -6445,6 +6483,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Voulez-vous vraiment connecter ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'cette intégration comptable'} ? Cette action supprimera toutes les connexions comptables existantes.`,
             enterCredentials: 'Saisissez vos identifiants',
+            reconnect: 'Reconnecter',
             updateCredentials: 'Mettre à jour les identifiants',
             claimOffer: {
                 badgeText: 'Offre disponible !',
@@ -6839,6 +6878,12 @@ Voulez-vous vraiment les exporter à nouveau ?`,
                 description: `Les champs de note de frais vous permettent de spécifier des détails au niveau de l’en‑tête, distincts des tags qui concernent les dépenses ligne par ligne. Ces détails peuvent inclure des noms de projet spécifiques, des informations sur les déplacements professionnels, des emplacements, et plus encore.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les champs de note de frais sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: 'Champs de facture',
+                description: `Les champs de facture vous permettent d'inclure des détails supplémentaires au niveau de la facture.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les champs de facture sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -7362,6 +7407,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
+            aiRules: {
+                title: 'Règles IA',
+                subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin',
+                addRule: 'Ajouter une règle IA',
+                findRule: 'Rechercher une règle d’IA',
+                addRuleTitle: 'Ajouter une règle',
+                editRuleTitle: 'Modifier la règle',
+                deleteRule: 'Supprimer la règle',
+                deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                describeRuleTitle: 'Décrivez votre règle',
+                describeRuleSubtitle: 'Décrivez votre règle et Concierge la créera',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7467,6 +7524,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncing: 'Synchronisation des employés',
+            mergeHR: {
+                completeSetup: 'Terminer la configuration',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
+                groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
+            },
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -7641,7 +7704,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `a modifié le ${customUnitName} ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `Suivi fiscal ${newValue ? 'activé' : 'Désactivé'} sur les taux de distance`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté un nouveau taux ${customUnitName} « ${rateName} »`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté le taux ${customUnitName} « ${rateName} »`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
@@ -8042,6 +8105,22 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `a ajouté le taux « ${rateName} » de ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) =>
+            `a ajouté le taux « ${rateName} » de ${rateValue}, valable à partir du ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `a ajouté le taux « ${rateName} » de ${rateValue}, valable jusqu’au ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `a ajouté le taux « ${rateName} » de ${rateValue}, valable du ${startDate} au ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `a mis à jour la date de début du taux « ${rateName} » à ${newDate} (auparavant ${oldDate})` : `définir la date de début du taux « ${rateName} » sur ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `a mis à jour la date de fin du taux « ${rateName} » à ${newDate} (auparavant ${oldDate})` : `définir la date de fin du taux « ${rateName} » sur ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `a mis à jour les dates de début et de fin du taux « ${rateName} » en ${newStartDate} - ${newEndDate} (précédemment ${oldStartDate} - ${oldEndDate})`
+                : `définir les dates de début et de fin du taux « ${rateName} » sur ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `a supprimé la date de début du taux « ${rateName} » (précédemment ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `a supprimé la date de fin du taux « ${rateName} » (auparavant ${oldDate})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -8111,6 +8190,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     search: {
         resultsAreLimited: 'Les résultats de recherche sont limités.',
         viewResults: 'Afficher les résultats',
+        applyFilters: 'Appliquer des filtres',
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
@@ -8216,7 +8296,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} et ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} et ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount?: string) => `Égal à ${amount ?? ''}`,
             },
             card: {

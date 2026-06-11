@@ -38,6 +38,7 @@ import {
     getValidOptions,
     optionsOrderBy,
     orderOptions,
+    orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
     shouldShowLastActorDisplayName,
@@ -3760,8 +3761,8 @@ describe('OptionsListUtils', () => {
 
         it('handles negative limit with large absolute value', () => {
             const options: OptionData[] = [
-                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
-                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z', keyForList: '1'},
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z', keyForList: '2'},
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, -100).options;
@@ -4616,6 +4617,34 @@ describe('OptionsListUtils', () => {
             });
         });
         describe('FORWARDED action', () => {
+            it('should return forwarded message with memo', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const memo = 'Testing approval memo';
+                const forwardedAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        automaticAction: false,
+                        message: memo,
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [forwardedAction.reportActionID]: forwardedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+                expect(lastMessage).toBe(translateLocal('iou.forwarded', memo));
+            });
+
             it('should return automatic forwarded message if forwarded automatically', async () => {
                 const report: Report = createRandomReport(0, undefined);
                 const forwardedAction: ReportAction = {
@@ -7459,8 +7488,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -7477,8 +7508,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, true, undefined);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, true, undefined, sortedActions);
 
             expect(result).toBeDefined();
             expect(result.private_isArchived).toBe(true);
@@ -7494,8 +7527,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
 
             expect(result).toBeDefined();
             expect(result.private_isArchived).toBeUndefined();
@@ -7511,9 +7546,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            // Pass undefined for reportAttributesDerived - the function should handle it gracefully
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -7529,9 +7565,11 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
             const config = {showPersonalDetails: true};
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, undefined, config);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions, undefined, config);
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -7755,8 +7793,10 @@ describe('OptionsListUtils', () => {
                     1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY, sortedActions);
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
@@ -8279,6 +8319,32 @@ describe('OptionsListUtils', () => {
 
             const resultOption = results.recentReports.at(0);
             expect(resultOption?.lastIOUCreationDate).toBeUndefined();
+        });
+    });
+
+    describe('orderPersonalDetailsOptions()', () => {
+        it('sorts options alphabetically using text values', () => {
+            const options = [
+                {accountID: 1, text: 'Charlie', login: 'c@example.com'},
+                {accountID: 2, text: 'aaron', login: 'a@example.com'},
+                {accountID: 3, text: 'Bob', login: 'b@example.com'},
+            ] as SearchOptionData[];
+
+            const sorted = orderPersonalDetailsOptions(options);
+
+            expect(sorted.map((option) => option.text)).toEqual(['aaron', 'Bob', 'Charlie']);
+        });
+
+        it('falls back to alternateText and login when text is missing', () => {
+            const options = [
+                {accountID: 1, text: undefined, alternateText: 'mango', login: 'm@example.com'},
+                {accountID: 2, text: 'apple', login: 'a@example.com'},
+                {accountID: 3, text: undefined, alternateText: undefined, login: 'banana@example.com'},
+            ] as SearchOptionData[];
+
+            const sorted = orderPersonalDetailsOptions(options);
+
+            expect(sorted.map((option) => option.accountID)).toEqual([2, 3, 1]);
         });
     });
 
