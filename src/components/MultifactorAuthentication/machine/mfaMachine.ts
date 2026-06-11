@@ -19,10 +19,14 @@ const DEFAULT_CONTEXT: MfaMachineContext = machineDefaults;
  * stop it).
  */
 const mfaMachine = setup({
+    // `{} as T` inside setup({types}) is XState v5's documented typing idiom (the values are erased
+    // at runtime and only carry types); there is no assertion-free way to express it.
+    /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
     types: {
         context: {} as MfaMachineContext,
         events: {} as MfaEvent,
     },
+    /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
     actions: {
         initFromEvent: assign(({event}) => {
             if (event.type !== 'INIT') {
