@@ -170,15 +170,15 @@ function computeSpendRuleCardDiff(oldCards: SpendRuleCard[], newCards: SpendRule
 
 type SpendRulePhraseVerb = 'added' | 'removed' | 'changed' | 'set' | 'applied';
 type SpendRulePhraseAdjective = '' | typeof CONST.SPEND_RULES.ACTION.BLOCK | typeof CONST.SPEND_RULES.ACTION.ALLOW;
-type SpendRulePhraseNoun = typeof CONST.SPEND_RULES.NOUN.MERCHANT | typeof CONST.SPEND_RULES.NOUN.SPEND_CATEGORY | '';
+type SpendRulePhraseNoun = typeof CONST.SPEND_RULES.NOUN.MERCHANT | typeof CONST.SPEND_RULES.NOUN.SPEND_CATEGORY;
 
 type SpendRulePhrase = {
     verb: SpendRulePhraseVerb;
     adjective: SpendRulePhraseAdjective;
-    noun: SpendRulePhraseNoun;
     bodyWithAdjective: string;
     bodyWithoutAdjective: string;
-    bodyValueOnly: string;
+    noun?: SpendRulePhraseNoun;
+    bodyValueOnly?: string;
 };
 
 function getSpendRulePhraseVerbWord(translate: LocalizedTranslate, verb: SpendRulePhraseVerb): string {
@@ -212,13 +212,13 @@ function joinSpendRulePhrases(translate: LocalizedTranslate, phrases: readonly S
         }
         const sameVerbAsPrevious = phrase.verb === previousVerb;
         const useOwnAdjective = phrase.adjective !== '' && phrase.adjective !== firstAdjective;
-        const sameNounAsPrevious = phrase.noun !== '' && phrase.noun === previousNoun;
+        const sameNounAsPrevious = phrase.noun !== undefined && phrase.noun === previousNoun;
         let body: string;
         if (!sameVerbAsPrevious) {
             body = `${getSpendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`;
         } else if (useOwnAdjective) {
             body = phrase.bodyWithAdjective;
-        } else if (sameNounAsPrevious) {
+        } else if (sameNounAsPrevious && phrase.bodyValueOnly !== undefined) {
             body = phrase.bodyValueOnly;
         } else {
             body = phrase.bodyWithoutAdjective;
@@ -289,7 +289,6 @@ function getDiffPhrases(
             noun,
             bodyWithAdjective,
             bodyWithoutAdjective,
-            bodyValueOnly: bodyWithoutAdjective,
         });
     } else {
         for (const value of diff.added) {
@@ -396,26 +395,26 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
         const oldValue = formatSpendRuleAmount(amountDiff.removed.at(0)?.value ?? [], currency);
         const newValue = formatSpendRuleAmount(amountDiff.added.at(0)?.value ?? [], currency);
         const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountChange', {oldValue, newValue});
-        phrases.push({verb: 'changed', adjective: '', noun: '', bodyWithAdjective: body, bodyWithoutAdjective: body, bodyValueOnly: body});
+        phrases.push({verb: 'changed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
     } else {
         for (const amount of amountDiff.added) {
             const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountSet', {value: formatSpendRuleAmount(amount.value, currency)});
-            phrases.push({verb: 'set', adjective: '', noun: '', bodyWithAdjective: body, bodyWithoutAdjective: body, bodyValueOnly: body});
+            phrases.push({verb: 'set', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
         }
         if (amountDiff.removed.length > 0) {
             const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmount');
-            const removedPhrase: SpendRulePhrase = {verb: 'removed', adjective: '', noun: '', bodyWithAdjective: body, bodyWithoutAdjective: body, bodyValueOnly: body};
+            const removedPhrase: SpendRulePhrase = {verb: 'removed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body};
             phrases.push(...Array.from<SpendRulePhrase>({length: amountDiff.removed.length}).fill(removedPhrase));
         }
     }
 
     if (cardDiff.added.length > 0) {
         const body = translate('workspaceActions.expensifyCardRule.update.bodyAppliedToAdditionalCards', {count: cardDiff.added.length});
-        phrases.push({verb: 'applied', adjective: '', noun: '', bodyWithAdjective: body, bodyWithoutAdjective: body, bodyValueOnly: body});
+        phrases.push({verb: 'applied', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
     }
     if (cardDiff.removed.length > 0) {
         const body = translate('workspaceActions.expensifyCardRule.update.bodyRemovedFromCards', {cards: getSpendRuleCardsSummary(translate, cardDiff.removed)});
-        phrases.push({verb: 'removed', adjective: '', noun: '', bodyWithAdjective: body, bodyWithoutAdjective: body, bodyValueOnly: body});
+        phrases.push({verb: 'removed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
     }
 
     if (phrases.length === 0) {
