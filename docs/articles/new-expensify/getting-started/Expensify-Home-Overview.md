@@ -116,18 +116,19 @@ This section helps you stay informed about what’s new or recently changed in N
 
 ---
 
-## How Your spend section works on Home
+## How the Your spend section works on Home
 
-The **Your spend** section gives you a snapshot of your spending activity across workspaces and Expensify Cards.
+The **Your spend** section gives you a quick summary of your recent card spending and the money moving through your account.
 
-This section can show any of the following rows, depending on what applies to you:
-- **Awaiting approval** — the total amount of your submitted expenses that are waiting for approval across all workspaces
-- **Repaid in the last 30 days** — the total amount reimbursed to you in the last 30 days across all workspaces
-- **Recent transactions • \<last four digits\>** — the amount spent on each assigned Expensify Card in the last 30 days
+It can include:
 
-Tap any row to go to **Spend > Expenses** with the relevant filters applied.
+- **Awaiting approval** — the total amount of your reimbursable expenses that are waiting for approval.
+- **Repaid in the last 30 days** — the total amount reimbursed to you in the last 30 days.
+- **Recent transactions • 1234** — a row for each card showing recent spending activity and the last four digits of the card number.
 
-If none of these conditions apply to you, the **Your spend** section will not appear.
+Select any row to open the matching expenses on the **Spend** page.
+
+If you have no recent card spending and no expenses awaiting approval or repaid in the last 30 days, the **Your spend** section won't appear.
 
 ---
 
