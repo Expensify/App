@@ -14,6 +14,7 @@ import {addPersonalBankAccount, clearPersonalBankAccount} from '@libs/actions/Ba
 import {continueSetup} from '@libs/actions/PaymentMethods';
 import {updateCurrentStep} from '@libs/actions/Wallet';
 import Navigation from '@navigation/Navigation';
+import useIsBankAccountAdded from '@pages/EnablePayments/Wallet/utils/useIsBankAccountAdded';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,25 +29,24 @@ const plaidPages = [
     {pageName: ADD_BANK_ACCOUNT_SUB_PAGES.CONFIRMATION, component: Confirmation},
 ];
 
+const confirmationPageIndex = plaidPages.findIndex((page) => page.pageName === ADD_BANK_ACCOUNT_SUB_PAGES.CONFIRMATION);
+
 function AddBankAccount() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const kycWallRef = useContext(KYCWallContext);
 
-    // The bank account was already created on a previous Confirm (e.g. the user advanced, navigated back, and pressed Confirm again).
-    // currentStep is moved off the bank account step only after a successful add.
-    const isBankAccountAlreadyAdded = !!userWallet?.currentStep && userWallet.currentStep !== CONST.WALLET.STEP.ADD_BANK_ACCOUNT;
+    const isBankAccountAlreadyAdded = useIsBankAccountAdded();
 
     const submit = useCallback(() => {
-        // Re-submitting an already added bank account fails with a "bank account already exists" error,
-        // so skip the API call and just continue to the next step of the flow.
+        // Re-submitting an already added bank account fails with a "bank account already exists" error, so skip the
+        // API call and advance the wallet step instead; the URL correction in EnablePaymentsPage navigates forward.
         if (isBankAccountAlreadyAdded) {
-            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: CONST.ENABLE_PAYMENTS.PAGE_NAMES.PERSONAL_INFO}));
+            updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
             return;
         }
 
@@ -66,9 +66,10 @@ function AddBankAccount() {
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
-    const {CurrentPage, isEditing, pageIndex, nextPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
+    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
         pages: plaidPages,
-        startFrom: 0,
+        // Once the bank account is added there is nothing to redo on the Plaid sub-page, so a revisit shows only the confirmation.
+        startFrom: isBankAccountAlreadyAdded ? confirmationPageIndex : 0,
         onFinished: submit,
         buildRoute: (pageName, action) =>
             ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({
@@ -94,21 +95,26 @@ function AddBankAccount() {
     };
 
     const handleBackButtonPress = () => {
+        // The bank account is already added, so the confirmation is the only visible sub-page of this step — back exits the flow.
+        if (isBankAccountAlreadyAdded) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            return;
+        }
+
         if (!isSetupTypeChosen) {
             exitFlow();
             return;
         }
 
         if (pageIndex === 0) {
+            // Clearing the draft unsets setupType, which switches this page back to the setup method view.
             clearPersonalBankAccount();
-            updateCurrentStep(null);
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
-        Navigation.goBack();
+        prevPage();
     };
 
-    if (isSetupTypeChosen && isRedirecting) {
+    if ((isSetupTypeChosen || isBankAccountAlreadyAdded) && isRedirecting) {
         return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnablePaymentsAddBankAccount', isRedirecting}} />;
     }
 
@@ -126,7 +132,7 @@ function AddBankAccount() {
                 title={translate('bankAccount.addBankAccount')}
             />
             <View style={styles.flex1}>
-                {isSetupTypeChosen ? (
+                {isSetupTypeChosen || isBankAccountAlreadyAdded ? (
                     <>
                         <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                             <InteractiveStepSubHeader

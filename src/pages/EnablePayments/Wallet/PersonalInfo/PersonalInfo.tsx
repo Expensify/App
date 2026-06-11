@@ -5,12 +5,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/Wallet/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
-import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
+import {setAdditionalDetailsQuestions, updateCurrentStep, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -61,7 +60,7 @@ function PersonalInfoPage() {
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
-    const {CurrentPage, isEditing, nextPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
+    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
         pages: formPages,
         startFrom,
         onFinished: submit,
@@ -83,7 +82,13 @@ function PersonalInfoPage() {
             setAdditionalDetailsQuestions(null, '');
             return;
         }
-        Navigation.goBack();
+
+        if (pageIndex === 0) {
+            // Step back to the Add Bank Account step; the URL correction in EnablePaymentsPage navigates there.
+            updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
+            return;
+        }
+        prevPage();
     };
 
     if (isRedirecting) {
