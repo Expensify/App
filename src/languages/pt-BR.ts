@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -9344,6 +9345,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Como <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloto</a> de ${accountOwnerEmail}, você não tem permissão para realizar esta ação. Desculpe!`,
+        removeCopilotAccess: 'Remover meu acesso de copiloto',
+        removeCopilotAccessTitle: 'Remover acesso de copiloto?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Tem certeza de que deseja remover seu acesso de copiloto à conta Expensify de ${delegatorName}? Esta ação não pode ser desfeita.`,
+        removeCopilotAccessConfirm: 'Remover acesso',
         copilotAccess: 'Acesso ao Copilot',
     },
     debug: {

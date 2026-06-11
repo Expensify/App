@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -9397,6 +9398,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Als <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">Copilot</a> von ${accountOwnerEmail} hast du keine Berechtigung, diese Aktion auszuführen. Entschuldigung!`,
+        removeCopilotAccess: 'Meinen Copilot-Zugriff entfernen',
+        removeCopilotAccessTitle: 'Copilot-Zugriff entfernen?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Sind Sie sicher, dass Sie Ihren Copilot-Zugriff auf das Expensify-Konto von ${delegatorName} entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.`,
+        removeCopilotAccessConfirm: 'Zugriff entfernen',
         copilotAccess: 'Copilot-Zugriff',
     },
     debug: {
