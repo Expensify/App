@@ -7,7 +7,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,8 +54,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isMobileSelectionEnabled = useMobileSelectionMode();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData} = useTableContext<DataType, ColumnKey>();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled} = useTableContext<DataType, ColumnKey>();
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
 
     if (shouldUseNarrowTableLayout && !title) {
@@ -73,15 +71,16 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
+    const selectableRows = processedData.filter((row) => !row.disabled);
     let isSelectionIndeterminate = false;
-    let isEverySelectableRowSelected = true;
+    let isEverySelectableRowSelected = selectableRows.length > 0;
 
     // We exclude disabled rows from the 'select all' behavior, so if a disabled row is not selected, we still
     // consider all active rows to be selected
     if (isSelectionCheckboxVisible) {
-        for (const row of processedData) {
-            isSelectionIndeterminate ||= row.selected;
-            isEverySelectableRowSelected &&= !!(row.selected || row.disabled);
+        for (const row of selectableRows) {
+            isSelectionIndeterminate = row.selected || isSelectionIndeterminate;
+            isEverySelectableRowSelected = row.selected && isEverySelectableRowSelected;
         }
     }
 
@@ -162,6 +161,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
  */
 function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
+    const toggleCount = useRef(0);
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
 
@@ -169,10 +169,9 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         activeSorting,
         tableMethods: {updateSorting, toggleColumnSorting},
     } = useTableContext<DataType, ColumnKey>();
+
     const isSortingByColumn = column.key === activeSorting.columnKey;
     const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
-
-    const toggleCount = useRef(0);
 
     /**
      * Handles column header press for sorting.
@@ -211,7 +210,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             <Text
                 numberOfLines={1}
                 color={theme.textSupporting}
-                style={[styles.lh16, isSortingByColumn ? styles.textMicroBoldSupporting : [styles.textMicroSupporting, styles.pr1, styles.tableHeaderIconSpacing]]}
+                style={[styles.lh16, isSortingByColumn ? styles.textMicroBoldSupporting : styles.textMicroSupporting]}
             >
                 {column.label}
             </Text>

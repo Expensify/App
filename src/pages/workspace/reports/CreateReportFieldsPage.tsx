@@ -273,7 +273,6 @@ function WorkspaceCreateReportFieldsPage({
                                     InputComponent={InitialListValueSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
-                                    subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
                                 />
                             )}
                         </View>

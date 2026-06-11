@@ -51,6 +51,9 @@ type WorkspaceCompanyCardTableRowProps = {
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
 
+    /** Whether the current member can edit company cards */
+    canWriteCompanyCards: boolean;
+
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
@@ -65,7 +68,16 @@ type WorkspaceCompanyCardTableRowProps = {
     onAssignCard: (cardName: string, cardID: string) => void;
 };
 
-function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNarrowTableLayout, rowIndex, isAssigningCardDisabled, onAssignCard}: WorkspaceCompanyCardTableRowProps) {
+function WorkspaceCompanyCardTableRow({
+    item,
+    policyID,
+    CardFeedIcon,
+    shouldUseNarrowTableLayout,
+    rowIndex,
+    isAssigningCardDisabled,
+    canWriteCompanyCards,
+    onAssignCard,
+}: WorkspaceCompanyCardTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -96,20 +108,28 @@ function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNa
         ? {width: variables.cardAvatarWidth, height: variables.cardAvatarHeight}
         : {width: variables.cardAvatarWidthSmall, height: variables.cardAvatarHeightSmall};
 
+    const canOpenCardDetails = !!assignedCard?.accountID && !!assignedCard?.fundID && assignedCard?.cardID !== undefined;
+    const canAssignCard = !isAssigned && canWriteCompanyCards && !isAssigningCardDisabled;
+    const canPressRow = canOpenCardDetails || canAssignCard;
+
     const handleRowPress = () => {
         if (!assignedCard) {
+            if (!canAssignCard) {
+                return;
+            }
             onAssignCard(cardName, encryptedCardNumber);
 
             return;
         }
 
-        if (!assignedCard?.accountID || !assignedCard?.fundID) {
+        const {cardID, fundID} = assignedCard;
+        if (!canOpenCardDetails || cardID === undefined || !fundID) {
             return;
         }
 
-        const feedName = getCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
+        const feedName = getCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, fundID);
 
-        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, assignedCard.cardID.toString()));
+        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, cardID.toString()));
     };
 
     return (
@@ -117,7 +137,7 @@ function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNa
             interactive
             rowIndex={rowIndex}
             isLoading={isDeleting}
-            disabled={isCardDeleted || isAssigningCardDisabled}
+            disabled={isCardDeleted || !canPressRow}
             skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
             LoadingComponent={WorkspaceCompanyCardsTableSkeleton}
@@ -177,7 +197,7 @@ function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNa
                     )}
 
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
-                        {!isAssigned && (
+                        {!isAssigned && canWriteCompanyCards && (
                             <Button
                                 small
                                 success
@@ -187,13 +207,15 @@ function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNa
                             />
                         )}
 
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={theme.icon}
-                            additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
+                        {canPressRow && (
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        )}
                     </View>
                 </>
             )}

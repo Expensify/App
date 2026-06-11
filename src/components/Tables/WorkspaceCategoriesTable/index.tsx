@@ -1,9 +1,11 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table/';
-import Table from '@components/Table/';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
+import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -31,13 +33,25 @@ type WorkspaceCategoryTableRowData = TableData & {
 type WorkspaceCategoriesTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>> | undefined;
     categories: WorkspaceCategoryTableRowData[];
+    selectionEnabled: boolean;
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    EmptyStateComponent: React.ReactElement;
 };
 
-export default function WorkspaceCategoriesTable({ref, categories, selectedKeys, shouldShowGLCodeColumn, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
+export default function WorkspaceCategoriesTable({
+    ref,
+    categories,
+    selectedKeys,
+    selectionEnabled,
+    shouldShowGLCodeColumn,
+    shouldShowApproverColumn,
+    onRowSelectionChange,
+    EmptyStateComponent,
+}: WorkspaceCategoriesTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -70,6 +84,9 @@ export default function WorkspaceCategoriesTable({ref, categories, selectedKeys,
             label: translate('common.enabled'),
             sortable: true,
             width: variables.tableSwitchColumnWidth,
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+            },
         },
         {
             key: 'actions',
@@ -105,7 +122,8 @@ export default function WorkspaceCategoriesTable({ref, categories, selectedKeys,
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceCategoryTableRowData> = (item, searchValue) => {
         const searchLower = searchValue.toLowerCase();
-        return !!item.name.toLowerCase().includes(searchLower) || !!item.glCode?.toLowerCase().includes(searchLower);
+        const results = tokenizedSearch([item], searchLower, (option) => [option.name, option.glCode ?? '']);
+        return results.length > 0;
     };
 
     const renderCategoryItem = ({item, index}: ListRenderItemInfo<WorkspaceCategoryTableRowData>) => (
@@ -118,22 +136,31 @@ export default function WorkspaceCategoriesTable({ref, categories, selectedKeys,
         />
     );
 
+    const isEmpty = categories.length === 0;
+
     return (
         <Table
             ref={ref}
-            selectionEnabled
             data={categories}
+            initialSortColumn="name"
+            selectionEnabled={selectionEnabled}
             title={translate('workspace.common.categories')}
             columns={categoryTableColumns}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             renderItem={renderCategoryItem}
             selectedKeys={selectedKeys}
+            keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {categories.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
-            <Table.Header />
-            <Table.Body />
+            {isEmpty && EmptyStateComponent}
+            {!isEmpty && (
+                <>
+                    {categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }

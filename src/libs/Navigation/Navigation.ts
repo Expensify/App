@@ -37,10 +37,10 @@ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './he
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
-import isTabNavigatorReady from './helpers/isTabNavigatorReady';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
+import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {linkingConfig} from './linkingConfig';
@@ -518,16 +518,23 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     const runImmediately = !options?.waitForTransition;
     TransitionTracker.runAfterTransitions({
         callback: () => {
-            if (backToRoute) {
-                goUp(backToRoute, options);
-            } else if (shouldPopToSidebar) {
-                popToSidebar();
-            } else if (!navigationRef.current?.canGoBack()) {
+            if (!backToRoute && !shouldPopToSidebar && !navigationRef.current?.canGoBack()) {
                 Log.hmmm('[Navigation] Unable to go back');
                 return;
-            } else {
-                navigationRef.current?.goBack();
             }
+
+            popAndRealignMfaMarker(
+                () => {
+                    if (backToRoute) {
+                        goUp(backToRoute, options);
+                    } else if (shouldPopToSidebar) {
+                        popToSidebar();
+                    } else {
+                        navigationRef.current?.goBack();
+                    }
+                },
+                (callback) => TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true}),
+            );
 
             if (options?.afterTransition) {
                 TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
@@ -683,6 +690,25 @@ function isNavigationReady(): Promise<void> {
     return navigationIsReadyPromise;
 }
 
+/**
+ * Runs the callback after any active navigation transition completes. If no transitions are
+ * active, the callback fires synchronously. Use this when you need to defer work behind an
+ * in-flight transition but the work is not itself a Navigation call (e.g. pushing on an
+ * independent navigator like the MFA modal).
+ */
+function runAfterTransition(callback: () => void) {
+    return TransitionTracker.runAfterTransitions({callback});
+}
+
+/**
+ * Like {@link runAfterTransition} but waits for the next transition to start before queuing the
+ * callback (with {@link CONST.MAX_TRANSITION_START_WAIT_MS} safety net). Use after dispatching a
+ * navigation action whose transition has not yet started.
+ */
+function runAfterUpcomingTransition(callback: () => void) {
+    return TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+}
+
 function setIsNavigationReady() {
     goToPendingRoute();
     resolveNavigationIsReadyPromise();
@@ -699,16 +725,8 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
         return false;
     }
 
-    if (!state.routeNames.includes(PROTECTED_SCREENS.CONCIERGE)) {
-        return false;
-    }
-
-    // routeNames only tells us screens are declared on the root navigator.
-    // We also need TabNavigator to be mounted (its child router has run
-    // useNavigationBuilder and produced a non-stale nested state), otherwise a
-    // deferred NAVIGATE targeting a screen inside TabNavigator will be dispatched
-    // before any child router is registered to handle it.
-    return isTabNavigatorReady(state);
+    // If one protected screen is in the routeNames then other screens are there as well.
+    return state?.routeNames.includes(PROTECTED_SCREENS.CONCIERGE);
 }
 
 /**
@@ -1140,7 +1158,7 @@ function removePreInsertedFullscreenIfNeeded() {
     const originalTabRoute = getPreInsertedOriginalTabRoute();
     if (originalTabRoute) {
         clearPreInsertedOriginalTabRoute();
-        const originalTabState = originalTabRoute.state as NavigationState | undefined;
+        const originalTabState = originalTabRoute.state;
         const originalFocusedTabIndex = originalTabState?.index ?? 0;
         const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
         if (originalTabName) {
@@ -1210,6 +1228,8 @@ export default {
     getActiveRouteWithoutParams,
     getReportRHPActiveRoute,
     goBack,
+    runAfterTransition,
+    runAfterUpcomingTransition,
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,

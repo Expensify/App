@@ -4,6 +4,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
@@ -155,6 +156,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const isMobileSelectionEnabled = useMobileSelectionMode();
 
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
@@ -245,6 +247,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isEmptyResult,
         shouldUseNarrowTableLayout,
         selectionEnabled,
+        isMobileSelectionEnabled,
     };
 
     return (

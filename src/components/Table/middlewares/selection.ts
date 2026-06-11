@@ -52,6 +52,7 @@ export default function useSelection<DataType extends TableData>({data, selected
     const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
+    // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
     useEffect(() => {
         if (shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length) {
             turnOnMobileSelectionMode();
@@ -59,6 +60,15 @@ export default function useSelection<DataType extends TableData>({data, selected
             turnOffMobileSelectionMode();
         }
     }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
+
+    // When there are no more items to be selected, turn off selection mode on mobile
+    useEffect(() => {
+        if (selectableKeys.length || !isSelectionModeEnabled) {
+            return;
+        }
+
+        turnOffMobileSelectionMode();
+    }, [selectableKeys.length, isSelectionModeEnabled]);
 
     /**
      * Clear all of the currently selected keys
@@ -74,10 +84,14 @@ export default function useSelection<DataType extends TableData>({data, selected
     const handleSelectAll = () => {
         const areAllSelectableRowsSelected = selectableKeys.every((key) => selectedKeys.includes(key));
 
-        if (areAllSelectableRowsSelected) {
-            onRowSelectionChange?.([]);
-        } else {
+        const isSelectionEmpty = selectedKeys.length === 0;
+        const isSelectionFull = areAllSelectableRowsSelected;
+        const isSelectionIndeterminate = selectedKeys.length > 0 && !areAllSelectableRowsSelected;
+
+        if (isSelectionEmpty) {
             onRowSelectionChange?.(selectableKeys);
+        } else if (isSelectionFull || isSelectionIndeterminate) {
+            onRowSelectionChange?.([]);
         }
     };
 
