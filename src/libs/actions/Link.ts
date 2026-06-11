@@ -295,12 +295,20 @@ function openReportFromDeepLink(
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
+            // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
+            // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
+            let initialHasCompletedGuidedSetupFlow: boolean | undefined;
             // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (val) => {
                     if (!val && !isAnonymousUser()) {
                         return;
+                    }
+
+                    // Capture once. Use the raw flag, not the selector, which returns `true` for the empty NVP a fresh sign-up briefly has.
+                    if (!isAuthenticated && initialHasCompletedGuidedSetupFlow === undefined && val && !isAnonymousUser()) {
+                        initialHasCompletedGuidedSetupFlow = val.hasCompletedGuidedSetupFlow;
                     }
 
                     Navigation.waitForProtectedRoutes().then(() => {
@@ -334,6 +342,11 @@ function openReportFromDeepLink(
                             }
 
                             if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
+                                return;
+                            }
+
+                            // Don't honor a deep link captured before the user finished onboarding (#91437).
+                            if (initialHasCompletedGuidedSetupFlow === false) {
                                 return;
                             }
 
