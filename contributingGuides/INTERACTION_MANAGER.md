@@ -29,7 +29,23 @@ On top of TransitionTracker, existing APIs gain transition-aware callbacks:
 
 This makes the code self-descriptive: instead of a generic `runAfterInteractions`, each call site says exactly what it's waiting for and why.
 
-> **Note:** `TransitionTracker.runAfterTransitions` is an internal primitive. Application code should use the higher-level APIs (`Navigation`, `useConfirmModal`, etc.) rather than importing TransitionTracker directly.
+### When to use `runAfterTransitions` directly
+
+Prefer higher-level APIs (`Navigation` with `afterTransition`/`waitForTransition`, `KeyboardUtils`, `useConfirmModal`) whenever possible. Use `TransitionTracker.runAfterTransitions` directly **only** when:
+
+- There is no specific navigation/keyboard/modal action you can attach a callback to, or
+- There are too many concurrent actions and it's impossible to bind the callback to a particular one.
+
+### How `runAfterTransitions` works
+
+1. If there are ongoing transitions at the time of the call, the callback is enqueued and waits until all current transitions complete.
+2. If there are no ongoing transitions, the callback executes in the same tick.
+
+### The same-tick race condition
+
+Sometimes a transition starts in the same tick as the `runAfterTransitions` call. Because TransitionTracker hasn't registered the transition yet, the callback fires immediately - before the transition even begins.
+
+To fix this, pass the `waitForUpcomingTransition` flag along with the callback. This tells TransitionTracker to wait for a transition that hasn't started yet, ensuring the callback truly runs after the transition completes.
 
 ## How
 The migration is split into 9 issues. Current status of the migration can be found in the parent Github issue [here](https://github.com/Expensify/App/issues/71913). 
