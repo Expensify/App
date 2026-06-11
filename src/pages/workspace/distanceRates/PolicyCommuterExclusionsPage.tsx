@@ -45,11 +45,17 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const {isBetaEnabled} = usePermissions();
     const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const customUnit = getDistanceRateCustomUnit(policy);
-    const workspaceUnit = customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const [policyData] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => ({
+            commuterExclusions: policy?.commuterExclusions,
+            unit: getDistanceRateCustomUnit(policy)?.attributes?.unit,
+            pendingFields: policy?.pendingFields,
+            errorFields: policy?.errorFields,
+        }),
+    });
+    const workspaceUnit = policyData?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 
-    const existingCommuterExclusions = policy?.commuterExclusions;
+    const existingCommuterExclusions = policyData?.commuterExclusions;
     const existingMethod = existingCommuterExclusions?.method;
 
     const [selectedKey, setSelectedKey] = useState<ExclusionOptionKey>(
@@ -157,8 +163,8 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                     onBackButtonPress={goBackToSettings}
                 />
                 <OfflineWithFeedback
-                    errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
-                    pendingAction={policy?.pendingFields?.commuterExclusions}
+                    errors={getLatestErrorField(policyData ?? {}, 'commuterExclusions')}
+                    pendingAction={policyData?.pendingFields?.commuterExclusions}
                     errorRowStyles={styles.mh5}
                     onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
                     style={styles.flex1}
