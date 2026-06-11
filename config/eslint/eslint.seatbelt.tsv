@@ -1681,7 +1681,7 @@
 "../../tests/perf-test/ReportUtils.perf-test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/perf-test/SelectionList.perf-test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/perf-test/useFilterFormValues.perf-test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	15
-"../../tests/ui/AgentsPromoBannersTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/ui/AgentsPromoBannersTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/AssignCardFeed.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/AuthScreensInitHandlerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/ui/AvatarSelector.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
@@ -1772,7 +1772,7 @@
 "../../tests/ui/hooks/useHtmlPasteTest/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/APITest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	61
 "../../tests/unit/AddExistingExpenseSearchTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../tests/unit/AgentActionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	61
+"../../tests/unit/AgentActionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	53
 "../../tests/unit/AgentZeroStatusContextTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/AvatarButtonWithIconTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/AvatarUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
