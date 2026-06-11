@@ -53,6 +53,7 @@ import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import DelegatorConnectGuard from './DelegatorConnectGate';
+import doesRHPStackHaveWidePane from './doesRHPStackHaveWidePane';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
@@ -65,6 +66,7 @@ import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
+import useIsCenteredRHPModal from './useIsCenteredRHPModal';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 import UserStatusHandler from './UserStatusHandler';
@@ -125,6 +127,7 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const isCenteredRHPModal = useIsCenteredRHPModal();
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
 
     useEffect(() => {
@@ -134,6 +137,23 @@ function AuthScreens() {
             NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
+
+    // Dynamic options for RIGHT_MODAL_NAVIGATOR: on wide layout a standalone small RHP fades the whole navigator in place
+    // (matching centered/alert modals, so there's no lateral movement). Wide expense/report panes and narrow layout keep the slide entrance.
+    const getRightModalNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>}) => {
+        const baseOptions = rootNavigatorScreenOptions.rightModalNavigator;
+        if (!isCenteredRHPModal || doesRHPStackHaveWidePane(route)) {
+            return baseOptions;
+        }
+        return {
+            ...baseOptions,
+            web: {
+                ...baseOptions.web,
+                // A centered modal is positioned independently (fixed, centered box), so the right-docked side-panel offset doesn't apply.
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'fade'}}),
+            },
+        };
+    };
 
     // Dynamic options for TAB_NAVIGATOR: supports entering animation for pushed instances
     const getTabNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
@@ -292,7 +312,7 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.rightModalNavigator}
+                            options={getRightModalNavigatorOptions}
                             getComponent={loadRightModalNavigator}
                             listeners={modalScreenListenersWithCancelSearch}
                         />

@@ -14,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getInsightConfig, getInsightTabFromUrlSlug, INSIGHTS_TAB_ORDER} from '@libs/InsightsUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import EmptySearchView from '@pages/Search/EmptySearchView';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -51,6 +52,7 @@ function InsightsPage() {
     };
 
     const shouldRenderChart = !!queryJSON && !!groupBy && view !== undefined && view !== CONST.SEARCH.VIEW.TABLE;
+    const shouldShowEmptyState = shouldRenderChart && !isLoading && !sortedData?.length;
 
     const topBar = (
         <TopBar
@@ -80,7 +82,7 @@ function InsightsPage() {
                         />
                     </TabSelectorContextProvider>
                 </View>
-                {shouldRenderChart && (
+                {shouldRenderChart && !shouldShowEmptyState && (
                     <View style={[styles.homePageCenteredContent, styles.mt3]}>
                         <SearchChartWrapper
                             title={translate(`search.chartTitles.${groupBy}`)}
@@ -95,6 +97,14 @@ function InsightsPage() {
                             />
                         </SearchChartWrapper>
                     </View>
+                )}
+                {shouldShowEmptyState && (
+                    <EmptySearchView
+                        similarSearchHash={queryJSON?.hash ?? 0}
+                        type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                        hasResults={false}
+                        queryJSON={queryJSON}
+                    />
                 )}
             </ScrollView>
         </ScreenWrapper>

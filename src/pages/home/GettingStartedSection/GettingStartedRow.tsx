@@ -43,7 +43,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
                     {item.isComplete ? (
                         <View
                             style={[
-                                StyleUtils.getSelectionButtonContainerStyle(variables.iconSizeNormal, variables.componentBorderRadiusSmall),
+                                StyleUtils.getSelectionButtonContainerStyle(variables.iconSizeNormal, variables.componentBorderRadiusSmall, 1),
                                 {backgroundColor: theme.icon, borderColor: theme.icon},
                             ]}
                         >

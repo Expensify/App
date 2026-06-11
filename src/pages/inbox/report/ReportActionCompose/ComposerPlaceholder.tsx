@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
  *
  * Source of truth: ReportActionCompose (same directory).
  * Mirrors: chatFooter, chatItemComposeBox, composerSizeButton (width/marginHorizontal),
- * textInputComposeSpacing, textInputComposeBorder, chatItemEmojiButton, chatItemSubmitButton,
+ * textInputComposeSpacing, chatItemEmojiButton, chatItemSubmitButton,
  * chatItemComposeSecondaryRow, and icons [Plus, Emoji, Send].
  * If the real composer changes its layout or icon set, update this placeholder to match.
  */
@@ -38,7 +38,7 @@ function ComposerPlaceholder() {
         styles.alignItemsCenter,
     ];
 
-    const textInputStyle = [styles.textInputComposeSpacing, styles.textInputComposeBorder, {paddingVertical: 0}];
+    const textInputStyle = [styles.textInputComposeSpacing, {paddingVertical: 0}];
 
     const placeholderTextStyle = [
         styles.textNormal,

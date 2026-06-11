@@ -14,27 +14,17 @@ import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
 
 const GLOBAL_NAV_BAR_HEIGHT = 52;
 
-const NAVIGATORS_WITH_LHN = new Set<string>([
-    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-    NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-    NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
-]);
+const NAVIGATORS_WITH_BOTTOM_BORDER = new Set<string>([NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]);
 
-function isOnNavigatorWithLHN(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
+function isOnNavigatorWithBottomBorder(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
     if (!state) {
         return false;
     }
@@ -48,38 +38,23 @@ function isOnNavigatorWithLHN(state: NavigationState | PartialState<NavigationSt
         if (!route) {
             return false;
         }
-        if (NAVIGATORS_WITH_LHN.has(route.name)) {
+        if (NAVIGATORS_WITH_BOTTOM_BORDER.has(route.name)) {
             return true;
         }
-        return isOnNavigatorWithLHN(route.state);
+        return isOnNavigatorWithBottomBorder(route.state);
     }
     return state.routes.some((route) => {
-        if (NAVIGATORS_WITH_LHN.has(route.name)) {
+        if (NAVIGATORS_WITH_BOTTOM_BORDER.has(route.name)) {
             return true;
         }
-        return isOnNavigatorWithLHN(route.state);
+        return isOnNavigatorWithBottomBorder(route.state);
     });
-}
-
-function isOnSettings(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
-    if (!state || state.index === undefined) {
-        return false;
-    }
-    const route = state.routes.at(state.index);
-    if (!route) {
-        return false;
-    }
-    if (route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
-        return true;
-    }
-    return isOnSettings(route.state);
 }
 
 function GlobalNavBar() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const shouldShowBorder = useRootNavigationState(isOnNavigatorWithLHN);
-    const isAccountSelected = useRootNavigationState(isOnSettings);
+    const shouldShowBorder = useRootNavigationState(isOnNavigatorWithBottomBorder);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Sparkles']);
     const {openSearchRouter} = useSearchRouterActions();
     const {openSidePanel} = useSidePanelActions();
@@ -103,15 +78,6 @@ function GlobalNavBar() {
             openSearchRouter();
         })();
     }, [openSearchRouter]);
-
-    const onAccountPress = useCallback(() => {
-        if (isAccountSelected) {
-            return;
-        }
-        interceptAnonymousUser(() => {
-            Navigation.navigate(ROUTES.SETTINGS);
-        });
-    }, [isAccountSelected]);
 
     return (
         <View
@@ -153,40 +119,30 @@ function GlobalNavBar() {
                         </>
                     )}
                 </PressableWithFeedback>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    <Animated.View
-                        style={conciergeAnimatedStyle}
-                        pointerEvents={shouldHideSidePanel ? 'auto' : 'none'}
+                <Animated.View
+                    style={conciergeAnimatedStyle}
+                    pointerEvents={shouldHideSidePanel ? 'auto' : 'none'}
+                >
+                    <PressableWithFeedback
+                        accessibilityLabel="Ask Concierge"
+                        role={CONST.ROLE.BUTTON}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3, {height: 40, borderRadius: variables.buttonBorderRadius, marginBottom: 1}]}
+                        sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
+                        onPress={openSidePanel}
                     >
-                        <PressableWithFeedback
-                            accessibilityLabel="Ask Concierge"
-                            role={CONST.ROLE.BUTTON}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3, {height: 40, borderRadius: variables.buttonBorderRadius, marginBottom: 1}]}
-                            sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
-                            onPress={openSidePanel}
-                        >
-                            {({hovered}) => (
-                                <>
-                                    <Icon
-                                        src={expensifyIcons.Sparkles}
-                                        fill={theme.textSupporting}
-                                        width={16}
-                                        height={16}
-                                    />
-                                    <Text style={[styles.buttonText, styles.buttonMediumText, {color: hovered ? theme.text : theme.textSupporting}]}>Ask Concierge</Text>
-                                </>
-                            )}
-                        </PressableWithFeedback>
-                    </Animated.View>
-                    <NavigationTabBarAvatar
-                        isSelected={isAccountSelected}
-                        onPress={onAccountPress}
-                        shouldShowLabel={false}
-                        wrapperStyle={styles.alignItemsCenter}
-                        shouldShowHoverBackground={false}
-                        avatarSize={CONST.AVATAR_SIZE.SMALL_NORMAL}
-                    />
-                </View>
+                        {({hovered}) => (
+                            <>
+                                <Icon
+                                    src={expensifyIcons.Sparkles}
+                                    fill={theme.textSupporting}
+                                    width={16}
+                                    height={16}
+                                />
+                                <Text style={[styles.buttonText, styles.buttonMediumText, {color: hovered ? theme.text : theme.textSupporting}]}>Ask Concierge</Text>
+                            </>
+                        )}
+                    </PressableWithFeedback>
+                </Animated.View>
             </View>
             {shouldShowBorder && (
                 <View

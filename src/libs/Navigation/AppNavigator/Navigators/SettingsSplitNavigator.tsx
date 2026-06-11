@@ -32,7 +32,7 @@ const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
 
 function SettingsSplitNavigator() {
     const route = useRoute();
-    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(undefined, false);
 
     return (
         <FocusTrapForScreens>

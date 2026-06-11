@@ -1624,12 +1624,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns the selection button container style
      */
-    getSelectionButtonContainerStyle: (size: number, borderRadius = 4): ViewStyle => ({
+    getSelectionButtonContainerStyle: (size: number, borderRadius = 4, borderWidth = 2): ViewStyle => ({
         backgroundColor: theme.componentBG,
         height: size,
         width: size,
         borderColor: theme.bordersBold,
-        borderWidth: 2,
+        borderWidth,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius,

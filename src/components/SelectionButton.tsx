@@ -179,7 +179,7 @@ function SelectionButton({
             {children ?? (
                 <View
                     style={[
-                        StyleUtils.getSelectionButtonContainerStyle(containerSize, borderRadius),
+                        StyleUtils.getSelectionButtonContainerStyle(containerSize, borderRadius, role === CONST.ROLE.CHECKBOX ? 1 : 2),
                         containerStyle,
                         (isChecked || isIndeterminate) && styles.checkedContainer,
                         hasError && styles.borderColorDanger,

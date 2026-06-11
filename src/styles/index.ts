@@ -1170,8 +1170,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchRouterBorder: {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
-            backgroundColor: theme.highlightBG,
-            borderColor: theme.highlightBG,
+            borderColor: theme.bordersBold,
         },
 
         /**
@@ -1404,17 +1403,13 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             height: '100%',
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.appBG,
             overflow: 'hidden',
             borderWidth: 1,
             padding: 8,
             paddingBottom: 0,
             borderRadius: 8,
-            borderColor: theme.highlightBG,
-        },
-
-        textInputContainerFocused: {
-            backgroundColor: theme.appBG,
+            borderColor: theme.bordersBold,
         },
 
         cannotBeEditedSplitInputContainer: {
@@ -1763,8 +1758,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
-            borderRightWidth: 1,
-            borderColor: theme.borderLight,
             overflow: 'hidden',
         },
 
@@ -2229,16 +2222,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         chatItemComposeBoxColor: {
-            backgroundColor: theme.highlightBG,
-            borderColor: theme.highlightBG,
+            borderColor: theme.bordersBold,
         },
 
         chatItemComposeBoxFocusedColor: {
-            backgroundColor: theme.appBG,
             borderColor: theme.borderFocus,
         },
 
         chatItemComposeBox: {
+            backgroundColor: theme.componentBG,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             minHeight: variables.componentSizeMedium,
@@ -2279,7 +2271,7 @@ const staticStyles = (theme: ThemeColors) =>
         textInputCompose: addOutlineWidth(
             theme,
             {
-                backgroundColor: theme.transparent,
+                backgroundColor: theme.componentBG,
                 borderColor: theme.bordersBold,
                 color: theme.text,
                 ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -3567,20 +3559,16 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderBottomWidth: 1,
             paddingHorizontal: 8,
-            backgroundColor: theme.highlightBG,
-            borderColor: theme.highlightBG,
         },
 
         searchAutocompleteInputResults: {
             borderWidth: 1,
-            borderColor: theme.highlightBG,
-            backgroundColor: theme.highlightBG,
+            borderColor: theme.bordersBold,
         },
 
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
-            backgroundColor: theme.appBG,
         },
 
         searchInputSkeleton: {
@@ -5890,8 +5878,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: animatedWideRHPWidth,
-            borderTopLeftRadius: 16,
-            borderBottomLeftRadius: 16,
             overflow: 'hidden',
         },
 
@@ -5900,8 +5886,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: animatedSuperWideRHPWidth,
-            borderTopLeftRadius: 16,
-            borderBottomLeftRadius: 16,
             overflow: 'hidden',
         },
 
@@ -5910,8 +5894,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: variables.sideBarWidth,
-            borderTopLeftRadius: 16,
-            borderBottomLeftRadius: 16,
             overflow: 'hidden',
         },
 
@@ -6793,8 +6775,6 @@ const plainStyles = (theme: ThemeColors) =>
                 width: variables.componentSizeNormal,
                 height: variables.componentSizeNormal,
                 backgroundColor: theme.highlightBG,
-                borderWidth: 1,
-                borderColor: theme.border,
             }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>

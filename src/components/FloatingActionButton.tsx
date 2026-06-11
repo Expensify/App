@@ -9,7 +9,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
@@ -41,7 +43,7 @@ type FloatingActionButtonProps = WithSentryLabel & {
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
-    const {success, successHover, buttonSuccessText} = useTheme();
+    const {success, successHover, buttonSuccessText, colorScheme} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
@@ -50,6 +52,9 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const {translate} = useLocalize();
 
     const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
+    const narrowFabColor = colorScheme === CONST.COLOR_SCHEME.DARK ? colors.green600 : colors.green700;
+    const fabBaseColor = isLHBVisible ? success : narrowFabColor;
+    const fabActiveColor = isLHBVisible ? successHover : narrowFabColor;
 
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const isHovered = useSharedValue(false);
@@ -65,7 +70,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     }, [isActive, sharedValue]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = isHovered.get() && !sharedValue.get() ? successHover : interpolateColor(sharedValue.get(), [0, 1], [success, successHover]);
+        const backgroundColor = isHovered.get() && !sharedValue.get() ? fabActiveColor : interpolateColor(sharedValue.get(), [0, 1], [fabBaseColor, fabActiveColor]);
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],

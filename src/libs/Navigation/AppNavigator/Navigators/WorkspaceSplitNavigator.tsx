@@ -45,7 +45,7 @@ function hasNoEnterAnimationFlag(params: unknown): boolean {
 }
 
 function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
-    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(undefined, false);
     const styles = useThemeStyles();
 
     const buildSidebarScreenOptions = ({route: screenRoute}: {route: {params?: unknown}}) => {
