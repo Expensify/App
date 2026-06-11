@@ -916,7 +916,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Revisar',
             },
             validateAccount: {
-                title: 'Valida tu cuenta para continuar usando Expensify',
+                title: 'Valida tu cuenta',
                 subtitle: 'Cuenta',
                 cta: 'Validar',
             },
@@ -1339,7 +1339,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `aprobado`,
         unapproved: `no aprobado`,
         automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
-        forwarded: `aprobó`,
+        forwarded: (memo) => `aprobó${memo ? `, dijo ${memo}` : ''}`,
         rejectedThisReport: 'rechazó',
         waitingOnBankAccount: (submitterDisplayName) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
