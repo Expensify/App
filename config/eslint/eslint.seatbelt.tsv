@@ -1912,7 +1912,7 @@
 "../../tests/unit/hooks/useDraftMessageVideoAttributeCache.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useEditComposerToggle.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useEditMessage.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/hooks/useExpenseSubmission.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/unit/hooks/useExpenseSubmission.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useExpensifyCardFeedsForFeedSelector.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useExportedToFilterOptions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/hooks/useFilterFeedDataTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
