@@ -46,6 +46,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -61,6 +62,7 @@ import {
     getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleMessage,
+    getMccGroupCategoryMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -195,6 +197,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
 import StringUtils from './StringUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
 
@@ -918,7 +921,7 @@ function getOptionData({
 
     const isExpense = isExpenseReport(report);
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
-    const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
+    const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived);
 
     const status = personalDetail?.status ?? '';
 
@@ -1117,6 +1120,10 @@ function getOptionData({
             result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
             result.alternateText = getAutoReimbursementMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
+            result.alternateText = getCategoryTaxRateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
+            result.alternateText = getMccGroupCategoryMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
             result.alternateText = getDefaultApproverUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
@@ -1195,6 +1202,12 @@ function getOptionData({
             result.alternateText = getDeletedApprovalRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE) {
             result.alternateText = getUpdatedApprovalRuleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE) {
+            result.alternateText = getAddExpensifyCardRuleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE) {
+            result.alternateText = getUpdateExpensifyCardRuleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE) {
+            result.alternateText = getRemoveExpensifyCardRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
             result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) {

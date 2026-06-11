@@ -98,7 +98,7 @@ function useParticipantSubmission({
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(activePolicy) &&
         activePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
+        !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID);
 
     const dataRef = useRef({
         allPolicies,
@@ -185,6 +185,7 @@ function useParticipantSubmission({
                 policy: movingPolicy,
                 isPolicyExpenseChat: false,
                 lastSelectedDistanceRates: distanceRates,
+                expenseDate: transaction.created,
             });
             setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
@@ -238,14 +239,25 @@ function useParticipantSubmission({
         if (!isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
             // If not moving the transaction from track expense, select the default rate automatically.
             // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-            const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates: distanceRates});
-
             if (drafts.length > 0) {
                 for (const transaction of drafts) {
+                    const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                        reportID: firstParticipantReportID,
+                        isPolicyExpenseChat,
+                        policy,
+                        lastSelectedDistanceRates: distanceRates,
+                        expenseDate: transaction.created,
+                    });
                     setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
                 }
             } else {
                 // Fallback to using initialTransactionID directly
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                    reportID: firstParticipantReportID,
+                    isPolicyExpenseChat,
+                    policy,
+                    lastSelectedDistanceRates: distanceRates,
+                });
                 setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
             }
         }

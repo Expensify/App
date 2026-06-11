@@ -22,6 +22,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,6 +42,7 @@ import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
+import {openAgentsPage} from '@userActions/Agent';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
@@ -82,14 +84,17 @@ function ProfilePage({route}: ProfilePageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const switchToDelegator = useSwitchToDelegator();
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
     const [report] = useOnyx(reportKey);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
 
     const styles = useThemeStyles();
@@ -146,13 +151,15 @@ function ProfilePage({route}: ProfilePageProps) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
+    const isOwnedAgent = !isCurrentUser && isAgentEmail(login) && !!agentPrompt;
+
     const notificationPreferenceValue = getReportNotificationPreference(report);
 
     const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && !isReportHiddenForCurrentUser(notificationPreferenceValue);
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
-    const isConcierge = isConciergeChatReport(report);
+    const isConcierge = isConciergeChatReport(report, conciergeReportID);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -161,6 +168,13 @@ function ProfilePage({route}: ProfilePageProps) {
             openPublicProfilePage(accountID);
         }
     }, [accountID, loginParams, isConcierge]);
+
+    useEffect(() => {
+        if (isCurrentUser || !isAgentEmail(login)) {
+            return;
+        }
+        openAgentsPage();
+    }, [isCurrentUser, login]);
 
     const promotedActions: PromotedAction[] = [];
     if (report) {
@@ -258,6 +272,27 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={translate('common.editYourProfile')}
                                 icon={expensifyIcons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
+                            />
+                        )}
+                        {isOwnedAgent && (
+                            <OfflineWithFeedback
+                                errors={agentPrompt?.promptErrors}
+                                errorRowStyles={[styles.mh5, styles.mb2]}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={translate('profilePage.customInstructions')}
+                                    title={agentPrompt?.prompt?.trim() ?? ''}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID))}
+                                    numberOfLinesTitle={2}
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        {isOwnedAgent && (
+                            <MenuItem
+                                title={translate('profilePage.copilotIntoAccount')}
+                                icon={expensifyIcons.UserPlus}
+                                onPress={callFunctionIfActionIsAllowed(() => switchToDelegator(login))}
                             />
                         )}
                         {shouldShowNotificationPreference && (

@@ -99,9 +99,8 @@ function Button({
             shouldRemoveBorderRadius ? borderRadiusStyles[shouldRemoveBorderRadius] : undefined,
             styles.alignItemsStretch,
             innerStyles,
-            variant === 'link' && styles.bgTransparent,
         ],
-        [styles, StyleUtils, size, horizontalPaddingBySize, buttonVariantStyles, shouldRemoveBorderRadius, borderRadiusStyles, innerStyles, variant],
+        [styles, StyleUtils, size, horizontalPaddingBySize, buttonVariantStyles, shouldRemoveBorderRadius, borderRadiusStyles, innerStyles],
     );
 
     const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
@@ -121,6 +120,13 @@ function Button({
             opacity,
         };
     }, [buttonStyles, shouldBlendOpacity]);
+
+    let loadingIndicatorColor = theme.text;
+    if (variant === 'danger') {
+        loadingIndicatorColor = theme.buttonDangerText;
+    } else if (variant === 'success') {
+        loadingIndicatorColor = theme.textLight;
+    }
 
     return (
         <PressableWithFeedback
@@ -201,7 +207,7 @@ function Button({
             </ButtonContext.Provider>
             {isLoading && (
                 <ActivityIndicator
-                    color={variant === 'success' || variant === 'danger' ? theme.textLight : theme.text}
+                    color={loadingIndicatorColor}
                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                     reasonAttributes={buttonLoadingReasonAttributes}
                 />

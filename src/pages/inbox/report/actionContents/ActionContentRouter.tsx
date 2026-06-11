@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -49,6 +50,7 @@ import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
+import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
@@ -75,7 +77,7 @@ type ActionContentRouterProps = {
     originalReport: OnyxEntry<OnyxTypes.Report>;
 
     /** ID of the original report from which the given reportAction is first created */
-    originalReportID: string;
+    originalReportID?: string;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
@@ -107,9 +109,6 @@ type ActionContentRouterProps = {
     /** Whether the report action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport: boolean;
 
-    /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
@@ -135,7 +134,6 @@ function ActionContentRouter({
     updateHiddenState,
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
-    personalDetails,
     shouldShowBorder,
     isOnSearch,
     setIsPaymentMethodPopoverActive,
@@ -164,7 +162,6 @@ function ActionContentRouter({
                     <ChatTransactionPreview
                         action={action}
                         reportID={reportID}
-                        chatReportID={chatReportID}
                         iouReport={iouReport}
                         shouldShowSplitPreview={shouldShowSplitPreview}
                         transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
@@ -235,7 +232,6 @@ function ActionContentRouter({
                 action={action}
                 report={report}
                 iouReport={iouReport}
-                personalDetails={personalDetails}
             />
         );
     }
@@ -252,6 +248,14 @@ function ActionContentRouter({
             <ModifiedExpenseContent
                 action={action}
                 policyID={policyID}
+                originalReport={originalReport}
+            />
+        );
+    }
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR) {
+        return (
+            <ConciergeAutoMatchVendorContent
+                action={action}
                 originalReport={originalReport}
             />
         );
@@ -290,6 +294,7 @@ function ActionContentRouter({
                 parentReportID={report?.parentReportID}
                 parentReportActionID={report?.parentReportActionID}
                 actionReportID={action.reportID}
+                action={action}
             />
         );
     }
@@ -305,7 +310,7 @@ function ActionContentRouter({
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
     if (isHandledPolicyChangeLogAction(action)) {
         return (

@@ -1,5 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -12,6 +10,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import {showExpenseAddedGrowl} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -85,6 +84,8 @@ type SendInvoiceOptions = {
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     shouldHandleNavigation?: boolean;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -588,6 +589,7 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     senderPolicyTags,
+    delegateAccountID,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -666,7 +668,7 @@ function getSendInvoiceInformation({
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction, undefined, undefined, delegateAccountID);
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
@@ -680,6 +682,7 @@ function getSendInvoiceInformation({
             participants: [receiver],
             transactionID: optimisticTransaction.transactionID,
             currentUserAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
 
     // STEP 6: Build Onyx Data
@@ -736,6 +739,7 @@ function sendInvoice({
     isFromGlobalCreate = false,
     senderPolicyTags,
     shouldHandleNavigation = true,
+    delegateAccountID,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -770,6 +774,7 @@ function sendInvoice({
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
         senderPolicyTags: senderPolicyTags ?? {},
+        delegateAccountID,
     });
 
     const parameters: SendInvoiceParams = {
@@ -808,9 +813,8 @@ function sendInvoice({
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     if (shouldHandleNavigation) {
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         handleNavigateAfterExpenseCreate({
             activeReportID: invoiceRoom.reportID,
             iouReportID: invoiceReportID,
@@ -827,6 +831,9 @@ function sendInvoice({
             transactionID,
             transactionThreadReportID,
         });
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 
     notifyNewAction(invoiceRoom.reportID, undefined, true);

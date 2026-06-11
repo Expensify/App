@@ -559,6 +559,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 transactionID: PER_DIEM_IOU_TRANSACTION_ID,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 amount: 100,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {

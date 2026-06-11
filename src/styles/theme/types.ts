@@ -40,6 +40,7 @@ type ThemeColors = {
     buttonHoveredBGReversed: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
+    buttonDangerText: Color;
     danger: Color;
     dangerHover: Color;
     dangerPressed: Color;
@@ -50,6 +51,7 @@ type ThemeColors = {
     transparent: Color;
     signInPage: Color;
     darkSupportingText: Color;
+    receiptPlaceholderPlus: Color;
 
     // Additional keys
     overlay: Color;

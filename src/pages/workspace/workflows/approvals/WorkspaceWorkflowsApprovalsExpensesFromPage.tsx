@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -41,7 +42,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow?.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
@@ -135,7 +137,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         } else if (!isInitialCreationFlow) {
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
-        Navigation.goBack(backTo);
+        // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
+        // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
+        Navigation.goBack(backTo, {compareParams: false});
+    };
+
+    // Fall back to goBack — plain Navigation.goBack() closes the modal after a refresh.
+    const onBackButtonPress = () => {
+        const {backTo} = route.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM];
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        goBack();
     };
 
     const nextStep = () => {
@@ -202,7 +216,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <ApproverSelectionList
                 testID="WorkspaceWorkflowsApprovalsExpensesFromPage"
                 headerTitle={translate('workflowsExpensesFromPage.title')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={onBackButtonPress}
                 subtitle={
                     approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE &&
                     !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
