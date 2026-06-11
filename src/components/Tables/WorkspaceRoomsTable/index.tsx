@@ -1,8 +1,8 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import React, {useEffect, useRef} from 'react';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,19 +15,40 @@ type WorkspaceRoomsTableColumnKey = 'name' | 'createdBy' | 'members' | 'actions'
 type WorkspaceRoomsTableProps = {
     /** Pre-built row data for each room */
     rooms: WorkspaceRoomRowData[];
+
+    /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
+    highlightedReportID?: string;
 };
 
-function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
+
+    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb5,
+    });
+
+    useEffect(() => {
+        if (!highlightedReportID) {
+            return;
+        }
+        const highlightedRoom = rooms.find((room) => room.reportID === highlightedReportID);
+        if (!highlightedRoom) {
+            return;
+        }
+        tableRef.current?.scrollToItem({item: highlightedRoom, animated: false});
+    }, [highlightedReportID, rooms]);
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
-        {key: 'name', label: translate('common.name')},
-        {key: 'createdBy', label: translate('common.createdBy')},
-        {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth},
-        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {key: 'name', label: translate('common.name'), sortable: true},
+        {key: 'createdBy', label: translate('common.createdBy'), sortable: true},
+        {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth, sortable: true},
+        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey> = (a, b, activeSorting) => {
@@ -51,11 +72,13 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            shouldAnimateInHighlight={!!highlightedReportID && item.reportID === highlightedReportID}
         />
     );
 
     return (
         <Table
+            ref={tableRef}
             data={rooms}
             columns={columns}
             renderItem={renderItem}
@@ -63,16 +86,14 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             isItemInSearch={isItemInSearch}
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
-            keyExtractor={(row) => row.reportID}
+            keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowTableLayout)]}>
-                <Table.SearchBar label={translate('workspace.common.findRoom')} />
-            </View>
+            <Table.SearchBar label={translate('workspace.common.findRoom')} />
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>
     );
 }
 
 export default WorkspaceRoomsTable;
-export type {WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey};
+export type {WorkspaceRoomRowData};

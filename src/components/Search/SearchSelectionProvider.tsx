@@ -47,16 +47,16 @@ function deriveSelectedReports(
             .map((item) => ({
                 reportID: item.reportID,
                 action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                // Prefer the freshly computed reimbursableTotal over the (sometimes stale) stored
-                // total column so bulk-pay and bulk-action summaries reflect the current sum of
-                // reimbursable transactions.
                 total: getReimbursableTotal({
                     total: item.total ?? CONST.DEFAULT_NUMBER_ID,
                     nonReimbursableTotal: item.nonReimbursableTotal,
                     reimbursableTotal: item.reimbursableTotal,
                 }),
                 policyID: item.policyID,
-                allActions: item.allActions ?? [item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW],
+                canPay: item.canPay,
+                canApprove: item.canApprove,
+                canSubmit: item.canSubmit,
+                canChangeApprover: item.canChangeApprover,
                 currency: item.currency,
                 chatReportID: item.chatReportID,
                 managerID: item.managerID,
@@ -78,7 +78,10 @@ function deriveSelectedReports(
                     action,
                     total,
                     policyID: item.policyID,
-                    allActions: item.allActions ?? [action],
+                    canPay: item.canPay,
+                    canApprove: item.canApprove,
+                    canSubmit: item.canSubmit,
+                    canChangeApprover: item.canChangeApprover,
                     currency: item.currency,
                     chatReportID: item.report?.chatReportID,
                     managerID: item.report?.managerID,
@@ -269,4 +272,26 @@ function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGro
     }, [selectedTransactions, setSelectedReports]);
 }
 
-export {SearchSelectionProvider, useSyncSelectedReports};
+/**
+ * Narrow per-row selection read. Replaces `joinedItem.isSelected` consumption inside rows so the
+ * screen-level `applySelectionToItem` no longer needs to mint new item objects on selection change.
+ */
+function useRowSelection(keyForList: string | undefined): {isSelected: boolean} {
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    if (!keyForList) {
+        return {isSelected: false};
+    }
+    return {isSelected: areAllMatchingItemsSelected || !!selectedTransactions[keyForList]?.isSelected};
+}
+
+/**
+ * Aggregate selection count for the top bar. `total`/`isAllSelected`/`isIndeterminate` belong to
+ * the SearchList header migration and land with that consumer (see PRD `useSelectionCounts`).
+ */
+function useSelectionCounts(): {selected: number} {
+    const {selectedTransactions} = useSearchSelectionContext();
+    const selected = Object.values(selectedTransactions).filter((value) => value?.isSelected).length;
+    return {selected};
+}
+
+export {SearchSelectionProvider, useSyncSelectedReports, useRowSelection, useSelectionCounts};
