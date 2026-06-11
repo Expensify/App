@@ -4,7 +4,6 @@ import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFro
 import getMatchingNewRoute from '@libs/Navigation/helpers/getMatchingNewRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
@@ -13,8 +12,8 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: jest.fn(),
 }));
 
-const mockGetStateFromPath = getStateFromPath as jest.Mock;
-const mockGetMatchingNewRoute = getMatchingNewRoute as jest.Mock;
+const mockGetStateFromPath = jest.mocked(getStateFromPath);
+const mockGetMatchingNewRoute = jest.mocked(getMatchingNewRoute);
 
 /** Builds a root state whose only route is a TAB_NAVIGATOR with the provided nested tab routes. */
 function buildTabNavigatorRootState(tabRoutes: Array<{name: string; state?: PartialState<NavigationState>; params?: Record<string, unknown>}>, index: number): PartialState<NavigationState> {
@@ -26,12 +25,12 @@ function buildTabNavigatorRootState(tabRoutes: Array<{name: string; state?: Part
             },
         ],
         index: 0,
-    } as PartialState<NavigationState>;
+    };
 }
 
 function getTabStrip(state: ReturnType<typeof getAdaptedStateFromPath>) {
     const tabRoute = state?.routes?.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    return tabRoute?.state as {routes?: Array<{name: string; state?: unknown}>; index?: number} | undefined;
+    return tabRoute?.state;
 }
 
 describe('getAdaptedStateFromPath - tab strip normalization', () => {
@@ -45,25 +44,25 @@ describe('getAdaptedStateFromPath - tab strip normalization', () => {
         // RN's getStateFromPath emits only the tab the URL matched (e.g. cold-start on Home).
         mockGetStateFromPath.mockReturnValue(buildTabNavigatorRootState([{name: SCREENS.HOME}], 0));
 
-        const result = getAdaptedStateFromPath('/' as Route, undefined, false);
+        const result = getAdaptedStateFromPath('/', undefined, false);
         const strip = getTabStrip(result);
 
-        expect(strip?.routes?.map((route) => route.name)).toEqual([...TAB_SCREENS]);
+        expect(strip?.routes.map((route) => route.name)).toEqual([...TAB_SCREENS]);
         expect(strip?.index).toBe(TAB_SCREENS.indexOf(SCREENS.HOME));
     });
 
     it('places the matched tab at its TAB_SCREENS index and preserves its nested state when normalizing', () => {
-        const searchNestedState = {routes: [{name: SCREENS.SEARCH.ROOT}], index: 0} as unknown as PartialState<NavigationState>;
+        const searchNestedState: PartialState<NavigationState> = {routes: [{name: SCREENS.SEARCH.ROOT}], index: 0};
         // Sparse strip where the only present tab is Search (e.g. deep-link straight into the Search tab).
         mockGetStateFromPath.mockReturnValue(buildTabNavigatorRootState([{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchNestedState}], 0));
 
-        const result = getAdaptedStateFromPath('/search' as Route, undefined, false);
+        const result = getAdaptedStateFromPath('/search', undefined, false);
         const strip = getTabStrip(result);
 
         const searchIndex = TAB_SCREENS.indexOf(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-        expect(strip?.routes?.map((route) => route.name)).toEqual([...TAB_SCREENS]);
+        expect(strip?.routes.map((route) => route.name)).toEqual([...TAB_SCREENS]);
         expect(strip?.index).toBe(searchIndex);
-        expect(strip?.routes?.at(searchIndex)?.state).toEqual(searchNestedState);
+        expect(strip?.routes.at(searchIndex)?.state).toEqual(searchNestedState);
     });
 
     it('leaves an already-complete strip unchanged', () => {
@@ -71,10 +70,10 @@ describe('getAdaptedStateFromPath - tab strip normalization', () => {
         const activeIndex = TAB_SCREENS.indexOf(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
         mockGetStateFromPath.mockReturnValue(buildTabNavigatorRootState(fullStrip, activeIndex));
 
-        const result = getAdaptedStateFromPath('/search' as Route, undefined, false);
+        const result = getAdaptedStateFromPath('/search', undefined, false);
         const strip = getTabStrip(result);
 
-        expect(strip?.routes?.map((route) => route.name)).toEqual([...TAB_SCREENS]);
+        expect(strip?.routes.map((route) => route.name)).toEqual([...TAB_SCREENS]);
         expect(strip?.index).toBe(activeIndex);
     });
 });

@@ -6,7 +6,7 @@ import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
@@ -14,17 +14,17 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: jest.fn(),
 }));
 
-const mockGetStateFromPath = getStateFromPath as jest.Mock;
+const mockGetStateFromPath = jest.mocked(getStateFromPath);
 
 const ROUTE_NAMES = [NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
 
 const stackRouter = StackRouter({});
 const configOptions = {routeNames: ROUTE_NAMES, routeParamList: {}, routeGetIdList: {}};
 
-const searchNestedState = {routes: [{name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense'}}], index: 0} as PartialState<NavigationState>;
+const searchNestedState: PartialState<NavigationState> = {routes: [{name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense'}}], index: 0};
 
 /** The state getStateFromPath resolves the payload route to: a TAB_NAVIGATOR focused on the Search tab. */
-const targetStateForSearch = {
+const targetStateForSearch: PartialState<NavigationState> = {
     routes: [
         {
             name: NAVIGATORS.TAB_NAVIGATOR,
@@ -32,7 +32,7 @@ const targetStateForSearch = {
         },
     ],
     index: 0,
-} as PartialState<NavigationState>;
+};
 
 function buildRootStackState(tabRouteState?: PartialState<NavigationState>): StackNavigationState<ParamListBase> {
     return {
@@ -45,17 +45,18 @@ function buildRootStackState(tabRouteState?: PartialState<NavigationState>): Sta
         ],
         type: 'stack',
         stale: false,
-    } as unknown as StackNavigationState<ParamListBase>;
+        preloadedRoutes: [],
+    };
 }
 
-const replaceAction = {
+const replaceAction: ReplaceFullscreenUnderRHPActionType = {
     type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-    payload: {route: 'search?q=type%3Aexpense' as Route},
-} as ReplaceFullscreenUnderRHPActionType;
+    payload: {route: ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'})},
+};
 
 function getTabStrip(result: ReturnType<typeof handleReplaceFullscreenUnderRHP>) {
     const tabRoute = result?.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    return tabRoute?.state as {routes?: Array<{name: string; state?: unknown}>; index?: number} | undefined;
+    return tabRoute?.state;
 }
 
 describe('handleReplaceFullscreenUnderRHP - tab switch', () => {
@@ -72,26 +73,26 @@ describe('handleReplaceFullscreenUnderRHP - tab switch', () => {
         const strip = getTabStrip(result);
 
         expect(result).not.toBeNull();
-        expect(strip?.routes?.map((route) => route.name)).toEqual([...TAB_SCREENS]);
+        expect(strip?.routes.map((route) => route.name)).toEqual([...TAB_SCREENS]);
         expect(strip?.index).toBe(TAB_SCREENS.indexOf(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR));
-        expect(strip?.routes?.at(strip.index ?? -1)?.state).toEqual(searchNestedState);
+        expect(strip?.routes.at(strip.index ?? -1)?.state).toEqual(searchNestedState);
         expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 
     it('switches to the target tab within an existing full strip, leaving other tabs intact', () => {
-        const homeNestedState = {routes: [{name: 'SomeHomeScreen'}], index: 0} as PartialState<NavigationState>;
-        const fullStrip = {
+        const homeNestedState: PartialState<NavigationState> = {routes: [{name: 'SomeHomeScreen'}], index: 0};
+        const fullStrip: PartialState<NavigationState> = {
             routes: TAB_SCREENS.map((name) => (name === SCREENS.HOME ? {name, state: homeNestedState} : {name})),
             index: TAB_SCREENS.indexOf(SCREENS.HOME),
-        } as PartialState<NavigationState>;
+        };
         const state = buildRootStackState(fullStrip);
 
         const result = handleReplaceFullscreenUnderRHP(state, replaceAction, configOptions, stackRouter);
         const strip = getTabStrip(result);
 
         expect(result).not.toBeNull();
-        expect(strip?.routes?.map((route) => route.name)).toEqual([...TAB_SCREENS]);
+        expect(strip?.routes.map((route) => route.name)).toEqual([...TAB_SCREENS]);
         expect(strip?.index).toBe(TAB_SCREENS.indexOf(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR));
-        expect(strip?.routes?.at(TAB_SCREENS.indexOf(SCREENS.HOME))?.state).toEqual(homeNestedState);
+        expect(strip?.routes.at(TAB_SCREENS.indexOf(SCREENS.HOME))?.state).toEqual(homeNestedState);
     });
 });
