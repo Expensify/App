@@ -113,6 +113,15 @@ function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
     } as Transaction;
 }
 
+function buildReportAction(overrides: Partial<ReportAction> = {}): ReportAction {
+    return {
+        reportActionID: 'report-action-1',
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        created: '2026-04-24',
+        ...overrides,
+    };
+}
+
 function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transaction {
     return buildTransaction({
         amount: 200,
@@ -133,7 +142,7 @@ function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transact
             },
         },
         ...overrides,
-    } as Transaction);
+    });
 }
 
 function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[0]> = {}): Parameters<typeof useExpenseSubmission>[0] {
@@ -220,16 +229,14 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             // Move-from-track SUBMIT: the action writes the transaction under the EXISTING tracked transaction id,
             // so cleanup must reference that same id — not a fresh rand64() optimistic one.
             const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-99';
-            const linkedTrackedExpenseReportAction = {
+            const linkedTrackedExpenseReportAction = buildReportAction({
                 reportActionID: 'linked-action-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                created: '2026-04-24',
                 originalMessage: {
                     IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
                     IOUReportID: 'tracked-report-1',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
-            } as unknown as ReportAction;
+            });
             const movedTransaction = buildTransaction({
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID: 'tracked-report-1',
@@ -277,17 +284,15 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
         it('routes tracked per diem SUBMIT through requestMoney so the original tracked expense is moved', async () => {
             const existingTrackedTransactionID = 'tracked-per-diem-transaction-1';
-            const linkedTrackedExpenseReportAction = {
+            const linkedTrackedExpenseReportAction = buildReportAction({
                 reportActionID: 'tracked-per-diem-action-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: 'tracked-per-diem-thread-1',
-                created: '2026-04-24',
                 originalMessage: {
                     IOUTransactionID: existingTrackedTransactionID,
                     IOUReportID: 'tracked-per-diem-report-1',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
-            } as unknown as ReportAction;
+            });
             const perDiemTransaction = buildPerDiemTransaction({
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID: 'tracked-per-diem-report-1',
@@ -431,7 +436,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
 
     it('skips cleanup/nav when a multi-transaction SUBMIT batch has any iteration that bails (defense-in-depth — preserves the failed item draft)', async () => {
         // Cast keeps the fixture minimal — pre-validation only needs truthy presence.
-        const linkedTracked = {linkedTrackedExpenseReportAction: {reportActionID: 'a-1'} as unknown as ReportAction, linkedTrackedExpenseReportID: 'r-1'};
+        const linkedTracked = {linkedTrackedExpenseReportAction: buildReportAction({reportActionID: 'a-1'}), linkedTrackedExpenseReportID: 'r-1'};
         const transaction1 = buildTransaction({transactionID: 't-1', ...linkedTracked});
         const transaction2 = buildTransaction({transactionID: 't-2', ...linkedTracked});
         mockRequestMoneyAction.mockReturnValueOnce({iouReport: {reportID: 'iou-1'}}).mockReturnValueOnce({});
