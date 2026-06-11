@@ -163,6 +163,8 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         total: report.total,
         unheldTotal: report.unheldTotal,
         unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
+        reimbursableTotal: report.reimbursableTotal,
+        unheldReimbursableTotal: report.unheldReimbursableTotal,
         currency: report.currency,
         errorFields: report.errorFields,
         errors: report.errors,
