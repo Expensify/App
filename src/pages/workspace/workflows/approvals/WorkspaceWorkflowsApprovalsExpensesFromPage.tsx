@@ -1,5 +1,6 @@
+import {NavigationContext} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -41,6 +42,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigation = useContext(NavigationContext);
+
+    useEffect(() => {
+        if (!navigation) {
+            return;
+        }
+        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
+        return unsubscribe;
+    }, [navigation]);
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;

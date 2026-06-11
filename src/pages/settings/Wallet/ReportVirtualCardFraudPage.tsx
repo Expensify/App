@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import {NavigationContext} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -32,6 +33,7 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
     const cardList = useNonPersonalCardList();
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigation = useContext(NavigationContext);
 
     const virtualCard = cardList?.[cardID];
     const virtualCardError = getLatestErrorMessage(virtualCard);
@@ -39,6 +41,14 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
     useEffect(() => {
         clearReportVirtualCardFraudForm();
     }, []);
+
+    useEffect(() => {
+        if (!navigation) {
+            return;
+        }
+        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
+        return unsubscribe;
+    }, [navigation]);
 
     const handleSubmit = useCallback(() => {
         setIsSubmitting(true);

@@ -1,4 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import {NavigationContext} from '@react-navigation/native';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -53,6 +54,15 @@ function CountrySelection() {
     const [shouldShowError, setShouldShowError] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const {isPressed, startPressLoading} = usePressLoading();
+    const navigation = useContext(NavigationContext);
+
+    useEffect(() => {
+        if (!navigation) {
+            return;
+        }
+        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
+        return unsubscribe;
+    }, [navigation]);
 
     const onCountrySelected = (countryChecked: string) => {
         setShouldShowError(false);

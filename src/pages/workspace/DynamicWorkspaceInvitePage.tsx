@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {NavigationContext} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -50,6 +51,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigation = useContext(NavigationContext);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
@@ -67,6 +69,14 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     }, []);
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
+
+    useEffect(() => {
+        if (!navigation) {
+            return;
+        }
+        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
+        return unsubscribe;
+    }, [navigation]);
 
     const excludedUsers = useMemo(() => {
         const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);

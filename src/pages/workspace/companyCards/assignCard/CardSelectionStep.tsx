@@ -1,5 +1,6 @@
+import {NavigationContext} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
@@ -60,6 +61,15 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const [shouldShowError, setShouldShowError] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const {isPressed, startPressLoading} = usePressLoading();
+    const navigation = useContext(NavigationContext);
+
+    useEffect(() => {
+        if (!navigation) {
+            return;
+        }
+        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
+        return unsubscribe;
+    }, [navigation]);
 
     const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
         keyForList: card.cardID,
