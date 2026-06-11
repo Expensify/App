@@ -644,25 +644,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
         reportFieldID?: string;
     };
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: {
-        policyID: string;
-        reportFieldID?: string;
-    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
-        policyID: string;
-        reportFieldID?: string;
-    };
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: {
         policyID: string;
         reportFieldID?: string;
     };
@@ -671,16 +657,7 @@ type SettingsNavigatorParamList = {
         valueIndex: number;
         reportFieldID?: string;
     };
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: {
-        policyID: string;
-        valueIndex: number;
-        reportFieldID?: string;
-    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
-        policyID: string;
-        valueIndex: number;
-    };
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: {
         policyID: string;
         valueIndex: number;
     };
@@ -688,15 +665,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         reportFieldID: string;
     };
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: {
-        policyID: string;
-        reportFieldID: string;
-    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
-        policyID: string;
-        reportFieldID: string;
-    };
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: {
         policyID: string;
         reportFieldID: string;
     };
@@ -1935,12 +1904,21 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         reportActionID: string;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: {
+    [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
+        reportActionID: string;
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_VENDOR]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
         reportActionID?: string;
+        reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: {
         action: IOUAction;
@@ -1951,11 +1929,13 @@ type MoneyRequestNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- backTo is needed to track where editing was initiated from (search/view or r/:reportID)
         backTo?: Routes;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT]: {
+    [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAG]: {
         action: IOUAction;
@@ -1967,11 +1947,13 @@ type MoneyRequestNavigatorParamList = {
         reportActionID: string;
         orderWeight: string;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE]: {
+    [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
         iouType: IOUType;
@@ -2157,23 +2139,29 @@ type MoneyRequestNavigatorParamList = {
         /** ID of the expense report being rejected */
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES]: {
+    [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT]: {
+    [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE]: {
+    [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes;
         upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
         shouldSubmitExpense?: boolean;
     };
