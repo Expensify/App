@@ -56,7 +56,7 @@ function findDirtyScreenOnFocusedPath(route: RouteLike): DiscardChangesScreen | 
 }
 
 /**
- * Finds a registered dirty screen on the focused chain of a route that the reset keeps but unfocuses (e.g. a tab switch changes only `index`).
+ * Finds a registered dirty screen on the focused chain of a route that is kept by the reset but loses focus (e.g. a tab switch changes only `index`).
  * Removed routes are deliberately not checked — those fire react-navigation's `beforeRemove`.
  */
 function findDirtyScreenLosingFocus(state: StateLike, nextState: StateLike): DiscardChangesScreen | undefined {
@@ -112,7 +112,7 @@ const DiscardChangesGuard: NavigationGuard = {
 
         screen.onBlocked(action);
 
-        // The screen restores the browser entry with `history.go(1)`; `syncBrowserHistory`'s `replaceState` would wipe the back entry's history id and desync `createMemoryHistory`
+        // The screen restores the browser entry with `history.go(1)`; `syncBrowserHistory`'s `replaceState` would wipe the back entry's history id and break `createMemoryHistory`'s index tracking
         return {type: 'BLOCK', reason: 'discard-changes-confirmation', shouldSkipBrowserHistorySync: true};
     },
 };

@@ -202,7 +202,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
         });
 
-        it('cancelling a reset blocked without a popstate (programmatic reset) leaves later popstates untouched', async () => {
+        it('cancelling a reset blocked without a popstate (programmatic reset) leaves later popstate events untouched', async () => {
             renderDiscardHook(() => true);
 
             invokeBeforeRemove('RESET');
@@ -325,7 +325,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(historyGoSpy).toHaveBeenNthCalledWith(2, 1);
         });
 
-        it('cancelling a block without a popstate (programmatic reset) leaves later popstates untouched', async () => {
+        it('cancelling a block without a popstate (programmatic reset) leaves later popstate events untouched', async () => {
             renderDiscardHook(() => true);
 
             invokeGuardBlocked();
@@ -362,7 +362,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
-        it('ignores internal popstates from modal history cleanup', () => {
+        it('ignores internal popstate events from modal history cleanup', () => {
             renderDiscardHook(() => true);
 
             invokeBeforeRemove('RESET');

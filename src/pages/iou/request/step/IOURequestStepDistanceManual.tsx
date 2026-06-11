@@ -145,9 +145,10 @@ function IOURequestStepDistanceManual({
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
 
     const isFocused = useIsFocused();
+    const isSavingRef = useRef(false);
     useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            if (!isFocused) {
+            if (!isFocused || isSavingRef.current) {
                 return false;
             }
             const typedDistance = numberFormRef.current?.getNumber() ?? '';
@@ -181,6 +182,7 @@ function IOURequestStepDistanceManual({
     }, [distance, selectedTab]);
 
     useFocusEffect(() => {
+        isSavingRef.current = false;
         focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         return () => {
             if (!focusTimeoutRef.current) {
@@ -298,6 +300,7 @@ function IOURequestStepDistanceManual({
             return;
         }
 
+        isSavingRef.current = true;
         navigateToNextPage(value);
     };
 

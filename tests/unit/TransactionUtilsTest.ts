@@ -3532,16 +3532,16 @@ describe('TransactionUtils', () => {
 describe('doesMoneyRequestDraftHaveUserInput', () => {
     it('returns false for an empty draft', () => {
         expect(doesMoneyRequestDraftHaveUserInput(undefined)).toBe(false);
-        expect(doesMoneyRequestDraftHaveUserInput({} as never)).toBe(false);
+        expect(doesMoneyRequestDraftHaveUserInput(generateTransaction())).toBe(false);
     });
 
     it('returns false when the draft only has empty waypoint placeholders', () => {
-        const transaction = {comment: {waypoints: {waypoint0: {}, waypoint1: {}}}} as never;
+        const transaction = generateTransaction({comment: {waypoints: {waypoint0: {}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(false);
     });
 
     it('returns true when the user entered a waypoint', () => {
-        const transaction = {comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}} as never;
+        const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
     });
 });

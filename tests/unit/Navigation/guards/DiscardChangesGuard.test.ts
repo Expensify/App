@@ -56,7 +56,7 @@ const makeResetAction = (payload: NavigationState): NavigationAction => ({type: 
 
 /**
  * Variant where the focused tab hosts a nested stack: the registered screen sits INSIDE the tab,
- * so a tab switch unfocuses its ANCESTOR rather than the screen's own route.
+ * so a tab switch makes its ANCESTOR lose focus rather than the screen's own route.
  */
 const makeNestedTabState = (tabIndex: number, innerIndex = 0): NavigationState => ({
     key: 'stack-root',
@@ -126,7 +126,7 @@ describe('DiscardChangesGuard', () => {
         expect(result).toEqual({type: 'ALLOW'});
     });
 
-    it('blocks a RESET that unfocuses a registered dirty screen and skips the browser history sync', () => {
+    it('blocks a RESET where a registered dirty screen loses focus and skips the browser history sync', () => {
         registerOdometerScreen();
 
         const action = makeResetAction(makeRootState(0));
@@ -155,7 +155,7 @@ describe('DiscardChangesGuard', () => {
         expect(onBlocked).not.toHaveBeenCalled();
     });
 
-    it('allows a RESET that removes the focused route instead of unfocusing it', () => {
+    it('allows a RESET that removes the focused route instead of changing its focus', () => {
         registerOdometerScreen();
 
         // Removals go through `beforeRemove`, not the guard
@@ -184,7 +184,7 @@ describe('DiscardChangesGuard', () => {
         expect(onBlocked).not.toHaveBeenCalled();
     });
 
-    it('blocks a RESET that unfocuses an ancestor of a registered dirty screen', () => {
+    it('blocks a RESET where an ancestor of a registered dirty screen loses focus', () => {
         unregister = registerDiscardChangesScreen('inner-dirty', {
             hasUnsavedChanges: () => true,
             onBlocked,
@@ -197,7 +197,7 @@ describe('DiscardChangesGuard', () => {
         expect(onBlocked).toHaveBeenCalledWith(action);
     });
 
-    it('allows a RESET when the registered screen is hidden behind the focused route of the unfocusing ancestor', () => {
+    it('allows a RESET when the registered screen is hidden behind the focused route of the ancestor losing focus', () => {
         unregister = registerDiscardChangesScreen('inner-dirty', {
             hasUnsavedChanges: () => true,
             onBlocked,

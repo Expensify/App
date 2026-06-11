@@ -70,6 +70,7 @@ function IOURequestStepHours({
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const moneyRequestTimeInputRef = useRef<NumberWithSymbolFormRef | null>(null);
+    const isSavingRef = useRef(false);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const [formError, setFormError] = useState('');
@@ -83,7 +84,7 @@ function IOURequestStepHours({
     const isFocused = useIsFocused();
     useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            if (!isFocused) {
+            if (!isFocused || isSavingRef.current) {
                 return false;
             }
             const typedCount = moneyRequestTimeInputRef.current?.getNumber() ?? '';
@@ -95,6 +96,7 @@ function IOURequestStepHours({
     });
 
     useFocusEffect(() => {
+        isSavingRef.current = false;
         focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
         return () => {
             if (!focusTimeoutRef.current) {
@@ -117,6 +119,7 @@ function IOURequestStepHours({
             return;
         }
 
+        isSavingRef.current = true;
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
         setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate, convertToDisplayString), isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);

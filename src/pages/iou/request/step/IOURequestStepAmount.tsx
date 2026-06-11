@@ -160,9 +160,10 @@ function IOURequestStepAmount({
     const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, undefined, allowNegative, disableOppositeConversion) ?? {amount: 0};
 
     const isFocused = useIsFocused();
+    const isSavingRef = useRef(false);
     useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            if (!isFocused) {
+            if (!isFocused || isSavingRef.current) {
                 return false;
             }
             const typedAmount = amountFormRef.current?.getNumber() ?? '';
@@ -220,6 +221,7 @@ function IOURequestStepAmount({
 
     useFocusEffect(
         useCallback(() => {
+            isSavingRef.current = false;
             if (isCurrencyPickerVisible) {
                 return;
             }
@@ -486,6 +488,7 @@ function IOURequestStepAmount({
     };
 
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
+        isSavingRef.current = true;
         const newAmount = convertToBackendAmount(Number.parseFloat(amount));
 
         if (!isEditing) {
