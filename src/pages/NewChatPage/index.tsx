@@ -270,7 +270,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     // Existing selected users are already marked in place within Recents/Contacts (and remain reachable in the paginated list),
     // so they don't need a separate row here. A selected non-existing user (an invited contact created from the search term)
     // has no row in recents/contacts and disappears once the search input is cleared, so surface only those in a top section
-    // to keep them visible and deselectable. The one already shown as the current invite row is excluded to avoid a duplicate.
+    // to keep them visible and easy to deselect. The one already shown as the current invite row is excluded to avoid a duplicate.
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
     const selectedSection = selectedOptions.filter(
         (option) =>
