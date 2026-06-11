@@ -14,7 +14,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, UnsupportedFormulaValueErrorParams} from './params';
+import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 const translations: TranslationDeepObject<typeof en> = {
@@ -270,6 +270,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Comerciante',
         change: 'Cambio',
         category: 'Categoría',
+        vendor: 'Proveedor',
         report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',
@@ -916,7 +917,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Revisar',
             },
             validateAccount: {
-                title: 'Valida tu cuenta para continuar usando Expensify',
+                title: 'Valida tu cuenta',
                 subtitle: 'Cuenta',
                 cta: 'Validar',
             },
@@ -1339,7 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `aprobado`,
         unapproved: `no aprobado`,
         automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
-        forwarded: `aprobó`,
+        forwarded: (memo) => `aprobó${memo ? `, dijo ${memo}` : ''}`,
         rejectedThisReport: 'rechazó',
         waitingOnBankAccount: (submitterDisplayName) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
@@ -1631,6 +1632,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrige el error de la tasa y vuelve a intentarlo.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explicar<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge asoció este gasto con <strong>${vendorName}</strong>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"'),
             billable: (value: boolean) => (value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"'),
@@ -4222,7 +4224,6 @@ ${amount} para ${merchant} - ${date}`,
             customFieldHint: 'Añade una codificación personalizada que se aplique a todos los gastos de este miembro.',
             reports: 'Informes',
             reportFields: 'Campos de informe',
-            invoiceFields: 'Campos de factura',
             reportTitle: 'El título del informe.',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
@@ -4821,6 +4822,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify se sincronizará automáticamente con Certinia cada día.',
             syncReimbursedReportsDescription:
                 'Con esta opción habilitada, cada vez que se pague una factura por pagar en FFA, el informe de Expensify relacionado se marcará automáticamente como reembolsado.',
@@ -5864,29 +5866,6 @@ ${amount} para ${merchant} - ${date}`,
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
             genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
         },
-        invoiceFields: {
-            subtitle: 'Los campos de factura pueden ayudarte cuando quieras incluir información adicional.',
-            importedFromAccountingSoftware: 'Campos de factura importados desde',
-            disableInvoiceFields: 'Desactivar campos de factura',
-            disableInvoiceFieldsConfirmation: '¿Estás seguro? Los campos de factura se desactivarán en las facturas.',
-            delete: 'Eliminar campo de factura',
-            deleteConfirmation: '¿Seguro que deseas eliminar este campo de factura?',
-            findInvoiceField: 'Buscar campo de factura',
-            nameInputSubtitle: 'Elige un nombre para el campo de factura.',
-            typeInputSubtitle: 'Elige qué tipo de campo de factura usar.',
-            initialValueInputSubtitle: 'Ingresa un valor inicial para mostrar en el campo de factura.',
-            listValuesInputSubtitle: 'Estos valores aparecerán en el menú desplegable del campo de factura. Los miembros pueden seleccionar los valores activados.',
-            listInputSubtitle: 'Estos valores aparecerán en la lista del campo de factura. Los miembros pueden seleccionar los valores activados.',
-            emptyInvoiceFieldsValues: {
-                title: 'Aún no hay valores de lista',
-                subtitle: 'Agrega valores personalizados para que aparezcan en las facturas.',
-            },
-            existingInvoiceFieldNameError: 'Ya existe un campo de factura con este nombre',
-            invoiceFieldNameRequiredError: 'Ingresa un nombre para el campo de factura',
-            invoiceFieldTypeRequiredError: 'Elige un tipo de campo de factura',
-            invoiceFieldInitialValueRequiredError: 'Elige un valor inicial para el campo de factura',
-            addField: 'Añadir campo',
-        },
         tags: {
             tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
@@ -6236,6 +6215,7 @@ ${amount} para ${merchant} - ${date}`,
             connectPrompt: ({connectionName}) =>
                 `¿Estás seguro de que quieres conectar a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'}? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
+            reconnect: 'Reconectar',
             updateCredentials: 'Actualizar credenciales',
             claimOffer: {
                 badgeText: '¡Oferta disponible!',
@@ -6781,12 +6761,6 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Los campos de informe permiten especificar detalles a nivel de cabecera, distintos de las etiquetas que pertenecen a los gastos en partidas individuales. Estos detalles pueden incluir nombres de proyectos específicos, información sobre viajes de negocios, ubicaciones, etc.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Los campos de informe sólo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
-            },
-            invoiceFields: {
-                title: 'Campos de factura',
-                description: `Los campos de factura te permiten incluir detalles adicionales a nivel de factura.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Los campos de factura sólo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -9580,6 +9554,11 @@ ${amount} para ${merchant} - ${date}`,
         },
         removeCopilot: 'Eliminar copiloto',
         removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
+        removeCopilotAccess: 'Eliminar mi acceso de copiloto',
+        removeCopilotAccessTitle: '¿Eliminar acceso de copiloto?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `¿Estás seguro de que quieres eliminar tu acceso de copiloto a la cuenta de Expensify de ${delegatorName}? Esta acción no se puede deshacer.`,
+        removeCopilotAccessConfirm: 'Eliminar acceso',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
         enterMagicCode: (contactMethod) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,
