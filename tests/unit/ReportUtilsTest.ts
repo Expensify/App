@@ -21,7 +21,6 @@ import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -175,7 +174,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {
     BankAccountList,
     Beta,
@@ -15821,17 +15820,7 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
@@ -15874,17 +15863,7 @@ describe('ReportUtils', () => {
 
                 // Then it should automatically pick the available policy and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
@@ -15914,16 +15893,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CATEGORIZE,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: transaction.transactionID,
-                            reportID: '1',
-                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            shouldSubmitExpense: true,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CATEGORIZE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: transaction.transactionID,
+                        reportID: '1',
+                        backTo: '',
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldSubmitExpense: true,
+                    }),
                 );
             });
 
@@ -15966,16 +15944,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CATEGORIZE,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: transaction.transactionID,
-                            reportID: '1',
-                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            shouldSubmitExpense: true,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CATEGORIZE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: transaction.transactionID,
+                        reportID: '1',
+                        backTo: '',
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldSubmitExpense: true,
+                    }),
                 );
             });
 
@@ -16062,17 +16039,7 @@ describe('ReportUtils', () => {
                 // Then it should NOT navigate to restricted action page, but to category step
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
