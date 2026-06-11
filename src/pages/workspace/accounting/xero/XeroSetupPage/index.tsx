@@ -28,7 +28,7 @@ function XeroSetupPage({route}: XeroSetupPageProps) {
         openLink(getXeroSetupLink(policyID), environmentURL);
         Navigation.goBack();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [is2FAEnabled]);
 
     if (!is2FAEnabled) {
         return (
@@ -51,7 +51,5 @@ function XeroSetupPage({route}: XeroSetupPageProps) {
 
     return null;
 }
-
-XeroSetupPage.displayName = 'XeroSetupPage';
 
 export default XeroSetupPage;

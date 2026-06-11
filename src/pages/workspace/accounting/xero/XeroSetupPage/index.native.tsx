@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -32,16 +32,13 @@ function XeroSetupPage({route}: XeroSetupPageProps) {
     const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(!is2FAEnabled);
 
-    const renderLoading = useCallback(
-        () => (
-            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'XeroSetupPage'}}
-                />
-            </View>
-        ),
-        [styles.fullScreenLoading],
+    const renderLoading = () => (
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                reasonAttributes={{context: 'XeroSetupPage'}}
+            />
+        </View>
     );
 
     if (!is2FAEnabled) {
@@ -66,7 +63,7 @@ function XeroSetupPage({route}: XeroSetupPageProps) {
             shouldShowOfflineIndicator={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={XeroSetupPage.displayName}
+            testID="XeroSetupPage"
         >
             <HeaderWithBackButton
                 title={translate('workspace.accounting.title')}
@@ -91,7 +88,5 @@ function XeroSetupPage({route}: XeroSetupPageProps) {
         </ScreenWrapper>
     );
 }
-
-XeroSetupPage.displayName = 'XeroSetupPage';
 
 export default XeroSetupPage;

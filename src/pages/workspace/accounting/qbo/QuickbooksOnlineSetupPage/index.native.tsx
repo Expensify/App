@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -27,16 +27,13 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
 
-    const renderLoading = useCallback(
-        () => (
-            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'QuickbooksOnlineSetupPage'}}
-                />
-            </View>
-        ),
-        [styles.fullScreenLoading],
+    const renderLoading = () => (
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                reasonAttributes={{context: 'QuickbooksOnlineSetupPage'}}
+            />
+        </View>
     );
 
     useEffect(() => {
@@ -50,7 +47,7 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
             shouldShowOfflineIndicator={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={QuickbooksOnlineSetupPage.displayName}
+            testID="QuickbooksOnlineSetupPage"
         >
             <HeaderWithBackButton
                 title={translate('workspace.accounting.title')}
@@ -74,7 +71,5 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
         </ScreenWrapper>
     );
 }
-
-QuickbooksOnlineSetupPage.displayName = 'QuickbooksOnlineSetupPage';
 
 export default QuickbooksOnlineSetupPage;
