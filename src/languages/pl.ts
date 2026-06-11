@@ -7314,6 +7314,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
                 describeRuleTitle: 'Opisz swoją regułę',
                 describeRuleSubtitle: 'Opisz swoją regułę, a Concierge ją utworzy',
+                disclaimer: 'Agenci AI mogą popełniać błędy.',
             },
         },
         planTypePage: {

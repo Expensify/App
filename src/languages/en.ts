@@ -7469,6 +7469,7 @@ const translations = {
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 describeRuleTitle: 'Describe your rule',
                 describeRuleSubtitle: 'Describe your rule and Concierge will build it',
+                disclaimer: 'AI agents can make mistakes.',
             },
         },
         planTypePage: {

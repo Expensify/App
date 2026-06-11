@@ -7131,6 +7131,7 @@ ${reportName}
                 deleteRuleConfirmation: '确定要删除此规则吗？',
                 describeRuleTitle: '描述你的规则',
                 describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
+                disclaimer: 'AI 智能体可能会犯错。',
             },
         },
         planTypePage: {

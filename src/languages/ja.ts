@@ -7265,6 +7265,7 @@ ${reportName}
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
                 describeRuleTitle: 'ルールの内容を記入してください',
                 describeRuleSubtitle: 'ルールの内容を入力すると、Concierge が自動作成します',
+                disclaimer: 'AI エージェントは間違える場合があります。',
             },
         },
         planTypePage: {
