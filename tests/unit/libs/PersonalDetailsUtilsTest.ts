@@ -762,6 +762,11 @@ describe('PersonalDetailsUtils', () => {
             },
         };
 
+        it('should return an empty object if accountIDs is undefined', () => {
+            const result = getPersonalDetailsListByIDs(undefined, personalDetails);
+            expect(result).toEqual({});
+        });
+
         it('should return an empty object if accountIDs is empty', () => {
             const result = getPersonalDetailsListByIDs([], personalDetails);
             expect(result).toEqual({});
