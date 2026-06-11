@@ -2,6 +2,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import type Transaction from '@src/types/onyx/Transaction';
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
@@ -388,6 +389,39 @@ describe('DistanceRequestUtils', () => {
             const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'some-rate'}}};
             const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
             expect(result.customUnitRateID).toBeUndefined();
+        });
+    });
+
+    describe('getRateForP2P', () => {
+        // These tests run with the default P2P mileage rate unloaded (it's fetched asynchronously when a
+        // distance request starts), which is the case for flows that don't start a new distance request,
+        // such as editing an existing distance expense.
+        it('falls back to the existing transaction currency and unit when the default P2P rate is not loaded', () => {
+            // Given an existing P2P distance expense in GBP measured in kilometers, with its own saved rate
+            const transaction = {
+                ...createRandomTransaction(1),
+                currency: 'GBP',
+                comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, defaultP2PRate: 45}},
+            } as Transaction;
+
+            // When reading the P2P rate for that transaction's currency
+            const result = DistanceRequestUtils.getRateForP2P('GBP', transaction);
+
+            // Then it preserves the transaction's currency, unit, and saved rate instead of flipping to USD/miles
+            expect(result.currency).toBe('GBP');
+            expect(result.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(result.rate).toBe(45);
+        });
+
+        it('falls back to USD and miles for a brand-new request with no transaction', () => {
+            // Given a brand-new distance request that has no transaction yet
+            // When reading the P2P rate
+            const result = DistanceRequestUtils.getRateForP2P('GBP', undefined);
+
+            // Then it falls back to the hardcoded USD/miles default
+            expect(result.currency).toBe(CONST.CURRENCY.USD);
+            expect(result.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            expect(result.rate).toBe(67);
         });
     });
 

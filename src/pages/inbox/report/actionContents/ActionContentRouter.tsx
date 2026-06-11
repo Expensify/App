@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -75,7 +76,7 @@ type ActionContentRouterProps = {
     originalReport: OnyxEntry<OnyxTypes.Report>;
 
     /** ID of the original report from which the given reportAction is first created */
-    originalReportID: string;
+    originalReportID?: string;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
@@ -300,7 +301,7 @@ function ActionContentRouter({
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
     if (isHandledPolicyChangeLogAction(action)) {
         return (
