@@ -2683,9 +2683,7 @@ function getValidOptions(
             if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
             }
-            if (isPersonalDetailSelected(personalDetail, selectedOptions)) {
-                personalDetail.isSelected = true;
-            }
+            personalDetail.isSelected = isPersonalDetailSelected(personalDetail, selectedOptions);
         }
     }
 
