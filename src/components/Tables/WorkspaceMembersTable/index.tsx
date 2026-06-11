@@ -18,7 +18,7 @@ type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customFie
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    role: string;
+    role?: string;
     employeeUserID?: string;
     employeePayrollID?: string;
     isSelectionDisabled: boolean;

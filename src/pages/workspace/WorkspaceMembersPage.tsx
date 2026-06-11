@@ -358,17 +358,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const data: WorkspaceMemberRowData[] = useMemo(() => {
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
-
-            let role = '';
-            if (policy?.owner === details.login) {
-                role = translate('common.owner');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN) {
-                role = translate('common.admin');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
-                role = translate('common.auditor');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.EDITOR) {
-                role = translate('common.editor');
-            }
+            const role = policy?.owner === details.login ? CONST.POLICY.ROLE.OWNER : policyEmployee.role;
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);

@@ -6,6 +6,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,9 +35,23 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     const theme = useTheme();
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
+
+    const roleLabel = (() => {
+        if (item.role === CONST.POLICY.ROLE.OWNER) {
+            return translate('common.owner');
+        } else if (item.role === CONST.POLICY.ROLE.ADMIN) {
+            return translate('common.admin');
+        } else if (item.role === CONST.POLICY.ROLE.AUDITOR) {
+            return translate('common.auditor');
+        } else if (item.role === CONST.POLICY.ROLE.EDITOR) {
+            return translate('common.editor');
+        }
+        return '';
+    })();
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
         styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
@@ -94,7 +109,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
 
                     <View style={[!shouldUseNarrowTableLayout && styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <Badge
-                            text={item.role}
+                            text={roleLabel}
                             badgeStyles={styles.ml0}
                         />
                     </View>
