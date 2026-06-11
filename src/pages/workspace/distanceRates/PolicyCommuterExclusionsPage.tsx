@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -67,9 +67,9 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     // Lowercased to match design copy ("miles" / "kilometers"); the existing translation keys are already lowercase.
     const unitLabel = translate(getUnitTranslationKey(workspaceUnit));
 
-    const goBackToSettings = useCallback(() => {
+    const goBackToSettings = () => {
         Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
-    }, [policyID]);
+    };
 
     const onSelectRow = (item: ExclusionOption) => {
         if (item.keyForList === selectedKey) {
