@@ -18,6 +18,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -4606,6 +4607,46 @@ describe('ReportActionsUtils', () => {
 
             const result = getAutoReimbursementMessage(translateLocal, action);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
+        });
+    });
+
+    describe('getCategoryTaxRateMessage', () => {
+        it('should render the changed-tax-rate message with both name and percentage on each side', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Tax Exempt',
+                    oldTaxPercentage: '0%',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
+        });
+
+        it('should drop the parens on the side with an empty percentage (e.g. previous tax was deleted)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Deleted Tax Rate',
+                    oldTaxPercentage: '',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
         });
     });
 
