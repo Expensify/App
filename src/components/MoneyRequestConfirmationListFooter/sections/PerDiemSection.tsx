@@ -19,8 +19,6 @@ type PerDiemSectionProps = {
     formError: string;
 };
 
-type PerDiemSectionContentProps = PerDiemSectionProps;
-
 /**
  * Two-level guard: the outer component checks the context-level gate (`isPerDiemRequest` + action)
  * without subscribing to anything. The inner component is the only place that subscribes to the
@@ -40,7 +38,7 @@ function PerDiemSection({policy, shouldDisplayFieldError, formError}: PerDiemSec
     );
 }
 
-function PerDiemSectionContent({policy, shouldDisplayFieldError, formError}: PerDiemSectionContentProps) {
+function PerDiemSectionContent({policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
     const {action, iouType, transactionID, reportID, isReadOnly, didConfirm} = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, perDiemSliceSelector);
 
