@@ -58,10 +58,11 @@ const createTodosReportsAndTransactions = ({
         const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
-        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !hasOnlyHeldExpenses(reportTransactions)) {
+        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
+        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld) {
             reportsToSubmit.push(report);
         }
-        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !hasOnlyHeldExpenses(reportTransactions)) {
+        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld) {
             reportsToApprove.push(report);
         }
         if (
@@ -75,7 +76,7 @@ const createTodosReportsAndTransactions = ({
                 reportNameValuePairs: reportNameValuePair,
             }) &&
             !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
-            !hasOnlyHeldExpenses(reportTransactions)
+            !allExpensesHeld
         ) {
             reportsToPay.push(report);
         }
