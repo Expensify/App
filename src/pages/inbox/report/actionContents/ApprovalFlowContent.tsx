@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
+import {getForwardedReportActionMessage, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
@@ -117,7 +117,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
             );
         }
 
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
 
     return null;

@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -49,6 +50,7 @@ import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
+import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
@@ -254,6 +256,14 @@ function ActionContentRouter({
             />
         );
     }
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR) {
+        return (
+            <ConciergeAutoMatchVendorContent
+                action={action}
+                originalReport={originalReport}
+            />
+        );
+    }
     if (isApprovalFlowAction(action)) {
         return (
             <ApprovalFlowContent
@@ -305,7 +315,7 @@ function ActionContentRouter({
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
     if (isHandledPolicyChangeLogAction(action)) {
         return (
