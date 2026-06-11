@@ -4,7 +4,6 @@ import {ChartFontsContext} from './ChartFontsContext';
 
 function ChartFontsLoaderProvider({children}: {children: React.ReactNode}) {
     const fonts = useChartFonts();
-
     return <ChartFontsContext.Provider value={fonts}>{children}</ChartFontsContext.Provider>;
 }
 

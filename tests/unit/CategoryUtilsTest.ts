@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
+    getCategoryGLCode,
     getDecodedLeafCategoryName,
     isCategoryDescriptionRequired,
     isCategoryMissing,
@@ -240,5 +241,68 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
                 expect(getDecodedLeafCategoryName('A: B:')).toEqual('B:');
             });
         });
+    });
+});
+
+describe('getCategoryGLCode', () => {
+    it('returns empty string when policyCategories is undefined', () => {
+        expect(getCategoryGLCode(undefined, 'Meals')).toBe('');
+    });
+
+    it('returns empty string when category is undefined or empty', () => {
+        expect(getCategoryGLCode({} as PolicyCategories, undefined)).toBe('');
+        expect(getCategoryGLCode({} as PolicyCategories, '')).toBe('');
+    });
+
+    it('returns empty string when category is missing from policyCategories', () => {
+        expect(getCategoryGLCode({} as PolicyCategories, 'Meals')).toBe('');
+    });
+
+    it('returns empty string when category has no GL Code', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('');
+    });
+
+    it('returns GL Code when it is a string', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                'GL Code': '1200', // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+
+    it('returns GL Code when it is a number', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
+                'GL Code': 1200, // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+
+    it('strips double quotes from GL Code', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                'GL Code': '"1200"', // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
     });
 });
