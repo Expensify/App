@@ -47,6 +47,7 @@ import {
     getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationLastMessageText,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getForwardedReportActionMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
@@ -844,7 +845,7 @@ function getLastMessageTextForReport({
         if (automaticAction) {
             lastMessageTextFromReport = Parser.htmlToText(translate('iou.automaticallyForwarded'));
         } else {
-            lastMessageTextFromReport = translate('iou.forwarded');
+            lastMessageTextFromReport = getForwardedReportActionMessage(lastReportAction, translate);
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         lastMessageTextFromReport = translate('iou.rejectedThisReport');
@@ -1587,11 +1588,15 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *
  * Performance optimization approach:
  * 1. Pre-filters reports using shouldReportBeInOptionList with correct parameters (betas, etc.)
- * 2. Sorts by lastVisibleActionCreated (most recent first)
- * 3. Limits to top N reports
- * 4. Processes only those N reports
+ * 2. Default (`options.isSearching` false): sorts by lastVisibleActionCreated (most recent first), limits to
+ *    the top N reports (`maxRecentReports`), then processes only those reports. This avoids processing
+ *    thousands of reports while ensuring correct filtering.
+ * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
+ *    no `maxRecentReports` cap, so search can include all eligible reports.
  *
- * This avoids processing thousands of reports while ensuring correct filtering.
+ * @param options.isSearching - When true, skips the sort and top-N limit in step 2; when false, applies them.
+ *
+ * @remarks In search mode, sorting by last visible action is skipped because the UI needs the full eligible set.
  *
  * Use this for screens that need recent reports (NewChatPage, WorkspaceInvitePage, etc.)
  */
@@ -1728,9 +1733,11 @@ function createOptionFromReport(
     };
 }
 
-function orderPersonalDetailsOptions(options: SearchOptionData[]) {
+function orderPersonalDetailsOptions<T extends SearchOptionData>(options: T[]): T[] {
     // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-    return lodashOrderBy(options, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
+    // Keep this aligned with `getValidOptions` ordering (`optionsOrderBy(..., personalDetailsComparator, ...)`)
+    // so upstream and downstream sorting use the same key (text -> alternateText -> login).
+    return lodashOrderBy(options, [personalDetailsComparator], 'asc');
 }
 
 /**
@@ -1744,10 +1751,10 @@ function orderReportOptions(options: SearchOptionData[]) {
 /**
  * Sort personal details by displayName or login in alphabetical order
  */
-const personalDetailsComparator = (personalDetail: SearchOptionData | PersonalDetailOptionData) => {
+function personalDetailsComparator(personalDetail: SearchOptionData | PersonalDetailOptionData) {
     const name = personalDetail.text ?? personalDetail.alternateText ?? personalDetail.login ?? '';
     return name.toLowerCase();
-};
+}
 
 /**
  * Sort reports by archived status and last visible action
@@ -3405,6 +3412,7 @@ export {
     isSearchStringMatchUserDetails,
     optionsOrderBy,
     orderOptions,
+    orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     processReport,
     recentReportComparator,
