@@ -13,7 +13,7 @@ type WindowWithPixels = Window & {
         push: (params: DataLayerPushParams) => void;
     };
     fbq?: (method: string, eventName: string, params?: Record<string, unknown>, options?: Record<string, unknown>) => void;
-    rdt?: (method: string, eventType: string, params?: Record<string, unknown>) => void;
+    rdt?: (method: string, eventType: string, params?: Record<string, string>) => void;
     lintrk?: (method: string, params: Record<string, unknown>) => void;
 };
 
@@ -51,7 +51,7 @@ function publishEvent(event: GoogleTagManagerEvent, accountID: number, email: st
 
     const eventID = `${accountID}-${event}`;
 
-    // Standard events (e.g. "Lead") tap into Meta/Reddit's pre-trained conversion models, so we only mark an event as
+    // Standard events (e.g. "Lead") tap into Meta's pre-trained conversion models, so we only mark an event as
     // custom when we intentionally don't want it optimized against the standard event.
     const isCustomPixelEvent = 'IS_CUSTOM_PIXEL_EVENT' in pixelEvent && pixelEvent.IS_CUSTOM_PIXEL_EVENT;
 
@@ -62,11 +62,10 @@ function publishEvent(event: GoogleTagManagerEvent, accountID: number, email: st
 
     // Reddit
     if (typeof window.rdt === 'function') {
-        if (isCustomPixelEvent) {
-            window.rdt('track', 'Custom', {customEventName: pixelEvent.REDDIT, conversionId: eventID, email});
-        } else {
-            window.rdt('track', pixelEvent.REDDIT, {conversionId: eventID, email});
-        }
+        window.rdt('track', pixelEvent.REDDIT, {
+            conversionId: eventID,
+            email,
+        });
     }
 
     // LinkedIn (uses numeric conversion IDs instead of named events)
