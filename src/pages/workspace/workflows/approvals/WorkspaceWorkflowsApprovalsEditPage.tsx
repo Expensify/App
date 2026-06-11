@@ -22,13 +22,7 @@ import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {
-    clearApprovalWorkflow,
-    removeApprovalWorkflow,
-    selectApprovalWorkflowForEdit,
-    updateApprovalWorkflow,
-    validateApprovalWorkflow,
-} from '@userActions/Workflow';
+import {clearApprovalWorkflow, removeApprovalWorkflow, selectApprovalWorkflowForEdit, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -135,8 +129,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         // Resume after a sub-page round-trip: keep onyx state to avoid wiping the user's pending edits.
-        const isResumingEdit =
-            approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
+        const isResumingEdit = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
         if (isResumingEdit) {
             // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time snapshot guarded by isResumingEdit + early return; runs at most once per mount
             setInitialApprovalWorkflow(currentApprovalWorkflow);

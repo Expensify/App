@@ -139,16 +139,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
-    const {
-        approvalWorkflows,
-        availableMembers,
-        usedApproverEmails,
-    } = convertPolicyEmployeesToApprovalWorkflows({
-        policy,
-        personalDetails: personalDetails ?? {},
-        localeCompare,
-        currentUserLogin,
-    });
+    const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                policy,
+                personalDetails: personalDetails ?? {},
+                localeCompare,
+                currentUserLogin,
+            }),
+        [policy, personalDetails, localeCompare, currentUserLogin],
+    );
 
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
@@ -473,43 +473,47 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
                             searchValue={workflowSearchInput}
                         />
-                        {searchFilteredWorkflows.map((workflow) => (
-                            <OfflineWithFeedback
-                                key={workflow.approvers.at(0)?.email ?? ''}
-                                pendingAction={workflow.pendingAction}
-                            >
-                                <ApprovalWorkflowSection
-                                    approvalWorkflow={workflow}
-                                    onPress={
-                                        shouldBlockApprovalWorkflowEditing || !canWriteApprovals
-                                            ? undefined
-                                            : () => {
-                                                  // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
-                                                  clearApprovalWorkflow();
-                                                  Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''));
-                                              }
-                                    }
-                                    onShowAllMembersPress={
-                                        shouldBlockApprovalWorkflowEditing
-                                            ? undefined
-                                            : () => {
-                                                  selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
-                                                  Navigation.navigate(
-                                                      ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(
-                                                          route.params.policyID,
-                                                          ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                                      ),
-                                                  );
-                                              }
-                                    }
-                                    currency={policy?.outputCurrency}
-                                    isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
-                                    hrProviderName={isHRConnected ? hrProviderName : undefined}
-                                    isHRAdvancedMode={isHRAdvancedModeEnabled}
-                                    hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
-                                />
-                            </OfflineWithFeedback>
-                        ))}
+                        {searchFilteredWorkflows.map((workflow) => {
+                            const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
+
+                            return (
+                                <OfflineWithFeedback
+                                    key={firstApproverEmail}
+                                    pendingAction={workflow.pendingAction}
+                                >
+                                    <ApprovalWorkflowSection
+                                        approvalWorkflow={workflow}
+                                        onPress={
+                                            shouldBlockApprovalWorkflowEditing || !canWriteApprovals
+                                                ? undefined
+                                                : () => {
+                                                      // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+                                                      clearApprovalWorkflow();
+                                                      Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApproverEmail));
+                                                  }
+                                        }
+                                        onShowAllMembersPress={
+                                            shouldBlockApprovalWorkflowEditing
+                                                ? undefined
+                                                : () => {
+                                                      selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
+                                                      Navigation.navigate(
+                                                          ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(
+                                                              route.params.policyID,
+                                                              ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                          ),
+                                                      );
+                                                  }
+                                        }
+                                        currency={policy?.outputCurrency}
+                                        isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
+                                        hrProviderName={isHRConnected ? hrProviderName : undefined}
+                                        isHRAdvancedMode={isHRAdvancedModeEnabled}
+                                        hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
+                                    />
+                                </OfflineWithFeedback>
+                            );
+                        })}
                         {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
                             <MenuItem
                                 title={translate('workflowsPage.addApprovalButton')}
