@@ -39,7 +39,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
-import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportLayout} from '@libs/actions/ReportLayout';
+import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
@@ -447,9 +447,24 @@ function MoneyRequestReportTransactionList({
         horizontalScrollViewRef.current?.scrollTo({x: horizontalScrollOffsetRef.current, animated: false});
     }, [sortedTransactions, shouldScrollHorizontally]);
 
-    const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
-    const shouldGroupTransactions = shouldShowGroupedTransactions && !isMatrixLayout(reportLayoutOption);
-    const currentSelection = getReportLayoutSelection(reportLayoutOption, reportLayoutGroupBy);
+    // Latch the user's most recent selection so the popover label and grouping mode never flick through the
+    // (layoutOption=null, groupByOption=null) → CATEGORY default while the two NVPs settle in separate render passes.
+    // Drop the latch once Onyx reaches the clicked value, so later authoritative updates (failureData rollback,
+    // another client changing the layout) flow through instead of staying masked by stale local state.
+    const [pendingLayoutSelection, setPendingLayoutSelection] = useState<OnyxTypes.ReportLayoutSelection | null>(null);
+    const onyxLayoutSelection = getReportLayoutSelection(reportLayoutOption, reportLayoutGroupBy);
+    const currentSelection: OnyxTypes.ReportLayoutSelection = pendingLayoutSelection ?? onyxLayoutSelection;
+    useEffect(() => {
+        if (pendingLayoutSelection === null || pendingLayoutSelection !== onyxLayoutSelection) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the click latch to Onyx so subsequent authoritative updates aren't masked by stale local state
+        setPendingLayoutSelection(null);
+    }, [pendingLayoutSelection, onyxLayoutSelection]);
+
+    const isLayoutMatrixSelected = currentSelection === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX;
+    const currentGroupBy: OnyxTypes.ReportLayoutGroupBy = currentSelection !== CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX ? currentSelection : getReportLayoutGroupBy(reportLayoutGroupBy);
+    const shouldGroupTransactions = shouldShowGroupedTransactions && !isLayoutMatrixSelected;
 
     const groupedTransactions = useMemo(() => {
         if (!shouldGroupTransactions) {
@@ -682,6 +697,7 @@ function MoneyRequestReportTransactionList({
                             if (!item.keyForList) {
                                 return;
                             }
+                            setPendingLayoutSelection(item.keyForList);
                             setReportLayout(item.keyForList, reportLayoutOption, reportLayoutGroupBy);
                             props.closeOverlay();
                         }}
@@ -877,7 +893,7 @@ function MoneyRequestReportTransactionList({
                 {shouldShowGroupedTransactions && (
                     <DropdownButton
                         label={translate('search.display.groupBy')}
-                        value={isMatrixLayout(reportLayoutOption) ? '' : (selectedGroupByItem?.text ?? '')}
+                        value={isLayoutMatrixSelected ? '' : (selectedGroupByItem?.text ?? '')}
                         PopoverComponent={groupByPopoverComponent}
                     />
                 )}
