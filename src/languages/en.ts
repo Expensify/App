@@ -2982,6 +2982,7 @@ const translations = {
         },
     },
     reportDetailsPage: {
+        goToRoom: 'Go to room',
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Generate PDF',
         waitForPDF: 'Please wait while we generate the PDF.',
@@ -6782,6 +6783,15 @@ const translations = {
             },
             zenefits: {
                 title: 'TriNet',
+            },
+            mergeHR: {
+                completeSetup: 'Complete setup',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import employees.</muted-text-label>`,
+                groups: {
+                    title: 'Groups',
+                    description: 'Choose the groups of employees you would like to sync with this workspace',
+                },
             },
         },
         export: {

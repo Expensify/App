@@ -1,4 +1,4 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -14,6 +14,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -31,7 +32,7 @@ import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomM
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -52,7 +53,7 @@ import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@use
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -60,10 +61,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
+type DynamicRoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT>;
 
-function RoomMembersPage({report, policy}: RoomMembersPageProps) {
-    const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
+function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBERS.path);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Plus', 'RemoveMembers']);
     const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
@@ -77,10 +78,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
-    const backTo = route.params.backTo;
     const navigateBackToReportDetails = useCallback(() => {
-        Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
-    }, [backTo, report.reportID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
     const isReportArchived = useReportIsArchived(report.reportID);
     const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
 
@@ -148,8 +148,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             return;
         }
         setSearchValue('');
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID, backTo));
-    }, [report, setSearchValue, backTo]);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
+    }, [report, setSearchValue]);
 
     /**
      * Remove selected users from the room
@@ -388,16 +388,13 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     /** Opens the room member details page */
-    const openRoomMemberDetails = useCallback(
-        (item: ListItem) => {
-            if (!item?.accountID) {
-                return;
-            }
+    const openRoomMemberDetails = useCallback((item: ListItem) => {
+        if (!item?.accountID) {
+            return;
+        }
 
-            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID, backTo));
-        },
-        [report.reportID, backTo],
-    );
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.getRoute(item.accountID)));
+    }, []);
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const customListHeader = useMemo(() => {
@@ -435,7 +432,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
-            testID="RoomMembersPage"
+            testID="DynamicRoomMembersPage"
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
@@ -483,4 +480,4 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     );
 }
 
-export default withReportOrNotFound()(RoomMembersPage);
+export default withReportOrNotFound()(DynamicRoomMembersPage);

@@ -13,6 +13,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
@@ -46,20 +47,16 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
+type DynamicRoomInvitePageProps = WithReportOrNotFoundProps &
+    WithNavigationTransitionEndProps &
+    PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE>;
 
 type MembersSection = SectionListData<OptionData, Section<OptionData>>;
-function RoomInvitePage({
-    report,
-    policy,
-    didScreenTransitionEnd,
-    route: {
-        params: {backTo},
-    },
-}: RoomInvitePageProps) {
+function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: DynamicRoomInvitePageProps) {
     const styles = useThemeStyles();
     const reportAttributes = useReportAttributes();
     const {translate, formatPhoneNumber} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_INVITE.path);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
@@ -124,12 +121,8 @@ function RoomInvitePage({
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
-    const backRoute =
-        reportID &&
-        (!isPolicyEmployee || isReportArchived
-            ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID))
-            : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
-
+    const reportDetailsRoute = reportID ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)) : undefined;
+    const backRoute = reportID && (!isPolicyEmployee || isReportArchived) ? reportDetailsRoute : backPath;
     const reportName = getReportName(report, reportAttributes);
 
     const ancestors = useAncestors(report);
@@ -167,11 +160,7 @@ function RoomInvitePage({
                     inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
                 }
             };
-            if (backTo) {
-                Navigation.goBack(backTo, {afterTransition});
-            } else {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID), {afterTransition});
-            }
+            Navigation.goBack(backRoute, {afterTransition});
         }
     };
 
@@ -220,7 +209,7 @@ function RoomInvitePage({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID="RoomInvitePage"
+            testID="DynamicRoomInvitePage"
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
@@ -256,4 +245,4 @@ function RoomInvitePage({
     );
 }
 
-export default withNavigationTransitionEnd(withReportOrNotFound()(RoomInvitePage));
+export default withNavigationTransitionEnd(withReportOrNotFound()(DynamicRoomInvitePage));

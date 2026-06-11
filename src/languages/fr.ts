@@ -2915,6 +2915,7 @@ ${amount} pour ${merchant} - ${date}`,
         waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: 'Une erreur s’est produite lors de la tentative de génération de votre PDF',
         successPDF: 'Votre PDF a été généré ! S’il ne s’est pas téléchargé automatiquement, utilisez le bouton ci-dessous.',
+        goToRoom: 'Aller à la salle',
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la salle',
@@ -7520,6 +7521,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncing: 'Synchronisation des employés',
+            mergeHR: {
+                completeSetup: 'Terminer la configuration',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
+                groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
+            },
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',

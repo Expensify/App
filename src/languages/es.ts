@@ -2780,6 +2780,7 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     reportDetailsPage: {
+        goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
         generatingPDF: 'Generar PDF',
         waitForPDF: 'Por favor, espera mientras creamos el PDF.',
@@ -6570,6 +6571,12 @@ ${amount} para ${merchant} - ${date}`,
             syncingModalTitle: 'Tu conexión se está sincronizando',
             syncingModalDescription: 'La primera conexión puede tardar un poco. Se te notificará de cualquier error.',
             syncing: 'Sincronizando empleados',
+            mergeHR: {
+                completeSetup: 'Completar configuración',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
+                groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
+            },
         },
         export: {
             notReadyHeading: 'No está listo para exportar',

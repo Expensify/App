@@ -2878,6 +2878,7 @@ ${date} の ${merchant} への ${amount}`,
         waitForPDF: 'PDF を作成しています。しばらくお待ちください。',
         errorPDF: 'PDF の生成中にエラーが発生しました',
         successPDF: 'PDFが作成されました！自動的にダウンロードされない場合は、下のボタンを使用してください。',
+        goToRoom: 'ルームに移動',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',
@@ -7388,6 +7389,12 @@ ${reportName}
             syncingModalTitle: '接続を同期しています',
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             syncing: '従業員を同期しています',
+            mergeHR: {
+                completeSetup: '設定を完了',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>接続されました。従業員をインポートするには ${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} に接続してください。</muted-text-label>`,
+                groups: {title: 'グループ', description: 'このワークスペースと同期したい従業員グループを選択してください'},
+            },
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',

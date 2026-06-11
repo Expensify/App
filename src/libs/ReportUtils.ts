@@ -1702,6 +1702,7 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a paid group or Submit policy
  */
+// TODO: Remove this function and use isGroupPolicy directly after https://github.com/Expensify/App/issues/66415 is done
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
     return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
 }
@@ -11054,7 +11055,10 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
+        const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true);
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID), confirmationRoute),
+        );
     } else {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
     }
@@ -11179,7 +11183,10 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 },
             ]);
             if (policyExpenseReportID) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+                const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID, undefined, true);
+                Navigation.navigate(
+                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID), confirmationRoute),
+                );
             } else {
                 Log.warn('policyExpenseReportID is not valid during expense categorizing');
             }
@@ -11187,15 +11194,16 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: actionName,
-                    iouType: CONST.IOU.TYPE.SUBMIT,
-                    transactionID,
-                    reportID,
-                    backTo: '',
-                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                    shouldSubmitExpense: true,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: actionName,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID,
+                        reportID,
+                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                        shouldSubmitExpense: true,
+                    }),
+                ),
             );
             return;
         }
@@ -11213,7 +11221,10 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             },
         ]);
         if (policyExpenseReportID) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+            const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID, undefined, true);
+            Navigation.navigate(
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID), confirmationRoute),
+            );
         } else {
             Log.warn('policyExpenseReportID is not valid during expense categorizing');
         }
@@ -11221,7 +11232,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), Navigation.getActiveRoute()));
         return;
     }
 

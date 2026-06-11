@@ -1313,6 +1313,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.HR_MERGE_FINAL_APPROVER]: {
                             path: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.route,
                         },
+                        [SCREENS.WORKSPACE.HR_MERGE_GROUPS]: {
+                            path: ROUTES.WORKSPACE_HR_MERGE_GROUPS.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,
                         },
@@ -1710,9 +1713,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: {
                     screens: {
-                        [SCREENS.ROOM_MEMBERS.ROOT]: ROUTES.ROOM_MEMBERS.route,
-                        [SCREENS.ROOM_MEMBERS.INVITE]: ROUTES.ROOM_INVITE.route,
-                        [SCREENS.ROOM_MEMBERS.DETAILS]: ROUTES.ROOM_MEMBER_DETAILS.route,
+                        [SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.ROOM_MEMBERS.path,
+                        [SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE]: DYNAMIC_ROUTES.ROOM_INVITE.path,
+                        [SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS]: DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
@@ -1770,7 +1773,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_REPORT]: ROUTES.MONEY_REQUEST_STEP_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
-                        [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT.route,
@@ -1790,15 +1793,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: ROUTES.MONEY_REQUEST_RECEIPT_VIEW.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
-                        [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
-                        [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path,
                         [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {
                             path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route,
                             exact: true,
                         },
-                        [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: ROUTES.MONEY_REQUEST_ATTENDEE.route,
-                        [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: ROUTES.MONEY_REQUEST_ACCOUNTANT.route,
-                        [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: ROUTES.MONEY_REQUEST_UPGRADE.route,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES]: DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.path,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT]: DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.path,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE]: DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.path,
                         [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: ROUTES.MONEY_REQUEST_STEP_DESTINATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_TIME]: ROUTES.MONEY_REQUEST_STEP_TIME.route,
                         [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: ROUTES.MONEY_REQUEST_STEP_SUBRATE.route,
@@ -1902,7 +1905,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
                     screens: {
-                        [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
+                        [SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TASK_DETAILS]: {
