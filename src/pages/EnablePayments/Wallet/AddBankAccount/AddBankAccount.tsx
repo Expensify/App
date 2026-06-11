@@ -107,7 +107,7 @@ function AddBankAccount() {
         }
 
         if (pageIndex === 0) {
-            // Clearing the draft unsets setupType, which switches this page back to the setup method view.
+            // Clearing the draft clears setupType, which switches this page back to the setup method view.
             clearPersonalBankAccount();
             return;
         }
