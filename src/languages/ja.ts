@@ -4096,27 +4096,30 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         verificationFailed: '確認に失敗したため、追加の書類で本人および事業の確認が必要です',
         taxIDVerification: '納税者番号の確認',
         taxIDVerificationDescription: dedent(`
-        以下のいずれかの書類をアップロードしてください：
-        • IRS TIN/EIN 割当通知書
-        • IRS TIN/EIN 申請確認書（通常「Congratulations! The EIN has been successfully assigned」と記載）
-        • 会社名と EIN が記載された IRS の免税通知書`),
+            以下のいずれかの書類をアップロードしてください：
+            • IRS TIN/EIN 割当通知書
+            • IRS TIN/EIN 申請確認書（通常「Congratulations! The EIN has been successfully assigned」と記載）
+            • 会社名と EIN が記載された IRS の免税通知書
+        `),
         nameChangeDocument: '名称変更書類',
         nameChangeDocumentDescription: 'TIN/EIN 申請後に会社名が変更された場合、提供された納税者番号を確認するためにこの書類が必要です',
         companyAddressVerification: '会社住所の確認',
         companyAddressVerificationDescription: dedent(`
-        以下のいずれかの書類をアップロードしてください：
-        • 会社名と住所が記載された最近の公共料金請求書
-        • 会社名と住所が記載された銀行取引明細書
-        • 署名ページを含む現行の賃貸契約書（会社名と現住所が記載されたもの）
-        • 会社名と住所が記載された保険証書
-        • 会社名と住所が記載された TIN 割当書類`),
+            以下のいずれかの書類をアップロードしてください：
+            • 会社名と住所が記載された最近の公共料金請求書
+            • 会社名と住所が記載された銀行取引明細書
+            • 署名ページを含む現行の賃貸契約書（会社名と現住所が記載されたもの）
+            • 会社名と住所が記載された保険証書
+            • 会社名と住所が記載された TIN 割当書類
+        `),
         userAddressVerification: '住所確認',
         userAddressVerificationDescription: dedent(`
-        以下のいずれかの書類をアップロードしてください：
-        • 有権者登録カード
-        • 運転免許証
-        • 銀行取引明細書
-        • 公共料金請求書`),
+            以下のいずれかの書類をアップロードしてください：
+            • 有権者登録カード
+            • 運転免許証
+            • 銀行取引明細書
+            • 公共料金請求書
+        `),
         userDOBVerification: '生年月日の確認',
         userDOBVerificationDescription: '米国発行の身分証明書をアップロードしてください',
         finishViaChat: 'チャットで完了',
@@ -8235,10 +8238,7 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'このレポートには経費がありません。',
-            accessPlaceHolder: '詳細を開く',
-        },
+        moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
         noMerchant: '店舗なし',
         noTag: 'タグなし',
