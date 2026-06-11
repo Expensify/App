@@ -456,6 +456,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
         editor: 'Editor',
         restrictions: 'Restricciones',
+        off: 'Desactivado',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -4021,27 +4022,30 @@ ${amount} para ${merchant} - ${date}`,
         verificationFailed: 'La verificación falló, por lo que necesitaremos documentos adicionales para verificarte a ti y a tu empresa',
         taxIDVerification: 'Verificación del ID fiscal',
         taxIDVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Carta de asignación de TIN/EIN del IRS
-        • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
-        • Carta de exención fiscal del IRS que incluya el nombre de la empresa y el EIN`),
+            Por favor, sube uno de los siguientes archivos:
+            • Carta de asignación de TIN/EIN del IRS
+            • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
+            • Carta de exención fiscal del IRS que incluya el nombre de la empresa y el EIN
+        `),
         nameChangeDocument: 'Documento de cambio de nombre',
         nameChangeDocumentDescription: 'Si el nombre de tu empresa cambió desde que solicitaste el TIN/EIN, necesitamos este documento para verificar el número de ID fiscal proporcionado',
         companyAddressVerification: 'Verificación de la dirección de la empresa',
         companyAddressVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Factura reciente de servicios públicos con nombre y dirección de la empresa
-        • Estado de cuenta bancario con nombre y dirección de la empresa
-        • Contrato de arrendamiento vigente con página de firmas que muestre el nombre y la dirección actual de la empresa
-        • Estado de seguro con nombre y dirección de la empresa
-        • Documento de asignación de TIN con nombre y dirección de la empresa`),
+            Por favor, sube uno de los siguientes archivos:
+            • Factura reciente de servicios públicos con nombre y dirección de la empresa
+            • Estado de cuenta bancario con nombre y dirección de la empresa
+            • Contrato de arrendamiento vigente con página de firmas que muestre el nombre y la dirección actual de la empresa
+            • Estado de seguro con nombre y dirección de la empresa
+            • Documento de asignación de TIN con nombre y dirección de la empresa
+        `),
         userAddressVerification: 'Verificación de dirección',
         userAddressVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Tarjeta de registro de votante
-        • Licencia de conducir
-        • Estado de cuenta bancario
-        • Factura de servicios públicos`),
+            Por favor, sube uno de los siguientes archivos:
+            • Tarjeta de registro de votante
+            • Licencia de conducir
+            • Estado de cuenta bancario
+            • Factura de servicios públicos
+        `),
         userDOBVerification: 'Verificación de fecha de nacimiento',
         userDOBVerificationDescription: 'Por favor, sube una identificación emitida en EE. UU.',
         finishViaChat: 'Finalizar por chat',
@@ -7193,10 +7197,8 @@ ${amount} para ${merchant} - ${date}`,
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Estás seguro de que quieres eliminar esta regla?',
                 allow: 'Permitir',
-                spendRuleSectionTitle: 'Regla de gastos',
+                spendRuleSectionTitle: 'Reglas de gasto',
                 restrictionType: 'Tipo de restricción',
-                restrictionTypeHelpAllow: 'Los cargos se aprueban si coinciden con cualquier comerciante o categoría, y no superan un importe máximo.',
-                restrictionTypeHelpBlock: 'Los cargos se rechazan si coinciden con cualquier comerciante o categoría, o superan un importe máximo.',
                 addMerchant: 'Añadir comerciante',
                 merchantContains: 'El comerciante contiene',
                 merchantExactlyMatches: 'El comerciante coincide exactamente',
@@ -7251,6 +7253,14 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Transporte y transporte compartido',
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agencias de viajes',
                 },
+                restrictMerchants: 'Restringir comercios',
+                merchantTypes: 'Tipos de comercio',
+                allowedMerchants: 'Comercios permitidos',
+                allowedMerchantTypes: 'Tipos de comercios permitidos',
+                blockedMerchants: 'Comercios bloqueados',
+                blockedMerchantTypes: 'Tipos de comercio bloqueados',
+                currencies: 'Monedas',
+                permittedCurrencies: 'Monedas permitidas',
             },
             aiRules: {
                 title: 'Reglas de IA',

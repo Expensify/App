@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrizioni',
+        off: 'Disattivato',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -4127,28 +4128,31 @@ ${amount} per ${merchant} - ${date}`,
         verificationFailed: 'La verifica non è riuscita, quindi avremo bisogno di documenti aggiuntivi per verificare te e la tua azienda',
         taxIDVerification: 'Verifica dell’ID fiscale',
         taxIDVerificationDescription: dedent(`
-        Carica uno dei seguenti file:
-        • Lettera di assegnazione TIN/EIN dell’IRS
-        • Conferma della richiesta TIN/EIN dell’IRS (di solito indica "Congratulations! The EIN has been successfully assigned")
-        • Lettera di esenzione fiscale dell’IRS con nome dell’azienda ed EIN`),
+            Carica uno dei seguenti file:
+            • Lettera di assegnazione TIN/EIN dell’IRS
+            • Conferma della richiesta TIN/EIN dell’IRS (di solito indica "Congratulations! The EIN has been successfully assigned")
+            • Lettera di esenzione fiscale dell’IRS con nome dell’azienda ed EIN
+        `),
         nameChangeDocument: 'Documento di cambio nome',
         nameChangeDocumentDescription:
             'Se il nome della tua azienda è cambiato dopo la richiesta del TIN/EIN, abbiamo bisogno di questo documento per verificare il numero di ID fiscale fornito',
         companyAddressVerification: 'Verifica dell’indirizzo aziendale',
         companyAddressVerificationDescription: dedent(`
-        Carica uno dei seguenti file:
-        • Bolletta recente con nome e indirizzo dell’azienda
-        • Estratto conto bancario con nome e indirizzo dell’azienda
-        • Contratto di locazione attuale con pagina firme che mostri nome e indirizzo attuale dell’azienda
-        • Documento assicurativo con nome e indirizzo dell’azienda
-        • Documento di assegnazione TIN con nome e indirizzo dell’azienda`),
+            Carica uno dei seguenti file:
+            • Bolletta recente con nome e indirizzo dell’azienda
+            • Estratto conto bancario con nome e indirizzo dell’azienda
+            • Contratto di locazione attuale con pagina firme che mostri nome e indirizzo attuale dell’azienda
+            • Documento assicurativo con nome e indirizzo dell’azienda
+            • Documento di assegnazione TIN con nome e indirizzo dell’azienda
+        `),
         userAddressVerification: 'Verifica dell’indirizzo',
         userAddressVerificationDescription: dedent(`
-        Carica uno dei seguenti file:
-        • Tessera elettorale
-        • Patente di guida
-        • Estratto conto bancario
-        • Bolletta`),
+            Carica uno dei seguenti file:
+            • Tessera elettorale
+            • Patente di guida
+            • Estratto conto bancario
+            • Bolletta
+        `),
         userDOBVerification: 'Verifica della data di nascita',
         userDOBVerificationDescription: 'Carica un documento di identità rilasciato negli Stati Uniti',
         finishViaChat: 'Completa via chat',
@@ -7255,10 +7259,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 chooseCards: 'Scegli le carte',
                 saveRule: 'Salva regola',
                 allow: 'Consenti',
-                spendRuleSectionTitle: 'Regola di spesa',
+                spendRuleSectionTitle: 'Regole di spesa',
                 restrictionType: 'Tipo di restrizione',
-                restrictionTypeHelpAllow: 'Le spese vengono approvate se corrispondono a qualsiasi venditore o categoria e non superano un importo massimo.',
-                restrictionTypeHelpBlock: 'Le transazioni vengono rifiutate se corrispondono a un esercente o a una categoria, oppure se superano un importo massimo.',
                 addMerchant: 'Aggiungi esercente',
                 merchantContains: 'Il commerciante contiene',
                 merchantExactlyMatches: 'Il commerciante corrisponde esattamente',
@@ -7336,6 +7338,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
+                restrictMerchants: 'Limita esercenti',
+                merchantTypes: 'Tipi di esercenti',
+                allowedMerchants: 'Esercenti consentiti',
+                allowedMerchantTypes: 'Tipi di esercenti consentiti',
+                blockedMerchants: 'Esercenti bloccati',
+                blockedMerchantTypes: 'Tipi di esercenti bloccati',
+                currencies: 'Valute',
+                permittedCurrencies: 'Valute consentite',
             },
             aiRules: {
                 title: 'Regole IA',

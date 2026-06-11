@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        off: 'Désactivé',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -4152,28 +4153,31 @@ ${amount} pour ${merchant} - ${date}`,
         verificationFailed: 'La vérification a échoué, nous aurons donc besoin de documents supplémentaires pour te vérifier ainsi que ton entreprise',
         taxIDVerification: 'Vérification de l’identifiant fiscal',
         taxIDVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Lettre d’attribution TIN/EIN de l’IRS
-        • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
-        • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Lettre d’attribution TIN/EIN de l’IRS
+            • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
+            • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN
+        `),
         nameChangeDocument: 'Document de changement de nom',
         nameChangeDocumentDescription:
             'Si le nom de ton entreprise a changé depuis la demande du TIN/EIN, ce document est nécessaire pour vérifier le numéro d’identification fiscale fourni',
         companyAddressVerification: 'Vérification de l’adresse de l’entreprise',
         companyAddressVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
-        • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
-        • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
-        • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
-        • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
+            • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
+            • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
+            • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
+            • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise
+        `),
         userAddressVerification: 'Vérification de l’adresse',
         userAddressVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Carte d’inscription électorale
-        • Permis de conduire
-        • Relevé bancaire
-        • Facture de services publics`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Carte d’inscription électorale
+            • Permis de conduire
+            • Relevé bancaire
+            • Facture de services publics
+        `),
         userDOBVerification: 'Vérification de la date de naissance',
         userDOBVerificationDescription: 'Veuillez téléverser une pièce d’identité délivrée aux États-Unis',
         finishViaChat: 'Finaliser via le chat',
@@ -7298,10 +7302,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 chooseCards: 'Choisir des cartes',
                 saveRule: 'Enregistrer la règle',
                 allow: 'Autoriser',
-                spendRuleSectionTitle: 'Règle de dépense',
+                spendRuleSectionTitle: 'Règles de dépense',
                 restrictionType: 'Type de restriction',
-                restrictionTypeHelpAllow: 'Les frais sont approuvés s’ils correspondent à n’importe quel commerçant ou catégorie et ne dépassent pas un montant maximal.',
-                restrictionTypeHelpBlock: 'Les frais sont refusés s’ils correspondent à un commerçant ou à une catégorie, ou s’ils dépassent un montant maximal.',
                 addMerchant: 'Ajouter un commerçant',
                 merchantContains: 'Le commerçant contient',
                 merchantExactlyMatches: 'Le commerçant correspond exactement',
@@ -7379,6 +7381,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
+                restrictMerchants: 'Restreindre les commerçants',
+                merchantTypes: 'Types de marchands',
+                allowedMerchants: 'Commerçants autorisés',
+                allowedMerchantTypes: 'Types de marchands autorisés',
+                blockedMerchants: 'Commerçants bloqués',
+                blockedMerchantTypes: 'Types de marchands bloqués',
+                currencies: 'Devises',
+                permittedCurrencies: 'Devises autorisées',
             },
             aiRules: {
                 title: 'Règles IA',

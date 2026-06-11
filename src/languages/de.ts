@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beschränkungen',
+        off: 'Aus',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -4139,28 +4140,31 @@ ${amount} für ${merchant} – ${date}`,
         verificationFailed: 'Die Verifizierung ist fehlgeschlagen, daher benötigen wir zusätzliche Dokumente, um dich und dein Unternehmen zu überprüfen',
         taxIDVerification: 'Steuer-ID-Verifizierung',
         taxIDVerificationDescription: dedent(`
-        Bitte lade eine der folgenden Dateien hoch:
-        • IRS TIN/EIN-Zuweisungsschreiben
-        • IRS TIN/EIN-Antragsbestätigung (enthält normalerweise „Congratulations! The EIN has been successfully assigned“)
-        • IRS-Steuerbefreiungsschreiben mit Firmenname und EIN`),
+            Bitte lade eine der folgenden Dateien hoch:
+            • IRS TIN/EIN-Zuweisungsschreiben
+            • IRS TIN/EIN-Antragsbestätigung (enthält normalerweise „Congratulations! The EIN has been successfully assigned“)
+            • IRS-Steuerbefreiungsschreiben mit Firmenname und EIN
+        `),
         nameChangeDocument: 'Dokument zur Namensänderung',
         nameChangeDocumentDescription:
             'Wenn sich der Name deines Unternehmens seit der Beantragung der TIN/EIN geändert hat, benötigen wir dieses Dokument zur Verifizierung der angegebenen Steuer-ID',
         companyAddressVerification: 'Verifizierung der Unternehmensadresse',
         companyAddressVerificationDescription: dedent(`
-        Bitte lade eine der folgenden Dateien hoch:
-        • Aktuelle Strom-, Wasser- oder Gasrechnung mit Firmenname und Adresse
-        • Kontoauszug mit Firmenname und Adresse
-        • Aktueller Miet- oder Leasingvertrag inkl. Unterschriftsseite mit Firmenname und aktueller Adresse
-        • Versicherungsnachweis mit Firmenname und Adresse
-        • TIN-Zuweisungsdokument mit Firmenname und Adresse`),
+            Bitte lade eine der folgenden Dateien hoch:
+            • Aktuelle Strom-, Wasser- oder Gasrechnung mit Firmenname und Adresse
+            • Kontoauszug mit Firmenname und Adresse
+            • Aktueller Miet- oder Leasingvertrag inkl. Unterschriftsseite mit Firmenname und aktueller Adresse
+            • Versicherungsnachweis mit Firmenname und Adresse
+            • TIN-Zuweisungsdokument mit Firmenname und Adresse
+        `),
         userAddressVerification: 'Adressverifizierung',
         userAddressVerificationDescription: dedent(`
-        Bitte lade eine der folgenden Dateien hoch:
-        • Wählerregistrierungskarte
-        • Führerschein
-        • Kontoauszug
-        • Versorgungsrechnung`),
+            Bitte lade eine der folgenden Dateien hoch:
+            • Wählerregistrierungskarte
+            • Führerschein
+            • Kontoauszug
+            • Versorgungsrechnung
+        `),
         userDOBVerification: 'Geburtsdatumsverifizierung',
         userDOBVerificationDescription: 'Bitte lade einen in den USA ausgestellten Ausweis hoch',
         finishViaChat: 'Über Chat abschließen',
@@ -7270,10 +7274,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 chooseCards: 'Karten auswählen',
                 saveRule: 'Regel speichern',
                 allow: 'Erlauben',
-                spendRuleSectionTitle: 'Ausgabenregel',
+                spendRuleSectionTitle: 'Ausgaberichtlinien',
                 restrictionType: 'Beschränkungstyp',
-                restrictionTypeHelpAllow: 'Ausgaben werden genehmigt, wenn sie einem beliebigen Händler oder einer Kategorie entsprechen und einen Höchstbetrag nicht überschreiten.',
-                restrictionTypeHelpBlock: 'Buchungen werden abgelehnt, wenn sie mit einem Händler oder einer Kategorie übereinstimmen oder einen Höchstbetrag überschreiten.',
                 addMerchant: 'Händler hinzufügen',
                 merchantContains: 'Händler enthält',
                 merchantExactlyMatches: 'Händler stimmt exakt überein',
@@ -7351,6 +7353,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
+                restrictMerchants: 'Händler einschränken',
+                merchantTypes: 'Händlertypen',
+                allowedMerchants: 'Zugelassene Händler',
+                allowedMerchantTypes: 'Zulässige Händlerarten',
+                blockedMerchants: 'Blockierte Händler',
+                blockedMerchantTypes: 'Gesperrte Händlerkategorien',
+                currencies: 'Währungen',
+                permittedCurrencies: 'Zulässige Währungen',
             },
             aiRules: {
                 title: 'KI-Regeln',

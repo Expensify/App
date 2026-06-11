@@ -503,6 +503,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrições',
+        off: 'Desligado',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -4115,27 +4116,30 @@ ${amount} para ${merchant} - ${date}`,
         verificationFailed: 'A verificação falhou, então precisaremos de documentos adicionais para verificar você e sua empresa',
         taxIDVerification: 'Verificação de ID fiscal',
         taxIDVerificationDescription: dedent(`
-        Envie um dos seguintes arquivos:
-        • Carta de atribuição de TIN/EIN do IRS
-        • Confirmação de solicitação de TIN/EIN do IRS (normalmente contém "Congratulations! The EIN has been successfully assigned")
-        • Carta de isenção fiscal do IRS com o nome da empresa e o EIN`),
+            Envie um dos seguintes arquivos:
+            • Carta de atribuição de TIN/EIN do IRS
+            • Confirmação de solicitação de TIN/EIN do IRS (normalmente contém "Congratulations! The EIN has been successfully assigned")
+            • Carta de isenção fiscal do IRS com o nome da empresa e o EIN
+        `),
         nameChangeDocument: 'Documento de alteração de nome',
         nameChangeDocumentDescription: 'Se o nome da sua empresa mudou desde a solicitação do TIN/EIN, precisamos deste documento para verificar o número de identificação fiscal informado',
         companyAddressVerification: 'Verificação de endereço da empresa',
         companyAddressVerificationDescription: dedent(`
-        Envie um dos seguintes arquivos:
-        • Conta recente de serviços públicos com nome e endereço da empresa
-        • Extrato bancário com nome e endereço da empresa
-        • Contrato de locação atual incluindo a página de assinatura com nome e endereço atual da empresa
-        • Apólice ou declaração de seguro com nome e endereço da empresa
-        • Documento de atribuição de TIN com nome e endereço da empresa`),
+            Envie um dos seguintes arquivos:
+            • Conta recente de serviços públicos com nome e endereço da empresa
+            • Extrato bancário com nome e endereço da empresa
+            • Contrato de locação atual incluindo a página de assinatura com nome e endereço atual da empresa
+            • Apólice ou declaração de seguro com nome e endereço da empresa
+            • Documento de atribuição de TIN com nome e endereço da empresa
+        `),
         userAddressVerification: 'Verificação de endereço',
         userAddressVerificationDescription: dedent(`
-        Envie um dos seguintes arquivos:
-        • Título de eleitor
-        • Carteira de motorista
-        • Extrato bancário
-        • Conta de serviços públicos`),
+            Envie um dos seguintes arquivos:
+            • Título de eleitor
+            • Carteira de motorista
+            • Extrato bancário
+            • Conta de serviços públicos
+        `),
         userDOBVerification: 'Verificação de data de nascimento',
         userDOBVerificationDescription: 'Envie um documento de identidade emitido nos EUA',
         finishViaChat: 'Finalizar pelo chat',
@@ -7228,10 +7232,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 chooseCards: 'Escolher cartões',
                 saveRule: 'Salvar regra',
                 allow: 'Permitir',
-                spendRuleSectionTitle: 'Regra de gasto',
+                spendRuleSectionTitle: 'Regras de gasto',
                 restrictionType: 'Tipo de restrição',
-                restrictionTypeHelpAllow: 'As cobranças são aprovadas se corresponderem a qualquer comerciante ou categoria e não excederem um valor máximo.',
-                restrictionTypeHelpBlock: 'As cobranças são recusadas se corresponderem a qualquer estabelecimento ou categoria, ou se excederem um valor máximo.',
                 addMerchant: 'Adicionar comerciante',
                 merchantContains: 'Comerciante contém',
                 merchantExactlyMatches: 'Estabelecimento corresponde exatamente',
@@ -7309,6 +7311,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueado' : 'Permitido'} ${shownCount > 1 ? 'categorias' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
+                restrictMerchants: 'Restringir estabelecimentos',
+                merchantTypes: 'Tipos de comerciantes',
+                allowedMerchants: 'Comerciantes permitidos',
+                allowedMerchantTypes: 'Tipos de estabelecimentos permitidos',
+                blockedMerchants: 'Comerciantes bloqueados',
+                blockedMerchantTypes: 'Tipos de comerciantes bloqueados',
+                currencies: 'Moedas',
+                permittedCurrencies: 'Moedas permitidas',
             },
             aiRules: {
                 title: 'Regras de IA',

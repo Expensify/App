@@ -504,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beperkingen',
+        off: 'Uit',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -4123,27 +4124,30 @@ ${amount} voor ${merchant} - ${date}`,
         verificationFailed: 'De verificatie is mislukt, daarom hebben we extra documenten nodig om jou en je bedrijf te verifiëren',
         taxIDVerification: 'Belastingnummerverificatie',
         taxIDVerificationDescription: dedent(`
-        Upload een van de volgende bestanden:
-        • IRS TIN/EIN-toewijzingsbrief
-        • IRS TIN/EIN-aanvraagbevestiging (bevat meestal "Congratulations! The EIN has been successfully assigned")
-        • IRS-belastingvrijstellingsbrief met bedrijfsnaam en EIN`),
+            Upload een van de volgende bestanden:
+            • IRS TIN/EIN-toewijzingsbrief
+            • IRS TIN/EIN-aanvraagbevestiging (bevat meestal "Congratulations! The EIN has been successfully assigned")
+            • IRS-belastingvrijstellingsbrief met bedrijfsnaam en EIN
+        `),
         nameChangeDocument: 'Document naamswijziging',
         nameChangeDocumentDescription: 'Als de naam van je bedrijf is gewijzigd sinds de TIN/EIN-aanvraag, hebben we dit document nodig om het opgegeven belastingnummer te verifiëren',
         companyAddressVerification: 'Verificatie van bedrijfsadres',
         companyAddressVerificationDescription: dedent(`
-        Upload een van de volgende bestanden:
-        • Recente energierekening met bedrijfsnaam en adres
-        • Bankafschrift met bedrijfsnaam en adres
-        • Huidige huur- of leaseovereenkomst inclusief ondertekeningspagina met bedrijfsnaam en huidig adres
-        • Verzekeringsverklaring met bedrijfsnaam en adres
-        • TIN-toewijzingsdocument met bedrijfsnaam en adres`),
+            Upload een van de volgende bestanden:
+            • Recente energierekening met bedrijfsnaam en adres
+            • Bankafschrift met bedrijfsnaam en adres
+            • Huidige huur- of leaseovereenkomst inclusief ondertekeningspagina met bedrijfsnaam en huidig adres
+            • Verzekeringsverklaring met bedrijfsnaam en adres
+            • TIN-toewijzingsdocument met bedrijfsnaam en adres
+        `),
         userAddressVerification: 'Adresverificatie',
         userAddressVerificationDescription: dedent(`
-        Upload een van de volgende bestanden:
-        • Kiezersregistratiekaart
-        • Rijbewijs
-        • Bankafschrift
-        • Energierekening`),
+            Upload een van de volgende bestanden:
+            • Kiezersregistratiekaart
+            • Rijbewijs
+            • Bankafschrift
+            • Energierekening
+        `),
         userDOBVerification: 'Verificatie van geboortedatum',
         userDOBVerificationDescription: 'Upload een in de VS uitgegeven identiteitsbewijs',
         finishViaChat: 'Afronden via chat',
@@ -7229,10 +7233,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 chooseCards: 'Kaarten kiezen',
                 saveRule: 'Regel opslaan',
                 allow: 'Toestaan',
-                spendRuleSectionTitle: 'Bestedingsregel',
+                spendRuleSectionTitle: 'Bestedingsregels',
                 restrictionType: 'Restrictietype',
-                restrictionTypeHelpAllow: 'Kosten worden goedgekeurd als ze overeenkomen met een handelaar of categorie en een maximumbedrag niet overschrijden.',
-                restrictionTypeHelpBlock: 'Betalingen worden geweigerd als ze overeenkomen met een handelaar of categorie, of een maximumbedrag overschrijden.',
                 addMerchant: 'Handelaar toevoegen',
                 merchantContains: 'Handelaar bevat',
                 merchantExactlyMatches: 'Handelaar komt exact overeen',
@@ -7310,6 +7312,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
+                restrictMerchants: 'Handelaars beperken',
+                merchantTypes: 'Winkeliertypes',
+                allowedMerchants: 'Toegestane verkopers',
+                allowedMerchantTypes: 'Toegestane handelaarstypen',
+                blockedMerchants: 'Geblokkeerde handelaren',
+                blockedMerchantTypes: 'Geblokkeerde typen handelaren',
+                currencies: 'Valuta’s',
+                permittedCurrencies: 'Toegestane valuta',
             },
             aiRules: {
                 title: 'AI-regels',
