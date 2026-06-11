@@ -167,6 +167,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                         initiallyFocusedItemKey={selectedKey}
                         shouldSingleExecuteRowSelect
                         shouldUpdateFocusedIndex
+                        alternateNumberOfSupportedLines={2}
                     />
                 </OfflineWithFeedback>
                 {isFixedDistanceSelected && (
