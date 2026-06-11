@@ -1,14 +1,14 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
-import getEnvironment from '@libs/Environment/getEnvironment';
-import type EnvironmentType from '@libs/Environment/getEnvironment/types';
-import fileDownload from '@libs/fileDownload';
-import {getSettlementStatus} from '@libs/SearchUIUtils';
-import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
 import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
+import {getOldDotURLFromEnvironment} from './Environment/Environment';
+import getEnvironment from './Environment/getEnvironment';
+import type EnvironmentType from './Environment/getEnvironment/types';
+import fileDownload from './fileDownload';
+import {getSettlementStatus} from './SearchUIUtils';
+import addTrailingForwardSlash from './UrlUtils';
 
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
@@ -93,7 +93,9 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
 
     const settlementGroups: SearchWithdrawalIDGroup[] = [];
     for (const groupKey of selectedGroupKeys) {
-        const group = searchData[groupKey as keyof SearchResultDataType] as SearchWithdrawalIDGroup | undefined;
+        // SearchResultDataType is indexed by dynamic group keys at runtime.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const group = (searchData as Record<string, SearchWithdrawalIDGroup | undefined>)[groupKey];
         if (!group || typeof group.entryID !== 'number' || getSettlementStatus(group.state) === CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
             continue;
         }
