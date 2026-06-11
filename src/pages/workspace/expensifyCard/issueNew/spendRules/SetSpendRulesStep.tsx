@@ -30,6 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
+import {IssueNewCardData} from '@src/types/onyx/Card';
 
 type SetSpendRulesStepProps = {
     /* The policy that the card will be issued under */
@@ -174,10 +175,24 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             return;
         }
 
+        const spendRuleData = spendRuleEnabled ? issueNewCard?.data.spendRuleValue : {};
+
+        // If the user is not adding merchant rules, we should remove that data before navigating to
+        // the next step
+        const issueNewCardData: Partial<IssueNewCardData> = {
+            ...(expirationToggled ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: '', validThru: ''}),
+            spendRuleValue: {
+                ...spendRuleData,
+                categories: !isRestrictMerchantsOff ? spendRuleData?.categories : [],
+                merchantNames: !isRestrictMerchantsOff ? spendRuleData?.merchantNames : [],
+                merchantMatchTypes: !isRestrictMerchantsOff ? spendRuleData?.merchantMatchTypes : [],
+            },
+        };
+
         setSpendRuleErrorMessage('');
         setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
-            data: expirationToggled ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: '', validThru: ''},
+            data: issueNewCardData,
             isEditing: false,
             policyID,
         });

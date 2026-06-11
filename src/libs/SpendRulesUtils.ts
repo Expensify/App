@@ -308,6 +308,7 @@ function getSpendRuleSummaryText(
               translate('workspace.rules.spendRules.summaryMerchants', {merchants, hiddenCount, shownCount, action}),
           )
         : undefined;
+
     const categoryNames = formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`));
     const categorySummary =
         categoryNames.length > 0
@@ -315,10 +316,13 @@ function getSpendRuleSummaryText(
                   translate('workspace.rules.spendRules.summaryCategories', {categories, hiddenCount, shownCount, action}),
               )
             : undefined;
+
     const amountSummary =
         formValues.maxAmount.trim() !== ''
             ? `${translate('workspace.rules.spendRules.maxAmount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(formValues.maxAmount)), cardCurrency ?? CONST.CURRENCY.USD)}`
             : undefined;
+
+    const currencySummary = !!formValues.currencies.length ? `${translate('workspace.rules.spendRules.currencies')}: ${formValues.currencies.join(', ')}` : undefined;
 
     const summaryArray = [];
     if (merchantSummary) {
@@ -331,6 +335,10 @@ function getSpendRuleSummaryText(
 
     if (amountSummary) {
         summaryArray.push(amountSummary);
+    }
+
+    if (currencySummary) {
+        summaryArray.push(currencySummary);
     }
 
     return summaryArray;
