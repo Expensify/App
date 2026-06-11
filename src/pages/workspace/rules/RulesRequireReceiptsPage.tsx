@@ -68,9 +68,6 @@ function RulesRequireReceiptsPage({
                         amount: convertToFrontendAmountAsString(itemizedCents, decimals),
                     }),
                 );
-                return false;
-            }
-            if (itemizedCents < receiptCents) {
                 setItemizedError(
                     translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
                         amount: convertToFrontendAmountAsString(receiptCents, decimals),
@@ -134,6 +131,7 @@ function RulesRequireReceiptsPage({
                 <ScrollView
                     style={[styles.flexGrow1]}
                     contentContainerStyle={[styles.ph5, styles.pb5]}
+                    addBottomSafeAreaPadding
                 >
                     <Text style={[styles.mutedTextLabel, styles.mt3, styles.mb4]}>{translate('workspace.rules.requireReceipts.description')}</Text>
 
@@ -142,6 +140,7 @@ function RulesRequireReceiptsPage({
                         switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireReceipt')}
                         wrapperStyle={styles.pv3}
                         isActive={receiptEnabled}
+                        pendingAction={policy?.pendingFields?.maxExpenseAmountNoReceipt}
                         onToggle={(newValue) => {
                             setReceiptEnabled(newValue);
                             if (!newValue) {
@@ -174,6 +173,7 @@ function RulesRequireReceiptsPage({
                         switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
                         wrapperStyle={styles.pv3}
                         isActive={itemizedEnabled}
+                        pendingAction={policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt}
                         onToggle={(newValue) => {
                             setItemizedEnabled(newValue);
                             if (!newValue) {
