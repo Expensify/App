@@ -645,6 +645,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
         comment: {
             customUnit: {
                 customUnitRateID,
+                isRateManuallySelected: false,
                 ...(!isFakeP2PRate && {defaultP2PRate: null}),
                 distanceUnit: newDistanceUnit,
                 quantity: newQuantity,
@@ -726,6 +727,7 @@ function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<Transaction>,
         comment: {
             customUnit: {
                 customUnitRateID,
+                isRateManuallySelected: true,
                 ...(!!policy && {defaultP2PRate: null}),
                 ...(newDistanceUnit && {distanceUnit: newDistanceUnit}),
                 ...(newDistance && {quantity: newDistance}),

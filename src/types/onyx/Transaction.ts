@@ -186,6 +186,9 @@ type TransactionCustomUnit = {
     /** Default rate for custom unit */
     defaultP2PRate?: number | null;
 
+    /** Whether the user manually selected the distance rate (vs auto-selected by date change) */
+    isRateManuallySelected?: boolean;
+
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
 

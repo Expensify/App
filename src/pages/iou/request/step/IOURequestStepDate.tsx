@@ -127,24 +127,33 @@ function IOURequestStepDate({
             if (isDistanceRequest(transaction) && (isPolicyExpenseChat || isTrackExpense)) {
                 const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
                 const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
-                const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, newCreated);
                 const currentRateID = getRateID(transaction);
                 const currentRate = mileageRates[currentRateID];
-                const isBestRateMoreSpecific =
-                    bestRate && (!currentRate || DistanceRequestUtils.getRateSpecificityScore(bestRate) > DistanceRequestUtils.getRateSpecificityScore(currentRate));
-                const rateID = isBestRateMoreSpecific
-                    ? bestRate.customUnitRateID
-                    : DistanceRequestUtils.getCustomUnitRateID({
-                          reportID,
-                          isPolicyExpenseChat,
-                          policy: effectivePolicy,
-                          lastSelectedDistanceRates,
-                          isTrackDistanceExpense: isTrackExpense,
-                          expenseDate: newCreated,
-                      });
-                setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy);
+                const isCurrentRateEligible = currentRate && DistanceRequestUtils.isRateEligibleForDate(currentRate, newCreated);
+                const wasManuallySelected = transaction?.comment?.customUnit?.isRateManuallySelected;
 
-                if (rateID !== currentRateID) {
+                let newRateID: string | undefined;
+                if (!isCurrentRateEligible) {
+                    const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, newCreated);
+                    newRateID =
+                        bestRate?.customUnitRateID ??
+                        DistanceRequestUtils.getCustomUnitRateID({
+                            reportID,
+                            isPolicyExpenseChat,
+                            policy: effectivePolicy,
+                            lastSelectedDistanceRates,
+                            isTrackDistanceExpense: isTrackExpense,
+                            expenseDate: newCreated,
+                        });
+                } else if (!wasManuallySelected) {
+                    const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, newCreated);
+                    if (bestRate && currentRate && DistanceRequestUtils.getRateSpecificityScore(bestRate) > DistanceRequestUtils.getRateSpecificityScore(currentRate)) {
+                        newRateID = bestRate.customUnitRateID;
+                    }
+                }
+
+                if (newRateID && newRateID !== currentRateID) {
+                    setCustomUnitRateID(transactionID, newRateID, transaction, effectivePolicy);
                     setMoneyRequestTaxRate(transactionID, null, isTransactionDraft);
                     setMoneyRequestTaxAmount(transactionID, null, isTransactionDraft);
                     setMoneyRequestTaxValue(transactionID, null, isTransactionDraft);
