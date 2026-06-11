@@ -61,14 +61,16 @@ jobs:
           fetch-depth: 1
 
       - name: Free up disk space on the runner
-        # Default ubuntu-latest only has ~14 GB free; Android SDK + emulator
-        # image + APK can chew through that. Remove the largest preinstalled
-        # toolchains we don't need before the SDK install.
+        # Trim the largest preinstalled toolchains we don't need before
+        # the Android SDK install. We deliberately do NOT remove
+        # /usr/local/lib/android because android-actions/setup-android
+        # runs as the non-root runner user and cannot recreate that
+        # path (EACCES on mkdir).
         run: |
           set -eux
           df -h /
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk /opt/ghc \
-                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" \
+          sudo rm -rf /usr/share/dotnet /opt/ghc \
+                      /usr/local/share/boost \
                       /usr/local/share/powershell /usr/share/swift || true
           sudo apt-get clean
           df -h /
@@ -216,18 +218,23 @@ jobs:
           commit: ${{ inputs.head_sha }}
 
       - name: Post results comment on PR
+        # Always best-effort: never let comment posting failures turn an
+        # otherwise-green job red, and never let early-step failures
+        # block this step from running.
         if: always()
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           OUTCOME: ${{ steps.qa.outcome }}
         run: |
           set -eu
+          mkdir -p out
           SUMMARY_FILE="out/summary.md"
           if [ -f "$SUMMARY_FILE" ]; then
             BODY="$(cat "$SUMMARY_FILE")"
           else
-            BODY="agent-device sanity run produced no summary (likely an infra failure)."
+            BODY="agent-device sanity run produced no summary (the QA script never ran - check the job log for the first failing step)."
           fi
 
           STATUS_LINE="**Status:** \`$OUTCOME\` · [run logs]($RUN_URL) · [download evidence](${RUN_URL}#artifacts)"
@@ -239,4 +246,9 @@ jobs:
             echo "$BODY"
           } > out/_pr_comment.md
 
-          gh pr comment "$PR_NUMBER" --body-file out/_pr_comment.md
+          # `gh pr comment` errors if the PR number doesn't exist on this
+          # repo; swallow that so a placeholder pr=1 dispatch still finishes
+          # cleanly. The summary remains visible in the job log + artifact.
+          if ! gh pr comment "$PR_NUMBER" --body-file out/_pr_comment.md; then
+            echo "::warning title=Comment skipped::Could not post comment on PR #$PR_NUMBER (likely no such PR). Summary written to out/_pr_comment.md instead."
+          fi
