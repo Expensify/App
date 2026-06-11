@@ -6,6 +6,7 @@ import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow'
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
+import type DefaultP2PMileageRate from './types/onyx/DefaultP2PMileageRate';
 import type {Attendee, DistanceExpenseType, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type {AnyOnyxUpdate} from './types/onyx/Request';
@@ -26,6 +27,9 @@ const ONYXKEYS = {
     /** Holds an array of client IDs which is used for multi-tabs on web in order to know
      * which tab is the leader, and which ones are the followers */
     ACTIVE_CLIENTS: 'activeClients',
+
+    /** Contains the default rate and unit to use for P2P distance expenses, based on the user's personal policy outputCurrency (default / report currency). */
+    DEFAULT_P2P_MILEAGE_RATE: 'defaultP2PMileageRate',
 
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
@@ -989,8 +993,6 @@ const ONYXKEYS = {
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
         ONBOARDING_PERSONAL_DETAILS_FORM: 'onboardingPersonalDetailsForm',
         ONBOARDING_PERSONAL_DETAILS_FORM_DRAFT: 'onboardingPersonalDetailsFormDraft',
-        ONBOARDING_WORKSPACE_DETAILS_FORM: 'onboardingWorkspaceDetailsForm',
-        ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT: 'onboardingWorkspaceDetailsFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
         ROOM_NAME_FORM_DRAFT: 'roomNameFormDraft',
         CHRONOS_SCHEDULE_OOO_FORM: 'chronosScheduleOOOForm',
@@ -1199,6 +1201,10 @@ const ONYXKEYS = {
         EDIT_AGENT_NAME_FORM_DRAFT: 'editAgentNameFormDraft',
         EDIT_AGENT_PROMPT_FORM: 'editAgentPromptForm',
         EDIT_AGENT_PROMPT_FORM_DRAFT: 'editAgentPromptFormDraft',
+        ADD_AI_RULE_FORM: 'addAIRuleForm',
+        ADD_AI_RULE_FORM_DRAFT: 'addAIRuleFormDraft',
+        EDIT_AI_RULE_FORM: 'editAIRuleForm',
+        EDIT_AI_RULE_FORM_DRAFT: 'editAIRuleFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1225,7 +1231,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
     [ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM]: FormTypes.WorkspaceConfirmationForm;
     [ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM]: FormTypes.WorkspaceDuplicateForm;
-    [ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM]: FormTypes.WorkspaceConfirmationForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
@@ -1350,6 +1355,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM]: FormTypes.DomainGroupCreateForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM]: FormTypes.EditAgentNameForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
+    [ONYXKEYS.FORMS.ADD_AI_RULE_FORM]: FormTypes.AddAIRuleForm;
+    [ONYXKEYS.FORMS.EDIT_AI_RULE_FORM]: FormTypes.EditAIRuleForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1440,6 +1447,7 @@ type OnyxCollectionValuesMapping = {
 type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
+    [ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE]: DefaultP2PMileageRate;
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
