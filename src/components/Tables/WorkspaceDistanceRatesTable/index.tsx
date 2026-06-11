@@ -19,7 +19,6 @@ type WorkspaceDistanceRatesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent?: React.ReactElement;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -29,11 +28,13 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+
+    const hasAnyDateBound = ratesData.some((item) => !!item.rate.startDate || !!item.rate.endDate);
 
     const columns: Array<TableColumn<DistanceRatesTableColumnKey>> = [
         {
@@ -45,8 +46,12 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         },
         {key: 'name', label: translate('common.name'), sortable: true},
         {key: 'rate', label: translate('workspace.distanceRates.rate'), sortable: true},
-        {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
-        {key: 'endDate', label: translate('workspace.distanceRates.endDate'), sortable: true},
+        ...(hasAnyDateBound
+            ? ([
+                  {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
+                  {key: 'endDate', label: translate('workspace.distanceRates.endDate'), sortable: true},
+              ] as const)
+            : []),
         {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {containerStyles: [styles.justifyContentEnd]}},
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
@@ -130,7 +135,6 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
                     {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
