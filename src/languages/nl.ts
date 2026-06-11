@@ -294,7 +294,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Beschrijving',
         title: 'Titel',
         assignee: 'Toegewezene',
-        createdBy: 'Gemaakt door',
         with: 'met',
         shareCode: 'Code delen',
         share: 'Delen',
