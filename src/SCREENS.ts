@@ -53,6 +53,7 @@ const SCREENS = {
         COLUMNS_RHP: 'Search_Columns_RHP',
         REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
+        ADVANCED_FILTERS_CONTENT_RHP: 'Search_Advanced_Filters_Content_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
         ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
@@ -387,6 +388,7 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
+        STEP_VENDOR: 'Money_Request_Step_Vendor',
         RECEIPT_VIEW: 'Money_Request_Receipt_View',
         STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
@@ -463,7 +465,6 @@ const SCREENS = {
         DYNAMIC_EXPENSIFY_CARD_NAME: 'Dynamic_Expensify_Card_Name',
         DYNAMIC_EXPENSIFY_CARD_LIMIT: 'Dynamic_Expensify_Card_Limit',
         DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE: 'Dynamic_Expensify_Card_Limit_Type',
-        EXPENSIFY_CARD_EXPIRY_OPTIONS: 'Expensify_Card_Expiry_Options',
     },
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
@@ -493,7 +494,6 @@ const SCREENS = {
         DYNAMIC_SETTINGS_WRITE_CAPABILITY: 'Dynamic_Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
         DYNAMIC_SETTINGS_VISIBILITY: 'Dynamic_Report_Settings_Visibility',
-        REPORT_LAYOUT: 'Report_Settings_Report_Layout',
         COLUMNS: 'Report_Settings_Columns',
     },
 
@@ -715,6 +715,7 @@ const SCREENS = {
         HR_ZENEFITS_FINAL_APPROVER: 'Workspace_HR_Zenefits_Final_Approver',
         HR_MERGE_APPROVAL_MODE: 'Workspace_HR_Merge_Approval_Mode',
         HR_MERGE_FINAL_APPROVER: 'Workspace_HR_Merge_Final_Approver',
+        HR_MERGE_GROUPS: 'Workspace_HR_Merge_Groups',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
@@ -944,7 +945,7 @@ const SCREENS = {
     },
 
     SPLIT_DETAILS: {
-        ROOT: 'SplitDetails_Root',
+        DYNAMIC_ROOT: 'Dynamic_SplitDetails_Root',
         EDIT_REQUEST: 'SplitDetails_Edit_Request',
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
     },
@@ -959,10 +960,6 @@ const SCREENS = {
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
-        WORKSPACE_OPTIONAL: 'Onboarding_Workspace_Optional',
-        WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
-        WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
-        WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
         PERSONAL_TRACK_GOAL: 'Onboarding_Personal_Track_Goal',
     },
 
@@ -1008,9 +1005,9 @@ const SCREENS = {
         ROLE: 'ReportParticipants_Role',
     },
     ROOM_MEMBERS: {
-        ROOT: 'RoomMembers_Root',
-        INVITE: 'RoomMembers_Invite',
-        DETAILS: 'RoomMember_Details',
+        DYNAMIC_ROOT: 'Dynamic_RoomMembers_Root',
+        DYNAMIC_INVITE: 'Dynamic_RoomMembers_Invite',
+        DYNAMIC_DETAILS: 'Dynamic_RoomMember_Details',
     },
     DYNAMIC_FLAG_COMMENT: 'Dynamic_Flag_Comment',
     DYNAMIC_TASK_TITLE: 'Dynamic_Task_Title',

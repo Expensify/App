@@ -77,6 +77,7 @@ You can use the following operators to filter reports:
 - `report-id:` – unique report reference
 - `status:` – draft, outstanding, approved, paid, done
 - `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates, and comparisons for date ranges (e.g., `submitted>=2024-01-01 submitted<=2024-01-31`)
+- `exported-to:` – filter by where reports or expenses were exported, such as a connected accounting integration.
 - `title:` – report title
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
@@ -84,7 +85,7 @@ You can use the following operators to filter reports:
 - `action:` – blocking report action, e.g. `action:approve`
 
 **Example query:**
-`status:paid exported<=2026-01-01`
+`status:paid exported<=2026-01-01 exported-to:xero`
 
 ---
 

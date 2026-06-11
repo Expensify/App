@@ -1,11 +1,14 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import createRandomPolicy from '../utils/collections/policies';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
@@ -466,6 +469,82 @@ describe('deleteAgent', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    describe('cascade to policies containing the agent', () => {
+        const AGENT_EMAIL = 'agent@expensifail.com';
+        const OTHER_EMAIL = 'submitter@expensifail.com';
+        const OWNER_EMAIL = 'owner@expensifail.com';
+        const POLICY_ID = 'POLICY1';
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`;
+
+        const buildPolicies = (): OnyxCollection<Policy> => ({
+            [policyKey]: {
+                ...createRandomPolicy(1),
+                id: POLICY_ID,
+                owner: OWNER_EMAIL,
+                approver: OWNER_EMAIL,
+                employeeList: {
+                    [AGENT_EMAIL]: {email: AGENT_EMAIL, submitsTo: AGENT_EMAIL, forwardsTo: OWNER_EMAIL},
+                    [OTHER_EMAIL]: {email: OTHER_EMAIL, submitsTo: AGENT_EMAIL},
+                },
+            },
+        });
+
+        it('marks agent employeeList entry as pending DELETE optimistically', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
+
+            const {optimisticData} = getWriteOptions();
+            const policyUpdate = optimisticData.find((u) => u.key === policyKey);
+            const employees = (policyUpdate?.value as {employeeList: Record<string, {pendingAction: string}>})?.employeeList;
+            expect(employees?.[AGENT_EMAIL]).toEqual({pendingAction: 'delete'});
+        });
+
+        it('leaves other employees and approver chains untouched so the workflow card still renders', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
+
+            const {optimisticData} = getWriteOptions();
+            const policyUpdate = optimisticData.find((u) => u.key === policyKey);
+            const value = policyUpdate?.value as {employeeList: Record<string, unknown>; approver?: string; rules?: unknown};
+            expect(value?.employeeList[OTHER_EMAIL]).toBeUndefined();
+            expect(value?.approver).toBeUndefined();
+            expect(value?.rules).toBeUndefined();
+        });
+
+        it('nulls the agent employeeList entry on success', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
+
+            const {successData} = getWriteOptions();
+            const policyUpdate = successData.find((u) => u.key === policyKey);
+            const employees = (policyUpdate?.value as {employeeList: Record<string, unknown>})?.employeeList;
+            expect(employees?.[AGENT_EMAIL]).toBeNull();
+        });
+
+        it('restores agent pendingAction with errors on failure', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
+
+            const {failureData} = getWriteOptions();
+            const policyUpdate = failureData.find((u) => u.key === policyKey);
+            const agentEntry = (policyUpdate?.value as {employeeList: Record<string, {pendingAction?: string; errors?: unknown}>})?.employeeList[AGENT_EMAIL];
+            expect(agentEntry?.pendingAction).toBe('delete');
+            expect(agentEntry?.errors).toBeTruthy();
+        });
+
+        it('skips policies that do not contain the agent', () => {
+            const policies: OnyxCollection<Policy> = {
+                [policyKey]: {
+                    ...createRandomPolicy(1),
+                    id: POLICY_ID,
+                    owner: OWNER_EMAIL,
+                    approver: OWNER_EMAIL,
+                    employeeList: {[OWNER_EMAIL]: {email: OWNER_EMAIL}},
+                },
+            };
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, policies);
+
+            const {optimisticData} = getWriteOptions();
+            expect(optimisticData.find((u) => u.key === policyKey)).toBeUndefined();
+        });
     });
 });
 

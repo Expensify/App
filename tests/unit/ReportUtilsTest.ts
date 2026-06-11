@@ -186,6 +186,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
@@ -7781,7 +7782,8 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false);
+            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]);
+            const result = findLastAccessedReport(false, false, undefined, archivedReportsIDSet);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -8717,8 +8719,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-            expect(isReportOutstanding(report, policy.id)).toBe(false);
+            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+            expect(isReportOutstanding(report, policy.id, archivedReportsIDSet)).toBe(false);
         });
     });
 
@@ -10419,26 +10421,17 @@ describe('ReportUtils', () => {
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            const policyWithoutCurrentUser: Policy = {
-                ...createRandomPolicy(1),
-                id: policyID,
-                employeeList: {
-                    'employee@test.com': {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
-            };
+            // policy.role holds the current user's own role and is synced for every workspace they belong to,
+            // even when employeeList has not loaded (the roster is only fully synced for the active workspace).
+            // A non-member therefore has no role, so membership is determined from policy.role.
+            const policyWithoutCurrentUser: Policy = {...createRandomPolicy(1), id: policyID, employeeList: {}};
+            delete (policyWithoutCurrentUser as Partial<Policy>).role;
 
             const policyWithCurrentUser: Policy = {
                 ...createRandomPolicy(2),
                 id: policyID,
-                employeeList: {
-                    [currentUserEmail]: {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {},
             };
 
             const restrictedReport: Report = {
@@ -14388,34 +14381,40 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage with isCopyAction = true
-            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true, conciergeReportID: undefined});
+            const result = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true});
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
         });
 
-        it('should pass conciergeReportID through to computeReportName when isCopyAction is true', async () => {
+        it('should use the report name from the reportAttributes param when isCopyAction is true', async () => {
             const report = LHNTestUtils.getFakeReport();
+            report.reportName = 'Stale Report Name';
             const reportAction: ReportAction = {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                childReportName: 'Expense Report',
+                childReportName: 'Child Report Name',
                 childMoneyRequestCount: 0,
             };
+            const reportAttributes: ReportAttributesDerivedValue['reports'] = {
+                [report.reportID]: {
+                    reportName: 'Computed Report Name',
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
+            };
 
-            // When called with conciergeReportID undefined, the function should not throw
-            const result1 = getReportPreviewMessage({
+            // When called with reportAttributes that provide a report name, it should be preferred over the report's own name
+            const result = getReportPreviewMessage({
                 reportOrID: report,
                 iouReportAction: reportAction,
                 originalReportAction: reportAction,
                 isCopyAction: true,
-                conciergeReportID: undefined,
+                reportAttributes,
             });
-            expect(typeof result1).toBe('string');
-
-            // When called with a specific conciergeReportID, the function should not throw
-            const result2 = getReportPreviewMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, isCopyAction: true, conciergeReportID: '12345'});
-            expect(typeof result2).toBe('string');
+            expect(result).toBe('Computed Report Name');
         });
     });
 
