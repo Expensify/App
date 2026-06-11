@@ -192,7 +192,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     <PressableWithoutFeedback
                                                         role={CONST.ROLE.CHECKBOX}
                                                         accessibilityState={{checked: isCompleted}}
-                                                        accessibilityLabel={isCompleted ? translate('task.markAsIncomplete') : translate('task.markAsComplete')}
+                                                        accessibilityLabel={taskAccessibilityLabel}
                                                         disabled={!isTaskActionable}
                                                         onPress={toggleTask}
                                                         sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}

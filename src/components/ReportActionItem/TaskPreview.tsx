@@ -157,7 +157,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                     <PressableWithoutFeedback
                         role={CONST.ROLE.CHECKBOX}
                         accessibilityState={{checked: isTaskCompleted}}
-                        accessibilityLabel={isTaskCompleted ? translate('task.markAsIncomplete') : translate('task.markAsComplete')}
+                        accessibilityLabel={taskAccessibilityLabel}
                         disabled={!isTaskActionable}
                         onPress={toggleTask}
                         style={iconWrapperStyle}
