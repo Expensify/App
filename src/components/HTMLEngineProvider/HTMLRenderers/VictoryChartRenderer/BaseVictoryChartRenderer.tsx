@@ -4,6 +4,7 @@ import useChartFonts from '@components/Charts/hooks/useChartFonts';
 import Log from '@libs/Log';
 import VictoryChartContainer from './components/VictoryChartContainer';
 import VictoryChartContent from './components/VictoryChartContent';
+import VictoryChartWithExpand from './components/VictoryChartWithExpand';
 import {VictoryChartProvider} from './context/VictoryChartContext';
 import processVictoryChartTree from './parsers/processVictoryChartTree';
 import type {VictoryChartRendererProps} from './types';
@@ -34,9 +35,11 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                 processedResult={processedResult}
                 type={type}
             >
-                <VictoryChartContainer>
-                    <VictoryChartContent />
-                </VictoryChartContainer>
+                <VictoryChartWithExpand>
+                    <VictoryChartContainer>
+                        <VictoryChartContent />
+                    </VictoryChartContainer>
+                </VictoryChartWithExpand>
             </VictoryChartProvider>
         </ChartFontsProvider>
     );
