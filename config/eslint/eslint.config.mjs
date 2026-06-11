@@ -255,8 +255,6 @@ const config = defineConfig([
 
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
-            '@lwc/lwc/no-async-await': 'off',
-
             // TypeScript specific rules
             '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
@@ -336,7 +334,6 @@ const config = defineConfig([
             'es/no-optional-chaining': 'off',
             '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
             'arrow-body-style': 'off',
-            'no-continue': 'off',
             'no-empty': ['error', {allowEmptyCatch: true}],
 
             // Import specific rules
