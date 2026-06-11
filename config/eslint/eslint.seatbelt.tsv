@@ -1161,7 +1161,6 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/sidebar/SidebarLinksData.tsx"	"react-hooks/refs"	1
-"../../src/pages/inbox/usePusherDraftPacing.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/iou/SplitExpensePage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/SplitExpensePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1970,7 +1969,6 @@
 "../../tests/unit/navigateAfterOnboardingTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/navigateToWorkspacesPageTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../tests/unit/pages/home/GettingStartedSection/GettingStartedSectionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	11
-"../../tests/unit/pages/inbox/ConciergeDraftContext.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/pages/inbox/report/ReportActionEditMessageContext.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/pages/settings/AddAgentAvatarPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/pages/settings/AddAgentPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	11
