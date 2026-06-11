@@ -93,7 +93,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
                 formatSelection={toggleSelectionFormat}
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={forwardedFSClass}
-                // eslint-disable-next-line
+                 
                 {...props}
                 /**
                  * If maxLength is not set, we should set it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text

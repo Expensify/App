@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// eslint-disable-next-line
+ 
 const ReactTestRenderer: typeof ReactTestRendererType = require('react-test-renderer');
 
 Onyx.init({keys: ONYXKEYS});

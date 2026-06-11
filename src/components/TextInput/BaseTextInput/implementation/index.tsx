@@ -450,7 +450,7 @@ function BaseTextInput({
 
                                     input.current = element as HTMLInputElement | null;
                                 }}
-                                // eslint-disable-next-line
+                                 
                                 {...inputProps}
                                 // Filter out role="presentation" so it doesn't strip the native
                                 // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
