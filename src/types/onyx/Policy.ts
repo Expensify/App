@@ -1557,8 +1557,23 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
+type MergeHRGroup = {
+    /** Group ID */
+    id: string;
+
+    /** Human-readable name of the group */
+    name: string;
+
+    /** Group type (department/division etc.) */
+    type: string;
+};
+
 /** Merge HR connection data */
-type MergeHRConnectionData = Record<string, never>;
+type MergeHRConnectionData = {
+    /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
+    groups?: MergeHRGroup[];
+};
 
 /** Merge HR connection config */
 type MergeHRConnectionConfig = HRConnectionConfigBase &
@@ -1568,6 +1583,13 @@ type MergeHRConnectionConfig = HRConnectionConfigBase &
 
         /** Approval mode controlling how reports are routed for approval */
         approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+
+        /**
+         * Groups the admin chose to import employees from.
+         * - `string[]` with one or more IDs — setup complete, sync only those groups.
+         * - `null` — setup not yet complete.
+         */
+        groups: string[] | null;
     }>;
 
 /** TriNet (Zenefits) connection data */
@@ -2305,9 +2327,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
-
-        /** Whether the Invoice Fields feature is enabled */
-        areInvoiceFieldsEnabled?: boolean;
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
