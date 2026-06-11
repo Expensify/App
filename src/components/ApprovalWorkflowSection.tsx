@@ -11,7 +11,6 @@ import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
