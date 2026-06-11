@@ -419,7 +419,7 @@ const ViolationsUtils = {
 
         // Calculate client-side category violations. Also run when the transaction has a category (not just
         // when the policy requires one) so disabling that category flags it optimistically. Mirrors tags below.
-        const policyRequiresCategories = !!policy.requiresCategory || !!updatedTransaction.category;
+        const policyRequiresCategories = (!!policy.requiresCategory || !!updatedTransaction.category) && !isSelfDM;
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
@@ -737,6 +737,7 @@ const ViolationsUtils = {
         }
 
         const hasTransactionTaxData = !!updatedTransaction.taxCode || !!updatedTransaction.taxValue || !!updatedTransaction.taxAmount;
+
         // When tax tracking is enabled, only a non-empty tax code that isn't a current policy rate is out of policy.
         // A transaction with no tax code (e.g. its tax was deleted) must not be flagged.
         const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxInPolicy : hasTransactionTaxData);

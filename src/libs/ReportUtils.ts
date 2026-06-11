@@ -2144,12 +2144,21 @@ function pushTransactionAutoSelectionsOnyxData(
         return autoSelections;
     }
 
-    const {optimisticCategories, optimisticTagLists, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(policyData, policyUpdate, categoriesUpdate, tagListsUpdate);
+    const {optimisticCategories, optimisticTagLists} = getOptimisticPolicyState(policyData, policyUpdate, categoriesUpdate, tagListsUpdate);
 
     const enabledCategoryKeys = Object.entries(optimisticCategories)
         .filter(([, cat]) => cat.enabled && cat.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .map(([key]) => key);
     const singleRemainingCategory = enabledCategoryKeys.length === 1 ? enabledCategoryKeys.at(0) : undefined;
+
+    // A category counts as "removed" by this update only when it's deleted or flipped disabled. The backend
+    // auto-replaces transactions solely on a delete/disable, so an enable-only update (or toggling an unrelated
+    // category) must not rewrite any transaction client-side.
+    const removedCategoryKeys = new Set(
+        Object.entries(categoriesUpdate)
+            .filter(([, categoryUpdate]) => !categoryUpdate || categoryUpdate.enabled === false || categoryUpdate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map(([key]) => key),
+    );
 
     const tagListKeys = Object.keys(optimisticTagLists);
 
@@ -2158,12 +2167,18 @@ function pushTransactionAutoSelectionsOnyxData(
     // so the backend can't know which level of the multi-level tag string should be replaced. Multi-level support
     // is tracked as a separate NTag follow-up.
     let singleRemainingTag: string | undefined;
+    let removedTagKeys = new Set<string>();
     if (tagListKeys.length === 1) {
         const tagListName = tagListKeys.at(0) ?? '';
         const enabledTagKeys = Object.entries(optimisticTagLists[tagListName]?.tags ?? {})
             .filter(([, tag]) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map(([key]) => key);
         singleRemainingTag = enabledTagKeys.length === 1 ? enabledTagKeys.at(0) : undefined;
+        removedTagKeys = new Set(
+            Object.entries(tagListsUpdate[tagListName]?.tags ?? {})
+                .filter(([, tagUpdate]) => !tagUpdate || tagUpdate.enabled === false || tagUpdate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map(([key]) => key),
+        );
     }
 
     for (const {
@@ -2178,21 +2193,19 @@ function pushTransactionAutoSelectionsOnyxData(
             const transactionUpdates: Partial<Transaction> = {};
             const transactionRollback: Partial<Transaction> = {};
 
-            // Category auto-select: gated to calls that include a category update (delete or disable)
-            // so toggling unrelated policy settings doesn't rewrite transaction category values.
-            if (!isCategoriesUpdateEmpty && singleRemainingCategory && transaction.category && !optimisticCategories[transaction.category]?.enabled) {
+            // Category auto-select: only when this update deletes/disables the transaction's own category and a
+            // single enabled category remains to move it to. Matches the backend, which auto-replaces on a
+            // delete/disable — never on an enable-only update.
+            if (singleRemainingCategory && transaction.category && removedCategoryKeys.has(transaction.category)) {
                 transactionUpdates.category = singleRemainingCategory;
                 transactionRollback.category = transaction.category;
             }
 
-            // Single-level tag auto-select: gated to calls that include a tag-list update for the same reason.
-            if (!isTagListsUpdateEmpty && tagListKeys.length === 1 && singleRemainingTag && transaction.tag) {
-                const tagListName = tagListKeys.at(0) ?? '';
-                const isTagInPolicy = !!optimisticTagLists[tagListName]?.tags?.[transaction.tag]?.enabled;
-                if (!isTagInPolicy) {
-                    transactionUpdates.tag = singleRemainingTag;
-                    transactionRollback.tag = transaction.tag;
-                }
+            // Single-level tag auto-select: same rule — only when this update deletes/disables the transaction's
+            // own tag and a single enabled tag remains.
+            if (singleRemainingTag && tagListKeys.length === 1 && transaction.tag && removedTagKeys.has(transaction.tag)) {
+                transactionUpdates.tag = singleRemainingTag;
+                transactionRollback.tag = transaction.tag;
             }
 
             if (Object.keys(transactionUpdates).length === 0) {
