@@ -35,7 +35,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptScan', 'Task', 'Cash']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -115,7 +115,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         {
             title: translate('workspace.rules.generalTab.receiptRequirements'),
             description: receiptRequirementText,
-            icon: icons.ReceiptScan,
+            icon: icons.ReceiptCheck,
             action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_RECEIPTS.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
         },
