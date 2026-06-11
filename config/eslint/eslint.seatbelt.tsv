@@ -1890,7 +1890,7 @@
 "../../tests/unit/ReportTitleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/ReportTitleUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportUtilsGetIconsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/ReportUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	98
+"../../tests/unit/ReportUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	105
 "../../tests/unit/ReportUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportWelcomeTextTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/RequestConflictUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
@@ -1915,7 +1915,7 @@
 "../../tests/unit/SelectFeaturesEmptyTagGroupTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/SettlementButtonUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/SidebarTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/SidebarUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	31
+"../../tests/unit/SidebarUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	38
 "../../tests/unit/SidebarUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/SplitExpenseAutoAdjustmentTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/SubscriptionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
