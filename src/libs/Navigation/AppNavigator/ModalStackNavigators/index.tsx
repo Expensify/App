@@ -37,7 +37,6 @@ import type {
     RestrictedActionParamList,
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
-    SearchAdvancedFiltersParamList,
     SearchColumnsParamList,
     SearchReportActionsParamList,
     SearchSavedSearchParamList,
@@ -994,21 +993,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     ),
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default),
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/CreateReportFieldsPage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/reports/InitialListValueSelector/DynamicReportFieldsInitialListValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsSettingsPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsListValuesPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsAddListValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsValueSettingsPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsInitialValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsEditValuePage').default,
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/CreateInvoiceFieldsPage').default,
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsSettingsPage').default,
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsListValuesPage').default,
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsAddListValuePage').default,
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsValueSettingsPage').default,
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsInitialValuePage').default,
-    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsEditValuePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/import/CertiniaImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DIMENSION_MAPPING]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage').default,
@@ -1058,6 +1048,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/zenefits/ZenefitsFinalApproverPage').default,
     [SCREENS.WORKSPACE.HR_MERGE_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/merge/MergeHRApprovalModePage').default,
     [SCREENS.WORKSPACE.HR_MERGE_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/merge/MergeHRFinalApproverPage').default,
+    [SCREENS.WORKSPACE.HR_MERGE_GROUPS]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/merge/MergeHRGroupsPage').default,
     [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportsDefaultTitle').default,
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesAutoApproveReportsUnderPage').default,
     [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesRandomReportAuditPage').default,
@@ -1220,8 +1211,9 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.EDIT_MULTIPLE_TAX_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleTaxPage').default,
 });
 
-const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
+const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersContentPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTypePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_STATUS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersStatusPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersDatePage').default,

@@ -6,6 +6,7 @@ import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow'
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
+import type DefaultP2PMileageRate from './types/onyx/DefaultP2PMileageRate';
 import type {Attendee, DistanceExpenseType, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type {AnyOnyxUpdate} from './types/onyx/Request';
@@ -26,6 +27,9 @@ const ONYXKEYS = {
     /** Holds an array of client IDs which is used for multi-tabs on web in order to know
      * which tab is the leader, and which ones are the followers */
     ACTIVE_CLIENTS: 'activeClients',
+
+    /** Contains the default rate and unit to use for P2P distance expenses, based on the user's personal policy outputCurrency (default / report currency). */
+    DEFAULT_P2P_MILEAGE_RATE: 'defaultP2PMileageRate',
 
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
@@ -1440,6 +1444,7 @@ type OnyxCollectionValuesMapping = {
 type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
+    [ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE]: DefaultP2PMileageRate;
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
