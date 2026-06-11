@@ -27,6 +27,7 @@ function RulesReimbursableDefaultPage({
     const policy = usePolicy(policyID);
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy);
+
     // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
     // persisted reimbursableMode, which also covers the page rendering before the policy is in Onyx.
     const [draftMode, setDraftMode] = useState<typeof reimbursableMode>();
