@@ -1,0 +1,109 @@
+diff --git a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.cpp b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.cpp
+index ec9d5ba..e71fb81 100644
+--- a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.cpp
++++ b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.cpp
+@@ -1,7 +1,35 @@
+ #include "RuntimeAwareCache.h"
+ 
++#include "RuntimeLifecycleMonitor.h"
++
+ namespace RNJsi {
+ 
+ jsi::Runtime *BaseRuntimeAwareCache::_mainRuntime = nullptr;
++std::atomic<bool> BaseRuntimeAwareCache::_mainRuntimeAlive{false};
++BaseRuntimeAwareCache::MainRuntimeWatcher
++    BaseRuntimeAwareCache::_mainRuntimeWatcher;
++
++void BaseRuntimeAwareCache::MainRuntimeWatcher::onRuntimeDestroyed(
++    jsi::Runtime * /* rt */) {
++  // The primary jsi::Runtime is going away. From now on any JSI object still
++  // held in a RuntimeAwareCache::_primaryCache points into freed memory, so we
++  // flag the runtime as dead and let ~RuntimeAwareCache leak those entries
++  // instead of crashing while destroying them.
++  BaseRuntimeAwareCache::_mainRuntimeAlive.store(false);
++  BaseRuntimeAwareCache::_mainRuntime = nullptr;
++}
++
++void BaseRuntimeAwareCache::setMainJsRuntime(jsi::Runtime *rt) {
++  _mainRuntime = rt;
++  if (rt != nullptr) {
++    _mainRuntimeAlive.store(true);
++    // RuntimeLifecycleMonitor stores a host object in the runtime's global
++    // scope whose destructor fires onRuntimeDestroyed when the runtime is torn
++    // down. This is the only callback skia gets for primary-runtime teardown.
++    RuntimeLifecycleMonitor::addListener(*rt, &_mainRuntimeWatcher);
++  } else {
++    _mainRuntimeAlive.store(false);
++  }
++}
+ 
+ } // namespace RNJsi
+diff --git a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
+index 2b5f16b..791425e 100644
+--- a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
++++ b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
+@@ -2,7 +2,9 @@
+ 
+ #include <jsi/jsi.h>
+ 
++#include <atomic>
+ #include <memory>
++#include <new>
+ #include <unordered_map>
+ #include <utility>
+ 
+@@ -14,7 +16,16 @@ namespace jsi = facebook::jsi;
+ 
+ class BaseRuntimeAwareCache {
+ public:
+-  static void setMainJsRuntime(jsi::Runtime *rt) { _mainRuntime = rt; }
++  // Registers the primary jsi::Runtime and starts tracking its lifecycle, so
++  // caches can tell whether destroying their JSI objects is still safe. Defined
++  // out-of-line because it now installs a RuntimeLifecycleMonitor listener.
++  static void setMainJsRuntime(jsi::Runtime *rt);
++
++  // Returns true while the primary jsi::Runtime is alive. Once it is destroyed,
++  // any jsi::Function / jsi::Value still referencing it must NOT be destructed -
++  // doing so dereferences freed runtime memory (use-after-free crash in
++  // ~RuntimeAwareCache, see RuntimeAwareCache.h:70 / Sentry APP-AVB).
++  static bool isMainJsRuntimeAlive() { return _mainRuntimeAlive.load(); }
+ 
+ protected:
+   static jsi::Runtime *getMainJsRuntime() {
+@@ -26,7 +37,14 @@ protected:
+   }
+ 
+ private:
++  // Listens for the primary runtime's destruction and flips _mainRuntimeAlive.
++  struct MainRuntimeWatcher : public RuntimeLifecycleListener {
++    void onRuntimeDestroyed(jsi::Runtime *rt) override;
++  };
++
+   static jsi::Runtime *_mainRuntime;
++  static std::atomic<bool> _mainRuntimeAlive;
++  static MainRuntimeWatcher _mainRuntimeWatcher;
+ };
+ 
+ /**
+@@ -67,6 +85,21 @@ public:
+       RuntimeLifecycleMonitor::removeListener(
+           *static_cast<jsi::Runtime *>(cache.first), this);
+     }
++
++    // If the primary jsi::Runtime has already been torn down (e.g. the HybridApp
++    // NewDot -> OldDot handoff destroys the React Native runtime while Skia host
++    // objects are still being released on the main queue), the jsi::Function /
++    // jsi::Value entries held in _primaryCache point into freed runtime memory.
++    // Running their destructors dereferences the dead Runtime -> use-after-free
++    // crash (~RuntimeAwareCache -> __tree::destroy, EXC_BAD_ACCESS / SIGSEGV).
++    // There is no safe way to release JSI objects after their Runtime is gone,
++    // so we intentionally leak them: move the cache into a heap allocation that
++    // is never freed, leaving _primaryCache empty so its implicit member
++    // destructor below becomes a no-op. The move only transfers the container's
++    // internal nodes - it never touches (constructs/destroys) the JSI values.
++    if (!BaseRuntimeAwareCache::isMainJsRuntimeAlive()) {
++      new (std::nothrow) T(std::move(_primaryCache));
++    }
+   }
+ 
+   T &get(jsi::Runtime &rt) {
