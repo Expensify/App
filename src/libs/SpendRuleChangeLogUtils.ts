@@ -197,35 +197,34 @@ function joinSpendRulePhrases(translate: LocalizedTranslate, phrases: readonly S
         return `${getSpendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`;
     }
 
-    const firstVerb = phrases.at(0)?.verb;
-    const allSameVerb = firstVerb !== undefined && phrases.every((phrase) => phrase.verb === firstVerb);
-
-    if (!allSameVerb) {
-        const parts = phrases.map((phrase) => `${getSpendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`);
-        return getSpendRuleJoinFilters(parts);
-    }
-
     const firstPhrase = phrases.at(0);
     if (!firstPhrase) {
         return '';
     }
     const firstAdjective = firstPhrase.adjective;
     const parts: string[] = [`${getSpendRulePhraseVerbWord(translate, firstPhrase.verb)} ${firstPhrase.bodyWithAdjective}`];
+    let previousVerb = firstPhrase.verb;
     let previousNoun = firstPhrase.noun;
     for (let i = 1; i < phrases.length; i++) {
         const phrase = phrases.at(i);
         if (!phrase) {
             continue;
         }
+        const sameVerbAsPrevious = phrase.verb === previousVerb;
         const useOwnAdjective = phrase.adjective !== '' && phrase.adjective !== firstAdjective;
         const sameNounAsPrevious = phrase.noun !== '' && phrase.noun === previousNoun;
-        let body = phrase.bodyWithoutAdjective;
-        if (useOwnAdjective) {
+        let body: string;
+        if (!sameVerbAsPrevious) {
+            body = `${getSpendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`;
+        } else if (useOwnAdjective) {
             body = phrase.bodyWithAdjective;
         } else if (sameNounAsPrevious) {
             body = phrase.bodyValueOnly;
+        } else {
+            body = phrase.bodyWithoutAdjective;
         }
         parts.push(body);
+        previousVerb = phrase.verb;
         previousNoun = phrase.noun;
     }
     return getSpendRuleJoinFilters(parts);
