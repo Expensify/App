@@ -37,6 +37,7 @@ type WorkspaceDistanceRatesTableRowProps = {
     item: DistanceRateTableItemData;
     rowIndex: number;
     shouldUseNarrowTableLayout: boolean;
+    shouldShowDateColumns: boolean;
     statusLabels: Record<string, string>;
 };
 
@@ -61,7 +62,7 @@ function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>,
     }
 }
 
-function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLayout, statusLabels}: WorkspaceDistanceRatesTableRowProps) {
+function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowDateColumns, statusLabels}: WorkspaceDistanceRatesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -147,7 +148,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                         </View>
                     )}
 
-                    {!shouldUseNarrowTableLayout && (
+                    {!shouldUseNarrowTableLayout && shouldShowDateColumns && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
                                 numberOfLines={1}
@@ -157,7 +158,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                         </View>
                     )}
 
-                    {!shouldUseNarrowTableLayout && (
+                    {!shouldUseNarrowTableLayout && shouldShowDateColumns && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
                                 numberOfLines={1}

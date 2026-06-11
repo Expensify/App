@@ -113,6 +113,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            shouldShowDateColumns={hasAnyDateBound}
             statusLabels={statusLabels}
         />
     );
