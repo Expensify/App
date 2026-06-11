@@ -5,6 +5,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCashExpenseReimbursableMode, setPolicyReimbursableMode} from '@libs/actions/Policy/Policy';
@@ -25,6 +26,8 @@ function RulesReimbursableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const {isBetaEnabled} = usePermissions();
+    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy);
 
@@ -48,7 +51,7 @@ function RulesReimbursableDefaultPage({
                 testID="RulesReimbursableDefaultPage"
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.individualExpenseRules.cashExpenseDefault')}
+                    title={translate(isRevamp ? 'workspace.rules.generalTab.cashExpenses' : 'workspace.rules.individualExpenseRules.cashExpenseDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>

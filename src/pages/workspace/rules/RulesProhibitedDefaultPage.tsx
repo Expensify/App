@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,6 +29,8 @@ function RulesProhibitedDefaultPage({
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     return (
         <AccessOrNotFoundWrapper
@@ -41,7 +44,7 @@ function RulesProhibitedDefaultPage({
                 testID="RulesProhibitedDefaultPage"
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.individualExpenseRules.prohibitedExpenses')}
+                    title={translate(isRevamp ? 'workspace.rules.generalTab.flagReceiptLineItems' : 'workspace.rules.individualExpenseRules.prohibitedExpenses')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView addBottomSafeAreaPadding>
