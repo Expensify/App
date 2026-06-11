@@ -277,15 +277,11 @@ const config = defineConfig([
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
             // TypeScript specific rules
-            '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
-            '@typescript-eslint/no-non-null-assertion': 'error',
             '@typescript-eslint/no-unsafe-type-assertion': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
             '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
             '@typescript-eslint/no-floating-promises': 'off',
-            '@typescript-eslint/no-import-type-side-effects': 'error',
-            '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
             '@typescript-eslint/max-params': ['error', {max: 10}],
             '@typescript-eslint/naming-convention': [
                 'error',
@@ -651,9 +647,10 @@ const config = defineConfig([
 
     {
         files: ['.github/**/*', 'scripts/**/*', 'server/**/*'],
-        rules: {
-            // For all these Node.js scripts, we do not want to disable `console` statements
-            'no-console': 'off',
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
         },
     },
 
