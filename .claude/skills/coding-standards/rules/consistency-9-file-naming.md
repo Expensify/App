@@ -7,7 +7,7 @@ title: Name files after what they export
 
 ### Reasoning
 
-Non-platform-specific files must be named after what they export, never `index.js`/`index.ts`, so the module is discoverable and searchable by its export name. Platform-specific files must be named for the platform they support (`.ios`, `.android`, `.native`, `.web`) as outlined in the README. A folder whose only purpose is to group platform variants is the one place an `index` entry is appropriate.
+Per `contributingGuides/philosophies/DIRECTORIES.md`, non-platform-specific files must be named after what they export, never `index.js`/`index.ts`, so the module is discoverable and searchable by its export name. Platform-specific files must be named for the platform they support (`.ios`, `.android`, `.native`, `.web`) as outlined in `contributingGuides/philosophies/CROSS-PLATFORM.md`. A folder whose only purpose is to group platform variants is the one place an `index` entry is appropriate.
 
 ### Incorrect
 
@@ -42,7 +42,7 @@ Flag when ANY of these is true for a newly added or renamed source file:
 
 - It is named `index.ts`/`index.tsx`/`index.js`, contains a real single-export implementation (not just re-exports of platform variants), and a descriptive name matching its primary export is available.
 - Its basename does not match its primary/default export (e.g. `helpers.ts` whose main export is `getReportName` → should be `getReportName.ts`; `Card.tsx` default-exporting `Banner` → should be `Banner.tsx`).
-- It is platform-specific but not named with the correct platform suffix (`.ios`, `.android`, `.native`, `.web`, `.desktop`) as outlined in the README.
+- It is platform-specific but not named with the correct platform suffix (`.ios`, `.android`, `.native`, `.web`, `.desktop`) as outlined in `contributingGuides/philosophies/CROSS-PLATFORM.md`.
 
 **DO NOT flag if:**
 

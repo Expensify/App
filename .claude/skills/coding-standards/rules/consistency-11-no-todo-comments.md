@@ -7,7 +7,7 @@ title: Track future work in a GitHub issue, not a TODO comment
 
 ### Reasoning
 
-Per `OVERENGINEERING.md`, future work should be captured in a GitHub issue, not left as a `TODO`/`FIXME` comment in the code. In-code TODOs are invisible to planning, never prioritized, and rot silently in the codebase.
+Per `contributingGuides/philosophies/OVERENGINEERING.md`, future work should be captured in a GitHub issue, not left as a `TODO`/`FIXME` comment in the code. In-code TODOs are invisible to planning, never prioritized, and rot silently in the codebase.
 
 ### Incorrect
 

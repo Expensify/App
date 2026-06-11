@@ -31,13 +31,14 @@ function Card() {
 
 Flag ONLY when ALL of these are true:
 
-- The changed JSX passes an inline object literal to a `style` prop (`style={{ ... }}`)
+- The changed JSX passes an inline object literal to a style-typed prop - `style={{ ... }}` or any `*Style` prop such as `contentContainerStyle={{ ... }}`
 - An equivalent exists in `styles`/`StyleUtils`, or the values are static and belong in the style system
 
 **DO NOT flag if:**
 
 - The style references a value that genuinely must be computed at render time and has no `StyleUtils` helper (e.g. a measured dynamic dimension) - prefer a `StyleUtils` function, but a justified dynamic style is acceptable
-- The prop is a non-style prop that happens to take an object (e.g. `contentContainerStyle` should still use the style system, but animated styles from reanimated are fine)
+- The prop is a non-style object prop (e.g. `hitSlop={{top: 8}}`)
+- The object is an animated style from reanimated
 - The code is a test or story
 
 **Search Patterns** (hints for reviewers):
