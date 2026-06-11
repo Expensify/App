@@ -15,7 +15,7 @@
 * [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 
-#### Additional Reading
+#### Additional reading
 * [Application Philosophy](contributingGuides/philosophies/INDEX.md)
 * [API Details](contributingGuides/API.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
