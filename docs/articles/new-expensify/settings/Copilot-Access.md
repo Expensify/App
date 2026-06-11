@@ -69,6 +69,20 @@ You'll see a **dual avatar** in the bottom-left corner confirming you're in Copi
 
 ---
 
+# Remove Yourself as a Copilot
+
+If you've been added as a Copilot for another user, you can remove your own access at any time without involving the account owner.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
+2. In the **Copilot: Delegated access** section, find the account under **You can access these accounts:**.
+3. Select the three dots **(⋮)** next to the account name.
+4. Select **Remove my copilot access**.
+5. Select **Remove access** to confirm.
+
+Once removed, you can no longer switch into that account. This action cannot be undone, but the account owner can add you again as a Copilot.
+
+---
+
 # Forward Receipts as a Copilot
 
 To send a receipt to the account you support:
