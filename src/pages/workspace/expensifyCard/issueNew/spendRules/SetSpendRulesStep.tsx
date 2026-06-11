@@ -147,9 +147,10 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     };
 
     const hasMaxAmount = !!spendRuleForm.maxAmount?.trim();
+    const hasAnyCurrency = !!spendRuleForm.currencies?.length;
     const hasAnyCategory = !!spendRuleForm.categories?.length && !isRestrictMerchantsOff;
     const hasAnyMerchant = !!spendRuleForm.merchantNames?.some((name) => name.trim() !== '') && !isRestrictMerchantsOff;
-    const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount;
+    const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
 
     const getSpendRuleErrorMessage = useCallback(() => {
         if (!spendRuleEnabled) {
