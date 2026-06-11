@@ -154,7 +154,6 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyMember,
     isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
     isSubmitAndClose,
@@ -4464,6 +4463,9 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | u
  * 2. Report is settled, closed, approved, or submitted and already forwarded for review
  */
 function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
+    if (isInvoiceReport(report)) {
+        return true;
+    }
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
@@ -4582,7 +4584,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
 
     const fields = mergedFieldIds.map((id) => {
-        const field = report?.fieldList?.[getReportFieldKey(id)] ?? report?.fieldList?.[id];
+        const field = report?.fieldList?.[getReportFieldKey(id)];
         const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
 
         if (field) {
@@ -5650,6 +5652,11 @@ function getModifiedExpenseOriginalMessage(
         const oldReimbursable = getReimbursable(oldTransaction);
         originalMessage.oldReimbursable = oldReimbursable ? 'reimbursable' : 'non-reimbursable';
         originalMessage.reimbursable = transactionChanges?.reimbursable ? 'reimbursable' : 'non-reimbursable';
+    }
+
+    if ('vendor' in transactionChanges) {
+        originalMessage.oldVendor = oldTransaction?.comment?.vendor ?? null;
+        originalMessage.vendor = transactionChanges?.vendor ?? null;
     }
 
     if ('billable' in transactionChanges) {
@@ -10978,7 +10985,7 @@ function canJoinChat(
     }
 
     // For restricted visibility rooms, the user must be a workspace member to join
-    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !isPolicyMember(policy, deprecatedCurrentUserEmail)) {
+    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !getPolicyRole(policy, deprecatedCurrentUserEmail)) {
         return false;
     }
 
@@ -12894,39 +12901,19 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
-function isReportNameValuePairField(value: unknown): value is PolicyReportField {
-    return typeof value === 'object' && value !== null && 'fieldID' in value && typeof value.fieldID === 'string' && 'name' in value && typeof value.name === 'string';
-}
-
-function getReportFieldFromReportNameValuePairs(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, reportFieldIDOrKey: string): PolicyReportField | undefined {
-    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
-        if (key === reportFieldIDOrKey && isReportNameValuePairField(value)) {
-            return value;
-        }
-    }
-
-    return undefined;
-}
-
 /**
  * Get both field values map and fields-by-name map in a single pass
  */
 function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
     const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
-    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const fieldValues: Record<string, string> = {};
     const fieldsByName: Record<string, PolicyReportField> = {};
 
     for (const field of fields) {
         if (field.name) {
-            const fieldKey = getReportFieldKey(field.fieldID);
-            const shouldReadReportNameValuePair = report?.type === CONST.REPORT.TYPE.INVOICE && field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-            const reportNameValuePairField = shouldReadReportNameValuePair
-                ? (getReportFieldFromReportNameValuePairs(reportNameValuePairs, fieldKey) ?? getReportFieldFromReportNameValuePairs(reportNameValuePairs, field.fieldID))
-                : undefined;
             const key = field.name.toLowerCase();
-            fieldValues[key] = reportNameValuePairField?.value ?? field.value ?? field.defaultValue ?? '';
-            fieldsByName[key] = reportNameValuePairField ? {...field, value: reportNameValuePairField.value} : field;
+            fieldValues[key] = field.value ?? field.defaultValue ?? '';
+            fieldsByName[key] = field;
         }
     }
 
@@ -13359,7 +13346,6 @@ export {
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
     getTitleFieldWithFallback,
-    getReportFieldFromReportNameValuePairs,
     getReportFieldsByPolicyID,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
