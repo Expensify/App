@@ -47,6 +47,12 @@ const buildExpenseReport = (overrides: Partial<OnyxTypes.Report> = {}): OnyxType
     ...overrides,
 });
 
+const buildTaxPolicy = (): OnyxTypes.Policy => ({
+    ...LHNTestUtils.getFakePolicy(policyID, 'Policy'),
+    outputCurrency: CONST.CURRENCY.USD,
+    tax: {trackingEnabled: true},
+});
+
 const buildTransaction = (id: string, amount: number, reimbursable: boolean | undefined, billable = false, taxAmount = 0): OnyxTypes.Transaction =>
     ({
         transactionID: id,
@@ -178,14 +184,7 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
     });
 
     it('hides the report-level tax row for a single taxed expense (the converted tax is shown on the expense field instead)', async () => {
-        const policy = {
-            id: policyID,
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            name: 'Policy',
-            outputCurrency: CONST.CURRENCY.USD,
-            tax: {trackingEnabled: true},
-        } as OnyxTypes.Policy;
+        const policy = buildTaxPolicy();
         const transactions = [buildTransaction('t1', 5000, false, false, 500)];
         await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
 
@@ -200,14 +199,7 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
     });
 
     it('shows the report-level tax row when multiple taxed expenses exist', async () => {
-        const policy = {
-            id: policyID,
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            name: 'Policy',
-            outputCurrency: CONST.CURRENCY.USD,
-            tax: {trackingEnabled: true},
-        } as OnyxTypes.Policy;
+        const policy = buildTaxPolicy();
         const transactions = [buildTransaction('t1', 5000, false, false, 500), buildTransaction('t2', 3000, false, false, 300)];
         await seedReportAndTransactions(transactions, {nonReimbursableTotal: -8000, unheldNonReimbursableTotal: -8000});
 
