@@ -121,6 +121,7 @@ function SearchTransactionsChangeReport() {
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 allTransactions: transactions,
                 policyTagList,
+                allTransactionViolation: transactionViolations,
             });
             clearSelectedTransactions();
         });
@@ -139,13 +140,15 @@ function SearchTransactionsChangeReport() {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.EDIT,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: firstTransactionID,
-                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: firstTransactionID,
+                            reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
                 );
             }
             return;
@@ -157,13 +160,15 @@ function SearchTransactionsChangeReport() {
         }
         if (!policyForMovingExpensesID) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: CONST.IOU.ACTION.CREATE,
-                    iouType: CONST.IOU.TYPE.CREATE,
-                    transactionID: generateReportID(),
-                    reportID: generateReportID(),
-                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: generateReportID(),
+                        reportID: generateReportID(),
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
+                ),
             );
             return;
         }
@@ -197,6 +202,7 @@ function SearchTransactionsChangeReport() {
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             allTransactions: transactions,
             policyTagList,
+            allTransactionViolation: transactionViolations,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -218,6 +224,7 @@ function SearchTransactionsChangeReport() {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions: transactions,
             policyTagList,
+            allTransactionViolation: transactionViolations,
         });
         clearSelectedTransactions();
         Navigation.goBack();

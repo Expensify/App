@@ -107,7 +107,7 @@ type UseExpenseSubmissionParams = {
     isDraftPolicy: boolean;
 
     // User data
-    currentUserPersonalDetails: {accountID: number; login?: string; email?: string};
+    currentUserPersonalDetails: {accountID: number; login?: string; email?: string; localCurrencyCode?: string};
     personalDetails: OnyxEntry<PersonalDetailsList>;
     participants: Participant[];
 
@@ -261,7 +261,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -586,7 +585,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
-                conciergeReportID,
             });
             const targetReportID = backToReport ?? activeReportID;
             if (shouldHandleNavigation && result && targetReportID) {
@@ -686,6 +684,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 previousOdometerDraft: odometerDraft,
                 reportActionsList: policyExpenseChatReportActions,
                 personalDetailsList: personalDetails,
+                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         }
         performPostBatchCleanup({
