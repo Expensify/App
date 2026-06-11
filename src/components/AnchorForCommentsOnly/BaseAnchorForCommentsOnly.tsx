@@ -81,7 +81,7 @@ function BaseAnchorForCommentsOnly({
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            role={CONST.ROLE.LINK}
+            role={linkProps.onPress ? CONST.ROLE.LINK : undefined}
             tabIndex={-1}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
