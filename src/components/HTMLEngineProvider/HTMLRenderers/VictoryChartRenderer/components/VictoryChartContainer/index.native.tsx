@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
-import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +27,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const scale = hasExplicitDimensions ? computeChartScale(designWidth, availableWidth) : 1;
 
     const {backgroundColor: rawBgColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
-    const backgroundColor = resolveChartThemeColor(typeof rawBgColor === 'string' ? rawBgColor : undefined, theme) ?? rawBgColor;
+    const backgroundColor = resolveChartContainerBgColor(rawBgColor, theme);
 
     const contentStyle = hasExplicitDimensions
         ? [chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const, transform: [{scale}], transformOrigin: 'top left' as const}]

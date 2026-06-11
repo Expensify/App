@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {CartesianChart} from 'victory-native';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
@@ -8,6 +8,7 @@ import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderer
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import useTheme from '@hooks/useTheme';
+import ThemeContext from '@styles/theme/context/ThemeContext';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
@@ -26,26 +27,18 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
     const theme = useTheme();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
 
-    const resolvedXAxis = useMemo(
-        () =>
-            xAxis
-                ? {
-                      ...xAxis,
-                      lineColor: typeof xAxis.lineColor === 'string' ? resolveChartThemeColor(xAxis.lineColor, theme) : xAxis.lineColor,
-                      labelColor: typeof xAxis.labelColor === 'string' ? resolveChartThemeColor(xAxis.labelColor, theme) : xAxis.labelColor,
-                  }
-                : xAxis,
-        [xAxis, theme],
-    );
-    const resolvedYAxis = useMemo(
-        () =>
-            yAxis?.map((axis) => ({
-                ...axis,
-                lineColor: typeof axis.lineColor === 'string' ? resolveChartThemeColor(axis.lineColor, theme) : axis.lineColor,
-                labelColor: typeof axis.labelColor === 'string' ? resolveChartThemeColor(axis.labelColor, theme) : axis.labelColor,
-            })),
-        [yAxis, theme],
-    );
+    const resolvedXAxis = xAxis
+        ? {
+              ...xAxis,
+              lineColor: typeof xAxis.lineColor === 'string' ? resolveChartThemeColor(xAxis.lineColor, theme) : xAxis.lineColor,
+              labelColor: typeof xAxis.labelColor === 'string' ? resolveChartThemeColor(xAxis.labelColor, theme) : xAxis.labelColor,
+          }
+        : xAxis;
+    const resolvedYAxis = yAxis?.map((axis) => ({
+        ...axis,
+        lineColor: typeof axis.lineColor === 'string' ? resolveChartThemeColor(axis.lineColor, theme) : axis.lineColor,
+        labelColor: typeof axis.labelColor === 'string' ? resolveChartThemeColor(axis.labelColor, theme) : axis.labelColor,
+    }));
 
     return (
         <CartesianChart
@@ -81,8 +74,12 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                     return overlayContent;
                 }
 
-                // Chart font context does not propagate across the Skia renderOutside boundary.
-                return <ChartFontsLoaderProvider>{overlayContent}</ChartFontsLoaderProvider>;
+                // React context does not propagate across the Skia renderOutside boundary.
+                return (
+                    <ThemeContext.Provider value={theme}>
+                        <ChartFontsLoaderProvider>{overlayContent}</ChartFontsLoaderProvider>
+                    </ThemeContext.Provider>
+                );
             }}
         >
             {(renderArgs) => (
