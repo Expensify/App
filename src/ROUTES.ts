@@ -825,7 +825,16 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_DETAILS: {
         path: 'details',
-        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        entryScreens: [
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.WORKSPACE.ROOMS,
+        ],
+        getRoute: (reportID: string) => getUrlWithParams('details', {reportID}),
+        queryParams: ['reportID'],
     },
     REPORT_DETAILS_SHARE_CODE: {
         path: 'share-code',
@@ -959,10 +968,6 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
-    WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
-        path: 'initial-list-value',
-        entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
-    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -1003,6 +1008,10 @@ const ROUTES = {
             }
             return `${baseRoute}/${subPage}` as const;
         },
+    },
+    SEARCH_ADVANCED_FILTERS_CONTENT: {
+        route: 'search/filters/:filterKey',
+        getRoute: (filterKey: SearchFilterKey | UserFriendlyKey) => `search/filters/${filterKey}` as const,
     },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
@@ -2614,6 +2623,10 @@ const ROUTES = {
     WORKSPACE_HR_MERGE_FINAL_APPROVER: {
         route: 'workspaces/:policyID/hr/merge/final-approver',
         getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/final-approver` as const,
+    },
+    WORKSPACE_HR_MERGE_GROUPS: {
+        route: 'workspaces/:policyID/hr/merge/groups',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/groups` as const,
     },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',

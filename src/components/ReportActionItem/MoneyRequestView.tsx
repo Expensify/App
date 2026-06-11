@@ -1,3 +1,4 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -67,6 +68,7 @@ import {
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isAttendeeTrackingEnabled,
+    isGroupPolicyByType,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -85,7 +87,6 @@ import {
     isOpenReport,
     isPaidGroupPolicy,
     isReportApproved,
-    isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
     isTrackExpenseReportNew,
     shouldEnableNegative,
@@ -422,7 +423,10 @@ function MoneyRequestView({
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const isPolicyExpenseChat = isReportInGroupPolicy(moneyRequestReport);
+    const [moneyRequestReportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(moneyRequestReportPolicyType);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';

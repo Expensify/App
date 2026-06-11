@@ -15,7 +15,7 @@ import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type * as UrlType from '@libs/Url';
-import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import colors from '@styles/theme/colors';
 import type CONFIGType from '@src/CONFIG';
@@ -98,7 +98,7 @@ const createReportAction = (actionName: ReportActionName, originalMessageExtras:
         },
     }) as ReportAction;
 
-describe('PureReportActionItem', () => {
+describe('ReportActionItem', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -137,7 +137,7 @@ describe('PureReportActionItem', () => {
                 <OptionsListContextProvider>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
-                            <PureReportActionItem
+                            <ReportActionItem
                                 report={undefined}
                                 transactionThreadReport={undefined}
                                 parentReportAction={undefined}
@@ -251,6 +251,16 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.forwarded'))).toBeOnTheScreen();
+        });
+
+        it('FORWARDED action with memo', async () => {
+            const memo = 'Testing approval memo';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: false, message: memo});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.forwarded', memo))).toBeOnTheScreen();
         });
 
         it('SUBMITTED action', async () => {
@@ -417,13 +427,13 @@ describe('PureReportActionItem', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // When the PureReportActionItem is rendered with the pending SUBMITTED action while offline
+            // When the ReportActionItem is rendered with the pending SUBMITTED action while offline
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -465,13 +475,13 @@ describe('PureReportActionItem', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // When the PureReportActionItem is rendered with the pending SUBMITTED action
+            // When the ReportActionItem is rendered with the pending SUBMITTED action
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -523,7 +533,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -567,7 +577,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -633,6 +643,7 @@ describe('PureReportActionItem', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[action.reportActionID]: action});
             });
 
             render(
@@ -640,10 +651,9 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={report}
                                     transactionThreadReport={undefined}
-                                    originalReportID={report.reportID}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -694,6 +704,7 @@ describe('PureReportActionItem', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[action.reportActionID]: action});
             });
 
             render(
@@ -701,10 +712,9 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={report}
                                     transactionThreadReport={undefined}
-                                    originalReportID={report.reportID}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -785,7 +795,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -964,7 +974,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1011,7 +1021,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1165,7 +1175,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1344,7 +1354,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', policyID: 'pol123'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1429,13 +1439,23 @@ describe('PureReportActionItem', () => {
 
     describe('Actions requiring custom component props', () => {
         it('REPORT_PREVIEW renders deleted message when closed expense report with no expenses', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, {});
+            const iouReportID = 'closedExpenseReport';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, {linkedReportID: iouReportID});
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+                    reportID: iouReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                });
+            });
+
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1443,7 +1463,6 @@ describe('PureReportActionItem', () => {
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
                                     isFirstVisibleReportAction={false}
-                                    isClosedExpenseReportWithNoExpenses
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1471,7 +1490,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1508,7 +1527,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1550,7 +1569,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{
                                         reportID: 'threadReport',
                                         type: CONST.REPORT.TYPE.CHAT,
@@ -1592,7 +1611,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1632,7 +1651,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1670,7 +1689,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1707,7 +1726,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1747,7 +1766,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1788,7 +1807,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1913,7 +1932,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1950,7 +1969,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -2529,7 +2548,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -2628,7 +2647,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     transactionThreadReport={undefined}
                                     report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
@@ -2669,7 +2688,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     transactionThreadReport={undefined}
@@ -2718,7 +2737,7 @@ describe('PureReportActionItem', () => {
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
-                                <PureReportActionItem
+                                <ReportActionItem
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
