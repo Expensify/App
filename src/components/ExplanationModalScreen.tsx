@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import FeatureTrainingContent from './FeatureTrainingContent';
 import ScreenWrapper from './ScreenWrapper';
 
-function ExplanationModal() {
+function ExplanationModalScreen() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -35,4 +35,4 @@ function ExplanationModal() {
     );
 }
 
-export default ExplanationModal;
+export default ExplanationModalScreen;

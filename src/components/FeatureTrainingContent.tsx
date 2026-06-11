@@ -69,8 +69,8 @@ type BaseFeatureTrainingContentProps = {
     /** Text to show on primary button */
     confirmText: string;
 
-    /** A callback to call when user confirms */
-    onConfirm?: () => void;
+    /** A callback to call when user confirms. Receives whether the "don't show again" option is left unchecked. */
+    onConfirm?: (willShowAgain: boolean) => void;
 
     /** A callback to call when content wants to close */
     onClose?: () => void;
@@ -294,7 +294,7 @@ function FeatureTrainingContent({
         if (shouldShowDismissModalOption && !willShowAgain) {
             onPersistDismiss?.();
         }
-        onConfirm?.();
+        onConfirm?.(willShowAgain);
         if (shouldCloseOnConfirm) {
             onClose?.();
         }

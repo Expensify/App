@@ -1,7 +1,7 @@
 import React from 'react';
 import CenteredModalLayout from '@components/CenteredModalLayout';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import ExplanationModal from '@components/ExplanationModal';
+import ExplanationModalScreen from '@components/ExplanationModalScreen';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {ExplanationModalNavigatorParamList} from '@libs/Navigation/types';
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
@@ -16,7 +16,7 @@ function ExplanationModalNavigator() {
                 <Stack.Navigator screenOptions={{headerShown: false}}>
                     <Stack.Screen
                         name={SCREENS.EXPLANATION_MODAL.ROOT}
-                        component={ExplanationModal}
+                        component={ExplanationModalScreen}
                     />
                 </Stack.Navigator>
             </CenteredModalLayout>
