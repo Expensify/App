@@ -52,7 +52,7 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.aiRules.title')}</Text>
             <Badge
-                text={translate('common.newFeature')}
+                text={translate('common.beta')}
                 isCondensed
                 success
             />
