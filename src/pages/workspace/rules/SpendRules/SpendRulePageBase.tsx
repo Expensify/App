@@ -121,7 +121,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
     };
 
-    function getCardsMenuTitle(cardIDsToSummarize: string[] | undefined): string {
+    const getCardsMenuTitle = (cardIDsToSummarize: string[] | undefined) => {
         const activeCardIDs = cardIDsToSummarize?.filter((id) => cardsList?.[id] !== undefined);
         return getTruncatedSpendRuleSummary(
             activeCardIDs?.map((id) => {
@@ -135,18 +135,18 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
         );
-    }
+    };
 
-    function getMerchantMenuTitle(merchantNamesToSummarize: string[] | undefined): string {
+    const getMerchantMenuTitle = (merchantNamesToSummarize: string[] | undefined) => {
         return getTruncatedSpendRuleSummary(merchantNamesToSummarize, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
-    }
+    };
 
-    function getCategoryMenuTitle(categoriesToSummarize: SpendRuleCategory[] | undefined): string {
+    const getCategoryMenuTitle = (categoriesToSummarize: SpendRuleCategory[] | undefined) => {
         return getTruncatedSpendRuleSummary(
             categoriesToSummarize?.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
         );
-    }
+    };
 
     const cardsMenuTitle = getCardsMenuTitle(cardIDs);
     const categoriesMenuTitle = getCategoryMenuTitle(categories);
@@ -165,6 +165,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         if (!canWriteRules) {
             return;
         }
+
         if (errorMessage) {
             setIsErrorVisible(true);
             return;
@@ -174,8 +175,17 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             return;
         }
 
+        // If the merchant restriction toggle is off, we need to ensure the merchant restrictions are removed
+        // from the rule
+        const updatedSpendRuleForm = {
+            ...spendRuleForm,
+            categories: !isRestrictMerchantsOff ? categories : [],
+            merchantNames: !isRestrictMerchantsOff ? spendRuleForm.merchantNames : [],
+            merchantMatchTypes: !isRestrictMerchantsOff ? spendRuleForm.merchantMatchTypes : [],
+        };
+
         clearError();
-        setExpensifyCardRule(domainAccountID, isEditingRule ? currentRuleID : rand64(), spendRuleForm, existingRule);
+        setExpensifyCardRule(domainAccountID, isEditingRule ? currentRuleID : rand64(), updatedSpendRuleForm, existingRule);
         clearDraftSpendRule();
         navigation.goBack();
     };
@@ -184,6 +194,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         if (!canWriteRules) {
             return;
         }
+
         if (!existingRule) {
             return;
         }
