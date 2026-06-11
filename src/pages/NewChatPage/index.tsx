@@ -252,7 +252,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     // Selected rows are marked in place by getValidOptions (isSelected), so the checkmark stays with the row instead of jumping to the top.
     // In group selection mode the self DM stays visible (so the list doesn't shift and jump the scroll position) but is made non-selectable.
-    const recentReportsData = selectedOptions.length ? recentReports.map((option) => (option.isSelfDM ? {...option, isInteractive: false} : option)) : recentReports;
+    const recentReportsData = selectedOptions.length ? recentReports.map((option) => (option.isSelfDM ? {...option, isDisabled: true} : option)) : recentReports;
 
     const sections: Array<Section<OptionWithKey>> = [];
 
