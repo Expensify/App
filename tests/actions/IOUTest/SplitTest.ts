@@ -5117,7 +5117,6 @@ describe('initSplitExpense', () => {
 
     it('redirects to the restricted action page and does not create a split draft when the workspace is billing-restricted', async () => {
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
-        (Navigation.navigate as jest.Mock).mockClear();
         const transaction: Transaction = {
             transactionID: 'restricted-1',
             amount: -100,
