@@ -130,6 +130,13 @@ function lastCurrentSelectionRow() {
     return currentSection?.data?.at(0);
 }
 
+function toIconsArray(value: unknown): Array<Record<string, unknown>> | undefined {
+    if (!Array.isArray(value)) {
+        return undefined;
+    }
+    return value.filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null);
+}
+
 describe('BaseVacationDelegateSelectionComponent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -191,7 +198,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
             expect(row?.accountID).toBe(43);
             expect(row?.isSelected).toBe(true);
             // The icon id must be the real accountID when personal details are present.
-            const icons = Array.isArray(row?.icons) ? (row.icons as unknown as Array<Record<string, unknown>>) : undefined;
+            const icons = toIconsArray(row?.icons);
             expect(icons?.at(0)?.id).toBe(43);
         });
     });
@@ -227,7 +234,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
             expect(row?.isSelected).toBe(true);
             // Avatar icon id must also fall back to DEFAULT_MISSING_ID so UserListItem renders the
             // fallback avatar rather than gating it off behind a missing accountID.
-            const icons = Array.isArray(row?.icons) ? (row.icons as unknown as Array<Record<string, unknown>>) : undefined;
+            const icons = toIconsArray(row?.icons);
             expect(icons?.at(0)?.id).toBe(CONST.DEFAULT_MISSING_ID);
             expect(icons?.at(0)?.name).toBe(PHONE_DELEGATE_RAW);
         });

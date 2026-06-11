@@ -115,7 +115,7 @@ describe('VacationDelegatePage warning modal', () => {
             await selectRowAndFlush(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
             expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `statusPage.vacationDelegateWarning(${PHONE_DELEGATE_RAW})`}));
-            expect(mockShowConfirmModal).not.toHaveBeenCalledWith(expect.objectContaining({prompt: expect.stringContaining('@expensify.sms') as unknown as string}));
+            expect(JSON.stringify(mockShowConfirmModal.mock.calls)).not.toContain('@expensify.sms');
         });
     });
 
@@ -135,7 +135,7 @@ describe('VacationDelegatePage warning modal', () => {
             await selectRowAndFlush(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
             expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `statusPage.vacationDelegateWarning(${PHONE_DELEGATE_RAW})`}));
-            expect(mockShowConfirmModal).not.toHaveBeenCalledWith(expect.objectContaining({prompt: expect.stringContaining('@expensify.sms') as unknown as string}));
+            expect(JSON.stringify(mockShowConfirmModal.mock.calls)).not.toContain('@expensify.sms');
         });
     });
 });
