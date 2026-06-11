@@ -1,6 +1,9 @@
 import {FlatCompat} from '@eslint/eslintrc';
-import tsParser from '@typescript-eslint/parser';
-import expensifyConfig from 'eslint-config-expensify';
+import browserConfig from 'eslint-config-expensify/browser';
+import expensifyPluginConfig from 'eslint-config-expensify/expensify';
+import reactConfig from 'eslint-config-expensify/react';
+import scriptsConfig from 'eslint-config-expensify/scripts';
+import tsExpensifyConfig from 'eslint-config-expensify/typescript';
 import fileProgress from 'eslint-plugin-file-progress';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
@@ -204,7 +207,11 @@ const restrictedPaidGroupPolicyImportPatterns = [
 ];
 
 const config = defineConfig([
-    expensifyConfig,
+    ...browserConfig,
+    ...reactConfig,
+    ...tsExpensifyConfig,
+    ...expensifyPluginConfig,
+    ...scriptsConfig,
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
     fileProgress.configs['recommended-ci'],
@@ -256,10 +263,9 @@ const config = defineConfig([
         },
 
         languageOptions: {
-            parser: tsParser,
-
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.json'),
+                projectService: false,
             },
 
             globals: {
@@ -753,6 +759,7 @@ const config = defineConfig([
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/tsconfig.json'),
+                projectService: false,
             },
         },
     },
@@ -762,6 +769,7 @@ const config = defineConfig([
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
+                projectService: false,
             },
         },
     },
