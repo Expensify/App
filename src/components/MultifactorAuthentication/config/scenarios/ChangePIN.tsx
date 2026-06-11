@@ -3,7 +3,7 @@ import {DefaultSuccessScreen} from '@components/MultifactorAuthentication/compon
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
-import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports

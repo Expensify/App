@@ -4,7 +4,7 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
-import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
 import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -73,7 +73,7 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 }
 
 function MultifactorAuthenticationModalNavigator() {
-    const {state, requestCancel, hideCancelConfirm, confirmCancel, notifyModalClosed} = useMultifactorAuthentication();
+    const {state, requestCancel, hideCancelConfirm, confirmCancel, notifyModalClosed} = useMultifactorAuthenticationInternal();
     // modalPhase mirrors the machine's top-level state: 'closing' keeps this navigator mounted after
     // the close request so the slide-out can play; 'closed' (machine idle) unmounts it.
     const {isCancelConfirmVisible, modalPhase, scenario} = state;

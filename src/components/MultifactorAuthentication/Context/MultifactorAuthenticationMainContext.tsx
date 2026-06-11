@@ -1,5 +1,5 @@
 import {useMachine} from '@xstate/react';
-import React, {createContext, useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,7 +7,6 @@ import useBiometrics from '@components/MultifactorAuthentication/biometrics/useB
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import {mfaMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
-import type {MfaState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
@@ -17,41 +16,12 @@ import useNetwork from '@hooks/useNetwork';
 import getPlatform from '@libs/getPlatform';
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 import type {DeviceBiometrics} from '@src/types/onyx';
+import MultifactorAuthenticationExternalApiContext from './MultifactorAuthenticationExternalApiContext';
+import type {MultifactorAuthenticationExternalApi} from './MultifactorAuthenticationExternalApiContext';
+import MultifactorAuthenticationInternalApiContext from './MultifactorAuthenticationInternalApiContext';
+import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
 
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
-
-type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T>;
-
-/**
- * The single typed API exposed by the machine Provider. Apart from executeScenario's start-of-flow
- * telemetry, every method is a thin wrapper over `send(event)` - no flow logic (the behavior IS
- * machine state). `state` is the machine snapshot mapped to the legacy shape plus `modalPhase`, so
- * existing consumers keep reading `state.X`.
- */
-type MultifactorAuthenticationApi = {
-    /** The current MFA state, derived from the machine snapshot. */
-    state: MfaState;
-
-    /** Execute a multifactor authentication scenario. */
-    executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>) => Promise<void>;
-
-    /** Close the modal overlay. */
-    closeModal: () => void;
-
-    /** Navigator's report that the close animation fully finished; re-enters idle, wiping the flow data. */
-    notifyModalClosed: () => void;
-
-    /** Centralized back-press / backdrop entry. */
-    requestCancel: () => void;
-
-    /** Dismiss the cancel-confirmation modal without cancelling the flow. */
-    hideCancelConfirm: () => void;
-
-    /** Confirm cancellation. */
-    confirmCancel: () => void;
-};
-
-const MultifactorAuthenticationContext = createContext<MultifactorAuthenticationApi | undefined>(undefined);
 
 type MultifactorAuthenticationContextProviderProps = {
     children: ReactNode;
@@ -91,7 +61,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * Initiates a multifactor authentication scenario: captures start-of-flow telemetry, then sends
      * INIT. The machine takes over from there - the Provider holds no flow logic.
      */
-    const executeScenario = async <T extends MultifactorAuthenticationScenario>(scenarioName: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
+    const executeScenario = async <T extends MultifactorAuthenticationScenario>(scenarioName: T, params?: MultifactorAuthenticationScenarioParams<T>): Promise<void> => {
         // Perf short-circuit: once a scenario is active the machine ignores INIT, so skip the redundant
         // captureCredentialsState() native call + breadcrumb on the happy path.
         if (state.scenario) {
@@ -128,9 +98,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     useSyncMfaModalNavigatorWithHistory(state.isModalOpen, requestCancel);
 
-    const contextValue: MultifactorAuthenticationApi = {
+    const externalApi: MultifactorAuthenticationExternalApi = {executeScenario};
+
+    const internalApi: MultifactorAuthenticationInternalApi = {
         state,
-        executeScenario,
         closeModal,
         notifyModalClosed,
         requestCancel,
@@ -138,19 +109,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         confirmCancel,
     };
 
-    return <MultifactorAuthenticationContext.Provider value={contextValue}>{children}</MultifactorAuthenticationContext.Provider>;
-}
-
-function useMultifactorAuthentication(): MultifactorAuthenticationApi {
-    const context = useContext(MultifactorAuthenticationContext);
-
-    if (!context) {
-        throw new Error('useMultifactorAuthentication must be used within a MultifactorAuthenticationContextProviders');
-    }
-
-    return context;
+    return (
+        <MultifactorAuthenticationExternalApiContext.Provider value={externalApi}>
+            <MultifactorAuthenticationInternalApiContext.Provider value={internalApi}>{children}</MultifactorAuthenticationInternalApiContext.Provider>
+        </MultifactorAuthenticationExternalApiContext.Provider>
+    );
 }
 
 MultifactorAuthenticationContextProvider.displayName = 'MultifactorAuthenticationContextProvider';
 
-export {useMultifactorAuthentication, MultifactorAuthenticationContextProvider};
+export default MultifactorAuthenticationContextProvider;
