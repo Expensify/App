@@ -1264,6 +1264,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT]: {
                             path: ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS]: {
+                            path: ROUTES.RULES_REQUIRE_RECEIPTS.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
                             path: ROUTES.RULES_MAX_EXPENSE_AMOUNT.route,
                         },

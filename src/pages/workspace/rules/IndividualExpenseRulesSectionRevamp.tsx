@@ -116,7 +116,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.receiptRequirements'),
             description: receiptRequirementText,
             icon: icons.ReceiptScan,
-            action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_RECEIPTS.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
         },
         {

@@ -7238,6 +7238,14 @@ const translations = {
                 autoCreateEReceipts: 'Auto-create eReceipts',
                 autoCreateEReceiptsDescription: 'For most USD credit transactions.',
             },
+            requireReceipts: {
+                title: 'Require receipts',
+                description: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
+                requireReceipt: 'Require receipt',
+                requireItemizedReceipt: 'Require itemized receipt',
+                requireAboveAmount: 'Require above amount',
+                saveRule: 'Save rule',
+            },
             individualExpenseRules: {
                 title: 'Expenses',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

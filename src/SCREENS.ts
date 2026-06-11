@@ -894,6 +894,7 @@ const SCREENS = {
         RULES_AUTO_PAY_REPORTS_UNDER: 'Rules_AutoPay_Reports_Under',
         RULES_RECEIPT_REQUIRED_AMOUNT: 'Rules_Receipt_Required_Amount',
         RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT: 'Rules_Itemized_Receipt_Required_Amount',
+        RULES_REQUIRE_RECEIPTS: 'Rules_Require_Receipts',
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
