@@ -531,7 +531,6 @@
 "../../src/hooks/useFilesValidation.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useGeographicalStateAndCountryFromRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/hooks/useHRSyncResultsModal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useHtmlPaste/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useImportSpreadsheetConfirmModal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useInitial.ts"	"react-hooks/refs"	4
