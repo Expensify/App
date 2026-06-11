@@ -1,7 +1,7 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
@@ -121,7 +121,8 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         return `<comment center>${taskTitleWithoutImage}</comment>`;
     };
 
-    const toggleTask = callFunctionIfActionIsAllowed(() => {
+    const toggleTask = callFunctionIfActionIsAllowed((e?: GestureResponderEvent | KeyboardEvent) => {
+        e?.stopPropagation();
         if (isTaskCompleted) {
             reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
         } else {

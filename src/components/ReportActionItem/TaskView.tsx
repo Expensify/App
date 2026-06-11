@@ -1,6 +1,7 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -114,7 +115,8 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
 
     const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);
 
-    const toggleTask = callFunctionIfActionIsAllowed(() => {
+    const toggleTask = callFunctionIfActionIsAllowed((e?: GestureResponderEvent | KeyboardEvent) => {
+        e?.stopPropagation();
         if (isActiveTaskEditRoute(report?.reportID)) {
             return;
         }
@@ -196,6 +198,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         accessibilityLabel={taskAccessibilityLabel}
                                                         disabled={!isTaskActionable}
                                                         onPress={toggleTask}
+                                                        style={styles.alignSelfStart}
                                                         sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                     >
                                                         <View importantForAccessibility="no-hide-descendants">
