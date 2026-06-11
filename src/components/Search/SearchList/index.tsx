@@ -642,6 +642,7 @@ function SearchList({
                     style={[
                         styles.searchListHeaderContainerStyle,
                         isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
+                        isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
                     ]}
                 >
                     {canSelectMultiple && (
@@ -656,6 +657,7 @@ function SearchList({
                     )}
 
                     {SearchTableHeader}
+                    {isLargeScreenWidth && shouldSplitGroups && <View style={styles.searchListHeaderBorderCover} />}
                 </View>
             )}
             <BaseSearchList
