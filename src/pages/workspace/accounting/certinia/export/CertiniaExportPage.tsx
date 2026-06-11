@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {getCertiniaExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -31,6 +32,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path}` : undefined;
     const selectedVendor = data?.vendors?.find((vendor) => vendor.id === exportConfig?.vendorAccount);
     const exportStatus = exportConfig?.exportStatus;
+    const normalizedExportStatus = getCertiniaExportStatusValue(exportStatus);
     const exportDate = exportConfig?.exportDate;
 
     const rows: ExportRow[] = [
@@ -42,7 +44,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.certinia.exportStatus.label'),
-            title: exportStatus ? translate(`workspace.certinia.exportStatus.values.${exportStatus}`) : exportConfig?.exportStatus,
+            title: normalizedExportStatus ? translate(`workspace.certinia.exportStatus.values.${normalizedExportStatus}`) : exportStatus,
             onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },

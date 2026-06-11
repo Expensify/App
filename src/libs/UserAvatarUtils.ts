@@ -1,8 +1,9 @@
 import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {getAvatarLocal as avatarCatalogGetAvatarLocal, getAvatarURL as avatarCatalogGetAvatarURL, DEFAULT_AVATAR_PREFIX, PRESET_AVATAR_CATALOG} from './Avatars/PresetAvatarCatalog';
-import type {DefaultAvatarIDs, PresetAvatarID} from './Avatars/PresetAvatarCatalog.types';
+import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
+import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
+import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -12,15 +13,15 @@ const DEFAULT_AVATAR_URL_PATTERNS = ['images/avatars/avatar_', 'images/avatars/d
 const LETTER_AVATAR_NAME_REGEX = /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]\.png$/;
 
 /**
- * User avatars naming convention
+ * Avatar naming convention
  *
- * Default Avatar - avatar auto generated based on users accountID or email. Default Avatars are a subset of Preset Avatars
- * Preset Avatar - pre-designed avatar from PresetAvatarCatalog.PRESET_AVATAR_CATALOG (includes default avatars & themed avatars like Season F1)
- * Letter Avatar - avatar with users' displayName first letter and color from PresetAvatarCatalog.LETTER_AVATAR_COLOR_OPTIONS
- * Uploaded Avatar - avatar uploaded by user
+ * Default Avatar - auto generated from accountID or email. A subset of User Avatars.
+ * User Avatar - pre-designed avatar from UserAvatarCatalog.USER_AVATARS (defaults + Season F1).
+ * Agent Avatar - bot avatar from AgentAvatarCatalog.AGENT_AVATARS, assigned to agent accounts.
+ * Letter Avatar - first-letter avatar with color from UserAvatarCatalog.LETTER_AVATAR_COLOR_OPTIONS.
+ * Uploaded Avatar - user-uploaded image.
  *
- * When dealing with Default & Preset avatars we want to serve them as local SVGs for better user experience.
- * In that case `AvatarSource` will be an SVG, otherwise it's an url (string).
+ * Catalog-backed avatars (User + Agent) resolve to local SVGs at render time via AvatarLookup.findLocalAvatarForURL.
  */
 
 type CommonAvatarArgsType = {
@@ -93,12 +94,12 @@ function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, av
         return defaultAvatars.NotificationsAvatar;
     }
 
-    return avatarCatalogGetAvatarLocal(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
+    return USER_AVATARS.getLocal(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
 }
 
 /**
- * Returns the custom avatar name (e.g., "default-avatar_5") associated with an account.
- * This name corresponds to assets in the PresetAvatarCatalog.
+ * Returns the user avatar name (e.g., "default-avatar_5") associated with an account.
+ * This name corresponds to assets in the UserAvatarCatalog.
  *
  * @param args - Object containing avatar parameters
  * @param args.accountID - The user's account ID
@@ -127,26 +128,20 @@ function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail,
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    return avatarCatalogGetAvatarURL(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
+    return USER_AVATARS.getURL(getDefaultAvatarName({accountID, accountEmail, avatarURL})) ?? '';
 }
 
 /**
- * Extracts the custom avatar name from a CloudFront avatar URL.
- * Useful for identifying which default avatar a URL points to.
+ * Extracts the catalog avatar name (user or agent) from a CloudFront avatar URL.
  *
  * @param avatarURL - The avatar URL
- * @returns The avatar name (e.g., 'default-avatar_5') or undefined if not a valid custom avatar URL
+ * @returns The avatar name (e.g., 'default-avatar_5', 'bot-avatar--blue') or undefined if not a valid catalog URL
  */
-function getPresetAvatarNameFromURL(avatarURL?: AvatarSource): PresetAvatarID | undefined {
+function getCatalogAvatarNameFromURL(avatarURL?: AvatarSource): string | undefined {
     if (!avatarURL || typeof avatarURL !== 'string' || avatarURL === CONST.CONCIERGE_ICON_URL) {
         return undefined;
     }
-
-    // Extract avatar name from CloudFront URL and make sure it's one of defaults
-    const match = (avatarURL.split('/').at(-1)?.split('.')?.[0] ?? '') as PresetAvatarID;
-    if (PRESET_AVATAR_CATALOG[match]) {
-        return match;
-    }
+    return findAvatarIDFromURL(avatarURL);
 }
 
 /**
@@ -173,14 +168,13 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
 }
 
 /**
- * Determines if an avatar source is a custom avatar from the PresetAvatarCatalog.
- * Custom avatars are a specific set of default avatars that can be identified by their URL.
+ * Determines if an avatar source is a catalog-backed avatar (user or agent).
  *
  * @param avatarSource - The avatar source to check
- * @returns True if the avatar is a custom avatar from the catalog
+ * @returns True if the avatar URL maps to a known catalog entry
  */
-function isPresetAvatar(avatarSource?: AvatarSource): avatarSource is string {
-    return !!getPresetAvatarNameFromURL(avatarSource);
+function isCatalogAvatar(avatarSource?: AvatarSource): avatarSource is string {
+    return !!getCatalogAvatarNameFromURL(avatarSource);
 }
 
 /**
@@ -220,9 +214,9 @@ function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEm
         return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource, defaultAvatars});
     }
 
-    const maybePresetAvatarName = getPresetAvatarNameFromURL(avatarSource);
-    if (maybePresetAvatarName) {
-        return avatarCatalogGetAvatarLocal(maybePresetAvatarName);
+    const localFromCatalog = findLocalAvatarForURL(avatarSource);
+    if (localFromCatalog) {
+        return localFromCatalog;
     }
 
     return avatarSource;
@@ -243,9 +237,9 @@ function getAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accoun
     if (isDefaultAvatar(avatarSource)) {
         return getDefaultAvatarURL({accountID, accountEmail, avatarURL: avatarSource});
     }
-    const maybePresetAvatarName = getPresetAvatarNameFromURL(avatarSource);
-    if (maybePresetAvatarName) {
-        return avatarCatalogGetAvatarURL(maybePresetAvatarName);
+    const match = findCatalogMatchForURL(avatarSource);
+    if (match) {
+        return match.catalog.getURL(match.id);
     }
     return avatarSource;
 }
@@ -304,10 +298,10 @@ export {
     getDefaultAvatar,
     getDefaultAvatarName,
     getDefaultAvatarURL,
-    getPresetAvatarNameFromURL,
+    getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,
-    isPresetAvatar,
+    isCatalogAvatar,
     isDefaultAvatar,
     isLetterAvatar,
 };

@@ -110,7 +110,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                             policy={policy}
                             shouldUseNarrowLayout
                             isSelected={isSelected}
-                            shouldShowTooltip={false}
+                            shouldShowTooltip
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

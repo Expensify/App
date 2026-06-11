@@ -35,7 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getAllReports, getAllTransactions} from '.';
 
 /**
  * Put expense on HOLD
@@ -368,15 +368,19 @@ function putTransactionsOnHold(
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean, currentUserLogin: string, currentUserAccountID: number) {
+function unholdRequest(
+    transactionID: string,
+    reportID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isOffline: boolean,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+) {
     const allTransactions = getAllTransactions();
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
     const createdReportAction = buildOptimisticUnHoldReportAction();
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
@@ -694,7 +698,6 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp,
     betas,
     isApprovalFlow = false,
-    conciergeReportID,
     delegateAccountID,
 }: {
     chatReport: OnyxTypes.Report;
@@ -704,8 +707,6 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp?: string;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
-    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 }): {
@@ -767,7 +768,6 @@ function getReportFromHoldRequestsOnyxData({
         firstHoldTransaction,
         optimisticExpenseReport.reportID,
         newParentReportActionID,
-        conciergeReportID,
         delegateAccountID,
     );
 

@@ -1,13 +1,13 @@
 ---
 title: How to Find and Resolve Flagged Duplicate Expenses
 description: Learn how Expensify detects duplicate expenses and how to resolve them when they are flagged and placed on hold.
-keywords: [New Expensify, duplicate expense, review duplicates, expense on hold, resolve duplicate, flagged expense, red dot, duplicate detection, keep all, keep selected, held expense, Inbox red dot, find duplicate expenses, where to find duplicates]
+keywords: [New Expensify, duplicate expense, review duplicates, expense on hold, resolve duplicate, flagged expense, Fix badge, duplicate detection, keep all, keep this one, held expense, Inbox Fix badge, find duplicate expenses, where to find duplicates]
 internalScope: Audience is members and approvers on Collect or Control plans. Covers how to locate reports with duplicate expense violations and resolve flagged duplicates. Does not cover manually merging expenses or preventing duplicates.
 ---
 
 # How to find and resolve flagged duplicate expenses
 
-Expensify automatically detects potential duplicate expenses by flagging entries that share the same date and amount. When a duplicate is detected, the expense is placed on hold and marked with a red dot.
+Expensify automatically detects potential duplicate expenses by flagging entries that share the same date and amount. When a duplicate is detected, the expense is placed on hold and marked with a **Fix** badge.
 
 You can locate and resolve these duplicates directly from the report or chat where the expense lives.
 
@@ -23,25 +23,25 @@ Duplicate detection is available to all members on Collect and Control plans. Bo
 
 ---
 
-## How to find duplicate expenses using the red dot indicator
+## How to find duplicate expenses using the Fix badge
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Inbox**.
-2. Look for chats with a red dot. 
+2. Look for chats with a **Fix** badge. 
 3. Click the chat to open it and review the flagged expense. 
 
-A red dot means the report or chat contains a violation.
+A **Fix** badge means the report or chat contains a violation that needs your attention.
 
 Within the report, duplicate expenses will show the label **Potential duplicate**. This indicates the expense has been flagged as a possible duplicate.
 
 ---
 
-![Inbox > Chat with red dot]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_03.png){:width="100%"}
+![Inbox > Chat with Fix badge]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_03.png){:width="100%"}
 
 ---
 
 ## How to resolve a flagged duplicate expense
 
-1. Open the report or chat with the red dot.
+1. Open the report or chat with the **Fix** badge.
 2. Click the expense labeled **Potential duplicate**.
 3. Click **Review duplicates**. 
 4. Review the list of matched expenses flagged as duplicates.

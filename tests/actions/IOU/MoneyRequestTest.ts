@@ -133,6 +133,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionIDs: ['mock-txn-id'],
             optimisticChatReportID: undefined,
+            currentUserLocalCurrency: undefined,
         };
 
         beforeEach(async () => {
@@ -613,6 +614,7 @@ describe('MoneyRequest', () => {
             conciergeReportID: undefined,
             action: CONST.IOU.ACTION.CREATE,
             reportDraft: undefined,
+            currentUserLocalCurrency: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {

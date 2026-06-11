@@ -209,6 +209,7 @@ function IOURequestStepDistanceOdometer({
         personalDetails,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backToReport,
         shouldSkipConfirmation,
         defaultExpensePolicy,

@@ -53,8 +53,7 @@ function MerchantField({
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
     const merchantValue = merchantState?.merchant ?? '';
-    const displayMerchantValue = isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
-    const isMerchantEmpty = !displayMerchantValue;
+    const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 
     // Determine if the merchant error should be displayed
@@ -69,7 +68,7 @@ function MerchantField({
             return translate('iou.error.invalidMerchant');
         }
 
-        if (shouldDisplayFieldError && isMerchantRequired && isMerchantEmpty) {
+        if (shouldDisplayFieldError && isMerchantRequired && !displayMerchantValue) {
             return translate('common.error.fieldRequired');
         }
 
@@ -120,7 +119,7 @@ function MerchantField({
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
-            title={isMerchantEmpty ? '' : displayMerchantValue}
+            title={displayMerchantValue}
             description={translate('common.merchant')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}

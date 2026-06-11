@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import useAllPolicyExpenseChatReportActions from './useAllPolicyExpenseChatReportActions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -25,6 +26,7 @@ function useAddAgentToApprovalWorkflow(policy: OnyxEntry<Policy>, policyID: stri
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const ownedAgents: OwnedAgent[] = (() => {
         if (!agentPrompts || !personalDetails) {
@@ -70,12 +72,21 @@ function useAddAgentToApprovalWorkflow(policy: OnyxEntry<Policy>, policyID: stri
         const isAlreadyMember = !!policy?.employeeList?.[agentToSeed.email];
         if (!isAlreadyMember && policy) {
             const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false));
-            addMembersToWorkspace({[agentToSeed.email]: agentToSeed.accountID}, '', policy, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber, {
-                accountID: currentUserPersonalDetails.accountID,
-                displayName: currentUserPersonalDetails.displayName,
-                email: currentUserPersonalDetails.login,
-                avatar: currentUserPersonalDetails.avatar,
-            });
+            addMembersToWorkspace(
+                {[agentToSeed.email]: agentToSeed.accountID},
+                '',
+                policy,
+                policyMemberAccountIDs,
+                CONST.POLICY.ROLE.USER,
+                formatPhoneNumber,
+                {
+                    accountID: currentUserPersonalDetails.accountID,
+                    displayName: currentUserPersonalDetails.displayName,
+                    email: currentUserPersonalDetails.login,
+                    avatar: currentUserPersonalDetails.avatar,
+                },
+                filteredReportActions,
+            );
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, agentToSeed.email));

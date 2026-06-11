@@ -1,24 +1,24 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import MultiSelect from './MultiSelect';
 
-type CategorySelectorProps = {
+type CategorySelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
+    policyIDs: string[] | undefined;
     onChange: (categories: string[]) => void;
 };
 
-function CategorySelector({value = [], onChange}: CategorySelectorProps) {
-    const {translate} = useLocalize();
-    const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
+function CategorySelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
+    const {translate, localeCompare} = useLocalize();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const selectedCategoriesItems = value.map((category) => {
@@ -69,7 +69,8 @@ function CategorySelector({value = [], onChange}: CategorySelectorProps) {
             .map((categoryName) => {
                 const decodedCategoryName = getDecodedCategoryName(categoryName);
                 return {text: decodedCategoryName, value: categoryName};
-            }),
+            })
+            .toSorted((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare)),
     );
 
     return (
@@ -77,7 +78,10 @@ function CategorySelector({value = [], onChange}: CategorySelectorProps) {
             value={selectedCategoriesItems}
             items={categoryItems}
             isSearchable={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-            searchPlaceholder={translate('common.category')}
+            autoFocus={autoFocus}
+            selectionListTextInputStyle={selectionListTextInputStyle}
+            selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(categories) => onChange(categories.map((category) => category.value))}
         />
     );

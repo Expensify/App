@@ -101,6 +101,10 @@ function getDisplayNameOrDefault(
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
+function getPersonalDetailsByID(accountID: number | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    return accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
+}
+
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
  * @param accountIDs  - Array of accountIDs
@@ -140,7 +144,7 @@ function getPersonalDetailsByIDs({
 function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
-        const detail = personalDetails?.[accountID];
+        const detail = getPersonalDetailsByID(accountID, personalDetails);
         if (!detail) {
             continue;
         }
@@ -148,6 +152,20 @@ function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxE
         result.push(detail);
     }
     return result;
+}
+
+function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    return accountIDs.reduce((acc, accountID) => {
+        if (!accountID) {
+            return acc;
+        }
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            return acc;
+        }
+        acc[accountID] = detail;
+        return acc;
+    }, {} as PersonalDetailsList);
 }
 
 function getDisplayNameOrYou(displayName: string, accountID: number, currentUserAccountID: number, translate: LocalizedTranslate) {
@@ -493,8 +511,10 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 
 export {
     getDisplayNameOrDefault,
+    getPersonalDetailsByID,
     getPersonalDetailsByIDs,
     newGetPersonalDetailsByIDs,
+    getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
     getAccountIDsByLogins,

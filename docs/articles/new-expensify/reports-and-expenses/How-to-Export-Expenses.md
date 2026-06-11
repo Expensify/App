@@ -38,15 +38,11 @@ You'll receive the exported CSV file in a message from Concierge.
 
 ## What export templates can I choose from? 
 
-Expensify offers pre-built export templates, or you can build your own custom export template. All available templates will appear in the menu when you export an expense. 
+Expensify offers pre-built export templates, or you can build your own custom export template. 
 
    - **Basic export** - Essential fields including date, amount, merchant, category, and receipt URL.
    - **All Data - expense level** - One row per expense with all available data fields.
-   - **custom templates** - Any custom template created by you or your Workspace Admin, if available.
-
    - **Custom templates** - Any custom template created by you or your Workspace Admin, if available.
-
-**Note** Currently, it's not possible to build custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting expenses. [Learn how to build a custom export template in Expensify Classic](/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template).  
 
 ## Where do I find the exported file?
 
@@ -57,8 +53,6 @@ For the Basic Export template, the file downloads directly to your device. For a
 If your Workspace Admin has created custom export templates, you can select one during export. Otherwise, columns follow the selected default template.
 
 ## Why don't I see certain export templates?
-
-Report-level templates (such as All Data - Report Level Export) only appear when exporting from **Spend > Reports** page with full reports selected. When exporting individual expenses from the Expenses page, only expense-level templates are available.
 
 If all selected expenses are deleted, only the **Basic export** template is available. Other export templates require a report, and deleted expenses are not associated with any report.
 

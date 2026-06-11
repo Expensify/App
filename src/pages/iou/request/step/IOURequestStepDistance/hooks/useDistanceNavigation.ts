@@ -51,6 +51,9 @@ type UseDistanceNavigationParams = {
     /** Current user's account ID — passed through to the navigation util. */
     currentUserAccountID: number;
 
+    /** Current user's localCurrencyCode — passed through to the navigation util for draft-workspace creation. */
+    currentUserLocalCurrency: string | undefined;
+
     /** Optional route to return to instead of going forward. */
     backTo: Route | undefined;
 
@@ -107,6 +110,7 @@ function useDistanceNavigation({
     waypoints,
     currentUserLogin,
     currentUserAccountID,
+    currentUserLocalCurrency,
     backTo,
     backToReport,
     shouldSkipConfirmation,
@@ -151,6 +155,7 @@ function useDistanceNavigation({
             waypoints,
             currentUserLogin,
             currentUserAccountID,
+            currentUserLocalCurrency,
             backTo,
             backToReport,
             shouldSkipConfirmation,

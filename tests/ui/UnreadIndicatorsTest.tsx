@@ -781,6 +781,7 @@ describe('Unread Indicators', () => {
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
+            currentUserLocalCurrency: undefined,
         });
         await waitForBatchedUpdates();
 

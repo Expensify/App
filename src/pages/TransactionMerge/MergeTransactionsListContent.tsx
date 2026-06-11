@@ -16,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -32,12 +31,11 @@ import MergeTransactionItem from './MergeTransactionItem';
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
-    isOnSearch?: boolean;
 };
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
-function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSearch}: MergeTransactionsListContentProps) {
+function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -123,7 +121,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         // Clear the merge transaction data when select a new source transaction to merge
         setupMergeTransactionData(transactionID, {
             targetTransactionID: transactionID,
-            targetTransactionThreadReportID: mergeTransaction?.targetTransactionThreadReportID,
             sourceTransactionID: item.transactionID,
             eligibleTransactions: mergeTransaction?.eligibleTransactions,
         });
@@ -160,23 +157,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = mergeTransaction?.targetTransactionThreadReportID
-            ? {
-                  transactionID: mergeTransaction?.targetTransactionID ?? transactionID,
-                  threadReportID: mergeTransaction.targetTransactionThreadReportID,
-              }
-            : undefined;
-        setupMergeTransactionDataAndNavigate(
-            transactionID,
-            [targetTransaction, sourceTransaction],
-            localeCompare,
-            getCurrencyDecimals,
-            reports,
-            true,
-            isOnSearch,
-            [targetTransactionPolicy, sourceTransactionPolicy],
-            targetTransactionThreadReportCandidate,
-        );
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        ]);
     };
 
     const confirmButtonOptions = {

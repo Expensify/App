@@ -11,7 +11,7 @@ function useBankAccountUnlockEffect(report: OnyxEntry<Report> | undefined) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     useEffect(() => {
-        if (!isConciergeChatReport(report) || !initiatingBankAccountUnlock?.bankAccountIDToUnlock) {
+        if (!isConciergeChatReport(report, conciergeReportID) || !initiatingBankAccountUnlock?.bankAccountIDToUnlock) {
             return;
         }
         initiateBankAccountUnlock(initiatingBankAccountUnlock.bankAccountIDToUnlock, conciergeReportID ?? undefined, initiatingBankAccountUnlock.optimisticReportActionID);

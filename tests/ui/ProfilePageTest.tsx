@@ -98,11 +98,12 @@ describe('ProfilePage contact method indicator', () => {
         const email = 'user@example.com';
 
         // Current user provided by mocked hook uses the same email
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [email]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${email}`]: {
+                partnerID: 1,
                 partnerUserID: email,
                 validatedDate: '',
-                errorFields: {anyError: {message: 'oops'}},
+                errorFields: {addedLogin: {message: 'oops'}},
             },
         });
         await waitForBatchedUpdates();
@@ -114,8 +115,9 @@ describe('ProfilePage contact method indicator', () => {
         expect(node).toBeDefined();
 
         // Verify that RBR disappears
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [email]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${email}`]: {
+                partnerID: 1,
                 partnerUserID: email,
                 validatedDate: '2024-02-02',
                 errorFields: null,
@@ -133,12 +135,14 @@ describe('ProfilePage contact method indicator', () => {
     it('shows info when there is an unvalidated secondary login', async () => {
         const defaultEmail = 'user@example.com';
         const otherEmail = 'other@example.com';
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [defaultEmail]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${defaultEmail}`]: {
+                partnerID: 1,
                 partnerUserID: defaultEmail,
                 validatedDate: '2024-01-01',
             },
-            [otherEmail]: {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '',
             },
@@ -151,8 +155,9 @@ describe('ProfilePage contact method indicator', () => {
         expect(node).toBeDefined();
 
         // Verify that GBR disappears
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [otherEmail]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '2024-02-02',
             },

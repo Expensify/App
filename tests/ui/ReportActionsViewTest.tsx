@@ -555,7 +555,7 @@ describe('ReportActionsView', () => {
             },
         ];
 
-        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false) => {
+        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsInSidePanel.mockReturnValue(false);
@@ -574,7 +574,7 @@ describe('ReportActionsView', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions}, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -736,6 +736,37 @@ describe('ReportActionsView', () => {
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockStartSession).toHaveBeenCalled();
+        });
+
+        it('should render cached actions without a skeleton on refresh when hasOnceLoadedReportActions resets but actions are cached', () => {
+            // Simulates a page refresh: hasOnceLoadedReportActions is RAM-only and resets to false,
+            // but report actions persist in Onyx cache. We should render them immediately (production behavior).
+            setupMainDMConciergeMocks(SESSION_START, false, false);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            expect(mockReportActionsList).toHaveBeenCalled();
+        });
+
+        it('should show a skeleton on a cold load when hasOnceLoadedReportActions is false and there are no cached actions', () => {
+            setupMainDMConciergeMocks(SESSION_START, false, false);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [],
+                hasOlderActions: false,
+            });
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         });
     });
 });

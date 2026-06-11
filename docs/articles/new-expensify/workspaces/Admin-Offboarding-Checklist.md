@@ -156,6 +156,6 @@ Yes. A verified business bank account can be shared with multiple Workspace Admi
 - **Workspace Admins** manage billing, reimbursements, integrations, and member roles for a single workspace.  
 - **Domain Admins** manage company-wide permissions like SAML. 
 
-If you’re unsure which role applies to you, check your permissions under **Workspaces** or **Workspaces > Domains**.
+If you’re unsure which role applies to you, check your permissions under **Workspaces** or the **Domains** tab.
 
 

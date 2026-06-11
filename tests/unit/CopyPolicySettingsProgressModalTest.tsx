@@ -17,6 +17,7 @@ type MockConfirmModalProps = {
     confirmText?: string;
     cancelText?: string;
     shouldShowCancelButton?: boolean;
+    shouldHandleNavigationBack?: boolean;
     success?: boolean;
 };
 
@@ -232,6 +233,22 @@ describe('CopyPolicySettingsProgressModal', () => {
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
+        });
+
+        it('should clear state on cancel (browser back)', () => {
+            renderModal();
+
+            act(() => {
+                lastModalProps?.onCancel?.();
+            });
+
+            expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
+        });
+
+        it('should handle browser back navigation when visible', () => {
+            renderModal();
+
+            expect(lastModalProps?.shouldHandleNavigationBack).toBe(true);
         });
     });
 });

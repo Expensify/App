@@ -1,7 +1,7 @@
 ---
 title: Configure Company Card Settings
 description: Learn how to manage third-party company card feeds in Expensify, including commercial and direct feeds, accounting exports, and automated eReceipts.
-keywords: [New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, accounting exports, ereceipts, expense automation, card management]
+keywords: [New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, accounting exports, ereceipts, expense automation, card management, e-receipt, electronic receipt, digital receipt, auto-generated receipt]
 internalScope: Applies to Workspace Admins. Covers how to manage third-party feed settings on the workspace level. Does not cover company card troubleshooting, setup or card assignment. 
 ---
 

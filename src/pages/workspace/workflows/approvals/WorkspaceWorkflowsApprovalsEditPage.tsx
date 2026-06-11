@@ -19,17 +19,26 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isControlPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers, resolveOptimisticAgent} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, resolveOptimisticAgent} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearApprovalWorkflow, queueDeferredAgentWorkflowSave, removeApprovalWorkflow, setApprovalWorkflow, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
+import {
+    clearApprovalWorkflow,
+    queueDeferredAgentWorkflowSave,
+    removeApprovalWorkflow,
+    selectApprovalWorkflowForEdit,
+    setApprovalWorkflow,
+    updateApprovalWorkflow,
+    validateApprovalWorkflow,
+} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
 type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps &
@@ -39,7 +48,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowMetadata);
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const [optimisticAgentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -153,12 +163,26 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        if (isLoadingApprovalWorkflow) {
+            return;
+        }
+
         if (!currentApprovalWorkflow) {
             // Don't clear if we're in the middle of deleting - this prevents the UI from blinking
             if (isDeleting.current) {
                 return;
             }
             return clearApprovalWorkflow();
+        }
+
+        // Resume after a sub-page round-trip: keep onyx state to avoid wiping the user's pending edits (seed params force a fresh init).
+        const hasSeedRequest = !!route.params.seedApproverEmail || !!route.params.seedApproverAccountID;
+        const isResumingEdit =
+            !hasSeedRequest && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
+        if (isResumingEdit) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time snapshot guarded by isResumingEdit + early return; runs at most once per mount
+            setInitialApprovalWorkflow(currentApprovalWorkflow);
+            return;
         }
 
         // Seed approver[0] when opened from Workflows > Add agent (skip if already in the workflow).
@@ -173,7 +197,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const seedApproverEmail = route.params.seedApproverEmail;
         const seedApproverAccountID = route.params.seedApproverAccountID ? Number(route.params.seedApproverAccountID) : undefined;
         const hasSeedApproverEmail = seedApproverEmail !== undefined && seedApproverEmail !== '';
-        const hasSeedRequest = hasSeedApproverEmail || seedApproverAccountID !== undefined;
         let seedPersonalDetails;
         if (hasSeedApproverEmail) {
             seedPersonalDetails = getPersonalDetailByEmail(seedApproverEmail);
@@ -214,18 +237,13 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             }
         }
 
-        setApprovalWorkflow({
-            ...currentApprovalWorkflow,
-            approvers,
-            availableMembers: mergeWorkflowMembersWithAvailableMembers(currentApprovalWorkflow.members, defaultWorkflowMembers),
+        selectApprovalWorkflowForEdit({
+            workflow: currentApprovalWorkflow,
+            defaultWorkflowMembers,
             usedApproverEmails,
-            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
-            errors: null,
-            originalApprovers: currentApprovalWorkflow.approvers,
+            approvers,
         });
-        // Intentional: synchronizes the initial workflow snapshot when the current workflow changes.
-        // This runs alongside setApprovalWorkflow above and is part of the same logical update.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // Snapshot for diffing on save; runs alongside selectApprovalWorkflowForEdit above.
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [
         currentApprovalWorkflow,
@@ -234,9 +252,13 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         usedApproverEmails,
         policy,
         route.params.policyID,
+        route.params.firstApproverEmail,
         route.params.seedApproverEmail,
         route.params.seedApproverAccountID,
         personalDetails,
+        approvalWorkflow?.action,
+        approvalWorkflow?.originalApprovers,
+        isLoadingApprovalWorkflow,
     ]);
 
     // Reconcile a pending (optimistic) seeded approver with the real personal detail once

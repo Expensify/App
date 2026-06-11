@@ -22,7 +22,7 @@ type ReportFieldItemType = {
 
 type ReportFieldTypePickerProps = {
     /** Currently selected report field type */
-    defaultValue?: PolicyReportFieldType;
+    defaultValue: PolicyReportFieldType;
 
     /** Function to call when the user selects a report field type */
     onOptionSelected: (reportField: ReportFieldItemType) => void;

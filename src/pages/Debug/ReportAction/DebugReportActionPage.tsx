@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -61,11 +60,12 @@ function DebugReportActionPage({
                     Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
                 }}
                 onDelete={() => {
-                    Navigation.goBack();
-                    // We need to wait for navigation animations to finish before deleting an action,
-                    // otherwise the user will see a not found page briefly.
-                    InteractionManager.runAfterInteractions(() => {
-                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                    Navigation.goBack(undefined, {
+                        // We need to wait for navigation animations to finish before deleting an action,
+                        // otherwise the user will see a not found page briefly.
+                        afterTransition: () => {
+                            Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                        },
                     });
                 }}
                 validate={DebugUtils.validateReportActionDraftProperty}

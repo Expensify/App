@@ -1,11 +1,14 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import {RequestError} from '@octokit/request-error';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+import isTeamMember from '@github/libs/isTeamMember';
 
 const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR', 'COLLABORATOR']);
 const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
+
+// Internal Expensify engineers belong to this team. We can't rely on author_association, which only reports MEMBER for publicly visible org members.
+const ENGINEERING_TEAM_SLUG = 'engineering';
 
 const ISSUE_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
 
@@ -49,25 +52,17 @@ function logVerificationError(repoFullName: string, number: number, error: unkno
 
 async function isContributorPlusMember(username: string, orgToken: string): Promise<boolean> {
     GithubUtils.initOctokitWithToken(orgToken);
+    const isMember = await isTeamMember(GithubUtils.octokit, CONST.GITHUB_OWNER, CONTRIBUTOR_PLUS_TEAM_SLUG, username);
+    console.log(isMember ? `${username} is a Contributor+ member. Authorized.` : `${username} is not a Contributor+ member.`);
+    return isMember;
+}
 
-    try {
-        await GithubUtils.octokit.teams.getMembershipForUserInOrg({
-            org: CONST.GITHUB_OWNER,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            team_slug: CONTRIBUTOR_PLUS_TEAM_SLUG,
-            username,
-        });
-        console.log(`${username} is a Contributor+ member. Authorized.`);
-        return true;
-    } catch (error: unknown) {
-        if (error instanceof RequestError && error.status === 404) {
-            console.log(`${username} is not a Contributor+ member.`);
-            return false;
-        }
-        const message = error instanceof Error ? error.message : String(error);
-        core.warning(`Could not verify Contributor+ membership for ${username}. Assuming they are not a Contributor+: ${message}`);
-        return false;
-    }
+/**
+ * Returns whether a user is an internal Expensify engineer (member of the engineering org team).
+ */
+async function isInternalExpensifyEngineer(username: string, orgToken: string): Promise<boolean> {
+    GithubUtils.initOctokitWithToken(orgToken);
+    return isTeamMember(GithubUtils.octokit, CONST.GITHUB_OWNER, ENGINEERING_TEAM_SLUG, username);
 }
 
 async function isAuthorizedViaLinkedIssues(prBody: string, actor: string): Promise<boolean> {
@@ -155,6 +150,9 @@ async function run(): Promise<void> {
     });
 
     core.setOutput('IS_AUTHORIZED', isAuthorized);
+
+    const isInternal = await isInternalExpensifyEngineer(actor, orgToken);
+    core.setOutput('IS_INTERNAL', isInternal);
 }
 
 if (require.main === module) {
@@ -164,5 +162,5 @@ if (require.main === module) {
     });
 }
 
-export {isAuthorizedContributor, isContributorPlusMember};
+export {isAuthorizedContributor, isContributorPlusMember, isInternalExpensifyEngineer};
 export default run;

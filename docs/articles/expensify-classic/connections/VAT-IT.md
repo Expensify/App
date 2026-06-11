@@ -27,13 +27,13 @@ Businesses can reclaim VAT on various expenses, including:
 
 # How VAT Refunds Work
 
-VAT refund regulations vary by country and expense type, making the process complex. Global VaTax simplifies this by handling:
+VAT refund regulations vary by country and expense type, making the process complex. VAT IT simplifies this by handling:
 
 - VAT analysis and calculation  
 - Expense classification based on VAT eligibility  
 - Report preparation and submission to tax authorities  
 
-By syncing Expensify with Global VaTax, businesses can automate VAT reporting and reclaim eligible expenses efficiently.
+By syncing Expensify with VAT IT, businesses can automate VAT reporting and reclaim eligible expenses efficiently.
 
 ---
 
@@ -52,6 +52,6 @@ Once VAT IT prepares your VAT reclaim documents in the required languages, they 
 
 # Tracking Your VAT Reclaim
 
-After submission, you can monitor the progress of your VAT reclaim via the **Submission Analysis Report** in Global VaTax.
+After submission, you can monitor the progress of your VAT reclaim via the **Submission Analysis Report** in VAT IT.
 
 By integrating Expensify with VAT IT, businesses can maximize VAT recovery while reducing administrative burden.

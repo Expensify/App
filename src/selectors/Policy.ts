@@ -213,6 +213,8 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
+
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
@@ -260,6 +262,7 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
+    policyTypeSelector,
     areInvoicesEnabledSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,

@@ -142,6 +142,16 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         Navigation.goBack(backTo, {compareParams: false});
     };
 
+    // Fall back to goBack — plain Navigation.goBack() closes the modal after a refresh.
+    const onBackButtonPress = () => {
+        const {backTo} = route.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM];
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        goBack();
+    };
+
     const nextStep = () => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text ?? '', avatar: member.icons?.at(0)?.source, email: member.login ?? ''}));
         setApprovalWorkflowMembers(members);
@@ -206,7 +216,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <ApproverSelectionList
                 testID="WorkspaceWorkflowsApprovalsExpensesFromPage"
                 headerTitle={translate('workflowsExpensesFromPage.title')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={onBackButtonPress}
                 subtitle={
                     approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE &&
                     !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>

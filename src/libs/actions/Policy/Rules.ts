@@ -1,6 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {AddPolicyAIRuleParams, DeletePolicyAIRuleParams, UpdatePolicyAIRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -12,7 +13,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type Policy from '@src/types/onyx/Policy';
-import type {CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {AIRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
  * Builds the tax object from a tax key and policy
@@ -206,7 +208,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                         codingRules: {
                             [targetRuleID]: {
                                 ...failureRuleValue,
-                                pendingAction: null,
+                                pendingAction: isEditing ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
@@ -324,4 +326,276 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule, getTransactionsMatchingCodingRule};
+function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
+    if (!policyID || !aiRuleID || !prompt) {
+        Log.warn('Invalid params for addPolicyAIRule', {policyID, aiRuleID, prompt});
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                ruleID: aiRuleID,
+                                created: new Date().toISOString(),
+                                prompt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                pendingAction: null,
+                                errors: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: AddPolicyAIRuleParams = {
+        policyID,
+        aiRuleID,
+        prompt,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_POLICY_AI_RULE, parameters, onyxData);
+}
+
+function updatePolicyAIRule(policyID: string, aiRuleID: string, prompt: string, previousPrompt: string) {
+    if (!policyID || !aiRuleID || !prompt) {
+        Log.warn('Invalid params for updatePolicyAIRule', {policyID, aiRuleID, prompt});
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                prompt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                pendingAction: null,
+                                errors: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                prompt: previousPrompt,
+                                pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdatePolicyAIRuleParams = {
+        policyID,
+        aiRuleID,
+        prompt,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_AI_RULE, parameters, onyxData);
+}
+
+function deletePolicyAIRule(policy: Policy, aiRuleID: string) {
+    if (!policy.id || !aiRuleID) {
+        Log.warn('Invalid params for deletePolicyAIRule', {policyID: policy.id, aiRuleID});
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+    const existingRule = policy.rules?.aiRules?.[aiRuleID];
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: null,
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        aiRules: {
+                            [aiRuleID]: {
+                                ...existingRule,
+                                pendingAction: null,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: DeletePolicyAIRuleParams = {
+        policyID: policy.id,
+        aiRuleID,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_AI_RULE, parameters, onyxData);
+}
+
+function clearPolicyCodingRuleErrors(policyID: string, ruleID: string, rule: CodingRule | undefined) {
+    if (!rule) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(policyKey, {
+            rules: {
+                codingRules: {
+                    [ruleID]: null,
+                },
+            },
+        });
+        return;
+    }
+
+    Onyx.merge(policyKey, {
+        rules: {
+            codingRules: {
+                [ruleID]: {
+                    errors: null,
+                },
+            },
+        },
+    });
+}
+
+function clearPolicyAIRuleErrors(policyID: string, aiRuleID: string, aiRule: AIRule | undefined) {
+    if (!aiRule) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    if (aiRule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(policyKey, {
+            rules: {
+                aiRules: {
+                    [aiRuleID]: null,
+                },
+            },
+        });
+        return;
+    }
+
+    Onyx.merge(policyKey, {
+        rules: {
+            aiRules: {
+                [aiRuleID]: {
+                    errors: null,
+                },
+            },
+        },
+    });
+}
+
+export {
+    openPolicyRulesPage,
+    setPolicyCodingRule,
+    deletePolicyCodingRule,
+    getTransactionsMatchingCodingRule,
+    addPolicyAIRule,
+    updatePolicyAIRule,
+    deletePolicyAIRule,
+    clearPolicyCodingRuleErrors,
+    clearPolicyAIRuleErrors,
+};

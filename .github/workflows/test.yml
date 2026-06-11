@@ -47,8 +47,8 @@ jobs:
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
-        # v5
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
+        # v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         with:
           files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
           flags: unit
@@ -71,8 +71,8 @@ jobs:
 
       - name: Upload coverage to Codecov (token required)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        # v5
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
+        # v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         with:
           token: ${{ steps.load-codecov-token.outputs.CODECOV_TOKEN }}
           files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info

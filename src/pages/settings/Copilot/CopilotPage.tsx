@@ -4,7 +4,6 @@ import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -28,7 +27,7 @@ import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDelegateErrorsByField, clearDelegatorErrors, openSecuritySettingsPage, removeDelegate} from '@libs/actions/Delegate';
+import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate, removeDelegator} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -51,7 +50,7 @@ const accountDelegationSelector = (accountValue: Account | undefined) => ({
 });
 
 function CopilotPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ThreeDots', 'Trashcan', 'UserPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'CircleSlash', 'Pencil', 'ThreeDots', 'UserPlus']);
     const illustrations = useMemoizedLazyIllustrations(['Copilots', 'Members']);
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
@@ -69,6 +68,8 @@ function CopilotPage() {
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [selectedDelegate, setSelectedDelegate] = useState<Delegate | undefined>();
     const [selectedEmail, setSelectedEmail] = useState<string | undefined>();
+    const [shouldShowDelegatorPopoverMenu, setShouldShowDelegatorPopoverMenu] = useState(false);
+    const [selectedDelegator, setSelectedDelegator] = useState<Delegate | undefined>();
 
     const {showConfirmModal} = useConfirmModal();
     const showRemoveCopilotModal = useCallback(() => {
@@ -81,6 +82,20 @@ function CopilotPage() {
             danger: true,
         });
     }, [showConfirmModal, translate]);
+
+    const showRemoveDelegatorModal = (delegatorEmail: string) => {
+        const personalDetail = personalDetailsByLogin[delegatorEmail.toLowerCase()];
+        const delegatorName = personalDetail?.displayName ?? formatPhoneNumber(delegatorEmail);
+
+        return showConfirmModal({
+            title: translate('delegate.removeCopilotAccessTitle'),
+            prompt: translate('delegate.removeCopilotAccessConfirmation', {delegatorName}),
+            confirmText: translate('delegate.removeCopilotAccessConfirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    };
 
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
 
@@ -111,15 +126,19 @@ function CopilotPage() {
         });
     }, [delegateButtonRef]);
 
+    const captureDelegateButtonRef = useCallback((nativeEvent: GestureResponderEvent | KeyboardEvent) => {
+        delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+    }, []);
+
     const showPopoverMenu = useCallback(
         (nativeEvent: GestureResponderEvent | KeyboardEvent, delegate: Delegate) => {
-            delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+            captureDelegateButtonRef(nativeEvent);
             setMenuPosition();
             setShouldShowDelegatePopoverMenu(true);
             setSelectedDelegate(delegate);
             setSelectedEmail(delegate.email);
         },
-        [setMenuPosition],
+        [captureDelegateButtonRef, setMenuPosition],
     );
 
     useLayoutEffect(() => {
@@ -134,6 +153,14 @@ function CopilotPage() {
             popoverPositionListener.remove();
         };
     }, [setMenuPosition]);
+
+    const showDelegatorPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegator: Delegate) => {
+        captureDelegateButtonRef(nativeEvent);
+        setMenuPosition();
+        setShouldShowDelegatorPopoverMenu(true);
+        setSelectedDelegator(delegator);
+        setSelectedEmail(delegator.email);
+    };
 
     const renderTitleWithRole = useCallback(
         (titleText: string, descriptionText: string, role: DelegateRole | undefined) => (
@@ -233,61 +260,46 @@ function CopilotPage() {
         actingDelegateEmail,
     ]);
 
-    const delegatorMenuItems: MenuItemProps[] = useMemo(() => {
-        const sortedDelegators = sortAlphabetically(
-            delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
-            'sortKey',
-            localeCompare,
-        );
-        return sortedDelegators.map(({email, role, pendingAction}) => {
-            const personalDetail = personalDetailsByLogin[email.toLowerCase()];
-            const formattedEmail = formatPhoneNumber(email);
-            const connectError = getLatestError(errorFields?.connect?.[email]);
-            const isCurrentUser = email === session?.email;
-            const isPending = !!pendingAction;
-            const titleText = personalDetail?.displayName ?? formattedEmail;
-            const descriptionText = personalDetail?.displayName ? formattedEmail : '';
-
-            return {
-                key: email,
-                titleComponent: renderTitleWithRole(titleText, descriptionText, role),
-                avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
-                iconType: CONST.ICON_TYPE_AVATAR,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                disabled: isPending || isCurrentUser,
-                onPress: () => switchToDelegator(email),
-                role: CONST.ROLE.LINK,
-                error: connectError,
-                onPendingActionDismiss: () => clearDelegatorErrors({delegatedAccess: account?.delegatedAccess}),
-                shouldShowRightComponent: true,
-                rightComponent: (
-                    <View style={[styles.ml2, styles.alignSelfCenter]}>
-                        <Button
-                            small
-                            success
-                            text={translate('delegate.switch')}
-                            isDisabled={isPending || isCurrentUser}
-                            onPress={() => switchToDelegator(email)}
-                            sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
-                        />
-                    </View>
-                ),
-            };
-        });
-    }, [
-        delegators,
-        styles,
-        translate,
-        formatPhoneNumber,
-        account?.delegatedAccess,
-        personalDetailsByLogin,
+    const sortedDelegators = sortAlphabetically(
+        delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        'sortKey',
         localeCompare,
-        session?.email,
-        errorFields,
-        switchToDelegator,
-        renderTitleWithRole,
-    ]);
+    );
+    const delegatorMenuItems: MenuItemProps[] = sortedDelegators.map(({email, role, pendingAction}) => {
+        const personalDetail = personalDetailsByLogin[email.toLowerCase()];
+        const formattedEmail = formatPhoneNumber(email);
+        const connectError = getLatestError(errorFields?.connect?.[email]);
+        const removeDelegatorError = getLatestError(errorFields?.removeDelegator?.[email]);
+        const error = getLatestError({...connectError, ...removeDelegatorError});
+        const isCurrentUser = email === session?.email;
+        const isPending = !!pendingAction;
+        const titleText = personalDetail?.displayName ?? formattedEmail;
+        const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+
+        return {
+            key: email,
+            titleComponent: renderTitleWithRole(titleText, descriptionText, role),
+            avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
+            iconType: CONST.ICON_TYPE_AVATAR,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+            disabled: isPending || isCurrentUser,
+            onPress: (e: GestureResponderEvent | KeyboardEvent) => {
+                showDelegatorPopoverMenu(e, {email, role});
+            },
+            pendingAction,
+            shouldForceOpacity: !!pendingAction,
+            error,
+            onPendingActionDismiss: () => {
+                clearDelegateErrorsByField({email, fieldName: 'connect', delegatedAccess: account?.delegatedAccess});
+                clearDelegateErrorsByField({email, fieldName: 'removeDelegator', delegatedAccess: account?.delegatedAccess});
+            },
+            iconRight: icons.ThreeDots,
+            shouldShowRightIcon: !isCurrentUser,
+            success: selectedEmail === email,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATOR_ITEM,
+        };
+    });
 
     const delegatePopoverMenuItems: PopoverMenuItem[] = [
         {
@@ -311,7 +323,7 @@ function CopilotPage() {
         },
         {
             text: translate('delegate.removeCopilot'),
-            icon: icons.Trashcan,
+            icon: icons.CircleSlash,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_REMOVE,
             onPress: () => {
                 if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
@@ -342,9 +354,44 @@ function CopilotPage() {
         },
     ];
 
+    const delegatorPopoverMenuItems: PopoverMenuItem[] = [
+        {
+            text: translate('delegate.switch'),
+            icon: icons.ArrowCircleClockwise,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS,
+            onPress: () => {
+                setShouldShowDelegatorPopoverMenu(false);
+                setSelectedDelegator(undefined);
+                setSelectedEmail(undefined);
+                switchToDelegator(selectedDelegator?.email ?? '');
+            },
+        },
+        {
+            text: translate('delegate.removeCopilotAccess'),
+            icon: icons.CircleSlash,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATOR_REMOVE,
+            onPress: () => {
+                modalClose(() => {
+                    setShouldShowDelegatorPopoverMenu(false);
+                    setSelectedEmail(undefined);
+                    showRemoveDelegatorModal(selectedDelegator?.email ?? '').then((result) => {
+                        if (result.action === ModalActions.CLOSE) {
+                            setSelectedDelegator(undefined);
+                        } else {
+                            removeDelegator({email: selectedDelegator?.email ?? '', delegatedAccess: account?.delegatedAccess});
+                            setSelectedDelegator(undefined);
+                        }
+                    });
+                });
+            },
+        },
+    ];
+
     useEffect(() => {
         openSecuritySettingsPage();
     }, []);
+
+    const delegateAnchorRef = delegateButtonRef as RefObject<View | null>;
 
     return (
         <ScreenWrapper
@@ -428,7 +475,7 @@ function CopilotPage() {
                             </Section>
                             <PopoverMenu
                                 isVisible={shouldShowDelegatePopoverMenu}
-                                anchorRef={delegateButtonRef as RefObject<View | null>}
+                                anchorRef={delegateAnchorRef}
                                 anchorPosition={anchorPosition}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -437,6 +484,20 @@ function CopilotPage() {
                                 menuItems={delegatePopoverMenuItems}
                                 onClose={() => {
                                     setShouldShowDelegatePopoverMenu(false);
+                                    setSelectedEmail(undefined);
+                                }}
+                            />
+                            <PopoverMenu
+                                isVisible={shouldShowDelegatorPopoverMenu}
+                                anchorRef={delegateAnchorRef}
+                                anchorPosition={anchorPosition}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                }}
+                                menuItems={delegatorPopoverMenuItems}
+                                onClose={() => {
+                                    setShouldShowDelegatorPopoverMenu(false);
                                     setSelectedEmail(undefined);
                                 }}
                             />

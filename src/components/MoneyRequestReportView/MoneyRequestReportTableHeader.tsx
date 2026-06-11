@@ -2,15 +2,15 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import SortableTableHeader from '@components/Search/SortableTableHeader';
-import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
+import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@components/Search/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSortableColumnName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 type SearchTableHeaderProps = {
-    sortBy?: SearchColumnType;
+    sortBy?: SearchSortBy;
     sortOrder?: SortOrder;
-    onSortPress: (column: SearchColumnType, order: SortOrder) => void;
+    onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     dateColumnSize: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;

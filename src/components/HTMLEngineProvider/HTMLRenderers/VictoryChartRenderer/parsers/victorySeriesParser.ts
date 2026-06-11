@@ -1,10 +1,9 @@
 import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult, RawChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
-import isNonNullObject from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/isNonNullObject';
-import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseArrayAttribute';
+import parseRawChartData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawChartData';
 
 /**
  * Parse data points from a `<victorybar>` or `<victoryline>` node.
@@ -13,8 +12,7 @@ import parseArrayAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Vi
 function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null): PartialProcessNodeResult {
     const isHorizontal = rootProcessedResult?.isHorizontal;
     const categories = rootProcessedResult?.categories;
-    const rawPoints = parseArrayAttribute<RawChartData>(tnode.attributes.data);
-    const points = rawPoints.filter(isNonNullObject<RawChartData>);
+    const points = parseRawChartData(tnode.attributes.data);
     const yKey = getYKey(tnode);
     const data: Record<string, CartesianChartData> = {};
     for (const point of points) {

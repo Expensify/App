@@ -6,8 +6,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {BotAvatar} from '@components/Icon/DefaultBotAvatars';
-import {botAvatarIDs, botAvatars} from '@components/Icon/DefaultBotAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -16,6 +14,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
+import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {isMobile} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -48,7 +48,8 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
-    const [avatarSource, setAvatarSource] = useState<AvatarSource>(() => botAvatars[Math.floor(Math.random() * botAvatars.length)]);
+    const [selectedPresetID, setSelectedPresetID] = useState<AgentAvatarID | null>(() => AGENT_AVATARS.ordered.at(Math.floor(Math.random() * AGENT_AVATARS.ordered.length))?.id ?? null);
+    const [uploadedURI, setUploadedURI] = useState<string | null>(null);
     const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
 
     useFocusEffect(
@@ -59,22 +60,22 @@ function AddAgentPage({route}: AddAgentPageProps) {
             }
             clearPendingAvatar();
 
-            if (pending.type === 'preset') {
-                const matchingAvatar = botAvatars.find((av) => botAvatarIDs.get(av) === pending.id);
-                if (matchingAvatar) {
-                    setAvatarSource(() => matchingAvatar);
-                }
+            if (pending.type === 'preset' && AGENT_AVATARS.isAvatarID(pending.id)) {
+                setSelectedPresetID(pending.id);
+                setUploadedURI(null);
                 pendingFileRef.current = null;
-            } else {
-                setAvatarSource(pending.uri);
+            } else if (pending.type !== 'preset') {
+                setSelectedPresetID(null);
+                setUploadedURI(pending.uri);
                 pendingFileRef.current = {file: pending.file, uri: pending.uri};
             }
         }, []),
     );
 
+    const avatarSource: AvatarSource = selectedPresetID ? (AGENT_AVATARS.getLocal(selectedPresetID) ?? '') : (uploadedURI ?? '');
+
     const handleAvatarPress = () => {
-        const presetID = botAvatarIDs.get(avatarSource as BotAvatar);
-        setInitialPresetID(presetID);
+        setInitialPresetID(selectedPresetID ?? undefined);
         setNavigationToken();
         setReturnRoute(isWorkflowSeedFlow ? ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail}) : ROUTES.SETTINGS_AGENTS_ADD.getRoute());
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
@@ -98,7 +99,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
         // screen and let it render the agent with opacity until CREATE_AGENT resolves.
         const {optimisticAccountID} = pendingFile
             ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
-            : createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar), undefined, undefined, policyID);
+            : createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
 
         if (isWorkflowSeedFlow && policyID && workflowApproverEmail) {
             // Drop the user on the Edit Approvers screen for the workflow they came from, with

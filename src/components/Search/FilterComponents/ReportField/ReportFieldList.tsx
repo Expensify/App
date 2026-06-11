@@ -4,8 +4,8 @@ import type {PolicyReportField} from '@src/types/onyx';
 
 type ReportFieldListProps = {
     field: PolicyReportField;
-    value: string;
-    onChange: (newValue: string) => void;
+    value: string | undefined;
+    onChange: (newValue: string | undefined) => void;
 };
 
 function ReportFieldList({field, value, onChange}: ReportFieldListProps) {
@@ -13,13 +13,14 @@ function ReportFieldList({field, value, onChange}: ReportFieldListProps) {
         value: fieldValue,
         text: fieldValue,
     }));
-    const selectedValue = {text: value, value};
+    const selectedValue = value ? {text: value, value} : undefined;
 
     return (
         <SingleSelect
             items={items}
             value={selectedValue}
-            onChange={(item) => onChange(item.value)}
+            allowDeselect
+            onChange={(item) => onChange(item?.value)}
             hasHeader
         />
     );

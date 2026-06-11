@@ -10,6 +10,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport} from '@libs/actions/Report';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -22,11 +24,11 @@ import {
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {useReportActionItemActions, useReportActionItemState} from '@pages/inbox/report/ReportActionItemContext';
+import {useReportActionItemActions} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import TransactionPreview from './TransactionPreview';
@@ -55,7 +57,6 @@ type MoneyRequestActionProps = {
 };
 
 function MoneyRequestAction({action, chatReportID, requestReportID, reportID, isHovered = false, style, isWhisper = false}: MoneyRequestActionProps) {
-    const {shouldOpenReportInRHP} = useReportActionItemState();
     const {onPreviewPressed} = useReportActionItemActions();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -85,7 +86,7 @@ function MoneyRequestAction({action, chatReportID, requestReportID, reportID, is
             return;
         }
         if (isSplitBillAction) {
-            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(action.reportActionID)));
             return;
         }
 
@@ -102,20 +103,11 @@ function MoneyRequestAction({action, chatReportID, requestReportID, reportID, is
                 iouReport,
                 iouReportAction: action,
             });
-            if (shouldOpenReportInRHP) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
-                return;
-            }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReport?.reportID, undefined, undefined, Navigation.getActiveRoute()));
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: transactionThreadReport?.reportID}));
             return;
         }
 
-        if (shouldOpenReportInRHP) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: action?.childReportID, backTo: Navigation.getActiveRoute()}));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: action?.childReportID}));
     };
 
     const isDeletedParentAction = isDeletedParentActionReportActionsUtils(action);

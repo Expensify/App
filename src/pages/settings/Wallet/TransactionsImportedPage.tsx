@@ -154,6 +154,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImporting}
+                learnMoreLink={CONST.IMPORT_SPREADSHEET.IMPORT_TRANSACTIONS_ARTICLE_LINK}
             />
         </ScreenWrapper>
     );

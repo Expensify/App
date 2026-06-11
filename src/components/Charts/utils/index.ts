@@ -212,11 +212,18 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], pieGeometry: {centerX: number; centerY: number; radius: number}, startAngle: number = VictoryTheme.pie.startAngle): PieSlice[] {
+function processDataIntoSlices(
+    data: ChartDataPoint[],
+    pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
+    startAngle: number = VictoryTheme.pie.startAngle,
+): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
     }
+
+    // Anchor the tooltip at the midpoint of the donut ring (between inner and outer radius).
+    const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
 
     return data
         .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
@@ -226,8 +233,8 @@ function processDataIntoSlices(data: ChartDataPoint[], pieGeometry: {centerX: nu
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
                 const angle = acc.angle + sweepAngle / 2;
-                const tooltipX = pieGeometry.centerX + pieGeometry.radius * VictoryTheme.tooltip.pieRadiusDistance * Math.cos((angle * Math.PI) / 180);
-                const tooltipY = pieGeometry.centerY + pieGeometry.radius * VictoryTheme.tooltip.pieRadiusDistance * Math.sin((angle * Math.PI) / 180);
+                const tooltipX = pieGeometry.centerX + tooltipRadius * Math.cos((angle * Math.PI) / 180);
+                const tooltipY = pieGeometry.centerY + tooltipRadius * Math.sin((angle * Math.PI) / 180);
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,

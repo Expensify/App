@@ -328,10 +328,23 @@ function ComposerWithSuggestions({
         focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
+    const shouldIgnoreEditSelectionResetRef = useRef(false);
+    const ignoreEditSelectionResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
     const handleEditFocus = useCallback(() => {
         focus(true, undefined, true);
         onFocus();
-    }, [focus, onFocus]);
+
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
+            shouldIgnoreEditSelectionResetRef.current = true;
+            clearTimeout(ignoreEditSelectionResetTimeoutRef.current);
+            ignoreEditSelectionResetTimeoutRef.current = setTimeout(() => {
+                shouldIgnoreEditSelectionResetRef.current = false;
+            }, CONST.COMPOSER_FOCUS_DELAY);
+        }
+    }, [focus, onFocus, editingState]);
+
+    useEffect(() => () => clearTimeout(ignoreEditSelectionResetTimeoutRef.current), []);
 
     const handleEditValueChange = useCallback(
         (nextValue: string) => {
@@ -697,6 +710,18 @@ function ComposerWithSuggestions({
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
             const newSelection = {...e.nativeEvent.selection};
+
+            if (shouldIgnoreEditSelectionResetRef.current && newSelection.start === 0 && newSelection.end === 0) {
+                const savedSelection = currentEditMessageSelection ?? selection;
+                if ((savedSelection.start ?? 0) > 0 || (savedSelection.end ?? 0) > 0) {
+                    const restoredStart = savedSelection.start ?? 0;
+                    const restoredEnd = savedSelection.end ?? restoredStart;
+                    setSelection({start: restoredStart, end: restoredEnd});
+                    ReportActionComposeUtils.updateNativeSelectionValue(composerRef, restoredStart, restoredEnd);
+                    return;
+                }
+            }
+
             setSelection(newSelection);
             setCurrentEditMessageSelection((prevSelection) => ({
                 ...prevSelection,
@@ -708,7 +733,7 @@ function ComposerWithSuggestions({
             }
             suggestionsRef.current?.onSelectionChange?.(e);
         },
-        [setCurrentEditMessageSelection, suggestionsRef],
+        [setCurrentEditMessageSelection, suggestionsRef, currentEditMessageSelection, selection],
     );
 
     const hideSuggestionMenu = useCallback(

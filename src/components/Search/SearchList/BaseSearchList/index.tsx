@@ -9,12 +9,15 @@ import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/typ
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useOnyx from '@hooks/useOnyx';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {isModalActiveSelector} from '@src/selectors/Modal';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
@@ -64,6 +67,8 @@ function BaseSearchList({
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
 
+    const [isModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
+
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
             return;
@@ -76,7 +81,7 @@ function BaseSearchList({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: flattenedItemsLength - 1,
-        isActive: isFocused,
+        isActive: isFocused && !isModalVisible,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
@@ -143,7 +148,7 @@ function BaseSearchList({
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
-        isActive: isFocused && focusedIndex >= 0,
+        isActive: isFocused && focusedIndex >= 0 && !isModalVisible,
         // Propagation is controlled manually in selectFocusedOption based on editing state
         shouldStopPropagation: false,
     });

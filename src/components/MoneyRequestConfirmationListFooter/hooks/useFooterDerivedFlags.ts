@@ -1,5 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {derivedFlagsSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -15,8 +17,8 @@ type UseFooterDerivedFlagsParams = {
     /** Type of IOU being confirmed (excluding REQUEST and SEND) */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
-    /** The transaction being confirmed */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** ID of the active transaction (the hook resolves a narrow slice internally) */
+    transactionID: string | undefined;
 
     /** The policy that owns the confirmation context */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -49,7 +51,7 @@ type UseFooterDerivedFlagsParams = {
 function useFooterDerivedFlags({
     action,
     iouType,
-    transaction,
+    transactionID,
     policy,
     policyTagLists,
     isPolicyExpenseChat,
@@ -62,7 +64,9 @@ function useFooterDerivedFlags({
 }: UseFooterDerivedFlagsParams) {
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
-    // Self-derived iou* values from transaction
+    const transaction = useTransactionSelector(transactionID, derivedFlagsSliceSelector);
+
+    // Self-derived iou* values from the slice
     const iouCurrencyCode = getCurrency(transaction);
     const isScan = isScanRequest(transaction);
 

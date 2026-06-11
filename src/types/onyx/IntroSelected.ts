@@ -38,6 +38,9 @@ type IntroSelected = {
 
     /** The previous onboarding choices of the user */
     previousChoices?: OnboardingPurpose[];
+
+    /** The personal track goal selected during onboarding */
+    personalTrackGoal?: string;
 };
 
 export default IntroSelected;

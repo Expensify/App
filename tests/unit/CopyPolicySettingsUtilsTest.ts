@@ -1,3 +1,4 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
@@ -5,6 +6,7 @@ import {
     FEATURE_ROWS,
     getAccountingConnectionIdentity,
     getConnectionCompanyID,
+    getTimeTrackingCopySettingsDescription,
     isCopyPolicySettingsPartEnabledOnSource,
     isTargetCompatibleForAccountingPart,
 } from '@libs/CopyPolicySettingsUtils';
@@ -186,6 +188,42 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
         });
 
+        it('shows time tracking only when the feature is enabled on the source', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', baseContext)).toBe(false);
+
+            const timeTrackingPolicy = createRandomPolicy(5);
+            timeTrackingPolicy.units = {time: {enabled: true, rate: 75}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: timeTrackingPolicy})).toBe(true);
+
+            const disabledWithRatePolicy = createRandomPolicy(6);
+            disabledWithRatePolicy.units = {time: {enabled: false, rate: 50}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: disabledWithRatePolicy})).toBe(false);
+        });
+
+        it('describes time tracking without currency when a default rate exists', () => {
+            const translate = ((key: string) => {
+                if (key === 'common.enabled') {
+                    return 'Enabled';
+                }
+                if (key === 'workspace.moreFeatures.timeTracking.defaultHourlyRate') {
+                    return 'Default hourly rate';
+                }
+                return key;
+            }) as LocalizedTranslate;
+            const policy = createRandomPolicy(7);
+            policy.units = {time: {enabled: true, rate: 75}};
+
+            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled, Default hourly rate: 75');
+        });
+
+        it('describes time tracking as enabled when no default rate is set', () => {
+            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
+            const policy = createRandomPolicy(8);
+            policy.units = {time: {enabled: true}};
+
+            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled');
+        });
+
         it('hides distance rates when the feature flag is off even if rates exist', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', baseContext)).toBe(false);
 
@@ -280,6 +318,7 @@ describe('CopyPolicySettingsUtils', () => {
             expect(parts).toContain('perDiem');
             expect(parts).toContain('invoices');
             expect(parts).toContain('travel');
+            expect(parts).toContain('timeTracking');
         });
     });
 });

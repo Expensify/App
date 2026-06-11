@@ -49,7 +49,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS] ?? {}),
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const validate = useCallback(

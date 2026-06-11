@@ -93,7 +93,7 @@ function CheckboxWithLabel({
 
     return (
         <View style={style}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.userSelectNone]}>
                 <Checkbox
                     isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}

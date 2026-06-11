@@ -6,6 +6,7 @@ import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+import {CONCIERGE_DRAFT_STATUS} from './conciergeDraftState';
 import usePusherDraftPacing from './usePusherDraftPacing';
 
 type ConciergeDraftState = {
@@ -70,7 +71,7 @@ function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{repor
     const stateValue: ConciergeDraftState = {
         draftReportAction: draft?.reportAction ?? null,
         hasActiveDraft: !!draft?.reportAction,
-        isDraftPendingCompletion: !!draft?.pusherPendingCompletionEvent,
+        isDraftPendingCompletion: !!draft?.reportAction && (draft.status !== CONCIERGE_DRAFT_STATUS.COMPLETED || !!draft.pusherPendingCompletionEvent),
     };
     const actionsValue: ConciergeDraftActions = {
         clearDraft,

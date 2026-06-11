@@ -58,7 +58,7 @@ function ProductTrainingTooltip({optionItem, children}: ProductTrainingTooltipPr
     const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === optionItem.reportID;
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(optionItem, onboarding, conciergeReportID, onboardingPurpose);
-    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(optionItem) && isChatUsedForOnboarding : isConciergeChatReport(optionItem);
+    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(optionItem) && isChatUsedForOnboarding : isConciergeChatReport(optionItem, conciergeReportID);
 
     // Skip the inner component (and its heavy hooks) entirely when the row can never show a tooltip.
     const shouldEvaluateTooltip = shouldShowRBRorGBRTooltip || shouldShowGetStartedTooltip;

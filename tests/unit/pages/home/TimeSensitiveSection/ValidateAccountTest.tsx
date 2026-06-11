@@ -108,8 +108,10 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
 
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
         await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, email: validatedEmail});
-        await Onyx.set(ONYXKEYS.LOGIN_LIST, {
-            [validatedEmail]: {
+        await Onyx.set(ONYXKEYS.LOGINS, {
+            [`1_${validatedEmail}`]: {
+                partnerID: 1,
+                partnerUserID: validatedEmail,
                 validatedDate: '2026-03-18 00:00:00.000',
             },
         });

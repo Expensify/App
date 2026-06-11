@@ -46,6 +46,9 @@ type UseOdometerNavigationParams = {
     /** Current user's account ID — passed through to the navigation util. */
     currentUserAccountID: number;
 
+    /** Current user's localCurrencyCode — passed through to the navigation util for draft-workspace creation. */
+    currentUserLocalCurrency: string | undefined;
+
     /** Optional report to return to after submission completes. */
     backToReport: string | undefined;
 
@@ -112,6 +115,7 @@ function useOdometerNavigation({
     personalDetails,
     currentUserLogin,
     currentUserAccountID,
+    currentUserLocalCurrency,
     backToReport,
     shouldSkipConfirmation,
     defaultExpensePolicy,
@@ -154,6 +158,7 @@ function useOdometerNavigation({
             personalDetails,
             currentUserLogin,
             currentUserAccountID,
+            currentUserLocalCurrency,
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,

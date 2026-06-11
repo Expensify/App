@@ -363,8 +363,8 @@ describe('OnboardingGuard', () => {
             expect(result.route).toContain('onboarding');
         });
 
-        it('should redirect invited or group members when they have not completed onboarding', async () => {
-            // Given an invited user from OD signup who has not completed the NewDot guided setup
+        it('should skip onboarding for invited or group members even when they have not completed onboarding', async () => {
+            // Given an invited user who has not completed the NewDot guided setup
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
             });
@@ -378,11 +378,10 @@ describe('OnboardingGuard', () => {
             await waitForBatchedUpdates();
 
             // When the guard evaluates on a non-onboarding screen
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
 
-            // Then redirect to onboarding
-            expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
+            // Then allow navigation (skip onboarding) because the user is an invited workspace member
+            expect(result.type).toBe('ALLOW');
         });
     });
 

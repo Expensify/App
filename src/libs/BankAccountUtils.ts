@@ -1,8 +1,13 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
+
+/** Responses of the additional KYB verification checks, hinting at which documents the user still needs to upload */
+type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalApiResponses'];
 
 function getDefaultCompanyWebsite(session: OnyxEntry<OnyxTypes.Session>, account: OnyxEntry<OnyxTypes.Account>, shouldShowPublicDomain = false): string {
     return account?.isFromPublicDomain && !shouldShowPublicDomain ? '' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`;
@@ -98,14 +103,88 @@ function hasPersonalBankAccountMissingInfo(bankAccountList: OnyxEntry<OnyxTypes.
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isPersonalBankAccountMissingInfo(bankAccount?.accountData));
 }
 
+/** Compares error keys and searches for overlap. Based on the result we decide whether to gather extra file
+ * @param status - status of the check
+ * @param qualifiers - errors returned after the check
+ * @returns boolean - whether to gather additional address verification file
+ */
+function isUserAddressVerificationRequired(
+    status: string | undefined,
+    qualifiers:
+        | Array<{
+              key: string;
+              message: string;
+          }>
+        | undefined,
+): boolean {
+    return (
+        status !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS &&
+        !!CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.ADDRESS.find((error) => qualifiers?.map((qualifier) => qualifier.key).includes(error))
+    );
+}
+
+/** Compares error keys and searches for overlap. Based on the result we decide whether to gather extra file
+ * @param status - status of the check
+ * @param qualifiers - errors returned after the check
+ * @returns boolean - whether to gather additional DOB verification file
+ */
+function isUserDOBVerificationRequired(
+    status: string | undefined,
+    qualifiers:
+        | Array<{
+              key: string;
+              message: string;
+          }>
+        | undefined,
+): boolean {
+    return (
+        status !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS && !!CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.DOB.find((error) => qualifiers?.map((qualifier) => qualifier.key).includes(error))
+    );
+}
+
+/** Builds the list of KYB document inputIDs the user must upload, based on which verification checks did not pass.
+ * Returns an empty array when no documents are required (e.g. automated verification passed), in which case the
+ * KYB documents step should be skipped entirely.
+ * @param externalApiResponses - statuses of the external verification checks from the reimbursement account
+ * @returns inputIDs of the documents that still need to be uploaded
+ */
+function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses): string[] {
+    const requiredDocuments: string[] = [];
+
+    const companyTaxIDStatus = externalApiResponses?.companyTaxID?.status;
+    if (companyTaxIDStatus !== undefined && companyTaxIDStatus !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS) {
+        requiredDocuments.push(INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID);
+    }
+
+    const lexisNexisStatus = externalApiResponses?.lexisNexisInstantIDResult?.status;
+    if (lexisNexisStatus !== undefined && lexisNexisStatus !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS) {
+        requiredDocuments.push(INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT, INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION);
+    }
+
+    const requestorIdentityStatus = externalApiResponses?.requestorIdentityID?.status;
+    const requestorIdentityQualifiers = externalApiResponses?.requestorIdentityID?.apiResult?.qualifiers?.qualifier;
+    if (isUserAddressVerificationRequired(requestorIdentityStatus, requestorIdentityQualifiers)) {
+        requiredDocuments.push(INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION);
+    }
+    if (isUserDOBVerificationRequired(requestorIdentityStatus, requestorIdentityQualifiers)) {
+        requiredDocuments.push(INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION);
+    }
+
+    return requiredDocuments;
+}
+
 export {
     getDefaultCompanyWebsite,
+    getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
+    isUserAddressVerificationRequired,
+    isUserDOBVerificationRequired,
     doesPolicyHavePartiallySetupBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
     PERSONAL_INFO_STEP,
 };
+export type {KYBVerificationResponses};

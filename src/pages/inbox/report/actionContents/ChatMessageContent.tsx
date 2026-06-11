@@ -29,7 +29,7 @@ type ChatMessageContentProps = {
     action: OnyxTypes.ReportAction;
     policyID: string | undefined;
     reportID: string | undefined;
-    originalReportID: string;
+    originalReportID?: string;
     displayAsGroup: boolean;
     draftMessage: string | undefined;
     isHidden: boolean;

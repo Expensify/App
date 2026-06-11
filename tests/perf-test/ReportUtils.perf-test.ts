@@ -145,7 +145,15 @@ describe('ReportUtils', () => {
         const isPreviewMessageForParentChatReport = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportPreviewMessage(report, undefined, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
+        await measureFunction(() =>
+            getReportPreviewMessage({
+                reportOrID: report,
+                iouReportAction: reportAction,
+                shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
+                isPreviewMessageForParentChatReport,
+                policy,
+            }),
+        );
     });
 
     test('[ReportUtils] getReportName on 1k participants', async () => {
