@@ -50,7 +50,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const existingMethod = existingCommuterExclusions?.method;
 
     const [selectedKey, setSelectedKey] = useState<ExclusionOptionKey>(
-        existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE : 'disabled',
+        existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE : CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
     );
     const [fixedDistanceInput, setFixedDistanceInput] = useState<string>(() => (existingCommuterExclusions?.fixedDistance != null ? String(existingCommuterExclusions.fixedDistance) : ''));
     const [inlineError, setInlineError] = useState<string>('');
