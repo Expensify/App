@@ -33,8 +33,10 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
 
-    // Outside-clicks and Escape route through the central cancel handler; return
-    // false to keep the focus trap intact while the confirm modal opens.
+    // Escape routes through the central cancel handler; returning false keeps the trap active.
+    // Outside clicks must keep the default behavior (deactivate the trap and pass through, like
+    // RHP screens): they reach the navigator's backdrop, which requests the cancel flow, and an
+    // intercepting trap would swallow every click aimed at the portal-rendered cancel-confirm modal.
     const interceptFocusTrapEscape = () => {
         requestCancel();
         return false;
@@ -45,8 +47,6 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
             testID={MultifactorAuthenticationPromptPage.displayName}
             focusTrapSettings={{
                 focusTrapOptions: {
-                    allowOutsideClick: interceptFocusTrapEscape,
-                    clickOutsideDeactivates: interceptFocusTrapEscape,
                     escapeDeactivates: interceptFocusTrapEscape,
                 },
             }}
