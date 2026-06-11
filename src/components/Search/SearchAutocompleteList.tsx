@@ -14,7 +14,6 @@ import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useFilteredOptions from '@hooks/useFilteredOptions';
-import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -139,7 +138,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     );
 }
 
-function SearchAutocompleteListContent({
+function SearchAutocompleteList({
     autocompleteQueryValue,
     handleSearch,
     searchQueryItems,
@@ -668,18 +667,6 @@ function SearchAutocompleteListContent({
             }}
         />
     );
-}
-
-SearchAutocompleteListContent.displayName = 'SearchAutocompleteListContent';
-
-function SearchAutocompleteList(props: SearchAutocompleteListProps) {
-    const isFocusedUntilTransitionEnd = useIsFocusedUntilTransitionEnd();
-
-    if (!isFocusedUntilTransitionEnd) {
-        return null;
-    }
-
-    return <SearchAutocompleteListContent {...props} />;
 }
 
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
