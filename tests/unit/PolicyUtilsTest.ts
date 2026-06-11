@@ -40,6 +40,7 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -2779,6 +2780,28 @@ describe('PolicyUtils', () => {
             expect(result['bob@acme.com']).toBeUndefined();
         });
     });
+    describe('isSubmitterApproveBlockedOnSubmitWorkspace', () => {
+        const submitPolicy: Policy = {...createRandomPolicy(99000, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-approve-block-test'};
+        const teamPolicy: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.TEAM), id: 'policy-team-approve-block-test'};
+        const submitterAccountID = 100;
+
+        it('returns true when policy is Submit and the approver is the report owner', () => {
+            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, submitterAccountID, submitterAccountID)).toBe(true);
+        });
+
+        it('returns false when policy is Submit and the approver is not the report owner', () => {
+            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, submitterAccountID, approverAccountID)).toBe(false);
+        });
+
+        it('returns false when policy is not Submit even if the approver is the report owner', () => {
+            expect(isSubmitterApproveBlockedOnSubmitWorkspace(teamPolicy, submitterAccountID, submitterAccountID)).toBe(false);
+        });
+
+        it('returns false when report owner account ID is undefined', () => {
+            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, undefined, submitterAccountID)).toBe(false);
+        });
+    });
+
     describe('canAccessSubmitWorkspaceFeatures', () => {
         const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
         const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};

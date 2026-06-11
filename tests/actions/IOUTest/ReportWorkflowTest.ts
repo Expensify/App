@@ -2112,35 +2112,6 @@ describe('actions/IOU/ReportWorkflow', () => {
     });
 
     describe('canApproveIOU', () => {
-        it('should return false for Submit workspace even when approvalMode is ADVANCED', async () => {
-            const policyID = '2';
-            const reportID = '1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                type: CONST.POLICY.TYPE.SUBMIT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            };
-            const fakeReport: Report = {
-                ...createRandomReport(Number(reportID), undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
-                managerID: RORY_ACCOUNT_ID,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            };
-            const fakeTransaction: Transaction = {
-                ...createRandomTransaction(0),
-                reportID,
-                amount: 100,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
-            await waitForBatchedUpdates();
-
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBe(false);
-        });
-
         it('should return false if we have only pending card transactions', async () => {
             const policyID = '2';
             const reportID = '1';

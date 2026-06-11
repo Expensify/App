@@ -787,6 +787,92 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
 
+    it('does not include APPROVE option when submitter is the manager on a Submit workspace even with duplicate violations', async () => {
+        const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_SUBMITTER';
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+        const policy = {
+            type: CONST.POLICY.TYPE.SUBMIT,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            preventSelfApproval: false,
+            approver: EMPLOYEE_EMAIL,
+        } as unknown as Policy;
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+        const violation = {
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        } as TransactionViolation;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
+    });
+
+    it('includes APPROVE option when a different user is the manager on a Submit workspace with duplicate violations', async () => {
+        const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_APPROVER';
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: APPROVER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+        const policy = {
+            type: CONST.POLICY.TYPE.SUBMIT,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            preventSelfApproval: false,
+            approver: APPROVER_EMAIL,
+        } as unknown as Policy;
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+        const violation = {
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        } as TransactionViolation;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: APPROVER_EMAIL,
+            currentUserAccountID: APPROVER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
+    });
+
     it('includes APPROVE option for report with RTER violations when it is submitted', () => {
         const report = {
             reportID: REPORT_ID,

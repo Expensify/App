@@ -7401,6 +7401,22 @@ describe('ReportUtils', () => {
             };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
+
+        it('should return false when submitter is the approver on a Submit workspace even if preventSelfApproval is disabled', () => {
+            const submitPolicy: Policy = {
+                ...createRandomPolicy(6, CONST.POLICY.TYPE.SUBMIT),
+                preventSelfApproval: false,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, submitPolicy)).toBeFalsy();
+        });
+
+        it('should return true when a different user is the approver on a Submit workspace', () => {
+            const submitPolicy: Policy = {
+                ...createRandomPolicy(6, CONST.POLICY.TYPE.SUBMIT),
+                preventSelfApproval: false,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID + 1, submitPolicy)).toBeTruthy();
+        });
     });
 
     describe('isArchivedReport', () => {
