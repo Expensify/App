@@ -769,7 +769,6 @@
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	12
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
-"../../src/libs/ReportSecondaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	28
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	34
@@ -789,7 +788,6 @@
 "../../src/libs/StatusBar/types.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/StringUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/TransactionPreviewUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	5
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
@@ -1929,7 +1927,6 @@
 "../../tests/unit/TelemetrySynchronizerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/TransactionNavigationUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/TransactionPreviewUtils.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
-"../../tests/unit/TransactionPreviewUtils.test.ts"	"no-restricted-imports"	1
 "../../tests/unit/TransactionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	12
 "../../tests/unit/TransactionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/unit/TranslateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
