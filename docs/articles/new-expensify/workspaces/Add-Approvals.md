@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -103,6 +103,25 @@ Even with auto-approvals enabled, you can route a percentage of compliant report
 3. Click **Save**.
 
 **Note:** Custom auto-approval settings are only available on the Control plan. Collect plans will have a $100 auto-approval threshold and 0% random audit percentage. 
+
+---
+
+# Set Category and Tag approvers
+
+In addition to the workspace approval workflow, Control plan workspaces can assign an approver to a specific **Category** or **Tag**. When a report contains an expense that uses one of these categories or tags, the report is routed to the Category and Tag approvers *before* it continues through the workspace's normal approval workflow.
+
+The approval order is:
+
+1. **Category approver(s)** – approve first.
+2. **Tag approver(s)** – approve next.
+3. **Workspace workflow approver(s)** – the default or custom workflow you configured above runs last.
+
+Category and Tag approvers are added to the approval chain — they don't replace the workflow approvers. To set them up, see:
+
+- [Create expense categories](/articles/new-expensify/workspaces/Create-expense-categories) (Category Rules > Approver)
+- [Create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags) (Tag Rules > Approver)
+
+---
 
 # FAQ
 
