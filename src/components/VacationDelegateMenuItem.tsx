@@ -1,9 +1,9 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
@@ -41,8 +41,14 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
 
     const hasVacationDelegate = !!vacationDelegate?.delegate;
     const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
-    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
-    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
+
+    // Render phone-number delegates as the raw E.164 string (e.g. "+9779806050938") rather than
+    // running them through `formatPhoneNumber`, which would otherwise reformat the number to either
+    // the national (e.g. "980-6050938") or international-with-spaces (e.g. "+977 980 605 0938") form
+    // depending on the user's country, and diverge from the recent/selected row in
+    // BaseVacationDelegateSelectionComponent and the confirmation modal.
+    const delegateLogin = Str.removeSMSDomain(vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '');
+    const delegateDisplayName = Str.removeSMSDomain(vacationDelegatePersonalDetails?.displayName ?? delegateLogin);
 
     return hasVacationDelegate ? (
         <>
@@ -54,8 +60,8 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                 onClose={onCloseError}
             >
                 <MenuItem
-                    title={formatPhoneNumber(vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin ?? '')}
-                    description={formatPhoneNumber(fallbackVacationDelegateLogin ?? '')}
+                    title={delegateDisplayName}
+                    description={delegateLogin}
                     avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                     icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}

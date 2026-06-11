@@ -191,7 +191,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
             expect(row?.accountID).toBe(43);
             expect(row?.isSelected).toBe(true);
             // The icon id must be the real accountID when personal details are present.
-            const icons = row?.icons as Array<{id: number}> | undefined;
+            const icons = Array.isArray(row?.icons) ? (row.icons as Array<Record<string, unknown>>) : undefined;
             expect(icons?.at(0)?.id).toBe(43);
         });
     });
@@ -227,7 +227,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
             expect(row?.isSelected).toBe(true);
             // Avatar icon id must also fall back to DEFAULT_MISSING_ID so UserListItem renders the
             // fallback avatar rather than gating it off behind a missing accountID.
-            const icons = row?.icons as Array<{id: number; name: string}> | undefined;
+            const icons = Array.isArray(row?.icons) ? (row.icons as Array<Record<string, unknown>>) : undefined;
             expect(icons?.at(0)?.id).toBe(CONST.DEFAULT_MISSING_ID);
             expect(icons?.at(0)?.name).toBe(PHONE_DELEGATE_RAW);
         });

@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -6,7 +7,6 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -86,15 +86,21 @@ function BaseVacationDelegateSelectionComponent({
     const sectionsList = [];
 
     if (currentVacationDelegate) {
-        const formattedDelegate = formatPhoneNumber(currentVacationDelegate);
+        // Render phone-number delegates as the raw E.164 string (e.g. "+9779806050938") instead of
+        // running them through `formatPhoneNumber`, which would otherwise reformat the number to
+        // either the national (e.g. "980-6050938") or international-with-spaces (e.g. "+977 980 605 0938")
+        // form depending on the user's country, and diverge from VacationDelegateMenuItem and the
+        // confirmation modal.
+        const sanitizedDelegate = Str.removeSMSDomain(currentVacationDelegate);
+        const sanitizedDelegateLogin = Str.removeSMSDomain(delegatePersonalDetails?.login ?? currentVacationDelegate);
         sectionsList.push({
             title: undefined,
             sectionIndex: 0,
             data: [
                 {
                     ...(delegatePersonalDetails ?? {}),
-                    text: delegatePersonalDetails?.displayName ?? formattedDelegate,
-                    alternateText: formatPhoneNumber(delegatePersonalDetails?.login ?? '') ?? formattedDelegate,
+                    text: Str.removeSMSDomain(delegatePersonalDetails?.displayName ?? sanitizedDelegate),
+                    alternateText: sanitizedDelegateLogin,
                     login: delegatePersonalDetails?.login ?? currentVacationDelegate,
                     keyForList: `vacationDelegate-${delegatePersonalDetails?.login}`,
                     isDisabled: false,
@@ -104,7 +110,7 @@ function BaseVacationDelegateSelectionComponent({
                     icons: [
                         {
                             source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? formattedDelegate),
+                            name: sanitizedDelegateLogin,
                             type: CONST.ICON_TYPE_AVATAR,
                             id: delegatePersonalDetails?.accountID ?? CONST.DEFAULT_MISSING_ID,
                         },
