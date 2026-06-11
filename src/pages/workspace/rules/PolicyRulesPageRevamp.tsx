@@ -1,11 +1,17 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import Button from '@components/Button';
-import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
+import FeatureList from '@components/FeatureList';
+import type {FeatureListItem} from '@components/FeatureList';
+import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
+import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTable';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,8 +19,11 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,6 +31,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,15 +65,87 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Flash']);
+    const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardIllustration', 'ExpensifyCardProtectionIllustration', 'MoneyReceipts', 'CreditCardsNew', 'MoneyWings']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMerge']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
     const [activeTab, setActiveTab] = useState<RulesTab>(RULES_TAB.GENERAL);
+    const [selectedSpendRuleKeys, setSelectedSpendRuleKeys] = useState<string[]>([]);
+
+    const {showConfirmModal} = useConfirmModal();
+    const defaultFundID = useDefaultFundID(policyID);
+    const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const {cardRules} = useExpensifyCardRules(policyID);
+
+    useEffect(() => {
+        if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
+            return;
+        }
+        if (expensifyCardSettings?.isLoading || expensifyCardSettings?.hasOnceLoaded) {
+            return;
+        }
+        openPolicyExpensifyCardsPage(policyID, defaultFundID);
+    }, [defaultFundID, expensifyCardSettings?.hasOnceLoaded, expensifyCardSettings?.isLoading, policyID]);
+
+    const showBuiltInProtectionModal = useCallback(() => {
+        showConfirmModal({
+            image: illustrations.ExpensifyCardProtectionIllustration,
+            imageStyles: [styles.w100],
+            shouldFitImageToContainer: true,
+            title: translate('workspace.rules.spendRules.builtInProtectionModal.title'),
+            titleStyles: [styles.textHeadlineH1],
+            titleContainerStyles: [styles.mb3],
+            prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
+            promptStyles: [styles.mb1],
+            shouldShowCancelButton: false,
+            success: false,
+            confirmText: translate('common.buttonConfirm'),
+            innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
+        });
+    }, [showConfirmModal, illustrations.ExpensifyCardProtectionIllustration, styles, translate, shouldUseNarrowLayout, StyleUtils]);
+
+    const spendRulesTableData: SpendRuleTableItem[] = useMemo(() => {
+        const blockLabel = translate('workspace.rules.spendRules.block');
+
+        const defaultRule: SpendRuleTableItem = {
+            keyForList: 'default-rule',
+            ruleID: 'default-rule',
+            isDefault: true,
+            isBlock: true,
+            disabled: true,
+            actionLabel: blockLabel,
+            cardSummary: translate('workspace.rules.spendRules.defaultRuleDescription'),
+            ruleSummary: translate('workspace.rules.spendRules.defaultRuleSummary'),
+            searchTokens: [],
+            action: showBuiltInProtectionModal,
+        };
+
+        const customRules: SpendRuleTableItem[] = cardRules.map((rule) => {
+            const ruleSummary = rule.summaryParts.map((part) => part.text).join(', ');
+            return {
+                keyForList: rule.ruleID,
+                ruleID: rule.ruleID,
+                isDefault: false,
+                isBlock: rule.isBlock,
+                actionLabel: rule.actionLabel,
+                cardSummary: rule.cardSummary,
+                ruleSummary,
+                searchTokens: rule.searchTokens,
+                pendingAction: rule.pendingAction,
+                disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                action: () => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID)),
+            };
+        });
+
+        return [defaultRule, ...customRules];
+    }, [cardRules, policyID, translate, showBuiltInProtectionModal]);
 
     const fetchRules = useCallback(() => {
         openPolicyRulesPage(policyID);
@@ -126,6 +208,43 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         );
     };
 
+    const cardRulesUpsellFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {icon: illustrations.MoneyReceipts, translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack' as const},
+            {icon: illustrations.CreditCardsNew, translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited' as const},
+            {icon: illustrations.MoneyWings, translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend' as const},
+        ],
+        [illustrations.MoneyReceipts, illustrations.CreditCardsNew, illustrations.MoneyWings],
+    );
+
+    const renderCardRestrictionsContent = () => {
+        if (!policy?.areExpensifyCardsEnabled) {
+            return (
+                <FeatureList
+                    menuItems={cardRulesUpsellFeatures}
+                    title={translate('workspace.rules.spendRules.cardRulesUpsell.title')}
+                    subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
+                    ctaText={translate('workspace.rules.spendRules.cardRulesUpsell.cta')}
+                    ctaAccessibilityLabel={translate('workspace.rules.spendRules.cardRulesUpsell.cta')}
+                    onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID))}
+                    illustrationBackgroundColor={theme.fallbackIconColor}
+                    illustration={illustrations.ExpensifyCardIllustration}
+                    illustrationStyle={styles.expensifyCardIllustrationContainer}
+                    titleStyles={styles.textHeadlineH1}
+                />
+            );
+        }
+
+        return (
+            <WorkspaceSpendRulesTable
+                rulesData={spendRulesTableData}
+                selectionEnabled={canWriteRules}
+                selectedKeys={selectedSpendRuleKeys}
+                onRowSelectionChange={setSelectedSpendRuleKeys}
+            />
+        );
+    };
+
     const renderTabContent = () => {
         switch (activeTab) {
             case RULES_TAB.GENERAL:
@@ -148,18 +267,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                             canWriteRules={canWriteRules}
                         />
                     </>
-                );
-            case RULES_TAB.CARD_RESTRICTIONS:
-                if (!policy?.areExpensifyCardsEnabled) {
-                    // TODO: Show Expensify Card upsell empty state
-                    return null;
-                }
-                return (
-                    <SpendRulesSection
-                        policyID={policyID}
-                        canWriteRules={canWriteRules}
-                        showReadOnlyModal={showReadOnlyModal}
-                    />
                 );
             case RULES_TAB.EXPENSE_DEFAULTS:
                 return (
@@ -207,8 +314,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                             }}
                         />
                     </View>
-                    {renderTabContent()}
-                    {isCustomAgentBetaEnabled && (
+                    {activeTab !== RULES_TAB.CARD_RESTRICTIONS && renderTabContent()}
+                    {isCustomAgentBetaEnabled && !isRulesRevampEnabled && (
                         <AIRulesSection
                             policyID={policyID}
                             canWriteRules={canWriteRules}
@@ -216,6 +323,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                         />
                     )}
                 </View>
+                {activeTab === RULES_TAB.CARD_RESTRICTIONS && renderCardRestrictionsContent()}
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );

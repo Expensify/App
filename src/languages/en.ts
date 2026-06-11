@@ -7407,6 +7407,18 @@ const translations = {
                 defaultRuleDescription: 'All cards',
                 block: 'Block',
                 defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
+                defaultRuleSummary: 'Categories including adult services, ATMs, gambling, and...',
+                findRule: 'Find rule',
+                defaultSection: 'Default',
+                customRulesSection: 'Custom rules',
+                tableColumnType: 'Type',
+                tableColumnCard: 'Card',
+                tableColumnRule: 'Rule',
+                cardRulesUpsell: {
+                    title: 'Get the Expensify Card and control spend',
+                    subtitle: 'With the Expensify Card you can set rules for max spend, block or allow certain merchants or types of purchases. You also get 2% cash back.',
+                    cta: 'Get the card',
+                },
                 builtInProtectionModal: {
                     title: 'Expensify Cards offer built-in protection - always',
                     description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
