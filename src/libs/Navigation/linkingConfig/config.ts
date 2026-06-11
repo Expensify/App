@@ -833,27 +833,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_LIST_VALUES.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_ADD_VALUE.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_VALUE.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_SETTINGS.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE.route,
-                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
                         },
@@ -1196,7 +1175,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
                             path: ROUTES.WORKSPACE_CREATE_REPORT_FIELD.route,
                         },
-                        [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path,
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
                         },
@@ -1775,6 +1753,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_VENDOR]: ROUTES.MONEY_REQUEST_STEP_VENDOR.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
