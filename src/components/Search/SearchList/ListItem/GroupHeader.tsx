@@ -179,11 +179,10 @@ function GroupHeader({
             if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
                 continue;
             }
-            const tx = snapshotData[key as keyof typeof snapshotData];
-            if (!tx || typeof tx !== 'object' || !('transactionID' in tx) || !('reportID' in tx)) {
+            const transaction = snapshotData[key as keyof typeof snapshotData] as Transaction;
+            if (!transaction?.transactionID) {
                 continue;
             }
-            const transaction = tx as Transaction;
             const report = snapshotData[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             items.push({
                 ...transaction,
