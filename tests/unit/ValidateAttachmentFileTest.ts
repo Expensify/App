@@ -329,4 +329,52 @@ describe('validateAttachmentFile', () => {
             }
         });
     });
+
+    describe('object URL revocation', () => {
+        it('revokes the superseded blob: uri and assigns the new object URL', async () => {
+            // In Node/Jest the react-native-url-polyfill throws for createObjectURL (no BlobModule).
+            // Mock it so the File path that assigns file.uri can run.
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
+            const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+            try {
+                const previousUri = 'blob:previous-url';
+                const fileWithUri: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'image.png', {type: 'image/png'});
+                fileWithUri.uri = previousUri;
+
+                const error = await validateAttachmentFile(fileWithUri);
+
+                expect(error.isValid).toBe(true);
+                if (!error.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(revokeObjectURLSpy).toHaveBeenCalledWith(previousUri);
+                expect(error.file.uri).toBe('blob:new-url');
+            } finally {
+                createObjectURLSpy.mockRestore();
+                revokeObjectURLSpy.mockRestore();
+            }
+        });
+
+        it('does not revoke any object URL when the incoming file has no uri', async () => {
+            // In Node/Jest the react-native-url-polyfill throws for createObjectURL (no BlobModule).
+            // Mock it so the File path that assigns file.uri can run.
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
+            const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+            try {
+                const fileWithoutUri: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'image.png', {type: 'image/png'});
+
+                const error = await validateAttachmentFile(fileWithoutUri);
+
+                expect(error.isValid).toBe(true);
+                if (!error.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(revokeObjectURLSpy).not.toHaveBeenCalled();
+                expect(error.file.uri).toBe('blob:new-url');
+            } finally {
+                createObjectURLSpy.mockRestore();
+                revokeObjectURLSpy.mockRestore();
+            }
+        });
+    });
 });
