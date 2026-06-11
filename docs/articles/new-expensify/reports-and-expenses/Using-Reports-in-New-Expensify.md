@@ -75,7 +75,7 @@ To view the full list of available columns, click the **Columns** icon in the **
 
 ---
 
-# How to group expenses by category, tag, or none using Report Layout
+## How to group expenses by category, tag, or none using Report Layout
 
 Report Layout lets you group the expenses inside a report—or show them as a flat list—to make reviews faster and easier.
 
