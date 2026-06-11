@@ -21,6 +21,7 @@ type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends (...arg
  * Translation object is a recursive object that can contain other objects or string/function values
  */
 type TranslationDeepObject<TTranslations = any> = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Path in keyof TTranslations]: TTranslations[Path] extends string | ((...args: any[]) => any)
         ? TranslationLeafValue<TTranslations[Path]>
         : TTranslations[Path] extends number | boolean | null | undefined | unknown[]
