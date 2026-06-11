@@ -31,7 +31,6 @@ import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthentica
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 function AddPaymentCard() {
@@ -121,7 +120,6 @@ function AddPaymentCard() {
                             addPaymentCard={addPaymentCard}
                             showAcceptTerms
                             showCurrencyField
-                            currencySelectorRoute={ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY}
                             submitButtonText={translate('subscription.paymentCard.addPaymentCard')}
                             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('subscription.paymentCard.enterPaymentCardDetails')}</Text>}
                             footerContent={

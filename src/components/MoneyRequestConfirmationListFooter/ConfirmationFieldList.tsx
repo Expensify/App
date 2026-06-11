@@ -7,12 +7,10 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTagLists} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import ClassificationFields from './fieldGroups/ClassificationFields';
@@ -83,18 +81,13 @@ function ConfirmationFieldList({
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
-    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isEditingSplitBill} = useConfirmationFields();
-
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-    const [existingTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const transaction = isEditingSplitBill ? (splitDraftTransaction ?? existingTransaction) : (draftTransaction ?? existingTransaction);
+    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
     const policyTagLists = getTagLists(policyTags);
 
     const flags = useFooterDerivedFlags({
         action,
         iouType,
-        transaction,
+        transactionID,
         policy,
         policyTagLists,
         isPolicyExpenseChat,
@@ -110,7 +103,7 @@ function ConfirmationFieldList({
         shouldShowTags: flags.shouldShowTags,
         policy,
         policyTags,
-        transaction,
+        transactionID,
     });
 
     const fieldVisibility = computeFieldVisibility({
@@ -179,7 +172,6 @@ function ConfirmationFieldList({
             />
 
             <SettingsFields
-                transaction={transaction}
                 selectedParticipants={selectedParticipants}
                 shouldShowBillable={flags.shouldShowBillable}
                 shouldShowReimbursable={flags.shouldShowReimbursable}

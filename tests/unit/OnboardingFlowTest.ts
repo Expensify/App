@@ -4,6 +4,23 @@ import CONST from '@src/CONST';
 
 describe('OnboardingFlow', () => {
     describe('getOnboardingInitialPath', () => {
+        it('should return the onboarding fallback path when the last visited path is null', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: null,
+                onboardingValues: undefined,
+            };
+
+            let path = '';
+            expect(() => {
+                path = getOnboardingInitialPath(params);
+            }).not.toThrow();
+            expect(path).toBe('/onboarding');
+        });
+
         it('should return the correct path for personal spend', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: false,
@@ -64,7 +81,7 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/accounting');
+            expect(path).toBe('/onboarding/employees');
         });
 
         it('should return the correct path for SMB and is not from public domain', () => {
