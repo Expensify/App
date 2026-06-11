@@ -5,8 +5,8 @@ import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type * as SubscriptionUtilsModule from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import createRandomPolicy from '../utils/collections/policies';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import createRandomPolicy from '../../utils/collections/policies';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/SubscriptionUtils', () => ({
     ...jest.requireActual<typeof SubscriptionUtilsModule>('@libs/SubscriptionUtils'),
