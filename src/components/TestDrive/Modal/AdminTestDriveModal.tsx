@@ -1,11 +1,10 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isAdminRoom} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,9 +17,12 @@ function AdminTestDriveModal() {
 
     const navigate = () => {
         Log.hmmm('[AdminTestDriveModal] Navigate function called');
-        InteractionManager.runAfterInteractions(() => {
-            Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
-            Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
+                Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+            },
+            waitForUpcomingTransition: true,
         });
     };
 

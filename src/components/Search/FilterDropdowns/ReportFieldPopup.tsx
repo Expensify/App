@@ -38,32 +38,17 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
         closeOverlay();
     };
 
-    const resetChanges = () => {
-        if (!reportFieldRef.current) {
-            return;
-        }
-
-        if (selectedField) {
-            reportFieldRef.current.resetSelectedFieldAndGoBack();
-            return;
-        }
-
-        updateFilterForm(reportFieldRef.current.getEmptyValue());
-        closeOverlay();
-    };
-
     return (
         <BasePopup
             label={selectedField ? undefined : translate('workspace.common.reportField')}
-            onReset={resetChanges}
             onApply={applyChanges}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT_FIELD}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT_FIELD}
             style={[styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode)]}
         >
             <ReportFieldBase
                 ref={reportFieldRef}
                 values={values}
+                hasFeed={!!values.feed}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
             />
