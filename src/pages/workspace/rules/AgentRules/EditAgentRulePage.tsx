@@ -1,39 +1,46 @@
 import React, {useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {rand64} from '@libs/NumberUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {addPolicyAIRule} from '@userActions/Policy/Rules';
+import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/AddAIRuleForm';
+import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
-type AddAIRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AI_NEW>;
-type AddAIRuleFormID = typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM;
+type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
+type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
 
-function AddAIRulePage({
+function EditAgentRulePage({
     route: {
-        params: {policyID},
+        params: {policyID, ruleID},
     },
-}: AddAIRulePageProps) {
+}: EditAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const policy = usePolicy(policyID);
+    const agentRule = policy?.rules?.aiRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
 
     const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -45,18 +52,47 @@ function AddAIRulePage({
         }
     };
 
-    const validate = (values: FormOnyxValues<AddAIRuleFormID>): FormInputErrors<AddAIRuleFormID> => {
-        const errors: FormInputErrors<AddAIRuleFormID> = {};
+    const validate = (values: FormOnyxValues<EditAgentRuleFormID>): FormInputErrors<EditAgentRuleFormID> => {
+        const errors: FormInputErrors<EditAgentRuleFormID> = {};
         if (!values[INPUT_IDS.PROMPT].trim()) {
             errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
         }
         return errors;
     };
 
-    const saveRule = (values: FormOnyxValues<AddAIRuleFormID>): void => {
-        addPolicyAIRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
+    const saveRule = (values: FormOnyxValues<EditAgentRuleFormID>): void => {
+        const newPrompt = values[INPUT_IDS.PROMPT];
+        const previousPrompt = agentRule?.prompt ?? '';
+        if (newPrompt !== previousPrompt) {
+            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt);
+        }
         Navigation.goBack();
     };
+
+    const handleDelete = () => {
+        if (!policy || !agentRule) {
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('workspace.rules.agentRules.deleteRule'),
+            prompt: translate('workspace.rules.agentRules.deleteRuleConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            deletePolicyAgentRule(policy, ruleID);
+            Navigation.goBack();
+        });
+    };
+
+    if (!agentRule) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -66,14 +102,14 @@ function AddAIRulePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
-                testID="AddAIRulePage"
+                testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate('workspace.rules.aiRules.addRuleTitle')} />
+                <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
                 <FormProvider
                     ref={formRef}
-                    formID={ONYXKEYS.FORMS.ADD_AI_RULE_FORM}
+                    formID={ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM}
                     validate={validate}
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
@@ -85,19 +121,30 @@ function AddAIRulePage({
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
+                    shouldRenderFooterAboveSubmit
+                    footerContent={
+                        <Button
+                            text={translate('workspace.rules.agentRules.deleteRule')}
+                            onPress={handleDelete}
+                            style={[styles.mb4]}
+                            large
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
+                        />
+                    }
                 >
                     <View style={styles.flex1}>
                         <View style={[styles.gap2, styles.mv4]}>
-                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.aiRules.describeRuleTitle')}</Text>
-                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.aiRules.describeRuleSubtitle')}</Text>
+                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.agentRules.describeRuleTitle')}</Text>
+                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.agentRules.describeRuleSubtitle')}</Text>
                         </View>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
-                            label={translate('workspace.rules.aiRules.describeRuleTitle')}
-                            accessibilityLabel={translate('workspace.rules.aiRules.describeRuleTitle')}
+                            label={translate('workspace.rules.agentRules.describeRuleTitle')}
+                            accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
                             role={CONST.ROLE.PRESENTATION}
                             onKeyPress={handleKeyPress}
+                            defaultValue={agentRule.prompt}
                             multiline
                             containerStyles={[styles.flex1]}
                             touchableInputWrapperStyle={[styles.flex1]}
@@ -112,4 +159,4 @@ function AddAIRulePage({
     );
 }
 
-export default AddAIRulePage;
+export default EditAgentRulePage;

@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {addPolicyAIRule, clearPolicyAIRuleErrors, clearPolicyCodingRuleErrors, deletePolicyAIRule, updatePolicyAIRule} from '@libs/actions/Policy/Rules';
+import {addPolicyAgentRule, clearPolicyAgentRuleErrors, clearPolicyCodingRuleErrors, deletePolicyAgentRule, updatePolicyAgentRule} from '@libs/actions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {AIRule, CodingRule} from '@src/types/onyx/Policy';
+import type {AgentRule, CodingRule} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -40,7 +40,7 @@ describe('actions/PolicyRules', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    describe('addPolicyAIRule', () => {
+    describe('addPolicyAgentRule', () => {
         it('optimistically adds the AI rule with a pending ADD action, then clears it on success', async () => {
             const fakePolicy = createRandomPolicy(0);
             const aiRuleID = 'aiRule1';
@@ -49,7 +49,7 @@ describe('actions/PolicyRules', () => {
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            addPolicyAIRule(fakePolicy.id, aiRuleID, prompt);
+            addPolicyAgentRule(fakePolicy.id, aiRuleID, prompt);
             await waitForBatchedUpdates();
 
             let policy = await getPolicy(fakePolicy.id);
@@ -77,7 +77,7 @@ describe('actions/PolicyRules', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             mockFetch?.fail?.();
 
-            addPolicyAIRule(fakePolicy.id, aiRuleID, prompt);
+            addPolicyAgentRule(fakePolicy.id, aiRuleID, prompt);
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
@@ -90,9 +90,9 @@ describe('actions/PolicyRules', () => {
             const fakePolicy = createRandomPolicy(0);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            addPolicyAIRule('', 'id', 'p');
-            addPolicyAIRule(fakePolicy.id, '', 'p');
-            addPolicyAIRule(fakePolicy.id, 'id', '');
+            addPolicyAgentRule('', 'id', 'p');
+            addPolicyAgentRule(fakePolicy.id, '', 'p');
+            addPolicyAgentRule(fakePolicy.id, 'id', '');
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
@@ -100,14 +100,14 @@ describe('actions/PolicyRules', () => {
         });
     });
 
-    describe('updatePolicyAIRule', () => {
+    describe('updatePolicyAgentRule', () => {
         it('optimistically updates the prompt and clears the pending action on success', async () => {
             const fakePolicy = createRandomPolicy(0);
             const aiRuleID = 'aiRule1';
             const previousPrompt = 'Old prompt';
             const newPrompt = 'New prompt';
 
-            const seededRule: AIRule = {
+            const seededRule: AgentRule = {
                 ruleID: aiRuleID,
                 prompt: previousPrompt,
                 created: '2026-06-08T00:00:00.000Z',
@@ -118,7 +118,7 @@ describe('actions/PolicyRules', () => {
             });
 
             mockFetch?.pause?.();
-            updatePolicyAIRule(fakePolicy.id, aiRuleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(fakePolicy.id, aiRuleID, newPrompt, previousPrompt);
             await waitForBatchedUpdates();
 
             let policy = await getPolicy(fakePolicy.id);
@@ -140,7 +140,7 @@ describe('actions/PolicyRules', () => {
             const previousPrompt = 'Original';
             const newPrompt = 'Attempted';
 
-            const seededRule: AIRule = {
+            const seededRule: AgentRule = {
                 ruleID: aiRuleID,
                 prompt: previousPrompt,
                 created: '2026-06-08T00:00:00.000Z',
@@ -151,7 +151,7 @@ describe('actions/PolicyRules', () => {
             });
 
             mockFetch?.fail?.();
-            updatePolicyAIRule(fakePolicy.id, aiRuleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(fakePolicy.id, aiRuleID, newPrompt, previousPrompt);
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
@@ -164,7 +164,7 @@ describe('actions/PolicyRules', () => {
         it('is a no-op when required params are missing', async () => {
             const fakePolicy = createRandomPolicy(0);
             const aiRuleID = 'aiRule1';
-            const seededRule: AIRule = {
+            const seededRule: AgentRule = {
                 ruleID: aiRuleID,
                 prompt: 'Original',
                 created: '2026-06-08T00:00:00.000Z',
@@ -174,7 +174,7 @@ describe('actions/PolicyRules', () => {
                 rules: {aiRules: {[aiRuleID]: seededRule}},
             });
 
-            updatePolicyAIRule(fakePolicy.id, aiRuleID, '', 'Original');
+            updatePolicyAgentRule(fakePolicy.id, aiRuleID, '', 'Original');
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
@@ -183,11 +183,11 @@ describe('actions/PolicyRules', () => {
         });
     });
 
-    describe('deletePolicyAIRule', () => {
+    describe('deletePolicyAgentRule', () => {
         it('optimistically marks DELETE then removes the rule on success', async () => {
             const fakePolicy = createRandomPolicy(0);
             const aiRuleID = 'aiRule1';
-            const seededRule: AIRule = {
+            const seededRule: AgentRule = {
                 ruleID: aiRuleID,
                 prompt: 'p',
                 created: '2026-06-08T00:00:00.000Z',
@@ -199,7 +199,7 @@ describe('actions/PolicyRules', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, policyWithRule);
 
             mockFetch?.pause?.();
-            deletePolicyAIRule(policyWithRule, aiRuleID);
+            deletePolicyAgentRule(policyWithRule, aiRuleID);
             await waitForBatchedUpdates();
 
             let policy = await getPolicy(fakePolicy.id);
@@ -215,7 +215,7 @@ describe('actions/PolicyRules', () => {
         it('restores the rule and sets an error on failure', async () => {
             const fakePolicy = createRandomPolicy(0);
             const aiRuleID = 'aiRule1';
-            const seededRule: AIRule = {
+            const seededRule: AgentRule = {
                 ruleID: aiRuleID,
                 prompt: 'keep me',
                 created: '2026-06-08T00:00:00.000Z',
@@ -227,7 +227,7 @@ describe('actions/PolicyRules', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, policyWithRule);
 
             mockFetch?.fail?.();
-            deletePolicyAIRule(policyWithRule, aiRuleID);
+            deletePolicyAgentRule(policyWithRule, aiRuleID);
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
@@ -246,8 +246,8 @@ describe('actions/PolicyRules', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, policyWithRule);
 
-            deletePolicyAIRule(policyWithRule, '');
-            deletePolicyAIRule({...policyWithRule, id: ''}, aiRuleID);
+            deletePolicyAgentRule(policyWithRule, '');
+            deletePolicyAgentRule({...policyWithRule, id: ''}, aiRuleID);
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
@@ -255,11 +255,11 @@ describe('actions/PolicyRules', () => {
         });
     });
 
-    describe('clearPolicyAIRuleErrors', () => {
+    describe('clearPolicyAgentRuleErrors', () => {
         it('removes the rule entirely when its pendingAction was ADD', async () => {
             const fakePolicy = createRandomPolicy(0);
             const aiRuleID = 'aiRule1';
-            const rule: AIRule = {
+            const rule: AgentRule = {
                 ruleID: aiRuleID,
                 prompt: 'p',
                 created: '2026-06-08T00:00:00.000Z',
@@ -271,7 +271,7 @@ describe('actions/PolicyRules', () => {
                 rules: {aiRules: {[aiRuleID]: rule}},
             });
 
-            clearPolicyAIRuleErrors(fakePolicy.id, aiRuleID, rule);
+            clearPolicyAgentRuleErrors(fakePolicy.id, aiRuleID, rule);
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
@@ -281,7 +281,7 @@ describe('actions/PolicyRules', () => {
         it('clears only the errors when the rule has a non-ADD pending action', async () => {
             const fakePolicy = createRandomPolicy(0);
             const aiRuleID = 'aiRule1';
-            const rule: AIRule = {
+            const rule: AgentRule = {
                 ruleID: aiRuleID,
                 prompt: 'p',
                 created: '2026-06-08T00:00:00.000Z',
@@ -293,7 +293,7 @@ describe('actions/PolicyRules', () => {
                 rules: {aiRules: {[aiRuleID]: rule}},
             });
 
-            clearPolicyAIRuleErrors(fakePolicy.id, aiRuleID, rule);
+            clearPolicyAgentRuleErrors(fakePolicy.id, aiRuleID, rule);
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
@@ -307,7 +307,7 @@ describe('actions/PolicyRules', () => {
             const fakePolicy = createRandomPolicy(0);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            clearPolicyAIRuleErrors(fakePolicy.id, 'missing', undefined);
+            clearPolicyAgentRuleErrors(fakePolicy.id, 'missing', undefined);
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);

@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type Policy from '@src/types/onyx/Policy';
-import type {AIRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {AgentRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
@@ -326,9 +326,9 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
+function addPolicyAgentRule(policyID: string, aiRuleID: string, prompt: string) {
     if (!policyID || !aiRuleID || !prompt) {
-        Log.warn('Invalid params for addPolicyAIRule', {policyID, aiRuleID, prompt});
+        Log.warn('Invalid params for addPolicyAgentRule', {policyID, aiRuleID, prompt});
         return;
     }
 
@@ -396,9 +396,9 @@ function addPolicyAIRule(policyID: string, aiRuleID: string, prompt: string) {
     API.write(WRITE_COMMANDS.ADD_POLICY_AI_RULE, parameters, onyxData);
 }
 
-function updatePolicyAIRule(policyID: string, aiRuleID: string, prompt: string, previousPrompt: string) {
+function updatePolicyAgentRule(policyID: string, aiRuleID: string, prompt: string, previousPrompt: string) {
     if (!policyID || !aiRuleID || !prompt) {
-        Log.warn('Invalid params for updatePolicyAIRule', {policyID, aiRuleID, prompt});
+        Log.warn('Invalid params for updatePolicyAgentRule', {policyID, aiRuleID, prompt});
         return;
     }
 
@@ -465,9 +465,9 @@ function updatePolicyAIRule(policyID: string, aiRuleID: string, prompt: string, 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_AI_RULE, parameters, onyxData);
 }
 
-function deletePolicyAIRule(policy: Policy, aiRuleID: string) {
+function deletePolicyAgentRule(policy: Policy, aiRuleID: string) {
     if (!policy.id || !aiRuleID) {
-        Log.warn('Invalid params for deletePolicyAIRule', {policyID: policy.id, aiRuleID});
+        Log.warn('Invalid params for deletePolicyAgentRule', {policyID: policy.id, aiRuleID});
         return;
     }
 
@@ -559,14 +559,14 @@ function clearPolicyCodingRuleErrors(policyID: string, ruleID: string, rule: Cod
     });
 }
 
-function clearPolicyAIRuleErrors(policyID: string, aiRuleID: string, aiRule: AIRule | undefined) {
-    if (!aiRule) {
+function clearPolicyAgentRuleErrors(policyID: string, aiRuleID: string, agentRule: AgentRule | undefined) {
+    if (!agentRule) {
         return;
     }
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    if (aiRule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+    if (agentRule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(policyKey, {
             rules: {
                 aiRules: {
@@ -593,9 +593,9 @@ export {
     setPolicyCodingRule,
     deletePolicyCodingRule,
     getTransactionsMatchingCodingRule,
-    addPolicyAIRule,
-    updatePolicyAIRule,
-    deletePolicyAIRule,
+    addPolicyAgentRule,
+    updatePolicyAgentRule,
+    deletePolicyAgentRule,
     clearPolicyCodingRuleErrors,
-    clearPolicyAIRuleErrors,
+    clearPolicyAgentRuleErrors,
 };
